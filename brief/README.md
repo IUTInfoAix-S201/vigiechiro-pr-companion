@@ -18,17 +18,19 @@
 
 ## Données d'exemple fournies
 
-Un jeu de données réel issu d'une session de capture nocturne (22-23 avril 2026, PR n° 1925492) est mis à votre disposition pour tester votre application au fil du développement :
+Un jeu de données réel issu d'une session de capture nocturne (22-23 avril 2026, PR n° 1925492) vous est fourni en deux variantes complémentaires :
 
-- `LogPR1925492.txt` - log technique du Passive Recorder
-- `PaRecPR1925492_THLog.csv` - log température / humidité
-- `wav/` - 1572 enregistrements ultrasons bruts
-- `kal/` - 2114 fichiers redécoupés par Tadarida + 2 CSV d'observations classifiées
+### 🟢 Sample versionné dans le dépôt - [`samples/`](samples/)
 
-> 📦 Le jeu de données n'est **pas versionné dans ce dépôt** (volumétrie de plusieurs Go). Récupérez-le depuis l'archive `20260423-selected.zip` publiée dans la dernière [Release GitHub](../../releases) du dépôt (ou sur AmeTICE) et décompressez-le dans un dossier nommé `data/` à la racine de votre clone du brief :
+**~518 Mo** disponibles immédiatement après `git clone`. Suffit pour démarrer, pour la CI, et pour tester la majorité des stories. Contient le LogPR + THLog complets, **191 WAV** redécoupés couvrant tous les taxa principaux, et les **2 CSV d'observations** filtrés en cohérence (473 obs sur 4031). Voir [`samples/README.md`](samples/README.md) pour le détail.
+
+### 🔵 Full dataset à télécharger - `data/` (gitignored)
+
+**11 Go** : 1572 WAV bruts + 2114 WAV redécoupés + 4031 observations Tadarida. Indispensable pour valider les stories de **volumétrie** ([O3](Objectifs%20qualités/Objectifs%20qualités/O3.md), [O5](Objectifs%20qualités/Objectifs%20qualités/O5.md)).
+
+> ⏳ **À venir** : lien de téléchargement (AmeTICE / Nextcloud AMU). En attendant, demandez-le à l'équipe pédagogique. Une fois l'archive récupérée :
 >
 > ```bash
-> # depuis la racine de votre clone
 > mkdir -p data
 > unzip ~/Téléchargements/20260423-selected.zip -d data/
 > ```

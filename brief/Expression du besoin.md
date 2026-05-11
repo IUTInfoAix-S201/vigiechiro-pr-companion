@@ -8,7 +8,12 @@ Aucun outil unifié n'existe à ce jour. Plusieurs scripts ad hoc circulent dans
 
 ## Données fournies
 
-Un jeu de données réel issu d'une session de capture nocturne (PR n° 1925492, nuit du 22 au 23 avril 2026, point fixe en zone Z1 de la carrée 640380 du protocole Vigie-Chiro Carré) est mis à votre disposition comme support de développement et de test tout au long du projet. Téléchargez l'archive `20260423-selected.zip` depuis la dernière [Release GitHub](../../releases) du dépôt (ou depuis AmeTICE), puis décompressez-la dans un dossier `data/` à la racine de votre clone (cf. note d'installation du [README](README.md#données-dexemple-fournies)).
+Un jeu de données réel issu d'une session de capture nocturne (PR n° 1925492, nuit du 22 au 23 avril 2026, point fixe en zone Z1 de la carrée 640380 du protocole Vigie-Chiro Carré) est mis à votre disposition comme support de développement et de test tout au long du projet. Il existe en deux variantes :
+
+- **[`samples/`](samples/)** (518 Mo, versionné dans le dépôt) : sous-ensemble représentatif (191 WAV, 473 observations sur tous les taxa principaux). Disponible immédiatement après `git clone`.
+- **`data/`** (11 Go, à télécharger - gitignored) : full dataset (1572 WAV bruts + 2114 WAV redécoupés + 4031 observations). Nécessaire pour valider la volumétrie. Cf. [README](README.md#données-dexemple-fournies).
+
+Le tableau ci-dessous décrit la structure du **full dataset** ; le sample suit la même structure (sans `wav/` et avec les CSV filtrés).
 
 | Fichier / dossier | Contenu |
 |---|---|

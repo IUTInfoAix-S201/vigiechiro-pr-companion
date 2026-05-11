@@ -1,0 +1,96 @@
+site_name: SAE 2.01 - VigieChiro PR Companion
+site_description: Énoncé pédagogique de la SAE 2.01 - BUT Informatique IUT Aix-Marseille
+site_url: https://iutinfoaix-s201.github.io/brief/
+repo_url: https://github.com/IUTInfoAix-S201/brief
+repo_name: IUTInfoAix-S201/brief
+edit_uri: edit/main/
+
+docs_dir: docs
+site_dir: site
+
+theme:
+  name: material
+  language: fr
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.sections
+    - navigation.expand
+    - navigation.indexes
+    - navigation.top
+    - navigation.footer
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.action.edit
+    - content.action.view
+    - content.code.copy
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: deep orange
+      toggle:
+        icon: material/weather-sunny
+        name: Mode sombre
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: deep orange
+      toggle:
+        icon: material/weather-night
+        name: Mode clair
+  icon:
+    repo: fontawesome/brands/github
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - footnotes
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+plugins:
+  - search:
+      lang: fr
+
+nav:
+  - Accueil: index.md
+  - 1. Présentation du projet: Présentation du projet.md
+  - 2. Contraintes techniques: Contraintes techniques.md
+  - 3. Objectifs qualités:
+      - Vue d'ensemble: Objectifs qualités.md
+      - Catégories ISO 25010: Objectifs qualités/Catégorie de qualité.md
+      - Critères ISO 25010: Objectifs qualités/Critère de qualité.md
+      - Objectifs O1..O8: Objectifs qualités/Objectifs qualités.md
+      - Scénarios SC1..SC4: Objectifs qualités/Scénario.md
+  - 4. Expression du besoin: Expression du besoin.md
+  - 5. Analyse et conception:
+      - Vue d'ensemble: Analyse et conception/README.md
+      - Personas: Analyse et conception/Personas.md
+      - Parcours utilisateurs: Analyse et conception/Parcours utilisateurs.md
+      - Story mapping: Analyse et conception/Story mapping.md
+      - Périmètre MVP: Analyse et conception/Périmètre MVP.md
+      - Planification: Analyse et conception/Planification.md
+  - 6. Jalons et livrables: Jalons et livrables.md
+  - 7. Calendrier de travail: Calendrier de travail.md
+  - 8. Consignes générales: Consignes générales.md

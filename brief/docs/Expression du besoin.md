@@ -10,19 +10,19 @@ Aucun outil unifié n'existe à ce jour. Plusieurs scripts ad hoc circulent dans
 
 Un jeu de données réel issu d'une session de capture nocturne (PR n° 1925492, nuit du 22 au 23 avril 2026, point fixe en zone Z1 de la carrée 640380 du protocole Vigie-Chiro Carré) est mis à votre disposition comme support de développement et de test tout au long du projet. Il existe en deux variantes :
 
-- **[`samples/`](samples/)** (518 Mo, versionné dans le dépôt) : sous-ensemble représentatif (191 WAV, 473 observations sur tous les taxa principaux). Disponible immédiatement après `git clone`.
-- **`data/`** (11 Go, à télécharger - gitignored) : full dataset (1572 WAV bruts + 2114 WAV redécoupés + 4031 observations). Nécessaire pour valider la volumétrie. Cf. [README](README.md#données-dexemple-fournies).
+- **[`samples/`](https://github.com/IUTInfoAix-S201/brief/tree/main/samples)** (518 Mo, versionné dans le dépôt) : sous-ensemble représentatif (191 WAV, 473 observations sur tous les taxa principaux). Disponible immédiatement après `git clone`.
+- **`data/`** (11 Go, à télécharger - gitignored) : full dataset (1572 WAV bruts + 2114 WAV redécoupés + 4031 observations). Nécessaire pour valider la volumétrie. Cf. l'[accueil](index.md#donnees-dexemple-fournies).
 
 Le tableau ci-dessous décrit la structure du **full dataset** ; le sample suit la même structure (sans `wav/` et avec les CSV filtrés).
 
 | Fichier / dossier | Contenu |
 |---|---|
-| [`LogPR1925492.txt`](data/LogPR1925492.txt) | Log technique du PR : démarrage, paramètres d'acquisition (`Acquisi. 20:25-07:47, Fe384kHz, FL N, FPH 00, S. R. 16dB 1dt. GN0, Bd. Freq. 8-120kHz, Wav 2-30s SD 99%`), tensions batterie, mises en veille, alarmes wakeup. Une ligne par évènement, format `JJ/MM/AA - HH:MM:SS PR<sn> <message>`. |
-| [`PaRecPR1925492_THLog.csv`](data/PaRecPR1925492_THLog.csv) | Log température / hygrométrie produit par la sonde embarquée. Une mesure toutes les 600 s, colonnes `Date;Hour;Temperature;Humidity`. |
-| [`wav/`](data/wav/) | 1572 fichiers WAV bruts, format `Car<carre>-<annee>-<passage>-<zone>-PaRecPR<sn>_<AAAAMMJJ>_<HHMMSS>.wav` (ex. `Car640380-2026-Pass2-Z1-PaRecPR1925492_20260422_202623.wav`). Mono 16 bits 384 kHz. Durée variable (2 à 30 s, déclenchement sur seuil). |
-| [`kal/`](data/kal/) | 2114 fichiers : les WAV redécoupés par Tadarida (suffixe `_000`, `_001`...) **plus** deux CSV d'observations. |
-| [`kal/8a4fa…-observations.csv`](data/kal/) | CSV des observations brutes Tadarida. Colonnes : `nom du fichier;temps_debut;temps_fin;frequence_mediane;tadarida_taxon;tadarida_probabilite;tadarida_taxon_autre;observateur_taxon;observateur_probabilite;validateur_taxon;validateur_probabilite`. ~4031 lignes. Champs `observateur_*` et `validateur_*` vides au départ - c'est ce que votre application va aider à remplir. |
-| [`kal/…-observations_Vu.csv`](data/kal/) | Même format que ci-dessus, mais avec encodage CSV légèrement différent (séparateur `;` sans guillemets, doubles guillemets vides `""""` pour les champs nuls). Format réinjectable par la plateforme VigieChiro. |
+| `LogPR1925492.txt` | Log technique du PR : démarrage, paramètres d'acquisition (`Acquisi. 20:25-07:47, Fe384kHz, FL N, FPH 00, S. R. 16dB 1dt. GN0, Bd. Freq. 8-120kHz, Wav 2-30s SD 99%`), tensions batterie, mises en veille, alarmes wakeup. Une ligne par évènement, format `JJ/MM/AA - HH:MM:SS PR<sn> <message>`. |
+| `PaRecPR1925492_THLog.csv` | Log température / hygrométrie produit par la sonde embarquée. Une mesure toutes les 600 s, colonnes `Date;Hour;Temperature;Humidity`. |
+| `wav/` | 1572 fichiers WAV bruts, format `Car<carre>-<annee>-<passage>-<zone>-PaRecPR<sn>_<AAAAMMJJ>_<HHMMSS>.wav` (ex. `Car640380-2026-Pass2-Z1-PaRecPR1925492_20260422_202623.wav`). Mono 16 bits 384 kHz. Durée variable (2 à 30 s, déclenchement sur seuil). |
+| `kal/` | 2114 fichiers : les WAV redécoupés par Tadarida (suffixe `_000`, `_001`...) **plus** deux CSV d'observations. |
+| `kal/8a4fa…-observations.csv` | CSV des observations brutes Tadarida. Colonnes : `nom du fichier;temps_debut;temps_fin;frequence_mediane;tadarida_taxon;tadarida_probabilite;tadarida_taxon_autre;observateur_taxon;observateur_probabilite;validateur_taxon;validateur_probabilite`. ~4031 lignes. Champs `observateur_*` et `validateur_*` vides au départ - c'est ce que votre application va aider à remplir. |
+| `kal/…-observations_Vu.csv` | Même format que ci-dessus, mais avec encodage CSV légèrement différent (séparateur `;` sans guillemets, doubles guillemets vides `""""` pour les champs nuls). Format réinjectable par la plateforme VigieChiro. |
 
 Distribution des classifications Tadarida sur cette session, à titre indicatif :
 
@@ -75,7 +75,7 @@ L'application **doit** offrir les fonctionnalités suivantes (priorité MUST). L
 
 ## Et après ?
 
-Le présent document est l'**expression brute du besoin**, telle qu'elle pourrait être recueillie auprès du client. Il a été traduit par l'équipe pédagogique en un **dossier d'analyse et de conception opérationnel** que vous trouverez dans [`Analyse et conception/`](Analyse%20et%20conception/) :
+Le présent document est l'**expression brute du besoin**, telle qu'elle pourrait être recueillie auprès du client. Il a été traduit par l'équipe pédagogique en un **dossier d'analyse et de conception opérationnel** que vous trouverez dans [`Analyse et conception/`](Analyse%20et%20conception/README.md) :
 
 - 3 [personas](Analyse%20et%20conception/Personas.md) représentatifs des utilisateurs cibles
 - les [parcours utilisateurs](Analyse%20et%20conception/Parcours%20utilisateurs.md) attendus

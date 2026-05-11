@@ -29,5 +29,5 @@ L'application doit respecter les contraintes suivantes :
 ## Données
 
 - L'application travaille sur des **fichiers locaux** : un dossier de session importé doit pouvoir contenir plusieurs giga-octets de WAV sans dégrader notablement les performances de l'IHM.
-- Les **CSV d'observations** suivent le format produit par Tadarida : séparateur point-virgule, champs entre guillemets quand nécessaire, encodage UTF-8 (cf. exemples dans [`data/kal/`](data/kal/)).
+- Les **CSV d'observations** suivent le format produit par Tadarida : séparateur point-virgule, champs entre guillemets quand nécessaire, encodage UTF-8 (cf. exemples dans [`samples/kal/`](https://github.com/IUTInfoAix-S201/brief/tree/main/samples/kal)).
 - Les **WAV** sont au format PCM 16 bits, mono, 384 kHz. La lecture audio doit appliquer un **ralentissement** (typiquement ×10 ou ×20) pour ramener le signal dans la bande audible.

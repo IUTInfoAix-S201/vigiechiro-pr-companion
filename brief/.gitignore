@@ -3,6 +3,11 @@ data/
 *.zip
 *.tar.gz
 
+# Build MkDocs
+site/
+.venv/
+__pycache__/
+
 # OS
 .DS_Store
 Thumbs.db

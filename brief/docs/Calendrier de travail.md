@@ -6,8 +6,9 @@
 
 | Phase | Période | Contenu |
 |---|---|---|
-| Phase 1 - Développement et validation | 27/04/2026 → 06/06/2026 *(TBD)* | Code, tests, CI verte. Le dossier d'analyse et de conception est déjà fourni au démarrage. |
-| Phase 2 - Soutenance | 04/06/2026 → 08/06/2026 *(TBD)* | Préparation et passage de la soutenance |
+| Sprint 0 - Setup + assemblage PR | 27/04/2026 → 29/04/2026 *(TBD)* | Repo, CI, planning poker initial, **assemblage du PR de l'équipe** et 1re nuit de capture test. |
+| Phase 1 - Développement et validation | 30/04/2026 → 06/06/2026 *(TBD)* | Code, tests, CI verte. Le dossier d'analyse et de conception est déjà fourni au démarrage. |
+| Phase 2 - Soutenance | 04/06/2026 → 08/06/2026 *(TBD)* | Préparation et passage de la soutenance, en présence du client réel (Samuel Busson, CEREMA). |
 
 > 💡 Les phases se chevauchent volontairement : la préparation de la soutenance commence avant la fin du développement.
 

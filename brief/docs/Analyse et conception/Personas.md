@@ -1,22 +1,23 @@
 # Personas
 
-Trois personas de référence représentent les utilisateurs cibles du *VigieChiro PR Companion*. Chaque persona est inspiré d'utilisateurs réels du programme VigieChiro, mais composé pour rendre lisibles des différences d'usage.
+Trois personas de référence représentent les utilisateurs cibles du *VigieChiro PR Companion*. Marie et Karim sont composés à partir d'utilisateurs réels du programme VigieChiro pour rendre lisibles des différences d'usage. **Samuel correspond au client réel de cette SAE**.
 
-| | [Marie](Personas/Marie.md) | [Karim](Personas/Karim.md) | [Léa](Personas/Léa.md) |
+| | [Marie](Personas/Marie.md) | [Karim](Personas/Karim.md) | [Samuel](Personas/Samuel.md) ⭐ |
 |---|---|---|---|
-| Âge | 58 | 32 | 24 |
-| Profil | Naturaliste retraitée bénévole | Chargé d'études BE | Doctorante écologie |
-| Volume | 2-3 carrés / saison | 5+ PR en parallèle | Centaines de sessions |
+| Profil | Naturaliste retraitée bénévole | Chargé d'études en BE | Doctorant écologue CEREMA / MNHN |
+| Volume typique | 2-3 carrés VigieChiro / saison | 5+ PR en parallèle sur chantiers | Dizaines de sites × plusieurs nuits, plusieurs campagnes |
 | Aisance numérique | Faible | Moyenne | Élevée |
-| Priorité | Comprendre, ne pas se tromper | Productivité, traçabilité | Profondeur d'analyse |
+| Priorité | Comprendre, ne pas se tromper | Productivité, traçabilité | Reproductibilité scientifique |
 
-> 🎯 La persona **principale** est **Marie** : si l'application convient à Marie, elle conviendra aux deux autres. Karim et Léa servent à éviter de tomber dans le piège « interface uniquement adaptée aux débutants », inutilisable au-delà de quelques sessions.
+> 🎯 La persona **principale** pour les choix d'IHM est **Marie** : si l'application convient à Marie, elle conviendra aux deux autres. Karim et Samuel servent à éviter de tomber dans le piège « interface uniquement adaptée aux débutants », inutilisable au-delà de quelques sessions.
+>
+> ⭐ **Samuel est en plus le client réel** : il valide le besoin, il réceptionne la démonstration en phase 2, et son avis qualitatif sur l'application pèse dans l'évaluation. Sa première campagne (sur AudioMoth) a généré 560 000+ contacts qu'il a dû avaler avec des scripts ad hoc. Ses prochaines campagnes seront sur PR Teensy - sans outil propre, le travail manuel est ingérable.
 
 ## Pourquoi ces trois-là ?
 
 - **Marie** porte l'objectif qualité [O2 - Facilité d'apprentissage](../Objectifs%20qualités/Objectifs%20qualités/O2.md) et le scénario [SC1 - Onboarding](../Objectifs%20qualités/Scénario/SC1.md). Elle est la **mesure d'utilisabilité**.
 - **Karim** porte les objectifs de **performance** ([O3](../Objectifs%20qualités/Objectifs%20qualités/O3.md), [O5](../Objectifs%20qualités/Objectifs%20qualités/O5.md)) et de **modularité** ([O6](../Objectifs%20qualités/Objectifs%20qualités/O6.md)) : il manipule plusieurs protocoles sur des chantiers commerciaux.
-- **Léa** porte les objectifs d'**intégrité** ([O7](../Objectifs%20qualités/Objectifs%20qualités/O7.md)) et de **confidentialité** ([O8](../Objectifs%20qualités/Objectifs%20qualités/O8.md)). Son volume de données la rend particulièrement sensible aux pertes ou aux fuites.
+- **Samuel** porte les objectifs d'**intégrité** ([O7](../Objectifs%20qualités/Objectifs%20qualités/O7.md)) et de **confidentialité** ([O8](../Objectifs%20qualités/Objectifs%20qualités/O8.md)). Le volume de son protocole expérimental le rend particulièrement sensible aux pertes ou aux fuites, et la rigueur méthodologique attendue d'une thèse impose une trace complète des décisions de validation.
 
 ## Les anti-personas
 

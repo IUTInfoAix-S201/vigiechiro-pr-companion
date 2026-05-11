@@ -338,7 +338,7 @@ flowchart TB
 
 ## E6 - 🩺 Suivre la santé du PR
 
-> Couvre le parcours **P5 - Suivi du matériel**. Important pour Karim et Léa, plaisant pour Marie.
+> Couvre le parcours **P5 - Suivi du matériel**. Important pour Karim et Samuel, plaisant pour Marie.
 
 ### E6.S1 - Visualiser la courbe T°/H d'une session (5 pts)
 

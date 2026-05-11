@@ -51,7 +51,7 @@ Le matin du surlendemain, l'utilisateur a déjà 5 nuits dans l'application. Il 
 
 ## P3 - Validation approfondie 🎧
 
-> **Persona principal** : Marie ou Léa. **Objectifs qualité visés** : [O4](../Objectifs%20qualités/Objectifs%20qualités/O4.md), [O7](../Objectifs%20qualités/Objectifs%20qualités/O7.md).
+> **Persona principal** : Marie ou Samuel. **Objectifs qualité visés** : [O4](../Objectifs%20qualités/Objectifs%20qualités/O4.md), [O7](../Objectifs%20qualités/Objectifs%20qualités/O7.md).
 
 L'utilisateur tombe sur un évènement étiqueté `Pippip` à seulement 0.45 de probabilité. Il veut creuser.
 

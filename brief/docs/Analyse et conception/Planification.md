@@ -13,9 +13,11 @@ gantt
     axisFormat  %d/%m
     excludes    weekends
 
-    section Sprint 0 (setup)
+    section Sprint 0 (setup + assemblage PR)
     Mise en place repo, CI, dépendances :s0a, 2026-04-27, 3d
-    Découverte du jeu de données          :s0b, 2026-04-27, 3d
+    Découverte du jeu de données          :s0b, 2026-04-27, 1d
+    Assemblage du PR de l'équipe          :s0c, 2026-04-28, 1d
+    Première nuit de capture test         :s0d, 2026-04-28, 1d
     Planning poker initial                :milestone, m0, 2026-04-29, 0d
 
     section Sprint 1 (import + journal)
@@ -51,16 +53,18 @@ gantt
 
 ## Détail par sprint
 
-### Sprint 0 - Mise en place (27/04 → 29/04, 3 jours)
+### Sprint 0 - Mise en place + assemblage du PR (27/04 → 29/04, 3 jours)
 
 | Activité | Responsable | Sortie attendue |
 |---|---|---|
 | Cloner le repo Classroom, vérifier que le squelette compile | Toute l'équipe | Une PR pilote fusionnée pour valider le workflow |
-| Lancer le jeu de données fourni | Toute l'équipe | Tour d'horizon des fichiers, premier feeling sur les volumes |
+| **Assembler le PR de l'équipe** (séance encadrée) | Toute l'équipe | PR opérationnel qui démarre, se met en veille, écrit sur la SD |
+| **Lancer une 1re nuit de capture test** avec ce PR | Toute l'équipe | Un dossier de session « maison » qui complète le sample fourni |
+| Lancer le sample fourni dans `samples/` | Toute l'équipe | Tour d'horizon des fichiers, premier feeling sur les volumes |
 | Planning poker des stories MUST | Toute l'équipe | Estimations partagées (révision possible des chiffres du dossier) |
 | Conception haute-niveau de l'architecture | Tech leads volontaires | Schéma de paquets (model / data / ui / parsing) |
 
-**Livrable du sprint 0** : repo opérationnel, CI verte sur `main`, première PR mergée, accord d'équipe sur les estimations.
+**Livrable du sprint 0** : repo opérationnel, CI verte sur `main`, première PR mergée, **PR matériel assemblé et fonctionnel**, accord d'équipe sur les estimations.
 
 ### Sprint 1 - Import et journal (30/04 → 08/05, 1 semaine)
 

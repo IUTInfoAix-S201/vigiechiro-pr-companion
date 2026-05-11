@@ -14,7 +14,7 @@ Le périmètre du **produit minimum viable** est défini par arbitrage des [27 s
 | **E1 - Gérer mes sessions** | | | | | | |
 | E1.S1 Voir le journal | 3 | ✅ | | | | Sans liste, on ne sait pas où on en est. |
 | E1.S2 Détail d'une session | 3 | ✅ | | | | Pré-requis pour toutes les autres actions. |
-| E1.S3 Commentaire libre session | 2 | | ✅ | | | Utile pour Léa, mais pas bloquant pour Marie. |
+| E1.S3 Commentaire libre session | 2 | | ✅ | | | Utile pour Samuel, mais pas bloquant pour Marie. |
 | E1.S4 Marquer « Validation terminée » | 2 | ✅ | | | | Pré-requis pour l'export propre. |
 | E1.S5 Supprimer une session | 3 | ✅ | | | | Indispensable pour récupérer d'un import erroné. |
 | E1.S6 Tagger par chantier | 8 | | | ✅ | | Utile pour Karim, gros effort, pas critique pour Marie. |
@@ -34,7 +34,7 @@ Le périmètre du **produit minimum viable** est défini par arbitrage des [27 s
 | E4.S2 Filtrer les observations | 5 | ✅ | | | | Sans filtre, infaisable sur 4000 lignes. Marie restera sur les bruits. |
 | E4.S3 Valider une observation | 3 | ✅ | | | | Action métier centrale. |
 | E4.S4 Corriger une observation | 3 | ✅ | | | | Action métier centrale. |
-| E4.S5 Commentaire sur observation | 2 | | ✅ | | | Utile pour Léa, pas critique pour Marie. |
+| E4.S5 Commentaire sur observation | 2 | | ✅ | | | Utile pour Samuel, pas critique pour Marie. |
 | **E5 - Exporter pour VigieChiro** | | | | | | |
 | E5.S1 Exporter le CSV | 3 | ✅ | | | | Sortie obligatoire, sinon le travail ne sert à rien. |
 | E5.S2 Récapitulatif d'export | 2 | | ✅ | | | Confort. À ajouter rapidement. |
@@ -69,7 +69,7 @@ C'est ce que vous **devez viser par défaut**. Il s'agit du MVP strict augmenté
 |---|--:|---|
 | E3.S2 Régler la vitesse de lecture | 3 | Sans ça, ×10 fixe, problématique pour les espèces très aiguës. |
 | E3.S4 Navigation observations adjacentes | 2 | Décuple la fluidité du parcours de validation. |
-| E4.S5 Commentaire libre sur observation | 2 | Léa l'attend explicitement. Léger à implémenter. |
+| E4.S5 Commentaire libre sur observation | 2 | Samuel l'attend explicitement. Léger à implémenter. |
 | E6.S1 Courbe T°/H | 5 | Sans diagnostic, l'application ne couvre pas le parcours P5. |
 | E6.S2 Niveau de batterie | 2 | Léger en complément de E6.S1 (mêmes données). |
 

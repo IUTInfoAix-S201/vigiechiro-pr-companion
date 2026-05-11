@@ -28,13 +28,34 @@ L'application doit également :
 - **fonctionner hors-ligne** : une nuit de terrain peut produire des giga-octets de données et l'utilisateur doit pouvoir travailler sans connexion ;
 - **être portable** sur Windows, Linux et macOS sans installation système lourde.
 
+## Le client réel : Samuel Busson (CEREMA)
+
+> 🎯 Cette SAE n'est pas une simulation. Le commanditaire est **Samuel Busson**, doctorant écologue au [CEREMA](https://www.cerema.fr/) (équipe Climat & Territoires de demain, site d'Aix-en-Provence). Sa thèse, en cotutelle avec le [CESCO](https://www.cesco.mnhn.fr/) du MNHN, porte sur l'**effet de l'éclairage public LED sur l'activité acoustique des chiroptères**, comparant les spectres 1800K (PC Amber) et 3000K (Neutre).
+>
+> Sa première campagne expérimentale s'est appuyée sur 13 secteurs de Seine-et-Marne et a généré **plus de 560 000 contacts chiroptères** validés via Tadarida. Pour avaler ce volume, Samuel a dû écrire ses propres scripts R / Bash de pré-traitement - efficaces mais impossibles à transmettre.
+>
+> Pour ses **futures campagnes**, Samuel pivote vers le **Passive Recorder Teensy** ([PiBatRecorderProjects/TeensyRecorders](https://framagit.org/PiBatRecorderProjects/TeensyRecorders)), qu'il a choisi pour sa **qualité** d'acquisition, son **ouverture** open-source et son **accessibilité** à la communauté scientifique. Mais l'écosystème logiciel du PR est rudimentaire. Le *VigieChiro PR Companion* que vous allez développer **est l'outil qui manque à Samuel et à la communauté** pour exploiter sereinement le PR.
+>
+> Samuel viendra **réceptionner votre démonstration** en phase 2 et donnera son avis sur l'application. Cet avis pèse dans l'évaluation au même titre que la note technique de l'équipe pédagogique. Voir sa fiche persona détaillée : [Samuel](Analyse%20et%20conception/Personas/Samuel.md).
+
+## Construction de votre propre PR
+
+Pour vous mettre en condition réelle, **chaque équipe assemblera son propre PR au démarrage du projet**. Cette activité (encadrée, demi-journée à une journée selon les groupes) poursuit trois objectifs :
+
+1. **Comprendre concrètement** la chaîne complète : du capteur Teensy à la carte SD, de la carte SD au dossier de session, du dossier de session à VigieChiro.
+2. **Vivre la complexité** de la récupération des fichiers, de leur renommage selon la convention `Car<carre>-<annee>-<passage>-<zone>-PaRecPR<sn>_<AAAAMMJJ>_<HHMMSS>.wav`, et de la mise au format attendu par la plateforme VigieChiro.
+3. **Produire vos propres données de test** complémentaires au [jeu de données fourni](Expression%20du%20besoin.md#donnees-fournies) - utiles pour challenger votre application sur des cas non anticipés.
+
+Le matériel (kits PR Teensy, cartes SD, micros) est fourni par l'équipe pédagogique. Voir [Consignes générales](Consignes%20générales.md#materiel-fourni) et [Calendrier de travail](Calendrier%20de%20travail.md).
+
 ## Parties prenantes
 
 | Acteur | Rôle |
 |---|---|
+| **Samuel Busson (CEREMA)** | **Client réel**. Exprime le besoin, réceptionne la démonstration, donne un avis qualitatif sur l'application en phase 2. |
 | **Possesseur de PR** (utilisateur principal) | Naturaliste amateur ou professionnel qui exploite un PR. Il installe l'appareil sur le terrain, récupère la carte SD, importe les données dans l'application, valide les classifications, exporte vers VigieChiro. La plupart ne sont pas informaticiens : l'application doit être abordable. |
 | **Plateforme VigieChiro** (système amont/aval) | Reçoit les fichiers du possesseur et restitue les CSV Tadarida. L'application n'a pas à dialoguer en direct avec la plateforme - les échanges se font par téléversement / téléchargement de fichiers. |
 | **Validateur expert** (rôle aval) | Ornithologue/chiroptérologue de l'équipe VigieChiro qui tranche les cas litigieux après le passage du possesseur. L'application n'a pas à gérer ce rôle, mais elle doit produire un export propre qui lui facilite la tâche. |
-| **Équipe pédagogique R2.02 / R2.03** (commanditaire) | Joue le rôle du client. Évalue les livrables aux trois jalons. Donne les critères d'arbitrage en cas de doute. |
+| **Équipe pédagogique R2.02 / R2.03** | Encadre, accompagne, évalue les livrables aux deux jalons. Donne les critères d'arbitrage en cas de doute. |
 
 > 💡 Dans la première version, l'application reste mono-utilisateur : pas de comptes, pas de synchronisation cloud, pas de gestion d'équipe. Le possesseur de PR est seul devant son ordinateur, l'application travaille sur ses fichiers locaux.

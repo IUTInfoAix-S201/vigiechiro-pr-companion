@@ -24,7 +24,7 @@ L'application doit respecter les contraintes suivantes :
 ## Licence et publication
 
 - **Licence open-source libérale** (Apache-2.0 ou MIT) pour permettre la réutilisation des composants par la communauté VigieChiro.
-- Le code source est hébergé sur **GitHub** dans un dépôt créé via le lien GitHub Classroom communiqué à la fin de la phase 1.
+- Le code source est hébergé sur **GitHub** dans un dépôt créé via le lien GitHub Classroom communiqué au démarrage de la SAE.
 
 ## Données
 

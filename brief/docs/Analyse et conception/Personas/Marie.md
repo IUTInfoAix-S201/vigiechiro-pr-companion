@@ -1,5 +1,8 @@
 # Marie Caillaux - 58 ans, naturaliste retraitée bénévole
 
+!!! warning "Persona fictive"
+    Marie est un persona composé à partir de profils types de bénévoles VigieChiro, sans correspondance avec une personne réelle. Les détails biographiques servent à incarner le profil et à guider la conception de l'IHM.
+
 > 👩 « Avant la retraite, je gérais une boîte d'assurance. Aujourd'hui, je passe trois soirs par semaine sur le terrain pour mes carrés VigieChiro. Mon mari râle un peu mais bon, c'est ça ou je tourne en rond. »
 
 ## Identité

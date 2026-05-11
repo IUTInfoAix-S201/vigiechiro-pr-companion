@@ -44,10 +44,11 @@ L'écosystème **logiciel** autour du PR est en revanche encore rudimentaire : p
 ## Compétences techniques
 
 - **Maîtrise** : R, Python, Bash, Git, SQL, Linux, traitement du signal acoustique, modèles statistiques mixtes, GIS / QGIS.
-- **Acceptable** : Java (a fait du dev en M1), JavaFX (jamais utilisé mais saurait lire un FXML).
 - **Préfère éviter** : développer ses propres GUI (« je préfère un bon script à une mauvaise interface »).
 
 ## Ce qu'il attend de l'application
+
+> ⚠️ Cette liste a été reconstituée à partir du profil de Samuel et de sa publication 2025. Elle sera précisée lors d'un échange direct avec lui en début de SAE.
 
 - Un **format d'export propre, documenté, reproductible** : si on relance l'export, on doit obtenir le même fichier au bit près.
 - L'**intégrité totale** des annotations : aucune action de l'application ne doit modifier ou écraser les validations sans consentement explicite.

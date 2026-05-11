@@ -1,5 +1,8 @@
 # Karim Belkacem - 32 ans, chargé d'études en bureau d'environnement
 
+!!! warning "Persona fictif"
+    Karim est un persona composé à partir de profils types de chargés d'études faune, sans correspondance avec une personne réelle. Les détails biographiques servent à incarner le profil et à guider la conception de l'IHM.
+
 > 👨 « J'ai 5 chantiers en parallèle, chacun avec ses échéances, ses élus à rassurer et son préfet à éviter. Je n'ai pas le temps de bricoler avec un outil bancal. Je veux ouvrir, faire, fermer, livrer. »
 
 ## Identité
@@ -8,7 +11,7 @@
 |---|---|
 | **Âge** | 32 ans |
 | **Lieu de vie** | Périphérie de Lyon, appartement |
-| **Métier** | Chargé d'études faune au sein d'un bureau d'études en environnement (Ecosphère, Biotope, ou une SCOP régionale) |
+| **Métier** | Chargé d'études faune dans une structure type bureau d'études ou association naturaliste |
 | **Formation** | Master Biologie - écologie - évolution + DU acoustique des chiroptères |
 | **Matériel** | Ordinateur portable Linux Ubuntu (préférence personnelle, le BE laisse libre) + 6 PR mutualisés dans l'équipe |
 

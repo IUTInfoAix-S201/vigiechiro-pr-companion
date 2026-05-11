@@ -2,9 +2,9 @@
 
 ## Contexte
 
-Dans le cadre d'une convention informelle entre l'IUT d'Aix-Marseille et le réseau VigieChiro, le département Informatique sollicite ses étudiants de BUT1 pour réaliser une **preuve de concept** d'un compagnon logiciel destiné aux possesseurs de Passive Recorder. Aujourd'hui, ces utilisateurs jonglent entre l'explorateur de fichiers, un tableur, un lecteur audio et la plateforme web VigieChiro pour gérer leurs campagnes - et passent un temps important en manipulations répétitives à chaque nuit traitée.
+Le département Informatique de l'IUT d'Aix-Marseille sollicite ses étudiants de BUT1 pour réaliser, en partenariat avec un chercheur du CEREMA, une **preuve de concept** d'un compagnon logiciel destiné aux possesseurs de Passive Recorder. Aujourd'hui, ces utilisateurs jonglent entre l'explorateur de fichiers, un tableur, un lecteur audio et la plateforme web VigieChiro pour gérer leurs campagnes - et passent un temps important en manipulations répétitives à chaque nuit traitée.
 
-Aucun outil unifié n'existe à ce jour. Plusieurs scripts ad hoc circulent dans la communauté (Python, R), mais aucune application avec interface graphique soignée n'est disponible. C'est cette lacune que la SAE 2.01 cherche à combler - en livrant un prototype crédible que la communauté pourrait reprendre et faire évoluer après le projet.
+Plusieurs scripts ad hoc circulent dans la communauté (Python, R), et il existe des outils commerciaux comme [Kaleidoscope Pro](https://www.wildlifeacoustics.com/products/kaleidoscope-pro), mais aucune application gratuite et open-source dédiée au pipeline VigieChiro / PR Teensy n'est disponible. C'est cette lacune que la SAE 2.01 cherche à combler - en livrant un prototype crédible que la communauté pourrait reprendre et faire évoluer après le projet.
 
 ## Données fournies
 

@@ -145,7 +145,7 @@
 - [ ] Test d'intégration simulant une interruption à différents moments du pipeline.
 
 **Parcours rattaché** : transverse à [P2](../Parcours%20utilisateurs/P2%20-%20Importer%20une%20nuit%20de%20capture.md)<br>
-**Maquettes cibles** : M-Import (modale d'import doit afficher la reprise éventuelle)<br>
+**Maquettes cibles** : [M-Import](../Maquettes/M-Import.md) (modale d'import doit afficher la reprise éventuelle)<br>
 **Dépendances** : [E0.S1](#e0s1), [E0.S3](#e0s3), E2 (l'import lui-même)<br>
 **Complexité** : ★★★★ (significatif — logique de reprise complexe, tests d'interruption)<br>
 **MoSCoW** : 🟠 SHOULD
@@ -168,7 +168,7 @@
 - [ ] Test d'intégration : validation partielle, fermeture, réouverture, vérification de la restauration.
 
 **Parcours rattaché** : transverse à [P7](../Parcours%20utilisateurs/P7%20-%20Valider%20les%20résultats%20Tadarida.md)<br>
-**Maquettes cibles** : M-Vision-Tadarida (la vue de validation doit indiquer si une session est restaurée)<br>
+**Maquettes cibles** : [M-Vision-Tadarida](../Maquettes/M-Vision-Tadarida.md) (la vue de validation doit indiquer si une session est restaurée)<br>
 **Dépendances** : [E0.S1](#e0s1), [E0.S5](#e0s5), E7 (la validation elle-même)<br>
 **Complexité** : ★★★ (moyen — logique de restauration de contexte, mais sur une seule entité)<br>
 **MoSCoW** : 🟠 SHOULD

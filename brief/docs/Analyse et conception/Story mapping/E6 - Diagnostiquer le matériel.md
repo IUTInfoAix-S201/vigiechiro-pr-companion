@@ -26,7 +26,7 @@
 - [ ] Les graphes se redessinent proprement même si le passage couvre plusieurs heures (1000+ points possibles).
 
 **Parcours rattaché** : [P6](../Parcours%20utilisateurs/P6%20-%20Diagnostiquer%20le%20matériel.md), étape 2 (sous-bloc T°/H)<br>
-**Maquettes cibles** : M-Passage (onglet Diagnostic, partie haute)<br>
+**Maquettes cibles** : [M-Passage](../Maquettes/M-Passage.md) (onglet Diagnostic, partie haute)<br>
 **Dépendances** : [E2.S1](E2%20-%20Importer%20et%20transformer%20une%20nuit.md#e2s1), [E2.S4](E2%20-%20Importer%20et%20transformer%20une%20nuit.md#e2s4)<br>
 **Complexité** : ★★★ (moyen — parse CSV + JavaFX LineChart à 2 axes + gestion du cas absent)<br>
 **MoSCoW** : 🟠 SHOULD
@@ -55,7 +55,7 @@
 - [ ] Si le journal est **totalement absent**, l'encart est masqué avec un message explicite (mais le parcours ne plante pas, cf. [E2.S1](E2%20-%20Importer%20et%20transformer%20une%20nuit.md#e2s1)).
 
 **Parcours rattaché** : [P6](../Parcours%20utilisateurs/P6%20-%20Diagnostiquer%20le%20matériel.md), étape 2 (sous-blocs batterie + évènements)<br>
-**Maquettes cibles** : M-Passage (onglet Diagnostic, encart batterie + liste évènements)<br>
+**Maquettes cibles** : [M-Passage](../Maquettes/M-Passage.md) (onglet Diagnostic, encart batterie + liste évènements)<br>
 **Dépendances** : [E2.S1](E2%20-%20Importer%20et%20transformer%20une%20nuit.md#e2s1), [E2.S4](E2%20-%20Importer%20et%20transformer%20une%20nuit.md#e2s4)<br>
 **Complexité** : ★★★ (moyen — parser du format texte LogPR + extraction patterns de batterie + classification des évènements)<br>
 **MoSCoW** : 🟠 SHOULD
@@ -84,7 +84,7 @@
 - [ ] Tests unitaires : sur une date et une coordonnée connues (ex. Aix-en-Provence, 22 avril 2026), vérifier que le coucher est calculé à ±2 min près de la valeur officielle.
 
 **Parcours rattaché** : [P6](../Parcours%20utilisateurs/P6%20-%20Diagnostiquer%20le%20matériel.md), section « Cohérence horaires (calcul astronomique) »<br>
-**Maquettes cibles** : M-Passage (onglet Diagnostic, encart cohérence horaires)<br>
+**Maquettes cibles** : [M-Passage](../Maquettes/M-Passage.md) (onglet Diagnostic, encart cohérence horaires)<br>
 **Dépendances** : [E1.S3](E1%20-%20Gérer%20ses%20sites%20et%20points%20de%20suivi.md#e1s3), [E2.S1](E2%20-%20Importer%20et%20transformer%20une%20nuit.md#e2s1), [E6.S2](#e6s2)<br>
 **Complexité** : ★★★ (moyen — bibliothèque astronomique + comparaison de plages + gestion conditionnelle de l'encart)<br>
 **MoSCoW** : ⚪ COULD (idée Samuel, utile pour audit qualité mais pas critique au MVP)
@@ -109,7 +109,7 @@
 - [ ] Bouton « Sortir de la comparaison » pour revenir au diagnostic mono-passage.
 
 **Parcours rattaché** : [P6](../Parcours%20utilisateurs/P6%20-%20Diagnostiquer%20le%20matériel.md), étape 3<br>
-**Maquettes cibles** : M-Passage (variante diagnostic avec mode comparaison)<br>
+**Maquettes cibles** : [M-Passage](../Maquettes/M-Passage.md) (variante diagnostic avec mode comparaison)<br>
 **Dépendances** : [E6.S1](#e6s1), [E6.S2](#e6s2)<br>
 **Complexité** : ★★ (simple — composition de 2 vues identiques + toggle de superposition de courbes)<br>
 **MoSCoW** : ⚪ COULD (productivité Karim/Samuel ; pas dans le périmètre minimal de diagnostic)
@@ -139,7 +139,7 @@
 - [ ] Tests d'intégration : export sur un passage représentatif, vérification de la structure du CSV et de l'ouverture du PDF par un lecteur standard.
 
 **Parcours rattaché** : [P6](../Parcours%20utilisateurs/P6%20-%20Diagnostiquer%20le%20matériel.md), étape 4<br>
-**Maquettes cibles** : M-Passage (bouton « Exporter le diagnostic » + modal de choix de format)<br>
+**Maquettes cibles** : [M-Passage](../Maquettes/M-Passage.md) (bouton « Exporter le diagnostic » + modal de choix de format)<br>
 **Dépendances** : [E6.S1](#e6s1), [E6.S2](#e6s2)<br>
 **Complexité** : ★★ (simple — sérialisation CSV + génération PDF basique via bibliothèque type iText ou OpenPDF)<br>
 **MoSCoW** : ⚪ COULD (export confort, pas critique au MVP)

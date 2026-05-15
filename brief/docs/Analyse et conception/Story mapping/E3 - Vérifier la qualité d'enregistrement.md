@@ -26,7 +26,7 @@
 - [ ] Test d'intégration : génération sur un passage de 100 enregistrements → vérifier nombre, répartition temporelle, persistance.
 
 **Parcours rattaché** : [P3](../Parcours%20utilisateurs/P3%20-%20Vérifier%20l%27enregistrement%20par%20échantillonnage.md), étape 2<br>
-**Maquettes cibles** : M-Qualification (état initial à l'ouverture de l'onglet)<br>
+**Maquettes cibles** : [M-Qualification](../Maquettes/M-Qualification.md) (état initial à l'ouverture de l'onglet)<br>
 **Dépendances** : [E0.S4](E0%20-%20Fondations%20de%20persistance.md#e0s4), [E2.S6](E2%20-%20Importer%20et%20transformer%20une%20nuit.md#e2s6)<br>
 **Complexité** : ★★ (simple — algorithme d'échantillonnage uniforme + persistance)<br>
 **MoSCoW** : ✅ MUST
@@ -50,7 +50,7 @@
 - [ ] La liste reste lisible même avec 50 lignes (scroll vertical).
 
 **Parcours rattaché** : [P3](../Parcours%20utilisateurs/P3%20-%20Vérifier%20l%27enregistrement%20par%20échantillonnage.md), étape 3<br>
-**Maquettes cibles** : M-Qualification (tableau central de la vue de vérification)<br>
+**Maquettes cibles** : [M-Qualification](../Maquettes/M-Qualification.md) (tableau central de la vue de vérification)<br>
 **Dépendances** : [E3.S1](#e3s1)<br>
 **Complexité** : ★★ (simple — TableView ou ListView JavaFX avec rendu personnalisé par cellule)<br>
 **MoSCoW** : ✅ MUST
@@ -75,7 +75,7 @@
 - [ ] Si la séquence est introuvable sur disque (fichier supprimé, déplacé), un message clair explique pourquoi le bouton ▶ ne fonctionne pas.
 
 **Parcours rattaché** : [P3](../Parcours%20utilisateurs/P3%20-%20Vérifier%20l%27enregistrement%20par%20échantillonnage.md), étape 4<br>
-**Maquettes cibles** : M-Qualification (zone player audio)<br>
+**Maquettes cibles** : [M-Qualification](../Maquettes/M-Qualification.md) (zone player audio)<br>
 **Dépendances** : [E3.S2](#e3s2)<br>
 **Complexité** : ★★★ (moyen — intégration JavaFX MediaPlayer, gestion d'état, robustesse aux fichiers manquants)<br>
 **MoSCoW** : ✅ MUST
@@ -99,7 +99,7 @@
 - [ ] L'utilisateur reste libre de saisir son verdict (cf. [E3.S5](#e3s5)) **sans avoir tout écouté** ([R13](../Modèle%20conceptuel/Règles%20métier.md#r13)).
 
 **Parcours rattaché** : [P3](../Parcours%20utilisateurs/P3%20-%20Vérifier%20l%27enregistrement%20par%20échantillonnage.md), étape 4<br>
-**Maquettes cibles** : M-Qualification (compteur d'avancement, indicateur visuel par ligne)<br>
+**Maquettes cibles** : [M-Qualification](../Maquettes/M-Qualification.md) (compteur d'avancement, indicateur visuel par ligne)<br>
 **Dépendances** : [E0.S4](E0%20-%20Fondations%20de%20persistance.md#e0s4), [E3.S2](#e3s2), [E3.S3](#e3s3)<br>
 **Complexité** : ★ (trivial — booléen persisté + indicateur UI)<br>
 **MoSCoW** : ✅ MUST
@@ -125,7 +125,7 @@
 - [ ] L'utilisateur peut enchaîner sur la préparation du lot ([P4](../Parcours%20utilisateurs/P4%20-%20Préparer%20un%20lot%20prêt%20à%20déposer.md)) via un bouton mis en avant après saisie d'un verdict OK ou Douteux.
 
 **Parcours rattaché** : [P3](../Parcours%20utilisateurs/P3%20-%20Vérifier%20l%27enregistrement%20par%20échantillonnage.md), étape 6 et 7<br>
-**Maquettes cibles** : M-Qualification (zone de saisie du verdict en bas de l'écran)<br>
+**Maquettes cibles** : [M-Qualification](../Maquettes/M-Qualification.md) (zone de saisie du verdict en bas de l'écran)<br>
 **Dépendances** : [E0.S3](E0%20-%20Fondations%20de%20persistance.md#e0s3)<br>
 **Complexité** : ★ (trivial — menu déroulant + champ texte + persistance)<br>
 **MoSCoW** : ✅ MUST
@@ -149,7 +149,7 @@
 - [ ] La régénération de la sélection est tracée (date de dernière régénération + paramètres utilisés) pour audit.
 
 **Parcours rattaché** : [P3](../Parcours%20utilisateurs/P3%20-%20Vérifier%20l%27enregistrement%20par%20échantillonnage.md), étape 5<br>
-**Maquettes cibles** : M-Qualification (panneau « Modifier la sélection »)<br>
+**Maquettes cibles** : [M-Qualification](../Maquettes/M-Qualification.md) (panneau « Modifier la sélection »)<br>
 **Dépendances** : [E3.S1](#e3s1), [E3.S2](#e3s2)<br>
 **Complexité** : ★★★ (moyen — interface de personnalisation + algorithme aléatoire + ajout manuel par recherche)<br>
 **MoSCoW** : 🟠 SHOULD (personnalisation est un confort, la sélection automatique par défaut suffit pour le MVP strict)

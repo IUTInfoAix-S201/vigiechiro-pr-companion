@@ -31,7 +31,7 @@ Les gains de productivité avancés (regroupement multi-nuits P9, bibliothèque 
 - [ ] Volumétrie cible : un CSV de 4 000+ observations doit s'importer en moins de 10 s sans freezer l'IHM.
 
 **Parcours rattaché** : [P7](../Parcours%20utilisateurs/P7%20-%20Valider%20les%20résultats%20Tadarida.md), étapes 1-3<br>
-**Maquettes cibles** : M-Vision-Tadarida (zone d'import + récapitulatif post-import)<br>
+**Maquettes cibles** : [M-Vision-Tadarida](../Maquettes/M-Vision-Tadarida.md) (zone d'import + récapitulatif post-import)<br>
 **Dépendances** : [E0.S5](E0%20-%20Fondations%20de%20persistance.md#e0s5), [E2.S6](E2%20-%20Importer%20et%20transformer%20une%20nuit.md#e2s6), [E4.S3](E4%20-%20Préparer%20et%20tracer%20le%20dépôt%20VigieChiro.md#e4s3)<br>
 **Complexité** : ★★ (simple — parsing CSV avec 2 variantes de format, bulk insert via E0.S5, matching de noms)<br>
 **MoSCoW** : 🟠 SHOULD
@@ -57,7 +57,7 @@ Les gains de productivité avancés (regroupement multi-nuits P9, bibliothèque 
 - [ ] Volumétrie cible : la liste reste réactive avec 5 000+ observations (virtualisation TableView).
 
 **Parcours rattaché** : [P7](../Parcours%20utilisateurs/P7%20-%20Valider%20les%20résultats%20Tadarida.md), étapes 3-4<br>
-**Maquettes cibles** : M-Vision-Tadarida (layout deux colonnes liste + détail)<br>
+**Maquettes cibles** : [M-Vision-Tadarida](../Maquettes/M-Vision-Tadarida.md) (layout deux colonnes liste + détail)<br>
 **Dépendances** : [E3.S3](E3%20-%20Vérifier%20la%20qualité%20d%27enregistrement.md#e3s3), [E7.S1](#e7s1)<br>
 **Complexité** : ★★★ (moyen — TableView avec virtualisation + panneau détail synchronisé + raccourcis clavier)<br>
 **MoSCoW** : 🟠 SHOULD
@@ -83,7 +83,7 @@ Les gains de productivité avancés (regroupement multi-nuits P9, bibliothèque 
 - [ ] Possibilité d'exporter le spectrogramme courant en PNG (utile pour rapports ou notes pédagogiques).
 
 **Parcours rattaché** : [P7](../Parcours%20utilisateurs/P7%20-%20Valider%20les%20résultats%20Tadarida.md), étape 4<br>
-**Maquettes cibles** : M-Vision-Tadarida (zone spectrogramme avec contrôles zoom)<br>
+**Maquettes cibles** : [M-Vision-Tadarida](../Maquettes/M-Vision-Tadarida.md) (zone spectrogramme avec contrôles zoom)<br>
 **Dépendances** : [E2.S6](E2%20-%20Importer%20et%20transformer%20une%20nuit.md#e2s6), [E7.S2](#e7s2)<br>
 **Complexité** : ★★★★★ (lourd — implémentation FFT, rendu spectrogramme JavaFX Canvas, zoom interactif performant ; brique technique majeure)<br>
 **MoSCoW** : 🟠 SHOULD (Samuel l'a demandé en priorité ; sans elle, la validation reste possible mais se fait à l'oreille seulement, ce qui est moins fiable)
@@ -110,7 +110,7 @@ Les gains de productivité avancés (regroupement multi-nuits P9, bibliothèque 
 - [ ] Bouton « Annuler ma validation » sur une observation déjà validée (revient à `À voir`).
 
 **Parcours rattaché** : [P7](../Parcours%20utilisateurs/P7%20-%20Valider%20les%20résultats%20Tadarida.md), étape 5<br>
-**Maquettes cibles** : M-Vision-Tadarida (zone d'action + sélecteur de taxon)<br>
+**Maquettes cibles** : [M-Vision-Tadarida](../Maquettes/M-Vision-Tadarida.md) (zone d'action + sélecteur de taxon)<br>
 **Dépendances** : [E0.S5](E0%20-%20Fondations%20de%20persistance.md#e0s5), [E7.S2](#e7s2)<br>
 **Complexité** : ★★ (simple — boutons + sélecteur autocomplétion + persistance)<br>
 **MoSCoW** : 🟠 SHOULD
@@ -136,7 +136,7 @@ Les gains de productivité avancés (regroupement multi-nuits P9, bibliothèque 
 - [ ] Compatible avec le tri de [E7.S2](#e7s2).
 
 **Parcours rattaché** : [P7](../Parcours%20utilisateurs/P7%20-%20Valider%20les%20résultats%20Tadarida.md), étape 6<br>
-**Maquettes cibles** : M-Vision-Tadarida (barre de filtres + chips au-dessus de la liste)<br>
+**Maquettes cibles** : [M-Vision-Tadarida](../Maquettes/M-Vision-Tadarida.md) (barre de filtres + chips au-dessus de la liste)<br>
 **Dépendances** : [E0.S5](E0%20-%20Fondations%20de%20persistance.md#e0s5), [E7.S2](#e7s2)<br>
 **Complexité** : ★★★ (moyen — composition de filtres + chips + intégration TableView)<br>
 **MoSCoW** : 🟠 SHOULD (utile dès qu'on a quelques centaines d'observations)
@@ -162,7 +162,7 @@ Les gains de productivité avancés (regroupement multi-nuits P9, bibliothèque 
 - [ ] Documentation in-app du sens des deux modes (tooltip ou page d'aide) ([R18](../Modèle%20conceptuel/Règles%20métier.md#r18)).
 
 **Parcours rattaché** : [P7](../Parcours%20utilisateurs/P7%20-%20Valider%20les%20résultats%20Tadarida.md), Notes importantes - deux modes<br>
-**Maquettes cibles** : M-Vision-Tadarida (modal de choix de mode au démarrage + indicateur du mode courant)<br>
+**Maquettes cibles** : [M-Vision-Tadarida](../Maquettes/M-Vision-Tadarida.md) (modal de choix de mode au démarrage + indicateur du mode courant)<br>
 **Dépendances** : [E0.S5](E0%20-%20Fondations%20de%20persistance.md#e0s5), [E7.S4](#e7s4)<br>
 **Complexité** : ★★ (simple — toggle + logique différenciée à la validation + ajustement de l'export)<br>
 **MoSCoW** : ⚪ COULD (le mode activité par défaut suffit pour le MVP ; le mode inventaire est un raffinement productivité)
@@ -189,7 +189,7 @@ Les gains de productivité avancés (regroupement multi-nuits P9, bibliothèque 
 - [ ] Tests d'intégration : export d'un passage avec mix de Validées/Corrigées/À voir, vérification de la conformité du CSV produit (lecture round-trip).
 
 **Parcours rattaché** : [P7](../Parcours%20utilisateurs/P7%20-%20Valider%20les%20résultats%20Tadarida.md), étape 8<br>
-**Maquettes cibles** : M-Vision-Tadarida (bouton « Exporter Vu.csv » + modal de récapitulatif)<br>
+**Maquettes cibles** : [M-Vision-Tadarida](../Maquettes/M-Vision-Tadarida.md) (bouton « Exporter Vu.csv » + modal de récapitulatif)<br>
 **Dépendances** : [E0.S5](E0%20-%20Fondations%20de%20persistance.md#e0s5), [E7.S4](#e7s4)<br>
 **Complexité** : ★★ (simple — sérialisation CSV au format défini)<br>
 **MoSCoW** : 🟠 SHOULD

@@ -6,39 +6,14 @@ Le développement est découpé en **2 sprints** alignés sur la stratégie déf
 
 ## Vue d'ensemble
 
-```mermaid
-gantt
-    title SAE 2.01 VigieChiro PR Companion - calendrier 2026
-    dateFormat YYYY-MM-DD
-    axisFormat %d/%m
-    excludes weekends
+[🖼️ Voir le Gantt en plein écran ↗](Planification%20-%20plein%20écran.md){ .md-button }
 
-    section Amorçage (en parallèle d'autres modules)
-    Présentation du projet         :milestone, m1, 2026-05-22, 0d
-    Lecture brief, équipes, repo   :a1, 2026-05-22, 4d
-    Premières estimations          :a2, 2026-05-26, 1d
-    Assemblage PR (si pièces OK)   :a3, 2026-05-27, 2d
-    Première nuit de capture test  :a4, 2026-05-28, 2d
+Le Gantt prospectif détaillé est sur la page plein écran (il est trop dense pour s'afficher proprement dans la largeur de cette page). Il couvre 4 phases :
 
-    section Sprint 1 - dev exclusif
-    Démarrage SAE temps plein      :milestone, m2, 2026-06-01, 0d
-    E0 socle BD (S1-S5)            :s1a, 2026-06-01, 3d
-    E1 Sites et points             :s1b, 2026-06-02, 3d
-    E2 Import + transformation     :s1c, 2026-06-03, 5d
-    E3 Vérification d'enregistr.   :s1d, 2026-06-08, 2d
-    Démo intermédiaire S1          :milestone, mS1, 2026-06-09, 0d
-
-    section Sprint 2 - finition + soutenance
-    E4 Lot et dépôt                :s2a, 2026-06-10, 2d
-    SHOULD opportunistes (E5/E6/E7):s2b, 2026-06-11, 4d
-    Stabilisation + tests          :s2c, 2026-06-15, 2d
-    Préparation soutenance         :s2d, 2026-06-15, 3d
-
-    section Livraison
-    Code freeze + diaporama        :milestone, m3, 2026-06-18, 0d
-    Test individuel                :test, 2026-06-18, 1d
-    Soutenance + démo (Samuel)     :milestone, m4, 2026-06-18, 0d
-```
+1. **Amorçage** (22/05 → 31/05, 6 jours en parallèle d'autres modules) - lecture du brief, repo, équipes, assemblage du PR si pièces reçues, première nuit de capture test.
+2. **Sprint 1** (01/06 → 09/06, 7 jours dev exclusif) - chaîne fil rouge MUST : [E0 socle](Story%20mapping/E0%20-%20Fondations%20de%20persistance.md) + [E1](Story%20mapping/E1%20-%20Gérer%20ses%20sites%20et%20points%20de%20suivi.md) + [E2](Story%20mapping/E2%20-%20Importer%20et%20transformer%20une%20nuit.md) + [E3](Story%20mapping/E3%20-%20Vérifier%20la%20qualité%20d%27enregistrement.md).
+3. **Sprint 2** (10/06 → 17/06, 6 jours dev exclusif) - finition [E4](Story%20mapping/E4%20-%20Préparer%20et%20tracer%20le%20dépôt%20VigieChiro.md), SHOULD opportunistes, stabilisation, préparation soutenance.
+4. **Livraison** (18/06) - code freeze + diaporama le matin, test individuel l'après-midi, soutenance + démo devant Samuel Busson en clôture.
 
 ## Détail par phase
 

@@ -1,6 +1,9 @@
 # Périmètre MVP
 
-Le périmètre du **produit minimum viable** est défini par arbitrage des [27 stories du story mapping](Story%20mapping.md) selon la méthode [MoSCoW](https://fr.wikipedia.org/wiki/M%C3%A9thode_MoSCoW) :
+Le périmètre du **produit minimum viable** est défini par arbitrage des stories du [story mapping](Story%20mapping/index.md) selon la méthode [MoSCoW](https://fr.wikipedia.org/wiki/M%C3%A9thode_MoSCoW) :
+
+!!! warning "Page en cours de refonte"
+    Le contenu détaillé ci-dessous correspond à l'**ancien story mapping (27 stories, ancien découpage en épopées E1-E6)** et n'est plus aligné avec la nouvelle ossature à 8 épopées (E0-E7) en cours d'écriture. Cette page sera réécrite quand toutes les épopées du nouveau story mapping seront publiées.
 
 - **MUST** (M) : sans cette story, le MVP ne tient pas debout. À livrer en phase 1.
 - **SHOULD** (S) : très souhaitable. À livrer si la vélocité le permet.

@@ -6,31 +6,126 @@
 
 ## Wireframe
 
-```
-┌──────────────────────────────────────────────────────────────────────────────┐
-│  🦇  VigieChiro PR Companion                              [⚙ Préférences]  ─□✕│
-├──────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
-│  Mes sessions                              [+ Importer une nuit]  [↻ Actualiser] │
-│  ──────────────────────────────────────────────────────────────────────────  │
-│                                                                              │
-│  Filtre rapide :  Statut [Tous          ▼]   Tag [Aucun     ▼]    🔍 [_____] │
-│                                                                              │
-│  ┌──────────────────────────────────────────────────────────────────────┐    │
-│  │ 📅 Date ▼   │ PR n°    │ Durée │ WAV  │ Obs.  │ Tag           │ Statut    │    │
-│  ├──────────────────────────────────────────────────────────────────────┤    │
-│  │ 2026-04-22  │ 1925492  │ 11h22 │ 1572 │ 4031  │ Carré 640380  │ ⬛ Importée│    │
-│  │ 2026-04-15  │ 1925492  │ 11h05 │ 1408 │  3621 │ Carré 640380  │ 🟡 En cours│    │
-│  │ 2026-04-08  │ 1925492  │ 10h47 │  892 │  2104 │ Carré 640380  │ ✅ Validée │    │
-│  │ 2026-03-28  │ 1925487  │ 09h38 │  421 │   985 │ Test_Maison   │ 📤 Exportée│    │
-│  │ 2026-03-22  │ 1925487  │ 10h11 │ 1109 │  3204 │ —             │ 📤 Exportée│    │
-│  │ ...                                                                  │    │
-│  └──────────────────────────────────────────────────────────────────────┘    │
-│                                                                              │
-│  5 sessions • 4 402 observations • 3 nuits restant à valider                 │
-│                                                                              │
-└──────────────────────────────────────────────────────────────────────────────┘
-```
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 540" role="img" aria-label="Maquette M1 - Accueil / Journal des sessions" style="max-width: 100%; height: auto; border: 1px solid #d0d7de; border-radius: 6px; background: #fafbfc;">
+  <style>
+    .frame { fill: #ffffff; stroke: #2c3e50; stroke-width: 1.5; }
+    .titlebar { fill: #2c3e50; }
+    .titletxt { fill: #ffffff; font: 600 14px sans-serif; }
+    .label { font: 13px sans-serif; fill: #2c3e50; }
+    .hint { font: 12px sans-serif; fill: #6a737d; }
+    .h2 { font: 600 16px sans-serif; fill: #2c3e50; }
+    .btn-primary { fill: #4a90d9; stroke: #2c3e50; stroke-width: 1; }
+    .btn-secondary { fill: #ffffff; stroke: #2c3e50; stroke-width: 1; }
+    .btn-txt { fill: #ffffff; font: 600 12px sans-serif; }
+    .btn-txt-dark { fill: #2c3e50; font: 12px sans-serif; }
+    .field { fill: #ffffff; stroke: #6a737d; stroke-width: 1; }
+    .table-head { fill: #eef2f5; stroke: #2c3e50; stroke-width: 1; }
+    .table-row { fill: #ffffff; stroke: #d0d7de; stroke-width: 0.5; }
+    .table-row-alt { fill: #f6f8fa; stroke: #d0d7de; stroke-width: 0.5; }
+    .col-head { font: 600 11px sans-serif; fill: #2c3e50; }
+    .cell { font: 12px sans-serif; fill: #2c3e50; }
+    .footer { fill: #f6f8fa; stroke: #d0d7de; stroke-width: 1; }
+    .stat-imported { fill: #6a737d; }
+    .stat-progress { fill: #f1c40f; }
+    .stat-validated { fill: #27ae60; }
+    .stat-exported { fill: #4a90d9; }
+  </style>
+  <!-- Cadre fenêtre -->
+  <rect x="10" y="10" width="860" height="520" rx="4" class="frame"/>
+
+  <!-- Title bar -->
+  <rect x="10" y="10" width="860" height="32" rx="4" class="titlebar"/>
+  <rect x="10" y="26" width="860" height="16" class="titlebar"/>
+  <text x="28" y="31" class="titletxt">🦇 VigieChiro PR Companion</text>
+  <rect x="700" y="17" width="100" height="18" rx="3" fill="#34495e" stroke="#fff" stroke-width="0.5"/>
+  <text x="710" y="30" class="titletxt" font-size="11">⚙ Préférences</text>
+  <text x="826" y="31" class="titletxt" font-size="14">─ □ ✕</text>
+
+  <!-- Header section -->
+  <text x="28" y="68" class="h2">Mes sessions</text>
+  <rect x="540" y="55" width="180" height="26" rx="3" class="btn-primary"/>
+  <text x="555" y="72" class="btn-txt">+ Importer une nuit</text>
+  <rect x="730" y="55" width="120" height="26" rx="3" class="btn-secondary"/>
+  <text x="745" y="72" class="btn-txt-dark">↻ Actualiser</text>
+
+  <!-- Filter bar -->
+  <text x="28" y="108" class="label">Filtres :</text>
+  <text x="80" y="108" class="hint">Statut</text>
+  <rect x="120" y="96" width="120" height="20" rx="3" class="field"/>
+  <text x="128" y="110" class="cell">Tous ▼</text>
+  <text x="252" y="108" class="hint">Tag</text>
+  <rect x="280" y="96" width="120" height="20" rx="3" class="field"/>
+  <text x="288" y="110" class="cell">Aucun ▼</text>
+  <rect x="720" y="96" width="130" height="20" rx="3" class="field"/>
+  <text x="728" y="110" class="hint">🔍 Recherche…</text>
+
+  <!-- Table header -->
+  <rect x="28" y="135" width="822" height="28" class="table-head"/>
+  <text x="40" y="153" class="col-head">📅 Date ▼</text>
+  <text x="160" y="153" class="col-head">PR n°</text>
+  <text x="260" y="153" class="col-head">Durée</text>
+  <text x="340" y="153" class="col-head">WAV</text>
+  <text x="420" y="153" class="col-head">Obs.</text>
+  <text x="510" y="153" class="col-head">Tag</text>
+  <text x="730" y="153" class="col-head">Statut</text>
+
+  <!-- Rows -->
+  <rect x="28" y="163" width="822" height="28" class="table-row"/>
+  <text x="40" y="181" class="cell">2026-04-22</text>
+  <text x="160" y="181" class="cell">1925492</text>
+  <text x="260" y="181" class="cell">11h22</text>
+  <text x="340" y="181" class="cell">1 572</text>
+  <text x="420" y="181" class="cell">4 031</text>
+  <text x="510" y="181" class="cell">Carré 640380</text>
+  <circle cx="724" cy="177" r="5" class="stat-imported"/>
+  <text x="734" y="181" class="cell">Importée</text>
+
+  <rect x="28" y="191" width="822" height="28" class="table-row-alt"/>
+  <text x="40" y="209" class="cell">2026-04-15</text>
+  <text x="160" y="209" class="cell">1925492</text>
+  <text x="260" y="209" class="cell">11h05</text>
+  <text x="340" y="209" class="cell">1 408</text>
+  <text x="420" y="209" class="cell">3 621</text>
+  <text x="510" y="209" class="cell">Carré 640380</text>
+  <circle cx="724" cy="205" r="5" class="stat-progress"/>
+  <text x="734" y="209" class="cell">En cours</text>
+
+  <rect x="28" y="219" width="822" height="28" class="table-row"/>
+  <text x="40" y="237" class="cell">2026-04-08</text>
+  <text x="160" y="237" class="cell">1925492</text>
+  <text x="260" y="237" class="cell">10h47</text>
+  <text x="340" y="237" class="cell">892</text>
+  <text x="420" y="237" class="cell">2 104</text>
+  <text x="510" y="237" class="cell">Carré 640380</text>
+  <circle cx="724" cy="233" r="5" class="stat-validated"/>
+  <text x="734" y="237" class="cell">Validée</text>
+
+  <rect x="28" y="247" width="822" height="28" class="table-row-alt"/>
+  <text x="40" y="265" class="cell">2026-03-28</text>
+  <text x="160" y="265" class="cell">1925487</text>
+  <text x="260" y="265" class="cell">09h38</text>
+  <text x="340" y="265" class="cell">421</text>
+  <text x="420" y="265" class="cell">985</text>
+  <text x="510" y="265" class="cell">Test_Maison</text>
+  <circle cx="724" cy="261" r="5" class="stat-exported"/>
+  <text x="734" y="265" class="cell">Exportée</text>
+
+  <rect x="28" y="275" width="822" height="28" class="table-row"/>
+  <text x="40" y="293" class="cell">2026-03-22</text>
+  <text x="160" y="293" class="cell">1925487</text>
+  <text x="260" y="293" class="cell">10h11</text>
+  <text x="340" y="293" class="cell">1 109</text>
+  <text x="420" y="293" class="cell">3 204</text>
+  <text x="510" y="293" class="cell hint">—</text>
+  <circle cx="724" cy="289" r="5" class="stat-exported"/>
+  <text x="734" y="293" class="cell">Exportée</text>
+
+  <text x="40" y="320" class="hint">…</text>
+
+  <!-- Footer / status bar -->
+  <rect x="28" y="488" width="822" height="32" rx="3" class="footer"/>
+  <text x="44" y="508" class="label">5 sessions • 4 402 observations • <tspan font-weight="600">3 nuits restant à valider</tspan></text>
+</svg>
 
 ## Composants
 

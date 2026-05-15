@@ -153,9 +153,8 @@ nav:
           - E6 - Diagnostiquer le matériel: Analyse et conception/Story mapping/E6 - Diagnostiquer le matériel.md
           - E7 - Valider les résultats Tadarida: Analyse et conception/Story mapping/E7 - Valider les résultats Tadarida.md
           - E8 - Productivité avancée Tadarida: Analyse et conception/Story mapping/E8 - Productivité avancée Tadarida.md
-      - Périmètre MVP: Analyse et conception/Périmètre MVP.md
-      - Planification: Analyse et conception/Planification.md
       - Maquettes:
+          - M-Sites - Mes sites de suivi: Analyse et conception/Maquettes/M-Sites.md
           - Vue d'ensemble: Analyse et conception/Maquettes/index.md
           - M1 - Accueil: Analyse et conception/Maquettes/M1-accueil.md
           - M2 - Détail session: Analyse et conception/Maquettes/M2-detail-session.md
@@ -166,6 +165,8 @@ nav:
           - M7 - Modale CSV Tadarida: Analyse et conception/Maquettes/M7-modale-csv-tadarida.md
           - M8 - Modale export: Analyse et conception/Maquettes/M8-modale-export.md
           - M9 - Modale suppression: Analyse et conception/Maquettes/M9-modale-suppression.md
+      - Périmètre MVP: Analyse et conception/Périmètre MVP.md
+      - Planification: Analyse et conception/Planification.md
   - 6. Jalons et livrables: Jalons et livrables.md
   - 7. Calendrier de travail: Calendrier de travail.md
   - 8. Consignes générales: Consignes générales.md

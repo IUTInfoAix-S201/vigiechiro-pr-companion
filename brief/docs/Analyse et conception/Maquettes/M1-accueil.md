@@ -6,6 +6,7 @@
 
 ## Wireframe
 
+<div markdown="0">
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 540" role="img" aria-label="Maquette M1 - Accueil / Journal des sessions" style="max-width: 100%; height: auto; border: 1px solid #d0d7de; border-radius: 6px; background: #fafbfc;">
   <style>
     .frame { fill: #ffffff; stroke: #2c3e50; stroke-width: 1.5; }
@@ -126,6 +127,7 @@
   <rect x="28" y="488" width="822" height="32" rx="3" class="footer"/>
   <text x="44" y="508" class="label">5 sessions • 4 402 observations • <tspan font-weight="600">3 nuits restant à valider</tspan></text>
 </svg>
+</div>
 
 ## Composants
 

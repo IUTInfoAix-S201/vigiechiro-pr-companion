@@ -7,7 +7,7 @@
 > **Parcours couverts** : [P7 - Valider les résultats Tadarida](../Parcours%20utilisateurs/P7%20-%20Valider%20les%20résultats%20Tadarida.md), [P9 - Regrouper les nuits successives par point](../Parcours%20utilisateurs/P9%20-%20Regrouper%20les%20nuits%20successives%20par%20point.md), [P10 - Exporter une bibliothèque de sons de référence](../Parcours%20utilisateurs/P10%20-%20Exporter%20une%20bibliothèque%20de%20sons%20de%20référence.md).
 > **Stories couvertes** : [E7.S1 - Importer CSV](../Story%20mapping/E7%20-%20Valider%20les%20résultats%20Tadarida.md#e7s1), [E7.S2 - Liste + détail](../Story%20mapping/E7%20-%20Valider%20les%20résultats%20Tadarida.md#e7s2), [E7.S3 - Spectrogramme + zoom](../Story%20mapping/E7%20-%20Valider%20les%20résultats%20Tadarida.md#e7s3), [E7.S4 - Valider/corriger](../Story%20mapping/E7%20-%20Valider%20les%20résultats%20Tadarida.md#e7s4), [E7.S5 - Filtres](../Story%20mapping/E7%20-%20Valider%20les%20résultats%20Tadarida.md#e7s5), [E7.S6 - Mode inventaire/activité](../Story%20mapping/E7%20-%20Valider%20les%20résultats%20Tadarida.md#e7s6), [E7.S7 - Exporter Vu.csv](../Story%20mapping/E7%20-%20Valider%20les%20résultats%20Tadarida.md#e7s7), [E8.S1 - Regroupement](../Story%20mapping/E8%20-%20Productivité%20avancée%20Tadarida.md#e8s1), [E8.S2 - Bibliothèque sons](../Story%20mapping/E8%20-%20Productivité%20avancée%20Tadarida.md#e8s2).
 
-L'écran présente la **vue de validation** : liste des observations Tadarida à gauche (avec filtres et compteur de validation), panneau de détail à droite (info séquence + spectrogramme + lecteur audio + actions de validation/correction). C'est l'écran le plus riche techniquement de toute l'application — implémente notamment le **spectrogramme avec zoom** (E7.S3, ★★★★★), brique technique majeure.
+L'écran présente la **vue de validation** : liste des observations Tadarida à gauche (avec filtres et compteur de validation), panneau de détail à droite (info séquence + **vue audio combinée sonogramme + spectrogramme** + lecteur + actions de validation/correction). La vue audio est un **composant partagé avec [M-Qualification](M-Qualification.md)** fourni par l'équipe pédagogique.
 
 ## Wireframe principal - validation en cours sur une observation Tadarida
 
@@ -334,19 +334,55 @@ L'écran présente la **vue de validation** : liste des observations Tadarida à
   <text x="1130" y="372" class="prob-large" text-anchor="end">87 %</text>
   <text x="1130" y="390" class="taxon-meta" text-anchor="end">probabilité Tadarida</text>
 
-  <!-- Spectrogramme -->
-  <text x="680" y="430" class="section-title">📊 Spectrogramme (zoom temps + fréquence)</text>
+  <!-- Vue audio combinée (composant partagé avec M-Qualification) : sonogramme + spectrogramme -->
+  <text x="680" y="430" class="section-title">🎵 Vue audio (sonogramme + spectrogramme avec zoom)</text>
   <text x="1130" y="430" class="taxon-meta" text-anchor="end">38 kHz médian · 5,0 s</text>
 
-  <!-- Spectrogramme simulé : barres verticales colorées par "amplitude" -->
-  <rect x="680" y="445" width="460" height="180" class="specto-bg"/>
+  <!-- Sonogramme (waveform amplitude/temps) sur fond clair -->
+  <rect x="680" y="445" width="460" height="55" rx="0" fill="#eef2f5" stroke="#6a737d" stroke-width="1"/>
+  <text x="676" y="453" class="specto-axis-txt" text-anchor="end" fill="#6a737d">+1</text>
+  <text x="676" y="475" class="specto-axis-txt" text-anchor="end" fill="#6a737d">0</text>
+  <text x="676" y="497" class="specto-axis-txt" text-anchor="end" fill="#6a737d">-1</text>
+  <!-- Ligne médiane -->
+  <line x1="685" y1="472" x2="1135" y2="472" stroke="#6a737d" stroke-width="0.5" stroke-dasharray="2 2"/>
+  <!-- Portion lue (vert) -->
+  <rect x="700" y="468" width="2" height="9" fill="#1e8449"/>
+  <rect x="708" y="464" width="2" height="17" fill="#1e8449"/>
+  <rect x="716" y="460" width="2" height="25" fill="#1e8449"/>
+  <rect x="724" y="463" width="2" height="20" fill="#1e8449"/>
+  <rect x="732" y="458" width="2" height="29" fill="#1e8449"/>
+  <rect x="745" y="455" width="2" height="35" fill="#1e8449"/>
+  <rect x="758" y="452" width="2" height="40" fill="#1e8449"/>
+  <rect x="770" y="455" width="2" height="35" fill="#1e8449"/>
+  <rect x="785" y="460" width="2" height="25" fill="#1e8449"/>
+  <rect x="800" y="455" width="2" height="35" fill="#1e8449"/>
+  <rect x="820" y="452" width="2" height="40" fill="#1e8449"/>
+  <rect x="840" y="458" width="2" height="29" fill="#1e8449"/>
+  <!-- Portion à jouer (bleu) -->
+  <rect x="870" y="463" width="2" height="20" fill="#4a90d9"/>
+  <rect x="885" y="465" width="2" height="16" fill="#4a90d9"/>
+  <rect x="900" y="463" width="2" height="20" fill="#4a90d9"/>
+  <rect x="920" y="465" width="2" height="16" fill="#4a90d9"/>
+  <rect x="940" y="467" width="2" height="12" fill="#4a90d9"/>
+  <rect x="960" y="465" width="2" height="16" fill="#4a90d9"/>
+  <rect x="980" y="467" width="2" height="12" fill="#4a90d9"/>
+  <rect x="1000" y="468" width="2" height="10" fill="#4a90d9"/>
+  <rect x="1020" y="467" width="2" height="12" fill="#4a90d9"/>
+  <rect x="1040" y="468" width="2" height="10" fill="#4a90d9"/>
+  <rect x="1060" y="469" width="2" height="8" fill="#4a90d9"/>
+  <rect x="1080" y="468" width="2" height="10" fill="#4a90d9"/>
+  <rect x="1100" y="469" width="2" height="8" fill="#4a90d9"/>
+  <rect x="1120" y="470" width="2" height="6" fill="#4a90d9"/>
+
+  <!-- Spectrogramme (fréquence/temps) sur fond sombre -->
+  <rect x="680" y="505" width="460" height="120" class="specto-bg"/>
   <!-- Axe Y (fréquence) -->
-  <text x="676" y="455" class="specto-axis-txt" text-anchor="end">120</text>
-  <text x="676" y="495" class="specto-axis-txt" text-anchor="end">80</text>
-  <text x="676" y="535" class="specto-axis-txt" text-anchor="end">40</text>
-  <text x="676" y="575" class="specto-axis-txt" text-anchor="end">20</text>
-  <text x="676" y="615" class="specto-axis-txt" text-anchor="end">8 kHz</text>
-  <!-- Axe X (temps) -->
+  <text x="676" y="515" class="specto-axis-txt" text-anchor="end">120</text>
+  <text x="676" y="540" class="specto-axis-txt" text-anchor="end">80</text>
+  <text x="676" y="568" class="specto-axis-txt" text-anchor="end">40</text>
+  <text x="676" y="595" class="specto-axis-txt" text-anchor="end">20</text>
+  <text x="676" y="618" class="specto-axis-txt" text-anchor="end">8 kHz</text>
+  <!-- Axe X (temps) partagé sonogramme et spectrogramme -->
   <text x="685" y="635" class="specto-axis-txt">0</text>
   <text x="800" y="635" class="specto-axis-txt">1,5</text>
   <text x="910" y="635" class="specto-axis-txt">3,0</text>
@@ -354,34 +390,31 @@ L'écran présente la **vue de validation** : liste des observations Tadarida à
   <text x="1130" y="635" class="specto-axis-txt" text-anchor="end">5,0 s</text>
 
   <!-- Spectrogramme représenté par bandes colorées (simulant énergie sur fréquences) -->
-  <!-- Bande basse fréquence : faible -->
-  <rect x="685" y="595" width="450" height="20" fill="#243a52"/>
-  <!-- 30-50 kHz : amplitude principale (Pippip vers 45) -->
-  <rect x="685" y="525" width="450" height="55" fill="#34495e"/>
-  <!-- Pics d'énergie : barres verticales discrètes -->
-  <rect x="700" y="510" width="3" height="55" fill="#f1c40f"/>
-  <rect x="708" y="510" width="3" height="55" fill="#f39c12"/>
-  <rect x="755" y="500" width="3" height="65" fill="#e67e22"/>
-  <rect x="762" y="495" width="3" height="70" fill="#e74c3c"/>
-  <rect x="770" y="500" width="3" height="65" fill="#e67e22"/>
-  <rect x="820" y="510" width="3" height="55" fill="#f39c12"/>
-  <rect x="850" y="498" width="3" height="68" fill="#e67e22"/>
-  <rect x="858" y="495" width="3" height="70" fill="#e74c3c"/>
-  <rect x="900" y="505" width="3" height="60" fill="#f39c12"/>
-  <rect x="950" y="500" width="3" height="65" fill="#e67e22"/>
-  <rect x="958" y="495" width="3" height="70" fill="#e74c3c"/>
-  <rect x="1000" y="510" width="3" height="55" fill="#f39c12"/>
-  <rect x="1050" y="498" width="3" height="68" fill="#e67e22"/>
-  <rect x="1058" y="495" width="3" height="70" fill="#e74c3c"/>
-  <rect x="1100" y="505" width="3" height="60" fill="#f39c12"/>
+  <rect x="685" y="600" width="450" height="18" fill="#243a52"/>
+  <rect x="685" y="555" width="450" height="35" fill="#34495e"/>
+  <rect x="700" y="545" width="3" height="35" fill="#f1c40f"/>
+  <rect x="708" y="545" width="3" height="35" fill="#f39c12"/>
+  <rect x="755" y="535" width="3" height="45" fill="#e67e22"/>
+  <rect x="762" y="530" width="3" height="50" fill="#e74c3c"/>
+  <rect x="770" y="535" width="3" height="45" fill="#e67e22"/>
+  <rect x="820" y="545" width="3" height="35" fill="#f39c12"/>
+  <rect x="850" y="533" width="3" height="47" fill="#e67e22"/>
+  <rect x="858" y="530" width="3" height="50" fill="#e74c3c"/>
+  <rect x="900" y="540" width="3" height="40" fill="#f39c12"/>
+  <rect x="950" y="535" width="3" height="45" fill="#e67e22"/>
+  <rect x="958" y="530" width="3" height="50" fill="#e74c3c"/>
+  <rect x="1000" y="545" width="3" height="35" fill="#f39c12"/>
+  <rect x="1050" y="533" width="3" height="47" fill="#e67e22"/>
+  <rect x="1058" y="530" width="3" height="50" fill="#e74c3c"/>
+  <rect x="1100" y="540" width="3" height="40" fill="#f39c12"/>
 
-  <!-- Cursor de lecture (ligne rouge verticale) -->
+  <!-- Cursor de lecture synchronisé sur sonogramme + spectrogramme -->
   <line x1="855" y1="445" x2="855" y2="625" class="specto-cursor"/>
 
-  <!-- Boutons zoom -->
-  <rect x="1090" y="450" width="20" height="20" rx="3" class="specto-zoom-btn"/>
-  <text x="1100" y="465" class="specto-zoom-txt" text-anchor="middle">+</text>
-  <rect x="1115" y="450" width="20" height="20" rx="3" class="specto-zoom-btn"/>
+  <!-- Boutons zoom (sur le spectrogramme) -->
+  <rect x="1090" y="510" width="20" height="20" rx="3" class="specto-zoom-btn"/>
+  <text x="1100" y="525" class="specto-zoom-txt" text-anchor="middle">+</text>
+  <rect x="1115" y="510" width="20" height="20" rx="3" class="specto-zoom-btn"/>
   <text x="1125" y="465" class="specto-zoom-txt" text-anchor="middle">−</text>
 
   <!-- Player audio -->
@@ -432,7 +465,7 @@ L'écran présente la **vue de validation** : liste des observations Tadarida à
     - Avertissement explicite que les probabilités Tadarida ne sont pas fiables au sens strict
 - **Colonne droite - Panneau de détail** :
     - Card info taxon (code, nom latin, vernaculaire, groupe taxo) + probabilité Tadarida en gros (87 %)
-    - **Spectrogramme** ([E7.S3](../Story%20mapping/E7%20-%20Valider%20les%20résultats%20Tadarida.md#e7s3), ★★★★★) : fond sombre avec axes fréquence (8-120 kHz) et temps (0-5 s). Représentation par barres verticales colorées (gradient jaune → rouge selon amplitude). Cursor rouge à la position de lecture. Boutons zoom + / − en haut à droite
+    - **Vue audio combinée** (sonogramme + spectrogramme) ([E7.S3](../Story%20mapping/E7%20-%20Valider%20les%20résultats%20Tadarida.md#e7s3)) : **composant partagé avec [M-Qualification](M-Qualification.md)**, fourni par l'équipe pédagogique. Le sonogramme (waveform, fond clair) en haut donne l'allure générale du signal ; le spectrogramme (fréquence/temps, fond sombre) en bas révèle les caractéristiques fréquentielles discriminantes du cri (forme, fréquence dominante, harmoniques). Cursor rouge synchronisé sur les deux. Boutons zoom + / − accessibles sur le spectrogramme
     - Player audio compact (timecode, contrôles, volume)
     - **3 boutons d'action** colorés ([E7.S4](../Story%20mapping/E7%20-%20Valider%20les%20résultats%20Tadarida.md#e7s4) + [E8.S2](../Story%20mapping/E8%20-%20Productivité%20avancée%20Tadarida.md#e8s2)) :
         - ✓ **Valider** (vert) : confirme le taxon Tadarida
@@ -552,13 +585,7 @@ Avant de pouvoir valider, l'utilisateur doit **importer le CSV de résultats** t
 
 ## Notes pour l'implémentation
 
-- **Spectrogramme** ([E7.S3](../Story%20mapping/E7%20-%20Valider%20les%20résultats%20Tadarida.md#e7s3)) : c'est la **brique la plus lourde techniquement** (★★★★★). Implémentation possible :
-    - Calcul FFT sur chaque chunk de la séquence (fenêtre 1024 ou 2048, recouvrement 50 %)
-    - Rendu sur `Canvas` JavaFX (plus performant que des `Rectangle` SVG-style)
-    - Couleurs : gradient noir → bleu → jaune → rouge selon amplitude (échelle log)
-    - Calcul en arrière-plan avec placeholder « Calcul du spectrogramme... » si > 200 ms
-    - Bibliothèques utiles : `JTransforms` (FFT) ou implémentation maison
-- **Zoom interactif** : molette souris → zoom temps. Maj+molette → zoom fréquence. Bouton « Reset » pour revenir à la vue complète.
+- **Composant de vue audio fourni** : le bloc `sonogramme + spectrogramme + cursor synchronisé + boutons zoom` est un **composant JavaFX fourni par l'équipe pédagogique** (cf. Contraintes techniques). Les étudiants ne le réimplémentent pas - ils l'instancient avec un `wav:Path` et reçoivent les évènements de lecture / curseur / zoom. Ce composant est partagé avec [M-Qualification](M-Qualification.md), évitant ainsi la duplication d'un calcul FFT non trivial. La story [E7.S3](../Story%20mapping/E7%20-%20Valider%20les%20résultats%20Tadarida.md#e7s3) se concentre alors sur l'**intégration** et la **liaison** avec les autres composants de l'écran (sélection ↔ chargement audio ↔ persistance), ce qui en réduit la complexité réelle.
 - **TableView des observations** : avec virtualisation pour absorber 4 000+ lignes sans freezer.
 - **Raccourcis clavier** (V/C/R/→) : à implémenter au niveau racine de la vue. Indispensables pour la productivité Samuel.
 - **Sélecteur de taxon de correction** (modal sur clic Corriger) : autocomplete sur le code à 6 lettres ou le nom latin/vernaculaire, depuis le DAO Taxon ([E0.S5](../Story%20mapping/E0%20-%20Fondations%20de%20persistance.md#e0s5)).

@@ -79,7 +79,7 @@ Le sound check avant dépôt.
 
 - [E3.S1 - Générer une sélection d'écoute automatique](Story%20mapping/E3%20-%20Vérifier%20la%20qualité%20d%27enregistrement.md#e3s1) ★★
 - [E3.S2 - Afficher la sélection en liste chronologique](Story%20mapping/E3%20-%20Vérifier%20la%20qualité%20d%27enregistrement.md#e3s2) ★★
-- [E3.S3 - Lire une séquence d'écoute avec contrôles audio](Story%20mapping/E3%20-%20Vérifier%20la%20qualité%20d%27enregistrement.md#e3s3) ★★★
+- [E3.S3 - Intégrer le composant de vue audio (sonogramme + spectrogramme)](Story%20mapping/E3%20-%20Vérifier%20la%20qualité%20d%27enregistrement.md#e3s3) ★★ (composant fourni)
 - [E3.S4 - Marquer les séquences écoutées et suivre l'avancement](Story%20mapping/E3%20-%20Vérifier%20la%20qualité%20d%27enregistrement.md#e3s4) ★
 - [E3.S5 - Saisir le verdict global du passage et un commentaire](Story%20mapping/E3%20-%20Vérifier%20la%20qualité%20d%27enregistrement.md#e3s5) ★
 
@@ -162,7 +162,7 @@ Vue exhaustive des 50 stories. Tri par épopée puis par n°.
 | [E2.S8](Story%20mapping/E2%20-%20Importer%20et%20transformer%20une%20nuit.md#e2s8) | Modifier rétroactivement le rattachement | ★★★ | 🟠 SHOULD | Utile mais corrigeable par re-import à la main. |
 | [E3.S1](Story%20mapping/E3%20-%20Vérifier%20la%20qualité%20d%27enregistrement.md#e3s1) | Générer la sélection automatique | ★★ | ✅ MUST | Sans sélection, pas de vérif. |
 | [E3.S2](Story%20mapping/E3%20-%20Vérifier%20la%20qualité%20d%27enregistrement.md#e3s2) | Liste chronologique avec metadata | ★★ | ✅ MUST | Affichage de base. |
-| [E3.S3](Story%20mapping/E3%20-%20Vérifier%20la%20qualité%20d%27enregistrement.md#e3s3) | Lire une séquence d'écoute | ★★★ | ✅ MUST | Player audio indispensable. |
+| [E3.S3](Story%20mapping/E3%20-%20Vérifier%20la%20qualité%20d%27enregistrement.md#e3s3) | Intégrer composant vue audio | ★★ | ✅ MUST | Composant fourni par l'équipe pédagogique, story = intégration. |
 | [E3.S4](Story%20mapping/E3%20-%20Vérifier%20la%20qualité%20d%27enregistrement.md#e3s4) | Marquer les séquences écoutées | ★ | ✅ MUST | Léger, ergonomie. |
 | [E3.S5](Story%20mapping/E3%20-%20Vérifier%20la%20qualité%20d%27enregistrement.md#e3s5) | Saisir le verdict global | ★ | ✅ MUST | Cœur du parcours P3. |
 | [E3.S6](Story%20mapping/E3%20-%20Vérifier%20la%20qualité%20d%27enregistrement.md#e3s6) | Personnaliser la sélection | ★★★ | 🟠 SHOULD | La sélection auto suffit pour le MVP. |
@@ -182,7 +182,7 @@ Vue exhaustive des 50 stories. Tri par épopée puis par n°.
 | [E6.S5](Story%20mapping/E6%20-%20Diagnostiquer%20le%20matériel.md#e6s5) | Exporter diagnostic CSV / PDF | ★★ | ⚪ COULD | Audit / SAV, non bloquant. |
 | [E7.S1](Story%20mapping/E7%20-%20Valider%20les%20résultats%20Tadarida.md#e7s1) | Importer un CSV Tadarida | ★★ | 🟠 SHOULD | Entrée de la chaîne de validation. |
 | [E7.S2](Story%20mapping/E7%20-%20Valider%20les%20résultats%20Tadarida.md#e7s2) | Vue de validation liste + détail | ★★★ | 🟠 SHOULD | Cœur de la validation Tadarida. |
-| [E7.S3](Story%20mapping/E7%20-%20Valider%20les%20résultats%20Tadarida.md#e7s3) | Spectrogramme avec zoom | ★★★★★ | 🟠 SHOULD | **Brique technique majeure** - Samuel l'a priorisée. |
+| [E7.S3](Story%20mapping/E7%20-%20Valider%20les%20résultats%20Tadarida.md#e7s3) | Intégrer composant vue audio | ★★★ | 🟠 SHOULD | Composant fourni (même que E3.S3), story = intégration + synchro liste. |
 | [E7.S4](Story%20mapping/E7%20-%20Valider%20les%20résultats%20Tadarida.md#e7s4) | Valider ou corriger le taxon | ★★ | 🟠 SHOULD | Action centrale du parcours P7. |
 | [E7.S5](Story%20mapping/E7%20-%20Valider%20les%20résultats%20Tadarida.md#e7s5) | Filtres multi-critères sur obs | ★★★ | 🟠 SHOULD | Utile dès quelques centaines d'obs. |
 | [E7.S6](Story%20mapping/E7%20-%20Valider%20les%20résultats%20Tadarida.md#e7s6) | Mode inventaire vs activité | ★★ | ⚪ COULD | Mode activité par défaut suffit. |
@@ -210,7 +210,7 @@ Vue exhaustive des 50 stories. Tri par épopée puis par n°.
 ## Risques principaux à surveiller
 
 1. **E2.S6 (Transformation ×10 + chunks 5 s)** ★★★★★ - choix de la bibliothèque audio Java (`javax.sound.sampled`, TarsosDSP, JAVE2…). À sécuriser **dès le sprint 1** ; si cette story dérape, tout le fil rouge dérape.
-2. **E7.S3 (Spectrogramme avec zoom)** ★★★★★ - en SHOULD mais Samuel l'a explicitement priorisée. À garder hors du chemin critique mais à amorcer dès qu'E2.S6 est verte.
+2. **E7.S3 + E3.S3 (vue audio sonogramme + spectrogramme)** - le composant FFT + rendu spectrogramme est **fourni par l'équipe pédagogique**, ce qui élimine le risque technique majeur initialement identifié. Les stories E3.S3 et E7.S3 deviennent des intégrations (★★ et ★★★) plutôt que des implémentations from scratch.
 3. **Volumétrie 40 Go** (E2.S4) ★★★★ - cas Samuel. Vérifier dès le 1er import test que l'IHM ne freeze pas, sinon revoir l'architecture threading.
 4. **Reprise sur erreur** (E0.S6, E0.S7) - en SHOULD : si elles sont coupées, prévoir un message clair côté UX en cas de crash (« Ré-importez cette nuit, l'import précédent était incomplet »).
 

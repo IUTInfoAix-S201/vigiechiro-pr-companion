@@ -57,27 +57,31 @@
 
 ---
 
-## E3.S3 - Lire une séquence d'écoute avec contrôles audio standards { #e3s3 }
+## E3.S3 - Intégrer le composant de vue audio (sonogramme + spectrogramme) { #e3s3 }
 
 **En tant que** [Marie](../Personas/Marie.md)
 
-**Je veux** pouvoir écouter chaque séquence sélectionnée avec les contrôles habituels (lecture, pause, stop, position dans la séquence)
+**Je veux** pouvoir écouter chaque séquence sélectionnée avec les contrôles habituels et visualiser le sonogramme + spectrogramme pour confirmer visuellement la qualité
 
-**Afin de** vérifier de mes propres oreilles que la nuit est exploitable
+**Afin de** vérifier de mes propres oreilles ET de mes propres yeux que la nuit est exploitable
+
+!!! info "Composant fourni"
+    Le composant de vue audio (sonogramme + spectrogramme avec contrôles de lecture et zoom) est **fourni par l'équipe pédagogique**. Le même composant est utilisé dans [E7.S3](E7%20-%20Valider%20les%20résultats%20Tadarida.md#e7s3) pour la validation Tadarida. Cette story se concentre sur l'**intégration** dans M-Qualification.
 
 **Critères d'acceptation** :
 
-- [ ] Le clic sur le bouton ▶ d'une séquence déclenche la lecture immédiate.
+- [ ] Le panneau de détail ([E3.S2](#e3s2)) affiche le composant audio fourni, alimenté par le chemin de la séquence courante.
+- [ ] Le clic sur le bouton ▶ d'une séquence dans la liste de gauche déclenche la lecture immédiate dans le composant.
 - [ ] Comme les séquences sont **déjà ralenties ×10 sur disque** ([R10](../Modèle%20conceptuel/Règles%20métier.md#r10)), la lecture se fait à vitesse normale (pas de re-échantillonnage à la volée).
-- [ ] Les contrôles audio standards sont disponibles : lecture / pause, stop, slider de position avec timecode, contrôle de volume.
+- [ ] Le cursor du composant est synchronisé entre le sonogramme, le spectrogramme et la barre de lecture.
 - [ ] Une seule séquence joue à la fois : démarrer une nouvelle lecture stoppe la précédente.
 - [ ] La lecture d'une séquence en marque la séquence comme « écoutée » (cf. [E3.S4](#e3s4)).
-- [ ] Si la séquence est introuvable sur disque (fichier supprimé, déplacé), un message clair explique pourquoi le bouton ▶ ne fonctionne pas.
+- [ ] Si la séquence est introuvable sur disque (fichier supprimé, déplacé), le composant affiche un placeholder explicite.
 
 **Parcours rattaché** : [P3](../Parcours%20utilisateurs/P3%20-%20Vérifier%20l%27enregistrement%20par%20échantillonnage.md), étape 4<br>
-**Maquettes cibles** : [M-Qualification](../Maquettes/M-Qualification.md) (zone player audio)<br>
-**Dépendances** : [E3.S2](#e3s2)<br>
-**Complexité** : ★★★ (moyen — intégration JavaFX MediaPlayer, gestion d'état, robustesse aux fichiers manquants)<br>
+**Maquettes cibles** : [M-Qualification](../Maquettes/M-Qualification.md) (vue audio combinée)<br>
+**Dépendances** : [E3.S2](#e3s2), composant audio fourni par l'équipe pédagogique<br>
+**Complexité** : ★★ (simple — intégration du composant + gestion d'état lecture)<br>
 **MoSCoW** : ✅ MUST
 
 ---

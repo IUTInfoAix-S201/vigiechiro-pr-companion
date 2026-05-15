@@ -67,6 +67,13 @@ L'écran est divisé en **2 colonnes** : à gauche, la liste chronologique des s
     .waveform-bar-pending { fill: #4a90d9; }
     .waveform-cursor { stroke: #e74c3c; stroke-width: 1.5; }
     .waveform-axis-txt { font: 9px monospace; fill: #6a737d; }
+    /* Spectrogramme sur fond sombre (composant audio partagé avec M-Vision-Tadarida) */
+    .specto-bg { fill: #1c2833; stroke: #34495e; stroke-width: 1; }
+    .specto-axis { stroke: #6a737d; stroke-width: 1; }
+    .specto-axis-txt { font: 9px monospace; fill: #bdc3c7; }
+    .specto-cursor { stroke: #e74c3c; stroke-width: 1.5; }
+    .specto-zoom-btn { fill: rgba(255,255,255,0.1); stroke: #6a737d; stroke-width: 1; }
+    .specto-zoom-txt { fill: #ffffff; font: 600 11px sans-serif; }
 
     /* Player audio bar sombre (comme M-Vision-Tadarida) */
     .player-bar { fill: #2c3e50; }
@@ -297,96 +304,121 @@ L'écran est divisé en **2 colonnes** : à gauche, la liste chronologique des s
   <text x="1130" y="332" class="seq-stat-large" text-anchor="end">04 / 30</text>
   <text x="1130" y="350" class="seq-meta" text-anchor="end">⚪ non écoutée</text>
 
-  <!-- Section 2 : waveform sur fond clair -->
-  <text x="680" y="395" class="section-title">🎵 Forme d'onde</text>
-  <text x="1130" y="395" class="seq-meta" text-anchor="end">Lecture vitesse normale · fichier déjà ralenti ×10 (R10)</text>
+  <!-- Section 2 : VUE AUDIO partagée avec M-Vision-Tadarida (sonogramme + spectrogramme) -->
+  <text x="680" y="395" class="section-title">🎵 Vue audio (sonogramme + spectrogramme)</text>
+  <text x="1130" y="395" class="seq-meta" text-anchor="end">Lecture vitesse normale · R10</text>
 
-  <rect x="680" y="410" width="460" height="120" rx="4" class="waveform-bg-light"/>
-
-  <!-- Axe Y (amplitude) -->
-  <text x="676" y="420" class="waveform-axis-txt" text-anchor="end">+1</text>
-  <text x="676" y="475" class="waveform-axis-txt" text-anchor="end">0</text>
-  <text x="676" y="525" class="waveform-axis-txt" text-anchor="end">-1</text>
-
-  <!-- Axe X (temps) -->
-  <text x="685" y="545" class="waveform-axis-txt">0</text>
-  <text x="795" y="545" class="waveform-axis-txt">1,5</text>
-  <text x="905" y="545" class="waveform-axis-txt">3,0</text>
-  <text x="1015" y="545" class="waveform-axis-txt">4,0</text>
-  <text x="1130" y="545" class="waveform-axis-txt" text-anchor="end">5,0 s</text>
-
-  <!-- Waveform : barres alternées autour de la ligne médiane -->
-  <line x1="685" y1="470" x2="1135" y2="470" stroke="#6a737d" stroke-width="0.5" stroke-dasharray="2 2"/>
-
+  <!-- Sonogramme (waveform amplitude/temps) sur fond clair -->
+  <rect x="680" y="405" width="460" height="60" rx="4" class="waveform-bg-light"/>
+  <text x="676" y="412" class="waveform-axis-txt" text-anchor="end">+1</text>
+  <text x="676" y="438" class="waveform-axis-txt" text-anchor="end">0</text>
+  <text x="676" y="462" class="waveform-axis-txt" text-anchor="end">-1</text>
+  <!-- Ligne médiane -->
+  <line x1="685" y1="435" x2="1135" y2="435" stroke="#6a737d" stroke-width="0.5" stroke-dasharray="2 2"/>
   <!-- Portion lue (vert) -->
-  <rect x="700" y="465" width="3" height="10" class="waveform-bar-played"/>
-  <rect x="705" y="460" width="3" height="20" class="waveform-bar-played"/>
-  <rect x="712" y="450" width="3" height="40" class="waveform-bar-played"/>
-  <rect x="720" y="455" width="3" height="30" class="waveform-bar-played"/>
-  <rect x="728" y="445" width="3" height="50" class="waveform-bar-played"/>
-  <rect x="735" y="440" width="3" height="60" class="waveform-bar-played"/>
-  <rect x="745" y="430" width="3" height="80" class="waveform-bar-played"/>
-  <rect x="755" y="425" width="3" height="90" class="waveform-bar-played"/>
-  <rect x="765" y="435" width="3" height="70" class="waveform-bar-played"/>
-  <rect x="780" y="445" width="3" height="50" class="waveform-bar-played"/>
-  <rect x="795" y="435" width="3" height="70" class="waveform-bar-played"/>
-  <rect x="810" y="430" width="3" height="80" class="waveform-bar-played"/>
-  <rect x="828" y="440" width="3" height="60" class="waveform-bar-played"/>
-
-  <!-- Cursor de lecture (à 2,1 s = 1140-885 = 870 px arrondi) -->
-  <line x1="868" y1="410" x2="868" y2="535" class="waveform-cursor"/>
-
+  <rect x="700" y="430" width="2" height="10" class="waveform-bar-played"/>
+  <rect x="705" y="427" width="2" height="16" class="waveform-bar-played"/>
+  <rect x="712" y="422" width="2" height="26" class="waveform-bar-played"/>
+  <rect x="720" y="425" width="2" height="20" class="waveform-bar-played"/>
+  <rect x="728" y="418" width="2" height="34" class="waveform-bar-played"/>
+  <rect x="735" y="415" width="2" height="40" class="waveform-bar-played"/>
+  <rect x="745" y="410" width="2" height="50" class="waveform-bar-played"/>
+  <rect x="755" y="408" width="2" height="54" class="waveform-bar-played"/>
+  <rect x="765" y="412" width="2" height="46" class="waveform-bar-played"/>
+  <rect x="780" y="418" width="2" height="34" class="waveform-bar-played"/>
+  <rect x="795" y="412" width="2" height="46" class="waveform-bar-played"/>
+  <rect x="810" y="408" width="2" height="54" class="waveform-bar-played"/>
+  <rect x="828" y="415" width="2" height="40" class="waveform-bar-played"/>
   <!-- Portion à jouer (bleu) -->
-  <rect x="875" y="450" width="3" height="40" class="waveform-bar-pending"/>
-  <rect x="885" y="455" width="3" height="30" class="waveform-bar-pending"/>
-  <rect x="895" y="445" width="3" height="50" class="waveform-bar-pending"/>
-  <rect x="910" y="450" width="3" height="40" class="waveform-bar-pending"/>
-  <rect x="925" y="455" width="3" height="30" class="waveform-bar-pending"/>
-  <rect x="945" y="460" width="3" height="20" class="waveform-bar-pending"/>
-  <rect x="960" y="450" width="3" height="40" class="waveform-bar-pending"/>
-  <rect x="980" y="455" width="3" height="30" class="waveform-bar-pending"/>
-  <rect x="998" y="460" width="3" height="20" class="waveform-bar-pending"/>
-  <rect x="1015" y="455" width="3" height="30" class="waveform-bar-pending"/>
-  <rect x="1035" y="460" width="3" height="20" class="waveform-bar-pending"/>
-  <rect x="1055" y="465" width="3" height="10" class="waveform-bar-pending"/>
-  <rect x="1075" y="463" width="3" height="14" class="waveform-bar-pending"/>
-  <rect x="1095" y="465" width="3" height="10" class="waveform-bar-pending"/>
-  <rect x="1115" y="466" width="3" height="8" class="waveform-bar-pending"/>
+  <rect x="875" y="422" width="2" height="26" class="waveform-bar-pending"/>
+  <rect x="885" y="425" width="2" height="20" class="waveform-bar-pending"/>
+  <rect x="895" y="420" width="2" height="30" class="waveform-bar-pending"/>
+  <rect x="910" y="425" width="2" height="20" class="waveform-bar-pending"/>
+  <rect x="925" y="427" width="2" height="16" class="waveform-bar-pending"/>
+  <rect x="945" y="430" width="2" height="10" class="waveform-bar-pending"/>
+  <rect x="960" y="425" width="2" height="20" class="waveform-bar-pending"/>
+  <rect x="980" y="427" width="2" height="16" class="waveform-bar-pending"/>
+  <rect x="998" y="430" width="2" height="10" class="waveform-bar-pending"/>
+  <rect x="1015" y="427" width="2" height="16" class="waveform-bar-pending"/>
+  <rect x="1035" y="430" width="2" height="10" class="waveform-bar-pending"/>
+  <rect x="1055" y="431" width="2" height="8" class="waveform-bar-pending"/>
+  <rect x="1075" y="430" width="2" height="10" class="waveform-bar-pending"/>
+  <rect x="1095" y="431" width="2" height="8" class="waveform-bar-pending"/>
+  <rect x="1115" y="432" width="2" height="6" class="waveform-bar-pending"/>
+  <!-- Cursor sonogramme -->
+  <line x1="868" y1="405" x2="868" y2="465" class="waveform-cursor"/>
 
-  <!-- Section 3 : player audio bar (sombre comme M-Vision-Tadarida) -->
-  <rect x="680" y="545" width="460" height="36" rx="3" class="player-bar"/>
-  <text x="695" y="567" class="player-ctrl">⏮ ⏯ ⏭</text>
-  <text x="780" y="567" class="player-time">2,1 s / 5,0 s</text>
-  <text x="1130" y="567" class="player-time" text-anchor="end">🔊 ━━━━━○──</text>
+  <!-- Spectrogramme (fréquence/temps) sur fond sombre -->
+  <rect x="680" y="475" width="460" height="130" class="specto-bg"/>
+  <!-- Axe Y (fréquence) -->
+  <text x="676" y="485" class="specto-axis-txt" text-anchor="end">120</text>
+  <text x="676" y="515" class="specto-axis-txt" text-anchor="end">80</text>
+  <text x="676" y="550" class="specto-axis-txt" text-anchor="end">40</text>
+  <text x="676" y="580" class="specto-axis-txt" text-anchor="end">20</text>
+  <text x="676" y="605" class="specto-axis-txt" text-anchor="end">8 kHz</text>
+  <!-- Axe X (temps) partagé avec sonogramme -->
+  <text x="685" y="620" class="specto-axis-txt">0</text>
+  <text x="795" y="620" class="specto-axis-txt">1,5</text>
+  <text x="905" y="620" class="specto-axis-txt">3,0</text>
+  <text x="1015" y="620" class="specto-axis-txt">4,0</text>
+  <text x="1130" y="620" class="specto-axis-txt" text-anchor="end">5,0 s</text>
+  <!-- Spectrogramme : bandes colorées simulant énergie sur fréquences -->
+  <rect x="685" y="585" width="450" height="13" fill="#243a52"/>
+  <rect x="685" y="535" width="450" height="40" fill="#34495e"/>
+  <!-- Pics d'énergie à 38-45 kHz -->
+  <rect x="700" y="525" width="3" height="40" fill="#f1c40f"/>
+  <rect x="708" y="525" width="3" height="40" fill="#f39c12"/>
+  <rect x="755" y="518" width="3" height="48" fill="#e67e22"/>
+  <rect x="762" y="515" width="3" height="50" fill="#e74c3c"/>
+  <rect x="770" y="518" width="3" height="48" fill="#e67e22"/>
+  <rect x="820" y="525" width="3" height="40" fill="#f39c12"/>
+  <rect x="850" y="518" width="3" height="48" fill="#e67e22"/>
+  <rect x="858" y="515" width="3" height="50" fill="#e74c3c"/>
+  <rect x="900" y="522" width="3" height="44" fill="#f39c12"/>
+  <rect x="950" y="518" width="3" height="48" fill="#e67e22"/>
+  <rect x="958" y="515" width="3" height="50" fill="#e74c3c"/>
+  <rect x="1000" y="525" width="3" height="40" fill="#f39c12"/>
+  <rect x="1050" y="518" width="3" height="48" fill="#e67e22"/>
+  <rect x="1058" y="515" width="3" height="50" fill="#e74c3c"/>
+  <rect x="1100" y="522" width="3" height="44" fill="#f39c12"/>
+  <!-- Cursor spectrogramme (synchronisé avec sonogramme) -->
+  <line x1="868" y1="475" x2="868" y2="605" class="specto-cursor"/>
+  <!-- Boutons zoom -->
+  <rect x="1090" y="480" width="20" height="20" rx="3" class="specto-zoom-btn"/>
+  <text x="1100" y="495" class="specto-zoom-txt" text-anchor="middle">+</text>
+  <rect x="1115" y="480" width="20" height="20" rx="3" class="specto-zoom-btn"/>
+  <text x="1125" y="495" class="specto-zoom-txt" text-anchor="middle">−</text>
 
-  <!-- Section 4 : verdict global avec 3 boutons d'action -->
-  <text x="680" y="610" class="section-title">📝 Verdict global du passage</text>
-  <text x="680" y="626" class="section-sub">Sélectionnez votre conclusion d'ensemble (un seul verdict pour toute la nuit).</text>
+  <!-- Section 3 : player audio bar -->
+  <rect x="680" y="615" width="460" height="36" rx="3" class="player-bar"/>
+  <text x="695" y="637" class="player-ctrl">⏮ ⏯ ⏭</text>
+  <text x="780" y="637" class="player-time">2,1 s / 5,0 s</text>
+  <text x="1130" y="637" class="player-time" text-anchor="end">🔊 ━━━━━○──</text>
 
-  <rect x="680" y="640" width="145" height="56" rx="4" class="btn-verdict-ok-selected"/>
-  <text x="752" y="660" class="btn-txt" text-anchor="middle">✓ OK</text>
-  <text x="752" y="678" class="btn-txt" text-anchor="middle" font-size="11">la nuit est</text>
-  <text x="752" y="691" class="btn-txt" text-anchor="middle" font-size="11">exploitable</text>
+  <!-- Section 4 : verdict global avec 3 boutons d'action (compact) -->
+  <text x="680" y="678" class="section-title">📝 Verdict global du passage</text>
 
-  <rect x="835" y="640" width="145" height="56" rx="4" class="btn-verdict-doubt"/>
-  <text x="907" y="660" class="btn-txt" text-anchor="middle">⚠ Douteux</text>
-  <text x="907" y="678" class="btn-txt" text-anchor="middle" font-size="11">à signaler</text>
-  <text x="907" y="691" class="btn-txt" text-anchor="middle" font-size="11">mais déposable</text>
+  <rect x="680" y="685" width="145" height="44" rx="4" class="btn-verdict-ok-selected"/>
+  <text x="752" y="704" class="btn-txt" text-anchor="middle">✓ OK</text>
+  <text x="752" y="720" class="btn-txt" text-anchor="middle" font-size="10">la nuit est exploitable</text>
 
-  <rect x="990" y="640" width="145" height="56" rx="4" class="btn-verdict-jeter"/>
-  <text x="1062" y="660" class="btn-txt" text-anchor="middle">❌ À jeter</text>
-  <text x="1062" y="678" class="btn-txt" text-anchor="middle" font-size="11">inexploitable</text>
-  <text x="1062" y="691" class="btn-txt" text-anchor="middle" font-size="11">bloque le dépôt (R14)</text>
+  <rect x="835" y="685" width="145" height="44" rx="4" class="btn-verdict-doubt"/>
+  <text x="907" y="704" class="btn-txt" text-anchor="middle">⚠ Douteux</text>
+  <text x="907" y="720" class="btn-txt" text-anchor="middle" font-size="10">à signaler</text>
+
+  <rect x="990" y="685" width="145" height="44" rx="4" class="btn-verdict-jeter"/>
+  <text x="1062" y="704" class="btn-txt" text-anchor="middle">❌ À jeter</text>
+  <text x="1062" y="720" class="btn-txt" text-anchor="middle" font-size="10">bloque dépôt (R14)</text>
 
   <!-- Section 5 : commentaire -->
-  <text x="680" y="725" class="section-sub">💬 Commentaire (optionnel)</text>
-  <rect x="680" y="733" width="460" height="48" rx="3" class="comment-input"/>
-  <text x="690" y="752" class="comment-text">Vent fort vers 02:00, sons à vérifier en validation</text>
-  <text x="690" y="768" class="comment-text">Tadarida ultérieurement.</text>
+  <text x="680" y="752" class="section-sub">💬 Commentaire (optionnel)</text>
+  <rect x="680" y="760" width="460" height="38" rx="3" class="comment-input"/>
+  <text x="690" y="778" class="comment-text">Vent fort vers 02:00, sons à vérifier en validation</text>
+  <text x="690" y="792" class="comment-text">Tadarida ultérieurement.</text>
 
   <!-- Bouton Enregistrer -->
-  <rect x="930" y="800" width="210" height="36" rx="4" class="btn-primary"/>
-  <text x="1035" y="822" class="btn-txt" text-anchor="middle">💾 Enregistrer le verdict</text>
+  <rect x="930" y="810" width="210" height="34" rx="4" class="btn-primary"/>
+  <text x="1035" y="831" class="btn-txt" text-anchor="middle">💾 Enregistrer le verdict</text>
 
   <!-- Footer -->
   <rect x="10" y="860" width="1180" height="30" class="footer"/>
@@ -406,7 +438,7 @@ L'écran est divisé en **2 colonnes** : à gauche, la liste chronologique des s
     - Boutons en bas : ajouter manuellement / régénérer
 - **Colonne droite - Panneau de détail** (style harmonisé avec [M-Vision-Tadarida](M-Vision-Tadarida.md)) :
     - **Section 1 : info séquence** (card claire `.seq-info-card`) — N° de séquence + horodatage + métadonnées + position dans la sélection (04/30), miroir de la « card info taxon » de M-Vision-Tadarida.
-    - **Section 2 : forme d'onde** (fond clair `.waveform-bg-light`) — Visualisation de l'amplitude au cours du temps. Barres vertes pour la portion lue, bleues pour le reste, cursor rouge vertical. **Plus simple que le spectrogramme** de M-Vision-Tadarida — la qualification ne nécessite pas d'analyse acoustique fine.
+    - **Section 2 : vue audio combinée** (sonogramme + spectrogramme) — **Composant partagé avec [M-Vision-Tadarida](M-Vision-Tadarida.md)**, fourni par l'équipe pédagogique. Le sonogramme (amplitude/temps, fond clair) et le spectrogramme (fréquence/temps, fond sombre) sont **synchronisés** par un cursor rouge vertical unique. Boutons de zoom temps/fréquence accessibles sur le spectrogramme. L'utilisateur peut faire de l'écoute simple (sonogramme) ou analyser plus en détail (spectrogramme) selon ses besoins.
     - **Section 3 : player audio** (bar sombre comme M-Vision-Tadarida) — Contrôles ⏮ ⏯ ⏭, timecode, volume.
     - **Section 4 : verdict global** — 3 boutons colorés grand format (`✓ OK` vert / `⚠ Douteux` orange / `❌ À jeter` rouge). Le bouton sélectionné a une bordure plus épaisse (le `OK` ici est sélectionné). **Sélection différée** : ne persiste pas, attend le bouton « Enregistrer le verdict ».
     - **Section 5 : commentaire** — Champ texte multi-ligne optionnel.
@@ -418,7 +450,7 @@ L'écran est divisé en **2 colonnes** : à gauche, la liste chronologique des s
 | Aspect | M-Qualification (cet écran) | M-Vision-Tadarida |
 |---|---|---|
 | Objet de la revue | Séquences d'écoute échantillonnées | Observations Tadarida (avec taxon) |
-| Visualisation audio | Forme d'onde simple | Spectrogramme avec zoom (E7.S3, ★★★★★) |
+| Visualisation audio | **Sonogramme + spectrogramme (composant partagé)** | **Sonogramme + spectrogramme (composant partagé)** |
 | Décision | **Un verdict GLOBAL** pour toute la nuit | Une décision **par observation** |
 | Persistance | Différée (bouton « Enregistrer ») | Instantanée (par clic Valider/Corriger) |
 | Boutons d'action | OK / Douteux / À jeter | Valider / Corriger / Référence |
@@ -528,8 +560,9 @@ Activée par le bouton **⚙ Personnaliser** dans le header de la liste. Permet 
 ## Notes pour l'implémentation
 
 - **TableView avec virtualisation** : la liste des séquences peut atteindre 100 lignes (taille max). JavaFX `TableView` gère nativement la virtualisation, à confirmer avec un test sur 100+ lignes.
-- **Player audio** : `MediaPlayer` JavaFX avec `Media`. La forme d'onde peut être une simplification visuelle (quelques dizaines de barres affichant l'amplitude RMS sur des fenêtres temporelles) plutôt qu'un vrai rendu PCM.
-- **Cohérence visuelle avec [M-Vision-Tadarida](M-Vision-Tadarida.md)** : les deux écrans partagent le même style de panneau de détail (fond clair, sections numérotées, boutons d'action colorés en bas). Les étudiants n'implémentent qu'un seul pattern de « lieu d'écoute », réutilisé sur les deux écrans.
+- **Composant de vue audio fourni** : le bloc `sonogramme + spectrogramme + cursor synchronisé + boutons zoom` est un **composant JavaFX fourni par l'équipe pédagogique** (cf. Contraintes techniques). Les étudiants ne le réimplémentent pas - ils l'instancient avec un `wav:Path` et reçoivent les évènements de lecture / curseur. Ce composant est partagé avec [M-Vision-Tadarida](M-Vision-Tadarida.md), évitant ainsi la duplication d'un calcul FFT non trivial.
+- **Player audio** : `MediaPlayer` JavaFX avec `Media`. Le composant audio fourni gère les contrôles standards (⏮ ⏯ ⏭) et expose une API simple.
+- **Cohérence visuelle avec [M-Vision-Tadarida](M-Vision-Tadarida.md)** : les deux écrans partagent le même style de panneau de détail (fond clair, sections numérotées, vue audio combinée, boutons d'action colorés en bas). Les étudiants n'implémentent qu'un seul pattern de « lieu d'écoute », réutilisé sur les deux écrans.
 - **Sélection vs persistance du verdict** : le clic sur l'un des 3 boutons (OK / Douteux / À jeter) **sélectionne** mais ne persiste pas. La persistance se fait via le bouton « Enregistrer le verdict » (qui peut aussi être déclenché par ⏎ Entrée). Cette dissociation évite les fausses manipulations et permet de changer d'avis avant de valider.
 - **Synchronisation lecture ↔ progression** : le statut `écouté` doit être marqué dès le début de la lecture (pas à la fin), pour permettre à l'utilisateur de zapper rapidement.
 - **Persistance** : la sélection, son état d'écoute, le verdict et le commentaire doivent tous être persistés en BD ([E0.S4](../Story%20mapping/E0%20-%20Fondations%20de%20persistance.md#e0s4) + [E0.S3](../Story%20mapping/E0%20-%20Fondations%20de%20persistance.md#e0s3)). Au retour sur l'écran, on doit retrouver tout son contexte.

@@ -64,28 +64,30 @@ Les gains de productivité avancés (regroupement multi-nuits P9, bibliothèque 
 
 ---
 
-## E7.S3 - Visualiser le spectrogramme d'une séquence avec zoom variable { #e7s3 }
+## E7.S3 - Intégrer le composant de vue audio (sonogramme + spectrogramme) { #e7s3 }
 
 **En tant que** [Marie](../Personas/Marie.md) ou [Samuel](../Personas/Samuel.md)
 
-**Je veux** voir un spectrogramme de la séquence courante et pouvoir ajuster le niveau de zoom (temps et fréquence) pour examiner les détails
+**Je veux** voir un sonogramme et un spectrogramme synchronisés de la séquence courante, avec possibilité de zoomer sur le spectrogramme
 
 **Afin de** distinguer les caractéristiques discriminantes d'un cri (forme, fréquence dominante, harmoniques) qui complètent l'écoute pour prendre une décision de classification éclairée
 
+!!! info "Composant fourni"
+    Le composant de vue audio (sonogramme + spectrogramme avec zoom) est **fourni par l'équipe pédagogique**. Vous ne réimplémentez pas le calcul FFT ni le rendu graphique du spectrogramme. Cette story se concentre sur l'**intégration** : instancier le composant, le lier au cycle de lecture audio, et synchroniser le cursor avec le player. Ce composant est réutilisé tel quel dans [E3.S3](E3%20-%20Vérifier%20la%20qualité%20d%27enregistrement.md#e3s3) (M-Qualification).
+
 **Critères d'acceptation** :
 
-- [ ] Le panneau de détail ([E7.S2](#e7s2)) affiche un spectrogramme statique de la séquence courante.
-- [ ] Le spectrogramme est calculé à partir du WAV ralenti ×10 (cf. [R10](../Modèle%20conceptuel/Règles%20métier.md#r10)) avec une FFT classique (paramètres : fenêtre 1024 ou 2048, recouvrement 50 %).
-- [ ] Axe X = temps (s), axe Y = fréquence (kHz), couleur = amplitude (gradient noir → jaune par exemple).
-- [ ] **Contrôles de zoom** : molette souris ou slider pour zoom temporel et fréquentiel **indépendants**. C'est l'opération **la plus fréquente** en analyse acoustique — Samuel l'a explicitement signalée comme prioritaire.
-- [ ] Bouton « Reset zoom » pour revenir à la vue complète.
-- [ ] Si le calcul de spectrogramme prend > 200 ms, il se fait en arrière-plan avec un placeholder (« Calcul du spectrogramme... »).
-- [ ] Possibilité d'exporter le spectrogramme courant en PNG (utile pour rapports ou notes pédagogiques).
+- [ ] Le panneau de détail ([E7.S2](#e7s2)) affiche le composant audio fourni, alimenté par le chemin de la séquence courante (WAV ralenti ×10, cf. [R10](../Modèle%20conceptuel/Règles%20métier.md#r10)).
+- [ ] Le **cursor de lecture** est synchronisé entre le sonogramme (en haut), le spectrogramme (en bas) et le player audio.
+- [ ] Les **contrôles de zoom** du spectrogramme (molette ou slider, indépendants pour temps et fréquence) sont accessibles à l'utilisateur. Bouton « Reset zoom » disponible.
+- [ ] Quand l'utilisateur change de séquence, le composant se recharge proprement (pas de fuite mémoire ni de freeze).
+- [ ] Si la séquence est introuvable sur disque, le composant affiche un placeholder explicite plutôt que de planter.
+- [ ] Test d'intégration : navigation séquentielle dans 100 observations vérifie que le composant reste réactif (< 200 ms de bascule).
 
 **Parcours rattaché** : [P7](../Parcours%20utilisateurs/P7%20-%20Valider%20les%20résultats%20Tadarida.md), étape 4<br>
-**Maquettes cibles** : [M-Vision-Tadarida](../Maquettes/M-Vision-Tadarida.md) (zone spectrogramme avec contrôles zoom)<br>
-**Dépendances** : [E2.S6](E2%20-%20Importer%20et%20transformer%20une%20nuit.md#e2s6), [E7.S2](#e7s2)<br>
-**Complexité** : ★★★★★ (lourd — implémentation FFT, rendu spectrogramme JavaFX Canvas, zoom interactif performant ; brique technique majeure)<br>
+**Maquettes cibles** : [M-Vision-Tadarida](../Maquettes/M-Vision-Tadarida.md) (section vue audio combinée)<br>
+**Dépendances** : [E2.S6](E2%20-%20Importer%20et%20transformer%20une%20nuit.md#e2s6), [E7.S2](#e7s2), composant audio fourni par l'équipe pédagogique<br>
+**Complexité** : ★★★ (moyen — intégration et synchronisation, calcul FFT/rendu fourni par le composant)<br>
 **MoSCoW** : 🟠 SHOULD (Samuel l'a demandé en priorité ; sans elle, la validation reste possible mais se fait à l'oreille seulement, ce qui est moins fiable)
 
 ---

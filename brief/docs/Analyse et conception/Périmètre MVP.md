@@ -216,8 +216,12 @@ Vue exhaustive des 50 stories. Tri par épopée puis par n°.
 
 ## Évolutions du périmètre
 
-Ce périmètre n'est pas figé. **Discutez-en avec l'équipe pédagogique** :
+Ce périmètre n'est pas figé : les estimations en étoiles restent une **première lecture par l'équipe pédagogique**, elles ne reflètent ni vos compétences réelles ni les difficultés que vous allez rencontrer.
 
-- au **planning poker** de début de sprint 1 (estimations à réviser),
-- en **fin de sprint 1** (réajustement selon vélocité réelle observée),
-- à tout moment où une story se révèle plus complexe que prévu.
+**Discutez-en avec l'équipe pédagogique** :
+
+- **avant de commencer** à coder, pour valider que vous comprenez chaque story et pour discuter ensemble des estimations qui vous semblent fausses,
+- **à mi-parcours**, quand vous avez assez de recul sur ce que vous arrivez à livrer en une journée de travail effective, pour réviser ce qui est encore atteignable,
+- **à tout moment** où une story se révèle plus difficile que prévu, plus simple que prévu, ou inutile sur le terrain.
+
+Le périmètre MUST défini ci-dessus est la **cible incompressible visée** pour la soutenance. Si une équipe se rend compte qu'elle ne pourra pas la livrer en entier, c'est un signal d'alerte à remonter **immédiatement** à l'équipe pédagogique - pas en fin de projet - pour décider ensemble de ce qu'on coupe.

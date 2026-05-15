@@ -4,12 +4,13 @@ Le journal de température et d'hygrométrie produit par la sonde embarquée de 
 
 | Attribut | Type | Contraintes | Notes |
 |---|---|---|---|
-| chemin sur disque | texte | obligatoire si présent | Fichier `PaRec<sn>_THLog.csv`. |
+| chemin sur disque | texte | obligatoire si présent | Fichier `PaRec<sn>_THLog.csv` à la racine de la capture (cf. [R22](Règles%20métier.md#r22)). |
 | mesures | série temporelle | une mesure toutes les 600 s (10 min) | Date, heure, température (°C), humidité (%). |
 
 ## Règles applicables
 
 - [R20](Règles%20métier.md#r20) - relevé climatique optionnel ; l'absence est signalée dans l'onglet diagnostic.
+- [R22](Règles%20métier.md#r22) - emplacement sur disque : à la racine du dossier de la capture.
 
 ## Voisins dans le modèle
 

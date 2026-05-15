@@ -4,13 +4,15 @@ L'agrégat de données produit par un passage : tous les enregistrements origina
 
 | Attribut | Type | Contraintes | Notes |
 |---|---|---|---|
-| chemin racine | texte | obligatoire | Dossier sur le disque local de l'utilisateur. |
+| chemin racine | texte | obligatoire | Sous-dossier du workspace nommé selon le préfixe [R6](Règles%20métier.md#r6), structure imposée par [R22](Règles%20métier.md#r22). |
 | volume total enregistrements originaux | entier (octets) | calculé | Indicatif (peut atteindre ~40 Go pour une grosse nuit). |
 | volume total séquences d'écoute | entier (octets) | calculé | Typiquement légèrement supérieur aux enregistrements originaux (×10 en durée mais re-échantillonné). |
 
 ## Règles applicables
 
 - [R9](Règles%20métier.md#r9) - copie protégée à l'import (aucune écriture sur la SD).
+- [R21](Règles%20métier.md#r21) - une capture vit dans le workspace utilisateur (configurable, défaut `<Documents>/VigieChiro-Companion/`).
+- [R22](Règles%20métier.md#r22) - structure d'une capture : nom du dossier = préfixe, sous-dossiers `bruts/` et `transformes/`, journal et relevé à la racine.
 
 ## Voisins dans le modèle
 

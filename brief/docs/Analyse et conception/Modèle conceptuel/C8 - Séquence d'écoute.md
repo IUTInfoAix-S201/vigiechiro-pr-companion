@@ -9,7 +9,7 @@ Un fichier audio dérivé d'un enregistrement original par **expansion de temps 
 | index dans le source | entier | ≥ 0 | Ordre de la séquence dans l'enregistrement original. |
 | offset temporel dans le source | décimal (s) | calculé | Position de la séquence dans l'enregistrement original (avant ×10). |
 | durée | décimal (s) | typiquement 5 s | La dernière séquence d'un enregistrement peut être plus courte. |
-| chemin sur disque | texte | obligatoire | Dans le sous-dossier `transformes/` de la capture. |
+| chemin sur disque | texte | obligatoire | Dans le sous-dossier `transformes/` de la capture (cf. [R22](Règles%20métier.md#r22)). |
 | inclus dans la sélection d'écoute | booléen | par défaut `false` | Mis à `true` si la séquence est sélectionnée pour la vérification d'enregistrement. |
 
 ## Règles applicables
@@ -17,6 +17,7 @@ Un fichier audio dérivé d'un enregistrement original par **expansion de temps 
 - [R8](Règles%20métier.md#r8) - suffixe `_000`, `_001`… inséré entre nom de base et extension.
 - [R10](Règles%20métier.md#r10) - durée 5 s, ralenti ×10 ; `ceil(2 × durée_source)` séquences.
 - [R11](Règles%20métier.md#r11) - transformation déterministe (même entrée → même sortie au bit près).
+- [R22](Règles%20métier.md#r22) - emplacement sur disque : sous-dossier `transformes/` de la capture.
 
 ## Voisins dans le modèle
 

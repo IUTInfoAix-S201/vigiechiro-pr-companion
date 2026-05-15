@@ -1,6 +1,6 @@
 # Règles métier
 
-Les 20 règles métier du modèle conceptuel. Chaque règle a un identifiant ancré (`#r1` à `#r20`) qui sert de point de référence depuis le reste du dossier (parcours, stories, maquettes).
+Les 23 règles métier du modèle conceptuel. Chaque règle a un identifiant ancré (`#r1` à `#r23`) qui sert de point de référence depuis le reste du dossier (parcours, stories, maquettes).
 
 ## Site, point, passage
 
@@ -47,6 +47,39 @@ Les 20 règles métier du modèle conceptuel. Chaque règle a un identifiant anc
 
 - **R19**{ #r19 } : le journal du capteur est un **journal circulaire** sur l'enregistreur (place limitée). En cas de saturation de la SD, des entrées plus anciennes peuvent être effacées. L'application n'a pas à reconstituer les pertes - elle exploite ce qui est présent.
 - **R20**{ #r20 } : le relevé climatique peut être **absent** (sonde défaillante ou non installée). Dans ce cas, l'onglet diagnostic du passage le signale clairement plutôt que de masquer la section.
+
+## Arborescence sur disque
+
+- **R21**{ #r21 } : toutes les données et tous les paramètres de l'application vivent dans **un unique dossier « workspace »** sur le disque local de l'utilisateur. Ce workspace contient les captures, la base SQLite et tout fichier de réglages utilisateur. Aucune donnée n'est dispersée ailleurs.
+    - **Défaut proposé à l'installation** : `<Documents>/VigieChiro-Companion/` (résolu par OS : `~/Documents/VigieChiro-Companion/` sous Linux/macOS, `%USERPROFILE%\Documents\VigieChiro-Companion\` sous Windows).
+    - **Configurable depuis les préférences** : utile en particulier pour les gros volumes ([Samuel](../Personas/Samuel.md) : 24 enregistreurs × 40-50 nuits → To cumulés), qui demanderont à pointer un disque externe.
+- **R22**{ #r22 } : une capture occupe **un sous-dossier du workspace dont le nom est exactement le préfixe** défini par [R6](#r6) (`Car<carre>-<annee>-Pass<n>-<point>`). Dans ce sous-dossier :
+    - les **enregistrements originaux** sont rangés dans `bruts/` (cf. [R7](#r7)) ;
+    - les **séquences d'écoute** sont rangées dans `transformes/` (cf. [R8](#r8)) ;
+    - le **journal du capteur** (`LogPR<n>.txt`) est à la **racine** de la capture (cf. [C9](C9%20-%20Journal%20du%20capteur.md)) ;
+    - le **relevé climatique** (`PaRec<sn>_THLog.csv`), si présent, est aussi à la **racine** de la capture (cf. [C10](C10%20-%20Relevé%20climatique.md), [R20](#r20)).
+- **R23**{ #r23 } : le **fichier de résultats Tadarida** (`*-observations.csv` ou `*-observations_Vu.csv`) est importé **dans le dossier `transformes/`** de la capture qu'il annote, à côté des séquences d'écoute auxquelles ses observations renvoient.
+
+Arborescence type d'un workspace contenant deux captures (un passage 1 et un passage 2 sur le même point) :
+
+```text
+<workspace>/                              ← R21 : configurable, défaut <Documents>/VigieChiro-Companion/
+├── Car040962-2026-Pass1-A1/              ← R22 : nom = préfixe R6
+│   ├── bruts/                            ← R22 : enregistrements originaux R7
+│   │   ├── Car040962-2026-Pass1-A1-PaRecPR1925492_20260622_213045.wav
+│   │   ├── Car040962-2026-Pass1-A1-PaRecPR1925492_20260622_213101.wav
+│   │   └── ...
+│   ├── transformes/                      ← R22 : séquences d'écoute R8
+│   │   ├── Car040962-2026-Pass1-A1-PaRecPR1925492_20260622_213045_000.wav
+│   │   ├── Car040962-2026-Pass1-A1-PaRecPR1925492_20260622_213045_001.wav
+│   │   ├── ...
+│   │   └── 7a4b8c1d-participation-...-observations.csv     ← R23 : CSV Tadarida
+│   ├── LogPR1925492.txt                  ← R22 : journal capteur à la racine
+│   └── PaRec1925492_THLog.csv            ← R22 : relevé climatique (optionnel)
+├── Car040962-2026-Pass2-A1/
+│   └── ...                               ← même structure que ci-dessus
+└── vigiechiro.db                         ← R21 : BD SQLite + réglages à la racine
+```
 
 ## Retour
 

@@ -4,7 +4,7 @@ Le journal technique de l'enregistreur pour la nuit, lu et structuré par l'appl
 
 | Attribut | Type | Contraintes | Notes |
 |---|---|---|---|
-| chemin sur disque | texte | obligatoire | Fichier `LogPR<n>.txt` à la racine de la capture. |
+| chemin sur disque | texte | obligatoire | Fichier `LogPR<n>.txt` à la racine de la capture (cf. [R22](Règles%20métier.md#r22)). |
 | évènements parsés | liste | structurée | Démarrage, paramètres, batterie, mises en veille, alarmes, anomalies. |
 | anomalies détectées | liste | dérivée | Réveils non programmés, erreurs SD, redémarrages, batterie critique. |
 
@@ -13,6 +13,7 @@ Le journal technique de l'enregistreur pour la nuit, lu et structuré par l'appl
 ## Règles applicables
 
 - [R19](Règles%20métier.md#r19) - journal circulaire, l'application exploite ce qui est présent sans tenter de reconstituer les pertes.
+- [R22](Règles%20métier.md#r22) - emplacement sur disque : à la racine du dossier de la capture.
 
 ## Voisins dans le modèle
 

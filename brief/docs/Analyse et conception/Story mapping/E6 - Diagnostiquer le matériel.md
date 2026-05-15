@@ -2,7 +2,7 @@
 
 [← Retour au hub story mapping](index.md) · **Parcours principal** : [P6 - Diagnostiquer le matériel](../Parcours%20utilisateurs/P6%20-%20Diagnostiquer%20le%20matériel.md) · 🟠 SHOULD
 
-**Portée** : exploiter le **journal du capteur** (`LogPR<n>.txt`) et le **relevé climatique** (`PaRec<sn>_THLog.csv`) capturés pendant la nuit pour donner à l'utilisateur une vue d'ensemble de la santé matérielle de son enregistreur. Comprend également la **vérification astronomique** (idée Samuel, mai 2026) qui compare la plage effective d'enregistrement à la plage théorique calculée d'après les coordonnées GPS du point.
+**Portée** : exploiter le **journal du capteur** (`LogPR<n>.txt`) et le **relevé climatique** (`PaRecPR<sn>_THLog.csv`) capturés pendant la nuit pour donner à l'utilisateur une vue d'ensemble de la santé matérielle de son enregistreur. Comprend également la **vérification astronomique** (idée Samuel, mai 2026) qui compare la plage effective d'enregistrement à la plage théorique calculée d'après les coordonnées GPS du point.
 
 **Persona principal** : Karim et Samuel (exploitation pro avec plusieurs enregistreurs à surveiller). Marie en a peu besoin sur son unique enregistreur.
 
@@ -20,7 +20,7 @@
 
 - [ ] L'onglet « Diagnostic » de la fiche détail d'un passage affiche deux courbes superposées (ou empilées) : température (axe gauche, °C) et hygrométrie (axe droit, %).
 - [ ] L'axe X est temporel et couvre toute la plage de la nuit (du premier au dernier enregistrement).
-- [ ] Les données sont parsées depuis le fichier `PaRec<sn>_THLog.csv` (une mesure toutes les 600 s, colonnes `Date;Hour;Temperature;Humidity`).
+- [ ] Les données sont parsées depuis le fichier `PaRecPR<sn>_THLog.csv` (une mesure toutes les 600 s, colonnes `Date;Hour;Temperature;Humidity`).
 - [ ] Si le relevé climatique est **absent** (sonde défaillante ou non installée), un message explicite remplace les graphes : « Pas de relevé climatique disponible pour ce passage. Sonde absente ou défaillante ? » ([R20](../Modèle%20conceptuel/Règles%20métier.md#r20)).
 - [ ] Survol d'un point : tooltip avec timestamp précis + valeur exacte.
 - [ ] Les graphes se redessinent proprement même si le passage couvre plusieurs heures (1000+ points possibles).

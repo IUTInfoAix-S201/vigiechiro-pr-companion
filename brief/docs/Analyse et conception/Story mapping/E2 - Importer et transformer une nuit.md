@@ -20,7 +20,7 @@
 
 - [ ] L'utilisateur peut sélectionner un dossier source via un sélecteur ou un drag-and-drop sur la modale d'import.
 - [ ] L'application **n'écrit rien** sur le dossier source pendant l'inspection ([R9](../Modèle%20conceptuel/Règles%20métier.md#r9)).
-- [ ] L'inspection détecte et signale : journal du capteur (`LogPR<n>.txt`), relevé climatique (`PaRec<sn>_THLog.csv`), N enregistrements WAV, taille totale du dossier, plage horaire couverte.
+- [ ] L'inspection détecte et signale : journal du capteur (`LogPR<n>.txt`), relevé climatique (`PaRecPR<sn>_THLog.csv`), N enregistrements WAV, taille totale du dossier, plage horaire couverte.
 - [ ] Le **n° de série de l'enregistreur** est extrait du journal du capteur quand celui-ci est présent.
 - [ ] Les paramètres d'acquisition (Fe, gain, bande de fréquence) sont extraits du journal et affichés dans le récapitulatif.
 - [ ] L'**état du nommage** des fichiers est classifié en `sans préfixe` / `tous préfixés` / `mélangé` (cf. [R6](../Modèle%20conceptuel/Règles%20métier.md#r6)).

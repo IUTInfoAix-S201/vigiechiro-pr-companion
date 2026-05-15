@@ -12,21 +12,35 @@ Aujourd'hui, ce travail de suivi des campagnes et de pré-validation des observa
 
 ## Objectifs principaux
 
-L'application à développer doit permettre au **possesseur d'un Passive Recorder** de :
+L'application à développer doit permettre au **possesseur d'un Passive Recorder** d'enchaîner sa **chaîne de production nocturne** dans un outil unique, depuis la récupération de la carte SD jusqu'au dépôt sur Vigie-Chiro.
 
-- **Centraliser** ses campagnes de capture dans un journal personnel : date, lieu, paramètres d'acquisition, statut (brut, envoyé à VigieChiro, résultats reçus, validé) ;
-- **Importer** une nuit de capture depuis un dossier (WAV bruts + log technique + log T°/hygro) sans étape manuelle ;
-- **Visualiser** les conditions de capture (graphes de température/hygrométrie, état des batteries, événements du journal technique) ;
-- **Charger** les CSV de résultats Tadarida récupérés depuis VigieChiro et les croiser avec les WAV correspondants ;
-- **Parcourir** les observations classifiées : tri, filtrage par taxon ou par probabilité, écoute de l'évènement sonore associé (lecture ralentie pour rendre l'ultrason audible) ;
-- **Valider ou corriger** la classification proposée par Tadarida avant le retour à VigieChiro ;
-- **Exporter** un fichier de validation au format attendu par VigieChiro (le CSV `…observations_Vu.csv` que la plateforme sait ré-ingérer).
+### Chaîne fil rouge (cible MVP, MUST)
+
+Cette chaîne **remplace** entièrement les outils manuels actuellement utilisés (LupasRename pour le renommage, Kaléidoscope pour le découpage et l'expansion temporelle ×10) :
+
+- **Déclarer un site de suivi** : enregistrer dans l'application les n° de carré et les codes des points d'écoute qui ont été créés en amont sur le portail Vigie-Chiro ([P1](Analyse%20et%20conception/Parcours%20utilisateurs/P1%20-%20Déclarer%20un%20site%20de%20suivi.md)).
+- **Importer une nuit de capture** : copier de manière protégée les WAV bruts + journal + climat depuis la carte SD, les **renommer** avec le préfixe `CarXXXXXX-AAAA-PassN-YY-`, et **transformer** chaque enregistrement en séquences de 5 s ralenties ×10 ([P2](Analyse%20et%20conception/Parcours%20utilisateurs/P2%20-%20Importer%20une%20nuit%20de%20capture.md)).
+- **Vérifier l'enregistrement par échantillonnage** : sound check global avant dépôt — écouter quelques séquences réparties sur la nuit pour confirmer que l'audio est exploitable, et saisir un verdict (`OK`, `Douteux`, `À jeter`) ([P3](Analyse%20et%20conception/Parcours%20utilisateurs/P3%20-%20Vérifier%20l%27enregistrement%20par%20échantillonnage.md)).
+- **Préparer un lot prêt à déposer** sur Vigie-Chiro : vérifications de cohérence + ouverture du dossier dans l'explorateur pour téléversement manuel via le navigateur ([P4](Analyse%20et%20conception/Parcours%20utilisateurs/P4%20-%20Préparer%20un%20lot%20prêt%20à%20déposer.md)).
+
+### Approfondissements (SHOULD, à livrer si vélocité)
+
+- **Naviguer dans plusieurs sites et passages** via une vue tabulaire performante, indispensable dès qu'on dépasse 3-4 sites (cas Karim et Samuel, [P5](Analyse%20et%20conception/Parcours%20utilisateurs/P5%20-%20Naviguer%20dans%20plusieurs%20sites%20et%20passages.md)).
+- **Diagnostiquer le matériel** : visualiser les courbes de température / hygrométrie, le niveau de batterie, les évènements anormaux du journal du capteur ([P6](Analyse%20et%20conception/Parcours%20utilisateurs/P6%20-%20Diagnostiquer%20le%20matériel.md)).
+
+### Cible étirable (SHOULD, filet de sécurité)
+
+- **Valider les résultats Tadarida** : 24-48 h après le dépôt, charger le CSV de résultats fourni par la plateforme, écouter / visualiser chaque observation, et valider ou corriger la classification automatique avant ré-injection ([P7](Analyse%20et%20conception/Parcours%20utilisateurs/P7%20-%20Valider%20les%20résultats%20Tadarida.md)). C'est le **filet de sécurité** si la SAE déborde du périmètre fil rouge.
+
+### Exigences transverses
 
 L'application doit également :
 
 - **respecter les normes d'accessibilité** afin que des utilisateurs souffrant de déficiences visuelles légères puissent l'utiliser confortablement (contraste, taille de police, raccourcis clavier) ;
 - **fonctionner hors-ligne** : une nuit de terrain peut produire des giga-octets de données et l'utilisateur doit pouvoir travailler sans connexion ;
 - **être portable** sur Windows, Linux et macOS sans installation système lourde.
+
+> Le détail complet du périmètre, avec arbitrage MoSCoW par story, est dans le [Périmètre MVP](Analyse%20et%20conception/Périmètre%20MVP.md).
 
 ## Le client réel : Samuel Busson (CEREMA)
 

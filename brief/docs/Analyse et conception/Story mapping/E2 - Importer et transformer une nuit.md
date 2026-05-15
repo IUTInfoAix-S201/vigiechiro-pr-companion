@@ -10,7 +10,7 @@
 
 ## E2.S1 - Inspecter un dossier source en lecture seule { #e2s1 }
 
-**En tant que** Marie
+**En tant que** [Marie](../Personas/Marie.md)
 
 **Je veux** que l'application examine le dossier de ma carte SD avant de rien y écrire et m'affiche un récapitulatif de ce qu'elle a trouvé
 
@@ -36,7 +36,7 @@
 
 ## E2.S2 - Rattacher la nuit à un site, point, année et n° de passage { #e2s2 }
 
-**En tant que** Marie
+**En tant que** [Marie](../Personas/Marie.md)
 
 **Je veux** indiquer à quelle session de capture (site, point, année, n° de passage) cette nuit appartient
 
@@ -61,7 +61,7 @@
 
 ## E2.S3 - Extraire le rattachement depuis un dossier déjà préfixé { #e2s3 }
 
-**En tant que** Marie (re-important un dossier déjà passé chez LupasRename ou un dossier déjà importé une fois)
+**En tant que** [Marie](../Personas/Marie.md) (re-important un dossier déjà passé chez LupasRename ou un dossier déjà importé une fois)
 
 **Je veux** que l'application reconnaisse que les fichiers ont déjà un préfixe `CarXXXXXX-AAAA-PassN-YY-` et en extraie automatiquement les 4 informations de rattachement
 
@@ -85,7 +85,7 @@
 
 ## E2.S4 - Copier de manière protégée les fichiers depuis la SD { #e2s4 }
 
-**En tant que** Marie
+**En tant que** [Marie](../Personas/Marie.md)
 
 **Je veux** que l'application copie tous les fichiers (WAV, journal, climat) de la carte SD vers son espace de travail sans toucher aux originaux
 
@@ -112,7 +112,7 @@
 
 ## E2.S5 - Renommer les fichiers avec le préfixe Vigie-Chiro { #e2s5 }
 
-**En tant que** Marie
+**En tant que** [Marie](../Personas/Marie.md)
 
 **Je veux** que les fichiers copiés reçoivent automatiquement le préfixe `CarXXXXXX-AAAA-PassN-YY-` correspondant au rattachement saisi
 
@@ -138,7 +138,7 @@
 
 ## E2.S6 - Transformer chaque enregistrement en séquences d'écoute ralenties ×10 { #e2s6 }
 
-**En tant que** Marie
+**En tant que** [Marie](../Personas/Marie.md)
 
 **Je veux** que l'application transforme automatiquement chaque WAV brut en plusieurs séquences de 5 s ralenties ×10
 
@@ -165,7 +165,7 @@
 
 ## E2.S7 - Mémoriser l'association enregistreur ↔ site/point { #e2s7 }
 
-**En tant que** Karim ou Samuel (qui réutilise plusieurs fois le même enregistreur sur les mêmes points)
+**En tant que** [Karim](../Personas/Karim.md) ou [Samuel](../Personas/Samuel.md) (qui réutilise plusieurs fois le même enregistreur sur les mêmes points)
 
 **Je veux** que l'application se souvienne du dernier site/point sur lequel chaque enregistreur (n° de série) a été utilisé
 
@@ -189,7 +189,7 @@
 
 ## E2.S8 - Modifier rétroactivement le rattachement d'un passage déjà importé { #e2s8 }
 
-**En tant que** Marie
+**En tant que** [Marie](../Personas/Marie.md)
 
 **Je veux** pouvoir corriger le rattachement (site, point, année, n° de passage) d'un passage déjà importé si je me rends compte d'une erreur
 

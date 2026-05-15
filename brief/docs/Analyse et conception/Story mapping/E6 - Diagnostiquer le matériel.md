@@ -10,7 +10,7 @@
 
 ## E6.S1 - Visualiser les graphes de température et d'hygrométrie sur la nuit { #e6s1 }
 
-**En tant que** Karim
+**En tant que** [Karim](../Personas/Karim.md)
 
 **Je veux** voir les courbes de température et d'hygrométrie de la nuit sur un même panneau
 
@@ -35,7 +35,7 @@
 
 ## E6.S2 - Visualiser le niveau de batterie et lister les évènements anormaux { #e6s2 }
 
-**En tant que** Karim
+**En tant que** [Karim](../Personas/Karim.md)
 
 **Je veux** voir le niveau de batterie du PR au début et à la fin de la nuit, ainsi que la liste des évènements techniques anormaux qui se sont produits (réveils non programmés, erreurs SD, redémarrages, alerte batterie critique)
 
@@ -64,7 +64,7 @@
 
 ## E6.S3 - Vérifier la cohérence des horaires de capture vs astronomie locale { #e6s3 }
 
-**En tant que** Samuel
+**En tant que** [Samuel](../Personas/Samuel.md)
 
 **Je veux** que l'application calcule les heures réelles de coucher/lever de soleil pour la date et le lieu de capture, et compare ces horaires avec la plage effective enregistrée par le PR
 
@@ -93,7 +93,7 @@
 
 ## E6.S4 - Comparer le diagnostic avec un passage précédent du même enregistreur { #e6s4 }
 
-**En tant que** Karim
+**En tant que** [Karim](../Personas/Karim.md)
 
 **Je veux** afficher côte à côte le diagnostic d'un passage et celui d'un passage antérieur du même enregistreur
 
@@ -118,7 +118,7 @@
 
 ## E6.S5 - Exporter le diagnostic d'un passage en CSV ou PDF { #e6s5 }
 
-**En tant que** Karim
+**En tant que** [Karim](../Personas/Karim.md)
 
 **Je veux** pouvoir exporter le rapport de diagnostic d'une nuit dans un fichier autonome (CSV pour traitement ou PDF pour archive/partage)
 

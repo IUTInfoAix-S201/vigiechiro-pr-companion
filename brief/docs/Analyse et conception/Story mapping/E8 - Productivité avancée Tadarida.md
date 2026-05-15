@@ -18,7 +18,7 @@ Sinon, ces stories restent documentées pour une suite éventuelle de l'applicat
 
 ## E8.S1 - Regrouper plusieurs passages successifs pour validation conjointe { #e8s1 }
 
-**En tant que** Samuel (qui déploie un PR sur le même point pendant 4 nuits successives)
+**En tant que** [Samuel](../Personas/Samuel.md) (qui déploie un PR sur le même point pendant 4 nuits successives)
 
 **Je veux** pouvoir sélectionner plusieurs passages successifs d'un même point et les valider ensemble dans une vue unifiée
 
@@ -45,7 +45,7 @@ Sinon, ces stories restent documentées pour une suite éventuelle de l'applicat
 
 ## E8.S2 - Marquer des séquences comme référence et exporter une bibliothèque par espèce { #e8s2 }
 
-**En tant que** Samuel (qui forme un débutant)
+**En tant que** [Samuel](../Personas/Samuel.md) (qui forme un débutant)
 
 **Je veux** pouvoir marquer certaines observations validées comme « séquence de référence » et générer un dossier organisé par espèce avec mes meilleurs exemples
 

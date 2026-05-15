@@ -12,7 +12,7 @@ Les gains de productivité avancés (regroupement multi-nuits P9, bibliothèque 
 
 ## E7.S1 - Importer un CSV de résultats Tadarida et l'associer à un passage { #e7s1 }
 
-**En tant que** Marie
+**En tant que** [Marie](../Personas/Marie.md)
 
 **Je veux** charger dans l'application le fichier CSV des résultats Tadarida que j'ai téléchargé depuis le portail Vigie-Chiro et l'associer au bon passage
 
@@ -40,7 +40,7 @@ Les gains de productivité avancés (regroupement multi-nuits P9, bibliothèque 
 
 ## E7.S2 - Vue de validation : liste des observations + panneau de détail { #e7s2 }
 
-**En tant que** Marie
+**En tant que** [Marie](../Personas/Marie.md)
 
 **Je veux** voir toutes les observations importées sous forme de liste à gauche, avec un panneau de détail à droite qui se rafraîchit selon l'observation sélectionnée
 
@@ -66,7 +66,7 @@ Les gains de productivité avancés (regroupement multi-nuits P9, bibliothèque 
 
 ## E7.S3 - Visualiser le spectrogramme d'une séquence avec zoom variable { #e7s3 }
 
-**En tant que** Marie ou Samuel
+**En tant que** [Marie](../Personas/Marie.md) ou [Samuel](../Personas/Samuel.md)
 
 **Je veux** voir un spectrogramme de la séquence courante et pouvoir ajuster le niveau de zoom (temps et fréquence) pour examiner les détails
 
@@ -92,7 +92,7 @@ Les gains de productivité avancés (regroupement multi-nuits P9, bibliothèque 
 
 ## E7.S4 - Valider ou corriger le taxon d'une observation { #e7s4 }
 
-**En tant que** Marie
+**En tant que** [Marie](../Personas/Marie.md)
 
 **Je veux** pouvoir confirmer en un clic que la classification Tadarida est correcte, ou la corriger en saisissant un autre taxon, et accompagner ma décision d'un commentaire libre
 
@@ -119,7 +119,7 @@ Les gains de productivité avancés (regroupement multi-nuits P9, bibliothèque 
 
 ## E7.S5 - Filtrer les observations par critères multiples { #e7s5 }
 
-**En tant que** Samuel
+**En tant que** [Samuel](../Personas/Samuel.md)
 
 **Je veux** pouvoir filtrer la liste des observations par taxon, par groupe taxonomique (« toutes les pipistrelles », « tous les murins »), par seuil de probabilité, ou par plage horaire
 
@@ -145,7 +145,7 @@ Les gains de productivité avancés (regroupement multi-nuits P9, bibliothèque 
 
 ## E7.S6 - Choisir le mode de validation : inventaire vs activité { #e7s6 }
 
-**En tant que** Marie ou Samuel
+**En tant que** [Marie](../Personas/Marie.md) ou [Samuel](../Personas/Samuel.md)
 
 **Je veux** déclarer au démarrage de ma session de validation si je veux juste produire la **liste des espèces présentes** (inventaire) ou si je veux **quantifier l'activité** (toutes les observations validées)
 
@@ -171,7 +171,7 @@ Les gains de productivité avancés (regroupement multi-nuits P9, bibliothèque 
 
 ## E7.S7 - Exporter le fichier de résultats validés (Vu.csv) { #e7s7 }
 
-**En tant que** Marie
+**En tant que** [Marie](../Personas/Marie.md)
 
 **Je veux** exporter mes validations sous forme d'un fichier `*_Vu.csv` au format attendu par Vigie-Chiro
 

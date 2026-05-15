@@ -10,7 +10,7 @@
 
 ## E3.S1 - Générer une sélection d'écoute automatique à l'ouverture de l'onglet { #e3s1 }
 
-**En tant que** Marie
+**En tant que** [Marie](../Personas/Marie.md)
 
 **Je veux** que l'application me propose automatiquement une sélection de séquences d'écoute représentative de la nuit dès que j'ouvre l'onglet « Vérifier l'enregistrement »
 
@@ -35,7 +35,7 @@
 
 ## E3.S2 - Afficher la sélection en liste chronologique avec métadonnées { #e3s2 }
 
-**En tant que** Marie
+**En tant que** [Marie](../Personas/Marie.md)
 
 **Je veux** voir la sélection sous forme d'une liste chronologique où chaque ligne montre les informations clés de la séquence (horodatage, durée, indicateur de fréquence)
 
@@ -59,7 +59,7 @@
 
 ## E3.S3 - Lire une séquence d'écoute avec contrôles audio standards { #e3s3 }
 
-**En tant que** Marie
+**En tant que** [Marie](../Personas/Marie.md)
 
 **Je veux** pouvoir écouter chaque séquence sélectionnée avec les contrôles habituels (lecture, pause, stop, position dans la séquence)
 
@@ -84,7 +84,7 @@
 
 ## E3.S4 - Marquer les séquences écoutées et suivre l'avancement { #e3s4 }
 
-**En tant que** Marie
+**En tant que** [Marie](../Personas/Marie.md)
 
 **Je veux** que l'application mémorise quelles séquences j'ai déjà écoutées et m'affiche un compteur de progression
 
@@ -108,7 +108,7 @@
 
 ## E3.S5 - Saisir le verdict global du passage et un commentaire libre { #e3s5 }
 
-**En tant que** Marie
+**En tant que** [Marie](../Personas/Marie.md)
 
 **Je veux** consigner mon avis global sur la nuit (`OK`, `Douteux`, `À jeter`) et pouvoir y ajouter un commentaire texte
 
@@ -134,7 +134,7 @@
 
 ## E3.S6 - Personnaliser la composition de la sélection d'écoute { #e3s6 }
 
-**En tant que** Marie ou Samuel (qui veut s'assurer plus en profondeur de la qualité d'une nuit douteuse)
+**En tant que** [Marie](../Personas/Marie.md) ou [Samuel](../Personas/Samuel.md) (qui veut s'assurer plus en profondeur de la qualité d'une nuit douteuse)
 
 **Je veux** pouvoir modifier la sélection automatique : changer la méthode (aléatoire au lieu d'uniforme), augmenter la taille, ou ajouter manuellement une séquence à un moment précis
 

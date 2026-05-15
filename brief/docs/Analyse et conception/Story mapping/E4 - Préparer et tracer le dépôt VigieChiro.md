@@ -10,7 +10,7 @@
 
 ## E4.S1 - Vérifier la cohérence du passage avant préparation du lot { #e4s1 }
 
-**En tant que** Marie
+**En tant que** [Marie](../Personas/Marie.md)
 
 **Je veux** que l'application contrôle automatiquement que mon passage est complet et conforme au protocole avant de me proposer la préparation du lot
 
@@ -39,7 +39,7 @@
 
 ## E4.S2 - Voir le récapitulatif du lot et ouvrir le dossier dans l'explorateur { #e4s2 }
 
-**En tant que** Marie
+**En tant que** [Marie](../Personas/Marie.md)
 
 **Je veux** voir un récapitulatif clair du lot à déposer (volume, nombre de fichiers, emplacement sur disque) et pouvoir ouvrir directement le dossier dans mon explorateur de fichiers
 
@@ -64,7 +64,7 @@
 
 ## E4.S3 - Marquer le passage comme déposé après téléversement manuel { #e4s3 }
 
-**En tant que** Marie
+**En tant que** [Marie](../Personas/Marie.md)
 
 **Je veux** pouvoir confirmer à l'application que j'ai effectivement déposé le lot sur Vigie-Chiro, avec mémorisation de la date de dépôt
 
@@ -89,7 +89,7 @@
 
 ## E4.S4 - Visualiser le statut workflow et la chronologie d'un passage { #e4s4 }
 
-**En tant que** Karim ou Samuel (qui jongle entre plusieurs dizaines de passages à différents stades)
+**En tant que** [Karim](../Personas/Karim.md) ou [Samuel](../Personas/Samuel.md) (qui jongle entre plusieurs dizaines de passages à différents stades)
 
 **Je veux** voir en un coup d'œil où en est un passage dans le cycle de vie (Importé → Transformé → Vérifié → Prêt à déposer → Déposé) et l'historique des transitions
 

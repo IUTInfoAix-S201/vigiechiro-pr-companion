@@ -10,7 +10,7 @@
 
 ## E1.S1 - Saisir un site de suivi avec son n° de carré { #e1s1 }
 
-**En tant que** Marie (utilisatrice débutante)
+**En tant que** [Marie](../Personas/Marie.md) (utilisatrice débutante)
 
 **Je veux** déclarer un nouveau site de suivi en saisissant son n° de carré et au moins un point d'écoute
 
@@ -37,7 +37,7 @@
 
 ## E1.S2 - Ajouter, modifier ou retirer des points d'écoute sur un site existant { #e1s2 }
 
-**En tant que** Marie
+**En tant que** [Marie](../Personas/Marie.md)
 
 **Je veux** pouvoir gérer la liste des points d'écoute d'un site déjà déclaré (en ajouter, en renommer, en supprimer)
 
@@ -62,7 +62,7 @@
 
 ## E1.S3 - Saisir les coordonnées GPS et un descriptif d'un point d'écoute { #e1s3 }
 
-**En tant que** Marie ou Samuel
+**En tant que** [Marie](../Personas/Marie.md) ou [Samuel](../Personas/Samuel.md)
 
 **Je veux** pouvoir associer des coordonnées GPS et un descriptif à chaque point d'écoute
 
@@ -86,7 +86,7 @@
 
 ## E1.S4 - Vue des sites déclarés avec compteurs de passages { #e1s4 }
 
-**En tant que** Karim ou Samuel
+**En tant que** [Karim](../Personas/Karim.md) ou [Samuel](../Personas/Samuel.md)
 
 **Je veux** une vue d'ensemble de tous mes sites déclarés avec, pour chacun, un compteur du nombre de passages enregistrés
 
@@ -111,7 +111,7 @@
 
 ## E1.S5 - Créer un nouveau site directement depuis la modale d'import { #e1s5 }
 
-**En tant que** Marie
+**En tant que** [Marie](../Personas/Marie.md)
 
 **Je veux** pouvoir créer un nouveau site sans quitter le flux d'import si je réalise que je n'ai pas encore déclaré le site auquel ma nuit appartient
 

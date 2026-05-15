@@ -10,7 +10,7 @@
 
 ## E5.S1 - Vue arborescente des sites avec compteurs de passages par point { #e5s1 }
 
-**En tant que** Karim
+**En tant que** [Karim](../Personas/Karim.md)
 
 **Je veux** voir tous mes sites de suivi sous forme d'arbre où chaque site se déplie en points d'écoute, et chaque point affiche le nombre de passages cette saison + l'état du dernier passage
 
@@ -36,7 +36,7 @@
 
 ## E5.S2 - Vue tabulaire des passages avec tri et filtres par colonne { #e5s2 }
 
-**En tant que** Karim ou Samuel
+**En tant que** [Karim](../Personas/Karim.md) ou [Samuel](../Personas/Samuel.md)
 
 **Je veux** une vue alternative à l'arborescence qui liste **tous mes passages** sous forme de tableau triable et filtrable par chaque colonne
 
@@ -65,7 +65,7 @@
 
 ## E5.S3 - Filtres avancés multi-critères avec sauvegarde de vues { #e5s3 }
 
-**En tant que** Samuel
+**En tant que** [Samuel](../Personas/Samuel.md)
 
 **Je veux** pouvoir combiner plusieurs filtres simultanément (ex. « tous les passages au statut Transformé sur les sites 64XXXX, importés depuis le 1er juin ») et sauvegarder ces combinaisons comme « vues » réutilisables
 
@@ -92,7 +92,7 @@
 
 ## E5.S4 - Actions de masse sur une sélection de passages { #e5s4 }
 
-**En tant que** Samuel
+**En tant que** [Samuel](../Personas/Samuel.md)
 
 **Je veux** pouvoir sélectionner plusieurs passages dans la vue tabulaire et leur appliquer une action commune (changer le verdict, supprimer, exporter)
 
@@ -118,7 +118,7 @@
 
 ## E5.S5 - Import groupé de plusieurs dossiers SD à la suite { #e5s5 }
 
-**En tant que** Karim (qui revient d'une semaine de terrain avec 5 cartes SD)
+**En tant que** [Karim](../Personas/Karim.md) (qui revient d'une semaine de terrain avec 5 cartes SD)
 
 **Je veux** pouvoir lancer en une seule fois l'import de plusieurs dossiers SD et que l'application les traite en file d'attente
 

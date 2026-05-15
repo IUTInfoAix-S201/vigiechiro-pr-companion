@@ -129,7 +129,7 @@
 
 ## E0.S6 - Reprendre un import interrompu { #e0s6 }
 
-**En tant que** Marie
+**En tant que** [Marie](../Personas/Marie.md)
 
 **Je veux** que mon import de nuit, s'il est interrompu (crash, fermeture inopinée, batterie à plat), puisse reprendre là où il s'est arrêté
 
@@ -154,7 +154,7 @@
 
 ## E0.S7 - Reprendre une validation Tadarida en suspens { #e0s7 }
 
-**En tant que** Marie ou Samuel
+**En tant que** [Marie](../Personas/Marie.md) ou [Samuel](../Personas/Samuel.md)
 
 **Je veux** que ma session de validation Tadarida ([P7](../Parcours%20utilisateurs/P7%20-%20Valider%20les%20résultats%20Tadarida.md)), si je la quitte avant la fin, puisse être reprise plus tard exactement là où je l'avais laissée
 

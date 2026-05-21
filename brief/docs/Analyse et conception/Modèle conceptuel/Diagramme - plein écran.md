@@ -47,6 +47,12 @@ classDiagram
       n° de série
       modèle / version
     }
+    class Micro {
+      modèle / référence
+      bande passante
+      sensibilité
+      date de mise en service
+    }
     class Passage {
       n° de passage
       année
@@ -109,6 +115,7 @@ classDiagram
     SiteDeSuivi "1" --> "1..*" PointDEcoute : contient
     PointDEcoute "1" --> "0..*" Passage : fait l'objet de
     Enregistreur "1" --> "1..*" Passage : a produit
+    Enregistreur "1" --> "1" Micro : porte
     Passage "1" --> "1" SessionDEnregistrement : produit
     SessionDEnregistrement "1" --> "1..*" EnregistrementOriginal : contient
     SessionDEnregistrement "1" --> "1..*" SequenceDEcoute : contient

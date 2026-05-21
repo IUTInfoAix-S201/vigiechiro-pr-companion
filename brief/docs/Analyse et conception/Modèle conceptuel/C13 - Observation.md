@@ -15,13 +15,15 @@ Une ligne du fichier de résultats. Une **séquence d'écoute peut générer plu
 | probabilité observateur | décimal | dans `[0, 1]`, optionnel | Niveau de confiance utilisateur. |
 | commentaire utilisateur | texte | optionnel, ≤ 500 car. | « pic 39 kHz, morphologie atypique », etc. |
 | marqué comme référence | booléen | par défaut `false` | Sélection bonus pour la bibliothèque de sons exportable (COULD). |
+| mode de validation | énum | `manuel` \| `auto` \| `null` (défaut) | Trace comment le `taxon observateur` a été établi : saisie utilisateur explicite (`manuel`), propagation automatique par le mode inventaire (`auto`), ou pas encore validé (`null`). Cf. [R24](Règles%20métier.md#r24). |
 
 ## Règles applicables
 
 - [R15](Règles%20métier.md#r15) - observation `validée` si `taxon observateur = taxon Tadarida` et `probabilité observateur` renseignée.
 - [R16](Règles%20métier.md#r16) - observation `corrigée` si `taxon observateur ≠ taxon Tadarida`.
 - [R17](Règles%20métier.md#r17) - observation non touchée conserve les colonnes `tadarida_*` à l'export `_Vu.csv`.
-- [R18](Règles%20métier.md#r18) - deux modes de validation : `inventaire` ou `activité`.
+- [R18](Règles%20métier.md#r18) - deux modes de validation : `inventaire` ou `activité` (+ variante future `inventaire pondéré`).
+- [R24](Règles%20métier.md#r24) - chaque observation porte un `mode de validation` (`manuel` / `auto` / `null`) qui distingue ce qui a été vérifié à l'oreille de ce qui a été propagé.
 
 ## Voisins dans le modèle
 

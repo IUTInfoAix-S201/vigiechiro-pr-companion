@@ -143,3 +143,29 @@
 **Dépendances** : [E6.S1](#e6s1), [E6.S2](#e6s2)<br>
 **Complexité** : ★★ (simple — sérialisation CSV + génération PDF basique via bibliothèque type iText ou OpenPDF)<br>
 **MoSCoW** : ⚪ COULD (export confort, pas critique au MVP)
+
+---
+
+## E6.S6 - Détecter automatiquement un paramétrage de nuit anormal { #e6s6 }
+
+**En tant que** [Samuel](../Personas/Samuel.md) ou [Karim](../Personas/Karim.md)
+
+**Je veux** que l'application analyse le journal du capteur (`LogPR<n>.txt`) à l'import et m'alerte si les paramètres d'acquisition de la nuit s'écartent fortement d'un référentiel attendu (fréquence d'échantillonnage hors-norme, gain extrême, bande de fréquences atypique, période d'enregistrement très courte ou très longue, sensibilité de déclenchement très basse, etc.)
+
+**Afin de** repérer immédiatement une nuit potentiellement ratée par mauvais paramétrage du PR, sans attendre de découvrir le problème en aval (au moment d'écouter les sons ou de recevoir le retour Tadarida).
+
+> Origine : suggestion de Samuel — « soit toute la nuit est ratée (mauvais paramétrage du PR, fréquence d'enregistrement, période d'enregistrement, etc., qu'on pourrait détecter en analysant les logs d'ailleurs ?) ».
+
+**Critères d'acceptation** :
+
+- [ ] À l'import (cf. [E2.S2](E2%20-%20Importer%20et%20transformer%20une%20nuit.md#e2s2) où le journal du capteur est déjà parsé), l'application extrait les paramètres d'acquisition de la ligne `Acquisi.` du `LogPR<n>.txt` : `Fe` (fréquence d'échantillonnage), gain, bande de fréquence, durée WAV min/max, sensibilité.
+- [ ] Un **référentiel des plages attendues** est défini en dur dans une configuration (typiquement : Fe = 384 kHz, gain = 16 dB, bande = 8-120 kHz, WAV = 2-30 s). Le référentiel est documenté et adaptable selon les retours communauté.
+- [ ] Si **un ou plusieurs paramètres** s'écartent significativement du référentiel, l'encart **« État de la nuit »** (cf. [E3.S0](E3%20-%20Vérifier%20la%20qualité%20d%27enregistrement.md#e3s0)) affiche un **4e indicateur 🟠 « Paramétrage atypique »** avec la liste des paramètres concernés au survol/clic.
+- [ ] L'alerte est **informative, non bloquante** : Samuel peut très bien vouloir un paramétrage atypique (campagne expérimentale), il décide.
+- [ ] Test d'intégration : sur un `LogPR` de référence avec paramètres standards → indicateur absent ; sur un `LogPR` avec Fe modifiée → indicateur orange + détail explicite.
+
+**Parcours rattaché** : [P6](../Parcours%20utilisateurs/P6%20-%20Diagnostiquer%20le%20matériel.md) (signal partagé) + [P3](../Parcours%20utilisateurs/P3%20-%20Vérifier%20l%27enregistrement%20par%20échantillonnage.md) (indicateur affiché dans le pré-check)<br>
+**Maquettes cibles** : [M-Passage](../Maquettes/M-Passage.md) + [M-Qualification](../Maquettes/M-Qualification.md) — *à mettre à jour avec un 4e indicateur*<br>
+**Dépendances** : [E2.S2](E2%20-%20Importer%20et%20transformer%20une%20nuit.md#e2s2) (parsing du `LogPR`), [E3.S0](E3%20-%20Vérifier%20la%20qualité%20d%27enregistrement.md#e3s0) (encart « État de la nuit » qui accueille le 4e indicateur)<br>
+**Complexité** : ★★ (simple — comparaison de quelques valeurs numériques à un référentiel)<br>
+**MoSCoW** : 🟠 SHOULD (rentabilise rapidement l'investissement parsing du journal déjà fait pour E6.S1/S2)

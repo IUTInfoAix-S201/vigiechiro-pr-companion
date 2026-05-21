@@ -2,11 +2,38 @@
 
 [← Retour au hub story mapping](index.md) · **Parcours principal** : [P3 - Vérifier l'enregistrement par échantillonnage](../Parcours%20utilisateurs/P3%20-%20Vérifier%20l%27enregistrement%20par%20échantillonnage.md) · ✅ MUST
 
-**Portée** : permettre à l'utilisateur de **valider qu'une nuit d'enregistrement est exploitable** avant de la déposer sur Vigie-Chiro. Constitution automatique d'une sélection d'écoute échantillonnée, lecteur audio pour les séquences ralenties ×10, et saisie d'un verdict global. C'est un **sound check** distinct de la validation taxonomique espèce par espèce (qui est l'objet de E7).
+**Portée** : permettre à l'utilisateur de **valider qu'une nuit d'enregistrement est exploitable** avant de la déposer sur Vigie-Chiro. La vérification se fait en deux temps complémentaires : (1) un **pré-check synthétique** rapide sans écoute (couverture horaire, nombre de fichiers, cohérence du renommage), pratiqué par défaut par Samuel ; (2) un **sound check par échantillonnage** audio plus long, pratiqué par défaut par Marie. C'est un sound check global, distinct de la validation taxonomique espèce par espèce (qui est l'objet de E7).
 
 **Persona principal** : tous (Marie en mono-site, Karim et Samuel en chaîne).
 
 **Pré-requis** : E0.S4 (DAO sélections/séquences), E2.S6 (séquences d'écoute disponibles sur disque après transformation).
+
+## E3.S0 - Pré-check synthétique de la nuit (sans écoute) { #e3s0 }
+
+**En tant que** [Samuel](../Personas/Samuel.md) ou [Karim](../Personas/Karim.md) (et [Marie](../Personas/Marie.md) qui veut un premier feu vert immédiat)
+
+**Je veux** voir d'un coup d'œil si la nuit a produit un volume cohérent de fichiers, sur la bonne plage horaire, avec un renommage conforme
+
+**Afin de** décider sans écouter si la nuit peut être déposée directement sur Vigie-Chiro, ou si elle nécessite une investigation plus poussée
+
+**Critères d'acceptation** :
+
+- [ ] À l'ouverture de la vue détail d'un passage `Importé` ou `Transformé`, un encart **« État de la nuit »** affiche trois indicateurs sous forme de feux (🟢 OK / 🟠 suspect / 🔴 anomalie).
+- [ ] **Indicateur 1 — Couverture horaire** : compare la plage `premier WAV → dernier WAV` (extraite des horodatages des fichiers) à la plage théorique `coucher de soleil - 30 min → lever de soleil + 30 min` ([R3](../Modèle%20conceptuel/Règles%20métier.md#r3)). La plage astronomique est calculée localement à partir des coordonnées GPS du point ([C3](../Modèle%20conceptuel/C3%20-%20Point%20d%27écoute.md)) et de la date de session d'enregistrement. Feu 🟠 si l'écart dépasse 30 min d'un côté, 🔴 si une moitié de nuit complète manque.
+- [ ] **Indicateur 2 — Nombre de fichiers** : feu 🟢 si nombre d'enregistrements originaux ≥ 50, 🟠 si entre 1 et 49 (nuit anormalement creuse), 🔴 si 0.
+- [ ] **Indicateur 3 — Cohérence du renommage** : feu 🟢 si tous les WAV portent le préfixe `Car<carre>-<annee>-Pass<n>-<point>-` attendu ([R6](../Modèle%20conceptuel/Règles%20métier.md#r6)) avec les bons champs ; 🔴 dès qu'un fichier diverge (extra-fichier non préfixé ou incohérence de champ).
+- [ ] Chaque indicateur, au survol ou au clic, affiche le détail du calcul (valeurs attendues vs effectives).
+- [ ] Si les coordonnées GPS du point ne sont pas renseignées, l'indicateur de couverture horaire affiche un état neutre `?` avec un message explicite « Renseignez les coordonnées du point pour activer ce check ».
+- [ ] Un lien explicite renvoie vers [P6 - Diagnostiquer le matériel](../Parcours%20utilisateurs/P6%20-%20Diagnostiquer%20le%20matériel.md) pour creuser (courbes T°/H, événements anormaux du journal, comparaison batterie inter-passages).
+- [ ] Test d'intégration : sur un passage de référence, vérifier les trois indicateurs (cas nominal 🟢/🟢/🟢, cas dégradé 🟠 sur couverture, cas critique 🔴 sur renommage).
+
+**Parcours rattaché** : [P3](../Parcours%20utilisateurs/P3%20-%20Vérifier%20l%27enregistrement%20par%20échantillonnage.md), étape 1<br>
+**Maquettes cibles** : [M-Qualification](../Maquettes/M-Qualification.md) (encart « État de la nuit » en haut de la vue de vérification) — *à mettre à jour*<br>
+**Dépendances** : [E0.S3](E0%20-%20Fondations%20de%20persistance.md#e0s3) (passage en BD), [E2.S6](E2%20-%20Importer%20et%20transformer%20une%20nuit.md#e2s6) (transformation terminée), librairie astronomique pour les horaires (re-use [E6.S3](E6%20-%20Diagnostiquer%20le%20matériel.md#e6s3) si possible)<br>
+**Complexité** : ★★★ (moyen — 3 calculs indépendants, recoupement avec horaires astronomiques, rendu visuel)<br>
+**MoSCoW** : ✅ MUST
+
+---
 
 ## E3.S1 - Générer une sélection d'écoute automatique à l'ouverture de l'onglet { #e3s1 }
 

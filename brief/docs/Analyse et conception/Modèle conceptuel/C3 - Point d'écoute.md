@@ -1,6 +1,6 @@
 # C3 - Point d'écoute
 
-Un point dans un site, identifié par un code court fourni par Vigie-Chiro.
+Un point dans un site, identifié par un code court fourni par Vigie-Chiro. Le point peut être **choisi par l'utilisateur** au sein du carré (selon les contraintes du terrain), ou **tiré aléatoirement** par la plateforme Vigie-Chiro lorsque le protocole appliqué l'impose.
 
 | Attribut | Type | Contraintes | Notes |
 |---|---|---|---|

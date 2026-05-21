@@ -1,16 +1,16 @@
 # Règles métier
 
-Les 23 règles métier du modèle conceptuel. Chaque règle a un identifiant ancré (`#r1` à `#r23`) qui sert de point de référence depuis le reste du dossier (parcours, stories, maquettes).
+Les 24 règles métier du modèle conceptuel. Chaque règle a un identifiant ancré (`#r1` à `#r24`) qui sert de point de référence depuis le reste du dossier (parcours, stories, maquettes).
 
 ## Site, point, passage
 
 - **R1**{ #r1 } : un n° de carré est obligatoirement composé de **6 chiffres**, dont les 2 premiers correspondent au numéro de département (avec leading zero pour les départements 1 à 9).
 - **R2**{ #r2 } : un code de point est exactement de la forme **lettre + chiffre** (ex. `A1`, `Z4`). Validation à la saisie.
-- **R3**{ #r3 } : sur le **protocole Point Fixe**, deux passages sont attendus par site et par année :
+- **R3**{ #r3 } : sur les sites en mode **`PointFixeStandard`** (cf. [C2](C2%20-%20Site%20de%20suivi.md)), deux passages sont attendus par site et par année :
     - **passage 1** : entre le 15 juin et le 31 juillet,
     - **passage 2** : entre le 15 août et le 31 septembre.
-    L'application **alerte sans bloquer** si l'utilisateur déclare un passage hors fenêtre.
-- **R4**{ #r4 } : intervalle conseillé entre les deux passages d'un même site : **≥ 1 mois**. Idéalement, dates « anniversaires » (±10 j) d'une année à l'autre.
+    L'application **alerte sans bloquer** si l'utilisateur déclare un passage hors fenêtre. Sur les sites en mode **`PointFixeRecherche`** (dates personnalisées pour des besoins recherche), cette règle est **muette** : aucune alerte n'est générée.
+- **R4**{ #r4 } : sur les sites en mode **`PointFixeStandard`**, intervalle conseillé entre les deux passages d'un même site : **≥ 1 mois**. Idéalement, dates « anniversaires » (±10 j) d'une année à l'autre. Sur les sites en mode **`PointFixeRecherche`**, cette règle est également **muette** (l'utilisateur enregistre à la fréquence qui convient à son protocole, y compris plusieurs nuits successives).
 - **R5**{ #r5 } : le triplet `(Site, Point, Année, n° de passage)` est **unique** : un même point ne peut pas avoir deux passages avec le même n° dans la même année.
 
 ## Convention de nommage des fichiers
@@ -39,9 +39,16 @@ Les 23 règles métier du modèle conceptuel. Chaque règle a un identifiant anc
 - **R15**{ #r15 } : une observation est qualifiée de **validée** quand `taxon observateur = taxon Tadarida` et `probabilité observateur` renseignée.
 - **R16**{ #r16 } : une observation est qualifiée de **corrigée** quand `taxon observateur ≠ taxon Tadarida`.
 - **R17**{ #r17 } : une observation **non touchée** par l'utilisateur conserve uniquement les colonnes `tadarida_*`, et l'export `_Vu.csv` reprend ces valeurs (l'utilisateur conserve ainsi la classification automatique par défaut).
-- **R18**{ #r18 } : deux **modes de validation** coexistent (au choix de l'utilisateur) :
+- **R18**{ #r18 } : deux **modes de validation** coexistent au MVP (au choix de l'utilisateur) :
     - **Mode inventaire** : dès qu'une espèce est validée avec confiance sur une nuit, on ne valide plus les autres détections de la même espèce sur la même nuit.
     - **Mode activité** : toutes les observations doivent être passées en revue (utile pour les études d'activité quantitative).
+    - 🟠 **SHOULD / variante future — Mode inventaire pondéré** : variante du mode inventaire qui **rouvre la validation pour toute nouvelle détection de l'espèce dont la probabilité Tadarida est *supérieure*** à celle de l'observation déjà validée comme référence. Hybride entre inventaire (gain de temps) et activité (capter les signaux plus francs qui apparaissent en cours de nuit). Origine : suggestion de Samuel — *« on pourrait imaginer un 3e mode qui ne valide que les détections dont la proba est supérieure à celle de l'observation validée, qui se rapproche de ce qu'on fait sur certains projets »*.
+- **R24**{ #r24 } : chaque observation porte un **mode de validation** (`manuel` | `auto` | `null`) qui trace comment sa valeur courante de `taxon observateur` a été établie :
+    - `manuel` : l'utilisateur a explicitement saisi ou modifié le taxon observateur (validation classique en mode `activité`, ou validation explicite en mode `inventaire`).
+    - `auto` : le taxon a été propagé automatiquement par le mode `inventaire` (cf. [R18](#r18)) sans intervention manuelle — la classification dérive d'une validation antérieure sur la même espèce de la même nuit.
+    - `null` : aucune validation n'a encore été effectuée (l'observation conserve uniquement les colonnes `tadarida_*`, cf. [R17](#r17)).
+
+    Ce mode est tracé en BD et restituable dans l'export `_Vu.csv` (colonne optionnelle, à activer selon attentes Vigie-Chiro). Sa principale utilité : permettre à un évaluateur scientifique de distinguer ce qui a été réellement vérifié à l'oreille de ce qui a été propagé sur confiance.
 
 ## Données
 

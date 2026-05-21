@@ -79,7 +79,7 @@ Marie branche la SD sur son ordinateur, clique sur « Importer une nuit », choi
 
 ## Étape 4 - Vérifier l'enregistrement
 
-L'application propose à Marie une sélection d'écoute (10 à 30 séquences réparties sur la nuit). Elle écoute quelques séquences pour s'assurer que la nuit s'est bien passée (pas de saturation parasite, pas de silence anormal, micro fonctionnel), puis saisit son **verdict global** : `OK`, `Douteux`, ou `À jeter`.
+L'application affiche d'abord un **pré-check synthétique** (trois feux 🟢/🟠/🔴 : couverture horaire vs plage astronomique, nombre de fichiers, cohérence du renommage) — c'est la vérification minimale, suffisante pour Samuel qui passe directement au dépôt. Marie complète par un **sound check par écoute** sur une sélection automatique de 10 à 30 séquences réparties sur la nuit, pour confirmer qu'aucun défaut acoustique global (saturation, parasite continu, micro HS) ne s'est produit. Elle saisit ensuite son **verdict global** : `OK`, `Douteux`, ou `À jeter`.
 
 → **Détail complet** : [P3 - Vérifier l'enregistrement par échantillonnage](P3%20-%20Vérifier%20l%27enregistrement%20par%20échantillonnage.md).
 

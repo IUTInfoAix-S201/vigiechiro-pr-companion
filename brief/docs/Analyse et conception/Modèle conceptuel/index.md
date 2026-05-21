@@ -34,6 +34,11 @@ classDiagram
       n° de série
       modèle / version
     }
+    class Micro {
+      modèle / référence
+      bande passante
+      sensibilité
+    }
     class Passage {
       n° de passage
       année
@@ -42,7 +47,7 @@ classDiagram
       verdict de vérification
       statut workflow
     }
-    class Session d'enregistrement {
+    class SessionDEnregistrement["Session d'enregistrement"] {
       chemin racine
       volume total
     }
@@ -96,11 +101,12 @@ classDiagram
     SiteDeSuivi "1" --> "1..*" PointDEcoute : contient
     PointDEcoute "1" --> "0..*" Passage : fait l'objet de
     Enregistreur "1" --> "1..*" Passage : a produit
-    Passage "1" --> "1" Session d'enregistrement : produit
-    Session d'enregistrement "1" --> "1..*" EnregistrementOriginal : contient
-    Session d'enregistrement "1" --> "1..*" SequenceDEcoute : contient
-    Session d'enregistrement "1" --> "1" JournalDuCapteur : référence
-    Session d'enregistrement "1" --> "0..1" ReleveClimatique : référence
+    Enregistreur "1" --> "1" Micro : porte
+    Passage "1" --> "1" SessionDEnregistrement : produit
+    SessionDEnregistrement "1" --> "1..*" EnregistrementOriginal : contient
+    SessionDEnregistrement "1" --> "1..*" SequenceDEcoute : contient
+    SessionDEnregistrement "1" --> "1" JournalDuCapteur : référence
+    SessionDEnregistrement "1" --> "0..1" ReleveClimatique : référence
     EnregistrementOriginal "1" --> "1..*" SequenceDEcoute : découpé en
     Passage "1" --> "0..1" SelectionDEcoute : à vérifier par
     SelectionDEcoute "1" --> "1..*" SequenceDEcoute : porte sur
@@ -129,6 +135,7 @@ Le modèle conceptuel est éclaté en plusieurs fiches pour rester lisible. Chaq
 | C2 | [Site de suivi](C2%20-%20Site%20de%20suivi.md) | Unité géographique déclarée sur Vigie-Chiro web. |
 | C3 | [Point d'écoute](C3%20-%20Point%20d%27écoute.md) | Code 2 caractères dans un site. |
 | C4 | [Enregistreur](C4%20-%20Enregistreur.md) | Matériel terrain (Passive Recorder Teensy). |
+| C4bis | [Micro](C4bis%20-%20Micro.md) | Micro monté sur le PR (plusieurs modèles aux caractéristiques différentes). |
 | C5 | [Passage](C5%20-%20Passage.md) | Une nuit complète sur un point. **Entité centrale**. |
 | C6 | [Session d'enregistrement](C6%20-%20Session%20d%27enregistrement.md) | Agrégat de données produit par un passage. |
 | C7 | [Enregistrement original](C7%20-%20Enregistrement%20original.md) | Fichier audio brut, ultrason, inaudible. |
@@ -144,6 +151,6 @@ Le modèle conceptuel est éclaté en plusieurs fiches pour rester lisible. Chaq
 ### Autres fiches
 
 - [Cardinalités](Cardinalités.md) - tableau récapitulatif des cardinalités d'association.
-- [Règles métier](Règles%20métier.md) - les 20 règles **R1** à **R20** (validations, conventions, workflow).
+- [Règles métier](Règles%20métier.md) - les 24 règles **R1** à **R24** (validations, conventions, workflow).
 - [Glossaire métier](Glossaire%20métier.md) - vocabulaire utilisateur (site, carré, passage, session d'enregistrement, séquence d'écoute, verdict…).
 - [Glossaire des outils & ressources externes](Glossaire%20outils.md) - Lupas Rename, Kaléidoscope, Tadarida, Chirosurf, vigiechiro.herokuapp.com, etc.

@@ -8,6 +8,7 @@ Tableau récapitulatif des cardinalités d'association du modèle conceptuel. Le
 | [Site de suivi](C2%20-%20Site%20de%20suivi.md) | contient | [Point d'écoute](C3%20-%20Point%20d%27écoute.md) | 1..* | un site sans point n'a pas de sens |
 | [Point d'écoute](C3%20-%20Point%20d%27écoute.md) | fait l'objet de | [Passage](C5%20-%20Passage.md) | 0..* | un point peut n'avoir aucun passage encore |
 | [Enregistreur](C4%20-%20Enregistreur.md) | a produit | [Passage](C5%20-%20Passage.md) | 1..* | un même enregistreur peut faire plusieurs nuits |
+| [Enregistreur](C4%20-%20Enregistreur.md) | porte | [Micro](C4bis%20-%20Micro.md) | 1..1 | un PR a un micro courant ; un changement de micro = mise à jour de cette association |
 | [Passage](C5%20-%20Passage.md) | produit | [Session d'enregistrement](C6%20-%20Session%20d%27enregistrement.md) | 1..1 | un passage donne exactement une session d'enregistrement |
 | [Session d'enregistrement](C6%20-%20Session%20d%27enregistrement.md) | contient | [Enregistrement original](C7%20-%20Enregistrement%20original.md) | 1..* | typiquement plusieurs centaines à plusieurs milliers |
 | [Session d'enregistrement](C6%20-%20Session%20d%27enregistrement.md) | contient | [Séquence d'écoute](C8%20-%20Séquence%20d%27écoute.md) | 1..* | typiquement 1,3 × le nombre d'enregistrements originaux |

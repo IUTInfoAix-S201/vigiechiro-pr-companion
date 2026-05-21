@@ -1,12 +1,12 @@
 # C2 - Site de suivi
 
-Un site est créé hors application sur <https://vigiechiro.herokuapp.com/>. Il fournit le numéro de **carré** et la liste des **codes points** que l'utilisateur déclare ensuite dans l'app.
+Un site est un **carreau de 2 km × 2 km** issu d'un **carroyage de référence couvrant tout le territoire national métropolitain** (maille standardisée du programme Vigie-Chiro). Il est créé hors application sur <https://vigiechiro.herokuapp.com/>, qui fournit le numéro de **carré** et la liste des **codes points** que l'utilisateur déclare ensuite dans l'app.
 
 | Attribut | Type | Contraintes | Notes |
 |---|---|---|---|
 | n° carré | texte | exactement 6 chiffres | Les 2 premiers chiffres = département. Ex. `040962` (département 04 = Alpes-de-Haute-Provence). **Leading zero obligatoire** pour les départements 1 à 9. |
 | nom convivial | texte | optionnel, ≤ 100 car. | Pour aider Marie à reconnaître son site (ex. « Étang de la Tuilière »). |
-| protocole | énum | `PointFixe` (seul supporté MVP) | Architecture extensible (Pédestre, Routier… plus tard). |
+| protocole | énum | `PointFixeStandard` \| `PointFixeRecherche` | **`PointFixeStandard`** : suit le protocole VigieChiro à la lettre (2 passages annuels dans les fenêtres juin-juillet et août-septembre, cf. [R3](Règles%20métier.md#r3) / [R4](Règles%20métier.md#r4)). **`PointFixeRecherche`** : utilise les mêmes réglages techniques d'acquisition mais avec dates et fréquences personnalisées (cas des campagnes de recherche, par ex. la thèse Samuel) — [R3](Règles%20métier.md#r3) et [R4](Règles%20métier.md#r4) sont alors muettes. Architecture extensible (Pédestre, Routier… plus tard). |
 | commentaire libre | texte | optionnel | Contexte écologique, descriptif paysager. |
 | date de création | date | obligatoire | Date locale (importante pour les anniversaires de passage). |
 

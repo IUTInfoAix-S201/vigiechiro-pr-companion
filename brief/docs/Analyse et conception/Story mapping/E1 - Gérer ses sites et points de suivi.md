@@ -21,7 +21,7 @@
 - [ ] Le formulaire valide que le n° de carré fait exactement 6 chiffres ([R1](../Modèle%20conceptuel/Règles%20métier.md#r1) du [modèle conceptuel](../Modèle%20conceptuel/index.md)).
 - [ ] Le formulaire alerte si l'utilisateur saisit 5 chiffres pour les départements 1-9 (leading zero manquant) avec un message explicite (ex. « Pour le département 4, le n° de carré doit commencer par 0 »).
 - [ ] Le nom convivial est facultatif mais recommandé (placeholder « ex. Étang de la Tuilière »).
-- [ ] Le protocole est préselectionné sur `Point Fixe` et non modifiable (seul protocole supporté pour le MVP).
+- [ ] Le champ **protocole** est un menu déroulant à deux valeurs : `PointFixeStandard` (par défaut, déclenche les alertes [R3](../Modèle%20conceptuel/Règles%20métier.md#r3) / [R4](../Modèle%20conceptuel/Règles%20métier.md#r4) en cas de passage hors fenêtre) et `PointFixeRecherche` (R3 / R4 muettes, pour les campagnes recherche à dates personnalisées). Les autres protocoles VigieChiro (Pédestre, Routier, etc.) ne sont pas supportés au MVP.
 - [ ] Au moins un point d'écoute est exigé pour valider le site.
 - [ ] Le code de point doit faire 1 lettre majuscule + 1 chiffre ([R2](../Modèle%20conceptuel/Règles%20métier.md#r2)), validé à la saisie.
 - [ ] Le site créé apparaît immédiatement dans la vue des sites après validation.

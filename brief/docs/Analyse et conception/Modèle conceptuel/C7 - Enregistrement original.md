@@ -1,6 +1,6 @@
 # C7 - Enregistrement original
 
-Un fichier audio sortant directement de l'enregistreur, après **copie protégée** et **renommage** par l'application avec le préfixe `CarXXXXXX-AAAA-PassN-YY-`. Ces fichiers sont conservés intacts et servent de référence ultime, mais ne sont jamais écoutés directement (ils sont en ultrason donc inaudibles).
+Un fichier audio sortant directement de l'enregistreur, après **copie protégée** et **renommage** par l'application avec le préfixe `CarXXXXXX-AAAA-PassN-YY-`. Ces fichiers sont conservés intacts et servent de référence ultime. Le PR captant en bande ultrasonore 8-120 kHz, **la grande majorité du contenu est inaudible à l'oreille humaine** ; certains fichiers peuvent toutefois contenir des sons audibles parasites (oiseaux nocturnes, insectes stridulants, vent, intempéries). Les enregistrements originaux ne sont pas écoutés directement dans l'application : seules les [séquences d'écoute](C8%20-%20Séquence%20d%27écoute.md) ralenties ×10 sont exploitables pour la validation.
 
 | Attribut | Type | Contraintes | Notes |
 |---|---|---|---|

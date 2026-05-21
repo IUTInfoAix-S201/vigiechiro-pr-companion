@@ -1,6 +1,6 @@
 # C4 - Enregistreur
 
-Le matériel utilisé pour la nuit (Passive Recorder). L'application en mémorise l'identité pour suivre la santé du matériel dans le temps.
+Le matériel utilisé pour la nuit (Passive Recorder). L'application en mémorise l'identité pour suivre la santé du matériel dans le temps. Le [**micro**](C4bis%20-%20Micro.md) monté sur le PR (élément clé de la qualité acoustique, plusieurs modèles coexistent) est tracé séparément dans la fiche C4bis.
 
 | Attribut | Type | Contraintes | Notes |
 |---|---|---|---|
@@ -11,6 +11,7 @@ Le matériel utilisé pour la nuit (Passive Recorder). L'application en mémoris
 ## Voisins dans le modèle
 
 - **A produit** 1..N [Passages](C5%20-%20Passage.md).
+- **Porte** 1 [Micro](C4bis%20-%20Micro.md) (modifiable, mais 1 seul actif à un instant donné).
 - Son identité est lue depuis le [Journal du capteur](C9%20-%20Journal%20du%20capteur.md) embarqué.
 
 ## Retour

@@ -6,6 +6,8 @@
 
 👉 **Brief publié** : <https://iutinfoaix-s201.github.io/brief/>
 
+🦇 **Présentation du brief en slides** (support R2.02, vue d'ensemble rapide) : <https://iutinfoaix-r202.github.io/cours/presentation-sae-2.01.html>
+
 Le brief est conçu pour être lu en ligne. Voici les sections principales :
 
 1. [Présentation du projet](https://iutinfoaix-s201.github.io/brief/Pr%C3%A9sentation%20du%20projet/) — contexte VigieChiro, objectifs, parties prenantes (dont Samuel Busson, client réel)

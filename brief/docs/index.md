@@ -12,6 +12,9 @@
 !!! info "SAE de développement"
     La phase d'analyse et de conception est portée par l'équipe pédagogique. Vous recevez un dossier de spécification opérationnel (section [Analyse et conception](Analyse%20et%20conception/index.md)) et vous concentrez votre énergie sur le développement (R2.02) et la qualité de la production (R2.03).
 
+!!! tip "Présentation du brief en slides"
+    Le brief vous a été présenté sous forme de slides : [**VigieChiro PR Companion**](https://iutinfoaix-r202.github.io/cours/presentation-sae-2.01.html) (support R2.02). Une vue d'ensemble rapide du projet, à parcourir avant de plonger dans les sections détaillées ci-dessous.
+
 ## Sommaire
 
 1. [Présentation du projet](Présentation%20du%20projet.md)

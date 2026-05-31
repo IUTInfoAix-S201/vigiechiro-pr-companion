@@ -47,14 +47,12 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Test d'orchestration de bout en bout de {@link ServiceImport} (parcours P2), sur une base SQLite
- * jetable ({@code @TempDir} + {@link MigrationSchema}) et de vrais moteurs/DAO (pas de mock). On
- * vérifie l'agrégat persisté, l'atomicité (O7), l'unicité (R5) et la protection de la source (R9).
- *
- * <p>Les WAV source sont synthétiques (petite fréquence) : le moteur lit la fréquence du fichier,
- * indépendante de celle annoncée dans le journal.
- */
+/// Test d'orchestration de bout en bout de [ServiceImport] (parcours P2), sur une base SQLite
+/// jetable (`@TempDir` + [MigrationSchema]) et de vrais moteurs/DAO (pas de mock). On vérifie
+/// l'agrégat persisté, l'atomicité (O7), l'unicité (R5) et la protection de la source (R9).
+///
+/// Les WAV source sont synthétiques (petite fréquence) : le moteur lit la fréquence du fichier,
+/// indépendante de celle annoncée dans le journal.
 class ServiceImportTest {
 
   private static final String ID_USER = "u-1";

@@ -21,14 +21,12 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Tests du moteur de transformation audio (R10/R11), le <b>point dur</b> de l'import.
- *
- * <p>Les fixtures WAV sont <b>synthétiques</b> et générées en {@code @TempDir} (et non les WAV du
- * brief, qui sont déjà transformés) : on contrôle ainsi exactement les octets PCM source, condition
- * du test de déterminisme et de continuité. Fréquence source {@value #FREQUENCE_SOURCE} Hz
- * (multiple de 10), durée volontairement non entière pour exercer la dernière séquence plus courte.
- */
+/// Tests du moteur de transformation audio (R10/R11), le **point dur** de l'import.
+///
+/// Les fixtures WAV sont **synthétiques** et générées en `@TempDir` (et non les WAV du brief, qui
+/// sont déjà transformés) : on contrôle ainsi exactement les octets PCM source, condition du test
+/// de déterminisme et de continuité. Fréquence source {@value #FREQUENCE_SOURCE} Hz (multiple de
+/// 10), durée volontairement non entière pour exercer la dernière séquence plus courte.
 class TransformationAudioTest {
 
   private static final int FREQUENCE_SOURCE = 2000; // Hz, divisible par 10 (R10)
@@ -158,7 +156,7 @@ class TransformationAudioTest {
 
   // --- Helpers (autonomes, pas de helper partagé entre fichiers de test) --------------------
 
-  /** PCM mono 16 bits déterministe : motif reproductible, sans dépendre du hasard. */
+  /// PCM mono 16 bits déterministe : motif reproductible, sans dépendre du hasard.
   private static byte[] pcmDeterministe(int trames) {
     byte[] pcm = new byte[trames * 2];
     for (int i = 0; i < trames; i++) {
@@ -169,7 +167,7 @@ class TransformationAudioTest {
     return pcm;
   }
 
-  /** Écrit un WAV PCM canonique (en-tête 44 octets, little-endian). */
+  /// Écrit un WAV PCM canonique (en-tête 44 octets, little-endian).
   private static void ecrireWav(Path fichier, int canaux, int frequence, int bits, byte[] pcm)
       throws IOException {
     int blocAlign = canaux * (bits / 8);

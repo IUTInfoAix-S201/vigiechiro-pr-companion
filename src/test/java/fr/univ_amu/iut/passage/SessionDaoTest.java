@@ -27,10 +27,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * CRUD du {@link SessionDao} + contraintes : relation 1:1 avec le passage ({@code passage_id}
- * unique), volumes dérivés nullables, FK et suppression en cascade depuis le passage.
- */
+/// CRUD du [SessionDao] + contraintes : relation 1:1 avec le passage (`passage_id` unique),
+/// volumes dérivés nullables, FK et suppression en cascade depuis le passage.
 class SessionDaoTest {
 
   @TempDir Path dossier;

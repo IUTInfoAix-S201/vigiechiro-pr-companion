@@ -15,25 +15,23 @@ import fr.univ_amu.iut.importation.model.ServiceImport;
 import fr.univ_amu.iut.importation.model.TransformationAudio;
 import fr.univ_amu.iut.importation.model.dao.AgregatImportDao;
 
-/**
- * Module Guice de la feature {@code importation} : fournit les moteurs du parcours d'import P2
- * (inspection du journal, copie protégée, renommage, transformation audio), le DAO transactionnel
- * de l'agrégat et le service d'orchestration {@link ServiceImport}.
- *
- * <p>Même patron que {@code SitesModule} / {@code QualificationModule} : des méthodes
- * {@code @Provides @Singleton} assemblent des classes métier restées <b>sans annotation
- * d'injection</b> (couche {@code model} indépendante du framework, objectif réutilisation O6).
- *
- * <p>L'assemblage de {@link ServiceImport} est <b>inter-modules</b> : il reçoit l'{@link
- * UniteDeTravail}, le {@link Workspace} et l'{@link Horloge} du socle, plus les moteurs et l'{@link
- * AgregatImportDao} de la feature. Le DAO écrit dans des tables possédées par {@code passage}, mais
- * la dépendance va {@code importation → passage.model} (jamais l'inverse) : le graphe reste
- * acyclique (contrôlé par {@code ArchitectureTest}).
- *
- * <p><b>Installé</b> dans {@code RacineInjecteur} (la racine de composition de l'application) :
- * {@link ServiceImport} est donc résoluble par l'injecteur applicatif. Le câblage en isolation
- * reste validé par {@code ImportationModuleTest} (injecteur local socle + passage + importation).
- */
+/// Module Guice de la feature `importation` : fournit les moteurs du parcours d'import P2
+/// (inspection du journal, copie protégée, renommage, transformation audio), le DAO transactionnel
+/// de l'agrégat et le service d'orchestration [ServiceImport].
+///
+/// Même patron que `SitesModule` / `QualificationModule` : des méthodes `@Provides @Singleton`
+/// assemblent des classes métier restées **sans annotation d'injection** (couche `model`
+/// indépendante du framework, objectif réutilisation O6).
+///
+/// L'assemblage de [ServiceImport] est **inter-modules** : il reçoit l'[UniteDeTravail], le
+/// [Workspace] et l'[Horloge] du socle, plus les moteurs et l'[AgregatImportDao] de la feature. Le
+/// DAO écrit dans des tables possédées par `passage`, mais la dépendance va
+/// `importation → passage.model` (jamais l'inverse) : le graphe reste acyclique (contrôlé par
+/// `ArchitectureTest`).
+///
+/// **Installé** dans `RacineInjecteur` (la racine de composition de l'application) :
+/// [ServiceImport] est donc résoluble par l'injecteur applicatif. Le câblage en isolation reste
+/// validé par `ImportationModuleTest` (injecteur local socle + passage + importation).
 public class ImportationModule extends AbstractModule {
 
   @Provides

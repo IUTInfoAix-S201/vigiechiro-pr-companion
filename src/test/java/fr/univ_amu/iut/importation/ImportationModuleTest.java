@@ -20,13 +20,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Filet d'intégration Guice de la feature {@code importation}. Comme {@code ImportationModule}
- * n'est pas (encore) installé dans {@code RacineInjecteur} (racine de composition figée), on
- * assemble ici un injecteur dédié (socle + {@code PassageModule} + {@code ImportationModule}) pour
- * vérifier que {@link ServiceImport} et ses moteurs sont résolubles, et que la feature coexiste
- * sans conflit de binding avec {@code passage} (dont elle écrit les tables).
- */
+/// Filet d'intégration Guice de la feature `importation`. Comme `ImportationModule` n'est pas
+/// (encore) installé dans `RacineInjecteur` (racine de composition figée), on assemble ici un
+/// injecteur dédié (socle + `PassageModule` + `ImportationModule`) pour vérifier que
+/// [ServiceImport] et ses moteurs sont résolubles, et que la feature coexiste sans conflit de
+/// binding avec `passage` (dont elle écrit les tables).
 class ImportationModuleTest {
 
   @TempDir Path workspaceJetable;

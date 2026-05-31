@@ -12,12 +12,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Filet de câblage Guice de la feature {@code passage} : vérifie que {@code PassageModule} fournit
- * bien le moteur de workflow et le {@link ServicePassage} (qui assemble {@code PassageDao} + moteur
- * + l'{@code Horloge} du socle), via la racine de composition réelle. On surcharge le workspace
- * vers un {@code @TempDir} pour ne pas toucher au workspace réel.
- */
+/// Filet de câblage Guice de la feature `passage` : vérifie que `PassageModule` fournit bien le
+/// moteur de workflow et le [ServicePassage] (qui assemble `PassageDao` + moteur + l'`Horloge` du
+/// socle), via la racine de composition réelle. On surcharge le workspace vers un `@TempDir` pour
+/// ne pas toucher au workspace réel.
 class PassageModuleInjectionTest {
 
   @TempDir Path workspaceJetable;

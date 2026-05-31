@@ -15,10 +15,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Tests de la copie protégée (R9) : la SD est copiée vers le workspace, <b>sans jamais</b> être
- * modifiée. Le cœur du test est le SHA-256 des fichiers source, identique avant et après copie.
- */
+/// Tests de la copie protégée (R9) : la SD est copiée vers le workspace, **sans jamais** être
+/// modifiée. Le cœur du test est le SHA-256 des fichiers source, identique avant et après copie.
 class CopieProtegeeTest {
 
   @TempDir Path racine;
@@ -72,7 +70,7 @@ class CopieProtegeeTest {
     assertThat(Files.isDirectory(cible.getParent())).isTrue();
   }
 
-  /** Empreinte SHA-256 de chaque fichier du dossier (clé = nom de fichier). */
+  /// Empreinte SHA-256 de chaque fichier du dossier (clé = nom de fichier).
   private static Map<Path, String> empreintesDuDossier(Path dossier) throws IOException {
     Map<Path, String> empreintes = new LinkedHashMap<>();
     try (var flux = Files.list(dossier)) {

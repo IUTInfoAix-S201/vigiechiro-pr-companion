@@ -16,17 +16,15 @@ import fr.univ_amu.iut.passage.model.dao.ReleveClimatiqueDao;
 import fr.univ_amu.iut.passage.model.dao.SequenceDao;
 import fr.univ_amu.iut.passage.model.dao.SessionDao;
 
-/**
- * Module Guice de la feature {@code passage} : fournit ses DAO à partir de la {@link
- * SourceDeDonnees} (singleton fourni par {@code CommunModule}).
- *
- * <p>Même patron que {@code SitesModule} : des méthodes {@code @Provides @Singleton} assemblent des
- * DAO restés <b>sans annotation d'injection</b> (couche {@code model.dao} indépendante du
- * framework, objectif réutilisation O6).
- *
- * <p><b>Non installé</b> dans {@code RacineInjecteur} à ce stade : l'intégration des features dans
- * la racine de composition est faite en phase 3.
- */
+/// Module Guice de la feature `passage` : fournit ses DAO à partir de la [SourceDeDonnees]
+/// (singleton fourni par `CommunModule`).
+///
+/// Même patron que `SitesModule` : des méthodes `@Provides @Singleton` assemblent des DAO restés
+/// **sans annotation d'injection** (couche `model.dao` indépendante du framework, objectif
+/// réutilisation O6).
+///
+/// **Non installé** dans `RacineInjecteur` à ce stade : l'intégration des features dans la racine
+/// de composition est faite en phase 3.
 public class PassageModule extends AbstractModule {
 
   @Provides
@@ -77,18 +75,16 @@ public class PassageModule extends AbstractModule {
     return new ReleveClimatiqueDao(source);
   }
 
-  /** Moteur (pur) des transitions de workflow d'un passage. */
+  /// Moteur (pur) des transitions de workflow d'un passage.
   @Provides
   @Singleton
   MoteurWorkflowPassage fournirMoteurWorkflowPassage() {
     return new MoteurWorkflowPassage();
   }
 
-  /**
-   * Service métier transverse de la feature. Comme le service de référence {@code ServiceSites}, il
-   * reste sans annotation d'injection : c'est ce module qui assemble ses dépendances (le {@link
-   * PassageDao} de la feature, le {@link MoteurWorkflowPassage} et l'{@link Horloge} du socle).
-   */
+  /// Service métier transverse de la feature. Comme le service de référence `ServiceSites`, il
+  /// reste sans annotation d'injection : c'est ce module qui assemble ses dépendances (le
+  /// [PassageDao] de la feature, le [MoteurWorkflowPassage] et l'[Horloge] du socle).
   @Provides
   @Singleton
   ServicePassage fournirServicePassage(

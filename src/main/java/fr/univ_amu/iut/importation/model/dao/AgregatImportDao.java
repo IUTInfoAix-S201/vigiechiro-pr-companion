@@ -16,25 +16,23 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-/**
- * Écrivain transactionnel de l'<b>agrégat d'import</b> : enregistreur, micro, passage, session,
- * journal, relevé climatique, originaux et séquences, écrits <b>tout ou rien</b> (O7).
- *
- * <p><b>Pourquoi un DAO dédié à la feature {@code importation} ?</b> L'import crée d'un seul tenant
- * un agrégat qui s'étend sur des tables « possédées » par la feature {@code passage}. Or les DAO de
- * {@code passage} ({@code PassageDao}, {@code SessionDao}…) n'exposent que des écritures
- * <b>auto-commit</b> (chacune ouvre sa propre connexion) : les envelopper dans une {@code
- * UniteDeTravail} ne donnerait <b>pas</b> une vraie transaction (cf. SERVICE-CONVENTIONS §2.5,
- * piège du « database is locked »). On applique donc l'option 2 de la convention : un DAO
- * propriétaire de l'agrégat expose des écritures <b>« connection-aware »</b> qui réutilisent la
- * connexion transactionnelle fournie par {@code UniteDeTravail.executer(cx -> …)}. Le SQL reste
- * dans {@code model.dao} (convention IMPL §3), et la feature {@code passage} n'est pas modifiée.
- *
- * <p>Toutes les méthodes d'écriture prennent une {@link Connection} et déclarent {@code throws
- * SQLException} : elles sont conçues pour être appelées <b>à l'intérieur</b> du bloc {@code
- * UniteDeTravail.executer}. La seule lecture ({@link #passageExistePour}) ouvre sa propre connexion
- * (pré-contrôle R5 avant d'engager l'import) et n'entre donc pas dans la transaction.
- */
+/// Écrivain transactionnel de l'**agrégat d'import** : enregistreur, micro, passage, session,
+/// journal, relevé climatique, originaux et séquences, écrits **tout ou rien** (O7).
+///
+/// **Pourquoi un DAO dédié à la feature `importation` ?** L'import crée d'un seul tenant un
+/// agrégat qui s'étend sur des tables « possédées » par la feature `passage`. Or les DAO de
+/// `passage` (`PassageDao`, `SessionDao`…) n'exposent que des écritures **auto-commit** (chacune
+/// ouvre sa propre connexion) : les envelopper dans une `UniteDeTravail` ne donnerait **pas** une
+/// vraie transaction (cf. SERVICE-CONVENTIONS §2.5, piège du « database is locked »). On applique
+/// donc l'option 2 de la convention : un DAO propriétaire de l'agrégat expose des écritures **«
+/// connection-aware »** qui réutilisent la connexion transactionnelle fournie par
+/// `UniteDeTravail.executer(cx -> …)`. Le SQL reste dans `model.dao` (convention IMPL §3), et la
+/// feature `passage` n'est pas modifiée.
+///
+/// Toutes les méthodes d'écriture prennent une [Connection] et déclarent `throws SQLException` :
+/// elles sont conçues pour être appelées **à l'intérieur** du bloc `UniteDeTravail.executer`. La
+/// seule lecture ([#passageExistePour]) ouvre sa propre connexion (pré-contrôle R5 avant d'engager
+/// l'import) et n'entre donc pas dans la transaction.
 public class AgregatImportDao {
 
   private final SourceDeDonnees source;
@@ -47,11 +45,8 @@ public class AgregatImportDao {
   // Lecture hors transaction : pré-contrôle d'unicité R5
   // ---------------------------------------------------------------------------
 
-  /**
-   * {@code true} si un passage existe déjà pour ce quadruplet {@code (point, année, n° de passage)}
-   * (R5). Permet de refuser un réimport en doublon <b>avant</b> de copier/transformer quoi que ce
-   * soit.
-   */
+  /// `true` si un passage existe déjà pour ce quadruplet `(point, année, n° de passage)` (R5).
+  /// Permet de refuser un réimport en doublon **avant** de copier/transformer quoi que ce soit.
   public boolean passageExistePour(Long idPoint, int annee, int numeroPassage) {
     String sql = "SELECT 1 FROM passage WHERE point_id = ? AND year = ? AND passage_number = ?";
     try (Connection cx = source.getConnection();
@@ -71,11 +66,9 @@ public class AgregatImportDao {
   // Écritures « connection-aware » (à appeler dans UniteDeTravail.executer)
   // ---------------------------------------------------------------------------
 
-  /**
-   * Upsert de l'enregistreur sur sa clé naturelle {@code serial_number} (même patron que {@code
-   * EnregistreurDao}, mais sur la connexion transactionnelle). Rencontré deux fois, ses métadonnées
-   * sont rafraîchies plutôt que dupliquées.
-   */
+  /// Upsert de l'enregistreur sur sa clé naturelle `serial_number` (même patron que
+  /// `EnregistreurDao`, mais sur la connexion transactionnelle). Rencontré deux fois, ses
+  /// métadonnées sont rafraîchies plutôt que dupliquées.
   public void upsertEnregistreur(Connection cx, Enregistreur enregistreur) throws SQLException {
     try (PreparedStatement ps =
         cx.prepareStatement(
@@ -89,11 +82,9 @@ public class AgregatImportDao {
     }
   }
 
-  /**
-   * Insère le micro porté par l'enregistreur <b>seulement s'il n'en a pas déjà un actif</b>
-   * (historisation : un seul {@code is_active = 1} par enregistreur). Idempotent au réimport : on
-   * ne crée pas un doublon de micro à chaque nuit.
-   */
+  /// Insère le micro porté par l'enregistreur **seulement s'il n'en a pas déjà un actif**
+  /// (historisation : un seul `is_active = 1` par enregistreur). Idempotent au réimport : on ne
+  /// crée pas un doublon de micro à chaque nuit.
   public void insererMicroSiAbsent(Connection cx, Micro micro) throws SQLException {
     if (aUnMicroActif(cx, micro.idEnregistreur())) {
       return;
@@ -126,7 +117,7 @@ public class AgregatImportDao {
     }
   }
 
-  /** Insère le passage (FK {@code point_id}, {@code recorder_id}) et renvoie sa clé générée. */
+  /// Insère le passage (FK `point_id`, `recorder_id`) et renvoie sa clé générée.
   public long insererPassage(Connection cx, Passage passage) throws SQLException {
     try (PreparedStatement ps =
         cx.prepareStatement(
@@ -155,7 +146,7 @@ public class AgregatImportDao {
     }
   }
 
-  /** Insère la session 1:1 du passage et renvoie sa clé générée. */
+  /// Insère la session 1:1 du passage et renvoie sa clé générée.
   public long insererSession(Connection cx, long idPassage, SessionDEnregistrement session)
       throws SQLException {
     try (PreparedStatement ps =
@@ -172,7 +163,7 @@ public class AgregatImportDao {
     }
   }
 
-  /** Insère le journal du capteur 1:1 de la session (sensor_log). */
+  /// Insère le journal du capteur 1:1 de la session (sensor_log).
   public void insererJournal(Connection cx, long idSession, JournalDuCapteur journal)
       throws SQLException {
     try (PreparedStatement ps =
@@ -187,7 +178,7 @@ public class AgregatImportDao {
     }
   }
 
-  /** Insère le relevé climatique 0:1 de la session (climate_log), s'il existe (R20). */
+  /// Insère le relevé climatique 0:1 de la session (climate_log), s'il existe (R20).
   public void insererReleve(Connection cx, long idSession, ReleveClimatique releve)
       throws SQLException {
     try (PreparedStatement ps =
@@ -200,7 +191,7 @@ public class AgregatImportDao {
     }
   }
 
-  /** Insère un enregistrement original de la session et renvoie sa clé générée. */
+  /// Insère un enregistrement original de la session et renvoie sa clé générée.
   public long insererOriginal(Connection cx, long idSession, EnregistrementOriginal original)
       throws SQLException {
     try (PreparedStatement ps =
@@ -219,7 +210,7 @@ public class AgregatImportDao {
     }
   }
 
-  /** Insère une séquence d'écoute rattachée à sa session et à son original source (R8/R10). */
+  /// Insère une séquence d'écoute rattachée à sa session et à son original source (R8/R10).
   public void insererSequence(
       Connection cx, long idSession, long idOriginal, SequenceDEcoute sequence)
       throws SQLException {

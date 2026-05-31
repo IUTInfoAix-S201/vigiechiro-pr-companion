@@ -22,12 +22,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-/**
- * Variante du test de {@link ServicePassage} <b>isolant la règle dure R5 avec Mockito</b> : le DAO
- * est un mock, on ne touche aucune base. On vérifie que la décision (refuser / déléguer) court-
- * circuite ou non l'écriture, indépendamment de SQLite. Le test « réel » {@code @TempDir} reste le
- * mode par défaut ({@link ServicePassageTest}) ; ce complément cible la logique de décision.
- */
+/// Variante du test de [ServicePassage] **isolant la règle dure R5 avec Mockito** : le DAO est un
+/// mock, on ne touche aucune base. On vérifie que la décision (refuser / déléguer) court- circuite
+/// ou non l'écriture, indépendamment de SQLite. Le test « réel » `@TempDir` reste le mode par
+/// défaut ([ServicePassageTest]) ; ce complément cible la logique de décision.
 @ExtendWith(MockitoExtension.class)
 class ServicePassageMockTest {
 

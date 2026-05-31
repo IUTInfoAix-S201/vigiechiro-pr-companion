@@ -9,23 +9,18 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-/**
- * Inspecte un dossier de carte SD <b>en lecture seule</b> (parcours P2, première étape). Il ne
- * <b>jamais rien écrire</b> : conformément à R9, la source reste intacte ; la copie protégée vient
- * ensuite, séparément ({@link CopieProtegee}).
- *
- * <p>Trois informations sont collectées :
- *
- * <ul>
- *   <li>le <b>journal du capteur</b> {@code LogPR<n>.txt}, parsé via {@link AnalyseurLogPR} (n° de
- *       série, paramètres d'acquisition, anomalies) ;
- *   <li>les <b>enregistrements originaux</b> WAV présents (à la racine, ou dans un sous-dossier
- *       {@code bruts/} si la source est déjà organisée comme une session R22) ;
- *   <li>le <b>relevé climatique</b> {@code *_THLog.csv}, éventuellement absent (R20) ;
- *   <li>l'<b>état de nommage</b> ({@link EtatNommage}) : fichiers encore bruts (R7) ou déjà
- *       préfixés (R6).
- * </ul>
- */
+/// Inspecte un dossier de carte SD **en lecture seule** (parcours P2, première étape). Il ne
+/// **jamais rien écrire** : conformément à R9, la source reste intacte ; la copie protégée vient
+/// ensuite, séparément ([CopieProtegee]).
+///
+/// Trois informations sont collectées :
+///
+/// - le **journal du capteur** `LogPR<n>.txt`, parsé via [AnalyseurLogPR] (n° de série, paramètres
+/// d'acquisition, anomalies) ;
+/// - les **enregistrements originaux** WAV présents (à la racine, ou dans un sous-dossier `bruts/`
+/// si la source est déjà organisée comme une session R22) ;
+/// - le **relevé climatique** `*_THLog.csv`, éventuellement absent (R20) ;
+/// - l'**état de nommage** ([EtatNommage]) : fichiers encore bruts (R7) ou déjà préfixés (R6).
 public class InspecteurDossier {
 
   private static final String SOUS_DOSSIER_BRUTS = "bruts";
@@ -36,11 +31,9 @@ public class InspecteurDossier {
     this.analyseurLog = Objects.requireNonNull(analyseurLog, "analyseurLog");
   }
 
-  /**
-   * Inspecte {@code dossierSource} sans le modifier.
-   *
-   * @throws IllegalArgumentException si le chemin n'existe pas ou n'est pas un dossier
-   */
+  /// Inspecte `dossierSource` sans le modifier.
+  ///
+  /// @throws IllegalArgumentException si le chemin n'existe pas ou n'est pas un dossier
   public RapportInspection inspecter(Path dossierSource) {
     Objects.requireNonNull(dossierSource, "dossierSource");
     if (!Files.isDirectory(dossierSource)) {
@@ -54,7 +47,7 @@ public class InspecteurDossier {
     return new RapportInspection(dossierSource, cheminJournal, journal, releve, originaux, etat);
   }
 
-  /** Enregistrements originaux : dans {@code bruts/} si présent, sinon à la racine du dossier. */
+  /// Enregistrements originaux : dans `bruts/` si présent, sinon à la racine du dossier.
   private List<Path> listerOriginaux(Path dossierSource) {
     Path bruts = dossierSource.resolve(SOUS_DOSSIER_BRUTS);
     Path ou = Files.isDirectory(bruts) ? bruts : dossierSource;
@@ -68,11 +61,8 @@ public class InspecteurDossier {
     }
   }
 
-  /**
-   * Détermine l'état de nommage des originaux : aucun fichier {@link EtatNommage#VIDE} ; tous
-   * préfixés {@code Car...} {@link EtatNommage#PREFIXE} ; au moins un fichier brut {@link
-   * EtatNommage#BRUT}.
-   */
+  /// Détermine l'état de nommage des originaux : aucun fichier [EtatNommage#VIDE] ; tous préfixés
+  /// `Car...` [EtatNommage#PREFIXE] ; au moins un fichier brut [EtatNommage#BRUT].
   private EtatNommage determinerEtatNommage(List<Path> originaux) {
     if (originaux.isEmpty()) {
       return EtatNommage.VIDE;

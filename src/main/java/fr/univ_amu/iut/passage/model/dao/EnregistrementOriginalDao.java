@@ -8,15 +8,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
-/**
- * DAO de l'entité {@link EnregistrementOriginal} (table {@code original_recording}).
- *
- * <p>Colonnes numériques nullables : {@code duration_s} ({@code REAL}) est lue via {@code
- * rs.getObject(...)}, et {@code sample_rate_hz} ({@code INTEGER}) via {@link #lireIntNullable(
- * ResultSet, String)} (le pilote SQLite pouvant renvoyer {@code Integer} ou {@code Long} selon la
- * magnitude). On distingue ainsi une valeur absente d'un zéro. Rattaché à une session ({@code ON
- * DELETE CASCADE}).
- */
+/// DAO de l'entité [EnregistrementOriginal] (table `original_recording`).
+///
+/// Colonnes numériques nullables : `duration_s` (`REAL`) est lue via `rs.getObject(...)`, et
+/// `sample_rate_hz` (`INTEGER`) via [#lireIntNullable( ResultSet, String)] (le pilote SQLite
+/// pouvant renvoyer `Integer` ou `Long` selon la magnitude). On distingue ainsi une valeur absente
+/// d'un zéro. Rattaché à une session (`ON DELETE CASCADE`).
 public class EnregistrementOriginalDao extends DaoGenerique<EnregistrementOriginal, Long> {
 
   private static final RowMapper<EnregistrementOriginal> MAPPER =
@@ -30,7 +27,7 @@ public class EnregistrementOriginalDao extends DaoGenerique<EnregistrementOrigin
               rs.getString("sha256"),
               rs.getLong("session_id"));
 
-  /** Lit une colonne {@code INTEGER} nullable en {@link Integer}, en préservant le {@code null}. */
+  /// Lit une colonne `INTEGER` nullable en [Integer], en préservant le `null`.
   private static Integer lireIntNullable(ResultSet rs, String colonne) throws SQLException {
     Object valeur = rs.getObject(colonne);
     return valeur == null ? null : ((Number) valeur).intValue();
@@ -55,7 +52,7 @@ public class EnregistrementOriginalDao extends DaoGenerique<EnregistrementOrigin
     return MAPPER;
   }
 
-  /** Enregistrements originaux d'une session, triés par nom de fichier. */
+  /// Enregistrements originaux d'une session, triés par nom de fichier.
   public List<EnregistrementOriginal> findBySession(Long idSession) {
     return query(
         "SELECT * FROM original_recording WHERE session_id = ? ORDER BY file_name",

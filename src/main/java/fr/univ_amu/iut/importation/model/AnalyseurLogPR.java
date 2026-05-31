@@ -13,28 +13,27 @@ import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Analyseur du journal du capteur {@code LogPR<n>.txt} (C9, R19) : transforme le texte brut du
- * firmware Teensy en un {@link JournalParse} exploitable.
- *
- * <p>C'est la <b>seule source d'identité de l'enregistreur</b> (n° de série) et des paramètres
- * d'acquisition d'une nuit : aucune autre étape de l'import ne connaît le matériel. Le journal est
- * <b>circulaire</b> (R19) : des entrées anciennes peuvent manquer, donc tous les champs hors n° de
- * série sont tolérants à l'absence.
- *
- * <p>Format d'une ligne (observé sur le sample {@code LogPR1925492.txt}) :
- *
- * <pre>{@code
- * JJ/MM/AA - HH:MM:SS PR<serie> <message>
- * 22/04/26 - 16:02:21 PR1925492 Paramètres : Acquisi. 20:25-07:47, Fe384kHz ... Bd. Freq. 8-120kHz ...
- * }</pre>
- *
- * <p>Le parsing est purement positionnel/regex (aucune dépendance externe) et <b>déterministe</b> :
- * deux lectures du même fichier produisent le même {@link JournalParse}.
- */
+/// Analyseur du journal du capteur `LogPR<n>.txt` (C9, R19) : transforme le texte brut du firmware
+/// Teensy en un [JournalParse] exploitable.
+///
+/// C'est la **seule source d'identité de l'enregistreur** (n° de série) et des paramètres
+/// d'acquisition d'une nuit : aucune autre étape de l'import ne connaît le matériel. Le journal
+/// est **circulaire** (R19) : des entrées anciennes peuvent manquer, donc tous les champs hors n°
+/// de série sont tolérants à l'absence.
+///
+/// Format d'une ligne (observé sur le sample `LogPR1925492.txt`) :
+///
+/// ```
+/// JJ/MM/AA - HH:MM:SS PR<serie> <message>
+/// 22/04/26 - 16:02:21 PR1925492 Paramètres : Acquisi. 20:25-07:47, Fe384kHz ... Bd. Freq.
+/// 8-120kHz ...
+/// ```
+///
+/// Le parsing est purement positionnel/regex (aucune dépendance externe) et **déterministe** :
+/// deux lectures du même fichier produisent le même [JournalParse].
 public final class AnalyseurLogPR {
 
-  /** En dessous de ce pourcentage de batterie, on lève une anomalie (batterie faible). */
+  /// En dessous de ce pourcentage de batterie, on lève une anomalie (batterie faible).
   public static final int SEUIL_BATTERIE_FAIBLE = 20;
 
   private static final Pattern LIGNE =
@@ -49,11 +48,9 @@ public final class AnalyseurLogPR {
   private static final Pattern BANDE = Pattern.compile("Bd\\.\\s*Freq\\.\\s*([^,]+)");
   private static final Pattern POURCENTAGE = Pattern.compile("(\\d{1,3})\\s*%");
 
-  /**
-   * Analyse le fichier journal pointé par {@code fichierLog} (lu en UTF-8).
-   *
-   * @throws UncheckedIOException si le fichier est illisible
-   */
+  /// Analyse le fichier journal pointé par `fichierLog` (lu en UTF-8).
+  ///
+  /// @throws UncheckedIOException si le fichier est illisible
   public JournalParse analyser(Path fichierLog) {
     Objects.requireNonNull(fichierLog, "fichierLog");
     try {
@@ -63,13 +60,11 @@ public final class AnalyseurLogPR {
     }
   }
 
-  /**
-   * Analyse un journal déjà découpé en lignes (utile pour les tests). Toutes les règles
-   * d'extraction sont concentrées ici.
-   *
-   * @throws IllegalArgumentException si aucun n° de série ne peut être déterminé (le journal n'est
-   *     pas exploitable : il n'identifie aucun enregistreur)
-   */
+  /// Analyse un journal déjà découpé en lignes (utile pour les tests). Toutes les règles
+  /// d'extraction sont concentrées ici.
+  ///
+  /// @throws IllegalArgumentException si aucun n° de série ne peut être déterminé (le journal
+  /// n'est pas exploitable : il n'identifie aucun enregistreur)
   public JournalParse analyser(List<String> lignes) {
     Objects.requireNonNull(lignes, "lignes");
 
@@ -149,7 +144,7 @@ public final class AnalyseurLogPR {
         anomalies);
   }
 
-  /** Évènements remarquables conservés (changements de mode, réveils, mises en veille). */
+  /// Évènements remarquables conservés (changements de mode, réveils, mises en veille).
   private static void collecterEvenement(String message, List<String> evenements) {
     if (message.startsWith("###")
         || message.contains("Wakeup")
@@ -158,9 +153,8 @@ public final class AnalyseurLogPR {
     }
   }
 
-  /**
-   * Détection conservatrice des anomalies (R19) : réveil non programmé, batterie faible, erreur SD.
-   */
+  /// Détection conservatrice des anomalies (R19) : réveil non programmé, batterie faible, erreur
+  /// SD.
   private static void collecterAnomalie(String message, List<String> anomalies) {
     if (message.contains("Wakeup") && !message.contains("ALARM")) {
       anomalies.add("Réveil non programmé : " + message);
@@ -183,7 +177,7 @@ public final class AnalyseurLogPR {
     }
   }
 
-  /** Reconstruit la version/modèle depuis la ligne de démarrage, en écartant la cadence CPU. */
+  /// Reconstruit la version/modèle depuis la ligne de démarrage, en écartant la cadence CPU.
   private static String extraireVersion(String message) {
     int virgule = message.indexOf(',');
     if (virgule < 0) {
@@ -199,7 +193,7 @@ public final class AnalyseurLogPR {
     return parts.isEmpty() ? null : String.join(", ", parts);
   }
 
-  /** Cherche le n° de série dans le préfixe {@code PR<n>} d'une ligne quelconque (repli). */
+  /// Cherche le n° de série dans le préfixe `PR<n>` d'une ligne quelconque (repli).
   private static String serieDepuisPrefixe(List<String> lignes) {
     for (String ligne : lignes) {
       Matcher m = SERIE_PREFIXE.matcher(ligne);
@@ -233,7 +227,7 @@ public final class AnalyseurLogPR {
     return i < 0 ? texte.strip() : texte.substring(i + separateur.length()).strip();
   }
 
-  /** Normalise {@code HH:MM} en {@code HH:MM:SS} (format ISO des colonnes heure). */
+  /// Normalise `HH:MM` en `HH:MM:SS` (format ISO des colonnes heure).
   private static String normaliserHeure(String heure) {
     if (heure == null) {
       return null;

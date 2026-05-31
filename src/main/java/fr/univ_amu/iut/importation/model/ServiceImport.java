@@ -23,57 +23,49 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-/**
- * Service métier de la feature {@code importation} : orchestre le parcours d'import P2 d'une nuit
- * d'enregistrement, de la carte SD jusqu'à l'agrégat persisté. Calqué sur le service de référence
- * {@code ServiceSites} (cf. SERVICE-CONVENTIONS).
- *
- * <p><b>Enchaînement</b> (chaque étape est déléguée à un moteur dédié, le service ne fait
- * qu'orchestrer) :
- *
- * <ol>
- *   <li><b>Inspecter</b> ({@link InspecteurDossier}) : lecture seule de la SD (R9), parsing du
- *       journal LogPR, détection des originaux et du relevé climatique.
- *   <li><b>Copier</b> ({@link CopieProtegee}) : SD → workspace, sans jamais écrire sur la source
- *       (R9). Les originaux vont dans {@code bruts/}, le journal et le relevé à la racine de la
- *       session (R22).
- *   <li><b>Renommer</b> ({@link Renommeur}) : préfixe R6 appliqué aux originaux copiés (R7 conserve
- *       le suffixe).
- *   <li><b>Transformer</b> ({@link TransformationAudio}) : expansion ×10 et découpage en séquences
- *       de 5 s, déterministe (R10/R11), dans {@code transformes/}.
- *   <li><b>Persister</b> : l'agrégat complet (passage, session, originaux, séquences, enregistreur,
- *       micro, journal, relevé) est écrit <b>tout ou rien</b> dans une {@link UniteDeTravail} (O7),
- *       via {@link AgregatImportDao} (écritures « connection-aware »).
- * </ol>
- *
- * <p><b>Découplage inter-feature.</b> Le service dépend de {@code commun..} et des entités/DAO de
- * {@code passage} (cf. ArchUnit). Il <b>ne dépend pas</b> de {@code sites} : c'est l'appelant (le
- * {@code viewmodel}, qui connaît le site et le point courants) qui construit le {@link Prefixe} R6
- * (carré + année + n° de passage + code de point) et fournit l'{@code idPoint}. Même philosophie
- * que {@code ServicePassage}, qui reçoit le {@code Protocole} en paramètre pour éviter une arête
- * {@code passage → sites}.
- *
- * <p><b>Statuts (workflow).</b> Un passage naît {@link StatutWorkflow#IMPORTE} ; comme l'import
- * inclut la transformation réussie, l'agrégat est committé directement au statut {@link
- * StatutWorkflow#TRANSFORME} (état final d'un import complet). La vérification (R12/R13) le fera
- * ensuite avancer.
- *
- * <p><b>Limite connue (non transactionnelle côté disque).</b> Si la persistance échoue, la
- * transaction SQL est annulée (base cohérente, O7), mais les fichiers déjà copiés/transformés
- * restent dans le workspace. Ces opérations étant idempotentes et déterministes (R11), un réimport
- * réécrit les mêmes fichiers sans dommage ; la base reste la source de vérité.
- */
+/// Service métier de la feature `importation` : orchestre le parcours d'import P2 d'une nuit
+/// d'enregistrement, de la carte SD jusqu'à l'agrégat persisté. Calqué sur le service de référence
+/// `ServiceSites` (cf. SERVICE-CONVENTIONS).
+///
+/// **Enchaînement** (chaque étape est déléguée à un moteur dédié, le service ne fait
+/// qu'orchestrer) :
+///
+/// 1. **Inspecter** ([InspecteurDossier]) : lecture seule de la SD (R9), parsing du journal LogPR,
+/// détection des originaux et du relevé climatique.
+/// 2. **Copier** ([CopieProtegee]) : SD → workspace, sans jamais écrire sur la source (R9). Les
+/// originaux vont dans `bruts/`, le journal et le relevé à la racine de la session (R22).
+/// 3. **Renommer** ([Renommeur]) : préfixe R6 appliqué aux originaux copiés (R7 conserve le
+/// suffixe).
+/// 4. **Transformer** ([TransformationAudio]) : expansion ×10 et découpage en séquences de 5 s,
+/// déterministe (R10/R11), dans `transformes/`.
+/// 5. **Persister** : l'agrégat complet (passage, session, originaux, séquences, enregistreur,
+/// micro, journal, relevé) est écrit **tout ou rien** dans une [UniteDeTravail] (O7), via
+/// [AgregatImportDao] (écritures « connection-aware »).
+///
+/// **Découplage inter-feature.** Le service dépend de `commun..` et des entités/DAO de `passage`
+/// (cf. ArchUnit). Il **ne dépend pas** de `sites` : c'est l'appelant (le `viewmodel`, qui connaît
+/// le site et le point courants) qui construit le [Prefixe] R6 (carré + année + n° de passage +
+/// code de point) et fournit l'`idPoint`. Même philosophie que `ServicePassage`, qui reçoit le
+/// `Protocole` en paramètre pour éviter une arête `passage → sites`.
+///
+/// **Statuts (workflow).** Un passage naît [StatutWorkflow#IMPORTE] ; comme l'import inclut la
+/// transformation réussie, l'agrégat est committé directement au statut
+/// [StatutWorkflow#TRANSFORME] (état final d'un import complet). La vérification (R12/R13) le fera
+/// ensuite avancer.
+///
+/// **Limite connue (non transactionnelle côté disque).** Si la persistance échoue, la transaction
+/// SQL est annulée (base cohérente, O7), mais les fichiers déjà copiés/transformés restent dans le
+/// workspace. Ces opérations étant idempotentes et déterministes (R11), un réimport réécrit les
+/// mêmes fichiers sans dommage ; la base reste la source de vérité.
 public class ServiceImport {
 
-  /** Heure de repli si le journal ne renseigne pas la fenêtre d'acquisition ({@code NOT NULL}). */
+  /// Heure de repli si le journal ne renseigne pas la fenêtre d'acquisition (`NOT NULL`).
   private static final String HEURE_INCONNUE = "00:00:00";
 
-  /**
-   * Référence de micro inscrite quand le journal ne nomme aucun modèle (colonne {@code model_ref}
-   * obligatoire). Le journal LogPR fournit la bande passante et la sensibilité, mais pas la
-   * référence commerciale du micro : on inscrit donc un libellé explicite (cf. point
-   * d'intégration).
-   */
+  /// Référence de micro inscrite quand le journal ne nomme aucun modèle (colonne `model_ref`
+  /// obligatoire). Le journal LogPR fournit la bande passante et la sensibilité, mais pas la
+  /// référence commerciale du micro : on inscrit donc un libellé explicite (cf. point
+  /// d'intégration).
   private static final String MODELE_MICRO_NON_JOURNALISE = "Micro PR (modèle non journalisé)";
 
   private final InspecteurDossier inspecteur;
@@ -104,26 +96,22 @@ public class ServiceImport {
     this.horloge = Objects.requireNonNull(horloge, "horloge");
   }
 
-  /**
-   * Inspecte (lecture seule) le dossier SD sans rien importer : utile pour prévisualiser le contenu
-   * et afficher anomalies/état de nommage avant de lancer l'import.
-   */
+  /// Inspecte (lecture seule) le dossier SD sans rien importer : utile pour prévisualiser le
+  /// contenu et afficher anomalies/état de nommage avant de lancer l'import.
   public RapportInspection inspecter(Path dossierSource) {
     return inspecteur.inspecter(dossierSource);
   }
 
-  /**
-   * Importe une nuit d'enregistrement depuis {@code dossierSource} (carte SD) vers le workspace,
-   * pour le point {@code idPoint}, selon le {@link Prefixe} R6 fourni par l'appelant.
-   *
-   * @param dossierSource racine du dossier de carte SD (lecture seule, R9)
-   * @param idPoint identifiant du point d'écoute rattaché (FK {@code listening_point.id})
-   * @param prefixe préfixe R6 (carré + année + n° de passage + code de point), construit par
-   *     l'appelant qui connaît le site et le point
-   * @return un compte rendu de l'import (agrégat persisté + anomalies du journal)
-   * @throws RegleMetierException si un passage existe déjà pour ce quadruplet (R5), si le journal
-   *     LogPR est absent (enregistreur non identifiable), ou si aucun original n'est présent
-   */
+  /// Importe une nuit d'enregistrement depuis `dossierSource` (carte SD) vers le workspace, pour
+  /// le point `idPoint`, selon le [Prefixe] R6 fourni par l'appelant.
+  ///
+  /// @param dossierSource racine du dossier de carte SD (lecture seule, R9)
+  /// @param idPoint identifiant du point d'écoute rattaché (FK `listening_point.id`)
+  /// @param prefixe préfixe R6 (carré + année + n° de passage + code de point), construit par
+  /// l'appelant qui connaît le site et le point
+  /// @return un compte rendu de l'import (agrégat persisté + anomalies du journal)
+  /// @throws RegleMetierException si un passage existe déjà pour ce quadruplet (R5), si le journal
+  /// LogPR est absent (enregistreur non identifiable), ou si aucun original n'est présent
   public ResultatImport importer(Path dossierSource, Long idPoint, Prefixe prefixe) {
     Objects.requireNonNull(dossierSource, "dossierSource");
     Objects.requireNonNull(idPoint, "idPoint");
@@ -282,7 +270,7 @@ public class ServiceImport {
         journal.numeroSerie());
   }
 
-  /** Micro déduit du journal : créé seulement si le journal porte des paramètres micro (R20). */
+  /// Micro déduit du journal : créé seulement si le journal porte des paramètres micro (R20).
   private Micro construireMicro(JournalParse journal) {
     if (journal.bandePassante() == null && journal.sensibilite() == null) {
       return null;

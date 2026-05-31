@@ -29,10 +29,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * CRUD du {@link ReleveClimatiqueDao} + contraintes : relation 0:1 avec la session ({@code
- * session_id} unique), mesures JSON optionnelles, FK et suppression en cascade depuis la session.
- */
+/// CRUD du [ReleveClimatiqueDao] + contraintes : relation 0:1 avec la session (`session_id`
+/// unique), mesures JSON optionnelles, FK et suppression en cascade depuis la session.
 class ReleveClimatiqueDaoTest {
 
   @TempDir Path dossier;

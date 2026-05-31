@@ -36,12 +36,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * CRUD du {@link PassageDao} (entité centrale) + contraintes : FK vers le point et l'enregistreur,
- * mapping d'énum nullable ({@code verification_verdict}), unicité R5 {@code (point_id, year,
- * passage_number)} et <b>cascade profonde</b> (supprimer un passage doit supprimer sa session, ses
- * originaux, ses séquences et ses journaux).
- */
+/// CRUD du [PassageDao] (entité centrale) + contraintes : FK vers le point et l'enregistreur,
+/// mapping d'énum nullable (`verification_verdict`), unicité R5 `(point_id, year, passage_number)`
+/// et **cascade profonde** (supprimer un passage doit supprimer sa session, ses originaux, ses
+/// séquences et ses journaux).
 class PassageDaoTest {
 
   private static final String SERIE = "1925492";

@@ -29,10 +29,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * CRUD du {@link JournalDuCapteurDao} + contraintes : relation 1:1 avec la session ({@code
- * session_id} unique), champs JSON, FK et suppression en cascade depuis la session.
- */
+/// CRUD du [JournalDuCapteurDao] + contraintes : relation 1:1 avec la session (`session_id`
+/// unique), champs JSON, FK et suppression en cascade depuis la session.
 class JournalDuCapteurDaoTest {
 
   @TempDir Path dossier;

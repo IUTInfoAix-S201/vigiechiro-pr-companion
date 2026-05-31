@@ -6,13 +6,11 @@ import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
 import fr.univ_amu.iut.passage.model.ReleveClimatique;
 import java.util.Optional;
 
-/**
- * DAO de l'entité {@link ReleveClimatique} (table {@code climate_log}).
- *
- * <p>Relation 0:1 avec la session ({@code session_id} unique mais optionnel côté session : la sonde
- * peut manquer, R20), d'où {@link #trouverParSession(Long)}. La série de mesures {@code
- * measurements} est transportée comme du {@code TEXT} JSON brut.
- */
+/// DAO de l'entité [ReleveClimatique] (table `climate_log`).
+///
+/// Relation 0:1 avec la session (`session_id` unique mais optionnel côté session : la sonde peut
+/// manquer, R20), d'où [#trouverParSession(Long)]. La série de mesures `measurements` est
+/// transportée comme du `TEXT` JSON brut.
 public class ReleveClimatiqueDao extends DaoGenerique<ReleveClimatique, Long> {
 
   private static final RowMapper<ReleveClimatique> MAPPER =
@@ -42,7 +40,7 @@ public class ReleveClimatiqueDao extends DaoGenerique<ReleveClimatique, Long> {
     return MAPPER;
   }
 
-  /** Le relevé climatique de la session donnée, s'il existe (relation 0:1). */
+  /// Le relevé climatique de la session donnée, s'il existe (relation 0:1).
   public Optional<ReleveClimatique> trouverParSession(Long idSession) {
     return queryUnique("SELECT * FROM climate_log WHERE session_id = ?", MAPPER, idSession);
   }

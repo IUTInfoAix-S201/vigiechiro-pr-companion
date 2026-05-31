@@ -12,31 +12,27 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-/**
- * Applique la convention de nommage des enregistrements originaux (R6/R7) sur les fichiers déjà
- * copiés dans le workspace.
- *
- * <p>Le firmware écrit ses fichiers sous leur nom brut {@code PaRecPR<sn>_<AAAAMMJJ>_<HHMMSS>.wav}
- * (R7). Avant tout dépôt, chaque fichier reçoit le préfixe {@code
- * Car<carré>-<année>-Pass<n>-<point>-} (R6), via {@link Prefixe#nommerOriginal(String)}. Les tirets
- * sont des <b>tirets du 6</b> (U+002D HYPHEN-MINUS), garantis par {@link Prefixe#TIRET}.
- *
- * <p>Le renommage opère <b>dans le workspace</b> (sur la copie), jamais sur la carte SD (R9 : la
- * source reste intacte ; c'est {@link CopieProtegee} qui a déjà déposé les fichiers ici).
- *
- * <p>L'opération est <b>idempotente</b> : un fichier qui porte déjà le préfixe attendu est laissé
- * en place. On peut donc relancer le renommage sans risque (réimport).
- */
+/// Applique la convention de nommage des enregistrements originaux (R6/R7) sur les fichiers déjà
+/// copiés dans le workspace.
+///
+/// Le firmware écrit ses fichiers sous leur nom brut `PaRecPR<sn>_<AAAAMMJJ>_<HHMMSS>.wav` (R7).
+/// Avant tout dépôt, chaque fichier reçoit le préfixe `Car<carré>-<année>-Pass<n>-<point>-` (R6),
+/// via [Prefixe#nommerOriginal(String)]. Les tirets sont des **tirets du 6** (U+002D
+/// HYPHEN-MINUS), garantis par [Prefixe#TIRET].
+///
+/// Le renommage opère **dans le workspace** (sur la copie), jamais sur la carte SD (R9 : la source
+/// reste intacte ; c'est [CopieProtegee] qui a déjà déposé les fichiers ici).
+///
+/// L'opération est **idempotente** : un fichier qui porte déjà le préfixe attendu est laissé en
+/// place. On peut donc relancer le renommage sans risque (réimport).
 public class Renommeur {
 
-  /**
-   * Renomme tous les WAV de {@code dossierBruts} en leur appliquant le préfixe R6 (R7 conserve le
-   * suffixe d'origine). Les fichiers déjà préfixés sont inchangés.
-   *
-   * @param dossierBruts dossier {@code bruts/} contenant les originaux à renommer
-   * @param prefixe préfixe de la session (R6)
-   * @return la liste des chemins finaux des originaux, triée par nom de fichier
-   */
+  /// Renomme tous les WAV de `dossierBruts` en leur appliquant le préfixe R6 (R7 conserve le
+  /// suffixe d'origine). Les fichiers déjà préfixés sont inchangés.
+  ///
+  /// @param dossierBruts dossier `bruts/` contenant les originaux à renommer
+  /// @param prefixe préfixe de la session (R6)
+  /// @return la liste des chemins finaux des originaux, triée par nom de fichier
   public List<Path> renommer(Path dossierBruts, Prefixe prefixe) {
     Objects.requireNonNull(dossierBruts, "dossierBruts");
     Objects.requireNonNull(prefixe, "prefixe");

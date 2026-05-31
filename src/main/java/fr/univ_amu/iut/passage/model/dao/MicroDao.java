@@ -7,14 +7,11 @@ import fr.univ_amu.iut.passage.model.Micro;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * DAO de l'entité {@link Micro} (table {@code microphone}).
- *
- * <p>Illustre le mapping d'un <b>booléen</b> ({@code is_active}) : SQLite n'a pas de type booléen,
- * on stocke {@code 0}/{@code 1} ({@code micro.actif() ? 1 : 0}) et on relit via {@code
- * rs.getInt(...) != 0}. Les dates {@code commissioned_at}/{@code decommissioned_at} et les autres
- * champs optionnels sont nullables.
- */
+/// DAO de l'entité [Micro] (table `microphone`).
+///
+/// Illustre le mapping d'un **booléen** (`is_active`) : SQLite n'a pas de type booléen, on stocke
+/// `0`/`1` (`micro.actif() ? 1 : 0`) et on relit via `rs.getInt(...) != 0`. Les dates
+/// `commissioned_at`/`decommissioned_at` et les autres champs optionnels sont nullables.
 public class MicroDao extends DaoGenerique<Micro, Long> {
 
   private static final RowMapper<Micro> MAPPER =
@@ -49,13 +46,13 @@ public class MicroDao extends DaoGenerique<Micro, Long> {
     return MAPPER;
   }
 
-  /** Micros (actifs et retirés) montés sur un enregistreur, du plus récent au plus ancien. */
+  /// Micros (actifs et retirés) montés sur un enregistreur, du plus récent au plus ancien.
   public List<Micro> findByEnregistreur(String idEnregistreur) {
     return query(
         "SELECT * FROM microphone WHERE recorder_id = ? ORDER BY id DESC", MAPPER, idEnregistreur);
   }
 
-  /** Le micro actuellement actif sur un enregistreur (au plus un par {@code is_active = 1}). */
+  /// Le micro actuellement actif sur un enregistreur (au plus un par `is_active = 1`).
   public Optional<Micro> trouverActifParEnregistreur(String idEnregistreur) {
     return queryUnique(
         "SELECT * FROM microphone WHERE recorder_id = ? AND is_active = 1", MAPPER, idEnregistreur);

@@ -13,10 +13,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * CRUD du {@link EnregistreurDao} sur une base SQLite jetable (@TempDir). Cas central : la <b>clé
- * naturelle</b> ({@code serial_number}) et le comportement d'<b>upsert</b> de {@code insert}.
- */
+/// CRUD du [EnregistreurDao] sur une base SQLite jetable (@TempDir). Cas central : la **clé
+/// naturelle** (`serial_number`) et le comportement d'**upsert** de `insert`.
 class EnregistreurDaoTest {
 
   @TempDir Path dossier;

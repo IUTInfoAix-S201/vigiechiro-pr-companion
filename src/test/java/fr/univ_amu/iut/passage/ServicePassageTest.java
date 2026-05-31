@@ -30,15 +30,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Tests du service métier {@link ServicePassage} sur une base SQLite jetable ({@code @TempDir} +
- * {@link MigrationSchema}), même fixture que les {@code *DaoTest}. L'{@link HorlogeFigee} rend
- * déterministes l'année déduite à la création et l'horodatage de dépôt.
- *
- * <p>Couvre : R5 (unicité dure du quadruplet et son scope), R3 (fenêtre saisonnière soft, dans/hors
- * fenêtre, muette en recherche), R4 (intervalle &lt; 1 mois soft), les transitions de workflow
- * (valides/invalides, horodatage du dépôt) et la pose du verdict.
- */
+/// Tests du service métier [ServicePassage] sur une base SQLite jetable (`@TempDir` +
+/// [MigrationSchema]), même fixture que les `*DaoTest`. L'[HorlogeFigee] rend déterministes
+/// l'année déduite à la création et l'horodatage de dépôt.
+///
+/// Couvre : R5 (unicité dure du quadruplet et son scope), R3 (fenêtre saisonnière soft, dans/hors
+/// fenêtre, muette en recherche), R4 (intervalle < 1 mois soft), les transitions de workflow
+/// (valides/invalides, horodatage du dépôt) et la pose du verdict.
 class ServicePassageTest {
 
   private static final String ID_USER = "u-1";
@@ -67,7 +65,7 @@ class ServicePassageTest {
         new ServicePassage(passageDao, new MoteurWorkflowPassage(), new HorlogeFigee(JOUR_FIXE));
   }
 
-  /** Construit un passage candidat (non persisté) pour les vérifications R3/R4. */
+  /// Construit un passage candidat (non persisté) pour les vérifications R3/R4.
   private Passage candidat(int numero, String dateEnregistrement) {
     return new Passage(
         null,

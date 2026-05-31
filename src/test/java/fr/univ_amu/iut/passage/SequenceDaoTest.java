@@ -31,10 +31,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * CRUD du {@link SequenceDao} + contraintes : booléen {@code in_selection}, colonnes nullables, FK
- * vers l'original source et la session, suppression en cascade depuis l'original.
- */
+/// CRUD du [SequenceDao] + contraintes : booléen `in_selection`, colonnes nullables, FK vers
+/// l'original source et la session, suppression en cascade depuis l'original.
 class SequenceDaoTest {
 
   @TempDir Path dossier;

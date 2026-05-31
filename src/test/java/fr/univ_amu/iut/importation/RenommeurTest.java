@@ -15,7 +15,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/** Tests du renommeur (R6/R7) : préfixe appliqué aux originaux, tirets U+002D, idempotence. */
+/// Tests du renommeur (R6/R7) : préfixe appliqué aux originaux, tirets U+002D, idempotence.
 class RenommeurTest {
 
   @TempDir Path racine;

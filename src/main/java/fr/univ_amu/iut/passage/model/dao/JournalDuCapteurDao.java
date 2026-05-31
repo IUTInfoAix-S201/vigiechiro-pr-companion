@@ -6,13 +6,10 @@ import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
 import fr.univ_amu.iut.passage.model.JournalDuCapteur;
 import java.util.Optional;
 
-/**
- * DAO de l'entité {@link JournalDuCapteur} (table {@code sensor_log}).
- *
- * <p>Relation 1:1 avec la session ({@code session_id} unique), d'où {@link
- * #trouverParSession(Long)}. Les colonnes JSON {@code parsed_events} / {@code detected_anomalies}
- * sont transportées comme du {@code TEXT} brut.
- */
+/// DAO de l'entité [JournalDuCapteur] (table `sensor_log`).
+///
+/// Relation 1:1 avec la session (`session_id` unique), d'où [#trouverParSession(Long)]. Les
+/// colonnes JSON `parsed_events` / `detected_anomalies` sont transportées comme du `TEXT` brut.
 public class JournalDuCapteurDao extends DaoGenerique<JournalDuCapteur, Long> {
 
   private static final RowMapper<JournalDuCapteur> MAPPER =
@@ -43,7 +40,7 @@ public class JournalDuCapteurDao extends DaoGenerique<JournalDuCapteur, Long> {
     return MAPPER;
   }
 
-  /** Le journal du capteur de la session donnée (relation 1:1, {@code session_id} unique). */
+  /// Le journal du capteur de la session donnée (relation 1:1, `session_id` unique).
   public Optional<JournalDuCapteur> trouverParSession(Long idSession) {
     return queryUnique("SELECT * FROM sensor_log WHERE session_id = ?", MAPPER, idSession);
   }

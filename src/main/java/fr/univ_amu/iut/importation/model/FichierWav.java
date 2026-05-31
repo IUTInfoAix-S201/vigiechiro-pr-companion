@@ -8,49 +8,47 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 
-/**
- * Lecture / écriture d'un fichier WAV PCM, en {@code java.base} <b>pur</b> (aucun recours à {@code
- * javax.sound.sampled}).
- *
- * <p><b>Pourquoi pas {@code javax.sound.sampled} ?</b> Cette API vit dans le module {@code
- * java.desktop}, que le module applicatif {@code tp1.javafx} ne {@code requires} pas (et {@code
- * module-info.java} est gelé). Le code de production compile sur le <i>module path</i> : un import
- * {@code javax.sound.sampled.*} ne compilerait pas. Surtout, le parsing manuel de l'en-tête RIFF
- * donne un contrôle <b>au bit près</b> sur les octets écrits, indispensable au déterminisme R11
- * (l'API standard peut réordonner/ajouter des sous-chunks selon l'implémentation).
- *
- * <p>Lecture robuste : on balaie les sous-chunks RIFF pour localiser {@code "fmt "} et {@code
- * "data"} (en tolérant des chunks intercalés comme {@code LIST}/{@code fact} et le padding de
- * word-alignment). Écriture canonique : en-tête fixe de 44 octets ({@code RIFF/WAVE/fmt /data}),
- * little-endian, donc <b>reproductible</b> pour des octets PCM identiques.
- *
- * @param nombreCanaux nombre de canaux (1 = mono, attendu pour les ultrasons VigieChiro)
- * @param frequenceEchantillonnageHz fréquence d'échantillonnage en Hz
- * @param bitsParEchantillon profondeur en bits (16 attendu)
- * @param donneesPcm octets PCM bruts (le chunk {@code data}, sans en-tête)
- */
+/// Lecture / écriture d'un fichier WAV PCM, en `java.base` **pur** (aucun recours à
+/// `javax.sound.sampled`).
+///
+/// **Pourquoi pas `javax.sound.sampled` ?** Cette API vit dans le module `java.desktop`, que le
+/// module applicatif `tp1.javafx` ne `requires` pas (et `module-info.java` est gelé). Le code de
+/// production compile sur le *module path* : un import `javax.sound.sampled.*` ne compilerait pas.
+/// Surtout, le parsing manuel de l'en-tête RIFF donne un contrôle **au bit près** sur les octets
+/// écrits, indispensable au déterminisme R11 (l'API standard peut réordonner/ajouter des
+/// sous-chunks selon l'implémentation).
+///
+/// Lecture robuste : on balaie les sous-chunks RIFF pour localiser `"fmt "` et `"data"` (en
+/// tolérant des chunks intercalés comme `LIST`/`fact` et le padding de word-alignment). Écriture
+/// canonique : en-tête fixe de 44 octets (`RIFF/WAVE/fmt /data`), little-endian, donc
+/// **reproductible** pour des octets PCM identiques.
+///
+/// @param nombreCanaux nombre de canaux (1 = mono, attendu pour les ultrasons VigieChiro)
+/// @param frequenceEchantillonnageHz fréquence d'échantillonnage en Hz
+/// @param bitsParEchantillon profondeur en bits (16 attendu)
+/// @param donneesPcm octets PCM bruts (le chunk `data`, sans en-tête)
 record FichierWav(
     int nombreCanaux, int frequenceEchantillonnageHz, int bitsParEchantillon, byte[] donneesPcm) {
 
   private static final int TAILLE_ENTETE = 44;
   private static final short FORMAT_PCM = 1;
 
-  /** Octets par trame (échantillon multi-canal) : {@code canaux * bits/8}. */
+  /// Octets par trame (échantillon multi-canal) : `canaux * bits/8`.
   int octetsParTrame() {
     return nombreCanaux * (bitsParEchantillon / 8);
   }
 
-  /** Nombre de trames contenues dans {@link #donneesPcm}. */
+  /// Nombre de trames contenues dans [#donneesPcm].
   long nombreTrames() {
     return (long) donneesPcm.length / octetsParTrame();
   }
 
-  /** Durée en secondes du signal porté par ce fichier (trames / fréquence). */
+  /// Durée en secondes du signal porté par ce fichier (trames / fréquence).
   double dureeSecondes() {
     return nombreTrames() / (double) frequenceEchantillonnageHz;
   }
 
-  /** Lit un fichier WAV PCM depuis le disque. */
+  /// Lit un fichier WAV PCM depuis le disque.
   static FichierWav lire(Path fichier) throws IOException {
     byte[] o = Files.readAllBytes(fichier);
     if (o.length < 12 || !tag(o, 0, "RIFF") || !tag(o, 8, "WAVE")) {
@@ -92,10 +90,8 @@ record FichierWav(
     return new FichierWav(canaux, frequence, bits, pcm);
   }
 
-  /**
-   * Écrit un WAV canonique (en-tête 44 octets) avec la fréquence et le format donnés, en copiant
-   * <b>tels quels</b> les octets {@code pcm[offset, offset+longueur)}.
-   */
+  /// Écrit un WAV canonique (en-tête 44 octets) avec la fréquence et le format donnés, en copiant
+  /// **tels quels** les octets `pcm[offset, offset+longueur)`.
   static void ecrire(
       Path fichier,
       int nombreCanaux,

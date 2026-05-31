@@ -8,16 +8,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
-/**
- * DAO de l'entité {@link SequenceDEcoute} (table {@code listening_sequence}).
- *
- * <p>Doublement dépendante par FK ({@code session_id} et {@code original_recording_id}, toutes deux
- * en {@code ON DELETE CASCADE}). Le booléen {@code in_selection} est mappé en {@code 0}/{@code 1}
- * et relu via {@code rs.getInt(...) != 0} ; les champs numériques optionnels {@code
- * source_offset_s} et {@code duration_s} ({@code REAL}) via {@code rs.getObject(...)}, et {@code
- * source_index} ({@code INTEGER}) via {@link #lireIntNullable(ResultSet, String)} pour préserver le
- * {@code null}.
- */
+/// DAO de l'entité [SequenceDEcoute] (table `listening_sequence`).
+///
+/// Doublement dépendante par FK (`session_id` et `original_recording_id`, toutes deux en
+/// `ON DELETE CASCADE`). Le booléen `in_selection` est mappé en `0`/`1` et relu via
+/// `rs.getInt(...) != 0` ; les champs numériques optionnels `source_offset_s` et `duration_s`
+/// (`REAL`) via `rs.getObject(...)`, et `source_index` (`INTEGER`) via
+/// [#lireIntNullable(ResultSet, String)] pour préserver le `null`.
 public class SequenceDao extends DaoGenerique<SequenceDEcoute, Long> {
 
   private static final RowMapper<SequenceDEcoute> MAPPER =
@@ -33,7 +30,7 @@ public class SequenceDao extends DaoGenerique<SequenceDEcoute, Long> {
               rs.getInt("in_selection") != 0,
               rs.getLong("session_id"));
 
-  /** Lit une colonne {@code INTEGER} nullable en {@link Integer}, en préservant le {@code null}. */
+  /// Lit une colonne `INTEGER` nullable en [Integer], en préservant le `null`.
   private static Integer lireIntNullable(ResultSet rs, String colonne) throws SQLException {
     Object valeur = rs.getObject(colonne);
     return valeur == null ? null : ((Number) valeur).intValue();
@@ -58,7 +55,7 @@ public class SequenceDao extends DaoGenerique<SequenceDEcoute, Long> {
     return MAPPER;
   }
 
-  /** Séquences d'une session, triées par nom de fichier. */
+  /// Séquences d'une session, triées par nom de fichier.
   public List<SequenceDEcoute> findBySession(Long idSession) {
     return query(
         "SELECT * FROM listening_sequence WHERE session_id = ? ORDER BY file_name",
@@ -66,7 +63,7 @@ public class SequenceDao extends DaoGenerique<SequenceDEcoute, Long> {
         idSession);
   }
 
-  /** Séquences issues d'un même enregistrement original, triées par index dans le source. */
+  /// Séquences issues d'un même enregistrement original, triées par index dans le source.
   public List<SequenceDEcoute> findByOriginal(Long idEnregistrementOriginal) {
     return query(
         "SELECT * FROM listening_sequence WHERE original_recording_id = ? ORDER BY source_index",

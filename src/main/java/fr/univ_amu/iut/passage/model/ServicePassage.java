@@ -12,35 +12,29 @@ import java.time.LocalDate;
 import java.util.Objects;
 import java.util.Optional;
 
-/**
- * Service métier transverse de la feature {@code passage} : création d'un passage, vérifications de
- * protocole (R3/R4), pilotage du workflow et pose du verdict. Calqué sur le service de référence
- * {@code ServiceSites} (cf. SERVICE-CONVENTIONS).
- *
- * <p>Principes repris du patron :
- *
- * <ul>
- *   <li><b>Pure Java, sans aucun import JavaFX</b> : la logique vit en {@code passage.model}, l'IHM
- *       viendra par-dessus (contrôlé par {@code ArchitectureTest}).
- *   <li><b>Reçoit ses dépendances par constructeur</b> ({@link PassageDao}, {@link
- *       MoteurWorkflowPassage}, {@link Horloge}), assemblées par {@code PassageModule} en
- *       production et instanciées à la main dans les tests.
- *   <li><b>Distingue règles soft et dures</b> : R5 (unicité du quadruplet) et les transitions de
- *       workflow interdites lèvent une {@link RegleMetierException} ; R3 (fenêtre saisonnière) et
- *       R4 (intervalle &lt; 1 mois) renvoient un {@link ResultatVerification} d'alertes <b>non
- *       bloquantes</b>.
- *   <li><b>Dates via l'{@link Horloge} injectée</b> : aucune {@code LocalDate.now()} en dur (tests
- *       déterministes).
- * </ul>
- *
- * <p><b>Découplage inter-feature assumé.</b> Les règles R3/R4 ne concernent que les sites en mode
- * {@link Protocole#STANDARD} ({@code PointFixeStandard}). Le service <b>ne résout pas</b> le
- * protocole en remontant {@code passage → point → site} : cela créerait une dépendance {@code
- * passage → sites} alors que {@code sites → passage} existe déjà ({@code ServiceSites} lit {@code
- * PassageDao}), donc un <b>cycle</b> que {@code ArchitectureTest} refuse. Le {@link Protocole} est
- * donc <b>passé en paramètre</b> par l'appelant (le {@code viewmodel}, qui connaît le site courant)
- * — exactement comme {@code ServiceSites.rappelsProtocole(Protocole)}.
- */
+/// Service métier transverse de la feature `passage` : création d'un passage, vérifications de
+/// protocole (R3/R4), pilotage du workflow et pose du verdict. Calqué sur le service de référence
+/// `ServiceSites` (cf. SERVICE-CONVENTIONS).
+///
+/// Principes repris du patron :
+///
+/// - **Pure Java, sans aucun import JavaFX** : la logique vit en `passage.model`, l'IHM viendra
+/// par-dessus (contrôlé par `ArchitectureTest`).
+/// - **Reçoit ses dépendances par constructeur** ([PassageDao], [MoteurWorkflowPassage],
+/// [Horloge]), assemblées par `PassageModule` en production et instanciées à la main dans les
+/// tests.
+/// - **Distingue règles soft et dures** : R5 (unicité du quadruplet) et les transitions de
+/// workflow interdites lèvent une [RegleMetierException] ; R3 (fenêtre saisonnière) et R4
+/// (intervalle < 1 mois) renvoient un [ResultatVerification] d'alertes **non bloquantes**.
+/// - **Dates via l'[Horloge] injectée** : aucune `LocalDate.now()` en dur (tests déterministes).
+///
+/// **Découplage inter-feature assumé.** Les règles R3/R4 ne concernent que les sites en mode
+/// [Protocole#STANDARD] (`PointFixeStandard`). Le service **ne résout pas** le protocole en
+/// remontant `passage → point → site` : cela créerait une dépendance `passage → sites` alors que
+/// `sites → passage` existe déjà (`ServiceSites` lit `PassageDao`), donc un **cycle** que
+/// `ArchitectureTest` refuse. Le [Protocole] est donc **passé en paramètre** par l'appelant (le
+/// `viewmodel`, qui connaît le site courant) — exactement comme
+/// `ServiceSites.rappelsProtocole(Protocole)`.
 public class ServicePassage {
 
   private final PassageDao passageDao;
@@ -53,24 +47,20 @@ public class ServicePassage {
     this.horloge = Objects.requireNonNull(horloge, "horloge");
   }
 
-  /**
-   * Crée un passage à l'état initial {@link StatutWorkflow#IMPORTE}, sans verdict.
-   *
-   * <ul>
-   *   <li>R5 (dur) : refuse si le quadruplet {@code (point, année, n° de passage)} existe déjà —
-   *       pré-vérifié via {@link PassageDao#trouverParPointAnneePassage} (filet : contrainte {@code
-   *       UNIQUE} du schéma).
-   *   <li>Année : déduite de la date d'enregistrement. Si {@code dateEnregistrement} est {@code
-   *       null}, on prend la date du jour de l'{@link Horloge} (déterministe en test).
-   * </ul>
-   *
-   * @param idPoint point d'écoute rattaché (FK {@code listening_point.id})
-   * @param idEnregistreur n° de série de l'enregistreur (FK {@code recorder.serial_number})
-   * @param numeroPassage n° de passage dans l'année (typiquement 1 ou 2)
-   * @param dateEnregistrement date du soir d'enregistrement, ou {@code null} pour « aujourd'hui »
-   * @return le passage inséré, avec son {@code id} auto-généré
-   * @throws RegleMetierException si le quadruplet existe déjà (R5)
-   */
+  /// Crée un passage à l'état initial [StatutWorkflow#IMPORTE], sans verdict.
+  ///
+  /// - R5 (dur) : refuse si le quadruplet `(point, année, n° de passage)` existe déjà —
+  /// pré-vérifié via [PassageDao#trouverParPointAnneePassage] (filet : contrainte `UNIQUE` du
+  /// schéma).
+  /// - Année : déduite de la date d'enregistrement. Si `dateEnregistrement` est `null`, on prend
+  /// la date du jour de l'[Horloge] (déterministe en test).
+  ///
+  /// @param idPoint point d'écoute rattaché (FK `listening_point.id`)
+  /// @param idEnregistreur n° de série de l'enregistreur (FK `recorder.serial_number`)
+  /// @param numeroPassage n° de passage dans l'année (typiquement 1 ou 2)
+  /// @param dateEnregistrement date du soir d'enregistrement, ou `null` pour « aujourd'hui »
+  /// @return le passage inséré, avec son `id` auto-généré
+  /// @throws RegleMetierException si le quadruplet existe déjà (R5)
   public Passage creerPassage(
       Long idPoint,
       String idEnregistreur,
@@ -104,14 +94,11 @@ public class ServicePassage {
     return passageDao.insert(aCreer);
   }
 
-  /**
-   * Vérifications de protocole non bloquantes (R3 + R4) à présenter à l'utilisateur après saisie
-   * d'un passage. Accumule les alertes des deux règles dans un seul {@link ResultatVerification}
-   * (patron d'accumulation immuable et fluente, cf. SERVICE-CONVENTIONS §2.3).
-   *
-   * <p>Sur un site {@link Protocole#RECHERCHE}, les deux règles sont muettes : le résultat est
-   * conforme.
-   */
+  /// Vérifications de protocole non bloquantes (R3 + R4) à présenter à l'utilisateur après saisie
+  /// d'un passage. Accumule les alertes des deux règles dans un seul [ResultatVerification]
+  /// (patron d'accumulation immuable et fluente, cf. SERVICE-CONVENTIONS §2.3).
+  ///
+  /// Sur un site [Protocole#RECHERCHE], les deux règles sont muettes : le résultat est conforme.
   public ResultatVerification verifierProtocole(Passage passage, Protocole protocole) {
     ResultatVerification resultat = verifierFenetreSaisonniere(passage, protocole);
     for (Alerte alerte : verifierIntervalleEntrePassages(passage, protocole).alertes()) {
@@ -120,12 +107,10 @@ public class ServicePassage {
     return resultat;
   }
 
-  /**
-   * R3 (soft, {@code PointFixeStandard} uniquement) : le passage 1 est attendu entre le 15 juin et
-   * le 31 juillet, le passage 2 entre le 15 août et le 30 septembre. Hors fenêtre → alerte non
-   * bloquante. Sur {@link Protocole#RECHERCHE}, ou pour un n° de passage sans fenêtre définie
-   * (autre que 1 ou 2), la règle est muette.
-   */
+  /// R3 (soft, `PointFixeStandard` uniquement) : le passage 1 est attendu entre le 15 juin et le
+  /// 31 juillet, le passage 2 entre le 15 août et le 30 septembre. Hors fenêtre → alerte non
+  /// bloquante. Sur [Protocole#RECHERCHE], ou pour un n° de passage sans fenêtre définie (autre
+  /// que 1 ou 2), la règle est muette.
   public ResultatVerification verifierFenetreSaisonniere(Passage passage, Protocole protocole) {
     Objects.requireNonNull(passage, "passage");
     if (protocole != Protocole.STANDARD || passage.dateEnregistrement() == null) {
@@ -152,17 +137,14 @@ public class ServicePassage {
                 + "] pour un site PointFixeStandard. Alerte non bloquante."));
   }
 
-  /**
-   * R4 (soft, {@code PointFixeStandard} uniquement) : l'intervalle conseillé entre les deux
-   * passages d'un même point dans la même année est d'au moins 1 mois. Si un autre passage du même
-   * point (même année, n° différent) est à moins d'un mois, une alerte non bloquante est émise.
-   *
-   * <p>Granularité : la règle est évaluée <b>par point d'écoute</b> (et non par site). C'est la
-   * maille atteignable depuis la feature {@code passage} sans dépendre de {@code sites} (cf. la
-   * note de découplage de cette classe) ; un passage appartenant à exactement un point, comparer
-   * ses frères de point est une lecture fidèle de la règle. Sur {@link Protocole#RECHERCHE},
-   * muette.
-   */
+  /// R4 (soft, `PointFixeStandard` uniquement) : l'intervalle conseillé entre les deux passages
+  /// d'un même point dans la même année est d'au moins 1 mois. Si un autre passage du même point
+  /// (même année, n° différent) est à moins d'un mois, une alerte non bloquante est émise.
+  ///
+  /// Granularité : la règle est évaluée **par point d'écoute** (et non par site). C'est la maille
+  /// atteignable depuis la feature `passage` sans dépendre de `sites` (cf. la note de découplage
+  /// de cette classe) ; un passage appartenant à exactement un point, comparer ses frères de point
+  /// est une lecture fidèle de la règle. Sur [Protocole#RECHERCHE], muette.
   public ResultatVerification verifierIntervalleEntrePassages(
       Passage passage, Protocole protocole) {
     Objects.requireNonNull(passage, "passage");
@@ -197,12 +179,10 @@ public class ServicePassage {
     return resultat;
   }
 
-  /**
-   * Fait avancer un passage à l'étape suivante du workflow (cf. {@link MoteurWorkflowPassage}).
-   *
-   * @throws RegleMetierException si le passage est déjà au statut terminal ({@link
-   *     StatutWorkflow#DEPOSE})
-   */
+  /// Fait avancer un passage à l'étape suivante du workflow (cf. [MoteurWorkflowPassage]).
+  ///
+  /// @throws RegleMetierException si le passage est déjà au statut terminal
+  /// ([StatutWorkflow#DEPOSE])
   public Passage avancerStatut(Passage passage) {
     Objects.requireNonNull(passage, "passage");
     StatutWorkflow suivant =
@@ -217,15 +197,13 @@ public class ServicePassage {
     return changerStatut(passage, suivant);
   }
 
-  /**
-   * Applique une transition de workflow explicite après l'avoir validée.
-   *
-   * <p>Le passage à {@link StatutWorkflow#DEPOSE} horodate automatiquement {@code deposeLe} via
-   * l'{@link Horloge} ({@code maintenant()}, déterministe en test).
-   *
-   * @return le passage mis à jour (persisté)
-   * @throws RegleMetierException si la transition n'est pas le passage à l'étape suivante
-   */
+  /// Applique une transition de workflow explicite après l'avoir validée.
+  ///
+  /// Le passage à [StatutWorkflow#DEPOSE] horodate automatiquement `deposeLe` via l'[Horloge]
+  /// (`maintenant()`, déterministe en test).
+  ///
+  /// @return le passage mis à jour (persisté)
+  /// @throws RegleMetierException si la transition n'est pas le passage à l'étape suivante
   public Passage changerStatut(Passage passage, StatutWorkflow nouveauStatut) {
     Objects.requireNonNull(passage, "passage");
     Objects.requireNonNull(nouveauStatut, "nouveauStatut");
@@ -254,16 +232,14 @@ public class ServicePassage {
     return misAJour;
   }
 
-  /**
-   * Pose (ou met à jour) le verdict de vérification d'un passage (R13 : verdict {@code À vérifier}
-   * / {@code OK} / {@code Douteux} / {@code À jeter}, saisi par l'utilisateur après écoute).
-   *
-   * <p>Invariant dur : un passage déjà {@link StatutWorkflow#DEPOSE} ne peut plus être re-jugé (son
-   * verdict est figé une fois déposé sur Vigie-Chiro).
-   *
-   * @return le passage mis à jour (persisté)
-   * @throws RegleMetierException si le passage est déjà déposé
-   */
+  /// Pose (ou met à jour) le verdict de vérification d'un passage (R13 : verdict `À vérifier` /
+  /// `OK` / `Douteux` / `À jeter`, saisi par l'utilisateur après écoute).
+  ///
+  /// Invariant dur : un passage déjà [StatutWorkflow#DEPOSE] ne peut plus être re-jugé (son
+  /// verdict est figé une fois déposé sur Vigie-Chiro).
+  ///
+  /// @return le passage mis à jour (persisté)
+  /// @throws RegleMetierException si le passage est déjà déposé
   public Passage poserVerdict(Passage passage, Verdict verdict) {
     Objects.requireNonNull(passage, "passage");
     Objects.requireNonNull(verdict, "verdict");
@@ -306,7 +282,7 @@ public class ServicePassage {
     return a.id() != null && a.id().equals(b.id());
   }
 
-  /** Vrai si les deux dates sont distantes de strictement moins d'un mois calendaire (R4). */
+  /// Vrai si les deux dates sont distantes de strictement moins d'un mois calendaire (R4).
   private static boolean intervalleInferieurAUnMois(LocalDate a, LocalDate b) {
     LocalDate plusTot = a.isAfter(b) ? b : a;
     LocalDate plusTard = a.isAfter(b) ? a : b;
@@ -321,7 +297,7 @@ public class ServicePassage {
     };
   }
 
-  /** Fenêtre saisonnière fermée [debut, fin] pour la vérification R3. */
+  /// Fenêtre saisonnière fermée [debut, fin] pour la vérification R3.
   private record Fenetre(LocalDate debut, LocalDate fin) {
     boolean contient(LocalDate date) {
       return !date.isBefore(debut) && !date.isAfter(fin);

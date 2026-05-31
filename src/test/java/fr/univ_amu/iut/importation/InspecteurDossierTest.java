@@ -17,11 +17,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Tests de l'inspection en lecture seule d'un dossier de carte SD (P2, étape 1). Vérifie la
- * détection du journal, des originaux, du relevé climatique, de l'état de nommage, et surtout que
- * l'inspection <b>n'écrit rien</b> sur la source (R9).
- */
+/// Tests de l'inspection en lecture seule d'un dossier de carte SD (P2, étape 1). Vérifie la
+/// détection du journal, des originaux, du relevé climatique, de l'état de nommage, et surtout que
+/// l'inspection **n'écrit rien** sur la source (R9).
 class InspecteurDossierTest {
 
   private static final String LOG =

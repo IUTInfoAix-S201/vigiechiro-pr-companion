@@ -10,18 +10,16 @@ import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests de l'analyseur du journal du capteur {@code LogPR<n>.txt} (C9, R19).
- *
- * <p>Les lignes sont fournies <b>en dur</b> (reproduction fidèle du format réel observé sur le
- * sample {@code LogPR1925492.txt} du brief) pour rester self-contained : la CI ne dépend d'aucun
- * fichier hors dépôt.
- */
+/// Tests de l'analyseur du journal du capteur `LogPR<n>.txt` (C9, R19).
+///
+/// Les lignes sont fournies **en dur** (reproduction fidèle du format réel observé sur le sample
+/// `LogPR1925492.txt` du brief) pour rester self-contained : la CI ne dépend d'aucun fichier hors
+/// dépôt.
 class AnalyseurLogPRTest {
 
   private final AnalyseurLogPR analyseur = new AnalyseurLogPR();
 
-  /** Extrait représentatif du journal réel (nuit du 22/04/2026, enregistreur 1925492). */
+  /// Extrait représentatif du journal réel (nuit du 22/04/2026, enregistreur 1925492).
   private static List<String> journalNominal() {
     return List.of(
         "22/04/26 - 16:02:20 PR1925492 Test accès carte SD ",

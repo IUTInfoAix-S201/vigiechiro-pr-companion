@@ -10,11 +10,9 @@ import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-/**
- * Test pur (sans base ni mock) du {@link MoteurWorkflowPassage} : les transitions de workflow sont
- * une logique purement algorithmique. On vérifie la progression linéaire autorisée, les sauts
- * d'étape, les retours en arrière et le statut terminal.
- */
+/// Test pur (sans base ni mock) du [MoteurWorkflowPassage] : les transitions de workflow sont une
+/// logique purement algorithmique. On vérifie la progression linéaire autorisée, les sauts
+/// d'étape, les retours en arrière et le statut terminal.
 class MoteurWorkflowPassageTest {
 
   private final MoteurWorkflowPassage moteur = new MoteurWorkflowPassage();

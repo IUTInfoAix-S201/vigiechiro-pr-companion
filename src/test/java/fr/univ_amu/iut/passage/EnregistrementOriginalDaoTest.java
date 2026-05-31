@@ -29,10 +29,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * CRUD du {@link EnregistrementOriginalDao} + contraintes : colonnes numériques nullables ({@code
- * duration_s}, {@code sample_rate_hz}), FK vers la session et suppression en cascade.
- */
+/// CRUD du [EnregistrementOriginalDao] + contraintes : colonnes numériques nullables
+/// (`duration_s`, `sample_rate_hz`), FK vers la session et suppression en cascade.
 class EnregistrementOriginalDaoTest {
 
   @TempDir Path dossier;

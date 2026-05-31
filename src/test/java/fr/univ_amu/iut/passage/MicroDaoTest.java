@@ -17,10 +17,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * CRUD du {@link MicroDao} + contraintes : mapping booléen ({@code is_active}), colonnes nullables,
- * FK vers l'enregistreur et suppression en cascade quand l'enregistreur porteur est supprimé.
- */
+/// CRUD du [MicroDao] + contraintes : mapping booléen (`is_active`), colonnes nullables, FK vers
+/// l'enregistreur et suppression en cascade quand l'enregistreur porteur est supprimé.
 class MicroDaoTest {
 
   private static final String SERIE = "1925492";

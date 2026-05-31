@@ -5,15 +5,13 @@ import fr.univ_amu.iut.commun.persistence.RowMapper;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
 import fr.univ_amu.iut.passage.model.Enregistreur;
 
-/**
- * DAO de l'entité {@link Enregistreur} (table {@code recorder}).
- *
- * <p>Comme {@code recorder} a une <b>clé naturelle</b> ({@code serial_number}, en {@code TEXT}) lue
- * depuis le journal du capteur, {@link #insert(Enregistreur)} fait un <b>upsert</b> ({@code INSERT
- * … ON CONFLICT … DO UPDATE}) : rencontrer deux fois le même enregistreur (sur deux passages
- * successifs) rafraîchit ses métadonnées au lieu de violer la contrainte de clé primaire. C'est le
- * patron à recopier pour les entités à clé naturelle alimentées par import.
- */
+/// DAO de l'entité [Enregistreur] (table `recorder`).
+///
+/// Comme `recorder` a une **clé naturelle** (`serial_number`, en `TEXT`) lue depuis le journal du
+/// capteur, [#insert(Enregistreur)] fait un **upsert** (`INSERT … ON CONFLICT … DO UPDATE`) :
+/// rencontrer deux fois le même enregistreur (sur deux passages successifs) rafraîchit ses
+/// métadonnées au lieu de violer la contrainte de clé primaire. C'est le patron à recopier pour
+/// les entités à clé naturelle alimentées par import.
 public class EnregistreurDao extends DaoGenerique<Enregistreur, String> {
 
   private static final RowMapper<Enregistreur> MAPPER =
@@ -42,10 +40,8 @@ public class EnregistreurDao extends DaoGenerique<Enregistreur, String> {
     return MAPPER;
   }
 
-  /**
-   * Insère ou met à jour l'enregistreur (upsert sur la clé naturelle {@code serial_number}).
-   * Renvoie l'entité telle quelle (aucune clé générée pour une clé naturelle).
-   */
+  /// Insère ou met à jour l'enregistreur (upsert sur la clé naturelle `serial_number`). Renvoie
+  /// l'entité telle quelle (aucune clé générée pour une clé naturelle).
   @Override
   public Enregistreur insert(Enregistreur enregistreur) {
     executerMaj(

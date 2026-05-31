@@ -2,6 +2,8 @@ package fr.univ_amu.iut.commun.di;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import fr.univ_amu.iut.bibliotheque.di.BibliothequeModule;
+import fr.univ_amu.iut.diagnostic.di.DiagnosticModule;
 import fr.univ_amu.iut.importation.di.ImportationModule;
 import fr.univ_amu.iut.lot.di.LotModule;
 import fr.univ_amu.iut.multisite.di.MultisiteModule;
@@ -15,8 +17,10 @@ import fr.univ_amu.iut.validation.di.ValidationModule;
  *
  * <p>C'est le seul endroit qui connaît la liste des modules à assembler : le socle ({@link
  * CommunModule} + {@link PersistenceModule}) et l'ensemble des features (sites, passage,
- * qualification, validation, multisite, importation, lot). Chaque feature publie ses DAO et ses
- * services via son propre module Guice ; cette racine se contente de les installer.
+ * qualification, validation, multisite, importation, lot, diagnostic, bibliotheque). Chaque feature
+ * publie ses DAO et ses services via son propre module Guice ; cette racine se contente de les
+ * installer. La feature {@code cli} ne s'installe pas ici : c'est elle qui crée l'injecteur enfant
+ * ({@code RacineInjecteur.creer().createChildInjector(new CliModule())}).
  *
  * <p>Note d'architecture : ce paquet {@code commun.di} dépend des features (il les assemble), ce
  * qui est normal pour une racine de composition. Le test {@code ArchitectureTest} ignore donc
@@ -37,6 +41,8 @@ public final class RacineInjecteur {
         new ValidationModule(),
         new MultisiteModule(),
         new ImportationModule(),
-        new LotModule());
+        new LotModule(),
+        new DiagnosticModule(),
+        new BibliothequeModule());
   }
 }

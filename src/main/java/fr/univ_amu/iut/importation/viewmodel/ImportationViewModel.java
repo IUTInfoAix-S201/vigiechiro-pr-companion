@@ -98,6 +98,11 @@ public class ImportationViewModel {
     // Valeur initiale avant d'installer les écouteurs (évite un recalcul d'aperçu prématuré).
     annee.set(horloge.aujourdhui().getYear());
 
+    // Changer de dossier source invalide l'inspection précédente : un nouveau dossier doit être
+    // ré-inspecté (sinon le bouton Importer resterait actif et l'aperçu garderait l'ancien
+    // rapport).
+    dossierSource.addListener((obs, ancien, nouveau) -> reinitialiserInspection());
+
     // Changer de site recharge ses points et réinitialise le point sélectionné.
     siteSelectionne.addListener(
         (obs, ancien, nouveau) -> {
@@ -240,8 +245,15 @@ public class ImportationViewModel {
   }
 
   private void echouer(String message) {
-    // Réinitialise tout l'état d'inspection : sinon, après une inspection réussie, un échec
-    // ultérieur laisserait les propriétés dérivées sur les valeurs (obsolètes) de l'ancien dossier.
+    reinitialiserInspection();
+    messageErreur.set(message);
+  }
+
+  /// Remet l'état d'inspection à zéro (plus de rapport courant). Appelé quand l'inspection échoue
+  /// **et** quand le dossier source change : un nouveau dossier doit être ré-inspecté avant tout
+  /// import, donc `inspecte` repasse à `false` (et `peutImporter` se désactive). Sans cela, les
+  /// propriétés dérivées resteraient sur les valeurs (obsolètes) du dossier précédent.
+  private void reinitialiserInspection() {
     rapport = null;
     inspecte.set(false);
     aUnJournal.set(false);
@@ -249,7 +261,7 @@ public class ImportationViewModel {
     nombreOriginaux.set(0);
     etatNommage.set(null);
     resumeJournal.set("");
-    messageErreur.set(message);
+    messageErreur.set("");
     majApercu();
   }
 

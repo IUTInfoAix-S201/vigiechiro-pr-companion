@@ -205,6 +205,27 @@ class ImportationViewModelTest {
     assertThat(viewModel.peutImporter().get()).isTrue();
   }
 
+  @Test
+  @DisplayName(
+      "Changer de dossier source après inspection invalide l'inspection (réinspection requise)")
+  void changer_dossier_reinitialise_l_inspection() {
+    Site site = site(1L, "640380");
+    PointDEcoute point = point(10L, "A1", site.id());
+    when(serviceSites.listerPoints(site.id())).thenReturn(List.of(point));
+    when(serviceImport.inspecter(sd)).thenReturn(inspecteur.inspecter(sd));
+    viewModel.dossierSourceProperty().set(sd);
+    viewModel.inspecter();
+    viewModel.siteSelectionneProperty().set(site);
+    viewModel.pointSelectionneProperty().set(point);
+    assertThat(viewModel.peutImporter().get()).isTrue();
+
+    viewModel.dossierSourceProperty().set(racine.resolve("autre"));
+
+    assertThat(viewModel.estInspecte()).isFalse();
+    assertThat(viewModel.peutImporter().get()).isFalse();
+    assertThat(viewModel.nombreOriginauxProperty().get()).isZero();
+  }
+
   private static Site site(Long id, String carre) {
     return new Site(id, carre, "Site " + carre, Protocole.STANDARD, null, "2026-05-31", ID_USER);
   }

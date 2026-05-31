@@ -15,35 +15,30 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-/**
- * Service métier de la feature {@code multisite} : construit la <b>vue agrégée multi-sites</b> du
- * parcours P5 (épopée E5), un tableau haute densité listant tous les passages de tous les sites
- * d'un utilisateur avec leurs informations clés. Suit le patron du service de référence {@code
- * ServiceSites} : pure Java testable, dépendances reçues par constructeur, aucun import JavaFX.
- *
- * <p>Trois responsabilités :
- *
- * <ul>
- *   <li><b>Agrégation</b> ({@link #listerPassages(String)}) : croise les DAO de {@code sites}
- *       (sites + points) et de {@code passage} pour aplatir chaque passage en {@link LignePassage}
- *       (P5-CA2). Lecture seule.
- *   <li><b>Tri et filtres</b> ({@link FiltresMultisite}, {@link TriMultisite}) : filtrage par site,
- *       statut, verdict, année ; tri stable et déterministe sur ces mêmes axes.
- *   <li><b>Vues sauvegardées</b> (CRUD sur {@link SavedViewDao}) : enregistre/charge un jeu de
- *       filtres sérialisé en JSON ({@code saved_view.filters_json}, story E5.S3).
- * </ul>
- *
- * <p>Dépendances inter-features (lecture seule des DAO, jamais des vues) : {@code multisite →
- * sites} et {@code multisite → passage}. Aucune feature ne dépendant de {@code multisite}, le
- * graphe reste acyclique (contrôlé par {@code ArchitectureTest}).
- *
- * <p>L'{@link Horloge} est reçue par constructeur (patron du service de référence) et sert à la vue
- * « saison courante » ({@link #listerPassagesDeLaSaison(String)}), pour rester déterministe en test
- * plutôt que d'appeler {@code LocalDate.now()}.
- */
+/// Service métier de la feature `multisite` : construit la **vue agrégée multi-sites** du
+/// parcours P5 (épopée E5), un tableau haute densité listant tous les passages de tous les sites
+/// d'un utilisateur avec leurs informations clés. Suit le patron du service de référence
+/// `ServiceSites` : pure Java testable, dépendances reçues par constructeur, aucun import JavaFX.
+///
+/// Trois responsabilités :
+///
+/// - **Agrégation** ([#listerPassages(String)]) : croise les DAO de `sites` (sites + points) et
+///   de `passage` pour aplatir chaque passage en [LignePassage] (P5-CA2). Lecture seule.
+/// - **Tri et filtres** ([FiltresMultisite], [TriMultisite]) : filtrage par site, statut, verdict,
+///   année ; tri stable et déterministe sur ces mêmes axes.
+/// - **Vues sauvegardées** (CRUD sur [SavedViewDao]) : enregistre/charge un jeu de filtres
+///   sérialisé en JSON (`saved_view.filters_json`, story E5.S3).
+///
+/// Dépendances inter-features (lecture seule des DAO, jamais des vues) : `multisite → sites` et
+/// `multisite → passage`. Aucune feature ne dépendant de `multisite`, le graphe reste acyclique
+/// (contrôlé par `ArchitectureTest`).
+///
+/// L'[Horloge] est reçue par constructeur (patron du service de référence) et sert à la vue
+/// « saison courante » ([#listerPassagesDeLaSaison(String)]), pour rester déterministe en test
+/// plutôt que d'appeler `LocalDate.now()`.
 public class ServiceMultisite {
 
-  /** En-tête du tableau / export CSV : ordre stable des colonnes (P5-CA2). */
+  /// En-tête du tableau / export CSV : ordre stable des colonnes (P5-CA2).
   private static final List<String> ENTETE =
       List.of("site", "point", "annee", "passage", "date", "statut", "verdict");
 
@@ -68,26 +63,24 @@ public class ServiceMultisite {
 
   // --- Agrégation, tri, filtres ---
 
-  /** Tous les passages de tous les sites de l'utilisateur, tri de lecture par défaut (par site). */
+  /// Tous les passages de tous les sites de l'utilisateur, tri de lecture par défaut (par site).
   public List<LignePassage> listerPassages(String idUtilisateur) {
     return listerPassages(idUtilisateur, FiltresMultisite.aucun(), TriMultisite.PAR_SITE);
   }
 
-  /** Passages filtrés, tri de lecture par défaut (par site). */
+  /// Passages filtrés, tri de lecture par défaut (par site).
   public List<LignePassage> listerPassages(String idUtilisateur, FiltresMultisite filtres) {
     return listerPassages(idUtilisateur, filtres, TriMultisite.PAR_SITE);
   }
 
-  /**
-   * Vue agrégée des passages de l'utilisateur, filtrée puis triée.
-   *
-   * <p>Parcourt les sites de l'utilisateur ({@link SiteDao#findByUtilisateur(String)}), leurs
-   * points ({@link PointDao#findBySite(Long)}) et les passages de chaque point ({@link
-   * PassageDao#findByPoint(Long)}), aplatit chaque passage en {@link LignePassage}, ne conserve que
-   * les lignes acceptées par {@code filtres}, et trie selon {@code tri}.
-   *
-   * @return liste mutable et triée (sûre à réordonner par l'appelant)
-   */
+  /// Vue agrégée des passages de l'utilisateur, filtrée puis triée.
+  ///
+  /// Parcourt les sites de l'utilisateur ([SiteDao#findByUtilisateur(String)]), leurs
+  /// points ([PointDao#findBySite(Long)]) et les passages de chaque point
+  /// ([PassageDao#findByPoint(Long)]), aplatit chaque passage en [LignePassage], ne conserve que
+  /// les lignes acceptées par `filtres`, et trie selon `tri`.
+  ///
+  /// @return liste mutable et triée (sûre à réordonner par l'appelant)
   public List<LignePassage> listerPassages(
       String idUtilisateur, FiltresMultisite filtres, TriMultisite tri) {
     Objects.requireNonNull(idUtilisateur, "idUtilisateur");
@@ -117,20 +110,16 @@ public class ServiceMultisite {
     return lignes;
   }
 
-  /**
-   * Vue « saison courante » : passages de l'année lue de l'{@link Horloge} (P5-CA1 « nb passages de
-   * la saison »). Tri de lecture par défaut.
-   */
+  /// Vue « saison courante » : passages de l'année lue de l'[Horloge] (P5-CA1 « nb passages de
+  /// la saison »). Tri de lecture par défaut.
   public List<LignePassage> listerPassagesDeLaSaison(String idUtilisateur) {
     int saison = horloge.aujourdhui().getYear();
     return listerPassages(idUtilisateur, FiltresMultisite.parAnnee(saison));
   }
 
-  /**
-   * Sérialise des lignes de la vue en CSV déterministe (en-tête + une ligne par passage), via
-   * l'écrivain partagé {@link EcrivainCsv}. Format identique à toute exécution (support des exports
-   * P5-CA5 et des tests « golden »). Un verdict absent est rendu par une cellule vide.
-   */
+  /// Sérialise des lignes de la vue en CSV déterministe (en-tête + une ligne par passage), via
+  /// l'écrivain partagé [EcrivainCsv]. Format identique à toute exécution (support des exports
+  /// P5-CA5 et des tests « golden »). Un verdict absent est rendu par une cellule vide.
   public String exporterCsv(List<LignePassage> lignes) {
     Objects.requireNonNull(lignes, "lignes");
     List<List<String>> table = new ArrayList<>();
@@ -151,29 +140,25 @@ public class ServiceMultisite {
 
   // --- Vues sauvegardées (CRUD) ---
 
-  /**
-   * Enregistre un jeu de filtres sous un nom (story E5.S3). Les critères sont sérialisés en JSON
-   * dans {@code saved_view.filters_json}.
-   *
-   * @return la vue insérée, avec son {@code id} auto-généré
-   */
+  /// Enregistre un jeu de filtres sous un nom (story E5.S3). Les critères sont sérialisés en JSON
+  /// dans `saved_view.filters_json`.
+  ///
+  /// @return la vue insérée, avec son `id` auto-généré
   public SavedView enregistrerVue(String nom, FiltresMultisite filtres) {
     Objects.requireNonNull(nom, "nom");
     Objects.requireNonNull(filtres, "filtres");
     return savedViewDao.insert(new SavedView(null, nom, FiltresMultisiteJson.serialiser(filtres)));
   }
 
-  /** Toutes les vues sauvegardées (menu « ⭐ Mes vues »). */
+  /// Toutes les vues sauvegardées (menu « ⭐ Mes vues »).
   public List<SavedView> listerVues() {
     return savedViewDao.findAll();
   }
 
-  /**
-   * Recharge les critères d'une vue sauvegardée (rejoue une combinaison de filtres sans la
-   * ressaisir).
-   *
-   * @throws RegleMetierException si aucune vue ne porte cet identifiant
-   */
+  /// Recharge les critères d'une vue sauvegardée (rejoue une combinaison de filtres sans la
+  /// ressaisir).
+  ///
+  /// @throws RegleMetierException si aucune vue ne porte cet identifiant
   public FiltresMultisite chargerVue(Long idVue) {
     SavedView vue =
         savedViewDao
@@ -182,22 +167,18 @@ public class ServiceMultisite {
     return FiltresMultisiteJson.interpreter(vue.filtresJson());
   }
 
-  /**
-   * Applique une vue sauvegardée à la vue agrégée : charge ses filtres puis liste les passages
-   * correspondants (tri de lecture par défaut).
-   *
-   * @throws RegleMetierException si aucune vue ne porte cet identifiant
-   */
+  /// Applique une vue sauvegardée à la vue agrégée : charge ses filtres puis liste les passages
+  /// correspondants (tri de lecture par défaut).
+  ///
+  /// @throws RegleMetierException si aucune vue ne porte cet identifiant
   public List<LignePassage> appliquerVue(String idUtilisateur, Long idVue) {
     return listerPassages(idUtilisateur, chargerVue(idVue));
   }
 
-  /**
-   * Met à jour le nom et les critères d'une vue existante.
-   *
-   * @return la vue mise à jour
-   * @throws RegleMetierException si aucune vue ne porte cet identifiant
-   */
+  /// Met à jour le nom et les critères d'une vue existante.
+  ///
+  /// @return la vue mise à jour
+  /// @throws RegleMetierException si aucune vue ne porte cet identifiant
   public SavedView mettreAJourVue(Long idVue, String nouveauNom, FiltresMultisite filtres) {
     Objects.requireNonNull(nouveauNom, "nouveauNom");
     Objects.requireNonNull(filtres, "filtres");
@@ -211,7 +192,7 @@ public class ServiceMultisite {
     return miseAJour;
   }
 
-  /** Supprime une vue sauvegardée (idempotent : sans effet si elle n'existe pas). */
+  /// Supprime une vue sauvegardée (idempotent : sans effet si elle n'existe pas).
   public void supprimerVue(Long idVue) {
     savedViewDao.delete(idVue);
   }

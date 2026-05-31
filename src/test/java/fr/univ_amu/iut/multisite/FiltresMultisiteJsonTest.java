@@ -9,11 +9,9 @@ import fr.univ_amu.iut.multisite.model.FiltresMultisiteJson;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests purs (sans base ni mock) de la sérialisation aller-retour des filtres vers {@code
- * filters_json}. Vérifie le format JSON émis, l'aller-retour fidèle (y compris avec libellés
- * accentués) et l'omission des critères {@code null}.
- */
+/// Tests purs (sans base ni mock) de la sérialisation aller-retour des filtres vers
+/// `filters_json`. Vérifie le format JSON émis, l'aller-retour fidèle (y compris avec libellés
+/// accentués) et l'omission des critères `null`.
 class FiltresMultisiteJsonTest {
 
   @Test

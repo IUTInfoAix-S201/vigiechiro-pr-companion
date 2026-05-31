@@ -7,25 +7,21 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 
-/**
- * Sérialisation aller-retour d'un {@link FiltresMultisite} vers la colonne {@code
- * saved_view.filters_json} (story E5.S3, « ⭐ Mes vues »).
- *
- * <p><b>Écriture</b> : déléguée à l'utilitaire partagé {@link JsonSimple} (format JSON
- * déterministe, sans dépendance externe — {@code pom.xml} et {@code module-info.java} sont gelés).
- * Seuls les critères <b>renseignés</b> sont émis (un critère {@code null} est absent du JSON), ce
- * qui produit un objet plat de paires {@code "clé":"valeur"} : {@code
- * {"site":"640380","annee":"2026"}}.
- *
- * <p><b>Lecture</b> : {@link JsonSimple} n'expose pas de parseur, on relit donc ici l'objet plat
- * produit à l'écriture (parseur minimal, symétrique de {@link JsonSimple#echapper(String)}). Les
- * énumérations sont relues par leur {@code libelle()} (cohérent avec le mapping des colonnes énum
- * du schéma), jamais par {@code name()}.
- *
- * <p>Les clés JSON ({@code site}, {@code statut}, {@code verdict}, {@code annee}) sont
- * <b>internes</b> à cette feature : elles décrivent le contenu de {@code filters_json}, indépendant
- * des noms de colonnes SQL.
- */
+/// Sérialisation aller-retour d'un [FiltresMultisite] vers la colonne
+/// `saved_view.filters_json` (story E5.S3, « ⭐ Mes vues »).
+///
+/// **Écriture** : déléguée à l'utilitaire partagé [JsonSimple] (format JSON
+/// déterministe, sans dépendance externe — `pom.xml` et `module-info.java` sont gelés).
+/// Seuls les critères **renseignés** sont émis (un critère `null` est absent du JSON), ce
+/// qui produit un objet plat de paires `"clé":"valeur"` : `{"site":"640380","annee":"2026"}`.
+///
+/// **Lecture** : [JsonSimple] n'expose pas de parseur, on relit donc ici l'objet plat
+/// produit à l'écriture (parseur minimal, symétrique de [JsonSimple#echapper(String)]). Les
+/// énumérations sont relues par leur `libelle()` (cohérent avec le mapping des colonnes énum
+/// du schéma), jamais par `name()`.
+///
+/// Les clés JSON (`site`, `statut`, `verdict`, `annee`) sont **internes** à cette feature : elles
+/// décrivent le contenu de `filters_json`, indépendant des noms de colonnes SQL.
 public final class FiltresMultisiteJson {
 
   private static final String CLE_SITE = "site";
@@ -35,9 +31,8 @@ public final class FiltresMultisiteJson {
 
   private FiltresMultisiteJson() {}
 
-  /**
-   * Sérialise les critères en JSON (déterministe : clés dans l'ordre site, statut, verdict, année).
-   */
+  /// Sérialise les critères en JSON (déterministe : clés dans l'ordre site, statut, verdict,
+  /// année).
   public static String serialiser(FiltresMultisite filtres) {
     Objects.requireNonNull(filtres, "filtres");
     Map<String, String> champs = new LinkedHashMap<>();
@@ -56,7 +51,7 @@ public final class FiltresMultisiteJson {
     return JsonSimple.objet(champs);
   }
 
-  /** Reconstruit les critères depuis le JSON produit par {@link #serialiser(FiltresMultisite)}. */
+  /// Reconstruit les critères depuis le JSON produit par [#serialiser(FiltresMultisite)].
   public static FiltresMultisite interpreter(String json) {
     Objects.requireNonNull(json, "json");
     Map<String, String> champs = parserObjetPlat(json);
@@ -69,11 +64,9 @@ public final class FiltresMultisiteJson {
     return new FiltresMultisite(site, statut, verdict, annee);
   }
 
-  /**
-   * Parseur minimal d'un objet JSON <b>plat</b> à valeurs textuelles ({@code {"k":"v","k2":"v2"}}),
-   * symétrique de {@link JsonSimple#objet(Map)}. Ne gère pas les objets/ tableaux imbriqués : c'est
-   * suffisant pour {@code filters_json}, dont cette feature maîtrise le format des deux côtés.
-   */
+  /// Parseur minimal d'un objet JSON **plat** à valeurs textuelles (`{"k":"v","k2":"v2"}`),
+  /// symétrique de [JsonSimple#objet(Map)]. Ne gère pas les objets/ tableaux imbriqués : c'est
+  /// suffisant pour `filters_json`, dont cette feature maîtrise le format des deux côtés.
   private static Map<String, String> parserObjetPlat(String json) {
     Map<String, String> resultat = new LinkedHashMap<>();
     String s = json.strip();
@@ -118,11 +111,9 @@ public final class FiltresMultisiteJson {
     }
   }
 
-  /**
-   * Lit une chaîne JSON à partir du guillemet ouvrant pointé par {@code curseur}, en dés-échappant
-   * les séquences produites par {@link JsonSimple#echapper(String)} ({@code \" \\ \n \r \t} et
-   * {@code \\uXXXX}). À la sortie, {@code curseur} pointe juste après le guillemet fermant.
-   */
+  /// Lit une chaîne JSON à partir du guillemet ouvrant pointé par `curseur`, en dés-échappant
+  /// les séquences produites par [JsonSimple#echapper(String)] (`\" \\ \n \r \t` et
+  /// `\\uXXXX`). À la sortie, `curseur` pointe juste après le guillemet fermant.
   private static String lireChaine(String s, int[] curseur) {
     int i = curseur[0];
     if (i >= s.length() || s.charAt(i) != '"') {

@@ -22,13 +22,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Filet de câblage Guice de la feature {@code multisite} : on exerce {@link MultisiteModule} au-
- * dessus d'un petit module local fournissant les feuilles dont {@link ServiceMultisite} dépend (la
- * {@link SourceDeDonnees}, les DAO des features {@code sites}/{@code passage} et l'{@link
- * Horloge}). On vérifie ainsi que les méthodes {@code @Provides} assemblent correctement le DAO et
- * le service (la racine de composition réelle est validée à part par {@code RacineInjecteurTest}).
- */
+/// Filet de câblage Guice de la feature `multisite` : on exerce [MultisiteModule]
+/// au-dessus d'un petit module local fournissant les feuilles dont [ServiceMultisite] dépend (la
+/// [SourceDeDonnees], les DAO des features `sites`/`passage` et l'[Horloge]). On vérifie ainsi
+/// que les méthodes `@Provides` assemblent correctement le DAO et
+/// le service (la racine de composition réelle est validée à part par `RacineInjecteurTest`).
 class MultisiteModuleTest {
 
   @TempDir Path workspaceJetable;

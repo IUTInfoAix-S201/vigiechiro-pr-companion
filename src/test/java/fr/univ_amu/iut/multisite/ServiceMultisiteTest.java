@@ -36,23 +36,21 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Tests du service {@link ServiceMultisite} sur une base SQLite jetable ({@code @TempDir} + {@link
- * MigrationSchema}), comme les {@code *DaoTest}. On instancie les vrais DAO des features {@code
- * sites} et {@code passage} et une {@link HorlogeFigee}, puis on sème plusieurs sites / points /
- * passages pour vérifier l'agrégation, les filtres, le tri et le CRUD des vues sauvegardées.
- *
- * <p>Jeu de données (utilisateur {@code u-1}) — ordre de lecture par défaut (site, point, année,
- * n°) :
- *
- * <pre>
- *   #1  640380 / A1 / 2025 / 1  → Transformé , OK
- *   #2  640380 / A1 / 2026 / 1  → Vérifié    , Douteux
- *   #3  640380 / B2 / 2026 / 1  → Importé    , (non vérifié)
- *   #4  640381 / A1 / 2026 / 1  → Déposé     , OK
- *   #5  640381 / A1 / 2026 / 2  → Vérifié    , À jeter
- * </pre>
- */
+/// Tests du service [ServiceMultisite] sur une base SQLite jetable (`@TempDir` +
+/// [MigrationSchema]), comme les `*DaoTest`. On instancie les vrais DAO des features `sites`
+/// et `passage` et une [HorlogeFigee], puis on sème plusieurs sites / points /
+/// passages pour vérifier l'agrégation, les filtres, le tri et le CRUD des vues sauvegardées.
+///
+/// Jeu de données (utilisateur `u-1`) — ordre de lecture par défaut (site, point, année,
+/// n°) :
+///
+/// ```
+///   #1  640380 / A1 / 2025 / 1  → Transformé , OK
+///   #2  640380 / A1 / 2026 / 1  → Vérifié    , Douteux
+///   #3  640380 / B2 / 2026 / 1  → Importé    , (non vérifié)
+///   #4  640381 / A1 / 2026 / 1  → Déposé     , OK
+///   #5  640381 / A1 / 2026 / 2  → Vérifié    , À jeter
+/// ```
 class ServiceMultisiteTest {
 
   private static final String ID_USER = "u-1";

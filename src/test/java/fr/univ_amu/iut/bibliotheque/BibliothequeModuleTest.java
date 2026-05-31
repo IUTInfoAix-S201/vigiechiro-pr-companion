@@ -17,13 +17,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Filet de câblage Guice de la feature {@code bibliotheque} : {@link BibliothequeModule} n'étant
- * pas (encore) installé dans {@code RacineInjecteur} (fichier gelé pour cette tâche), on l'exerce
- * ici au-dessus d'un module local fournissant les DAO feuilles dont il dépend ({@link
- * ObservationDao} de {@code validation}, {@link SequenceDao} de {@code passage}). On vérifie ainsi
- * que la méthode {@code @Provides} assemble correctement {@link ServiceBibliotheque}.
- */
+/// Filet de câblage Guice de la feature `bibliotheque` : [BibliothequeModule] n'étant
+/// pas (encore) installé dans `RacineInjecteur` (fichier gelé pour cette tâche), on l'exerce
+/// ici au-dessus d'un module local fournissant les DAO feuilles dont il dépend ([ObservationDao]
+/// de `validation`, [SequenceDao] de `passage`). On vérifie ainsi
+/// que la méthode `@Provides` assemble correctement [ServiceBibliotheque].
 class BibliothequeModuleTest {
 
   @TempDir Path workspaceJetable;

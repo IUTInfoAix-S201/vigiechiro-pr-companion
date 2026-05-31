@@ -6,15 +6,13 @@ import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
 import fr.univ_amu.iut.multisite.model.SavedView;
 import java.util.List;
 
-/**
- * DAO de l'entité {@link SavedView} (table {@code saved_view}). CRUD simple sur une table autonome
- * (sans clé étrangère) : le contenu des critères est conservé tel quel dans la colonne JSON {@code
- * filters_json}.
- *
- * <p>{@code findAll} / {@code findById} / {@code delete} sont hérités de {@link DaoGenerique}.
- * Seules les écritures dépendantes des colonnes ({@code insert} / {@code update}) et la requête
- * métier {@link #findByNom(String)} sont écrites ici, en {@link java.sql.PreparedStatement}.
- */
+/// DAO de l'entité [SavedView] (table `saved_view`). CRUD simple sur une table autonome
+/// (sans clé étrangère) : le contenu des critères est conservé tel quel dans la colonne JSON
+/// `filters_json`.
+///
+/// `findAll` / `findById` / `delete` sont hérités de [DaoGenerique].
+/// Seules les écritures dépendantes des colonnes (`insert` / `update`) et la requête
+/// métier [#findByNom(String)] sont écrites ici, en [java.sql.PreparedStatement].
 public class SavedViewDao extends DaoGenerique<SavedView, Long> {
 
   private static final RowMapper<SavedView> MAPPER =
@@ -39,7 +37,7 @@ public class SavedViewDao extends DaoGenerique<SavedView, Long> {
     return MAPPER;
   }
 
-  /** Vues enregistrées sous un nom donné, triées par identifiant (le nom n'est pas unique). */
+  /// Vues enregistrées sous un nom donné, triées par identifiant (le nom n'est pas unique).
   public List<SavedView> findByNom(String nom) {
     return query("SELECT * FROM saved_view WHERE name = ? ORDER BY id", MAPPER, nom);
   }

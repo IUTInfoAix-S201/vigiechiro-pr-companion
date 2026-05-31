@@ -7,24 +7,21 @@ import fr.univ_amu.iut.bibliotheque.model.ServiceBibliotheque;
 import fr.univ_amu.iut.passage.model.dao.SequenceDao;
 import fr.univ_amu.iut.validation.model.dao.ObservationDao;
 
-/**
- * Module Guice de la feature {@code bibliotheque} : assemble {@link ServiceBibliotheque} à partir
- * des DAO publiés par les autres features ({@link ObservationDao} de {@code validation}, {@link
- * SequenceDao} de {@code passage}).
- *
- * <p>Même patron que {@code SitesModule} / {@code LotModule} : une méthode
- * {@code @Provides @Singleton} câble un service resté <b>sans annotation d'injection</b> (objet
- * Java ordinaire, instanciable à la main dans les tests). Les DAO inter-feature sont reçus en
- * lecture seule (sens autorisé {@code bibliotheque → validation} et {@code bibliotheque → passage},
- * graphe acyclique).
- *
- * <p><b>Intégration</b> : ce module n'est <b>pas (encore) installé</b> dans {@code RacineInjecteur}
- * (fichier gelé pour cette tâche). Son câblage est validé en isolation par {@code
- * BibliothequeModuleTest} (injecteur local fournissant les DAO feuilles). Pour le rendre résoluble
- * par l'injecteur applicatif, ajouter {@code new BibliothequeModule()} à {@code
- * RacineInjecteur.creer()} (et installer aussi {@code ValidationModule} et {@code PassageModule}
- * qui fournissent ses DAO — {@code PassageModule} et {@code ValidationModule} y sont déjà).
- */
+/// Module Guice de la feature `bibliotheque` : assemble [ServiceBibliotheque] à partir
+/// des DAO publiés par les autres features ([ObservationDao] de `validation`, [SequenceDao] de
+/// `passage`).
+///
+/// Même patron que `SitesModule` / `LotModule` : une méthode `@Provides @Singleton` câble un
+/// service resté **sans annotation d'injection** (objet Java ordinaire, instanciable à la main dans
+/// les tests). Les DAO inter-feature sont reçus en lecture seule (sens autorisé `bibliotheque →
+/// validation` et `bibliotheque → passage`, graphe acyclique).
+///
+/// **Intégration** : ce module n'est **pas (encore) installé** dans `RacineInjecteur` (fichier gelé
+/// pour cette tâche). Son câblage est validé en isolation par `BibliothequeModuleTest` (injecteur
+/// local fournissant les DAO feuilles). Pour le rendre résoluble par l'injecteur applicatif,
+/// ajouter `new BibliothequeModule()` à `RacineInjecteur.creer()` (et installer aussi
+/// `ValidationModule` et `PassageModule` qui fournissent ses DAO — `PassageModule` et
+/// `ValidationModule` y sont déjà).
 public class BibliothequeModule extends AbstractModule {
 
   @Provides

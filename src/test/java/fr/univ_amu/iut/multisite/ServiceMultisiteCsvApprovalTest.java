@@ -29,13 +29,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Test « golden » de l'export CSV de la vue agrégée (P5-CA5), via ApprovalTests : le CSV produit
- * par {@link ServiceMultisite#exporterCsv} est comparé octet pour octet au fichier de référence
- * {@code .approved.txt}. Verrouille le déterminisme (ordre des colonnes, tri stable, cellule de
- * verdict vide pour un passage non vérifié). {@link QuietReporter} évite tout outil de diff
- * interactif en cas d'écart (compatible CI headless).
- */
+/// Test « golden » de l'export CSV de la vue agrégée (P5-CA5), via ApprovalTests : le CSV produit
+/// par [ServiceMultisite#exporterCsv] est comparé octet pour octet au fichier de référence
+/// `.approved.txt`. Verrouille le déterminisme (ordre des colonnes, tri stable, cellule de
+/// verdict vide pour un passage non vérifié). [QuietReporter] évite tout outil de diff
+/// interactif en cas d'écart (compatible CI headless).
 @UseReporter(QuietReporter.class)
 class ServiceMultisiteCsvApprovalTest {
 

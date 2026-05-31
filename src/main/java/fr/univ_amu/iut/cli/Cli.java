@@ -29,80 +29,68 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-/**
- * Point d'entrée <b>en ligne de commande</b> (sans JavaFX) du compagnon VigieChiro (parcours A10 :
- * scriptabilité pour Karim/Samuel). Orchestre les services métier existants ({@link ServiceImport},
- * {@link ServiceLot}, lecture multi-sites…) résolus via l'injecteur Guice applicatif complet
- * ({@link RacineInjecteur#creer()}), enrichi des aides propres à la CLI ({@link CliModule}).
- *
- * <p><b>Sous-commandes</b> (analyse manuelle, sans bibliothèque tierce pour ne pas toucher au
- * {@code pom.xml}/{@code module-info}) :
- *
- * <ul>
- *   <li>{@code lister-passages} — liste les passages avec leur contexte site/point (P5) ;
- *   <li>{@code importer --source <dir> --point <id> [--annee N] [--passage N]} — importe une nuit
- *       (P2) via {@link ServiceImport} ;
- *   <li>{@code exporter-lot --passage <id>} — prépare le lot à déposer (P4) via {@link ServiceLot}
- *       ;
- *   <li>{@code exporter-vu --passage <id> --sortie <fichier>} — exporte le {@code *_Vu.csv} (P7)
- *       via {@link ServiceValidation}.
- * </ul>
- *
- * <p><b>Workspace surchargeable.</b> Le chemin du workspace (et donc de la base {@code
- * vigiechiro.db}) est surchargé par la propriété système {@code vigiechiro.workspace} (lue par
- * {@code CommunModule}). {@link #main(String[])} accepte l'option globale {@code --workspace <dir>}
- * et la positionne <b>avant</b> de créer l'injecteur ; les tests, eux, positionnent la propriété
- * directement sur un {@code @TempDir}.
- *
- * <p><b>Codes de sortie</b> : {@code 0} succès, {@code 2} mauvaise invocation (commande inconnue,
- * argument manquant), {@code 1} échec d'exécution (règle métier, accès aux données).
- */
+/// Point d'entrée **en ligne de commande** (sans JavaFX) du compagnon VigieChiro (parcours A10 :
+/// scriptabilité pour Karim/Samuel). Orchestre les services métier existants ([ServiceImport],
+/// [ServiceLot], lecture multi-sites…) résolus via l'injecteur Guice applicatif complet
+/// ([RacineInjecteur#creer()]), enrichi des aides propres à la CLI ([CliModule]).
+///
+/// **Sous-commandes** (analyse manuelle, sans bibliothèque tierce pour ne pas toucher au
+/// `pom.xml`/`module-info`) :
+///
+/// - `lister-passages` — liste les passages avec leur contexte site/point (P5) ;
+/// - `importer --source <dir> --point <id> [--annee N] [--passage N]` — importe une nuit (P2) via
+///   [ServiceImport] ;
+/// - `exporter-lot --passage <id>` — prépare le lot à déposer (P4) via [ServiceLot] ;
+/// - `exporter-vu --passage <id> --sortie <fichier>` — exporte le `*_Vu.csv` (P7) via
+///   [ServiceValidation].
+///
+/// **Workspace surchargeable.** Le chemin du workspace (et donc de la base `vigiechiro.db`) est
+/// surchargé par la propriété système `vigiechiro.workspace` (lue par `CommunModule`).
+/// [#main(String[])] accepte l'option globale `--workspace <dir>` et la positionne **avant** de
+/// créer l'injecteur ; les tests, eux, positionnent la propriété directement sur un `@TempDir`.
+///
+/// **Codes de sortie** : `0` succès, `2` mauvaise invocation (commande inconnue, argument
+/// manquant), `1` échec d'exécution (règle métier, accès aux données).
 public final class Cli {
 
-  /** Succès. */
+  /// Succès.
   public static final int CODE_SUCCES = 0;
 
-  /** Échec d'exécution (règle métier refusée, accès aux données, E/S). */
+  /// Échec d'exécution (règle métier refusée, accès aux données, E/S).
   public static final int CODE_ERREUR_EXECUTION = 1;
 
-  /** Mauvaise invocation : commande inconnue, argument requis manquant ou mal formé. */
+  /// Mauvaise invocation : commande inconnue, argument requis manquant ou mal formé.
   public static final int CODE_ERREUR_ARGUMENTS = 2;
 
   private final Injector injecteur;
 
-  /**
-   * @param injecteur injecteur Guice résolvant le socle, les features et le {@link CliModule}
-   *     (typiquement {@link #injecteurApplicatif()})
-   */
+  /// @param injecteur injecteur Guice résolvant le socle, les features et le [CliModule]
+  ///     (typiquement [#injecteurApplicatif()])
   public Cli(Injector injecteur) {
     this.injecteur = Objects.requireNonNull(injecteur, "injecteur");
   }
 
-  /**
-   * Injecteur applicatif complet ({@link RacineInjecteur#creer()}) augmenté du {@link CliModule} en
-   * injecteur enfant. À appeler après avoir éventuellement positionné {@code vigiechiro.workspace}.
-   */
+  /// Injecteur applicatif complet ([RacineInjecteur#creer()]) augmenté du [CliModule] en
+  /// injecteur enfant. À appeler après avoir éventuellement positionné `vigiechiro.workspace`.
   public static Injector injecteurApplicatif() {
     return RacineInjecteur.creer().createChildInjector(new CliModule());
   }
 
-  /** CLI prête à l'emploi, branchée sur l'injecteur applicatif complet. */
+  /// CLI prête à l'emploi, branchée sur l'injecteur applicatif complet.
   public static Cli applicative() {
     return new Cli(injecteurApplicatif());
   }
 
-  /**
-   * Exécute une invocation et renvoie son code de sortie (sans appeler {@code System.exit}, pour
-   * rester testable). La base est migrée au démarrage (idempotent), puis la sous-commande est
-   * dispatchée.
-   *
-   * @param args arguments (le premier est le nom de la sous-commande), {@code --workspace} déjà
-   *     consommé par {@link #main(String[])}
-   * @param sortie flux du compte rendu (typiquement {@code System.out})
-   * @param erreur flux des messages d'erreur (typiquement {@code System.err})
-   * @return le code de sortie ({@link #CODE_SUCCES} / {@link #CODE_ERREUR_ARGUMENTS} / {@link
-   *     #CODE_ERREUR_EXECUTION})
-   */
+  /// Exécute une invocation et renvoie son code de sortie (sans appeler `System.exit`, pour
+  /// rester testable). La base est migrée au démarrage (idempotent), puis la sous-commande est
+  /// dispatchée.
+  ///
+  /// @param args arguments (le premier est le nom de la sous-commande), `--workspace` déjà
+  ///     consommé par [#main(String[])]
+  /// @param sortie flux du compte rendu (typiquement `System.out`)
+  /// @param erreur flux des messages d'erreur (typiquement `System.err`)
+  /// @return le code de sortie ([#CODE_SUCCES] / [#CODE_ERREUR_ARGUMENTS] /
+  ///     [#CODE_ERREUR_EXECUTION])
   public int executer(String[] args, PrintStream sortie, PrintStream erreur) {
     if (args.length == 0
         || args[0].equals("aide")
@@ -294,11 +282,9 @@ public final class Cli {
         "  --workspace <dir>   Surcharge le workspace (sinon <Documents>/VigieChiro-Companion).");
   }
 
-  /**
-   * Point d'entrée processus : extrait l'option globale {@code --workspace}, positionne la
-   * propriété système {@code vigiechiro.workspace} avant de bâtir l'injecteur, exécute la commande
-   * puis sort avec le code retourné.
-   */
+  /// Point d'entrée processus : extrait l'option globale `--workspace`, positionne la
+  /// propriété système `vigiechiro.workspace` avant de bâtir l'injecteur, exécute la commande
+  /// puis sort avec le code retourné.
   public static void main(String[] args) {
     List<String> restants = new ArrayList<>();
     String workspace = extraireWorkspace(args, restants);
@@ -309,10 +295,8 @@ public final class Cli {
     System.exit(code);
   }
 
-  /**
-   * Retire l'option globale {@code --workspace <dir>} du tableau d'arguments (où qu'elle se trouve)
-   * et renvoie sa valeur, en accumulant les autres jetons dans {@code restants}.
-   */
+  /// Retire l'option globale `--workspace <dir>` du tableau d'arguments (où qu'elle se trouve)
+  /// et renvoie sa valeur, en accumulant les autres jetons dans `restants`.
   static String extraireWorkspace(String[] args, List<String> restants) {
     String workspace = null;
     for (int i = 0; i < args.length; i++) {

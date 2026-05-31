@@ -15,12 +15,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * CRUD du {@link SavedViewDao} sur une base SQLite jetable (@TempDir), initialisée par {@link
- * MigrationSchema}. La table {@code saved_view} est autonome (aucune clé étrangère) : on vérifie le
- * CRUD relisible, la requête métier {@code findByNom}, et les contraintes {@code NOT NULL} sur le
- * nom et sur le JSON des filtres.
- */
+/// CRUD du [SavedViewDao] sur une base SQLite jetable (@TempDir), initialisée par
+/// [MigrationSchema]. La table `saved_view` est autonome (aucune clé étrangère) : on vérifie le
+/// CRUD relisible, la requête métier `findByNom`, et les contraintes `NOT NULL` sur le
+/// nom et sur le JSON des filtres.
 class SavedViewDaoTest {
 
   @TempDir Path dossier;

@@ -23,14 +23,12 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Test <i>golden</i> du CSV récapitulatif (ApprovalTests). Le format exporté étant
- * <b>déterministe</b> (colonnes et lignes triées, ni horodatage ni hash, cf. SERVICE-CONVENTIONS
- * §5), on fige le rendu attendu dans un fichier {@code *.approved.txt} : toute dérive du format
- * casse le test.
- *
- * <p>{@link QuietReporter} : aucun outil graphique n'est lancé en cas d'écart (CI headless).
- */
+/// Test *golden* du CSV récapitulatif (ApprovalTests). Le format exporté étant
+/// **déterministe** (colonnes et lignes triées, ni horodatage ni hash, cf. SERVICE-CONVENTIONS
+/// §5), on fige le rendu attendu dans un fichier `*.approved.txt` : toute dérive du format
+/// casse le test.
+///
+/// [QuietReporter] : aucun outil graphique n'est lancé en cas d'écart (CI headless).
 class ServiceBibliothequeApprovalTest {
 
   @TempDir Path dossier;

@@ -16,13 +16,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Tests d'invocation de la {@link Cli} : dispatch des sous-commandes, codes de sortie et comptes
- * rendus, sur une base SQLite jetable. Le workspace est surchargé vers un {@code @TempDir} via la
- * propriété système {@code vigiechiro.workspace} (même mécanisme que {@code RacineInjecteurTest}),
- * puis la CLI est branchée sur l'injecteur applicatif complet {@link Cli#injecteurApplicatif()}
- * (socle + features + {@code CliModule}).
- */
+/// Tests d'invocation de la [Cli] : dispatch des sous-commandes, codes de sortie et comptes
+/// rendus, sur une base SQLite jetable. Le workspace est surchargé vers un `@TempDir` via la
+/// propriété système `vigiechiro.workspace` (même mécanisme que `RacineInjecteurTest`),
+/// puis la CLI est branchée sur l'injecteur applicatif complet [Cli#injecteurApplicatif()]
+/// (socle + features + `CliModule`).
 class CliTest {
 
   @TempDir Path workspace;

@@ -42,18 +42,16 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Test d'intégration de la commande {@code exporter-vu} : on sème en base un passage avec sa
- * session, une séquence d'écoute, un jeu de résultats d'identification et deux observations (une
- * validée, une non touchée), puis on invoque la CLI. Le fichier {@code _Vu.csv} produit (par
- * délégation à {@code ServiceValidation}, l'export canonique réinjectable de la feature {@code
- * validation}) est figé par <b>approval testing</b> (golden {@code
- * CliExportVuTest.exporter_vu_produit_le_csv_vu.approved.txt}).
- *
- * <p>{@link QuietReporter} : aucun outil graphique en cas d'écart (CI / sans affichage). C'est le
- * <i>test cible</i> du flux d'export (le format du CSV est par ailleurs couvert au niveau de la
- * feature {@code validation}).
- */
+/// Test d'intégration de la commande `exporter-vu` : on sème en base un passage avec sa
+/// session, une séquence d'écoute, un jeu de résultats d'identification et deux observations (une
+/// validée, une non touchée), puis on invoque la CLI. Le fichier `_Vu.csv` produit (par
+/// délégation à `ServiceValidation`, l'export canonique réinjectable de la feature
+/// `validation`) est figé par **approval testing** (golden
+/// `CliExportVuTest.exporter_vu_produit_le_csv_vu.approved.txt`).
+///
+/// [QuietReporter] : aucun outil graphique en cas d'écart (CI / sans affichage). C'est le
+/// *test cible* du flux d'export (le format du CSV est par ailleurs couvert au niveau de la
+/// feature `validation`).
 @UseReporter(QuietReporter.class)
 class CliExportVuTest {
 

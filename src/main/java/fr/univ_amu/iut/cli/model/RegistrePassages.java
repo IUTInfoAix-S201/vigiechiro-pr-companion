@@ -15,21 +15,19 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-/**
- * Lecture transverse pour la commande {@code lister-passages} (parcours P5, navigation
- * multi-sites).
- *
- * <p>Service de lecture pure (aucune écriture, aucun JavaFX). Il <b>orchestre des DAO de plusieurs
- * features</b> ({@code passage} et {@code sites}) pour reconstituer, pour chaque passage, le
- * contexte « carré / point » sans charger de vue : exactement le type de dépendance inter-feature
- * {@code cli → <feature>.model} autorisé par la règle ArchUnit assouplie (jamais vers un {@code
- * view}/{@code viewmodel}). Le graphe reste acyclique : {@code cli} est un puits, aucune feature ne
- * dépend de lui.
- *
- * <p>Pour éviter un effet N+1, les points et les sites sont chargés une seule fois et indexés par
- * identifiant ; les passages orphelins (point/site introuvable) restent listés avec un libellé
- * {@code "?"} plutôt que d'être masqués.
- */
+/// Lecture transverse pour la commande `lister-passages` (parcours P5, navigation
+/// multi-sites).
+///
+/// Service de lecture pure (aucune écriture, aucun JavaFX). Il **orchestre des DAO de plusieurs
+/// features** (`passage` et `sites`) pour reconstituer, pour chaque passage, le
+/// contexte « carré / point » sans charger de vue : exactement le type de dépendance
+/// inter-feature `cli → <feature>.model` autorisé par la règle ArchUnit assouplie (jamais vers un
+/// `view`/`viewmodel`). Le graphe reste acyclique : `cli` est un puits, aucune feature ne
+/// dépend de lui.
+///
+/// Pour éviter un effet N+1, les points et les sites sont chargés une seule fois et indexés par
+/// identifiant ; les passages orphelins (point/site introuvable) restent listés avec un libellé
+/// `"?"` plutôt que d'être masqués.
 public final class RegistrePassages {
 
   private final PassageDao passageDao;
@@ -42,9 +40,8 @@ public final class RegistrePassages {
     this.siteDao = Objects.requireNonNull(siteDao, "siteDao");
   }
 
-  /**
-   * Tous les passages enregistrés, enrichis du contexte site/point, triés pour un affichage stable.
-   */
+  /// Tous les passages enregistrés, enrichis du contexte site/point, triés pour un affichage
+  /// stable.
   public List<LignePassage> lister() {
     Map<Long, PointDEcoute> points =
         pointDao.findAll().stream()
@@ -76,17 +73,15 @@ public final class RegistrePassages {
         passage.verdictVerification());
   }
 
-  /**
-   * Ligne d'affichage d'un passage (objet de présentation, pas une entité persistée).
-   *
-   * @param idPassage identifiant technique du passage
-   * @param carre numéro de carré du site (ou {@code "?"} si introuvable)
-   * @param codePoint code du point d'écoute (ou {@code "?"} si introuvable)
-   * @param annee année du passage
-   * @param numeroPassage numéro de passage dans l'année
-   * @param statut statut du workflow
-   * @param verdict verdict de vérification ({@code null} tant que non vérifié)
-   */
+  /// Ligne d'affichage d'un passage (objet de présentation, pas une entité persistée).
+  ///
+  /// @param idPassage identifiant technique du passage
+  /// @param carre numéro de carré du site (ou `"?"` si introuvable)
+  /// @param codePoint code du point d'écoute (ou `"?"` si introuvable)
+  /// @param annee année du passage
+  /// @param numeroPassage numéro de passage dans l'année
+  /// @param statut statut du workflow
+  /// @param verdict verdict de vérification (`null` tant que non vérifié)
   public record LignePassage(
       Long idPassage,
       String carre,

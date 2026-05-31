@@ -22,17 +22,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-/**
- * Complément Mockito : isole la <b>logique de décision</b> du {@link ServiceBibliotheque}
- * indépendamment de la base (cf. SERVICE-CONVENTIONS §3.2) :
- *
- * <ul>
- *   <li>le filtre {@code is_reference} ne charge la séquence que des observations retenues (les
- *       non-références ne déclenchent aucun appel au {@link SequenceDao}) ;
- *   <li>le taxon retenu est l'observateur s'il est saisi, sinon Tadarida ;
- *   <li>une séquence absente lève une {@link RegleMetierException}.
- * </ul>
- */
+/// Complément Mockito : isole la **logique de décision** du [ServiceBibliotheque]
+/// indépendamment de la base (cf. SERVICE-CONVENTIONS §3.2) :
+///
+/// - le filtre `is_reference` ne charge la séquence que des observations retenues (les
+///   non-références ne déclenchent aucun appel au [SequenceDao]) ;
+/// - le taxon retenu est l'observateur s'il est saisi, sinon Tadarida ;
+/// - une séquence absente lève une [RegleMetierException].
 @ExtendWith(MockitoExtension.class)
 class ServiceBibliothequeMockTest {
 

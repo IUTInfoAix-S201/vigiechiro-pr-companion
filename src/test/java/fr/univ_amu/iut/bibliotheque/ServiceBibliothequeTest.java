@@ -26,23 +26,19 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Test « réel » du {@link ServiceBibliotheque} (mode par défaut : SQLite jetable {@code @TempDir} +
- * {@link MigrationSchema}, vrais DAO). Vérifie le cœur de la feature {@code bibliotheque} (P10) :
- *
- * <ul>
- *   <li>seules les observations marquées {@code is_reference} sont exportées ;
- *   <li>le récapitulatif CSV reprend les bons champs (taxon retenu, séquence source, fichier,
- *       fréquence, commentaire) dans un ordre déterministe ;
- *   <li>le comptage et la liste (dédupliquée) des chemins à copier sont corrects ;
- *   <li>le taxon retenu est l'observateur s'il est saisi, sinon Tadarida ;
- *   <li>une observation de référence pointant une séquence introuvable lève une règle dure.
- * </ul>
- *
- * <p>La chaîne de FK (passage → session → original, et passage → résultats) n'a pas de DAO dans
- * cette feature : on la sème directement en SQL pour rester autonome (duplication assumée, cf.
- * conventions). Les séquences et observations passent en revanche par leurs vrais DAO.
- */
+/// Test « réel » du [ServiceBibliotheque] (mode par défaut : SQLite jetable `@TempDir` +
+/// [MigrationSchema], vrais DAO). Vérifie le cœur de la feature `bibliotheque` (P10) :
+///
+/// - seules les observations marquées `is_reference` sont exportées ;
+/// - le récapitulatif CSV reprend les bons champs (taxon retenu, séquence source, fichier,
+///   fréquence, commentaire) dans un ordre déterministe ;
+/// - le comptage et la liste (dédupliquée) des chemins à copier sont corrects ;
+/// - le taxon retenu est l'observateur s'il est saisi, sinon Tadarida ;
+/// - une observation de référence pointant une séquence introuvable lève une règle dure.
+///
+/// La chaîne de FK (passage → session → original, et passage → résultats) n'a pas de DAO dans
+/// cette feature : on la sème directement en SQL pour rester autonome (duplication assumée, cf.
+/// conventions). Les séquences et observations passent en revanche par leurs vrais DAO.
 class ServiceBibliothequeTest {
 
   @TempDir Path dossier;
@@ -243,10 +239,8 @@ class ServiceBibliothequeTest {
         idResultats);
   }
 
-  /**
-   * Supprime une séquence sans déclencher la cascade vers l'observation (désactive temporairement
-   * {@code foreign_keys}), pour fabriquer artificiellement l'incohérence « observation orpheline ».
-   */
+  /// Supprime une séquence sans déclencher la cascade vers l'observation (désactive temporairement
+  /// `foreign_keys`), pour fabriquer artificiellement l'incohérence « observation orpheline ».
   private void supprimerSequenceSansCascade(long idSequence) {
     try (Connection cx = source.getConnection()) {
       executer(cx, "PRAGMA foreign_keys = OFF");

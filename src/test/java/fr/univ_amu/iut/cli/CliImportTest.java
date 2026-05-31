@@ -29,17 +29,15 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Test d'intégration de bout en bout de la {@link Cli} sur le flux lourd d'import (P2) : on prépare
- * une fausse carte SD (journal LogPR + WAV synthétiques), on invoque {@code importer}, puis on
- * vérifie les effets persistés (passage au statut {@code Transformé}) et le code de sortie. On
- * enchaîne sur {@code lister-passages} pour confirmer que le passage importé est restitué avec son
- * contexte site/point — scénario « importer un dossier de fixtures puis lister ».
- *
- * <p>Un seul test cible le flux lourd (la mécanique fine de l'import est déjà couverte par {@code
- * ServiceImportTest}) ; ici on valide l'<b>orchestration CLI</b> (résolution Guice, dérivation du
- * préfixe R6 depuis le point, codes de sortie).
- */
+/// Test d'intégration de bout en bout de la [Cli] sur le flux lourd d'import (P2) : on prépare
+/// une fausse carte SD (journal LogPR + WAV synthétiques), on invoque `importer`, puis on
+/// vérifie les effets persistés (passage au statut `Transformé`) et le code de sortie. On
+/// enchaîne sur `lister-passages` pour confirmer que le passage importé est restitué avec son
+/// contexte site/point — scénario « importer un dossier de fixtures puis lister ».
+///
+/// Un seul test cible le flux lourd (la mécanique fine de l'import est déjà couverte par
+/// `ServiceImportTest`) ; ici on valide l'**orchestration CLI** (résolution Guice, dérivation du
+/// préfixe R6 depuis le point, codes de sortie).
 class CliImportTest {
 
   private static final String ID_USER = "u-cli";

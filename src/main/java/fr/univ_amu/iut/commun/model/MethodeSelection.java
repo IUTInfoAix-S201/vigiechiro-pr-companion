@@ -1,11 +1,9 @@
 package fr.univ_amu.iut.commun.model;
 
-/**
- * Méthode de constitution d'une sélection d'écoute (C11, R12).
- *
- * <p>{@link #REPARTITION_TEMPORELLE} est la méthode par défaut à l'ouverture de la vue de
- * vérification.
- */
+/// Méthode de constitution d'une sélection d'écoute (C11, R12).
+///
+/// [#REPARTITION_TEMPORELLE] est la méthode par défaut à l'ouverture de la vue de
+/// vérification.
 public enum MethodeSelection {
   REPARTITION_TEMPORELLE("RéparTemporel"),
   ALEATOIRE("Aléatoire"),

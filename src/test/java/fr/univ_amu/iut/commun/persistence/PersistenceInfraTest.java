@@ -19,9 +19,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Tests de l'infrastructure de persistance : migration/idempotence et atomicité transactionnelle.
- */
+/// Tests de l'infrastructure de persistance : migration/idempotence et atomicité transactionnelle.
 class PersistenceInfraTest {
 
   @TempDir Path dossier;

@@ -13,21 +13,19 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * Applique les scripts de migration versionnés {@code src/main/resources/db/migration/V0x__*.sql}
- * et trace les versions appliquées dans la table {@code schema_version}.
- *
- * <p>Au premier lancement, la base est vide : {@code V01__schema.sql} crée toutes les tables (dont
- * {@code schema_version}), puis {@code V02__seed_taxons.sql} insère les données de référence. À la
- * réouverture d'une base existante, les versions déjà présentes sont ignorées (migration
- * idempotente, objectif disponibilité 5.2 : « base présente → réutilisée »).
- *
- * <p>Pour ajouter une migration : créer le fichier {@code V0n__xxx.sql} dans {@code db/migration/}
- * <b>et</b> ajouter son nom à {@link #MIGRATIONS} (l'ordre fait foi).
- */
+/// Applique les scripts de migration versionnés `src/main/resources/db/migration/V0x__*.sql`
+/// et trace les versions appliquées dans la table `schema_version`.
+///
+/// Au premier lancement, la base est vide : `V01__schema.sql` crée toutes les tables (dont
+/// `schema_version`), puis `V02__seed_taxons.sql` insère les données de référence. À la
+/// réouverture d'une base existante, les versions déjà présentes sont ignorées (migration
+/// idempotente, objectif disponibilité 5.2 : « base présente → réutilisée »).
+///
+/// Pour ajouter une migration : créer le fichier `V0n__xxx.sql` dans `db/migration/`
+/// **et** ajouter son nom à [#MIGRATIONS] (l'ordre fait foi).
 public class MigrationSchema {
 
-  /** Migrations appliquées dans l'ordre. Le préfixe {@code V0n} porte le numéro de version. */
+  /// Migrations appliquées dans l'ordre. Le préfixe `V0n` porte le numéro de version.
   static final String[] MIGRATIONS = {"V01__schema.sql", "V02__seed_taxons.sql"};
 
   private static final String DOSSIER = "/db/migration/";
@@ -38,7 +36,7 @@ public class MigrationSchema {
     this.source = source;
   }
 
-  /** Applique toutes les migrations non encore enregistrées dans {@code schema_version}. */
+  /// Applique toutes les migrations non encore enregistrées dans `schema_version`.
   public void migrer() {
     Set<Integer> dejaAppliquees = versionsAppliquees();
     for (String fichier : MIGRATIONS) {
@@ -106,7 +104,7 @@ public class MigrationSchema {
     }
   }
 
-  /** Retire les lignes de commentaire pur ({@code --}) et découpe le script sur les {@code ;}. */
+  /// Retire les lignes de commentaire pur (`--`) et découpe le script sur les `;`.
   private static String[] decouperInstructions(String sql) {
     StringBuilder sansCommentaires = new StringBuilder();
     for (String ligne : sql.split("\n")) {

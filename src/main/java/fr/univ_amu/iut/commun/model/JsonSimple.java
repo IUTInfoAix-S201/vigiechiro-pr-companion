@@ -3,21 +3,19 @@ package fr.univ_amu.iut.commun.model;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Sérialisation JSON minimale, sans dépendance externe (le module ne {@code requires} aucune
- * bibliothèque JSON, et {@code pom.xml}/{@code module-info.java} sont gelés).
- *
- * <p>Utilitaire <b>partagé</b> (paquet {@code commun.model}) : l'import l'utilise pour alimenter
- * les colonnes {@code TEXT} JSON du schéma ({@code passage.acquisition_params}, {@code
- * sensor_log.parsed_events}, {@code sensor_log.detected_anomalies}) et le diagnostic doit pouvoir
- * relire ces colonnes <b>avec le même format</b>. Les méthodes préservent un ordre d'insertion
- * stable ({@link java.util.LinkedHashMap}) pour rester <b>déterministes</b> (cohérent avec R11).
- */
+/// Sérialisation JSON minimale, sans dépendance externe (le module ne `requires` aucune
+/// bibliothèque JSON, et `pom.xml`/`module-info.java` sont gelés).
+///
+/// Utilitaire **partagé** (paquet `commun.model`) : l'import l'utilise pour alimenter
+/// les colonnes `TEXT` JSON du schéma (`passage.acquisition_params`, `sensor_log.parsed_events`,
+/// `sensor_log.detected_anomalies`) et le diagnostic doit pouvoir
+/// relire ces colonnes **avec le même format**. Les méthodes préservent un ordre d'insertion
+/// stable ([java.util.LinkedHashMap]) pour rester **déterministes** (cohérent avec R11).
 public final class JsonSimple {
 
   private JsonSimple() {}
 
-  /** Échappe une chaîne pour l'insérer entre guillemets dans du JSON. */
+  /// Échappe une chaîne pour l'insérer entre guillemets dans du JSON.
   public static String echapper(String valeur) {
     StringBuilder sb = new StringBuilder(valeur.length() + 2);
     for (int i = 0; i < valeur.length(); i++) {
@@ -40,7 +38,7 @@ public final class JsonSimple {
     return sb.toString();
   }
 
-  /** Tableau JSON de chaînes : {@code ["a","b"]}. */
+  /// Tableau JSON de chaînes : `["a","b"]`.
   public static String tableau(List<String> valeurs) {
     StringBuilder sb = new StringBuilder("[");
     for (int i = 0; i < valeurs.size(); i++) {
@@ -52,11 +50,9 @@ public final class JsonSimple {
     return sb.append(']').toString();
   }
 
-  /**
-   * Objet JSON à valeurs textuelles ({@code null} → {@code null} JSON, sinon chaîne échappée). Les
-   * clés sont émises dans l'ordre d'itération de la {@code Map} fournie (utiliser une {@link
-   * java.util.LinkedHashMap} pour un rendu déterministe).
-   */
+  /// Objet JSON à valeurs textuelles (`null` → `null` JSON, sinon chaîne échappée). Les
+  /// clés sont émises dans l'ordre d'itération de la `Map` fournie (utiliser une
+  /// [java.util.LinkedHashMap] pour un rendu déterministe).
   public static String objet(Map<String, String> champs) {
     StringBuilder sb = new StringBuilder("{");
     boolean premier = true;

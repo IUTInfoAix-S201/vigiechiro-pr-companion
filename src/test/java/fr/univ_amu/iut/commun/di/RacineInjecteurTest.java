@@ -17,17 +17,16 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Test de la racine de composition Guice : vérifie que {@link RacineInjecteur#creer()} assemble
- * bien <b>tous</b> les modules de features (sites, passage, qualification, validation, multisite,
- * importation, lot) en plus du socle, sans conflit de binding, et qu'il sait résoudre un DAO ou un
- * service représentatif de chaque feature.
- *
- * <p>Guice valide les liaisons en double dès la création de l'injecteur : ce test est donc le filet
- * de sécurité qui détecte qu'une future feature ait introduit une liaison concurrente ou oublié son
- * {@code @Provides}. On surcharge le workspace vers un {@code @TempDir} (propriété système {@code
- * vigiechiro.workspace}) pour ne pas toucher au workspace réel de l'utilisateur·ice.
- */
+/// Test de la racine de composition Guice : vérifie que [RacineInjecteur#creer()] assemble
+/// bien **tous** les modules de features (sites, passage, qualification, validation, multisite,
+/// importation, lot) en plus du socle, sans conflit de binding, et qu'il sait résoudre un DAO ou un
+/// service représentatif de chaque feature.
+///
+/// Guice valide les liaisons en double dès la création de l'injecteur : ce test est donc le filet
+/// de sécurité qui détecte qu'une future feature ait introduit une liaison concurrente ou oublié
+/// son
+/// `@Provides`. On surcharge le workspace vers un `@TempDir` (propriété système
+/// `vigiechiro.workspace`) pour ne pas toucher au workspace réel de l'utilisateur·ice.
 class RacineInjecteurTest {
 
   @TempDir Path workspaceJetable;

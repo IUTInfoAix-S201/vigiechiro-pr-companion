@@ -12,25 +12,24 @@ import fr.univ_amu.iut.qualification.di.QualificationModule;
 import fr.univ_amu.iut.sites.di.SitesModule;
 import fr.univ_amu.iut.validation.di.ValidationModule;
 
-/**
- * Racine de composition Guice de l'application (composition root).
- *
- * <p>C'est le seul endroit qui connaît la liste des modules à assembler : le socle ({@link
- * CommunModule} + {@link PersistenceModule}) et l'ensemble des features (sites, passage,
- * qualification, validation, multisite, importation, lot, diagnostic, bibliotheque). Chaque feature
- * publie ses DAO et ses services via son propre module Guice ; cette racine se contente de les
- * installer. La feature {@code cli} ne s'installe pas ici : c'est elle qui crée l'injecteur enfant
- * ({@code RacineInjecteur.creer().createChildInjector(new CliModule())}).
- *
- * <p>Note d'architecture : ce paquet {@code commun.di} dépend des features (il les assemble), ce
- * qui est normal pour une racine de composition. Le test {@code ArchitectureTest} ignore donc
- * explicitement les dépendances issues de {@code commun.di} dans la détection de cycles.
- */
+/// Racine de composition Guice de l'application (composition root).
+///
+/// C'est le seul endroit qui connaît la liste des modules à assembler : le socle ([CommunModule] +
+/// [PersistenceModule]) et l'ensemble des features (sites, passage,
+/// qualification, validation, multisite, importation, lot, diagnostic, bibliotheque). Chaque
+/// feature
+/// publie ses DAO et ses services via son propre module Guice ; cette racine se contente de les
+/// installer. La feature `cli` ne s'installe pas ici : c'est elle qui crée l'injecteur enfant
+/// (`RacineInjecteur.creer().createChildInjector(new CliModule())`).
+///
+/// Note d'architecture : ce paquet `commun.di` dépend des features (il les assemble), ce
+/// qui est normal pour une racine de composition. Le test `ArchitectureTest` ignore donc
+/// explicitement les dépendances issues de `commun.di` dans la détection de cycles.
 public final class RacineInjecteur {
 
   private RacineInjecteur() {}
 
-  /** Crée l'injecteur applicatif avec tous les modules câblés. */
+  /// Crée l'injecteur applicatif avec tous les modules câblés.
   public static Injector creer() {
     return Guice.createInjector(
         new CommunModule(),

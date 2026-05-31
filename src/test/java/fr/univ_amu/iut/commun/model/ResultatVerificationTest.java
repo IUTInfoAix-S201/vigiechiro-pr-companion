@@ -6,10 +6,8 @@ import fr.univ_amu.iut.commun.model.Alerte.Niveau;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests purs (sans base) des types de résultat de vérification partagés {@link Alerte} et {@link
- * ResultatVerification}. Aucune dépendance JavaFX ni JDBC : logique métier nue.
- */
+/// Tests purs (sans base) des types de résultat de vérification partagés [Alerte] et
+/// [ResultatVerification]. Aucune dépendance JavaFX ni JDBC : logique métier nue.
 class ResultatVerificationTest {
 
   @Test

@@ -6,7 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-/** Tests de la règle R1 : numéro de carré = exactement 6 chiffres, zéro de tête obligatoire. */
+/// Tests de la règle R1 : numéro de carré = exactement 6 chiffres, zéro de tête obligatoire.
 class ValidateurCarreTest {
 
   @Test

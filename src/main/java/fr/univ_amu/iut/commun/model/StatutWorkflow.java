@@ -1,11 +1,9 @@
 package fr.univ_amu.iut.commun.model;
 
-/**
- * Statut d'avancement d'un {@code Passage} dans le workflow d'import → dépôt (C5).
- *
- * <p>Progression attendue : {@link #IMPORTE} → {@link #TRANSFORME} → {@link #VERIFIE} → {@link
- * #PRET_A_DEPOSER} → {@link #DEPOSE}. Le {@code libelle} (avec accents) est la valeur persistée.
- */
+/// Statut d'avancement d'un `Passage` dans le workflow d'import → dépôt (C5).
+///
+/// Progression attendue : [#IMPORTE] → [#TRANSFORME] → [#VERIFIE] → [#PRET_A_DEPOSER] → [#DEPOSE].
+/// Le `libelle` (avec accents) est la valeur persistée.
 public enum StatutWorkflow {
   IMPORTE("Importé"),
   TRANSFORME("Transformé"),

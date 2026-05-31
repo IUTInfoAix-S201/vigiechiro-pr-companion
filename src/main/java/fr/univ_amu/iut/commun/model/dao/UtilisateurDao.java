@@ -5,16 +5,14 @@ import fr.univ_amu.iut.commun.persistence.DaoGenerique;
 import fr.univ_amu.iut.commun.persistence.RowMapper;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
 
-/**
- * DAO de l'entité {@link Utilisateur} (table {@code user}).
- *
- * <p>Placé dans {@code commun.model.dao} car l'utilisateur est transverse : les sites (et plus tard
- * d'autres features) référencent l'utilisateur courant par clé étrangère.
- *
- * <p>Contrairement aux DAO à clé auto-incrémentée, {@code user} a une <b>clé naturelle</b> ({@code
- * local_id}, un UUID en TEXT) : l'insertion ne récupère donc aucune clé générée, elle utilise
- * {@link #executerMaj(String, Object...)}.
- */
+/// DAO de l'entité [Utilisateur] (table `user`).
+///
+/// Placé dans `commun.model.dao` car l'utilisateur est transverse : les sites (et plus tard
+/// d'autres features) référencent l'utilisateur courant par clé étrangère.
+///
+/// Contrairement aux DAO à clé auto-incrémentée, `user` a une **clé naturelle** (`local_id`, un
+/// UUID en TEXT) : l'insertion ne récupère donc aucune clé générée, elle utilise
+/// [#executerMaj(String, Object...)].
 public class UtilisateurDao extends DaoGenerique<Utilisateur, String> {
 
   private static final RowMapper<Utilisateur> MAPPER =

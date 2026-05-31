@@ -9,28 +9,24 @@ import java.sql.Statement;
 import org.sqlite.SQLiteConfig;
 import org.sqlite.SQLiteDataSource;
 
-/**
- * Fournit des {@link Connection} vers la base SQLite du {@link Workspace}.
- *
- * <p>C'est l'unique endroit qui connaît l'URL JDBC : les DAO, l'unité de travail et la migration de
- * schéma reçoivent une {@code SourceDeDonnees} et ignorent tout du driver. La source est binder en
- * <b>singleton</b> Guice (une seule base pour toute l'application).
- *
- * <p>Chaque connexion active l'intégrité référentielle ({@code PRAGMA foreign_keys = ON}) : SQLite
- * n'applique les clés étrangères que si on le demande explicitement (objectif qualité intégrité
- * O7). On le fait à deux niveaux par sécurité : via {@link
- * SQLiteConfig#enforceForeignKeys(boolean)} et via un {@code PRAGMA} explicite à l'ouverture.
- */
+/// Fournit des [Connection] vers la base SQLite du [Workspace].
+///
+/// C'est l'unique endroit qui connaît l'URL JDBC : les DAO, l'unité de travail et la migration de
+/// schéma reçoivent une `SourceDeDonnees` et ignorent tout du driver. La source est binder en
+/// **singleton** Guice (une seule base pour toute l'application).
+///
+/// Chaque connexion active l'intégrité référentielle (`PRAGMA foreign_keys = ON`) : SQLite
+/// n'applique les clés étrangères que si on le demande explicitement (objectif qualité intégrité
+/// O7). On le fait à deux niveaux par sécurité : via [SQLiteConfig#enforceForeignKeys(boolean)] et
+/// via un `PRAGMA` explicite à l'ouverture.
 public class SourceDeDonnees {
 
   private final Workspace workspace;
   private final SQLiteDataSource dataSource;
 
-  /**
-   * Crée une source pointant vers {@code <workspace>/vigiechiro.db}. En test, on passe un {@code
-   * Workspace} construit sur un {@code @TempDir} (base jetable) ; en production, c'est le workspace
-   * par défaut.
-   */
+  /// Crée une source pointant vers `<workspace>/vigiechiro.db`. En test, on passe un `Workspace`
+  /// construit sur un `@TempDir` (base jetable) ; en production, c'est le workspace
+  /// par défaut.
   public SourceDeDonnees(Workspace workspace) {
     this.workspace = workspace;
     SQLiteConfig config = new SQLiteConfig();
@@ -40,10 +36,8 @@ public class SourceDeDonnees {
     this.dataSource = source;
   }
 
-  /**
-   * Ouvre une nouvelle connexion (clés étrangères activées). L'appelant est responsable de la
-   * fermer (idéalement dans un {@code try-with-resources}).
-   */
+  /// Ouvre une nouvelle connexion (clés étrangères activées). L'appelant est responsable de la
+  /// fermer (idéalement dans un `try-with-resources`).
   public Connection getConnection() {
     try {
       // Création paresseuse du workspace : la base ne peut exister sans son dossier.
@@ -58,7 +52,7 @@ public class SourceDeDonnees {
     }
   }
 
-  /** Workspace adossé à cette source (utile pour résoudre les chemins de sessions). */
+  /// Workspace adossé à cette source (utile pour résoudre les chemins de sessions).
   public Workspace workspace() {
     return workspace;
   }

@@ -1,14 +1,10 @@
 package fr.univ_amu.iut.commun.model;
 
-/**
- * Mode de validation d'une {@code Observation} (C13, R24).
- *
- * <ul>
- *   <li>{@link #MANUEL} : saisie explicite par l'observateur ;
- *   <li>{@link #AUTO} : propagé automatiquement par le mode inventaire ;
- *   <li>{@link #NON_VALIDE} : pas encore validé (persisté en {@code NULL}).
- * </ul>
- */
+/// Mode de validation d'une `Observation` (C13, R24).
+///
+/// - [#MANUEL] : saisie explicite par l'observateur ;
+/// - [#AUTO] : propagé automatiquement par le mode inventaire ;
+/// - [#NON_VALIDE] : pas encore validé (persisté en `NULL`).
 public enum ModeValidation {
   MANUEL("manuel"),
   AUTO("auto"),
@@ -20,12 +16,12 @@ public enum ModeValidation {
     this.libelle = libelle;
   }
 
-  /** Valeur persistée (colonne {@code validation_mode}) ; {@code null} pour {@link #NON_VALIDE}. */
+  /// Valeur persistée (colonne `validation_mode`) ; `null` pour [#NON_VALIDE].
   public String libelle() {
     return libelle;
   }
 
-  /** Retrouve un mode depuis sa valeur persistée ({@code null} → {@link #NON_VALIDE}). */
+  /// Retrouve un mode depuis sa valeur persistée (`null` → [#NON_VALIDE]).
   public static ModeValidation parLibelle(String libelle) {
     if (libelle == null) {
       return NON_VALIDE;

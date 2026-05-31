@@ -8,14 +8,11 @@ import fr.univ_amu.iut.commun.persistence.MigrationSchema;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
 import fr.univ_amu.iut.commun.persistence.UniteDeTravail;
 
-/**
- * Module Guice de l'infrastructure de persistance : expose {@link MigrationSchema}, {@link
- * UniteDeTravail} et le {@link UtilisateurDao} transverse, tous construits à partir de la {@link
- * SourceDeDonnees} du socle.
- *
- * <p>Comme {@code SitesModule}, on passe par {@code @Provides} pour garder l'infra indépendante du
- * framework d'injection.
- */
+/// Module Guice de l'infrastructure de persistance : expose [MigrationSchema], [UniteDeTravail] et
+/// le [UtilisateurDao] transverse, tous construits à partir de la [SourceDeDonnees] du socle.
+///
+/// Comme `SitesModule`, on passe par `@Provides` pour garder l'infra indépendante du
+/// framework d'injection.
 public class PersistenceModule extends AbstractModule {
 
   @Override

@@ -9,22 +9,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Base mutualisée des DAO concrets : centralise l'ouverture de connexion, la liaison des paramètres
- * {@link PreparedStatement} et l'itération du {@link ResultSet}.
- *
- * <p>Un DAO concret fournit son nom de table, sa colonne clé et son {@link RowMapper} ; il hérite
- * alors gratuitement de {@link #findAll()}, {@link #findById(Object)} et {@link #delete(Object)}.
- * Seules les écritures dépendantes des colonnes ({@code insert}/{@code update}) restent à écrire,
- * en s'appuyant sur les helpers {@link #executerMaj(String, Object...)} et {@link
- * #insererEtRecupererCle(String, Object...)}.
- *
- * <p><b>Aucun SQL métier ici</b> : cette classe est purement technique (couche {@code
- * commun.persistence}). Le SQL des entités vit dans les DAO de chaque feature.
- *
- * @param <T> type d'entité
- * @param <ID> type de clé primaire
- */
+/// Base mutualisée des DAO concrets : centralise l'ouverture de connexion, la liaison des
+/// paramètres
+/// [PreparedStatement] et l'itération du [ResultSet].
+///
+/// Un DAO concret fournit son nom de table, sa colonne clé et son [RowMapper] ; il hérite
+/// alors gratuitement de [#findAll()], [#findById(Object)] et [#delete(Object)].
+/// Seules les écritures dépendantes des colonnes (`insert`/`update`) restent à écrire,
+/// en s'appuyant sur les helpers [#executerMaj(String, Object...)] et
+/// [#insererEtRecupererCle(String, Object...)].
+///
+/// **Aucun SQL métier ici** : cette classe est purement technique (couche `commun.persistence`). Le
+/// SQL des entités vit dans les DAO de chaque feature.
+///
+/// @param <T> type d'entité
+/// @param <ID> type de clé primaire
 public abstract class DaoGenerique<T, ID> implements Dao<T, ID> {
 
   protected final SourceDeDonnees source;
@@ -33,13 +32,13 @@ public abstract class DaoGenerique<T, ID> implements Dao<T, ID> {
     this.source = source;
   }
 
-  /** Nom de la table SQL sous-jacente (ex. {@code "monitoring_site"}). */
+  /// Nom de la table SQL sous-jacente (ex. `"monitoring_site"`).
   protected abstract String table();
 
-  /** Nom de la colonne clé primaire (ex. {@code "id"} ou {@code "local_id"}). */
+  /// Nom de la colonne clé primaire (ex. `"id"` ou `"local_id"`).
   protected abstract String colonneCle();
 
-  /** Convertit une ligne de résultat en entité. */
+  /// Convertit une ligne de résultat en entité.
   protected abstract RowMapper<T> mapper();
 
   @Override
@@ -58,7 +57,7 @@ public abstract class DaoGenerique<T, ID> implements Dao<T, ID> {
     executerMaj("DELETE FROM " + table() + " WHERE " + colonneCle() + " = ?", id);
   }
 
-  /** Exécute un {@code SELECT} et renvoie une entité mappée par ligne. */
+  /// Exécute un `SELECT` et renvoie une entité mappée par ligne.
   protected List<T> query(String sql, RowMapper<T> mapper, Object... parametres) {
     List<T> resultats = new ArrayList<>();
     try (Connection connexion = source.getConnection();
@@ -75,7 +74,7 @@ public abstract class DaoGenerique<T, ID> implements Dao<T, ID> {
     return resultats;
   }
 
-  /** Exécute un {@code SELECT} attendu sur 0 ou 1 ligne. */
+  /// Exécute un `SELECT` attendu sur 0 ou 1 ligne.
   protected Optional<T> queryUnique(String sql, RowMapper<T> mapper, Object... parametres) {
     try (Connection connexion = source.getConnection();
         PreparedStatement ps = connexion.prepareStatement(sql)) {
@@ -88,7 +87,7 @@ public abstract class DaoGenerique<T, ID> implements Dao<T, ID> {
     }
   }
 
-  /** Exécute un {@code INSERT}/{@code UPDATE}/{@code DELETE} et renvoie le nombre de lignes. */
+  /// Exécute un `INSERT`/`UPDATE`/`DELETE` et renvoie le nombre de lignes.
   protected int executerMaj(String sql, Object... parametres) {
     try (Connection connexion = source.getConnection();
         PreparedStatement ps = connexion.prepareStatement(sql)) {
@@ -99,11 +98,8 @@ public abstract class DaoGenerique<T, ID> implements Dao<T, ID> {
     }
   }
 
-  /**
-   * Exécute un {@code INSERT} et renvoie la clé auto-générée ({@code INTEGER PRIMARY KEY
-   * AUTOINCREMENT}). Pour une table à clé naturelle, utiliser {@link #executerMaj(String,
-   * Object...)} à la place.
-   */
+  /// Exécute un `INSERT` et renvoie la clé auto-générée (`INTEGER PRIMARY KEY AUTOINCREMENT`). Pour
+  /// une table à clé naturelle, utiliser [#executerMaj(String, Object...)] à la place.
   protected long insererEtRecupererCle(String sql, Object... parametres) {
     try (Connection connexion = source.getConnection();
         PreparedStatement ps = connexion.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -120,7 +116,7 @@ public abstract class DaoGenerique<T, ID> implements Dao<T, ID> {
     }
   }
 
-  /** Lie les paramètres positionnels (1-based), en gérant explicitement les valeurs nulles. */
+  /// Lie les paramètres positionnels (1-based), en gérant explicitement les valeurs nulles.
   private static void lier(PreparedStatement ps, Object... parametres) throws SQLException {
     for (int i = 0; i < parametres.length; i++) {
       Object valeur = parametres[i];

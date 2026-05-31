@@ -6,7 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-/** Tests de la règle R2 : code de point = une lettre majuscule suivie d'un chiffre. */
+/// Tests de la règle R2 : code de point = une lettre majuscule suivie d'un chiffre.
 class ValidateurCodePointTest {
 
   @Test

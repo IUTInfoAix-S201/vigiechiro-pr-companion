@@ -1,11 +1,9 @@
 package fr.univ_amu.iut.commun.model;
 
-/**
- * Verdict de vérification d'un {@code Passage}, saisi après écoute de la sélection (C5, R13/R14).
- *
- * <p>{@link #A_JETER} est un état bloquant : un passage « à jeter » ne peut pas rejoindre un lot
- * prêt à déposer (R14).
- */
+/// Verdict de vérification d'un `Passage`, saisi après écoute de la sélection (C5, R13/R14).
+///
+/// [#A_JETER] est un état bloquant : un passage « à jeter » ne peut pas rejoindre un lot
+/// prêt à déposer (R14).
 public enum Verdict {
   A_VERIFIER("À vérifier"),
   OK("OK"),

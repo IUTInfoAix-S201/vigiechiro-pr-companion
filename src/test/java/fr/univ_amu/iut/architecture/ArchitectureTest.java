@@ -16,19 +16,17 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-/**
- * Règles d'architecture (ArchUnit) garanties dès la fondation. Les règles UI restantes (vue ne
- * touche pas JDBC, viewmodel sans JavaFX scene/fxml, point d'extension Protocole) seront ajoutées
- * avec les features correspondantes.
- *
- * <p>Dépendances inter-features : une feature PEUT dépendre du paquet {@code model} d'une autre
- * feature (entités, {@code model.dao}, services métier), mais JAMAIS de son {@code view} ni de son
- * {@code viewmodel}. Le graphe de slices {@code fr.univ_amu.iut.(*)} reste par ailleurs sans cycle.
- *
- * <p>Écrit avec l'API « core » d'ArchUnit ({@link ClassFileImporter} + {@code @Test}) plutôt
- * qu'avec {@code @AnalyzeClasses}/{@code @ArchTest} : c'est la convention du projet (cf.
- * IMPL-CONVENTIONS).
- */
+/// Règles d'architecture (ArchUnit) garanties dès la fondation. Les règles UI restantes (vue ne
+/// touche pas JDBC, viewmodel sans JavaFX scene/fxml, point d'extension Protocole) seront ajoutées
+/// avec les features correspondantes.
+///
+/// Dépendances inter-features : une feature PEUT dépendre du paquet `model` d'une autre
+/// feature (entités, `model.dao`, services métier), mais JAMAIS de son `view` ni de son
+/// `viewmodel`. Le graphe de slices `fr.univ_amu.iut.(*)` reste par ailleurs sans cycle.
+///
+/// Écrit avec l'API « core » d'ArchUnit ([ClassFileImporter] + `@Test`) plutôt
+/// qu'avec `@AnalyzeClasses`/`@ArchTest` : c'est la convention du projet (cf.
+/// IMPL-CONVENTIONS).
 class ArchitectureTest {
 
   private static JavaClasses classes;
@@ -91,11 +89,9 @@ class ArchitectureTest {
     classes().should(neDependentPasDuViewDuneAutreFeature()).check(classes);
   }
 
-  /**
-   * Condition : une classe ne doit dépendre d'aucune classe résidant dans un paquet {@code view} ou
-   * {@code viewmodel} appartenant à une <b>autre</b> feature (le {@code view}/{@code viewmodel} de
-   * sa propre feature reste autorisé).
-   */
+  /// Condition : une classe ne doit dépendre d'aucune classe résidant dans un paquet `view` ou
+  /// `viewmodel` appartenant à une **autre** feature (le `view`/`viewmodel` de
+  /// sa propre feature reste autorisé).
   private static ArchCondition<JavaClass> neDependentPasDuViewDuneAutreFeature() {
     return new ArchCondition<>("ne pas dépendre du view/viewmodel d'une autre feature") {
       @Override
@@ -111,7 +107,7 @@ class ArchitectureTest {
     };
   }
 
-  /** Vrai si un segment du paquet de {@code classe} est {@code view} ou {@code viewmodel}. */
+  /// Vrai si un segment du paquet de `classe` est `view` ou `viewmodel`.
   private static boolean estVueOuViewModel(JavaClass classe) {
     for (String segment : classe.getPackageName().split("\\.")) {
       if (segment.equals("view") || segment.equals("viewmodel")) {
@@ -121,7 +117,7 @@ class ArchitectureTest {
     return false;
   }
 
-  /** Nom de la feature : segment juste après {@code fr.univ_amu.iut.} (ex. {@code sites}). */
+  /// Nom de la feature : segment juste après `fr.univ_amu.iut.` (ex. `sites`).
   private static String feature(JavaClass classe) {
     String prefixe = "fr.univ_amu.iut.";
     String paquet = classe.getPackageName();

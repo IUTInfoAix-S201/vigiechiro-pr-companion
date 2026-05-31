@@ -1,0 +1,105 @@
+package fr.univ_amu.iut.sites.view;
+
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.Singleton;
+import fr.univ_amu.iut.commun.view.Navigateur;
+import fr.univ_amu.iut.sites.model.PointDEcoute;
+import fr.univ_amu.iut.sites.model.Site;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.util.Objects;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import javafx.stage.Window;
+
+/// Façade de navigation de la feature `sites` : centralise le chargement des vues FXML et
+/// l'enchaînement des écrans.
+///
+/// C'est le **seul** point de la feature qui sait charger un FXML : chaque [FXMLLoader] reçoit la
+/// `controllerFactory` branchée sur Guice (`injector::getInstance`), exactement comme le bootstrap
+/// [fr.univ_amu.iut.App] le fait pour le chrome. Les controllers obtiennent ainsi leurs ViewModels
+/// par injection, sans connaître l'injecteur.
+///
+/// La navigation entre vues principales (accueil ↔ détail) passe par le service [Navigateur] du
+/// socle (échange de la zone centrale du chrome). L'édition d'un point s'ouvre dans un [Stage]
+/// modal distinct. C'est cette classe qui rend la feature `sites` dépendante du socle `commun.view`
+/// (dépendance autorisée : `commun` est le socle partagé, pas une autre feature).
+@Singleton
+public class NavigationSites {
+
+  private final Injector injector;
+  private final Navigateur navigateur;
+
+  @Inject
+  public NavigationSites(Injector injector, Navigateur navigateur) {
+    this.injector = Objects.requireNonNull(injector, "injector");
+    this.navigateur = Objects.requireNonNull(navigateur, "navigateur");
+  }
+
+  /// Affiche l'écran d'accueil **M-Sites** dans la zone centrale du chrome.
+  public void ouvrirAccueil() {
+    FXMLLoader loader = charger("MesSites.fxml");
+    Parent vue = lire(loader);
+    navigateur.afficher(vue, "sites", "Mes sites de suivi");
+  }
+
+  /// Affiche l'écran de détail **M-Site-detail** du site donné (clic sur une carte).
+  public void ouvrirDetail(Site site) {
+    Objects.requireNonNull(site, "site");
+    FXMLLoader loader = charger("SiteDetail.fxml");
+    Parent vue = lire(loader);
+    SiteDetailController controller = loader.getController();
+    controller.afficher(site);
+    navigateur.afficher(vue, "site-detail", "Mes sites › Carré " + site.numeroCarre());
+  }
+
+  /// Ouvre la modale d'**ajout** d'un point d'écoute pour `site`.
+  ///
+  /// @param parent fenêtre propriétaire (pour la modalité)
+  /// @param site site auquel rattacher le nouveau point
+  /// @param apresSucces action exécutée après un ajout réussi (typiquement rafraîchir le détail)
+  public void ouvrirModaleCreationPoint(Window parent, Site site, Runnable apresSucces) {
+    FXMLLoader loader = charger("ModalePoint.fxml");
+    Parent vue = lire(loader);
+    ModalePointController controller = loader.getController();
+    controller.demarrerCreation(site, apresSucces);
+    afficherModale(parent, vue);
+  }
+
+  /// Ouvre la modale d'**édition** du point `point` (champs pré-remplis).
+  public void ouvrirModaleEditionPoint(
+      Window parent, Site site, PointDEcoute point, Runnable apresSucces) {
+    FXMLLoader loader = charger("ModalePoint.fxml");
+    Parent vue = lire(loader);
+    ModalePointController controller = loader.getController();
+    controller.demarrerEdition(site, point, apresSucces);
+    afficherModale(parent, vue);
+  }
+
+  private void afficherModale(Window parent, Parent vue) {
+    Stage modale = new Stage();
+    modale.initOwner(parent);
+    modale.initModality(Modality.WINDOW_MODAL);
+    modale.setTitle("Point d'écoute");
+    modale.setScene(new Scene(vue));
+    modale.show();
+  }
+
+  private FXMLLoader charger(String fxml) {
+    FXMLLoader loader = new FXMLLoader(NavigationSites.class.getResource(fxml));
+    loader.setControllerFactory(injector::getInstance);
+    return loader;
+  }
+
+  private static Parent lire(FXMLLoader loader) {
+    try {
+      return loader.load();
+    } catch (IOException echec) {
+      throw new UncheckedIOException("Chargement FXML impossible : " + loader.getLocation(), echec);
+    }
+  }
+}

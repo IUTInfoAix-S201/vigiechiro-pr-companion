@@ -128,7 +128,7 @@ public class MesSitesController {
   private VBox colonneStatsPassages(CarteSite carte) {
     Label nombre = new Label(Integer.toString(carte.passagesDeLAnnee()));
     nombre.getStyleClass().add(STYLE_STAT_NOMBRE);
-    Label libelle = new Label("passages en 2026");
+    Label libelle = new Label("passages en " + carte.anneeReference());
     libelle.getStyleClass().add(STYLE_STAT_LIBELLE);
     Label complement = new Label(libelleComplementPassages(carte));
     complement.getStyleClass().add(STYLE_CARTE_DETAIL);

@@ -15,7 +15,8 @@ import fr.univ_amu.iut.sites.model.Site;
 /// @param site site d'origine (porte le n° de carré, le nom, le commentaire/localisation)
 /// @param nombrePoints nombre de points d'écoute déclarés
 /// @param codesPoints codes joints pour l'affichage (ex. `A1 · B2 · C3`), `—` si aucun
-/// @param passagesDeLAnnee nombre de passages enregistrés pour l'année courante
+/// @param passagesDeLAnnee nombre de passages enregistrés pour l'année de référence
+/// @param anneeReference année de référence des compteurs (année de l'horloge applicative)
 /// @param passagesAVerifier nombre de passages encore à vérifier (verdict absent)
 /// @param fraicheur niveau de fraîcheur dérivé du dernier passage
 /// @param libelleFraicheur libellé affiché dans le badge (ex. `Dernier passage : il y a 2 j`)
@@ -24,6 +25,7 @@ public record CarteSite(
     int nombrePoints,
     String codesPoints,
     int passagesDeLAnnee,
+    int anneeReference,
     int passagesAVerifier,
     Fraicheur fraicheur,
     String libelleFraicheur) {

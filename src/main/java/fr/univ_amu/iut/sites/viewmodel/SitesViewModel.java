@@ -106,6 +106,7 @@ public class SitesViewModel {
         points.size(),
         joindreCodes(points),
         passagesAnnee,
+        annee,
         aVerifier,
         fraicheur,
         libelleFraicheur(dernier, aujourdhui));

@@ -3,6 +3,7 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressIndicator?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
@@ -84,6 +85,7 @@
   <HBox spacing="14.0" alignment="CENTER_LEFT">
     <Button fx:id="boutonImporter" text="📥 Importer cette nuit" styleClass="bouton-primaire"
             onAction="#importer"/>
+    <ProgressIndicator fx:id="indicateurProgression" prefWidth="26.0" prefHeight="26.0"/>
     <Label fx:id="labelMessage" styleClass="message-erreur" wrapText="true" HBox.hgrow="ALWAYS"/>
   </HBox>
   <Label fx:id="labelStatut" styleClass="message-succes" wrapText="true"/>

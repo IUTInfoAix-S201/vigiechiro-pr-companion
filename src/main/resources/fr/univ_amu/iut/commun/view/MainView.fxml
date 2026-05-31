@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<!--
+  Chrome principal de VigieChiro PR Companion (socle IHM).
+  - top    : barre de navigation (titre application + fil d'Ariane)
+  - center : zone d'accueil (placeholder ; échangée par les features via le Navigateur)
+  - bottom : pied de page
+  Le centre est lié par MainController au Navigateur : pour le changer, passer par afficher(...).
+-->
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:id="racine"
+            fx:controller="fr.univ_amu.iut.commun.view.MainController"
+            stylesheets="@base.css"
+            styleClass="fenetre-principale"
+            prefWidth="960.0" prefHeight="640.0">
+
+  <top>
+    <HBox styleClass="barre-navigation" alignment="CENTER_LEFT" spacing="16.0">
+      <Label fx:id="titreApplication" styleClass="titre-application"
+             text="VigieChiro PR Companion"/>
+      <Region HBox.hgrow="ALWAYS"/>
+      <Label fx:id="filAriane" styleClass="fil-ariane" text="Accueil"/>
+    </HBox>
+  </top>
+
+  <center>
+    <VBox fx:id="zoneAccueil" styleClass="zone-accueil" alignment="CENTER" spacing="12.0">
+      <Label styleClass="titre-accueil" text="Bienvenue dans VigieChiro PR Companion"/>
+      <Label styleClass="sous-titre-accueil"
+             text="Sélectionnez une activité pour traiter un Point Relais."/>
+    </VBox>
+  </center>
+
+  <bottom>
+    <Label fx:id="pied" styleClass="pied-page" maxWidth="Infinity"
+           text="SAÉ 2.01 · IUT d'Aix-Marseille"/>
+  </bottom>
+</BorderPane>

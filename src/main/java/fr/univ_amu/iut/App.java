@@ -1,24 +1,31 @@
 package fr.univ_amu.iut;
 
+import com.google.inject.Injector;
+import fr.univ_amu.iut.commun.di.RacineInjecteur;
 import javafx.application.Application;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
-import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
-/// Application JavaFX principale du SAÉ 2.01 - VigieChiro PR Companion.
+/// Point d'entrée JavaFX du SAÉ 2.01 - VigieChiro PR Companion.
 ///
-/// Sert de point d'entrée pour vérifier que l'environnement JavaFX est correctement configuré.
+/// Bootstrap (patron CM4) : construit la racine de composition Guice, puis charge le chrome
+/// principal (`commun/view/MainView.fxml`) en branchant la `controllerFactory` du `FXMLLoader`
+/// sur l'injecteur. Les controllers sont ainsi instanciés par Guice (injection par constructeur),
+/// ce qui leur donne accès aux ViewModels et services du socle et des features.
 public class App extends Application {
 
   @Override
-  public void start(Stage primaryStage) {
-    Label label = new Label("JavaFX fonctionne !");
-    StackPane root = new StackPane(label);
-    Scene scene = new Scene(root, 400, 200);
+  public void start(Stage primaryStage) throws Exception {
+    Injector injector = RacineInjecteur.creer();
 
-    primaryStage.setTitle("SAÉ 2.01 - VigieChiro PR Companion - IUT Aix-Marseille");
-    primaryStage.setScene(scene);
+    FXMLLoader loader = new FXMLLoader(getClass().getResource("commun/view/MainView.fxml"));
+    loader.setControllerFactory(injector::getInstance);
+    Parent root = loader.load();
+
+    primaryStage.setScene(new Scene(root));
+    primaryStage.setTitle("VigieChiro PR Companion");
     primaryStage.show();
   }
 

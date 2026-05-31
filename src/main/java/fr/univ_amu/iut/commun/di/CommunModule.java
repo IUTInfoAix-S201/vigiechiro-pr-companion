@@ -6,9 +6,12 @@ import com.google.inject.Singleton;
 import fr.univ_amu.iut.commun.model.Horloge;
 import fr.univ_amu.iut.commun.model.Workspace;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
+import fr.univ_amu.iut.commun.view.Navigateur;
+import fr.univ_amu.iut.commun.viewmodel.NavigationViewModel;
 import java.nio.file.Path;
 
-/// Module Guice du socle : fournit le [Workspace] et la [SourceDeDonnees] (singleton).
+/// Module Guice du socle : fournit le [Workspace], la [SourceDeDonnees] et le socle IHM
+/// (singletons).
 ///
 /// Le workspace est par défaut `<Documents>/VigieChiro-Companion` (R21). Pour les tests
 /// d'intégration ou une démo jetable, on peut le surcharger via la propriété système
@@ -19,7 +22,11 @@ public class CommunModule extends AbstractModule {
 
   @Override
   protected void configure() {
-    // Rien à binder par interface ici : tout passe par des @Provides (besoin de logique).
+    // Socle IHM transverse : état de navigation observable + service de swap de la zone
+    // centrale. Singletons pour que le chrome et toutes les features partagent la même
+    // instance. Pas de @Provides : pas de logique de construction (constructeurs @Inject).
+    bind(NavigationViewModel.class).in(Singleton.class);
+    bind(Navigateur.class).in(Singleton.class);
   }
 
   @Provides

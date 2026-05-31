@@ -1,0 +1,60 @@
+/*
+ * base.css — palette sémantique sobre du socle IHM VigieChiro PR Companion.
+ *
+ * Les couleurs suivent la convention du module : bleu primaire #4a90d9 (identité / barre de
+ * navigation), vert accent #1e8449 (validation / actions positives). Définies comme couleurs
+ * "looked-up" sur .root, elles sont réutilisables (et surchargeables) par les feuilles de style
+ * des features.
+ */
+.root {
+    -couleur-primaire: #4a90d9;
+    -couleur-accent: #1e8449;
+    -couleur-fond: #f5f6f8;
+    -couleur-texte: #2c3e50;
+    -couleur-texte-clair: #ffffff;
+
+    -fx-font-family: "Segoe UI", "Roboto", "Helvetica Neue", sans-serif;
+    -fx-background-color: -couleur-fond;
+}
+
+/* Barre de navigation haute : bandeau primaire. */
+.barre-navigation {
+    -fx-background-color: -couleur-primaire;
+    -fx-padding: 14 20 14 20;
+}
+
+.titre-application {
+    -fx-text-fill: -couleur-texte-clair;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+}
+
+.fil-ariane {
+    -fx-text-fill: derive(-couleur-texte-clair, -12%);
+    -fx-font-size: 13px;
+}
+
+/* Zone centrale d'accueil (placeholder échangé par les features). */
+.zone-accueil {
+    -fx-padding: 48;
+    -fx-background-color: -couleur-fond;
+}
+
+.titre-accueil {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -couleur-primaire;
+}
+
+.sous-titre-accueil {
+    -fx-font-size: 14px;
+    -fx-text-fill: derive(-couleur-texte, 25%);
+}
+
+/* Pied de page : bandeau sombre discret. */
+.pied-page {
+    -fx-background-color: -couleur-texte;
+    -fx-text-fill: -couleur-texte-clair;
+    -fx-padding: 8 20 8 20;
+    -fx-font-size: 12px;
+}

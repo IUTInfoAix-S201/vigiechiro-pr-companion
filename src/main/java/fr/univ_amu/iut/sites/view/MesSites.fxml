@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<!--
+  M-Sites - « Mes sites de suivi » (écran d'accueil de la feature sites).
+  Le bandeau (titre + sous-titre + bouton « + Nouveau site ») et l'ossature sont déclarés ici ;
+  les cartes de sites (nombre variable) sont bâties en code par MesSitesController, qui bascule
+  aussi entre la liste (zoneListe) et l'état vide (etatVide) selon SitesViewModel.videProperty().
+-->
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="fr.univ_amu.iut.sites.view.MesSitesController"
+      stylesheets="@sites.css"
+      styleClass="ecran-sites"
+      spacing="16.0">
+
+  <HBox styleClass="entete-page" alignment="CENTER_LEFT" spacing="12.0">
+    <VBox spacing="2.0" HBox.hgrow="ALWAYS">
+      <Label text="Mes sites de suivi" styleClass="titre-page"/>
+      <Label fx:id="sousTitre" styleClass="sous-titre-page"/>
+    </VBox>
+    <Button text="+ Nouveau site" styleClass="bouton-primaire" onAction="#nouveauSite"/>
+  </HBox>
+
+  <ScrollPane fx:id="zoneListe" fitToWidth="true" styleClass="zone-liste" VBox.vgrow="ALWAYS">
+    <VBox fx:id="listeCartes" styleClass="liste-cartes" spacing="12.0"/>
+  </ScrollPane>
+
+  <VBox fx:id="etatVide" styleClass="etat-vide" alignment="CENTER" spacing="10.0"
+        VBox.vgrow="ALWAYS">
+    <Label text="🌐" styleClass="etat-vide-icone"/>
+    <Label text="Bienvenue ! Commencez par déclarer votre premier site."
+           styleClass="etat-vide-titre"/>
+    <Label text="Un site = un carré Vigie-Chiro (6 chiffres) avec un ou plusieurs points d'écoute."
+           styleClass="etat-vide-sous"/>
+    <Button text="+ Ajouter mon premier site de suivi" styleClass="bouton-primaire-grand"
+            onAction="#nouveauSite"/>
+    <VBox styleClass="hint-box" maxWidth="660.0" spacing="4.0">
+      <Label text="💡 Vous n'avez pas encore créé votre site sur Vigie-Chiro ?"
+             styleClass="hint-titre"/>
+      <Label wrapText="true" styleClass="hint-txt"
+             text="Le carré et les points doivent d'abord être déclarés sur le portail web
+                   vigiechiro.herokuapp.com, puis saisis ici (n° de carré + codes points)."/>
+    </VBox>
+  </VBox>
+</VBox>

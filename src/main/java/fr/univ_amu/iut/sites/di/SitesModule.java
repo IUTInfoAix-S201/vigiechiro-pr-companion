@@ -3,12 +3,19 @@ package fr.univ_amu.iut.sites.di;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
+import com.google.inject.name.Named;
 import fr.univ_amu.iut.commun.model.Horloge;
+import fr.univ_amu.iut.commun.model.Utilisateur;
+import fr.univ_amu.iut.commun.model.dao.UtilisateurDao;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
 import fr.univ_amu.iut.passage.model.dao.PassageDao;
 import fr.univ_amu.iut.sites.model.ServiceSites;
 import fr.univ_amu.iut.sites.model.dao.PointDao;
 import fr.univ_amu.iut.sites.model.dao.SiteDao;
+import fr.univ_amu.iut.sites.viewmodel.PointEditViewModel;
+import fr.univ_amu.iut.sites.viewmodel.SiteDetailViewModel;
+import fr.univ_amu.iut.sites.viewmodel.SitesViewModel;
+import java.util.UUID;
 
 /// Module Guice de la feature `sites` : fournit ses DAO à partir de la [SourceDeDonnees]
 /// (binder en singleton par `CommunModule`).
@@ -16,6 +23,13 @@ import fr.univ_amu.iut.sites.model.dao.SiteDao;
 /// On utilise des méthodes `@Provides` (et non `@Inject` sur les DAO) pour garder la couche
 /// `model.dao` **indépendante du framework** d'injection : les DAO restent de simples objets
 /// réutilisables (objectif réutilisation O6). C'est ce module qui sait les assembler.
+///
+/// Ce module assemble aussi la couche IHM de la feature : les trois ViewModels (M-Sites,
+/// M-Site-detail, modale point) y sont fournis par `@Provides`. Les controllers FXML
+/// ([fr.univ_amu.iut.sites.view.MesSitesController]…) et la façade
+/// [fr.univ_amu.iut.sites.view.NavigationSites] ne sont **pas** déclarés ici : ils suivent le
+/// patron du socle (constructeur `@Inject` instancié par la `controllerFactory` Guice du
+/// `FXMLLoader`), exactement comme `MainController`.
 public class SitesModule extends AbstractModule {
 
   @Provides
@@ -39,5 +53,49 @@ public class SitesModule extends AbstractModule {
   ServiceSites fournirServiceSites(
       SiteDao siteDao, PointDao pointDao, PassageDao passageDao, Horloge horloge) {
     return new ServiceSites(siteDao, pointDao, passageDao, horloge);
+  }
+
+  /// Identifiant de l'utilisateur courant (application mono-utilisateur, hors-ligne, C1).
+  ///
+  /// Bootstrap minimal : on retourne l'unique utilisateur local s'il existe, sinon on en crée un
+  /// (UUID + nom par défaut). Hébergé ici faute de notion de session dans le socle ; à promouvoir
+  /// dans `commun` quand d'autres features (passage, multisite…) en auront besoin.
+  @Provides
+  @Singleton
+  @Named("idUtilisateurCourant")
+  String fournirIdUtilisateurCourant(UtilisateurDao utilisateurDao) {
+    return utilisateurDao.findAll().stream()
+        .map(Utilisateur::localId)
+        .findFirst()
+        .orElseGet(() -> creerUtilisateurLocal(utilisateurDao));
+  }
+
+  @Provides
+  @Singleton
+  SitesViewModel fournirSitesViewModel(
+      ServiceSites service,
+      PassageDao passageDao,
+      Horloge horloge,
+      @Named("idUtilisateurCourant") String idUtilisateur) {
+    return new SitesViewModel(service, passageDao, horloge, idUtilisateur);
+  }
+
+  @Provides
+  @Singleton
+  SiteDetailViewModel fournirSiteDetailViewModel(
+      ServiceSites service, PointDao pointDao, PassageDao passageDao, Horloge horloge) {
+    return new SiteDetailViewModel(service, pointDao, passageDao, horloge);
+  }
+
+  @Provides
+  @Singleton
+  PointEditViewModel fournirPointEditViewModel(ServiceSites service, PointDao pointDao) {
+    return new PointEditViewModel(service, pointDao);
+  }
+
+  private static String creerUtilisateurLocal(UtilisateurDao utilisateurDao) {
+    Utilisateur local = new Utilisateur(UUID.randomUUID().toString(), "Utilisateur local");
+    utilisateurDao.insert(local);
+    return local.localId();
   }
 }

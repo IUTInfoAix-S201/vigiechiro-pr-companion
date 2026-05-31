@@ -1,0 +1,381 @@
+/*
+ * sites.css - feuille de style de la feature « sites » (M-Sites + M-Site-detail + modale point).
+ *
+ * Reprend la palette sémantique des maquettes : primaire bleu #4a90d9, succès vert #1e8449,
+ * warning orange #b9770e, danger rouge #a93226, neutre gris #6a737d. Les couleurs sont écrites
+ * en dur (et non via les couleurs looked-up de base.css) pour que les vues restent stylées même
+ * chargées isolément dans les tests TestFX, hors du chrome principal.
+ *
+ * Les badges (fraîcheur, statut workflow, verdict, GPS) tirent leur couleur d'une classe CSS
+ * appliquée par la vue : la couleur est DÉRIVÉE de la donnée, jamais stockée.
+ */
+
+/* ----- Ossature des écrans ----- */
+.ecran-sites,
+.ecran-detail {
+    -fx-padding: 24;
+    -fx-background-color: #ffffff;
+}
+
+.entete-page {
+    -fx-padding: 0 0 4 0;
+}
+
+.titre-page {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50;
+}
+
+.sous-titre-page {
+    -fx-font-size: 13px;
+    -fx-text-fill: #6a737d;
+}
+
+.titre-section {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50;
+    -fx-padding: 8 0 0 0;
+}
+
+/* ----- Boutons ----- */
+.bouton-primaire {
+    -fx-background-color: #4a90d9;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 4;
+    -fx-padding: 8 16 8 16;
+    -fx-cursor: hand;
+}
+
+.bouton-primaire:hover {
+    -fx-background-color: #2563a3;
+}
+
+.bouton-primaire-grand {
+    -fx-background-color: #4a90d9;
+    -fx-text-fill: white;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 6;
+    -fx-padding: 14 28 14 28;
+    -fx-cursor: hand;
+}
+
+.bouton-secondaire {
+    -fx-background-color: white;
+    -fx-text-fill: #2c3e50;
+    -fx-font-weight: bold;
+    -fx-border-color: #2c3e50;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-padding: 7 14 7 14;
+    -fx-cursor: hand;
+}
+
+.bouton-danger {
+    -fx-background-color: white;
+    -fx-text-fill: #a93226;
+    -fx-font-weight: bold;
+    -fx-border-color: #a93226;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-padding: 7 14 7 14;
+    -fx-cursor: hand;
+}
+
+.bouton-danger:disabled {
+    -fx-opacity: 0.45;
+}
+
+/* ----- Liste de cartes (M-Sites) ----- */
+.zone-liste {
+    -fx-background-color: transparent;
+}
+
+.zone-liste > .viewport {
+    -fx-background-color: transparent;
+}
+
+.liste-cartes {
+    -fx-padding: 4 2 4 2;
+}
+
+.carte-site {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #d0d7de;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-padding: 16 20 16 20;
+    -fx-spacing: 16;
+    -fx-cursor: hand;
+}
+
+.carte-site:hover {
+    -fx-border-color: #4a90d9;
+    -fx-background-color: #f6f8fa;
+}
+
+.carte-colonne {
+    -fx-spacing: 4;
+    -fx-min-width: 150;
+}
+
+.carte-separateur {
+    -fx-min-width: 1;
+    -fx-pref-width: 1;
+    -fx-background-color: #d0d7de;
+}
+
+.carte-titre {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50;
+}
+
+.carte-sous-titre {
+    -fx-font-size: 13px;
+    -fx-text-fill: #6a737d;
+}
+
+.carte-detail {
+    -fx-font-size: 12px;
+    -fx-text-fill: #6a737d;
+}
+
+.carte-chevron {
+    -fx-font-size: 20px;
+    -fx-text-fill: #6a737d;
+    -fx-cursor: hand;
+}
+
+.carte-stat-nombre {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #4a90d9;
+}
+
+.carte-stat-libelle {
+    -fx-font-size: 11px;
+    -fx-text-fill: #6a737d;
+}
+
+/* ----- Badges de fraîcheur (couleur dérivée du dernier passage) ----- */
+.badge {
+    -fx-padding: 3 10 3 10;
+    -fx-background-radius: 11;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+
+.badge-frais {
+    -fx-background-color: #d4edda;
+    -fx-text-fill: #1e6f3f;
+}
+
+.badge-tiede {
+    -fx-background-color: #fff3cd;
+    -fx-text-fill: #7e5109;
+}
+
+.badge-froid {
+    -fx-background-color: #f6f8fa;
+    -fx-text-fill: #2c3e50;
+    -fx-border-color: #d0d7de;
+    -fx-border-radius: 11;
+}
+
+/* ----- Badges de statut workflow (couleur dérivée du statut) ----- */
+.badge-statut-importe {
+    -fx-background-color: #f6f8fa;
+    -fx-text-fill: #6a737d;
+}
+
+.badge-statut-transforme {
+    -fx-background-color: #fef9e7;
+    -fx-text-fill: #7e5109;
+}
+
+.badge-statut-verifie {
+    -fx-background-color: #fde7e7;
+    -fx-text-fill: #a93226;
+}
+
+.badge-statut-pret_a_deposer {
+    -fx-background-color: #eef2f5;
+    -fx-text-fill: #2c3e50;
+}
+
+.badge-statut-depose {
+    -fx-background-color: #cce4f7;
+    -fx-text-fill: #2563a3;
+}
+
+/* ----- Badges de verdict (couleur dérivée du verdict) ----- */
+.badge-verdict-ok {
+    -fx-background-color: #d4edda;
+    -fx-text-fill: #1e6f3f;
+}
+
+.badge-verdict-douteux {
+    -fx-background-color: #fff3cd;
+    -fx-text-fill: #7e5109;
+}
+
+.badge-verdict-a_jeter {
+    -fx-background-color: #fde7e7;
+    -fx-text-fill: #a93226;
+}
+
+.badge-verdict-a_verifier {
+    -fx-background-color: transparent;
+    -fx-text-fill: #6a737d;
+}
+
+/* ----- État vide (premier lancement) ----- */
+.etat-vide {
+    -fx-padding: 40;
+}
+
+.etat-vide-icone {
+    -fx-font-size: 64px;
+    -fx-text-fill: #d0d7de;
+}
+
+.etat-vide-titre {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50;
+}
+
+.etat-vide-sous {
+    -fx-font-size: 13px;
+    -fx-text-fill: #6a737d;
+}
+
+.hint-box {
+    -fx-background-color: #fef9e7;
+    -fx-border-color: #b9770e;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-padding: 14;
+}
+
+.hint-titre {
+    -fx-font-weight: bold;
+    -fx-text-fill: #5d4e00;
+}
+
+.hint-txt {
+    -fx-font-size: 12px;
+    -fx-text-fill: #5d4e00;
+}
+
+/* ----- Détail du site ----- */
+.fil-ariane-lien {
+    -fx-text-fill: #4a90d9;
+    -fx-font-size: 13px;
+}
+
+.bandeau-infos {
+    -fx-background-color: #f6f8fa;
+    -fx-border-color: #d0d7de;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-padding: 12 0 12 0;
+}
+
+.info-cellule {
+    -fx-padding: 0 16 0 16;
+    -fx-spacing: 4;
+}
+
+.info-label {
+    -fx-font-size: 10px;
+    -fx-text-fill: #6a737d;
+}
+
+.info-value {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50;
+}
+
+/* ----- Cartes de points d'écoute ----- */
+.carte-point {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #d0d7de;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-padding: 12 16 12 16;
+    -fx-spacing: 4;
+    -fx-min-width: 260;
+}
+
+.carte-point-code {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50;
+}
+
+.carte-point-desc {
+    -fx-font-size: 12px;
+    -fx-text-fill: #6a737d;
+}
+
+.carte-point-actions {
+    -fx-spacing: 10;
+}
+
+.gps-ok {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1e8449;
+}
+
+.gps-manquant {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #b9770e;
+}
+
+/* ----- Modale d'édition de point ----- */
+.modale-point {
+    -fx-padding: 20 24 20 24;
+    -fx-background-color: #ffffff;
+}
+
+.modale-titre {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50;
+}
+
+.section-label {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #6a737d;
+}
+
+.field-label {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50;
+}
+
+.field-hint {
+    -fx-font-size: 12px;
+    -fx-text-fill: #6a737d;
+}
+
+.message-erreur {
+    -fx-font-size: 12px;
+    -fx-text-fill: #a93226;
+}
+
+.champ-invalide {
+    -fx-border-color: #a93226;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 3;
+}

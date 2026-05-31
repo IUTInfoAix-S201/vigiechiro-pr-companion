@@ -3,22 +3,32 @@ package fr.univ_amu.iut.validation.di;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
+import fr.univ_amu.iut.commun.model.Horloge;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
+import fr.univ_amu.iut.passage.model.dao.SequenceDao;
+import fr.univ_amu.iut.passage.model.dao.SessionDao;
+import fr.univ_amu.iut.validation.model.ExportVuCsv;
+import fr.univ_amu.iut.validation.model.ParserCsvTadarida;
+import fr.univ_amu.iut.validation.model.ServiceValidation;
 import fr.univ_amu.iut.validation.model.dao.GroupeTaxonomiqueDao;
 import fr.univ_amu.iut.validation.model.dao.ObservationDao;
 import fr.univ_amu.iut.validation.model.dao.ResultatsIdentificationDao;
 import fr.univ_amu.iut.validation.model.dao.TaxonDao;
 
 /**
- * Module Guice de la feature {@code validation} : fournit ses DAO à partir de la {@link
- * SourceDeDonnees} (binder en singleton par {@code CommunModule}).
+ * Module Guice de la feature {@code validation} : fournit ses DAO, ses moteurs CSV ({@link
+ * ParserCsvTadarida}, {@link ExportVuCsv}) et son service ({@link ServiceValidation}) à partir de
+ * la {@link SourceDeDonnees} (binder en singleton par {@code CommunModule}).
  *
  * <p>Comme {@code SitesModule}, on utilise des méthodes {@code @Provides} (et non {@code @Inject}
- * sur les DAO) pour garder la couche {@code model.dao} indépendante du framework d'injection : les
- * DAO restent de simples objets réutilisables, c'est ce module qui sait les assembler.
+ * sur les DAO ni le service) pour garder la couche {@code model} indépendante du framework
+ * d'injection : DAO, parseur, écrivain et service restent de simples objets réutilisables, c'est ce
+ * module qui sait les assembler.
  *
- * <p>Note d'intégration (phase 3) : ce module n'est <b>pas encore installé</b> dans {@code
- * RacineInjecteur}. Il le sera lorsque la feature validation sera câblée au runtime applicatif.
+ * <p>L'assemblage du service est <b>inter-modules</b> : il reçoit les DAO de {@code passage}
+ * ({@link SessionDao}, {@link SequenceDao}, pour raccrocher les observations à leurs séquences) et
+ * l'{@link Horloge} du socle. Le sens des dépendances ({@code validation → passage}) reste
+ * acyclique (contrôlé par {@code ArchitectureTest}).
  */
 public class ValidationModule extends AbstractModule {
 
@@ -44,5 +54,32 @@ public class ValidationModule extends AbstractModule {
   @Singleton
   ObservationDao fournirObservationDao(SourceDeDonnees source) {
     return new ObservationDao(source);
+  }
+
+  @Provides
+  @Singleton
+  ParserCsvTadarida fournirParserCsvTadarida() {
+    return new ParserCsvTadarida();
+  }
+
+  @Provides
+  @Singleton
+  ExportVuCsv fournirExportVuCsv() {
+    return new ExportVuCsv();
+  }
+
+  @Provides
+  @Singleton
+  ServiceValidation fournirServiceValidation(
+      ResultatsIdentificationDao resultatsDao,
+      ObservationDao observationDao,
+      TaxonDao taxonDao,
+      SessionDao sessionDao,
+      SequenceDao sequenceDao,
+      ParserCsvTadarida parser,
+      ExportVuCsv export,
+      Horloge horloge) {
+    return new ServiceValidation(
+        resultatsDao, observationDao, taxonDao, sessionDao, sequenceDao, parser, export, horloge);
   }
 }

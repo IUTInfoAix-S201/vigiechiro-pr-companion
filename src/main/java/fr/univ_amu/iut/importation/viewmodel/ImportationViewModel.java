@@ -265,30 +265,59 @@ public class ImportationViewModel {
     }
   }
 
-  /// Lance l'import de la nuit (copie protégée R9 + renommage R6/R7 + transformation R10/R11) via
-  /// [ServiceImport#importer], expose le [ResultatImport] et passe l'état à `TERMINE`. Un refus
-  /// métier (R5 doublon, journal manquant…) passe l'état à `ECHEC` et renseigne
-  /// [#messageErreurProperty()]. Méthode **synchrone** : la vue la lancera hors du fil JavaFX.
+  /// Lance l'import de la nuit **de façon synchrone** (copie protégée R9 + renommage R6/R7 +
+  /// transformation R10/R11). Pratique pour les tests et le chemin simple ; pour ne pas figer
+  /// l'IHM, la vue préfère le découpage [#marquerEnCours()] / [#executerImport()] /
+  /// [#marquerTermine] / [#marquerEchec], le travail lourd tournant sur un fil d'arrière-plan.
   public void importer() {
     if (!peutImporter.get()) {
       messageErreur.set(
           "Complétez le rattachement (dossier inspecté, site, point) avant d'importer.");
       return;
     }
+    marquerEnCours();
+    try {
+      marquerTermine(executerImport());
+    } catch (RuntimeException echec) {
+      marquerEchec(echec.getMessage());
+    }
+  }
+
+  /// Passe l'état à `EN_COURS` et efface le message. À appeler sur le fil JavaFX, avant de
+  /// lancer [#executerImport()] en arrière-plan.
+  public void marquerEnCours() {
+    messageErreur.set("");
+    etat.set(EtatImport.EN_COURS);
+  }
+
+  /// Exécute le travail lourd de l'import (copie + renommage + transformation) via
+  /// [ServiceImport#importer] et renvoie le résultat. **Ne mute aucune propriété** : conçu pour
+  /// tourner sur un fil d'arrière-plan. Précondition : rattachement complet ([#peutImporter()]
+  /// vrai), garanti par l'appelant.
+  ///
+  /// @return le résultat de l'import
+  /// @throws RuntimeException si l'import échoue (refus métier R5, journal manquant…)
+  public ResultatImport executerImport() {
     Site site = siteSelectionne.get();
     PointDEcoute point = pointSelectionne.get();
     Prefixe prefixe =
         new Prefixe(site.numeroCarre(), annee.get(), numeroPassage.get(), point.code());
-    etat.set(EtatImport.EN_COURS);
-    messageErreur.set("");
-    try {
-      resultat.set(serviceImport.importer(dossierSource.get(), point.id(), prefixe));
-      etat.set(EtatImport.TERMINE);
-    } catch (RuntimeException echec) {
-      resultat.set(null);
-      messageErreur.set(echec.getMessage());
-      etat.set(EtatImport.ECHEC);
-    }
+    return serviceImport.importer(dossierSource.get(), point.id(), prefixe);
+  }
+
+  /// Applique un import réussi (résultat exposé, état `TERMINE`). À appeler sur le fil JavaFX
+  /// (depuis `Platform.runLater`).
+  public void marquerTermine(ResultatImport resultatImport) {
+    resultat.set(resultatImport);
+    etat.set(EtatImport.TERMINE);
+  }
+
+  /// Applique un échec d'import : efface le résultat, renseigne le message, état `ECHEC`. À
+  /// appeler sur le fil JavaFX (depuis `Platform.runLater`).
+  public void marquerEchec(String message) {
+    resultat.set(null);
+    messageErreur.set(message);
+    etat.set(EtatImport.ECHEC);
   }
 
   private void echouer(String message) {

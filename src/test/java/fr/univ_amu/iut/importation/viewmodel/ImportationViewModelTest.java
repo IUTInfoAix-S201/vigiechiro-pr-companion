@@ -278,6 +278,31 @@ class ImportationViewModelTest {
     verifyNoInteractions(serviceImport);
   }
 
+  @Test
+  @DisplayName("Découpage async : marquerEnCours, executerImport (pur), marquerTermine")
+  void decoupage_async_des_etats() {
+    Site site = site(1L, "640380");
+    PointDEcoute point = point(10L, "A1", site.id());
+    when(serviceSites.listerPoints(site.id())).thenReturn(List.of(point));
+    when(serviceImport.inspecter(sd)).thenReturn(inspecteur.inspecter(sd));
+    ResultatImport attendu = new ResultatImport(null, null, "1925492", 2, 6, List.of());
+    when(serviceImport.importer(eq(sd), eq(10L), any(Prefixe.class))).thenReturn(attendu);
+    prepareRattachement(site, point);
+
+    viewModel.marquerEnCours();
+    assertThat(viewModel.etatProperty().get()).isEqualTo(EtatImport.EN_COURS);
+
+    ResultatImport obtenu = viewModel.executerImport();
+    assertThat(obtenu).isSameAs(attendu);
+    assertThat(viewModel.etatProperty().get())
+        .as("executerImport ne mute aucun état")
+        .isEqualTo(EtatImport.EN_COURS);
+
+    viewModel.marquerTermine(obtenu);
+    assertThat(viewModel.etatProperty().get()).isEqualTo(EtatImport.TERMINE);
+    assertThat(viewModel.resultatProperty().get()).isSameAs(attendu);
+  }
+
   private void prepareRattachement(Site site, PointDEcoute point) {
     viewModel.dossierSourceProperty().set(sd);
     viewModel.inspecter();

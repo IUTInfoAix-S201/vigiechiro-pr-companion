@@ -11,11 +11,13 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.function.Function;
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
@@ -27,7 +29,7 @@ import javafx.util.converter.NumberStringConverter;
 /// Pur câblage (patron CM4) : lie les contrôles des 4 sections (dossier / inspection /
 /// rattachement / action) aux propriétés de l'[ImportationViewModel]. Aucun accès base de données
 /// ni logique métier ici (règle ArchUnit `view_sans_jdbc`) : « Parcourir » délègue à
-/// [ImportationViewModel#inspecter()] et « Importer » à [ImportationViewModel#importer()].
+/// [ImportationViewModel#inspecter()] ; « Importer » lance le travail lourd hors du fil JavaFX.
 public class ImportationController {
 
   private final ImportationViewModel viewModel;
@@ -43,7 +45,9 @@ public class ImportationController {
   @FXML private TextField champAnnee;
   @FXML private TextField champPassage;
   @FXML private Label labelApercu;
+  @FXML private Button boutonParcourir;
   @FXML private Button boutonImporter;
+  @FXML private ProgressIndicator indicateurProgression;
   @FXML private Label labelMessage;
   @FXML private Label labelStatut;
 
@@ -113,8 +117,17 @@ public class ImportationController {
         new NumberStringConverter("0"));
     labelApercu.textProperty().bind(viewModel.apercuPrefixeProperty());
 
-    // 4. Action : bouton actif seulement si l'import est possible ; messages d'erreur / de succès.
-    boutonImporter.disableProperty().bind(viewModel.peutImporter().not());
+    // 4. Action : pendant l'import (EN_COURS), l'indicateur tourne et le formulaire est gelé pour
+    // éviter toute modification du rattachement en cours de traitement.
+    var enCours = viewModel.etatProperty().isEqualTo(EtatImport.EN_COURS);
+    indicateurProgression.visibleProperty().bind(enCours);
+    indicateurProgression.managedProperty().bind(enCours);
+    boutonImporter.disableProperty().bind(viewModel.peutImporter().not().or(enCours));
+    boutonParcourir.disableProperty().bind(enCours);
+    comboSites.disableProperty().bind(enCours);
+    comboPoints.disableProperty().bind(enCours);
+    champAnnee.disableProperty().bind(enCours);
+    champPassage.disableProperty().bind(enCours);
     labelMessage.textProperty().bind(viewModel.messageErreurProperty());
     labelStatut
         .textProperty()
@@ -137,11 +150,25 @@ public class ImportationController {
     }
   }
 
-  /// « Importer cette nuit » : lance l'import de façon synchrone (le fil d'arrière-plan viendra
-  /// plus tard).
+  /// « Importer cette nuit » : exécute le travail lourd sur un **virtual thread** (Java 25) pour ne
+  /// pas figer le fil JavaFX, puis applique le résultat (succès ou échec) via `Platform.runLater`.
   @FXML
   private void importer() {
-    viewModel.importer();
+    if (!viewModel.peutImporter().get()) {
+      return;
+    }
+    viewModel.marquerEnCours();
+    Thread.ofVirtual()
+        .name("import-vigiechiro")
+        .start(
+            () -> {
+              try {
+                ResultatImport resultatImport = viewModel.executerImport();
+                Platform.runLater(() -> viewModel.marquerTermine(resultatImport));
+              } catch (RuntimeException echec) {
+                Platform.runLater(() -> viewModel.marquerEchec(echec.getMessage()));
+              }
+            });
   }
 
   private String libelleSite(Site site) {

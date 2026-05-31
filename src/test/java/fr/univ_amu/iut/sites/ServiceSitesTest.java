@@ -28,14 +28,12 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Tests du service métier de référence {@link ServiceSites}, sur une base SQLite jetable
- * ({@code @TempDir} + {@link MigrationSchema}), comme les {@code *DaoTest}.
- *
- * <p>L'{@link HorlogeFigee} rend la date de création déterministe (assertion exacte possible). Les
- * passages utilisés pour le test de refus de suppression sont insérés via les DAO réels (le service
- * est exercé de bout en bout sur une vraie base, pas sur des mocks).
- */
+/// Tests du service métier de référence [ServiceSites], sur une base SQLite jetable
+/// (`@TempDir` + [MigrationSchema]), comme les `*DaoTest`.
+///
+/// L'[HorlogeFigee] rend la date de création déterministe (assertion exacte possible). Les
+/// passages utilisés pour le test de refus de suppression sont insérés via les DAO réels (le
+/// service est exercé de bout en bout sur une vraie base, pas sur des mocks).
 class ServiceSitesTest {
 
   private static final String ID_USER = "u-1";

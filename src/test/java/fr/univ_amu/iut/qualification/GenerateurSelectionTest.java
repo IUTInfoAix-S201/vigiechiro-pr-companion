@@ -14,19 +14,18 @@ import java.util.stream.IntStream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests purs (sans base) du moteur {@link GenerateurSelection} (R12).
- *
- * <p>Les séquences sont fabriquées en mémoire avec des noms de fichiers zéro-paddés dont l'ordre
- * lexicographique coïncide avec l'ordre chronologique (cf. invariant R6/R7/R8 documenté dans le
- * moteur). On vérifie la répartition temporelle déterministe, le respect de la fourchette 10-30, le
- * caractère configurable de la taille, ainsi que les méthodes Aléatoire et Manuel.
- */
+/// Tests purs (sans base) du moteur [GenerateurSelection] (R12).
+///
+/// Les séquences sont fabriquées en mémoire avec des noms de fichiers zéro-paddés dont
+/// l'ordre lexicographique coïncide avec l'ordre chronologique (cf. invariant R6/R7/R8
+/// documenté dans le moteur). On vérifie la répartition temporelle déterministe, le respect
+/// de la fourchette 10-30, le caractère configurable de la taille, ainsi que les méthodes
+/// Aléatoire et Manuel.
 class GenerateurSelectionTest {
 
   private final GenerateurSelection generateur = new GenerateurSelection();
 
-  /** Séquence factice dont le nom de fichier croît avec {@code t} (ordre = ordre chronologique). */
+  /// Séquence factice dont le nom de fichier croît avec `t` (ordre = ordre chronologique).
   private static SequenceDEcoute sequence(int t) {
     String nom = String.format("Car040962-2026-Pass1-A1-PaRecPR1925492_20260620_%06d_000.wav", t);
     return new SequenceDEcoute(

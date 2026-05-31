@@ -7,17 +7,15 @@ import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
 import fr.univ_amu.iut.sites.model.Site;
 import java.util.List;
 
-/**
- * DAO de l'entité {@link Site} (table {@code monitoring_site}). DAO de référence : c'est le patron
- * à recopier pour les autres entités à clé auto-incrémentée.
- *
- * <p>{@code findAll} / {@code findById} / {@code delete} sont hérités de {@link DaoGenerique}.
- * Seules les écritures dépendantes des colonnes sont écrites ici, en {@link
- * java.sql.PreparedStatement} (le SQL métier vit uniquement dans les DAO de feature).
- *
- * <p>Le {@link Protocole} est sérialisé via son {@code libelle()} dans la colonne {@code protocol},
- * et relu via {@link Protocole#parLibelle(String)} : c'est le patron de mapping d'un énum.
- */
+/// DAO de l'entité [Site] (table `monitoring_site`). DAO de référence : c'est le patron à
+/// recopier pour les autres entités à clé auto-incrémentée.
+///
+/// `findAll` / `findById` / `delete` sont hérités de [DaoGenerique]. Seules les écritures
+/// dépendantes des colonnes sont écrites ici, en [java.sql.PreparedStatement] (le SQL métier
+/// vit uniquement dans les DAO de feature).
+///
+/// Le [Protocole] est sérialisé via son `libelle()` dans la colonne `protocol`, et relu via
+/// [Protocole#parLibelle(String)] : c'est le patron de mapping d'un énum.
 public class SiteDao extends DaoGenerique<Site, Long> {
 
   private static final RowMapper<Site> MAPPER =
@@ -50,7 +48,7 @@ public class SiteDao extends DaoGenerique<Site, Long> {
     return MAPPER;
   }
 
-  /** Sites appartenant à un utilisateur donné, triés par numéro de carré. */
+  /// Sites appartenant à un utilisateur donné, triés par numéro de carré.
   public List<Site> findByUtilisateur(String idUtilisateur) {
     return query(
         "SELECT * FROM monitoring_site WHERE user_id = ? ORDER BY square_number",

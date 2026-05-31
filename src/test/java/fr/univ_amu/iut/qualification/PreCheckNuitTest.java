@@ -11,10 +11,8 @@ import fr.univ_amu.iut.qualification.model.PreCheckNuit.Mesures;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests purs (sans base) du moteur {@link PreCheckNuit} : on alimente directement les {@link
- * Mesures} et on vérifie les trois feux ainsi que la conversion en {@link ResultatVerification}.
- */
+/// Tests purs (sans base) du moteur [PreCheckNuit] : on alimente directement les [Mesures]
+/// et on vérifie les trois feux ainsi que la conversion en [ResultatVerification].
 class PreCheckNuitTest {
 
   private final PreCheckNuit preCheck = new PreCheckNuit();

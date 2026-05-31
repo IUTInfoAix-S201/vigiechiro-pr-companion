@@ -25,11 +25,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-/**
- * Complément Mockito (cf. SERVICE-CONVENTIONS §3.2) : isole la règle dure R14 indépendamment de la
- * base. On vérifie que le verdict « À jeter » court-circuite tout le reste : ni la vérification de
- * cohérence ni la moindre écriture ne sont déclenchées avant le refus.
- */
+/// Complément Mockito (cf. SERVICE-CONVENTIONS §3.2) : isole la règle dure R14 indépendamment
+/// de la base. On vérifie que le verdict « À jeter » court-circuite tout le reste : ni la
+/// vérification de cohérence ni la moindre écriture ne sont déclenchées avant le refus.
 @ExtendWith(MockitoExtension.class)
 class ServiceLotMockTest {
 

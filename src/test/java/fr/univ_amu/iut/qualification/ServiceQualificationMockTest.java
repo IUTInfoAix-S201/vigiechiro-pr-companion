@@ -31,12 +31,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-/**
- * Complément ciblé (Mockito) : isole la règle R13 d'enregistrement du verdict, indépendamment de la
- * base. On vérifie que le verdict est accepté <b>sans consulter l'état d'écoute</b> de la sélection
- * (aucun seuil obligatoire) et que la transition de statut est bien appliquée. Le test réel sur
- * {@code @TempDir} ({@link ServiceQualificationTest}) reste le mode par défaut.
- */
+/// Complément ciblé (Mockito) : isole la règle R13 d'enregistrement du verdict,
+/// indépendamment de la base. On vérifie que le verdict est accepté
+/// **sans consulter l'état d'écoute** de la sélection (aucun seuil obligatoire) et que la
+/// transition de statut est bien appliquée. Le test réel sur `@TempDir`
+/// ([ServiceQualificationTest]) reste le mode par défaut.
 @ExtendWith(MockitoExtension.class)
 class ServiceQualificationMockTest {
 

@@ -23,13 +23,10 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-/**
- * Variante du test de {@link ServiceSites} <b>isolant une règle pure avec Mockito</b> : les DAO
- * sont des mocks, on ne touche aucune base. Utile quand on veut vérifier la <i>logique de
- * décision</i> d'une règle (ici R5 : unicité du carré) indépendamment de SQLite. Le test « réel
- * » @TempDir reste le mode par défaut ({@link ServiceSitesTest}) ; cette approche est un complément
- * ciblé.
- */
+/// Variante du test de [ServiceSites] **isolant une règle pure avec Mockito** : les DAO sont
+/// des mocks, on ne touche aucune base. Utile quand on veut vérifier la *logique de décision*
+/// d'une règle (ici R5 : unicité du carré) indépendamment de SQLite. Le test « réel » @TempDir
+/// reste le mode par défaut ([ServiceSitesTest]) ; cette approche est un complément ciblé.
 @ExtendWith(MockitoExtension.class)
 class ServiceSitesMockTest {
 

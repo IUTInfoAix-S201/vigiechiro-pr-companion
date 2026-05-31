@@ -23,33 +23,30 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-/**
- * Moteur de vérification de cohérence d'un passage avant préparation d'un lot (parcours P4, story
- * E4.S1). Rejoue tous les contrôles affichés dans la maquette M-Lot et les restitue sous forme d'un
- * {@link ResultatVerification} (cumul d'alertes) que l'IHM utilise pour afficher chaque ligne ✓/✗
- * et pour activer/désactiver le bouton de dépôt.
- *
- * <p>Contrôles, dans l'ordre des règles métier :
- *
- * <ul>
- *   <li><b>R14</b> (bloquant) : un passage au verdict {@link Verdict#A_JETER} ne peut pas rejoindre
- *       un lot. Restitué ici comme alerte bloquante pour l'affichage ; le refus dur est levé par
- *       {@link ServiceLot}.
- *   <li><b>Transformation</b> (bloquant, R10) : une session existe, des séquences d'écoute sont
- *       présentes et <b>chaque</b> enregistrement original a été transformé en au moins une
- *       séquence.
- *   <li><b>Préfixe</b> (bloquant, R6/R7/R8) : tous les enregistrements originaux et toutes les
- *       séquences portent le préfixe attendu {@code Car<carré>-<année>-Pass<n>-<point>-}.
- *   <li><b>Journal du capteur</b> (bloquant) : un {@code sensor_log} accompagne la session.
- *   <li><b>Relevé climatique</b> (soft, R20) : son absence est <i>signalée sans bloquer</i> (sonde
- *       non installée ou défaillante) ; le dépôt reste possible.
- * </ul>
- *
- * <p>Pure logique métier (aucun import JavaFX). Reçoit ses DAO par constructeur, à la manière du
- * service de référence {@code ServiceSites}. Dépendances inter-feature en lecture seule autorisées
- * : {@code lot → passage} (séquences, originaux, journal, relevé, session) et {@code lot → sites}
- * (point et site, pour calculer le préfixe attendu) ; le graphe reste acyclique.
- */
+/// Moteur de vérification de cohérence d'un passage avant préparation d'un lot (parcours
+/// P4, story E4.S1). Rejoue tous les contrôles affichés dans la maquette M-Lot et les
+/// restitue sous forme d'un [ResultatVerification] (cumul d'alertes) que l'IHM utilise pour
+/// afficher chaque ligne ✓/✗ et pour activer/désactiver le bouton de dépôt.
+///
+/// Contrôles, dans l'ordre des règles métier :
+///
+/// - **R14** (bloquant) : un passage au verdict [Verdict#A_JETER] ne peut pas rejoindre un
+///   lot. Restitué ici comme alerte bloquante pour l'affichage ; le refus dur est levé par
+///   [ServiceLot].
+/// - **Transformation** (bloquant, R10) : une session existe, des séquences d'écoute sont
+///   présentes et **chaque** enregistrement original a été transformé en au moins une
+///   séquence.
+/// - **Préfixe** (bloquant, R6/R7/R8) : tous les enregistrements originaux et toutes les
+///   séquences portent le préfixe attendu `Car<carré>-<année>-Pass<n>-<point>-`.
+/// - **Journal du capteur** (bloquant) : un `sensor_log` accompagne la session.
+/// - **Relevé climatique** (soft, R20) : son absence est *signalée sans bloquer* (sonde non
+///   installée ou défaillante) ; le dépôt reste possible.
+///
+/// Pure logique métier (aucun import JavaFX). Reçoit ses DAO par constructeur, à la manière
+/// du service de référence `ServiceSites`. Dépendances inter-feature en lecture seule
+/// autorisées : `lot → passage` (séquences, originaux, journal, relevé, session) et
+/// `lot → sites` (point et site, pour calculer le préfixe attendu) ; le graphe reste
+/// acyclique.
 public class VerificationCoherence {
 
   private final SiteDao siteDao;
@@ -77,13 +74,11 @@ public class VerificationCoherence {
     this.releveDao = Objects.requireNonNull(releveDao, "releveDao");
   }
 
-  /**
-   * Vérifie qu'un passage est prêt à déposer et renvoie le cumul d'alertes (vide si tout est
-   * conforme). {@code estBloquant()} vaut {@code true} dès qu'au moins un contrôle dur échoue :
-   * dans ce cas, l'IHM désactive le bouton de dépôt et {@link ServiceLot} refuse la préparation.
-   *
-   * @param passage le passage à contrôler (avec son {@code id} persisté)
-   */
+  /// Vérifie qu'un passage est prêt à déposer et renvoie le cumul d'alertes (vide si tout
+  /// est conforme). `estBloquant()` vaut `true` dès qu'au moins un contrôle dur échoue :
+  /// dans ce cas, l'IHM désactive le bouton de dépôt et [ServiceLot] refuse la préparation.
+  ///
+  /// @param passage le passage à contrôler (avec son `id` persisté)
   public ResultatVerification verifier(Passage passage) {
     Objects.requireNonNull(passage, "passage");
     ResultatVerification resultat = ResultatVerification.ok();
@@ -116,7 +111,7 @@ public class VerificationCoherence {
     return resultat;
   }
 
-  /** R10 : des séquences existent et chaque original a au moins une séquence dérivée. */
+  /// R10 : des séquences existent et chaque original a au moins une séquence dérivée.
   private ResultatVerification verifierTransformation(
       ResultatVerification resultat,
       List<EnregistrementOriginal> originaux,
@@ -143,7 +138,7 @@ public class VerificationCoherence {
     return resultat;
   }
 
-  /** R6/R7/R8 : le préfixe attendu est présent sur tous les originaux et toutes les séquences. */
+  /// R6/R7/R8 : le préfixe attendu est présent sur tous les originaux et toutes les séquences.
   private ResultatVerification verifierPrefixe(
       ResultatVerification resultat,
       Passage passage,
@@ -178,7 +173,7 @@ public class VerificationCoherence {
     return resultat;
   }
 
-  /** Journal obligatoire (bloquant) ; relevé climatique optionnel (soft, R20). */
+  /// Journal obligatoire (bloquant) ; relevé climatique optionnel (soft, R20).
   private ResultatVerification verifierJournalEtReleve(
       ResultatVerification resultat, SessionDEnregistrement session) {
     if (journalDao.trouverParSession(session.id()).isEmpty()) {
@@ -198,10 +193,8 @@ public class VerificationCoherence {
     return resultat;
   }
 
-  /**
-   * Préfixe {@code Car<carré>-<année>-Pass<n>-<point>-} attendu, calculé depuis le point et le
-   * site.
-   */
+  /// Préfixe `Car<carré>-<année>-Pass<n>-<point>-` attendu, calculé depuis le point et le
+  /// site.
   private Optional<Prefixe> prefixeAttendu(Passage passage) {
     return pointDao
         .findById(passage.idPoint())

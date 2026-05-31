@@ -43,12 +43,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Tests du service {@link ServiceLot} de bout en bout sur une base SQLite jetable ({@code @TempDir}
- * + {@link MigrationSchema}), avec le vrai moteur {@link VerificationCoherence} et une {@link
- * HorlogeFigee} (date de dépôt déterministe). Couvre R14 (refus dur), le refus sur incohérence, et
- * la transition de statut avec horodatage du dépôt.
- */
+/// Tests du service [ServiceLot] de bout en bout sur une base SQLite jetable (`@TempDir` +
+/// [MigrationSchema]), avec le vrai moteur [VerificationCoherence] et une [HorlogeFigee]
+/// (date de dépôt déterministe). Couvre R14 (refus dur), le refus sur incohérence, et la
+/// transition de statut avec horodatage du dépôt.
 class ServiceLotTest {
 
   private static final String ID_USER = "u-1";
@@ -120,7 +118,7 @@ class ServiceLotTest {
             SERIE));
   }
 
-  /** Session entièrement cohérente : 2 séquences préfixées issues d'un original + journal. */
+  /// Session entièrement cohérente : 2 séquences préfixées issues d'un original + journal.
   private Long creerSessionCoherente(Long idPassage) {
     Long idSession =
         sessionDao

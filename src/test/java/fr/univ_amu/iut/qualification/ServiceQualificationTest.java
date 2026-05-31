@@ -44,12 +44,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Tests du service {@link ServiceQualification} de bout en bout sur une base SQLite jetable
- * ({@code @TempDir} + {@link MigrationSchema}), avec les vrais DAO des features {@code passage} et
- * {@code sites}. Couvre R12 (sélection 10-30 déterministe), le marquage écouté via la jonction, R13
- * (verdict sans seuil d'écoute + transition vers {@code Vérifié}) et le pré-check 3 feux.
- */
+/// Tests du service [ServiceQualification] de bout en bout sur une base SQLite jetable
+/// (`@TempDir` + [MigrationSchema]), avec les vrais DAO des features `passage` et `sites`.
+/// Couvre R12 (sélection 10-30 déterministe), le marquage écouté via la jonction, R13
+/// (verdict sans seuil d'écoute + transition vers `Vérifié`) et le pré-check 3 feux.
 class ServiceQualificationTest {
 
   private static final String ID_USER = "u-1";
@@ -126,7 +124,7 @@ class ServiceQualificationTest {
             new UniteDeTravail(source));
   }
 
-  /** Insère un original + sa séquence d'écoute, horodatés par {@code suffixe} (R7). */
+  /// Insère un original + sa séquence d'écoute, horodatés par `suffixe` (R7).
   private SequenceDEcoute insererSequence(String suffixeEnregistreur) {
     String nomOriginal = prefixe.nommerOriginal(suffixeEnregistreur);
     EnregistrementOriginal original =
@@ -147,7 +145,7 @@ class ServiceQualificationTest {
             idSession));
   }
 
-  /** Crée {@code n} séquences chronologiquement ordonnées (suffixe d'horodatage croissant). */
+  /// Crée `n` séquences chronologiquement ordonnées (suffixe d'horodatage croissant).
   private List<SequenceDEcoute> creerNuit(int n) {
     List<SequenceDEcoute> sequences = new ArrayList<>();
     for (int t = 0; t < n; t++) {

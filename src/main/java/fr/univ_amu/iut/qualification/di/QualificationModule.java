@@ -16,21 +16,20 @@ import fr.univ_amu.iut.qualification.model.dao.SelectionDao;
 import fr.univ_amu.iut.sites.model.dao.PointDao;
 import fr.univ_amu.iut.sites.model.dao.SiteDao;
 
-/**
- * Module Guice de la feature {@code qualification} : fournit son DAO, ses moteurs métier ({@link
- * GenerateurSelection}, {@link PreCheckNuit}) et son service ({@link ServiceQualification}) à
- * partir de la {@link SourceDeDonnees} (binder en singleton par {@code CommunModule}).
- *
- * <p>Comme {@code SitesModule}, on utilise des méthodes {@code @Provides} (et non {@code @Inject}
- * sur les classes métier) pour garder la couche {@code model} indépendante du framework d'injection
- * : DAO, moteurs et service restent de simples objets réutilisables (objectif réutilisation O6).
- *
- * <p>L'assemblage du service est <b>inter-modules</b> : il reçoit les DAO de {@code passage}
- * ({@link SequenceDao}, {@link SessionDao}, {@link EnregistrementOriginalDao}, {@link PassageDao}),
- * les DAO de {@code sites} ({@link PointDao}, {@link SiteDao}, pour le préfixe R6) et l'{@link
- * UniteDeTravail} du socle. Le sens des dépendances ({@code qualification → passage}, {@code
- * qualification → sites}) reste acyclique (contrôlé par {@code ArchitectureTest}).
- */
+/// Module Guice de la feature `qualification` : fournit son DAO, ses moteurs métier
+/// ([GenerateurSelection], [PreCheckNuit]) et son service ([ServiceQualification]) à partir
+/// de la [SourceDeDonnees] (binder en singleton par `CommunModule`).
+///
+/// Comme `SitesModule`, on utilise des méthodes `@Provides` (et non `@Inject` sur les
+/// classes métier) pour garder la couche `model` indépendante du framework d'injection :
+/// DAO, moteurs et service restent de simples objets réutilisables (objectif réutilisation
+/// O6).
+///
+/// L'assemblage du service est **inter-modules** : il reçoit les DAO de `passage`
+/// ([SequenceDao], [SessionDao], [EnregistrementOriginalDao], [PassageDao]), les DAO de
+/// `sites` ([PointDao], [SiteDao], pour le préfixe R6) et l'[UniteDeTravail] du socle. Le
+/// sens des dépendances (`qualification → passage`, `qualification → sites`) reste acyclique
+/// (contrôlé par `ArchitectureTest`).
 public class QualificationModule extends AbstractModule {
 
   @Provides

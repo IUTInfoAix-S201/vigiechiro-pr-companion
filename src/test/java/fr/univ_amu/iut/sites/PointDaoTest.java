@@ -19,10 +19,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * CRUD du {@link PointDao} + contraintes : unicité {@code (site_id, code)}, FK vers le site, et
- * suppression en cascade quand le site parent est supprimé ({@code ON DELETE CASCADE}).
- */
+/// CRUD du [PointDao] + contraintes : unicité `(site_id, code)`, FK vers le site, et
+/// suppression en cascade quand le site parent est supprimé (`ON DELETE CASCADE`).
 class PointDaoTest {
 
   @TempDir Path dossier;

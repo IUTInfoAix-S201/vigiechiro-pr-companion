@@ -22,14 +22,12 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * CRUD du {@link SelectionDao} et gestion de la jonction N..N {@code selection_sequence}, sur une
- * base SQLite jetable (@TempDir) initialisée par {@link MigrationSchema}.
- *
- * <p>La chaîne de parents requise par les clés étrangères (user → site → point → recorder → passage
- * → session → original) est seedée en SQL brut : la feature {@code qualification} ne dépend d'aucun
- * DAO d'une autre feature (passage, importation), encore à venir.
- */
+/// CRUD du [SelectionDao] et gestion de la jonction N..N `selection_sequence`, sur une base
+/// SQLite jetable (@TempDir) initialisée par [MigrationSchema].
+///
+/// La chaîne de parents requise par les clés étrangères (user → site → point → recorder →
+/// passage → session → original) est seedée en SQL brut : la feature `qualification` ne
+/// dépend d'aucun DAO d'une autre feature (passage, importation), encore à venir.
 class SelectionDaoTest {
 
   @TempDir Path dossier;
@@ -73,7 +71,7 @@ class SelectionDaoTest {
     dao = new SelectionDao(source);
   }
 
-  /** Insère une ligne de parent et renvoie sa clé (rowid ou auto-incrément). */
+  /// Insère une ligne de parent et renvoie sa clé (rowid ou auto-incrément).
   private long inserer(String sql) {
     try (Connection c = source.getConnection();
         PreparedStatement ps = c.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -87,7 +85,7 @@ class SelectionDaoTest {
     }
   }
 
-  /** Crée une séquence d'écoute rattachable, sous la session/original seedés. */
+  /// Crée une séquence d'écoute rattachable, sous la session/original seedés.
   private long creerSequence(String nom) {
     return inserer(
         "INSERT INTO listening_sequence (file_name, original_recording_id, file_path, session_id)"

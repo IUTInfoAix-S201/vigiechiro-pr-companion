@@ -17,11 +17,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * CRUD du {@link SiteDao} sur une base SQLite jetable (@TempDir), initialisée par {@link
- * MigrationSchema}. Vérifie aussi les contraintes d'intégrité (FK {@code foreign_keys=ON},
- * unicité).
- */
+/// CRUD du [SiteDao] sur une base SQLite jetable (@TempDir), initialisée par
+/// [MigrationSchema]. Vérifie aussi les contraintes d'intégrité (FK `foreign_keys=ON`,
+/// unicité).
 class SiteDaoTest {
 
   private static final String ID_USER = "u-1";

@@ -16,21 +16,18 @@ import fr.univ_amu.iut.passage.model.dao.SessionDao;
 import fr.univ_amu.iut.sites.model.dao.PointDao;
 import fr.univ_amu.iut.sites.model.dao.SiteDao;
 
-/**
- * Module Guice de la feature {@code lot} : assemble le moteur de vérification et le service de
- * dépôt à partir des DAO publiés par les autres features ({@code sites}, {@code passage}) et de
- * l'{@link Horloge} du socle.
- *
- * <p>Même patron que {@code SitesModule} : des méthodes {@code @Provides @Singleton} câblent des
- * objets restés <b>sans annotation d'injection</b> ({@code VerificationCoherence}, {@code
- * ServiceLot} sont de simples objets Java instanciables à la main dans les tests). Les DAO
- * inter-feature sont reçus en lecture seule (sens autorisé {@code lot → sites} et {@code lot →
- * passage}, graphe acyclique).
- *
- * <p><b>Intégration</b> : ce module est installé dans {@code RacineInjecteur} (la racine de
- * composition de l'application), ce qui rend {@code ServiceLot} résoluble par l'injecteur
- * applicatif. Le câblage en isolation reste validé par {@code LotModuleTest} (injecteur local).
- */
+/// Module Guice de la feature `lot` : assemble le moteur de vérification et le service de
+/// dépôt à partir des DAO publiés par les autres features (`sites`, `passage`) et de
+/// l'[Horloge] du socle.
+///
+/// Même patron que `SitesModule` : des méthodes `@Provides @Singleton` câblent des objets
+/// restés **sans annotation d'injection** (`VerificationCoherence`, `ServiceLot` sont de
+/// simples objets Java instanciables à la main dans les tests). Les DAO inter-feature sont
+/// reçus en lecture seule (sens autorisé `lot → sites` et `lot → passage`, graphe acyclique).
+///
+/// **Intégration** : ce module est installé dans `RacineInjecteur` (la racine de composition
+/// de l'application), ce qui rend `ServiceLot` résoluble par l'injecteur applicatif. Le câblage
+/// en isolation reste validé par `LotModuleTest` (injecteur local).
 public class LotModule extends AbstractModule {
 
   @Provides

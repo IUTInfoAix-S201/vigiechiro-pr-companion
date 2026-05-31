@@ -37,15 +37,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Tests du moteur {@link VerificationCoherence} sur une base SQLite jetable ({@code @TempDir} +
- * {@link MigrationSchema}), exercé de bout en bout sur la vraie chaîne d'entités (site → point →
- * passage → session → originaux / séquences / journal / relevé).
- *
- * <p>Chaque test construit le graphe à l'aide des petites fabriques privées puis assert le {@link
- * ResultatVerification} produit. Le préfixe conforme est calculé via {@link Prefixe} (carré 040962,
- * point A1, passage 1, année 2026).
- */
+/// Tests du moteur [VerificationCoherence] sur une base SQLite jetable (`@TempDir` +
+/// [MigrationSchema]), exercé de bout en bout sur la vraie chaîne d'entités (site → point →
+/// passage → session → originaux / séquences / journal / relevé).
+///
+/// Chaque test construit le graphe à l'aide des petites fabriques privées puis assert le
+/// [ResultatVerification] produit. Le préfixe conforme est calculé via [Prefixe] (carré
+/// 040962, point A1, passage 1, année 2026).
 class VerificationCoherenceTest {
 
   private static final String ID_USER = "u-1";
@@ -143,7 +141,7 @@ class VerificationCoherenceTest {
     releveDao.insert(new ReleveClimatique(null, "PaRecPR" + SERIE + "_THLog.csv", null, idSession));
   }
 
-  /** Construit une session entièrement cohérente (originaux + séquences préfixés + journal). */
+  /// Construit une session entièrement cohérente (originaux + séquences préfixés + journal).
   private Long creerSessionCoherente(Long idPassage) {
     Long idSession = creerSession(idPassage);
     Long idOriginal = creerOriginal(idSession, NOM_ORIGINAL);

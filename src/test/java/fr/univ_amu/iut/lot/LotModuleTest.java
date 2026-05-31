@@ -28,13 +28,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Filet de câblage Guice de la feature {@code lot} : {@link LotModule} n'étant pas (encore)
- * installé dans {@code RacineInjecteur} (fichier gelé pour cette tâche), on l'exerce ici au-dessus
- * d'un petit module local qui fournit les feuilles dont il dépend (DAO des features {@code
- * sites}/{@code passage} + {@link Horloge}). On vérifie ainsi que les méthodes {@code @Provides} de
- * {@code LotModule} assemblent correctement {@link VerificationCoherence} et {@link ServiceLot}.
- */
+/// Filet de câblage Guice de la feature `lot` : [LotModule] n'étant pas (encore) installé
+/// dans `RacineInjecteur` (fichier gelé pour cette tâche), on l'exerce ici au-dessus d'un
+/// petit module local qui fournit les feuilles dont il dépend (DAO des features
+/// `sites`/`passage` + [Horloge]). On vérifie ainsi que les méthodes `@Provides` de
+/// `LotModule` assemblent correctement [VerificationCoherence] et [ServiceLot].
 class LotModuleTest {
 
   @TempDir Path workspaceJetable;

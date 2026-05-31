@@ -13,29 +13,25 @@ import fr.univ_amu.iut.sites.model.dao.SiteDao;
 import java.util.List;
 import java.util.Objects;
 
-/**
- * Service métier de la feature {@code sites} : <b>service de référence</b> du projet (le patron à
- * recopier pour {@code passage}, {@code qualification}, etc.).
- *
- * <p>Principes (cf. CM4) :
- *
- * <ul>
- *   <li><b>Pure Java, testable JUnit, sans aucun import JavaFX</b> : la logique métier vit en
- *       {@code <feature>/model}, l'IHM viendra par-dessus.
- *   <li><b>Reçoit ses dépendances par constructeur</b> (DAO + {@link Horloge}), fournies par Guice
- *       en production ({@code SitesModule}) et instanciées à la main dans les tests.
- *   <li><b>Orchestre les DAO</b> : il ne contient pas de SQL (qui reste dans {@code model.dao}),
- *       seulement des règles et des enchaînements d'appels.
- *   <li><b>Distingue règles soft et dures</b> : les rappels non bloquants (R3/R4) sont renvoyés
- *       sous forme de {@link ResultatVerification} ; les refus (R5, intégrité) lèvent une {@link
- *       RegleMetierException} ; les saisies mal formées (R1/R2) lèvent une {@link
- *       IllegalArgumentException} via les validateurs.
- * </ul>
- *
- * <p>Dépendance inter-feature assumée : le service connaît {@link PassageDao} (lecture seule) pour
- * protéger la suppression d'un site. La dépendance va {@code sites → passage} (et jamais
- * l'inverse), le graphe reste acyclique (contrôlé par {@code ArchitectureTest}).
- */
+/// Service métier de la feature `sites` : **service de référence** du projet (le patron à
+/// recopier pour `passage`, `qualification`, etc.).
+///
+/// Principes (cf. CM4) :
+///
+/// - **Pure Java, testable JUnit, sans aucun import JavaFX** : la logique métier vit en
+///   `<feature>/model`, l'IHM viendra par-dessus.
+/// - **Reçoit ses dépendances par constructeur** (DAO + [Horloge]), fournies par Guice en
+///   production (`SitesModule`) et instanciées à la main dans les tests.
+/// - **Orchestre les DAO** : il ne contient pas de SQL (qui reste dans `model.dao`),
+///   seulement des règles et des enchaînements d'appels.
+/// - **Distingue règles soft et dures** : les rappels non bloquants (R3/R4) sont renvoyés
+///   sous forme de [ResultatVerification] ; les refus (R5, intégrité) lèvent une
+///   [RegleMetierException] ; les saisies mal formées (R1/R2) lèvent une
+///   [IllegalArgumentException] via les validateurs.
+///
+/// Dépendance inter-feature assumée : le service connaît [PassageDao] (lecture seule) pour
+/// protéger la suppression d'un site. La dépendance va `sites → passage` (et jamais
+/// l'inverse), le graphe reste acyclique (contrôlé par `ArchitectureTest`).
 public class ServiceSites {
 
   private final SiteDao siteDao;
@@ -50,20 +46,16 @@ public class ServiceSites {
     this.horloge = Objects.requireNonNull(horloge, "horloge");
   }
 
-  /**
-   * Crée un site de suivi (P1).
-   *
-   * <ul>
-   *   <li>R1 (dur) : le numéro de carré doit être valide (6 chiffres) — {@link ValidateurCarre}.
-   *   <li>Protocole : {@code PointFixeStandard} par défaut si {@code null} (P1).
-   *   <li>R5 (dur) : le carré doit être unique pour cet utilisateur.
-   *   <li>Date de création : lue de l'{@link Horloge} (déterministe en test).
-   * </ul>
-   *
-   * @return le site inséré, avec son {@code id} auto-généré
-   * @throws IllegalArgumentException si le numéro de carré est mal formé (R1)
-   * @throws RegleMetierException si le carré est déjà déclaré pour cet utilisateur (R5)
-   */
+  /// Crée un site de suivi (P1).
+  ///
+  /// - R1 (dur) : le numéro de carré doit être valide (6 chiffres) — [ValidateurCarre].
+  /// - Protocole : `PointFixeStandard` par défaut si `null` (P1).
+  /// - R5 (dur) : le carré doit être unique pour cet utilisateur.
+  /// - Date de création : lue de l'[Horloge] (déterministe en test).
+  ///
+  /// @return le site inséré, avec son `id` auto-généré
+  /// @throws IllegalArgumentException si le numéro de carré est mal formé (R1)
+  /// @throws RegleMetierException si le carré est déjà déclaré pour cet utilisateur (R5)
   public Site creerSite(
       String numeroCarre,
       String nomConvivial,
@@ -86,20 +78,16 @@ public class ServiceSites {
     return siteDao.insert(aCreer);
   }
 
-  /**
-   * Ajoute un point d'écoute à un site existant.
-   *
-   * <ul>
-   *   <li>Le site doit exister.
-   *   <li>R2 (dur) : le code de point doit valider {@code [A-Z][0-9]} — {@link
-   *       ValidateurCodePoint}.
-   *   <li>Unicité (dur) : le code doit être unique dans le site.
-   * </ul>
-   *
-   * @return le point inséré, avec son {@code id} auto-généré
-   * @throws RegleMetierException si le site est introuvable ou si le code existe déjà dans le site
-   * @throws IllegalArgumentException si le code de point est mal formé (R2)
-   */
+  /// Ajoute un point d'écoute à un site existant.
+  ///
+  /// - Le site doit exister.
+  /// - R2 (dur) : le code de point doit valider `[A-Z][0-9]` — [ValidateurCodePoint].
+  /// - Unicité (dur) : le code doit être unique dans le site.
+  ///
+  /// @return le point inséré, avec son `id` auto-généré
+  /// @throws RegleMetierException si le site est introuvable ou si le code existe déjà dans
+  ///     le site
+  /// @throws IllegalArgumentException si le code de point est mal formé (R2)
   public PointDEcoute ajouterPoint(
       Long idSite, String code, Double latitude, Double longitude, String description) {
     Site site =
@@ -117,28 +105,26 @@ public class ServiceSites {
     return pointDao.insert(aCreer);
   }
 
-  /** Sites d'un utilisateur, triés par numéro de carré. */
+  /// Sites d'un utilisateur, triés par numéro de carré.
   public List<Site> listerSites(String idUtilisateur) {
     return siteDao.findByUtilisateur(idUtilisateur);
   }
 
-  /** Points d'écoute d'un site, triés par code. */
+  /// Points d'écoute d'un site, triés par code.
   public List<PointDEcoute> listerPoints(Long idSite) {
     return pointDao.findBySite(idSite);
   }
 
-  /**
-   * Supprime un site <b>si et seulement si</b> aucun passage n'est rattaché à ses points (règle
-   * dure).
-   *
-   * <p>Le schéma cascade {@code monitoring_site → listening_point → passage} : sans ce garde-fou,
-   * un simple {@code DELETE} sur le site détruirait silencieusement les passages (et leurs
-   * sessions, séquences…) via {@code ON DELETE CASCADE}. Le service refuse donc tant qu'un passage
-   * existe ; une fois les passages supprimés, le {@code delete} ne fait disparaître que les points
-   * (sans passage) du site, par cascade.
-   *
-   * @throws RegleMetierException si au moins un point du site porte un passage
-   */
+  /// Supprime un site **si et seulement si** aucun passage n'est rattaché à ses points (règle
+  /// dure).
+  ///
+  /// Le schéma cascade `monitoring_site → listening_point → passage` : sans ce garde-fou, un
+  /// simple `DELETE` sur le site détruirait silencieusement les passages (et leurs sessions,
+  /// séquences…) via `ON DELETE CASCADE`. Le service refuse donc tant qu'un passage existe ;
+  /// une fois les passages supprimés, le `delete` ne fait disparaître que les points (sans
+  /// passage) du site, par cascade.
+  ///
+  /// @throws RegleMetierException si au moins un point du site porte un passage
   public void supprimerSite(Long idSite) {
     for (PointDEcoute point : pointDao.findBySite(idSite)) {
       if (!passageDao.findByPoint(point.id()).isEmpty()) {
@@ -151,14 +137,11 @@ public class ServiceSites {
     siteDao.delete(idSite);
   }
 
-  /**
-   * Rappels non bloquants à présenter après création d'un site (R3, règle soft).
-   *
-   * <p>Sur un site {@code PointFixeStandard}, l'application rappelle (sans bloquer) les deux
-   * passages annuels attendus. Sur un site {@code PointFixeRecherche}, la règle est <b>muette</b> :
-   * le résultat est conforme (aucune alerte). Démontre le patron « règle soft → {@link
-   * ResultatVerification} ».
-   */
+  /// Rappels non bloquants à présenter après création d'un site (R3, règle soft).
+  ///
+  /// Sur un site `PointFixeStandard`, l'application rappelle (sans bloquer) les deux passages
+  /// annuels attendus. Sur un site `PointFixeRecherche`, la règle est **muette** : le résultat
+  /// est conforme (aucune alerte). Démontre le patron « règle soft → [ResultatVerification] ».
   public ResultatVerification rappelsProtocole(Protocole protocole) {
     if (protocole == Protocole.STANDARD) {
       return ResultatVerification.de(

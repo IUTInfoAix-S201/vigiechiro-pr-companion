@@ -6,13 +6,11 @@ import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
 import fr.univ_amu.iut.sites.model.PointDEcoute;
 import java.util.List;
 
-/**
- * DAO de l'entité {@link PointDEcoute} (table {@code listening_point}).
- *
- * <p>Illustre le mapping de colonnes <b>nullable</b> : les coordonnées GPS ({@code REAL}) peuvent
- * être absentes, on les lit donc via {@code rs.getObject(...)} (qui renvoie {@code null}) plutôt
- * que {@code rs.getDouble(...)} (qui renverrait 0.0).
- */
+/// DAO de l'entité [PointDEcoute] (table `listening_point`).
+///
+/// Illustre le mapping de colonnes **nullable** : les coordonnées GPS (`REAL`) peuvent être
+/// absentes, on les lit donc via `rs.getObject(...)` (qui renvoie `null`) plutôt que
+/// `rs.getDouble(...)` (qui renverrait 0.0).
 public class PointDao extends DaoGenerique<PointDEcoute, Long> {
 
   private static final RowMapper<PointDEcoute> MAPPER =
@@ -44,7 +42,7 @@ public class PointDao extends DaoGenerique<PointDEcoute, Long> {
     return MAPPER;
   }
 
-  /** Points d'écoute d'un site donné, triés par code. */
+  /// Points d'écoute d'un site donné, triés par code.
   public List<PointDEcoute> findBySite(Long idSite) {
     return query("SELECT * FROM listening_point WHERE site_id = ? ORDER BY code", MAPPER, idSite);
   }

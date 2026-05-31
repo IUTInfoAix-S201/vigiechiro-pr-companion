@@ -15,30 +15,28 @@ import fr.univ_amu.iut.passage.model.dao.SessionDao;
 import java.util.List;
 import java.util.Objects;
 
-/**
- * Service métier de la feature {@code lot} : prépare et trace le dépôt d'un passage sur Vigie-Chiro
- * (parcours P4, épopée E4). Suit le patron du service de référence {@code ServiceSites} : pure Java
- * testable, dépendances reçues par constructeur, distinction règles soft / règles dures.
- *
- * <p>Deux étapes du parcours P4 :
- *
- * <ul>
- *   <li>{@link #preparerLot(Long)} (E4.S1 + E4.S2) : contrôle R14 + cohérence ({@link
- *       VerificationCoherence}), assemble le récapitulatif ({@link Lot}) et fait passer le passage
- *       à {@link StatutWorkflow#PRET_A_DEPOSER}. Refuse (exception) tout passage « À jeter » (R14)
- *       ou incohérent.
- *   <li>{@link #marquerDepose(Long)} (E4.S3) : une fois le téléversement manuel effectué, marque le
- *       passage {@link StatutWorkflow#DEPOSE} et horodate {@code deposited_at} via l'{@link
- *       Horloge} injectée (déterministe en test).
- * </ul>
- *
- * <p>Les transitions de statut sont déléguées au {@link MoteurWorkflowPassage} (engin pur de la
- * feature {@code passage}) : on ne réécrit pas la progression linéaire et on garantit qu'un dépôt
- * suit bien une préparation (pas de saut d'étape ni de retour arrière).
- *
- * <p><b>Aucun accès réseau</b> : l'application ne dialogue jamais avec le portail Vigie-Chiro, le
- * dépôt est manuel (le service se contente de préparer le dossier et de tracer la date déclarée).
- */
+/// Service métier de la feature `lot` : prépare et trace le dépôt d'un passage sur
+/// Vigie-Chiro (parcours P4, épopée E4). Suit le patron du service de référence
+/// `ServiceSites` : pure Java testable, dépendances reçues par constructeur, distinction
+/// règles soft / règles dures.
+///
+/// Deux étapes du parcours P4 :
+///
+/// - [#preparerLot(Long)] (E4.S1 + E4.S2) : contrôle R14 + cohérence
+///   ([VerificationCoherence]), assemble le récapitulatif ([Lot]) et fait passer le passage
+///   à [StatutWorkflow#PRET_A_DEPOSER]. Refuse (exception) tout passage « À jeter » (R14)
+///   ou incohérent.
+/// - [#marquerDepose(Long)] (E4.S3) : une fois le téléversement manuel effectué, marque le
+///   passage [StatutWorkflow#DEPOSE] et horodate `deposited_at` via l'[Horloge] injectée
+///   (déterministe en test).
+///
+/// Les transitions de statut sont déléguées au [MoteurWorkflowPassage] (engin pur de la
+/// feature `passage`) : on ne réécrit pas la progression linéaire et on garantit qu'un dépôt
+/// suit bien une préparation (pas de saut d'étape ni de retour arrière).
+///
+/// **Aucun accès réseau** : l'application ne dialogue jamais avec le portail Vigie-Chiro,
+/// le dépôt est manuel (le service se contente de préparer le dossier et de tracer la date
+/// déclarée).
 public class ServiceLot {
 
   private final PassageDao passageDao;
@@ -63,20 +61,16 @@ public class ServiceLot {
     this.horloge = Objects.requireNonNull(horloge, "horloge");
   }
 
-  /**
-   * Prépare le lot à déposer d'un passage (E4.S1 + E4.S2).
-   *
-   * <ul>
-   *   <li>R14 (dur, bloquant) : un passage au verdict {@link Verdict#A_JETER} est refusé d'emblée.
-   *   <li>Cohérence (dur) : si au moins un contrôle de {@link VerificationCoherence} est bloquant
-   *       (transformation incomplète, préfixe non conforme, journal absent…), la préparation est
-   *       refusée. Les alertes <i>soft</i> (relevé absent, R20) ne bloquent pas.
-   *   <li>Transition : le passage passe à {@link StatutWorkflow#PRET_A_DEPOSER}.
-   * </ul>
-   *
-   * @return le récapitulatif du lot (séquences, volume, chemin du dossier prêt)
-   * @throws RegleMetierException si le passage est introuvable, « À jeter » (R14) ou incohérent
-   */
+  /// Prépare le lot à déposer d'un passage (E4.S1 + E4.S2).
+  ///
+  /// - R14 (dur, bloquant) : un passage au verdict [Verdict#A_JETER] est refusé d'emblée.
+  /// - Cohérence (dur) : si au moins un contrôle de [VerificationCoherence] est bloquant
+  ///   (transformation incomplète, préfixe non conforme, journal absent…), la préparation
+  ///   est refusée. Les alertes *soft* (relevé absent, R20) ne bloquent pas.
+  /// - Transition : le passage passe à [StatutWorkflow#PRET_A_DEPOSER].
+  ///
+  /// @return le récapitulatif du lot (séquences, volume, chemin du dossier prêt)
+  /// @throws RegleMetierException si le passage est introuvable, « À jeter » (R14) ou incohérent
   public Lot preparerLot(Long idPassage) {
     Passage passage = chargerPassage(idPassage);
     exigerNonAJeter(passage); // R14
@@ -107,13 +101,11 @@ public class ServiceLot {
     return new Lot(idPassage, session.cheminRacine(), sequences, session.volumeSequencesOctets());
   }
 
-  /**
-   * Marque un passage comme déposé après téléversement manuel (E4.S3) : statut {@link
-   * StatutWorkflow#DEPOSE} et horodatage {@code deposited_at} lu de l'{@link Horloge}.
-   *
-   * @return le passage mis à jour (statut déposé, date posée)
-   * @throws RegleMetierException si le passage est introuvable ou « À jeter » (R14)
-   */
+  /// Marque un passage comme déposé après téléversement manuel (E4.S3) : statut
+  /// [StatutWorkflow#DEPOSE] et horodatage `deposited_at` lu de l'[Horloge].
+  ///
+  /// @return le passage mis à jour (statut déposé, date posée)
+  /// @throws RegleMetierException si le passage est introuvable ou « À jeter » (R14)
   public Passage marquerDepose(Long idPassage) {
     Passage passage = chargerPassage(idPassage);
     exigerNonAJeter(passage); // R14 : un « À jeter » ne peut jamais être déposé.
@@ -144,7 +136,7 @@ public class ServiceLot {
     }
   }
 
-  /** Reconstruit le passage (record immuable) avec un nouveau statut et une date de dépôt. */
+  /// Reconstruit le passage (record immuable) avec un nouveau statut et une date de dépôt.
   private static Passage avecStatutEtDepot(
       Passage passage, StatutWorkflow statut, String deposeLe) {
     return new Passage(

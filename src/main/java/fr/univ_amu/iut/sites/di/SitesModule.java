@@ -10,14 +10,12 @@ import fr.univ_amu.iut.sites.model.ServiceSites;
 import fr.univ_amu.iut.sites.model.dao.PointDao;
 import fr.univ_amu.iut.sites.model.dao.SiteDao;
 
-/**
- * Module Guice de la feature {@code sites} : fournit ses DAO à partir de la {@link SourceDeDonnees}
- * (binder en singleton par {@code CommunModule}).
- *
- * <p>On utilise des méthodes {@code @Provides} (et non {@code @Inject} sur les DAO) pour garder la
- * couche {@code model.dao} <b>indépendante du framework</b> d'injection : les DAO restent de
- * simples objets réutilisables (objectif réutilisation O6). C'est ce module qui sait les assembler.
- */
+/// Module Guice de la feature `sites` : fournit ses DAO à partir de la [SourceDeDonnees]
+/// (binder en singleton par `CommunModule`).
+///
+/// On utilise des méthodes `@Provides` (et non `@Inject` sur les DAO) pour garder la couche
+/// `model.dao` **indépendante du framework** d'injection : les DAO restent de simples objets
+/// réutilisables (objectif réutilisation O6). C'est ce module qui sait les assembler.
 public class SitesModule extends AbstractModule {
 
   @Provides
@@ -32,12 +30,10 @@ public class SitesModule extends AbstractModule {
     return new PointDao(source);
   }
 
-  /**
-   * Service métier de référence. Reçoit ses DAO (dont {@link PassageDao}, fourni par {@code
-   * PassageModule} pour la protection de suppression) et l'{@link Horloge} (socle). C'est ici, dans
-   * le module de feature, que les briques sont assemblées : le service lui-même reste sans
-   * annotation d'injection.
-   */
+  /// Service métier de référence. Reçoit ses DAO (dont [PassageDao], fourni par
+  /// `PassageModule` pour la protection de suppression) et l'[Horloge] (socle). C'est ici,
+  /// dans le module de feature, que les briques sont assemblées : le service lui-même reste
+  /// sans annotation d'injection.
   @Provides
   @Singleton
   ServiceSites fournirServiceSites(

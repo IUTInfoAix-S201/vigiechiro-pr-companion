@@ -13,13 +13,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Filet d'intégration Guice de la feature {@code qualification} : vérifie que la racine de
- * composition sait résoudre le service et ses moteurs. Valide en particulier le câblage
- * inter-modules de {@link ServiceQualification} (il reçoit les DAO de {@code passage} et {@code
- * sites}, et l'{@code UniteDeTravail} du socle). On surcharge le workspace vers un {@code @TempDir}
- * pour ne pas toucher au workspace réel.
- */
+/// Filet d'intégration Guice de la feature `qualification` : vérifie que la racine de
+/// composition sait résoudre le service et ses moteurs. Valide en particulier le câblage
+/// inter-modules de [ServiceQualification] (il reçoit les DAO de `passage` et `sites`, et
+/// l'`UniteDeTravail` du socle). On surcharge le workspace vers un `@TempDir` pour ne pas
+/// toucher au workspace réel.
 class QualificationInjectionTest {
 
   @TempDir Path workspaceJetable;

@@ -1,0 +1,5 @@
+Categorie;Message
+Réveil non programmé;Réveil non programmé : Wakeup capteur
+Erreur SD;Erreur SD : échec d'écriture sur la carte SD
+Redémarrage;Redémarrage inattendu détecté
+Batterie;Batterie faible (12%) : Batteries internes 12%

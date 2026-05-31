@@ -10,21 +10,22 @@ import org.testfx.api.FxRobot;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
 
-/// Smoke test JavaFX : vérifie que la scène est rendue et que le label "JavaFX fonctionne !" est
-/// effectivement affiché par TestFX.
+/// Smoke test JavaFX du bootstrap : vérifie que le chrome principal (`MainView`) est chargé via
+/// le `FXMLLoader` + la `controllerFactory` Guice, et que la barre de navigation affiche bien le
+/// titre de l'application. Tourne en headless sous TestFX (xvfb en CI).
 @ExtendWith(ApplicationExtension.class)
 class AppTest {
 
   @Start
-  void start(Stage stage) {
+  void start(Stage stage) throws Exception {
     stage.setScene(null); // évite la fuite de Scene entre tests (TestFX réutilise le Stage)
     new App().start(stage);
   }
 
   @Test
-  void le_label_est_affiche(FxRobot robot) {
-    Label label = robot.lookup("JavaFX fonctionne !").queryAs(Label.class);
-    assertThat(label).isNotNull();
-    assertThat(label.getText()).isEqualTo("JavaFX fonctionne !");
+  void le_chrome_principal_est_affiche(FxRobot robot) {
+    Label titre = robot.lookup("#titreApplication").queryAs(Label.class);
+    assertThat(titre).isNotNull();
+    assertThat(titre.getText()).isEqualTo("VigieChiro PR Companion");
   }
 }

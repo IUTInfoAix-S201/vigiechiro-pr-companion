@@ -1,0 +1,64 @@
+package fr.univ_amu.iut.commun.model;
+
+import java.util.Locale;
+
+/**
+ * Construit le préfixe de nommage des fichiers et dossiers d'une session (R6/R7/R8).
+ *
+ * <p>Forme : {@code Car<carré>-<année>-Pass<n>-<point>}. Les tirets sont impérativement des
+ * <b>tirets du 6</b> ({@code '-'}, U+002D HYPHEN-MINUS), jamais des cadratins/demi-cadratins (R6).
+ *
+ * <ul>
+ *   <li>{@link #nomDossierSession()} : nom du sous-dossier de session (R22), sans tiret final.
+ *   <li>{@link #prefixeFichier()} : préfixe ajouté devant le nom de fichier (R6), avec tiret final.
+ *   <li>{@link #nommerOriginal(String)} : préfixe + suffixe de l'enregistreur conservé tel quel
+ *       (R7).
+ *   <li>{@link #nommerSequence(String, int)} : insère le suffixe {@code _000}, {@code _001}… (R8).
+ * </ul>
+ *
+ * @param carre numéro de carré (6 chiffres)
+ * @param annee année à 4 chiffres
+ * @param numeroPassage numéro de passage
+ * @param codePoint code du point d'écoute (lettre + chiffre)
+ */
+public record Prefixe(String carre, int annee, int numeroPassage, String codePoint) {
+
+  /** Tiret du 6 imposé par R6 (U+002D HYPHEN-MINUS). */
+  public static final char TIRET = '-';
+
+  /** Nom du dossier de session (R22), sans tiret final : {@code Car040962-2026-Pass1-A1}. */
+  public String nomDossierSession() {
+    return "Car" + carre + TIRET + annee + TIRET + "Pass" + numeroPassage + TIRET + codePoint;
+  }
+
+  /** Préfixe de fichier (R6), avec tiret final : {@code Car040962-2026-Pass1-A1-}. */
+  public String prefixeFichier() {
+    return nomDossierSession() + TIRET;
+  }
+
+  /**
+   * Nom d'un enregistrement original (R7) : préfixe + suffixe de l'enregistreur conservé tel quel.
+   *
+   * @param suffixeEnregistreur ex. {@code PaRecPR1925492_20260615_223015.wav}
+   */
+  public String nommerOriginal(String suffixeEnregistreur) {
+    return prefixeFichier() + suffixeEnregistreur;
+  }
+
+  /**
+   * Nom d'une séquence d'écoute (R8) : insère {@code _NNN} (3 chiffres) entre la base du nom et
+   * l'extension de l'original.
+   *
+   * @param nomOriginal nom de l'enregistrement original source (issu de {@link
+   *     #nommerOriginal(String)})
+   * @param index index de la séquence dans l'original (≥ 0)
+   */
+  public String nommerSequence(String nomOriginal, int index) {
+    String suffixe = String.format(Locale.ROOT, "_%03d", index);
+    int point = nomOriginal.lastIndexOf('.');
+    if (point < 0) {
+      return nomOriginal + suffixe;
+    }
+    return nomOriginal.substring(0, point) + suffixe + nomOriginal.substring(point);
+  }
+}

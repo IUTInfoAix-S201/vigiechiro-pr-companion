@@ -1,0 +1,42 @@
+package fr.univ_amu.iut.commun.di;
+
+import com.google.inject.AbstractModule;
+import com.google.inject.Provides;
+import com.google.inject.Singleton;
+import fr.univ_amu.iut.commun.model.dao.UtilisateurDao;
+import fr.univ_amu.iut.commun.persistence.MigrationSchema;
+import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
+import fr.univ_amu.iut.commun.persistence.UniteDeTravail;
+
+/**
+ * Module Guice de l'infrastructure de persistance : expose {@link MigrationSchema}, {@link
+ * UniteDeTravail} et le {@link UtilisateurDao} transverse, tous construits à partir de la {@link
+ * SourceDeDonnees} du socle.
+ *
+ * <p>Comme {@code SitesModule}, on passe par {@code @Provides} pour garder l'infra indépendante du
+ * framework d'injection.
+ */
+public class PersistenceModule extends AbstractModule {
+
+  @Override
+  protected void configure() {
+    // Tout passe par des @Provides.
+  }
+
+  @Provides
+  @Singleton
+  MigrationSchema fournirMigrationSchema(SourceDeDonnees source) {
+    return new MigrationSchema(source);
+  }
+
+  @Provides
+  UniteDeTravail fournirUniteDeTravail(SourceDeDonnees source) {
+    return new UniteDeTravail(source);
+  }
+
+  @Provides
+  @Singleton
+  UtilisateurDao fournirUtilisateurDao(SourceDeDonnees source) {
+    return new UtilisateurDao(source);
+  }
+}

@@ -1,0 +1,81 @@
+package fr.univ_amu.iut.passage.model.dao;
+
+import fr.univ_amu.iut.commun.persistence.DaoGenerique;
+import fr.univ_amu.iut.commun.persistence.RowMapper;
+import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
+import fr.univ_amu.iut.passage.model.JournalDuCapteur;
+import java.util.Optional;
+
+/**
+ * DAO de l'entité {@link JournalDuCapteur} (table {@code sensor_log}).
+ *
+ * <p>Relation 1:1 avec la session ({@code session_id} unique), d'où {@link
+ * #trouverParSession(Long)}. Les colonnes JSON {@code parsed_events} / {@code detected_anomalies}
+ * sont transportées comme du {@code TEXT} brut.
+ */
+public class JournalDuCapteurDao extends DaoGenerique<JournalDuCapteur, Long> {
+
+  private static final RowMapper<JournalDuCapteur> MAPPER =
+      rs ->
+          new JournalDuCapteur(
+              rs.getLong("id"),
+              rs.getString("file_path"),
+              rs.getString("parsed_events"),
+              rs.getString("detected_anomalies"),
+              rs.getLong("session_id"));
+
+  public JournalDuCapteurDao(SourceDeDonnees source) {
+    super(source);
+  }
+
+  @Override
+  protected String table() {
+    return "sensor_log";
+  }
+
+  @Override
+  protected String colonneCle() {
+    return "id";
+  }
+
+  @Override
+  protected RowMapper<JournalDuCapteur> mapper() {
+    return MAPPER;
+  }
+
+  /** Le journal du capteur de la session donnée (relation 1:1, {@code session_id} unique). */
+  public Optional<JournalDuCapteur> trouverParSession(Long idSession) {
+    return queryUnique("SELECT * FROM sensor_log WHERE session_id = ?", MAPPER, idSession);
+  }
+
+  @Override
+  public JournalDuCapteur insert(JournalDuCapteur journal) {
+    long id =
+        insererEtRecupererCle(
+            "INSERT INTO sensor_log (file_path, parsed_events, detected_anomalies, session_id)"
+                + " VALUES (?, ?, ?, ?)",
+            journal.cheminFichier(),
+            journal.evenementsParses(),
+            journal.anomaliesDetectees(),
+            journal.idSession());
+    return new JournalDuCapteur(
+        id,
+        journal.cheminFichier(),
+        journal.evenementsParses(),
+        journal.anomaliesDetectees(),
+        journal.idSession());
+  }
+
+  @Override
+  public void update(JournalDuCapteur journal) {
+    executerMaj(
+        "UPDATE sensor_log SET"
+            + " file_path = ?, parsed_events = ?, detected_anomalies = ?, session_id = ?"
+            + " WHERE id = ?",
+        journal.cheminFichier(),
+        journal.evenementsParses(),
+        journal.anomaliesDetectees(),
+        journal.idSession(),
+        journal.id());
+  }
+}

@@ -8,18 +8,29 @@
 /// de l'étudiant·e qui n'a pas à comprendre les nuances JPMS la première fois). Plus permissif
 /// mais pédagogiquement plus simple.
 open module tp1.javafx {
-    // JavaFX dependencies (alignées sur les 4 deps + javafx-media du pom).
-    requires transitive javafx.base;
-    requires transitive javafx.controls;
-    requires transitive javafx.graphics;
-    requires transitive javafx.fxml;
-    requires transitive javafx.media;
+  // JavaFX dependencies (alignées sur les 4 deps + javafx-media du pom).
+  requires transitive javafx.base;
+  requires transitive javafx.controls;
+  requires transitive javafx.graphics;
+  requires transitive javafx.fxml;
+  requires transitive javafx.media;
 
-    // Export base package
-    exports fr.univ_amu.iut;
+  // Persistance : API JDBC + driver SQLite (module automatique).
+  requires java.sql;
+  requires org.xerial.sqlitejdbc;
 
-    // ========== EXERCICES - Ajouter les exports ici ==========
-    // exports fr.univ_amu.iut.exercice1;
-    // exports fr.univ_amu.iut.exercice2;
-    // ...
+  // Injection de dépendances (Guice 7). `open module` ouvre déjà tous les paquets
+  // à la réflexion, donc Guice peut instancier les classes sans `opens ... to`.
+  requires com.google.guice;
+
+  // Composant audio fourni pour la SAÉ 2.01 (sonogramme / spectrogramme).
+  requires fr.nedjar.vigiechiro.audio;
+
+  // Export base package
+  exports fr.univ_amu.iut;
+
+// ========== FEATURES - Ajouter les exports ici au fil de l'eau ==========
+// exports fr.univ_amu.iut.sites.view;
+// exports fr.univ_amu.iut.passage.view;
+// ...
 }

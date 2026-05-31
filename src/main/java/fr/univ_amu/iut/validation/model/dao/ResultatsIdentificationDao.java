@@ -1,0 +1,82 @@
+package fr.univ_amu.iut.validation.model.dao;
+
+import fr.univ_amu.iut.commun.persistence.DaoGenerique;
+import fr.univ_amu.iut.commun.persistence.RowMapper;
+import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
+import fr.univ_amu.iut.validation.model.ResultatsIdentification;
+import java.util.Optional;
+
+/**
+ * DAO de l'entité {@link ResultatsIdentification} (table {@code identification_results}, clé
+ * auto-incrémentée).
+ *
+ * <p>Chaque jeu de résultats annote un seul passage ({@code passage_id} unique) : {@link
+ * #findByPassage(Long)} renvoie donc un {@link Optional}. La suppression du passage supprime ses
+ * résultats en cascade ({@code ON DELETE CASCADE}).
+ */
+public class ResultatsIdentificationDao extends DaoGenerique<ResultatsIdentification, Long> {
+
+  private static final RowMapper<ResultatsIdentification> MAPPER =
+      rs ->
+          new ResultatsIdentification(
+              rs.getLong("id"),
+              rs.getString("file_path"),
+              rs.getString("detected_format"),
+              rs.getString("imported_at"),
+              rs.getLong("passage_id"));
+
+  public ResultatsIdentificationDao(SourceDeDonnees source) {
+    super(source);
+  }
+
+  @Override
+  protected String table() {
+    return "identification_results";
+  }
+
+  @Override
+  protected String colonneCle() {
+    return "id";
+  }
+
+  @Override
+  protected RowMapper<ResultatsIdentification> mapper() {
+    return MAPPER;
+  }
+
+  /** Résultats annotant un passage donné (au plus un, {@code passage_id} unique). */
+  public Optional<ResultatsIdentification> findByPassage(Long idPassage) {
+    return queryUnique(
+        "SELECT * FROM identification_results WHERE passage_id = ?", MAPPER, idPassage);
+  }
+
+  @Override
+  public ResultatsIdentification insert(ResultatsIdentification resultats) {
+    long id =
+        insererEtRecupererCle(
+            "INSERT INTO identification_results (file_path, detected_format, imported_at,"
+                + " passage_id) VALUES (?, ?, ?, ?)",
+            resultats.cheminFichier(),
+            resultats.formatDetecte(),
+            resultats.dateImport(),
+            resultats.idPassage());
+    return new ResultatsIdentification(
+        id,
+        resultats.cheminFichier(),
+        resultats.formatDetecte(),
+        resultats.dateImport(),
+        resultats.idPassage());
+  }
+
+  @Override
+  public void update(ResultatsIdentification resultats) {
+    executerMaj(
+        "UPDATE identification_results SET file_path = ?, detected_format = ?, imported_at = ?,"
+            + " passage_id = ? WHERE id = ?",
+        resultats.cheminFichier(),
+        resultats.formatDetecte(),
+        resultats.dateImport(),
+        resultats.idPassage(),
+        resultats.id());
+  }
+}

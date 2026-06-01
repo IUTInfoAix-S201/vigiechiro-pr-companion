@@ -14,6 +14,8 @@ import fr.univ_amu.iut.passage.model.MoteurWorkflowPassage;
 import fr.univ_amu.iut.passage.model.Passage;
 import fr.univ_amu.iut.passage.model.ServicePassage;
 import fr.univ_amu.iut.passage.model.dao.PassageDao;
+import fr.univ_amu.iut.passage.model.dao.SequenceDao;
+import fr.univ_amu.iut.passage.model.dao.SessionDao;
 import java.time.LocalDate;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
@@ -30,10 +32,16 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ServicePassageMockTest {
 
   @Mock private PassageDao passageDao;
+  @Mock private SessionDao sessionDao;
+  @Mock private SequenceDao sequenceDao;
 
   private ServicePassage service() {
     return new ServicePassage(
-        passageDao, new MoteurWorkflowPassage(), new HorlogeFigee(LocalDate.of(2026, 6, 20)));
+        passageDao,
+        new MoteurWorkflowPassage(),
+        new HorlogeFigee(LocalDate.of(2026, 6, 20)),
+        sessionDao,
+        sequenceDao);
   }
 
   @Test

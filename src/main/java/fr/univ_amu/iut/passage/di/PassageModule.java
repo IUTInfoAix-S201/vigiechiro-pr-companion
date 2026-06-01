@@ -83,12 +83,17 @@ public class PassageModule extends AbstractModule {
   }
 
   /// Service métier transverse de la feature. Comme le service de référence `ServiceSites`, il
-  /// reste sans annotation d'injection : c'est ce module qui assemble ses dépendances (le
-  /// [PassageDao] de la feature, le [MoteurWorkflowPassage] et l'[Horloge] du socle).
+  /// reste sans annotation d'injection : c'est ce module qui assemble ses dépendances (les
+  /// [PassageDao], [SessionDao] et [SequenceDao] de la feature, le [MoteurWorkflowPassage] et
+  /// l'[Horloge] du socle).
   @Provides
   @Singleton
   ServicePassage fournirServicePassage(
-      PassageDao passageDao, MoteurWorkflowPassage moteur, Horloge horloge) {
-    return new ServicePassage(passageDao, moteur, horloge);
+      PassageDao passageDao,
+      MoteurWorkflowPassage moteur,
+      Horloge horloge,
+      SessionDao sessionDao,
+      SequenceDao sequenceDao) {
+    return new ServicePassage(passageDao, moteur, horloge, sessionDao, sequenceDao);
   }
 }

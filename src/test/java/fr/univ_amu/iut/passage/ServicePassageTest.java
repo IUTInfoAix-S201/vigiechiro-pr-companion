@@ -19,6 +19,8 @@ import fr.univ_amu.iut.passage.model.Passage;
 import fr.univ_amu.iut.passage.model.ServicePassage;
 import fr.univ_amu.iut.passage.model.dao.EnregistreurDao;
 import fr.univ_amu.iut.passage.model.dao.PassageDao;
+import fr.univ_amu.iut.passage.model.dao.SequenceDao;
+import fr.univ_amu.iut.passage.model.dao.SessionDao;
 import fr.univ_amu.iut.sites.model.PointDEcoute;
 import fr.univ_amu.iut.sites.model.Site;
 import fr.univ_amu.iut.sites.model.dao.PointDao;
@@ -62,7 +64,12 @@ class ServicePassageTest {
     new EnregistreurDao(source).insert(new Enregistreur(SERIE, "V1.01", null));
     passageDao = new PassageDao(source);
     service =
-        new ServicePassage(passageDao, new MoteurWorkflowPassage(), new HorlogeFigee(JOUR_FIXE));
+        new ServicePassage(
+            passageDao,
+            new MoteurWorkflowPassage(),
+            new HorlogeFigee(JOUR_FIXE),
+            new SessionDao(source),
+            new SequenceDao(source));
   }
 
   /// Construit un passage candidat (non persisté) pour les vérifications R3/R4.

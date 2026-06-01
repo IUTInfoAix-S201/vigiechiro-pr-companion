@@ -191,4 +191,15 @@ class QualificationViewTest {
 
     assertThat(enregistrer.isDisabled()).isFalse();
   }
+
+  @Test
+  @DisplayName("Choisir « À jeter » affiche l'aperçu R14 avant l'enregistrement")
+  void apercu_r14_visible_quand_a_jeter_choisi(FxRobot robot) {
+    Label apercu = robot.lookup("#lblApercuR14").queryAs(Label.class);
+    assertThat(apercu.isVisible()).isFalse();
+
+    robot.push(KeyCode.J);
+
+    assertThat(apercu.isVisible()).isTrue();
+  }
 }

@@ -8,6 +8,7 @@ import fr.univ_amu.iut.commun.model.Verdict;
 import fr.univ_amu.iut.qualification.model.GenerateurSelection;
 import fr.univ_amu.iut.qualification.model.PreCheckNuit;
 import fr.univ_amu.iut.qualification.model.SequenceEnSelection;
+import fr.univ_amu.iut.qualification.viewmodel.EtatVerdict;
 import fr.univ_amu.iut.qualification.viewmodel.QualificationViewModel;
 import fr.univ_amu.iut.qualification.viewmodel.SelectionEcouteViewModel;
 import java.util.Locale;
@@ -71,6 +72,7 @@ public class QualificationController {
   @FXML private Button boutonDouteux;
   @FXML private Button boutonAJeter;
   @FXML private TextArea champCommentaire;
+  @FXML private Label lblApercuR14;
   @FXML private Label lblAvertissement;
   @FXML private Label lblMessage;
   @FXML private Button boutonEnregistrer;
@@ -169,6 +171,15 @@ public class QualificationController {
     marquerChoisi(boutonDouteux, Verdict.DOUTEUX);
     marquerChoisi(boutonAJeter, Verdict.A_JETER);
     champCommentaire.textProperty().bindBidirectional(verdictVm.commentaireProperty());
+
+    // Aperçu R14 : prévient, avant l'enregistrement, qu'un verdict « à jeter » exclura le passage.
+    var apercuAJeter =
+        verdictVm
+            .verdictChoisiProperty()
+            .isEqualTo(Verdict.A_JETER)
+            .and(verdictVm.etatVerdictProperty().isEqualTo(EtatVerdict.BROUILLON));
+    lblApercuR14.visibleProperty().bind(apercuAJeter);
+    lblApercuR14.managedProperty().bind(apercuAJeter);
 
     lblAvertissement.textProperty().bind(verdictVm.avertissementAJeterProperty());
     lblAvertissement.visibleProperty().bind(verdictVm.avertissementAJeterProperty().isNotEmpty());

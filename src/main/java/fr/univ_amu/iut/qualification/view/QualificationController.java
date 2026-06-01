@@ -2,8 +2,10 @@ package fr.univ_amu.iut.qualification.view;
 
 import com.google.inject.Inject;
 import fr.nedjar.vigiechiro.audio.AudioView;
+import fr.univ_amu.iut.commun.model.MethodeSelection;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.model.Verdict;
+import fr.univ_amu.iut.qualification.model.GenerateurSelection;
 import fr.univ_amu.iut.qualification.model.PreCheckNuit;
 import fr.univ_amu.iut.qualification.model.SequenceEnSelection;
 import fr.univ_amu.iut.qualification.viewmodel.QualificationViewModel;
@@ -15,19 +17,26 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
+import javafx.scene.control.RadioButton;
+import javafx.scene.control.Separator;
+import javafx.scene.control.Slider;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.ToggleGroup;
+import javafx.scene.layout.VBox;
 
 /// Controller de l'écran **M-Qualification** (`Qualification.fxml`).
 ///
 /// Pur câblage (patron CM4) : relie la liste de la sélection (colonne gauche) au
-/// [SelectionEcouteViewModel] et le verdict différé (colonne droite) au [QualificationViewModel].
-/// Aucun accès base de données ni logique métier ici (règle ArchUnit `view_sans_jdbc`). La vue
-/// audio, la modale de personnalisation et les raccourcis clavier viennent dans les tranches
-/// suivantes ; un emplacement réservé tient lieu de zone audio.
+/// [SelectionEcouteViewModel] et le verdict différé (colonne droite) au [QualificationViewModel],
+/// branche la vue audio fournie ([AudioView]) et ouvre la modale de personnalisation de la
+/// sélection. Aucun accès base de données ni logique métier ici (règle ArchUnit `view_sans_jdbc`).
 public class QualificationController {
 
   private final QualificationViewModel verdictVm;
@@ -196,6 +205,65 @@ public class QualificationController {
   @FXML
   private void regenerer() {
     selectionVm.regenerer();
+  }
+
+  /// Ouvre la modale de personnalisation de la sélection (R12) : choix de la méthode et de la
+  /// taille, puis régénération (la progression repart de zéro, le verdict est conservé).
+  @FXML
+  private void personnaliser() {
+    RadioButton repar = new RadioButton("⏱ RéparTemporel — réparties sur la nuit");
+    RadioButton aleatoire = new RadioButton("🎲 Aléatoire");
+    ToggleGroup methode = new ToggleGroup();
+    repar.setToggleGroup(methode);
+    aleatoire.setToggleGroup(methode);
+    boolean estAleatoire = selectionVm.methodeProperty().get() == MethodeSelection.ALEATOIRE;
+    (estAleatoire ? aleatoire : repar).setSelected(true);
+
+    Slider taille =
+        new Slider(
+            GenerateurSelection.TAILLE_MIN,
+            GenerateurSelection.TAILLE_MAX,
+            selectionVm.tailleProperty().get());
+    taille.setShowTickLabels(true);
+    taille.setShowTickMarks(true);
+    taille.setMajorTickUnit(5);
+    taille.setMinorTickCount(0);
+    taille.setSnapToTicks(true);
+    Label valeur = new Label();
+    valeur.textProperty().bind(taille.valueProperty().asString("Taille : %.0f séquences"));
+    Label avert =
+        new Label("⚠ Régénérer efface la progression d'écoute (le verdict est conservé).");
+    avert.setWrapText(true);
+
+    Dialog<ButtonType> dialogue = new Dialog<>();
+    dialogue.setTitle("Personnaliser la sélection d'écoute");
+    dialogue.setHeaderText("Méthode de constitution et taille de la sélection (R12).");
+    dialogue.initOwner(tableSequences.getScene().getWindow());
+    ButtonType boutonRegenerer = new ButtonType("↺ Régénérer", ButtonBar.ButtonData.OK_DONE);
+    dialogue.getDialogPane().getButtonTypes().addAll(boutonRegenerer, ButtonType.CANCEL);
+    dialogue
+        .getDialogPane()
+        .setContent(
+            new VBox(
+                8,
+                new Label("Méthode :"),
+                repar,
+                aleatoire,
+                new Separator(),
+                valeur,
+                taille,
+                avert));
+
+    if (dialogue.showAndWait().orElse(null) == boutonRegenerer) {
+      selectionVm
+          .methodeProperty()
+          .set(
+              aleatoire.isSelected()
+                  ? MethodeSelection.ALEATOIRE
+                  : MethodeSelection.REPARTITION_TEMPORELLE);
+      selectionVm.tailleProperty().set((int) Math.round(taille.getValue()));
+      selectionVm.regenerer();
+    }
   }
 
   private void marquerChoisi(Button bouton, Verdict verdict) {

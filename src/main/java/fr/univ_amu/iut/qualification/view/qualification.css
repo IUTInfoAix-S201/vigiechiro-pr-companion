@@ -1,0 +1,221 @@
+/*
+ * M-Qualification - feuille de style de l'écran « Vérifier l'enregistrement par échantillonnage ».
+ * Couleurs alignées sur la maquette (feux du pré-check, boutons de verdict colorés).
+ */
+
+.ecran-qualification {
+  -fx-background-color: #fafbfc;
+}
+
+.entete {
+  -fx-padding: 18 18 10 18;
+}
+
+.titre-page {
+  -fx-font-size: 20px;
+  -fx-font-weight: bold;
+  -fx-text-fill: #2c3e50;
+}
+
+.sous-titre-page {
+  -fx-font-size: 13px;
+  -fx-text-fill: #6a737d;
+}
+
+/* ---- Bandeau de rappel du passage ---- */
+.bandeau {
+  -fx-padding: 10 14 10 14;
+  -fx-background-color: #f6f8fa;
+  -fx-border-color: #d0d7de;
+  -fx-border-radius: 4;
+  -fx-background-radius: 4;
+}
+
+.bandeau-label {
+  -fx-font-size: 10px;
+  -fx-text-fill: #6a737d;
+}
+
+.bandeau-valeur {
+  -fx-font-size: 13px;
+  -fx-font-weight: bold;
+  -fx-text-fill: #2c3e50;
+}
+
+/* ---- Pré-check (R13, consultatif) ---- */
+.precheck-intro {
+  -fx-font-size: 12px;
+  -fx-text-fill: #6a737d;
+}
+
+.feu {
+  -fx-font-size: 12px;
+  -fx-padding: 2 8 2 8;
+  -fx-background-radius: 10;
+  -fx-background-color: #eef2f5;
+  -fx-text-fill: #6a737d;
+}
+
+.feu-vert {
+  -fx-background-color: #d5f0de;
+  -fx-text-fill: #0e5128;
+}
+
+.feu-orange {
+  -fx-background-color: #fbe6c8;
+  -fx-text-fill: #7e5109;
+}
+
+.feu-rouge {
+  -fx-background-color: #f5d2cd;
+  -fx-text-fill: #6e2c00;
+}
+
+.precheck-anomalie {
+  -fx-font-size: 12px;
+  -fx-text-fill: #a93226;
+}
+
+/* ---- Colonnes ---- */
+.split {
+  -fx-padding: 0 18 18 18;
+  -fx-background-color: transparent;
+}
+
+.colonne-liste,
+.colonne-detail {
+  -fx-padding: 14;
+  -fx-background-color: #ffffff;
+}
+
+.colonne-titre {
+  -fx-font-size: 15px;
+  -fx-font-weight: bold;
+  -fx-text-fill: #2c3e50;
+}
+
+.section-titre {
+  -fx-font-size: 14px;
+  -fx-font-weight: bold;
+  -fx-text-fill: #2c3e50;
+}
+
+.section-sous {
+  -fx-font-size: 11px;
+  -fx-text-fill: #6a737d;
+}
+
+.barre-progression {
+  -fx-accent: #1e8449;
+}
+
+.progression-texte {
+  -fx-font-size: 12px;
+  -fx-font-weight: bold;
+  -fx-text-fill: #2c3e50;
+}
+
+.progression-hint {
+  -fx-font-size: 11px;
+  -fx-text-fill: #6a737d;
+}
+
+/* ---- Détail séquence ---- */
+.seq-carte {
+  -fx-padding: 8 10 8 10;
+  -fx-background-color: #f6f8fa;
+  -fx-border-color: #d0d7de;
+  -fx-border-radius: 4;
+  -fx-background-radius: 4;
+}
+
+.seq-numero {
+  -fx-font-size: 15px;
+  -fx-font-weight: bold;
+  -fx-text-fill: #2c3e50;
+}
+
+.seq-meta {
+  -fx-font-size: 12px;
+  -fx-text-fill: #6a737d;
+}
+
+.audio-placeholder {
+  -fx-padding: 20;
+  -fx-background-color: #eef2f5;
+  -fx-border-color: #d0d7de;
+  -fx-border-style: segments(6, 6) line-cap round;
+  -fx-border-radius: 4;
+  -fx-background-radius: 4;
+}
+
+.audio-placeholder-titre {
+  -fx-font-size: 13px;
+  -fx-font-weight: bold;
+  -fx-text-fill: #4a90d9;
+}
+
+.audio-placeholder-sous {
+  -fx-font-size: 11px;
+  -fx-text-fill: #6a737d;
+}
+
+/* ---- Boutons de verdict ---- */
+.verdict {
+  -fx-text-fill: white;
+  -fx-font-weight: bold;
+  -fx-font-size: 13px;
+  -fx-padding: 10 8 10 8;
+  -fx-background-radius: 4;
+  -fx-border-radius: 4;
+}
+
+.verdict-ok {
+  -fx-background-color: #1e8449;
+}
+
+.verdict-douteux {
+  -fx-background-color: #b9770e;
+}
+
+.verdict-jeter {
+  -fx-background-color: #a93226;
+}
+
+.verdict-choisi {
+  -fx-border-color: #2c3e50;
+  -fx-border-width: 3;
+}
+
+/* ---- Messages + actions ---- */
+.avertissement {
+  -fx-font-size: 12px;
+  -fx-text-fill: #7e5109;
+  -fx-background-color: #fef9e7;
+  -fx-border-color: #b9770e;
+  -fx-border-radius: 4;
+  -fx-background-radius: 4;
+  -fx-padding: 8;
+}
+
+.message-erreur {
+  -fx-font-size: 12px;
+  -fx-text-fill: #a93226;
+}
+
+.bouton-primaire {
+  -fx-background-color: #4a90d9;
+  -fx-text-fill: white;
+  -fx-font-weight: bold;
+  -fx-padding: 9 18 9 18;
+  -fx-background-radius: 4;
+}
+
+.bouton-secondaire {
+  -fx-background-color: white;
+  -fx-text-fill: #2c3e50;
+  -fx-border-color: #6a737d;
+  -fx-border-radius: 3;
+  -fx-background-radius: 3;
+  -fx-padding: 5 12 5 12;
+}

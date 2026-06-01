@@ -36,9 +36,9 @@ import fr.univ_amu.iut.sites.model.dao.SiteDao;
 /// (contrôlé par `ArchitectureTest`).
 public class QualificationModule extends AbstractModule {
 
-  /// Fournit le contrat de navigation socle [OuvrirVerification] : l'écran M-Passage l'injecte pour
-  /// ouvrir M-Qualification sans dépendre de cette feature (évite le cycle `passage ↔
-  // qualification`).
+  /// Fournit le contrat de navigation socle [OuvrirVerification] : l'écran M-Passage l'injecte
+  /// pour ouvrir M-Qualification sans dépendre de cette feature (évite le cycle
+  /// `passage ↔ qualification`).
   @Override
   protected void configure() {
     bind(OuvrirVerification.class).to(NavigationQualification.class);

@@ -5,6 +5,7 @@ import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import fr.univ_amu.iut.commun.model.Horloge;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
+import fr.univ_amu.iut.commun.view.OuvrirPassage;
 import fr.univ_amu.iut.passage.model.MoteurWorkflowPassage;
 import fr.univ_amu.iut.passage.model.ServicePassage;
 import fr.univ_amu.iut.passage.model.dao.EnregistrementOriginalDao;
@@ -15,6 +16,7 @@ import fr.univ_amu.iut.passage.model.dao.PassageDao;
 import fr.univ_amu.iut.passage.model.dao.ReleveClimatiqueDao;
 import fr.univ_amu.iut.passage.model.dao.SequenceDao;
 import fr.univ_amu.iut.passage.model.dao.SessionDao;
+import fr.univ_amu.iut.passage.view.NavigationPassage;
 import fr.univ_amu.iut.passage.viewmodel.PassageViewModel;
 
 /// Module Guice de la feature `passage` : fournit ses DAO à partir de la [SourceDeDonnees]
@@ -27,6 +29,13 @@ import fr.univ_amu.iut.passage.viewmodel.PassageViewModel;
 /// **Non installé** dans `RacineInjecteur` à ce stade : l'intégration des features dans la racine
 /// de composition est faite en phase 3.
 public class PassageModule extends AbstractModule {
+
+  /// Fournit le contrat de navigation socle [OuvrirPassage] : `sites` (M-Site-detail) l'injecte
+  /// pour ouvrir M-Passage sans dépendre du `view` de cette feature.
+  @Override
+  protected void configure() {
+    bind(OuvrirPassage.class).to(NavigationPassage.class);
+  }
 
   @Provides
   @Singleton

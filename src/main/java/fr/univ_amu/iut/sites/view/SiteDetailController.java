@@ -2,6 +2,8 @@ package fr.univ_amu.iut.sites.view;
 
 import com.google.inject.Inject;
 import fr.univ_amu.iut.commun.model.RegleMetierException;
+import fr.univ_amu.iut.commun.view.OuvrirPassage;
+import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
 import fr.univ_amu.iut.sites.model.PointDEcoute;
 import fr.univ_amu.iut.sites.model.Site;
 import fr.univ_amu.iut.sites.viewmodel.CartePoint;
@@ -41,6 +43,7 @@ public class SiteDetailController {
 
   private final SiteDetailViewModel viewModel;
   private final NavigationSites navigation;
+  private final OuvrirPassage ouvrirPassage;
 
   @FXML private Label titre;
   @FXML private Label sousTitre;
@@ -63,9 +66,11 @@ public class SiteDetailController {
   @FXML private TableColumn<LignePassage, String> colDepose;
 
   @Inject
-  public SiteDetailController(SiteDetailViewModel viewModel, NavigationSites navigation) {
+  public SiteDetailController(
+      SiteDetailViewModel viewModel, NavigationSites navigation, OuvrirPassage ouvrirPassage) {
     this.viewModel = Objects.requireNonNull(viewModel, "viewModel");
     this.navigation = Objects.requireNonNull(navigation, "navigation");
+    this.ouvrirPassage = Objects.requireNonNull(ouvrirPassage, "ouvrirPassage");
   }
 
   /// Charge le site à afficher (appelée par [NavigationSites] juste après le chargement FXML).
@@ -88,6 +93,15 @@ public class SiteDetailController {
     boutonModifier.setTooltip(new Tooltip("Édition de la fiche site : à venir."));
     configurerColonnes();
     tablePassages.setItems(viewModel.passages());
+    tablePassages.setOnMouseClicked(
+        evenement -> {
+          if (evenement.getClickCount() == 2) {
+            LignePassage ligne = tablePassages.getSelectionModel().getSelectedItem();
+            if (ligne != null) {
+              ouvrirPassage.ouvrir(ligne.idPassage(), contexteSite(ligne));
+            }
+          }
+        });
     viewModel
         .points()
         .addListener((ListChangeListener<CartePoint>) changement -> reconstruirePoints());
@@ -97,6 +111,13 @@ public class SiteDetailController {
   @FXML
   private void retour() {
     navigation.ouvrirAccueil();
+  }
+
+  /// Contexte d'identité (carré/code/nom) transmis à M-Passage pour éviter une dépendance
+  /// `passage → sites` : la vue passage affiche ces libellés sans rejoindre les tables `sites`.
+  private ContexteSite contexteSite(LignePassage ligne) {
+    Site site = viewModel.siteCourant();
+    return new ContexteSite(site.numeroCarre(), ligne.codePoint(), site.nomConvivial());
   }
 
   @FXML

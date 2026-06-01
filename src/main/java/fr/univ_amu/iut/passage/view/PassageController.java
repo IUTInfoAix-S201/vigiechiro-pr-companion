@@ -4,7 +4,7 @@ import com.google.inject.Inject;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.model.Verdict;
 import fr.univ_amu.iut.commun.view.OuvrirVerification;
-import fr.univ_amu.iut.passage.viewmodel.ContexteSite;
+import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
 import fr.univ_amu.iut.passage.viewmodel.EtapeWorkflow;
 import fr.univ_amu.iut.passage.viewmodel.PassageViewModel;
 import java.util.Locale;

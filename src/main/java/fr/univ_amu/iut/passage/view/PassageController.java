@@ -129,9 +129,8 @@ public class PassageController {
   }
 
   /// « Diagnostic matériel » : ouvre M-Diagnostic sur ce passage via le contrat socle
-  /// [OuvrirDiagnostic] (la feature `diagnostic` en fournit l'implémentation). Toujours disponible
-  // :
-  /// le relevé climatique et le journal existent dès l'import de la nuit.
+  /// [OuvrirDiagnostic] (implémenté par la feature `diagnostic`). Toujours disponible : le
+  /// relevé climatique et le journal existent dès l'import de la nuit.
   @FXML
   private void diagnostiquer() {
     ouvrirDiagnostic.ouvrir(idPassage);

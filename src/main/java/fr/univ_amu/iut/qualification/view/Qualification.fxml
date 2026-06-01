@@ -80,6 +80,8 @@
         <HBox spacing="10.0" alignment="CENTER_LEFT">
           <Label fx:id="lblListeTitre" text="📋 Sélection d'écoute" styleClass="colonne-titre"/>
           <Region HBox.hgrow="ALWAYS"/>
+          <Button fx:id="boutonPersonnaliser" text="⚙ Personnaliser…" styleClass="bouton-secondaire"
+                  onAction="#personnaliser"/>
           <Button fx:id="boutonRegenerer" text="↺ Régénérer" styleClass="bouton-secondaire"
                   onAction="#regenerer"/>
         </HBox>

@@ -170,4 +170,13 @@ class QualificationViewTest {
     SequenceEnSelection premiere = (SequenceEnSelection) table.getItems().get(0);
     assertThat(premiere.ecoutee()).isTrue();
   }
+
+  @Test
+  @DisplayName("Le bouton « Personnaliser » est présent et actif dans l'en-tête de la liste")
+  void bouton_personnaliser_present(FxRobot robot) {
+    Button personnaliser = robot.lookup("#boutonPersonnaliser").queryAs(Button.class);
+
+    assertThat(personnaliser.getText()).contains("Personnaliser");
+    assertThat(personnaliser.isDisabled()).isFalse();
+  }
 }

@@ -74,6 +74,7 @@ public class SelectionEcouteViewModel {
   /// [#messageProperty()] sans lever.
   public void ouvrirSur(Long idPassage) {
     this.idPassage = idPassage;
+    reinitialiser();
     try {
       appliquerContexte(service.chargerContexte(idPassage));
       SelectionDEcoute selection = service.ouvrirVerification(idPassage);
@@ -82,8 +83,22 @@ public class SelectionEcouteViewModel {
       recalculerProgression();
       message.set("");
     } catch (RuntimeException echec) {
+      reinitialiser();
       message.set(echec.getMessage());
     }
+  }
+
+  /// Remet la sélection à vide avant chaque (ré)ouverture et après un échec : ni la liste, ni le
+  /// bandeau, ni le chemin du fichier courant d'un passage précédent ne doivent subsister (le VM
+  /// est non-singleton, mais rien n'empêche une réouverture sur un autre passage).
+  private void reinitialiser() {
+    idSelection = null;
+    titreContexte.set("");
+    plageHoraire.set("");
+    volumetrie.set("");
+    sequenceCourante.set(null);
+    lignes.clear();
+    recalculerProgression();
   }
 
   /// Sélectionne une ligne de la liste (met à jour le chemin du fichier courant pour l'écoute).

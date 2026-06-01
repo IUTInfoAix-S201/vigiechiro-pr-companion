@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import fr.univ_amu.iut.commun.model.MethodeSelection;
+import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.passage.model.SequenceDEcoute;
 import fr.univ_amu.iut.qualification.model.ContexteVerification;
@@ -60,6 +61,11 @@ class SelectionEcouteViewModelTest {
         .thenReturn(
             new SelectionDEcoute(
                 ID_SELECTION, MethodeSelection.REPARTITION_TEMPORELLE, n, ID_PASSAGE));
+    when(service.detaillerSelection(anyLong())).thenReturn(lignesDe(n));
+  }
+
+  /// `n` séquences non écoutées (chemins `…/seqI.wav`), pour stubber `detaillerSelection`.
+  private static List<SequenceEnSelection> lignesDe(int n) {
     List<SequenceEnSelection> lignes = new ArrayList<>();
     for (int i = 0; i < n; i++) {
       SequenceDEcoute sequence =
@@ -67,7 +73,7 @@ class SelectionEcouteViewModelTest {
               (long) i, "PaRec_" + i + ".wav", null, i, 0.0, 5.0, "/ws/seq" + i + ".wav", true, 1L);
       lignes.add(new SequenceEnSelection(sequence, i, false));
     }
-    when(service.detaillerSelection(anyLong())).thenReturn(lignes);
+    return lignes;
   }
 
   @Test
@@ -128,5 +134,40 @@ class SelectionEcouteViewModelTest {
 
     verify(service).creerSelection(ID_PASSAGE, MethodeSelection.ALEATOIRE, 4);
     assertThat(viewModel.progressionProperty().get()).isZero();
+  }
+
+  @Test
+  @DisplayName("Une réouverture qui échoue vide la liste, le bandeau et le chemin courant")
+  void ouvrir_en_echec_nettoie_l_etat_precedent() {
+    when(service.chargerContexte(anyLong()))
+        .thenReturn(
+            new ContexteVerification(
+                "640380",
+                "A1",
+                2,
+                2026,
+                "2026-06-22",
+                "20:25:00",
+                "07:47:00",
+                5,
+                25.0,
+                StatutWorkflow.TRANSFORME,
+                null))
+        .thenThrow(new RegleMetierException("Passage introuvable : 99"));
+    when(service.ouvrirVerification(anyLong()))
+        .thenReturn(
+            new SelectionDEcoute(
+                ID_SELECTION, MethodeSelection.REPARTITION_TEMPORELLE, 5, ID_PASSAGE));
+    when(service.detaillerSelection(anyLong())).thenReturn(lignesDe(5));
+    viewModel.ouvrirSur(ID_PASSAGE);
+    viewModel.selectionner(viewModel.lignes().get(0));
+    assertThat(viewModel.lignes()).hasSize(5);
+
+    viewModel.ouvrirSur(99L);
+
+    assertThat(viewModel.lignes()).isEmpty();
+    assertThat(viewModel.cheminSequenceCouranteProperty().get()).isNull();
+    assertThat(viewModel.titreContexteProperty().get()).isEmpty();
+    assertThat(viewModel.messageProperty().get()).contains("introuvable");
   }
 }

@@ -151,4 +151,22 @@ class QualificationViewModelTest {
     assertThat(viewModel.messageProperty().get()).contains("introuvable");
     assertThat(viewModel.feuCouvertureProperty().get()).isNull();
   }
+
+  @Test
+  @DisplayName("Une réouverture qui échoue nettoie les feux/statut/verdict du passage précédent")
+  void ouvrir_en_echec_nettoie_l_etat_precedent() {
+    when(service.precheck(ID_PASSAGE))
+        .thenReturn(new PreCheckNuit.Diagnostic(Feu.VERT, Feu.VERT, Feu.VERT))
+        .thenThrow(new RegleMetierException("Passage introuvable : 42"));
+    stubContexte();
+    viewModel.ouvrirSur(ID_PASSAGE);
+    assertThat(viewModel.feuCouvertureProperty().get()).isEqualTo(Feu.VERT);
+
+    viewModel.ouvrirSur(ID_PASSAGE);
+
+    assertThat(viewModel.feuCouvertureProperty().get()).isNull();
+    assertThat(viewModel.statutProperty().get()).isNull();
+    assertThat(viewModel.verdictActuelProperty().get()).isEqualTo(Verdict.A_VERIFIER);
+    assertThat(viewModel.messageProperty().get()).contains("introuvable");
+  }
 }

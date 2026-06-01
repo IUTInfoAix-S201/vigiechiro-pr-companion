@@ -75,6 +75,7 @@ public class QualificationViewModel {
   /// sans lever.
   public void ouvrirSur(Long idPassage) {
     this.idPassage = idPassage;
+    reinitialiser();
     try {
       appliquerPrecheck(service.precheck(idPassage));
       ContexteVerification contexte = service.chargerContexte(idPassage);
@@ -82,8 +83,25 @@ public class QualificationViewModel {
       verdictActuel.set(contexte.verdict() == null ? Verdict.A_VERIFIER : contexte.verdict());
       message.set("");
     } catch (RuntimeException echec) {
+      reinitialiser();
       message.set(echec.getMessage());
     }
+  }
+
+  /// Remet l'écran à un état vierge avant chaque (ré)ouverture et après un échec : feux, bandeau et
+  /// saisie de verdict d'un passage précédent ne doivent jamais subsister à l'écran (le VM est
+  /// non-singleton, mais rien n'empêche une réouverture sur un autre passage).
+  private void reinitialiser() {
+    feuCouverture.set(null);
+    feuNombre.set(null);
+    feuRenommage.set(null);
+    preCheckAnomalie.set(false);
+    statut.set(null);
+    verdictActuel.set(Verdict.A_VERIFIER);
+    verdictChoisi.set(null);
+    commentaire.set("");
+    etatVerdict.set(EtatVerdict.BROUILLON);
+    avertissementAJeter.set("");
   }
 
   /// Choix (différé) du verdict global de la nuit (boutons OK / douteux / à jeter).

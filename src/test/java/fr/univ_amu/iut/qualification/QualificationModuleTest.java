@@ -6,9 +6,11 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import fr.univ_amu.iut.commun.di.CommunModule;
 import fr.univ_amu.iut.commun.di.PersistenceModule;
+import fr.univ_amu.iut.commun.view.OuvrirVerification;
 import fr.univ_amu.iut.passage.di.PassageModule;
 import fr.univ_amu.iut.qualification.di.QualificationModule;
 import fr.univ_amu.iut.qualification.model.ServiceQualification;
+import fr.univ_amu.iut.qualification.view.NavigationQualification;
 import fr.univ_amu.iut.qualification.viewmodel.QualificationViewModel;
 import fr.univ_amu.iut.qualification.viewmodel.SelectionEcouteViewModel;
 import fr.univ_amu.iut.sites.di.SitesModule;
@@ -60,5 +62,12 @@ class QualificationModuleTest {
         .isNotSameAs(injecteur.getInstance(QualificationViewModel.class));
     assertThat(injecteur.getInstance(SelectionEcouteViewModel.class))
         .isNotSameAs(injecteur.getInstance(SelectionEcouteViewModel.class));
+  }
+
+  @Test
+  @DisplayName("Le contrat socle OuvrirVerification est fourni par NavigationQualification (#32)")
+  void contrat_ouvrir_verification_fourni_par_navigation() {
+    assertThat(injecteur().getInstance(OuvrirVerification.class))
+        .isInstanceOf(NavigationQualification.class);
   }
 }

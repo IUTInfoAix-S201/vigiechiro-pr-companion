@@ -5,6 +5,7 @@ import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
 import fr.univ_amu.iut.commun.persistence.UniteDeTravail;
+import fr.univ_amu.iut.commun.view.OuvrirVerification;
 import fr.univ_amu.iut.passage.model.dao.EnregistrementOriginalDao;
 import fr.univ_amu.iut.passage.model.dao.PassageDao;
 import fr.univ_amu.iut.passage.model.dao.SequenceDao;
@@ -13,6 +14,7 @@ import fr.univ_amu.iut.qualification.model.GenerateurSelection;
 import fr.univ_amu.iut.qualification.model.PreCheckNuit;
 import fr.univ_amu.iut.qualification.model.ServiceQualification;
 import fr.univ_amu.iut.qualification.model.dao.SelectionDao;
+import fr.univ_amu.iut.qualification.view.NavigationQualification;
 import fr.univ_amu.iut.qualification.viewmodel.QualificationViewModel;
 import fr.univ_amu.iut.qualification.viewmodel.SelectionEcouteViewModel;
 import fr.univ_amu.iut.sites.model.dao.PointDao;
@@ -33,6 +35,14 @@ import fr.univ_amu.iut.sites.model.dao.SiteDao;
 /// sens des dépendances (`qualification → passage`, `qualification → sites`) reste acyclique
 /// (contrôlé par `ArchitectureTest`).
 public class QualificationModule extends AbstractModule {
+
+  /// Fournit le contrat de navigation socle [OuvrirVerification] : l'écran M-Passage l'injecte pour
+  /// ouvrir M-Qualification sans dépendre de cette feature (évite le cycle `passage ↔
+  // qualification`).
+  @Override
+  protected void configure() {
+    bind(OuvrirVerification.class).to(NavigationQualification.class);
+  }
 
   @Provides
   @Singleton

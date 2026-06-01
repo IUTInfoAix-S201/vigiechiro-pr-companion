@@ -8,7 +8,10 @@ import fr.univ_amu.iut.commun.model.ResultatVerification;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.model.Verdict;
 import fr.univ_amu.iut.passage.model.dao.PassageDao;
+import fr.univ_amu.iut.passage.model.dao.SequenceDao;
+import fr.univ_amu.iut.passage.model.dao.SessionDao;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -43,11 +46,55 @@ public class ServicePassage {
   private final PassageDao passageDao;
   private final MoteurWorkflowPassage moteur;
   private final Horloge horloge;
+  private final SessionDao sessionDao;
+  private final SequenceDao sequenceDao;
 
-  public ServicePassage(PassageDao passageDao, MoteurWorkflowPassage moteur, Horloge horloge) {
+  public ServicePassage(
+      PassageDao passageDao,
+      MoteurWorkflowPassage moteur,
+      Horloge horloge,
+      SessionDao sessionDao,
+      SequenceDao sequenceDao) {
     this.passageDao = Objects.requireNonNull(passageDao, "passageDao");
     this.moteur = Objects.requireNonNull(moteur, "moteur");
     this.horloge = Objects.requireNonNull(horloge, "horloge");
+    this.sessionDao = Objects.requireNonNull(sessionDao, "sessionDao");
+    this.sequenceDao = Objects.requireNonNull(sequenceDao, "sequenceDao");
+  }
+
+  /// Projection de lecture pour l'écran **M-Passage** : le passage `idPassage` et les agrégats de
+  /// sa session (volumes, durée audible, nombre de séquences). Sans jointure `sites` : le contexte
+  /// site (carré, code point) est fourni à la vue par la navigation.
+  ///
+  /// @throws RegleMetierException si le passage est introuvable
+  public DetailPassage detailPassage(Long idPassage) {
+    Passage passage =
+        passageDao
+            .findById(idPassage)
+            .orElseThrow(() -> new RegleMetierException("Passage introuvable : " + idPassage));
+    Optional<SessionDEnregistrement> session = sessionDao.trouverParPassage(idPassage);
+    List<SequenceDEcoute> sequences =
+        session.map(s -> sequenceDao.findBySession(s.id())).orElseGet(List::of);
+    double dureeAudible =
+        sequences.stream()
+            .map(SequenceDEcoute::dureeSecondes)
+            .filter(Objects::nonNull)
+            .mapToDouble(Double::doubleValue)
+            .sum();
+    return new DetailPassage(
+        passage.numeroPassage(),
+        passage.annee(),
+        passage.dateEnregistrement(),
+        passage.heureDebut(),
+        passage.heureFin(),
+        passage.idEnregistreur(),
+        passage.statutWorkflow(),
+        passage.verdictVerification(),
+        passage.deposeLe(),
+        session.map(SessionDEnregistrement::volumeOriginauxOctets).orElse(0L),
+        session.map(SessionDEnregistrement::volumeSequencesOctets).orElse(0L),
+        sequences.size(),
+        dureeAudible);
   }
 
   /// Crée un passage à l'état initial [StatutWorkflow#IMPORTE], sans verdict.

@@ -97,4 +97,21 @@ class DiagnosticViewModelTest {
     assertThat(viewModel.enregistreurProperty().get()).isEmpty();
     assertThat(viewModel.mesures()).isEmpty();
   }
+
+  @Test
+  @DisplayName("Une réouverture qui échoue nettoie le diagnostic du passage précédent")
+  void ouvrir_en_echec_nettoie_l_etat_precedent() {
+    when(service.diagnostiquer(ID_PASSAGE)).thenReturn(diagnostic(serie(), 43.5, 5.4));
+    when(service.diagnostiquer(99L))
+        .thenThrow(new RegleMetierException("Passage introuvable : 99"));
+    viewModel.ouvrirSur(ID_PASSAGE);
+    assertThat(viewModel.mesures()).isNotEmpty();
+
+    viewModel.ouvrirSur(99L);
+
+    assertThat(viewModel.mesures()).isEmpty();
+    assertThat(viewModel.anomalies()).isEmpty();
+    assertThat(viewModel.enregistreurProperty().get()).isEmpty();
+    assertThat(viewModel.messageProperty().get()).contains("introuvable");
+  }
 }

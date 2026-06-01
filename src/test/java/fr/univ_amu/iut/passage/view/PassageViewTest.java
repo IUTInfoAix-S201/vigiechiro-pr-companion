@@ -146,4 +146,12 @@ class PassageViewTest {
 
     assertThat(validation.getText()).contains("🔒").contains("déposé");
   }
+
+  @Test
+  @DisplayName("Le bouton « Supprimer » est présent et actif dans l'en-tête")
+  void bouton_supprimer_present(FxRobot robot) {
+    Button supprimer = robot.lookup("#boutonSupprimer").queryAs(Button.class);
+
+    assertThat(supprimer.isDisabled()).isFalse();
+  }
 }

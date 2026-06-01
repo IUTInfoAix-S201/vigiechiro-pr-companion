@@ -4,7 +4,8 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import fr.univ_amu.iut.commun.view.Navigateur;
-import fr.univ_amu.iut.passage.viewmodel.ContexteSite;
+import fr.univ_amu.iut.commun.view.OuvrirPassage;
+import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Objects;
@@ -20,7 +21,7 @@ import javafx.scene.Parent;
 /// (carré/code/nom fournis par l'écran appelant, M-Site-detail, pour éviter une dépendance
 /// `passage → sites`). Dépend du socle [Navigateur] (`commun.view`).
 @Singleton
-public class NavigationPassage {
+public class NavigationPassage implements OuvrirPassage {
 
   private final Injector injector;
   private final Navigateur navigateur;
@@ -32,6 +33,7 @@ public class NavigationPassage {
   }
 
   /// Affiche le détail du passage `idPassage` (avec son contexte site) dans la zone centrale.
+  @Override
   public void ouvrir(Long idPassage, ContexteSite contexte) {
     FXMLLoader loader = new FXMLLoader(NavigationPassage.class.getResource("Passage.fxml"));
     loader.setControllerFactory(injector::getInstance);

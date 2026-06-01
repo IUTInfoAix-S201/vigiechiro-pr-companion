@@ -25,10 +25,12 @@ import fr.univ_amu.iut.passage.model.dao.EnregistreurDao;
 import fr.univ_amu.iut.passage.model.dao.PassageDao;
 import fr.univ_amu.iut.passage.model.dao.SequenceDao;
 import fr.univ_amu.iut.passage.model.dao.SessionDao;
+import fr.univ_amu.iut.qualification.model.ContexteVerification;
 import fr.univ_amu.iut.qualification.model.GenerateurSelection;
 import fr.univ_amu.iut.qualification.model.PreCheckNuit;
 import fr.univ_amu.iut.qualification.model.PreCheckNuit.Feu;
 import fr.univ_amu.iut.qualification.model.SelectionDEcoute;
+import fr.univ_amu.iut.qualification.model.SequenceEnSelection;
 import fr.univ_amu.iut.qualification.model.SequenceSelectionnee;
 import fr.univ_amu.iut.qualification.model.ServiceQualification;
 import fr.univ_amu.iut.qualification.model.dao.SelectionDao;
@@ -364,5 +366,56 @@ class ServiceQualificationTest {
     PreCheckNuit.Diagnostic diagnostic = service.precheck(idPassage);
 
     assertThat(diagnostic.nombreFichiers()).isEqualTo(Feu.ROUGE);
+  }
+
+  // --- Projections de lecture (bandeau + liste) ----------------------------
+
+  @Test
+  @DisplayName("chargerContexte renvoie identité, plage horaire, totaux et statut du passage")
+  void charger_contexte() {
+    creerNuit(20);
+
+    ContexteVerification contexte = service.chargerContexte(idPassage);
+
+    assertThat(contexte.numeroCarre()).isEqualTo("040962");
+    assertThat(contexte.codePoint()).isEqualTo("A1");
+    assertThat(contexte.numeroPassage()).isEqualTo(1);
+    assertThat(contexte.annee()).isEqualTo(2026);
+    assertThat(contexte.date()).isEqualTo("2026-06-20");
+    assertThat(contexte.heureDebut()).isEqualTo("20:00:00");
+    assertThat(contexte.sequencesTotales()).isEqualTo(20);
+    assertThat(contexte.dureeAudibleSecondes()).isEqualTo(100.0); // 20 × 5,0 s
+    assertThat(contexte.statut()).isEqualTo(StatutWorkflow.TRANSFORME);
+    assertThat(contexte.verdict()).isNull();
+  }
+
+  @Test
+  @DisplayName("chargerContexte sur un passage introuvable lève RegleMetierException")
+  void charger_contexte_passage_introuvable() {
+    assertThatThrownBy(() -> service.chargerContexte(9999L))
+        .isInstanceOf(RegleMetierException.class)
+        .hasMessageContaining("introuvable");
+  }
+
+  @Test
+  @DisplayName("detaillerSelection joint les séquences (ordre position) et reflète le flag écouté")
+  void detailler_selection() {
+    List<SequenceDEcoute> nuit = creerNuit(50);
+    SelectionDEcoute selection = service.ouvrirVerification(idPassage);
+
+    List<SequenceEnSelection> lignes = service.detaillerSelection(selection.id());
+
+    assertThat(lignes).extracting(SequenceEnSelection::position).startsWith(0, 1, 2);
+    assertThat(lignes).allSatisfy(ligne -> assertThat(ligne.ecoutee()).isFalse());
+    assertThat(lignes.get(0).sequence().id()).isEqualTo(nuit.get(0).id());
+
+    Long premiere = lignes.get(0).sequence().id();
+    service.marquerSequenceEcoutee(selection.id(), premiere);
+    SequenceEnSelection rechargee =
+        service.detaillerSelection(selection.id()).stream()
+            .filter(ligne -> ligne.sequence().id().equals(premiere))
+            .findFirst()
+            .orElseThrow();
+    assertThat(rechargee.ecoutee()).isTrue();
   }
 }

@@ -23,6 +23,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -181,6 +182,67 @@ public class ServiceQualification {
   /// Sans effet si le couple (sélection, séquence) n'est pas rattaché.
   public void marquerSequenceEcoutee(Long idSelection, Long idSequence) {
     selectionDao.marquerEcoutee(idSelection, idSequence);
+  }
+
+  // ===========================================================================
+  // Projections de lecture pour l'IHM (bandeau d'en-tête + liste de la sélection)
+  // ===========================================================================
+
+  /// Charge le contexte d'en-tête du passage à vérifier (identité du site/point, plage horaire,
+  /// volumétrie de la nuit, statut, verdict) pour le bandeau de M-Qualification. Lecture seule.
+  ///
+  /// @throws RegleMetierException si le passage est introuvable
+  public ContexteVerification chargerContexte(Long idPassage) {
+    Passage passage =
+        passageDao
+            .findById(idPassage)
+            .orElseThrow(() -> new RegleMetierException(PASSAGE_INTROUVABLE + idPassage));
+    String numeroCarre = "?";
+    String codePoint = "?";
+    Optional<PointDEcoute> point = pointDao.findById(passage.idPoint());
+    if (point.isPresent()) {
+      codePoint = point.get().code();
+      numeroCarre = siteDao.findById(point.get().idSite()).map(Site::numeroCarre).orElse("?");
+    }
+    List<SequenceDEcoute> sequences =
+        sessionDao
+            .trouverParPassage(idPassage)
+            .map(session -> sequenceDao.findBySession(session.id()))
+            .orElseGet(List::of);
+    double dureeAudible =
+        sequences.stream()
+            .map(SequenceDEcoute::dureeSecondes)
+            .filter(Objects::nonNull)
+            .mapToDouble(Double::doubleValue)
+            .sum();
+    return new ContexteVerification(
+        numeroCarre,
+        codePoint,
+        passage.numeroPassage(),
+        passage.annee(),
+        passage.dateEnregistrement(),
+        passage.heureDebut(),
+        passage.heureFin(),
+        sequences.size(),
+        dureeAudible,
+        passage.statutWorkflow(),
+        passage.verdictVerification());
+  }
+
+  /// Détaille la sélection : joint chaque rattachement (position + flag écouté) à sa séquence
+  /// d'écoute ([SequenceDEcoute]), ordonné par position. Lecture seule.
+  public List<SequenceEnSelection> detaillerSelection(Long idSelection) {
+    List<SequenceEnSelection> lignes = new ArrayList<>();
+    for (SequenceSelectionnee rattachement : selectionDao.listerSequences(idSelection)) {
+      sequenceDao
+          .findById(rattachement.idSequence())
+          .ifPresent(
+              sequence ->
+                  lignes.add(
+                      new SequenceEnSelection(
+                          sequence, rattachement.position(), rattachement.ecoutee())));
+    }
+    return lignes;
   }
 
   // ===========================================================================

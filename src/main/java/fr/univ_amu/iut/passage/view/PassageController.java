@@ -1,6 +1,7 @@
 package fr.univ_amu.iut.passage.view;
 
 import com.google.inject.Inject;
+import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.model.Verdict;
 import fr.univ_amu.iut.commun.view.OuvrirDiagnostic;
@@ -13,7 +14,10 @@ import java.util.Objects;
 import javafx.beans.binding.Bindings;
 import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -31,6 +35,7 @@ public class PassageController {
   private final PassageViewModel viewModel;
   private final OuvrirVerification ouvrirVerification;
   private final OuvrirDiagnostic ouvrirDiagnostic;
+  private final NavigationPassage navigation;
   private Long idPassage;
 
   @FXML private BorderPane racine;
@@ -55,10 +60,12 @@ public class PassageController {
   public PassageController(
       PassageViewModel viewModel,
       OuvrirVerification ouvrirVerification,
-      OuvrirDiagnostic ouvrirDiagnostic) {
+      OuvrirDiagnostic ouvrirDiagnostic,
+      NavigationPassage navigation) {
     this.viewModel = Objects.requireNonNull(viewModel, "viewModel");
     this.ouvrirVerification = Objects.requireNonNull(ouvrirVerification, "ouvrirVerification");
     this.ouvrirDiagnostic = Objects.requireNonNull(ouvrirDiagnostic, "ouvrirDiagnostic");
+    this.navigation = Objects.requireNonNull(navigation, "navigation");
   }
 
   @FXML
@@ -148,6 +155,22 @@ public class PassageController {
     ouvrirDiagnostic.ouvrir(idPassage);
   }
 
+  /// « Supprimer » : après confirmation, supprime le passage (et sa nuit, par cascade) puis revient
+  /// à l'accueil. Un passage déposé est refusé par le service ([RegleMetierException]) ; l'erreur
+  /// est alors présentée à l'utilisateur sans quitter l'écran.
+  @FXML
+  private void supprimer() {
+    if (!confirmer("Supprimer définitivement ce passage et toute sa nuit (séquences, relevés) ?")) {
+      return;
+    }
+    try {
+      viewModel.supprimer();
+      navigation.ouvrirAccueil();
+    } catch (RegleMetierException refus) {
+      alerteErreur(refus.getMessage());
+    }
+  }
+
   private void majStepper() {
     stepper.getChildren().clear();
     for (EtapeWorkflow etape : viewModel.etapes()) {
@@ -163,5 +186,16 @@ public class PassageController {
 
   private static String libelleVerdict(Verdict verdict) {
     return verdict == null || verdict == Verdict.A_VERIFIER ? "non saisi" : verdict.libelle();
+  }
+
+  private boolean confirmer(String message) {
+    Alert alerte = new Alert(AlertType.CONFIRMATION, message, ButtonType.OK, ButtonType.CANCEL);
+    return alerte.showAndWait().filter(bouton -> bouton == ButtonType.OK).isPresent();
+  }
+
+  private void alerteErreur(String message) {
+    Alert alerte = new Alert(AlertType.WARNING, message, ButtonType.OK);
+    alerte.setHeaderText("Suppression impossible");
+    alerte.showAndWait();
   }
 }

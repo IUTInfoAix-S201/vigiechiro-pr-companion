@@ -46,4 +46,10 @@ public class NavigationPassage implements OuvrirPassage {
       throw new UncheckedIOException("Chargement FXML impossible : " + loader.getLocation(), echec);
     }
   }
+
+  /// Revient à l'accueil global du chrome (cartes des features). Utilisé après une action qui
+  /// détruit l'écran courant (ex. suppression du passage). Délègue au socle [Navigateur].
+  public void ouvrirAccueil() {
+    navigateur.afficherAccueil();
+  }
 }

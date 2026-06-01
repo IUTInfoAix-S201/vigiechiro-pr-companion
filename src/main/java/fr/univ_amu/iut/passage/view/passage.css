@@ -120,3 +120,19 @@
   -fx-background-radius: 3;
   -fx-padding: 8 14 8 14;
 }
+
+/* Bouton header « Supprimer » : contour rouge sur fond blanc (action destructrice). */
+.bouton-danger {
+  -fx-background-color: white;
+  -fx-text-fill: #a93226;
+  -fx-font-weight: bold;
+  -fx-border-color: #a93226;
+  -fx-border-radius: 4;
+  -fx-background-radius: 4;
+  -fx-padding: 7 14 7 14;
+  -fx-cursor: hand;
+}
+
+.bouton-danger:disabled {
+  -fx-opacity: 0.45;
+}

@@ -1,6 +1,7 @@
 package fr.univ_amu.iut.validation.viewmodel;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -337,40 +338,47 @@ class ValidationViewModelTest {
   }
 
   @Test
-  @DisplayName("importer : importe le CSV pour le passage puis recharge la vue avec les résultats")
-  void importer_charge_les_resultats() {
+  @DisplayName("import : executerImport importe + recharge ; appliquerImport peuple la vue")
+  void import_execute_puis_applique() {
     Path csv = Path.of("nuit-observations.csv");
     when(service.chargerValidation(ID_PASSAGE))
         .thenReturn(new VueValidation(null, List.of()), vueTrois());
     viewModel.ouvrirSur(ID_PASSAGE);
     assertThat(viewModel.observations()).isEmpty();
+    assertThat(viewModel.peutImporter()).isTrue();
 
-    assertThat(viewModel.importer(csv)).isTrue();
+    VueValidation vue = viewModel.executerImport(csv); // étape lourde (hors fil JavaFX)
     verify(service).importer(ID_PASSAGE, csv);
+
+    viewModel.appliquerImport(vue); // application sur le fil JavaFX
     assertThat(viewModel.observations()).hasSize(3);
+    assertThat(viewModel.peutImporter()).isFalse(); // un seul jeu par passage
   }
 
   @Test
-  @DisplayName("importer : une erreur d'import (session/séquence/taxon) passe dans le message")
-  void importer_en_erreur_restitue_le_message() {
+  @DisplayName("import : executerImport propage l'erreur, signalerErreurImport la restitue")
+  void import_propage_puis_signale_erreur() {
     Path csv = Path.of("nuit-observations.csv");
     when(service.chargerValidation(ID_PASSAGE)).thenReturn(new VueValidation(null, List.of()));
     when(service.importer(ID_PASSAGE, csv))
         .thenThrow(new RegleMetierException("Aucune session d'enregistrement"));
     viewModel.ouvrirSur(ID_PASSAGE);
 
-    assertThat(viewModel.importer(csv)).isFalse();
+    assertThatThrownBy(() -> viewModel.executerImport(csv))
+        .isInstanceOf(RegleMetierException.class)
+        .hasMessage("Aucune session d'enregistrement");
+
+    viewModel.signalerErreurImport("Aucune session d'enregistrement");
     assertThat(viewModel.messageProperty().get()).isEqualTo("Aucune session d'enregistrement");
   }
 
   @Test
-  @DisplayName("importer : refusé si un jeu de résultats existe déjà (passage_id unique)")
-  void importer_refuse_si_deja_importe() {
+  @DisplayName(
+      "import : peutImporter est faux dès qu'un jeu de résultats existe (passage_id unique)")
+  void import_refuse_si_deja_importe() {
     when(service.chargerValidation(ID_PASSAGE)).thenReturn(vueTrois()); // idResultats déjà présent
     viewModel.ouvrirSur(ID_PASSAGE);
 
-    assertThat(viewModel.importer(Path.of("autre-observations.csv"))).isFalse();
-    verify(service, never()).importer(anyLong(), any());
-    assertThat(viewModel.messageProperty().get()).contains("déjà importés");
+    assertThat(viewModel.peutImporter()).isFalse();
   }
 }

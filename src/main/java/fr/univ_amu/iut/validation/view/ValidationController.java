@@ -3,10 +3,13 @@ package fr.univ_amu.iut.validation.view;
 import com.google.inject.Inject;
 import fr.univ_amu.iut.validation.model.ObservationStatut;
 import fr.univ_amu.iut.validation.model.Taxon;
+import fr.univ_amu.iut.validation.model.VueValidation;
 import fr.univ_amu.iut.validation.viewmodel.FormatObservation;
 import fr.univ_amu.iut.validation.viewmodel.ValidationViewModel;
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Objects;
+import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -105,17 +108,34 @@ public class ValidationController {
     viewModel.ouvrirSur(idPassage);
   }
 
-  /// « Importer un CSV Tadarida » : ouvre le sélecteur de fichier natif (ouverture) puis délègue
-  /// l'import au VM. Le dialog vit dans la vue (non testé en TestFX) ; l'import est testé côté VM.
+  /// « Importer un CSV Tadarida » : ouvre le sélecteur de fichier natif, puis exécute le travail
+  /// lourd (parse + insertion) sur un **thread virtuel** (Java 25) pour ne pas figer JavaFX, et
+  /// applique le résultat via `Platform.runLater` (même patron que `ImportationController`).
+  /// Dialog et threading vivent dans la vue (non testés en TestFX) ; l'import est couvert au VM.
   @FXML
   private void importer() {
+    if (!viewModel.peutImporter()) {
+      return;
+    }
     FileChooser selecteur = new FileChooser();
     selecteur.setTitle("Importer un CSV Tadarida (observations ou _Vu)");
     selecteur.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV", "*.csv"));
     File fichier = selecteur.showOpenDialog(btnImporter.getScene().getWindow());
-    if (fichier != null) {
-      viewModel.importer(fichier.toPath());
+    if (fichier == null) {
+      return;
     }
+    Path cheminCsv = fichier.toPath();
+    Thread.ofVirtual()
+        .name("import-tadarida")
+        .start(
+            () -> {
+              try {
+                VueValidation vue = viewModel.executerImport(cheminCsv);
+                Platform.runLater(() -> viewModel.appliquerImport(vue));
+              } catch (RuntimeException echec) {
+                Platform.runLater(() -> viewModel.signalerErreurImport(echec.getMessage()));
+              }
+            });
   }
 
   @FXML

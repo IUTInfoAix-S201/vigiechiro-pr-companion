@@ -119,26 +119,36 @@ public class ValidationViewModel {
     return appliquerAction(() -> service.corriger(courant.observation().id(), taxon.code(), null));
   }
 
-  /// Importe un CSV Tadarida (`*-observations.csv` ou `_Vu.csv`, R23) pour le passage courant, puis
-  /// recharge la vue. Sans passage ouvert ni fichier, l'appel est ignoré. Une erreur d'import
-  /// (passage sans session, séquence ou taxon inconnu) est restituée dans [#messageProperty()].
-  ///
-  /// Un seul jeu de résultats par passage est permis (`identification_results.passage_id` est
-  /// unique) : un second import est refusé en amont (il violerait la contrainte d'unicité). Côté
-  /// vue, le bouton d'import est désactivé dès que des résultats existent.
+  /// `true` si un import est permis : passage ouvert et aucun jeu de résultats déjà chargé. Un seul
+  /// jeu par passage est permis (`identification_results.passage_id` est unique) ; un second import
+  /// violerait la contrainte d'unicité. Le bouton d'import s'y lie (désactivé dès qu'il y a des
+  /// résultats).
+  public boolean peutImporter() {
+    return idPassage != null && idResultats == null;
+  }
+
+  /// Étape **lourde** de l'import d'un CSV Tadarida (`*-observations.csv` ou `_Vu.csv`, R23) :
+  /// parse, insertion en masse puis relecture. À exécuter **hors du fil JavaFX** : elle ne mute
+  /// aucune propriété et renvoie la vue rechargée, à appliquer ensuite par [#appliquerImport].
+  /// Lève si l'import échoue (passage sans session, séquence ou taxon inconnu) : au controller
+  /// de restituer l'erreur via [#signalerErreurImport].
   ///
   /// @param cheminCsv fichier CSV choisi par l'observateur
-  /// @return `true` si l'import a réussi
-  public boolean importer(Path cheminCsv) {
-    if (idPassage == null || cheminCsv == null) {
-      return false;
-    }
-    if (idResultats != null) {
-      message.set(
-          "Des résultats Tadarida sont déjà importés pour ce passage : un seul jeu est permis.");
-      return false;
-    }
-    return appliquerAction(() -> service.importer(idPassage, cheminCsv));
+  /// @return la vue de validation rechargée après import
+  public VueValidation executerImport(Path cheminCsv) {
+    Objects.requireNonNull(cheminCsv, "cheminCsv");
+    service.importer(idPassage, cheminCsv);
+    return service.chargerValidation(idPassage);
+  }
+
+  /// Applique, **sur le fil JavaFX**, le résultat d'un import réussi (liste, compteurs, état).
+  public void appliquerImport(VueValidation vue) {
+    appliquer(vue);
+  }
+
+  /// Restitue, **sur le fil JavaFX**, le message d'erreur d'un import échoué.
+  public void signalerErreurImport(String erreur) {
+    message.set(erreur);
   }
 
   private boolean appliquerAction(Runnable action) {

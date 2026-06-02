@@ -11,6 +11,10 @@ import java.io.UncheckedIOException;
 import java.util.Objects;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import javafx.stage.Window;
 
 /// Façade de navigation de la feature `passage` : charge l'écran pivot **M-Passage** pour un
 /// passage donné et l'affiche dans la zone centrale du chrome.
@@ -51,5 +55,28 @@ public class NavigationPassage implements OuvrirPassage {
   /// détruit l'écran courant (ex. suppression du passage). Délègue au socle [Navigateur].
   public void ouvrirAccueil() {
     navigateur.afficherAccueil();
+  }
+
+  /// Ouvre la modale **« Modifier le rattachement »** (E2.S8) dans une fenêtre modale appartenant à
+  /// `parent`. Le carré et le code point (inchangés) sont fournis par M-Passage. Après une
+  /// modification réussie, `apresSucces` est exécuté (rafraîchir l'écran appelant).
+  public void ouvrirModaleRattachement(
+      Window parent, Long idPassage, String carre, String codePoint, Runnable apresSucces) {
+    FXMLLoader loader =
+        new FXMLLoader(NavigationPassage.class.getResource("RattachementModale.fxml"));
+    loader.setControllerFactory(injector::getInstance);
+    try {
+      Parent vue = loader.load();
+      RattachementModaleController controleur = loader.getController();
+      controleur.demarrer(idPassage, carre, codePoint, apresSucces);
+      Stage modale = new Stage();
+      modale.initOwner(parent);
+      modale.initModality(Modality.WINDOW_MODAL);
+      modale.setTitle("Modifier le rattachement");
+      modale.setScene(new Scene(vue));
+      modale.show();
+    } catch (IOException echec) {
+      throw new UncheckedIOException("Chargement FXML impossible : " + loader.getLocation(), echec);
+    }
   }
 }

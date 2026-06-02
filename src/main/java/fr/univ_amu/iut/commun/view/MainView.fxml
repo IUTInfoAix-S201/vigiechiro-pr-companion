@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.control.Hyperlink?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.FlowPane?>
@@ -26,6 +27,8 @@
     <HBox styleClass="barre-navigation" alignment="CENTER_LEFT" spacing="16.0">
       <Label fx:id="titreApplication" styleClass="titre-application"
              text="VigieChiro PR Companion"/>
+      <Hyperlink fx:id="lienAccueil" text="🏠 Accueil" styleClass="lien-accueil"
+                 onAction="#retourAccueil"/>
       <Region HBox.hgrow="ALWAYS"/>
       <Label fx:id="filAriane" styleClass="fil-ariane" text="Accueil"/>
     </HBox>

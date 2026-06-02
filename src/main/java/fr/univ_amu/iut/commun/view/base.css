@@ -34,6 +34,18 @@
     -fx-font-size: 13px;
 }
 
+/* Affordance « 🏠 Accueil » de la barre de navigation (claire sur fond primaire). */
+.lien-accueil {
+    -fx-text-fill: -couleur-texte-clair;
+    -fx-font-size: 13px;
+    -fx-border-color: transparent;
+    -fx-padding: 0 4 0 4;
+}
+
+.lien-accueil:hover {
+    -fx-underline: true;
+}
+
 /* Zone centrale d'accueil (placeholder échangé par les features). */
 .zone-accueil {
     -fx-padding: 48;

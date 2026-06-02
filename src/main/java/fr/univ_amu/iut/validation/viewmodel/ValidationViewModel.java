@@ -123,10 +123,19 @@ public class ValidationViewModel {
   /// recharge la vue. Sans passage ouvert ni fichier, l'appel est ignoré. Une erreur d'import
   /// (passage sans session, séquence ou taxon inconnu) est restituée dans [#messageProperty()].
   ///
+  /// Un seul jeu de résultats par passage est permis (`identification_results.passage_id` est
+  /// unique) : un second import est refusé en amont (il violerait la contrainte d'unicité). Côté
+  /// vue, le bouton d'import est désactivé dès que des résultats existent.
+  ///
   /// @param cheminCsv fichier CSV choisi par l'observateur
   /// @return `true` si l'import a réussi
   public boolean importer(Path cheminCsv) {
     if (idPassage == null || cheminCsv == null) {
+      return false;
+    }
+    if (idResultats != null) {
+      message.set(
+          "Des résultats Tadarida sont déjà importés pour ce passage : un seul jeu est permis.");
       return false;
     }
     return appliquerAction(() -> service.importer(idPassage, cheminCsv));

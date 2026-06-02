@@ -87,6 +87,9 @@ public class ValidationController {
         .disableProperty()
         .bind(viewModel.selectionPresenteProperty().not().or(choixTaxon.valueProperty().isNull()));
 
+    // Import = point d'entrée : actif tant qu'aucun résultat n'existe (un seul jeu par passage,
+    // passage_id unique) ; export = inverse, actif une fois les résultats chargés.
+    btnImporter.disableProperty().bind(viewModel.resultatsDisponiblesProperty());
     chkInclureMode.selectedProperty().bindBidirectional(viewModel.inclureModeProperty());
     btnExporter.disableProperty().bind(viewModel.resultatsDisponiblesProperty().not());
 

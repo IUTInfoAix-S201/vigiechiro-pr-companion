@@ -362,4 +362,15 @@ class ValidationViewModelTest {
     assertThat(viewModel.importer(csv)).isFalse();
     assertThat(viewModel.messageProperty().get()).isEqualTo("Aucune session d'enregistrement");
   }
+
+  @Test
+  @DisplayName("importer : refusé si un jeu de résultats existe déjà (passage_id unique)")
+  void importer_refuse_si_deja_importe() {
+    when(service.chargerValidation(ID_PASSAGE)).thenReturn(vueTrois()); // idResultats déjà présent
+    viewModel.ouvrirSur(ID_PASSAGE);
+
+    assertThat(viewModel.importer(Path.of("autre-observations.csv"))).isFalse();
+    verify(service, never()).importer(anyLong(), any());
+    assertThat(viewModel.messageProperty().get()).contains("déjà importés");
+  }
 }

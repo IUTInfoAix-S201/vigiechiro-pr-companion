@@ -7,6 +7,7 @@ import java.util.Set;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.BorderPane;
@@ -29,6 +30,7 @@ public class MainController {
 
   @FXML private BorderPane racine;
   @FXML private Label titreApplication;
+  @FXML private Hyperlink lienAccueil;
   @FXML private Label filAriane;
   @FXML private Label pied;
   @FXML private FlowPane cartesActivites;
@@ -48,6 +50,11 @@ public class MainController {
     filAriane.textProperty().bind(navigation.filArianeProperty());
     pied.textProperty().bind(navigation.piedDePageProperty());
 
+    // « 🏠 Accueil » : visible seulement hors de l'accueil (sur l'accueil, on y est déjà).
+    var horsAccueil = navigation.vueCouranteProperty().isNotEqualTo("accueil");
+    lienAccueil.visibleProperty().bind(horsAccueil);
+    lienAccueil.managedProperty().bind(horsAccueil);
+
     peuplerCartes();
 
     // La zone d'accueil déclarée dans le FXML devient la vue centrale initiale, puis le centre
@@ -57,6 +64,13 @@ public class MainController {
     navigateur.memoriserAccueil(accueil);
     navigateur.afficher(accueil);
     racine.centerProperty().bind(navigateur.vueCentraleProperty());
+  }
+
+  /// Affordance « 🏠 Accueil » du chrome : ramène à la vue d'accueil (cartes des features) depuis
+  /// n'importe quel écran de feature, via le socle [Navigateur#afficherAccueil].
+  @FXML
+  private void retourAccueil() {
+    navigateur.afficherAccueil();
   }
 
   /// Bâtit une carte cliquable par activité (triées par `ordre()`). Les cartes sont créées en code

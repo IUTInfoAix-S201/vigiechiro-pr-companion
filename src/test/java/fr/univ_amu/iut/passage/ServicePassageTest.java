@@ -523,6 +523,21 @@ class ServicePassageTest {
     assertThat(passageDao.findById(id).orElseThrow().numeroPassage()).isEqualTo(1);
   }
 
+  @Test
+  @DisplayName(
+      "Une session en base sans dossier sur disque fait échouer la modif sans toucher la base")
+  void modifier_rattachement_dossier_absent_echoue() {
+    long id = passageDao.insert(candidat(1, "2026-06-20")).id();
+    new SessionDao(source)
+        .insert(
+            new SessionDEnregistrement(
+                null, dossier.resolve("Car040962-2026-Pass1-A1").toString(), 0L, 0L, id));
+
+    assertThatThrownBy(() -> service.modifierRattachement(id, new Prefixe("040962", 2026, 2, "A1")))
+        .isInstanceOf(java.io.UncheckedIOException.class);
+    assertThat(passageDao.findById(id).orElseThrow().numeroPassage()).isEqualTo(1);
+  }
+
   /// Seede une nuit (dossier + fichiers préfixés sur disque, lignes passage/session/original/
   /// séquence en base) pour le carré 040962 / point A1, et renvoie l'identifiant du passage.
   private long seederNuit(int annee, int numero) throws IOException {

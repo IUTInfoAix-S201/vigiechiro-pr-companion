@@ -1,16 +1,21 @@
 package fr.univ_amu.iut.validation.viewmodel;
 
-import fr.univ_amu.iut.validation.model.Observation;
 import fr.univ_amu.iut.validation.model.ObservationStatut;
 import fr.univ_amu.iut.validation.model.ServiceValidation;
 import fr.univ_amu.iut.validation.model.StatutObservation;
+import fr.univ_amu.iut.validation.model.Taxon;
 import fr.univ_amu.iut.validation.model.VueValidation;
+import java.nio.file.Path;
 import java.util.Objects;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyIntegerWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -23,14 +28,14 @@ import javafx.collections.ObservableList;
 /// compteurs de progression (validées / corrigées / total). VM agnostique de l'IHM (règle ArchUnit
 /// `viewmodel_sans_javafx_ui`) : seuls `javafx.beans`/`javafx.collections`. Non-singleton.
 ///
-/// La revue proprement dite (valider / corriger, R15/R16) sera branchée dans un incrément ultérieur
-/// (PR-V4) ; cet incrément couvre la lecture : liste, sélection, détail, compteurs.
+/// La revue est portée par [#valider()] (R15) et [#corriger(Taxon)] (R16) : chaque action
+/// délègue au service, puis recharge la vue. L'export `_Vu` et l'import CSV restent à part.
 public class ValidationViewModel {
 
-  /// Affichage des valeurs optionnelles absentes (probabilité, taxon observateur non saisi).
-  private static final String NON_RENSEIGNE = "non renseigné";
-
   private final ServiceValidation service;
+
+  /// Passage courant, conservé pour recharger la vue après une action de revue (valider/corriger).
+  private Long idPassage;
 
   /// Identifiant du jeu de résultats courant (`identification_results`), `null` si aucun import.
   /// Conservé pour les actions d'export et de revue des incréments suivants.
@@ -38,8 +43,14 @@ public class ValidationViewModel {
 
   private final ObservableList<ObservationStatut> observations =
       FXCollections.observableArrayList();
+  private final ObservableList<Taxon> taxons = FXCollections.observableArrayList();
   private final ObjectProperty<ObservationStatut> selection =
       new SimpleObjectProperty<>(this, "selection");
+  private final ReadOnlyBooleanWrapper selectionPresente =
+      new ReadOnlyBooleanWrapper(this, "selectionPresente", false);
+  private final ReadOnlyBooleanWrapper resultatsDisponibles =
+      new ReadOnlyBooleanWrapper(this, "resultatsDisponibles", false);
+  private final BooleanProperty inclureMode = new SimpleBooleanProperty(this, "inclureMode", true);
 
   private final ReadOnlyIntegerWrapper nombreTotal =
       new ReadOnlyIntegerWrapper(this, "nombreTotal", 0);
@@ -55,15 +66,17 @@ public class ValidationViewModel {
 
   public ValidationViewModel(ServiceValidation service) {
     this.service = Objects.requireNonNull(service, "service");
-    selection.addListener((obs, ancien, nouveau) -> majDetail(nouveau));
+    selection.addListener((obs, ancien, nouveau) -> majSelection(nouveau));
   }
 
   /// Ouvre la validation du passage `idPassage`. Une erreur (passage/résultats illisibles) est
   /// restituée dans [#messageProperty()] sans lever, l'écran restant vide. Un passage sans CSV
   /// importé n'est pas une erreur : la liste est vide et un message d'état neutre l'explique.
   public void ouvrirSur(Long idPassage) {
+    this.idPassage = idPassage;
     reinitialiser();
     try {
+      taxons.setAll(service.taxonsDisponibles());
       appliquer(service.chargerValidation(idPassage));
     } catch (RuntimeException echec) {
       reinitialiser();
@@ -71,11 +84,78 @@ public class ValidationViewModel {
     }
   }
 
+  /// Valide l'observation sélectionnée (R15 : retient la proposition Tadarida), puis recharge.
+  /// Sans sélection, l'appel est ignoré. Une erreur métier est restituée dans [#messageProperty()].
+  ///
+  /// @return `true` si la validation a été appliquée
+  public boolean valider() {
+    ObservationStatut courant = selection.get();
+    if (courant == null || courant.observation().id() == null) {
+      return false;
+    }
+    return appliquerAction(() -> service.valider(courant.observation().id()));
+  }
+
+  /// Corrige l'observation sélectionnée (R16 : retient le `taxon` de l'observateur, distinct de
+  /// Tadarida) puis recharge la vue. Sans sélection ni taxon, l'appel est ignoré.
+  ///
+  /// Corriger vers la proposition Tadarida elle-même est refusé : ce serait une **validation**, pas
+  /// une correction (le service la reclasserait `NON_TOUCHEE`, laissant la ligne « À revoir »
+  /// malgré une saisie manuelle). On invite alors à utiliser [#valider()].
+  ///
+  /// @param taxon taxon retenu par l'observateur
+  /// @return `true` si la correction a été appliquée
+  public boolean corriger(Taxon taxon) {
+    ObservationStatut courant = selection.get();
+    if (courant == null || courant.observation().id() == null || taxon == null) {
+      return false;
+    }
+    if (taxon.code().equals(courant.observation().taxonTadarida())) {
+      message.set(
+          "Pour retenir la proposition Tadarida, utilisez « Valider » : corriger attend"
+              + " un autre taxon.");
+      return false;
+    }
+    return appliquerAction(() -> service.corriger(courant.observation().id(), taxon.code(), null));
+  }
+
+  private boolean appliquerAction(Runnable action) {
+    try {
+      action.run();
+      appliquer(service.chargerValidation(idPassage));
+      return true;
+    } catch (RuntimeException echec) {
+      message.set(echec.getMessage());
+      return false;
+    }
+  }
+
   private void appliquer(VueValidation vue) {
     idResultats = vue.idResultats();
+    resultatsDisponibles.set(vue.idResultats() != null);
     observations.setAll(vue.observations());
     majCompteurs();
     message.set(messageEtat(vue));
+  }
+
+  /// Exporte le CSV `_Vu` réinjectable du jeu de résultats courant vers `destination` (R17). La
+  /// colonne `validation_mode` (R24) est incluse selon [#inclureModeProperty()]. Sans résultats
+  /// importés, l'appel est ignoré. Le chemin écrit (ou l'erreur) est restitué dans le message.
+  ///
+  /// @param destination fichier cible choisi par l'observateur
+  /// @return `true` si le fichier a été écrit
+  public boolean exporter(Path destination) {
+    if (idResultats == null || destination == null) {
+      return false;
+    }
+    try {
+      Path ecrit = service.exporter(idResultats, destination, inclureMode.get());
+      message.set("Fichier _Vu exporté : " + ecrit.getFileName());
+      return true;
+    } catch (RuntimeException echec) {
+      message.set(echec.getMessage());
+      return false;
+    }
   }
 
   /// État neutre de l'écran : distingue l'absence d'import (`idResultats == null`) d'un CSV
@@ -105,58 +185,23 @@ public class ValidationViewModel {
     return (int) observations.stream().filter(o -> o.statut() == statut).count();
   }
 
-  private void majDetail(ObservationStatut courant) {
-    if (courant == null) {
-      detail.set("");
-      return;
-    }
-    Observation o = courant.observation();
-    detail.set(
-        "Tadarida : "
-            + o.taxonTadarida()
-            + " ("
-            + proba(o.probTadarida())
-            + ")\nObservateur : "
-            + valeurOuAbsente(o.taxonObservateur())
-            + " ("
-            + proba(o.probObservateur())
-            + ")\nFréquence médiane : "
-            + frequence(o.frequenceMedianeHz())
-            + "\nStatut : "
-            + libelle(courant.statut()));
+  private void majSelection(ObservationStatut courant) {
+    selectionPresente.set(courant != null);
+    detail.set(courant == null ? "" : FormatObservation.detail(courant));
   }
 
   private void reinitialiser() {
     idResultats = null;
+    resultatsDisponibles.set(false);
     selection.set(null);
     observations.clear();
+    taxons.clear();
     detail.set("");
     nombreTotal.set(0);
     nombreValidees.set(0);
     nombreCorrigees.set(0);
     progression.set("");
     message.set("");
-  }
-
-  private static String proba(Double probabilite) {
-    return probabilite == null ? NON_RENSEIGNE : Math.round(probabilite * 100) + " %";
-  }
-
-  private static String valeurOuAbsente(String code) {
-    return code == null || code.isBlank() ? NON_RENSEIGNE : code;
-  }
-
-  private static String frequence(Integer hz) {
-    return hz == null ? NON_RENSEIGNE : hz + " Hz";
-  }
-
-  /// Libellé d'affichage du statut de revue d'une observation.
-  static String libelle(StatutObservation statut) {
-    return switch (statut) {
-      case NON_TOUCHEE -> "À revoir";
-      case VALIDEE -> "Validée";
-      case CORRIGEE -> "Corrigée";
-    };
   }
 
   /// Observations du passage (avec statut de revue), dans l'ordre d'import.
@@ -167,6 +212,26 @@ public class ValidationViewModel {
   /// Observation sélectionnée dans la liste (liée au modèle de sélection de la table par la vue).
   public ObjectProperty<ObservationStatut> selectionProperty() {
     return selection;
+  }
+
+  /// `true` dès qu'une observation est sélectionnée (activation des boutons valider/corriger).
+  public ReadOnlyBooleanProperty selectionPresenteProperty() {
+    return selectionPresente.getReadOnlyProperty();
+  }
+
+  /// Taxons connus en base, pour le sélecteur de correction (R16).
+  public ObservableList<Taxon> taxons() {
+    return taxons;
+  }
+
+  /// `true` dès qu'un jeu de résultats est chargé (activation du bouton d'export `_Vu`).
+  public ReadOnlyBooleanProperty resultatsDisponiblesProperty() {
+    return resultatsDisponibles.getReadOnlyProperty();
+  }
+
+  /// Inclure la colonne `validation_mode` (R24) à l'export `_Vu` (case à cocher, vraie par défaut).
+  public BooleanProperty inclureModeProperty() {
+    return inclureMode;
   }
 
   /// Détail multi-ligne de l'observation sélectionnée, vide quand aucune n'est sélectionnée.

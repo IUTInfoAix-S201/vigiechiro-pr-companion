@@ -15,6 +15,7 @@ import fr.univ_amu.iut.commun.model.Workspace;
 import fr.univ_amu.iut.commun.model.dao.UtilisateurDao;
 import fr.univ_amu.iut.commun.persistence.MigrationSchema;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
+import fr.univ_amu.iut.lot.model.EtatLot;
 import fr.univ_amu.iut.lot.model.Lot;
 import fr.univ_amu.iut.lot.model.ServiceLot;
 import fr.univ_amu.iut.lot.model.VerificationCoherence;
@@ -127,6 +128,25 @@ class ServiceLotTest {
         }
         journalDao.insert(new JournalDuCapteur(null, "LogPR" + SERIE + ".txt", null, null, idSession));
         return idSession;
+    }
+
+    @Test
+    @DisplayName("consulterLot reflète statut/dossier/séquences/volume sans transitionner le passage")
+    void consulter_lot_reflete_l_etat() {
+        Passage passage = creerPassage(Verdict.OK);
+        creerSessionCoherente(passage.id());
+
+        EtatLot etat = service.consulterLot(passage.id());
+
+        assertThat(etat.statut()).isEqualTo(StatutWorkflow.VERIFIE);
+        assertThat(etat.cheminDossier()).endsWith(PREFIXE.nomDossierSession());
+        assertThat(etat.nombreSequences()).isEqualTo(2);
+        assertThat(etat.volumeSequencesOctets()).isEqualTo(8192L);
+        assertThat(etat.alertesBloquantes()).isEmpty();
+        assertThat(etat.deposeLe()).isNull();
+        // Lecture pure : le statut n'a pas bougé.
+        assertThat(passageDao.findById(passage.id()).orElseThrow().statutWorkflow())
+                .isEqualTo(StatutWorkflow.VERIFIE);
     }
 
     @Test

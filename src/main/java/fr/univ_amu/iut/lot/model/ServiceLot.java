@@ -14,6 +14,7 @@ import fr.univ_amu.iut.passage.model.dao.SequenceDao;
 import fr.univ_amu.iut.passage.model.dao.SessionDao;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /// Service métier de la feature `lot` : prépare et trace le dépôt d'un passage sur
 /// Vigie-Chiro (parcours P4, épopée E4). Suit le patron du service de référence
@@ -59,6 +60,25 @@ public class ServiceLot {
         this.verification = Objects.requireNonNull(verification, "verification");
         this.moteurWorkflow = Objects.requireNonNull(moteurWorkflow, "moteurWorkflow");
         this.horloge = Objects.requireNonNull(horloge, "horloge");
+    }
+
+    /// Consulte l'état de dépôt d'un passage **sans le transitionner** (lecture pour l'IHM M-Lot) :
+    /// statut courant, dossier de session à téléverser (R22), nombre et volume des séquences, et les
+    /// alertes de cohérence bloquantes (R14) qui empêcheraient la préparation. N'écrit rien.
+    ///
+    /// @param idPassage passage consulté
+    /// @return l'état de dépôt courant
+    /// @throws RegleMetierException si le passage est introuvable
+    public EtatLot consulterLot(Long idPassage) {
+        Objects.requireNonNull(idPassage, "idPassage");
+        Passage passage = chargerPassage(idPassage);
+        ResultatVerification coherence = verification.verifier(passage);
+        Optional<SessionDEnregistrement> session = sessionDao.trouverParPassage(idPassage);
+        String chemin = session.map(SessionDEnregistrement::cheminRacine).orElse(null);
+        int nombre = session.map(s -> sequenceDao.findBySession(s.id()).size()).orElse(0);
+        Long volume = session.map(SessionDEnregistrement::volumeSequencesOctets).orElse(null);
+        return new EtatLot(
+                passage.statutWorkflow(), chemin, nombre, volume, coherence.alertesBloquantes(), passage.deposeLe());
     }
 
     /// Prépare le lot à déposer d'un passage (E4.S1 + E4.S2).

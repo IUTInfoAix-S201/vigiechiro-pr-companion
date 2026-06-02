@@ -23,6 +23,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
@@ -128,5 +129,16 @@ class ValidationViewTest {
 
     robot.clickOn("#btnValider");
     verify(service).valider(1L); // l'observation sélectionnée (id = 1) est validée
+  }
+
+  @Test
+  @DisplayName(
+      "Panneau d'export : case « inclure le mode » cochée, bouton actif si résultats chargés")
+  void export_panneau_actif(FxRobot robot) {
+    CheckBox chkInclureMode = robot.lookup("#chkInclureMode").queryAs(CheckBox.class);
+    Button btnExporter = robot.lookup("#btnExporter").queryAs(Button.class);
+
+    assertThat(chkInclureMode.isSelected()).isTrue(); // vrai par défaut (lié au VM)
+    assertThat(btnExporter.isDisabled()).isFalse(); // un jeu de résultats est chargé
   }
 }

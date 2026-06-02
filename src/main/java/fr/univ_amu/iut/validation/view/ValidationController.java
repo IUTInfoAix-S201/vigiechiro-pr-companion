@@ -3,22 +3,26 @@ package fr.univ_amu.iut.validation.view;
 import com.google.inject.Inject;
 import fr.univ_amu.iut.validation.model.ObservationStatut;
 import fr.univ_amu.iut.validation.model.Taxon;
+import fr.univ_amu.iut.validation.viewmodel.FormatObservation;
 import fr.univ_amu.iut.validation.viewmodel.ValidationViewModel;
+import java.io.File;
 import java.util.Objects;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.stage.FileChooser;
 import javafx.util.StringConverter;
 
 /// Controller de l'écran **M-Vision-Tadarida** (`Validation.fxml`).
 ///
 /// Pur câblage (patron CM4) : lie la table des observations, la sélection, le panneau de détail et
 /// la progression au [ValidationViewModel]. La colonne « Statut » réutilise le libellé partagé
-/// [ValidationViewModel#libelleStatut] (même source que le détail). La revue (valider / corriger)
+/// [FormatObservation#libelleStatut] (même source que le détail). La revue (valider / corriger)
 /// délègue au VM ; les boutons s'activent selon la sélection (et le taxon choisi pour corriger).
 /// Aucun accès base de données ni logique métier ici (règle ArchUnit `view_sans_jdbc`).
 public class ValidationController {
@@ -33,6 +37,8 @@ public class ValidationController {
   @FXML private Button btnValider;
   @FXML private ComboBox<Taxon> choixTaxon;
   @FXML private Button btnCorriger;
+  @FXML private CheckBox chkInclureMode;
+  @FXML private Button btnExporter;
   @FXML private Label lblMessage;
 
   @Inject
@@ -47,7 +53,7 @@ public class ValidationController {
     colStatut.setCellValueFactory(
         cellule ->
             new ReadOnlyStringWrapper(
-                ValidationViewModel.libelleStatut(cellule.getValue().statut())));
+                FormatObservation.libelleStatut(cellule.getValue().statut())));
 
     tableObservations.setItems(viewModel.observations());
     // La sélection de la table pilote le VM (un listener, pas un bind : selectedItemProperty est en
@@ -80,6 +86,9 @@ public class ValidationController {
         .disableProperty()
         .bind(viewModel.selectionPresenteProperty().not().or(choixTaxon.valueProperty().isNull()));
 
+    chkInclureMode.selectedProperty().bindBidirectional(viewModel.inclureModeProperty());
+    btnExporter.disableProperty().bind(viewModel.resultatsDisponiblesProperty().not());
+
     lblMessage.textProperty().bind(viewModel.messageProperty());
     var messagePresent = viewModel.messageProperty().isNotEmpty();
     lblMessage.visibleProperty().bind(messagePresent);
@@ -100,6 +109,20 @@ public class ValidationController {
   @FXML
   private void corriger() {
     viewModel.corriger(choixTaxon.getValue());
+  }
+
+  /// « Exporter _Vu » : ouvre le sélecteur de fichier natif (enregistrement) puis délègue au VM.
+  /// Le dialog vit dans la vue (non testé en TestFX) ; l'écriture est testée côté ViewModel.
+  @FXML
+  private void exporter() {
+    FileChooser selecteur = new FileChooser();
+    selecteur.setTitle("Exporter le fichier _Vu (réinjectable)");
+    selecteur.setInitialFileName("resultats_Vu.csv");
+    selecteur.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV", "*.csv"));
+    File fichier = selecteur.showSaveDialog(btnExporter.getScene().getWindow());
+    if (fichier != null) {
+      viewModel.exporter(fichier.toPath());
+    }
   }
 
   private static String libelleTaxon(Taxon taxon) {

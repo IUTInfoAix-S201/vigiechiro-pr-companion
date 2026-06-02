@@ -2,6 +2,7 @@ package fr.univ_amu.iut.validation.viewmodel;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
@@ -16,6 +17,7 @@ import fr.univ_amu.iut.validation.model.ServiceValidation;
 import fr.univ_amu.iut.validation.model.StatutObservation;
 import fr.univ_amu.iut.validation.model.Taxon;
 import fr.univ_amu.iut.validation.model.VueValidation;
+import java.nio.file.Path;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -271,5 +273,66 @@ class ValidationViewModelTest {
     assertThat(ok).isFalse();
     assertThat(viewModel.messageProperty().get()).isEqualTo("Observation introuvable : 1");
     assertThat(viewModel.observations()).hasSize(3); // la vue n'est pas vidée par l'échec
+  }
+
+  @Test
+  @DisplayName("resultatsDisponibles suit la présence d'un jeu de résultats chargé")
+  void resultats_disponibles_suit_le_chargement() {
+    when(service.chargerValidation(ID_PASSAGE)).thenReturn(vueTrois());
+    viewModel.ouvrirSur(ID_PASSAGE);
+    assertThat(viewModel.resultatsDisponiblesProperty().get()).isTrue();
+
+    when(service.chargerValidation(ID_PASSAGE)).thenReturn(new VueValidation(null, List.of()));
+    viewModel.ouvrirSur(ID_PASSAGE);
+    assertThat(viewModel.resultatsDisponiblesProperty().get()).isFalse();
+  }
+
+  @Test
+  @DisplayName("exporter : écrit le _Vu via le service et restitue le chemin dans le message")
+  void exporter_ecrit_le_fichier() {
+    Path dest = Path.of("resultats_Vu.csv");
+    when(service.chargerValidation(ID_PASSAGE)).thenReturn(vueTrois());
+    when(service.exporter(ID_RESULTATS, dest, true)).thenReturn(dest);
+    viewModel.ouvrirSur(ID_PASSAGE);
+
+    assertThat(viewModel.exporter(dest)).isTrue();
+    verify(service).exporter(ID_RESULTATS, dest, true);
+    assertThat(viewModel.messageProperty().get()).contains("exporté").contains("resultats_Vu.csv");
+  }
+
+  @Test
+  @DisplayName("exporter : la case « inclure le mode » est répercutée sur le service (R24)")
+  void exporter_respecte_inclure_mode() {
+    Path dest = Path.of("x_Vu.csv");
+    when(service.chargerValidation(ID_PASSAGE)).thenReturn(vueTrois());
+    when(service.exporter(ID_RESULTATS, dest, false)).thenReturn(dest);
+    viewModel.ouvrirSur(ID_PASSAGE);
+    viewModel.inclureModeProperty().set(false);
+
+    assertThat(viewModel.exporter(dest)).isTrue();
+    verify(service).exporter(ID_RESULTATS, dest, false);
+  }
+
+  @Test
+  @DisplayName("exporter sans résultats importés est ignoré (aucun appel service)")
+  void exporter_sans_resultats_est_ignore() {
+    when(service.chargerValidation(ID_PASSAGE)).thenReturn(new VueValidation(null, List.of()));
+    viewModel.ouvrirSur(ID_PASSAGE);
+
+    assertThat(viewModel.exporter(Path.of("x.csv"))).isFalse();
+    verify(service, never()).exporter(anyLong(), any(), anyBoolean());
+  }
+
+  @Test
+  @DisplayName("exporter : une erreur d'écriture est restituée dans le message")
+  void exporter_en_erreur_restitue_le_message() {
+    Path dest = Path.of("x_Vu.csv");
+    when(service.chargerValidation(ID_PASSAGE)).thenReturn(vueTrois());
+    when(service.exporter(ID_RESULTATS, dest, true))
+        .thenThrow(new RuntimeException("Disque plein"));
+    viewModel.ouvrirSur(ID_PASSAGE);
+
+    assertThat(viewModel.exporter(dest)).isFalse();
+    assertThat(viewModel.messageProperty().get()).isEqualTo("Disque plein");
   }
 }

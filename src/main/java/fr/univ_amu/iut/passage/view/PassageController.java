@@ -37,6 +37,7 @@ public class PassageController {
   private final OuvrirDiagnostic ouvrirDiagnostic;
   private final NavigationPassage navigation;
   private Long idPassage;
+  private ContexteSite contexte;
 
   @FXML private BorderPane racine;
   @FXML private Label lblFilAriane;
@@ -136,6 +137,7 @@ public class PassageController {
   /// Appelée par [NavigationPassage] après le chargement du FXML.
   public void ouvrirSur(Long idPassage, ContexteSite contexte) {
     this.idPassage = idPassage;
+    this.contexte = contexte;
     viewModel.ouvrirSur(idPassage, contexte);
   }
 
@@ -169,6 +171,19 @@ public class PassageController {
     } catch (RegleMetierException refus) {
       alerteErreur(refus.getMessage());
     }
+  }
+
+  /// « Modifier rattachement » : ouvre la modale E2.S8 (année + n° de passage) en fenêtre modale.
+  /// Après une modification réussie, M-Passage est rouvert sur le passage pour refléter le nouveau
+  /// quadruplet (titre, fil d'Ariane).
+  @FXML
+  private void modifierRattachement() {
+    navigation.ouvrirModaleRattachement(
+        racine.getScene().getWindow(),
+        idPassage,
+        contexte.numeroCarre(),
+        contexte.codePoint(),
+        () -> viewModel.ouvrirSur(idPassage, contexte));
   }
 
   private void majStepper() {

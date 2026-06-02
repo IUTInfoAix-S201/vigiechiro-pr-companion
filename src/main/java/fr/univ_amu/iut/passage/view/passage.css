@@ -136,3 +136,20 @@
 .bouton-danger:disabled {
   -fx-opacity: 0.45;
 }
+
+/* Modale « Modifier le rattachement » (E2.S8). */
+.modale-rattachement {
+  -fx-background-color: white;
+  -fx-padding: 18;
+}
+
+/* Récapitulatif des conséquences (quadruplet X -> Y, nombre de fichiers). */
+.recap-rattachement {
+  -fx-font-size: 12px;
+  -fx-text-fill: #2c3e50;
+  -fx-background-color: #f1f5f9;
+  -fx-border-color: #cbd5e1;
+  -fx-border-radius: 4;
+  -fx-background-radius: 4;
+  -fx-padding: 10;
+}

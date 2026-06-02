@@ -13,7 +13,6 @@ import fr.univ_amu.iut.passage.model.dao.PassageDao;
 import fr.univ_amu.iut.passage.model.dao.RattachementDao;
 import fr.univ_amu.iut.passage.model.dao.SequenceDao;
 import fr.univ_amu.iut.passage.model.dao.SessionDao;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.List;
@@ -392,11 +391,14 @@ public class ServicePassage {
 
     Optional<SessionDEnregistrement> session = sessionDao.trouverParPassage(idPassage);
     Long idSession = session.map(SessionDEnregistrement::id).orElse(null);
-    Path ancienneRacine = session.map(s -> Path.of(s.cheminRacine())).orElse(null);
+    // Une session en base implique un dossier sur disque : on le re-préfixe (et
+    // [ReprefixeurSession]
+    // échoue, avant toute écriture base, si le dossier est absent ou la cible occupée). Seul un
+    // passage sans session du tout (jamais importé) saute l'étape disque.
     Path nouvelleRacine =
-        ancienneRacine != null && Files.exists(ancienneRacine)
-            ? reprefixeur.reprefixer(ancienneRacine, ancien, nouveau)
-            : null;
+        session
+            .map(s -> reprefixeur.reprefixer(Path.of(s.cheminRacine()), ancien, nouveau))
+            .orElse(null);
 
     try {
       uniteDeTravail.executer(

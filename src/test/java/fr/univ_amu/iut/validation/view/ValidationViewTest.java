@@ -132,14 +132,14 @@ class ValidationViewTest {
   }
 
   @Test
-  @DisplayName(
-      "Barre d'actions : import toujours actif, export actif si résultats, case mode cochée")
+  @DisplayName("Barre d'actions : résultats chargés → import désactivé, export actif, case cochée")
   void barre_actions_active(FxRobot robot) {
     Button btnImporter = robot.lookup("#btnImporter").queryAs(Button.class);
     CheckBox chkInclureMode = robot.lookup("#chkInclureMode").queryAs(CheckBox.class);
     Button btnExporter = robot.lookup("#btnExporter").queryAs(Button.class);
 
-    assertThat(btnImporter.isDisabled()).isFalse(); // import : point d'entrée, toujours actif
+    // Le mock fournit un jeu de résultats : un seul import permis par passage → import désactivé.
+    assertThat(btnImporter.isDisabled()).isTrue();
     assertThat(chkInclureMode.isSelected()).isTrue(); // vrai par défaut (lié au VM)
     assertThat(btnExporter.isDisabled()).isFalse(); // un jeu de résultats est chargé
   }

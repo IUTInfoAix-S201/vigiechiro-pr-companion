@@ -25,79 +25,78 @@ import java.util.Objects;
 /// (`"` → `""`), symétriquement à [LecteurCsv].
 public final class EcrivainCsv {
 
-  private final char separateur;
-  private final boolean toujoursGuillemeter;
+    private final char separateur;
+    private final boolean toujoursGuillemeter;
 
-  /// Écrivain au séparateur par défaut `';'`, guillemets posés seulement si nécessaire.
-  public EcrivainCsv() {
-    this(LecteurCsv.SEPARATEUR_PAR_DEFAUT, false);
-  }
+    /// Écrivain au séparateur par défaut `';'`, guillemets posés seulement si nécessaire.
+    public EcrivainCsv() {
+        this(LecteurCsv.SEPARATEUR_PAR_DEFAUT, false);
+    }
 
-  /// @param separateur caractère séparant les champs d'une même ligne
-  /// @param toujoursGuillemeter `true` pour encadrer tous les champs (format « Brut »)
-  public EcrivainCsv(char separateur, boolean toujoursGuillemeter) {
-    this.separateur = separateur;
-    this.toujoursGuillemeter = toujoursGuillemeter;
-  }
+    /// @param separateur caractère séparant les champs d'une même ligne
+    /// @param toujoursGuillemeter `true` pour encadrer tous les champs (format « Brut »)
+    public EcrivainCsv(char separateur, boolean toujoursGuillemeter) {
+        this.separateur = separateur;
+        this.toujoursGuillemeter = toujoursGuillemeter;
+    }
 
-  /// Écrivain « Brut » : séparateur `';'`, tous les champs entre guillemets.
-  public static EcrivainCsv avecGuillemets() {
-    return new EcrivainCsv(LecteurCsv.SEPARATEUR_PAR_DEFAUT, true);
-  }
+    /// Écrivain « Brut » : séparateur `';'`, tous les champs entre guillemets.
+    public static EcrivainCsv avecGuillemets() {
+        return new EcrivainCsv(LecteurCsv.SEPARATEUR_PAR_DEFAUT, true);
+    }
 
-  /// Écrivain « Vu » / exports : séparateur `';'`, guillemets seulement si nécessaire.
-  public static EcrivainCsv minimal() {
-    return new EcrivainCsv(LecteurCsv.SEPARATEUR_PAR_DEFAUT, false);
-  }
+    /// Écrivain « Vu » / exports : séparateur `';'`, guillemets seulement si nécessaire.
+    public static EcrivainCsv minimal() {
+        return new EcrivainCsv(LecteurCsv.SEPARATEUR_PAR_DEFAUT, false);
+    }
 
-  /// Séparateur de champs utilisé par cet écrivain.
-  public char separateur() {
-    return separateur;
-  }
+    /// Séparateur de champs utilisé par cet écrivain.
+    public char separateur() {
+        return separateur;
+    }
 
-  /// Sérialise `lignes` en texte CSV (chaque ligne terminée par `\n`).
-  public String versChaine(List<? extends List<String>> lignes) {
-    Objects.requireNonNull(lignes, "lignes");
-    StringBuilder sb = new StringBuilder();
-    for (List<String> ligne : lignes) {
-      for (int j = 0; j < ligne.size(); j++) {
-        if (j > 0) {
-          sb.append(separateur);
+    /// Sérialise `lignes` en texte CSV (chaque ligne terminée par `\n`).
+    public String versChaine(List<? extends List<String>> lignes) {
+        Objects.requireNonNull(lignes, "lignes");
+        StringBuilder sb = new StringBuilder();
+        for (List<String> ligne : lignes) {
+            for (int j = 0; j < ligne.size(); j++) {
+                if (j > 0) {
+                    sb.append(separateur);
+                }
+                sb.append(formater(ligne.get(j)));
+            }
+            sb.append('\n');
         }
-        sb.append(formater(ligne.get(j)));
-      }
-      sb.append('\n');
+        return sb.toString();
     }
-    return sb.toString();
-  }
 
-  /// Écrit `lignes` dans `fichier` en UTF-8 (crée les dossiers parents au besoin).
-  ///
-  /// @throws UncheckedIOException si l'écriture échoue
-  public void ecrire(Path fichier, List<? extends List<String>> lignes) {
-    Objects.requireNonNull(fichier, "fichier");
-    try {
-      Path parent = fichier.getParent();
-      if (parent != null) {
-        Files.createDirectories(parent);
-      }
-      Files.writeString(fichier, versChaine(lignes), StandardCharsets.UTF_8);
-    } catch (IOException e) {
-      throw new UncheckedIOException("Écriture CSV impossible : " + fichier, e);
+    /// Écrit `lignes` dans `fichier` en UTF-8 (crée les dossiers parents au besoin).
+    ///
+    /// @throws UncheckedIOException si l'écriture échoue
+    public void ecrire(Path fichier, List<? extends List<String>> lignes) {
+        Objects.requireNonNull(fichier, "fichier");
+        try {
+            Path parent = fichier.getParent();
+            if (parent != null) {
+                Files.createDirectories(parent);
+            }
+            Files.writeString(fichier, versChaine(lignes), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new UncheckedIOException("Écriture CSV impossible : " + fichier, e);
+        }
     }
-  }
 
-  private String formater(String champ) {
-    String valeur = champ == null ? "" : champ;
-    boolean besoin =
-        toujoursGuillemeter
-            || valeur.indexOf(separateur) >= 0
-            || valeur.indexOf('"') >= 0
-            || valeur.indexOf('\n') >= 0
-            || valeur.indexOf('\r') >= 0;
-    if (!besoin) {
-      return valeur;
+    private String formater(String champ) {
+        String valeur = champ == null ? "" : champ;
+        boolean besoin = toujoursGuillemeter
+                || valeur.indexOf(separateur) >= 0
+                || valeur.indexOf('"') >= 0
+                || valeur.indexOf('\n') >= 0
+                || valeur.indexOf('\r') >= 0;
+        if (!besoin) {
+            return valeur;
+        }
+        return '"' + valeur.replace("\"", "\"\"") + '"';
     }
-    return '"' + valeur.replace("\"", "\"\"") + '"';
-  }
 }

@@ -39,120 +39,115 @@ import java.util.Objects;
 /// déclarée).
 public class ServiceLot {
 
-  private final PassageDao passageDao;
-  private final SessionDao sessionDao;
-  private final SequenceDao sequenceDao;
-  private final VerificationCoherence verification;
-  private final MoteurWorkflowPassage moteurWorkflow;
-  private final Horloge horloge;
+    private final PassageDao passageDao;
+    private final SessionDao sessionDao;
+    private final SequenceDao sequenceDao;
+    private final VerificationCoherence verification;
+    private final MoteurWorkflowPassage moteurWorkflow;
+    private final Horloge horloge;
 
-  public ServiceLot(
-      PassageDao passageDao,
-      SessionDao sessionDao,
-      SequenceDao sequenceDao,
-      VerificationCoherence verification,
-      MoteurWorkflowPassage moteurWorkflow,
-      Horloge horloge) {
-    this.passageDao = Objects.requireNonNull(passageDao, "passageDao");
-    this.sessionDao = Objects.requireNonNull(sessionDao, "sessionDao");
-    this.sequenceDao = Objects.requireNonNull(sequenceDao, "sequenceDao");
-    this.verification = Objects.requireNonNull(verification, "verification");
-    this.moteurWorkflow = Objects.requireNonNull(moteurWorkflow, "moteurWorkflow");
-    this.horloge = Objects.requireNonNull(horloge, "horloge");
-  }
-
-  /// Prépare le lot à déposer d'un passage (E4.S1 + E4.S2).
-  ///
-  /// - R14 (dur, bloquant) : un passage au verdict [Verdict#A_JETER] est refusé d'emblée.
-  /// - Cohérence (dur) : si au moins un contrôle de [VerificationCoherence] est bloquant
-  ///   (transformation incomplète, préfixe non conforme, journal absent…), la préparation
-  ///   est refusée. Les alertes *soft* (relevé absent, R20) ne bloquent pas.
-  /// - Transition : le passage passe à [StatutWorkflow#PRET_A_DEPOSER].
-  ///
-  /// @return le récapitulatif du lot (séquences, volume, chemin du dossier prêt)
-  /// @throws RegleMetierException si le passage est introuvable, « À jeter » (R14) ou incohérent
-  public Lot preparerLot(Long idPassage) {
-    Passage passage = chargerPassage(idPassage);
-    exigerNonAJeter(passage); // R14
-
-    ResultatVerification coherence = verification.verifier(passage);
-    if (coherence.estBloquant()) {
-      throw new RegleMetierException(
-          "Préparation du lot impossible : "
-              + String.join(
-                  " ", coherence.alertesBloquantes().stream().map(a -> a.message()).toList()));
+    public ServiceLot(
+            PassageDao passageDao,
+            SessionDao sessionDao,
+            SequenceDao sequenceDao,
+            VerificationCoherence verification,
+            MoteurWorkflowPassage moteurWorkflow,
+            Horloge horloge) {
+        this.passageDao = Objects.requireNonNull(passageDao, "passageDao");
+        this.sessionDao = Objects.requireNonNull(sessionDao, "sessionDao");
+        this.sequenceDao = Objects.requireNonNull(sequenceDao, "sequenceDao");
+        this.verification = Objects.requireNonNull(verification, "verification");
+        this.moteurWorkflow = Objects.requireNonNull(moteurWorkflow, "moteurWorkflow");
+        this.horloge = Objects.requireNonNull(horloge, "horloge");
     }
 
-    SessionDEnregistrement session =
-        sessionDao
-            .trouverParPassage(idPassage)
-            .orElseThrow(
-                () ->
-                    new RegleMetierException(
+    /// Prépare le lot à déposer d'un passage (E4.S1 + E4.S2).
+    ///
+    /// - R14 (dur, bloquant) : un passage au verdict [Verdict#A_JETER] est refusé d'emblée.
+    /// - Cohérence (dur) : si au moins un contrôle de [VerificationCoherence] est bloquant
+    ///   (transformation incomplète, préfixe non conforme, journal absent…), la préparation
+    ///   est refusée. Les alertes *soft* (relevé absent, R20) ne bloquent pas.
+    /// - Transition : le passage passe à [StatutWorkflow#PRET_A_DEPOSER].
+    ///
+    /// @return le récapitulatif du lot (séquences, volume, chemin du dossier prêt)
+    /// @throws RegleMetierException si le passage est introuvable, « À jeter » (R14) ou incohérent
+    public Lot preparerLot(Long idPassage) {
+        Passage passage = chargerPassage(idPassage);
+        exigerNonAJeter(passage); // R14
+
+        ResultatVerification coherence = verification.verifier(passage);
+        if (coherence.estBloquant()) {
+            throw new RegleMetierException("Préparation du lot impossible : "
+                    + String.join(
+                            " ",
+                            coherence.alertesBloquantes().stream()
+                                    .map(a -> a.message())
+                                    .toList()));
+        }
+
+        SessionDEnregistrement session = sessionDao
+                .trouverParPassage(idPassage)
+                .orElseThrow(() -> new RegleMetierException(
                         "Session d'enregistrement introuvable pour le passage " + idPassage + "."));
-    List<SequenceDEcoute> sequences = sequenceDao.findBySession(session.id());
+        List<SequenceDEcoute> sequences = sequenceDao.findBySession(session.id());
 
-    // Transition de statut déléguée au moteur de workflow du passage (Vérifié → Prêt à déposer).
-    moteurWorkflow.exigerTransitionAutorisee(
-        passage.statutWorkflow(), StatutWorkflow.PRET_A_DEPOSER);
-    passageDao.update(
-        avecStatutEtDepot(passage, StatutWorkflow.PRET_A_DEPOSER, passage.deposeLe()));
+        // Transition de statut déléguée au moteur de workflow du passage (Vérifié → Prêt à déposer).
+        moteurWorkflow.exigerTransitionAutorisee(passage.statutWorkflow(), StatutWorkflow.PRET_A_DEPOSER);
+        passageDao.update(avecStatutEtDepot(passage, StatutWorkflow.PRET_A_DEPOSER, passage.deposeLe()));
 
-    return new Lot(idPassage, session.cheminRacine(), sequences, session.volumeSequencesOctets());
-  }
-
-  /// Marque un passage comme déposé après téléversement manuel (E4.S3) : statut
-  /// [StatutWorkflow#DEPOSE] et horodatage `deposited_at` lu de l'[Horloge].
-  ///
-  /// @return le passage mis à jour (statut déposé, date posée)
-  /// @throws RegleMetierException si le passage est introuvable ou « À jeter » (R14)
-  public Passage marquerDepose(Long idPassage) {
-    Passage passage = chargerPassage(idPassage);
-    exigerNonAJeter(passage); // R14 : un « À jeter » ne peut jamais être déposé.
-
-    // Transition de statut déléguée au moteur de workflow (Prêt à déposer → Déposé) : impose donc
-    // qu'un lot ait d'abord été préparé.
-    moteurWorkflow.exigerTransitionAutorisee(passage.statutWorkflow(), StatutWorkflow.DEPOSE);
-    Passage depose =
-        avecStatutEtDepot(passage, StatutWorkflow.DEPOSE, horloge.maintenant().toString());
-    passageDao.update(depose);
-    return depose;
-  }
-
-  private Passage chargerPassage(Long idPassage) {
-    return passageDao
-        .findById(idPassage)
-        .orElseThrow(() -> new RegleMetierException("Passage introuvable : " + idPassage));
-  }
-
-  private static void exigerNonAJeter(Passage passage) {
-    if (passage.verdictVerification() == Verdict.A_JETER) {
-      throw new RegleMetierException(
-          "R14 : le passage n°"
-              + passage.numeroPassage()
-              + " ("
-              + passage.annee()
-              + ") porte le verdict « À jeter » et ne peut pas rejoindre un lot prêt à déposer.");
+        return new Lot(idPassage, session.cheminRacine(), sequences, session.volumeSequencesOctets());
     }
-  }
 
-  /// Reconstruit le passage (record immuable) avec un nouveau statut et une date de dépôt.
-  private static Passage avecStatutEtDepot(
-      Passage passage, StatutWorkflow statut, String deposeLe) {
-    return new Passage(
-        passage.id(),
-        passage.numeroPassage(),
-        passage.annee(),
-        passage.dateEnregistrement(),
-        passage.heureDebut(),
-        passage.heureFin(),
-        passage.parametresAcquisition(),
-        statut,
-        passage.verdictVerification(),
-        passage.commentaire(),
-        passage.donneesMeteo(),
-        deposeLe,
-        passage.idPoint(),
-        passage.idEnregistreur());
-  }
+    /// Marque un passage comme déposé après téléversement manuel (E4.S3) : statut
+    /// [StatutWorkflow#DEPOSE] et horodatage `deposited_at` lu de l'[Horloge].
+    ///
+    /// @return le passage mis à jour (statut déposé, date posée)
+    /// @throws RegleMetierException si le passage est introuvable ou « À jeter » (R14)
+    public Passage marquerDepose(Long idPassage) {
+        Passage passage = chargerPassage(idPassage);
+        exigerNonAJeter(passage); // R14 : un « À jeter » ne peut jamais être déposé.
+
+        // Transition de statut déléguée au moteur de workflow (Prêt à déposer → Déposé) : impose donc
+        // qu'un lot ait d'abord été préparé.
+        moteurWorkflow.exigerTransitionAutorisee(passage.statutWorkflow(), StatutWorkflow.DEPOSE);
+        Passage depose = avecStatutEtDepot(
+                passage, StatutWorkflow.DEPOSE, horloge.maintenant().toString());
+        passageDao.update(depose);
+        return depose;
+    }
+
+    private Passage chargerPassage(Long idPassage) {
+        return passageDao
+                .findById(idPassage)
+                .orElseThrow(() -> new RegleMetierException("Passage introuvable : " + idPassage));
+    }
+
+    private static void exigerNonAJeter(Passage passage) {
+        if (passage.verdictVerification() == Verdict.A_JETER) {
+            throw new RegleMetierException("R14 : le passage n°"
+                    + passage.numeroPassage()
+                    + " ("
+                    + passage.annee()
+                    + ") porte le verdict « À jeter » et ne peut pas rejoindre un lot prêt à déposer.");
+        }
+    }
+
+    /// Reconstruit le passage (record immuable) avec un nouveau statut et une date de dépôt.
+    private static Passage avecStatutEtDepot(Passage passage, StatutWorkflow statut, String deposeLe) {
+        return new Passage(
+                passage.id(),
+                passage.numeroPassage(),
+                passage.annee(),
+                passage.dateEnregistrement(),
+                passage.heureDebut(),
+                passage.heureFin(),
+                passage.parametresAcquisition(),
+                statut,
+                passage.verdictVerification(),
+                passage.commentaire(),
+                passage.donneesMeteo(),
+                deposeLe,
+                passage.idPoint(),
+                passage.idEnregistreur());
+    }
 }

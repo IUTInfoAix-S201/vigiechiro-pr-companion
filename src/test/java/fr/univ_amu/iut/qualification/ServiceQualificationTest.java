@@ -52,45 +52,43 @@ import org.junit.jupiter.api.io.TempDir;
 /// (verdict sans seuil d'écoute + transition vers `Vérifié`) et le pré-check 3 feux.
 class ServiceQualificationTest {
 
-  private static final String ID_USER = "u-1";
-  private final Prefixe prefixe = new Prefixe("040962", 2026, 1, "A1");
+    private static final String ID_USER = "u-1";
+    private final Prefixe prefixe = new Prefixe("040962", 2026, 1, "A1");
 
-  @TempDir Path dossier;
-  private SiteDao siteDao;
-  private PointDao pointDao;
-  private PassageDao passageDao;
-  private SessionDao sessionDao;
-  private EnregistrementOriginalDao originalDao;
-  private SequenceDao sequenceDao;
-  private SelectionDao selectionDao;
-  private ServiceQualification service;
+    @TempDir
+    Path dossier;
 
-  private long idPassage;
-  private long idSession;
+    private SiteDao siteDao;
+    private PointDao pointDao;
+    private PassageDao passageDao;
+    private SessionDao sessionDao;
+    private EnregistrementOriginalDao originalDao;
+    private SequenceDao sequenceDao;
+    private SelectionDao selectionDao;
+    private ServiceQualification service;
 
-  @BeforeEach
-  void preparer() {
-    SourceDeDonnees source = new SourceDeDonnees(new Workspace(dossier));
-    new MigrationSchema(source).migrer();
-    new UtilisateurDao(source).insert(new Utilisateur(ID_USER, "Testeur"));
+    private long idPassage;
+    private long idSession;
 
-    siteDao = new SiteDao(source);
-    pointDao = new PointDao(source);
-    passageDao = new PassageDao(source);
-    sessionDao = new SessionDao(source);
-    originalDao = new EnregistrementOriginalDao(source);
-    sequenceDao = new SequenceDao(source);
-    selectionDao = new SelectionDao(source);
-    EnregistreurDao enregistreurDao = new EnregistreurDao(source);
+    @BeforeEach
+    void preparer() {
+        SourceDeDonnees source = new SourceDeDonnees(new Workspace(dossier));
+        new MigrationSchema(source).migrer();
+        new UtilisateurDao(source).insert(new Utilisateur(ID_USER, "Testeur"));
 
-    Site site =
-        siteDao.insert(
-            new Site(null, "040962", "Étang", Protocole.STANDARD, null, "2026-01-01", ID_USER));
-    PointDEcoute point = pointDao.insert(new PointDEcoute(null, "A1", 43.5, 5.4, null, site.id()));
-    enregistreurDao.insert(new Enregistreur("1925492", "V1.01", null));
-    Passage passage =
-        passageDao.insert(
-            new Passage(
+        siteDao = new SiteDao(source);
+        pointDao = new PointDao(source);
+        passageDao = new PassageDao(source);
+        sessionDao = new SessionDao(source);
+        originalDao = new EnregistrementOriginalDao(source);
+        sequenceDao = new SequenceDao(source);
+        selectionDao = new SelectionDao(source);
+        EnregistreurDao enregistreurDao = new EnregistreurDao(source);
+
+        Site site = siteDao.insert(new Site(null, "040962", "Étang", Protocole.STANDARD, null, "2026-01-01", ID_USER));
+        PointDEcoute point = pointDao.insert(new PointDEcoute(null, "A1", 43.5, 5.4, null, site.id()));
+        enregistreurDao.insert(new Enregistreur("1925492", "V1.01", null));
+        Passage passage = passageDao.insert(new Passage(
                 null,
                 1,
                 2026,
@@ -105,317 +103,294 @@ class ServiceQualificationTest {
                 null,
                 point.id(),
                 "1925492"));
-    idPassage = passage.id();
-    SessionDEnregistrement session =
-        sessionDao.insert(
-            new SessionDEnregistrement(
-                null, "/ws/" + prefixe.nomDossierSession(), null, null, idPassage));
-    idSession = session.id();
+        idPassage = passage.id();
+        SessionDEnregistrement session = sessionDao.insert(
+                new SessionDEnregistrement(null, "/ws/" + prefixe.nomDossierSession(), null, null, idPassage));
+        idSession = session.id();
 
-    service =
-        new ServiceQualification(
-            selectionDao,
-            sequenceDao,
-            sessionDao,
-            originalDao,
-            passageDao,
-            pointDao,
-            siteDao,
-            new GenerateurSelection(),
-            new PreCheckNuit(),
-            new UniteDeTravail(source));
-  }
-
-  /// Insère un original + sa séquence d'écoute, horodatés par `suffixe` (R7).
-  private SequenceDEcoute insererSequence(String suffixeEnregistreur) {
-    String nomOriginal = prefixe.nommerOriginal(suffixeEnregistreur);
-    EnregistrementOriginal original =
-        originalDao.insert(
-            new EnregistrementOriginal(
-                null, nomOriginal, "/ws/bruts/" + nomOriginal, 5.0, 384000, null, idSession));
-    String nomSequence = prefixe.nommerSequence(nomOriginal, 0);
-    return sequenceDao.insert(
-        new SequenceDEcoute(
-            null,
-            nomSequence,
-            original.id(),
-            0,
-            0.0,
-            5.0,
-            "/ws/transformes/" + nomSequence,
-            false,
-            idSession));
-  }
-
-  /// Crée `n` séquences chronologiquement ordonnées (suffixe d'horodatage croissant).
-  private List<SequenceDEcoute> creerNuit(int n) {
-    List<SequenceDEcoute> sequences = new ArrayList<>();
-    for (int t = 0; t < n; t++) {
-      sequences.add(
-          insererSequence("PaRecPR1925492_20260620_" + String.format("%06d", t) + ".wav"));
+        service = new ServiceQualification(
+                selectionDao,
+                sequenceDao,
+                sessionDao,
+                originalDao,
+                passageDao,
+                pointDao,
+                siteDao,
+                new GenerateurSelection(),
+                new PreCheckNuit(),
+                new UniteDeTravail(source));
     }
-    return sequences;
-  }
 
-  private EnregistrementOriginal insererOriginal(String nomComplet) {
-    return originalDao.insert(
-        new EnregistrementOriginal(
-            null, nomComplet, "/ws/bruts/" + nomComplet, 5.0, 384000, null, idSession));
-  }
+    /// Insère un original + sa séquence d'écoute, horodatés par `suffixe` (R7).
+    private SequenceDEcoute insererSequence(String suffixeEnregistreur) {
+        String nomOriginal = prefixe.nommerOriginal(suffixeEnregistreur);
+        EnregistrementOriginal original = originalDao.insert(new EnregistrementOriginal(
+                null, nomOriginal, "/ws/bruts/" + nomOriginal, 5.0, 384000, null, idSession));
+        String nomSequence = prefixe.nommerSequence(nomOriginal, 0);
+        return sequenceDao.insert(new SequenceDEcoute(
+                null, nomSequence, original.id(), 0, 0.0, 5.0, "/ws/transformes/" + nomSequence, false, idSession));
+    }
 
-  private List<Long> idsSequencesDansLOrdre(Long idSelection) {
-    return service.sequencesDeLaSelection(idSelection).stream()
-        .map(SequenceSelectionnee::idSequence)
-        .toList();
-  }
+    /// Crée `n` séquences chronologiquement ordonnées (suffixe d'horodatage croissant).
+    private List<SequenceDEcoute> creerNuit(int n) {
+        List<SequenceDEcoute> sequences = new ArrayList<>();
+        for (int t = 0; t < n; t++) {
+            sequences.add(insererSequence("PaRecPR1925492_20260620_" + String.format("%06d", t) + ".wav"));
+        }
+        return sequences;
+    }
 
-  // --- R12 : constitution de la sélection ----------------------------------
+    private EnregistrementOriginal insererOriginal(String nomComplet) {
+        return originalDao.insert(
+                new EnregistrementOriginal(null, nomComplet, "/ws/bruts/" + nomComplet, 5.0, 384000, null, idSession));
+    }
 
-  @Test
-  @DisplayName("R12 : à l'ouverture, sélection RéparTemporel de taille 10-30 répartie sur la nuit")
-  void ouvrir_constitue_une_selection_repartie() {
-    List<SequenceDEcoute> nuit = creerNuit(50);
+    private List<Long> idsSequencesDansLOrdre(Long idSelection) {
+        return service.sequencesDeLaSelection(idSelection).stream()
+                .map(SequenceSelectionnee::idSequence)
+                .toList();
+    }
 
-    SelectionDEcoute selection = service.ouvrirVerification(idPassage);
+    // --- R12 : constitution de la sélection ----------------------------------
 
-    assertThat(selection.id()).isNotNull();
-    assertThat(selection.methode()).isEqualTo(MethodeSelection.REPARTITION_TEMPORELLE);
-    List<SequenceSelectionnee> jonction = service.sequencesDeLaSelection(selection.id());
-    assertThat(jonction.size())
-        .as("taille dans la fourchette 10-30")
-        .isBetween(GenerateurSelection.TAILLE_MIN, GenerateurSelection.TAILLE_MAX);
-    assertThat(jonction)
-        .extracting(SequenceSelectionnee::position)
-        .as("positions ordonnées à partir de 0")
-        .startsWith(0, 1, 2);
-    assertThat(jonction.get(0).idSequence())
-        .as("première séquence de la nuit retenue")
-        .isEqualTo(nuit.get(0).id());
-    assertThat(jonction.get(jonction.size() - 1).idSequence())
-        .as("dernière séquence de la nuit retenue")
-        .isEqualTo(nuit.get(nuit.size() - 1).id());
-  }
+    @Test
+    @DisplayName("R12 : à l'ouverture, sélection RéparTemporel de taille 10-30 répartie sur la nuit")
+    void ouvrir_constitue_une_selection_repartie() {
+        List<SequenceDEcoute> nuit = creerNuit(50);
 
-  @Test
-  @DisplayName("R12 : la constitution est déterministe (mêmes séquences à chaque (re)génération)")
-  void selection_deterministe() {
-    creerNuit(50);
+        SelectionDEcoute selection = service.ouvrirVerification(idPassage);
 
-    SelectionDEcoute selection1 =
-        service.creerSelection(idPassage, MethodeSelection.REPARTITION_TEMPORELLE, 20);
-    List<Long> run1 = idsSequencesDansLOrdre(selection1.id());
+        assertThat(selection.id()).isNotNull();
+        assertThat(selection.methode()).isEqualTo(MethodeSelection.REPARTITION_TEMPORELLE);
+        List<SequenceSelectionnee> jonction = service.sequencesDeLaSelection(selection.id());
+        assertThat(jonction.size())
+                .as("taille dans la fourchette 10-30")
+                .isBetween(GenerateurSelection.TAILLE_MIN, GenerateurSelection.TAILLE_MAX);
+        assertThat(jonction)
+                .extracting(SequenceSelectionnee::position)
+                .as("positions ordonnées à partir de 0")
+                .startsWith(0, 1, 2);
+        assertThat(jonction.get(0).idSequence())
+                .as("première séquence de la nuit retenue")
+                .isEqualTo(nuit.get(0).id());
+        assertThat(jonction.get(jonction.size() - 1).idSequence())
+                .as("dernière séquence de la nuit retenue")
+                .isEqualTo(nuit.get(nuit.size() - 1).id());
+    }
 
-    SelectionDEcoute selection2 =
-        service.creerSelection(idPassage, MethodeSelection.REPARTITION_TEMPORELLE, 20);
-    List<Long> run2 = idsSequencesDansLOrdre(selection2.id());
+    @Test
+    @DisplayName("R12 : la constitution est déterministe (mêmes séquences à chaque (re)génération)")
+    void selection_deterministe() {
+        creerNuit(50);
 
-    assertThat(run1).hasSize(20);
-    assertThat(run2).isEqualTo(run1);
-  }
+        SelectionDEcoute selection1 = service.creerSelection(idPassage, MethodeSelection.REPARTITION_TEMPORELLE, 20);
+        List<Long> run1 = idsSequencesDansLOrdre(selection1.id());
 
-  @Test
-  @DisplayName("L'ouverture est idempotente (une seule sélection par passage)")
-  void ouverture_idempotente() {
-    creerNuit(40);
+        SelectionDEcoute selection2 = service.creerSelection(idPassage, MethodeSelection.REPARTITION_TEMPORELLE, 20);
+        List<Long> run2 = idsSequencesDansLOrdre(selection2.id());
 
-    SelectionDEcoute premiere = service.ouvrirVerification(idPassage);
-    SelectionDEcoute seconde = service.ouvrirVerification(idPassage);
+        assertThat(run1).hasSize(20);
+        assertThat(run2).isEqualTo(run1);
+    }
 
-    assertThat(seconde.id()).isEqualTo(premiere.id());
-    assertThat(selectionDao.findByPassage(idPassage)).isPresent();
-  }
+    @Test
+    @DisplayName("L'ouverture est idempotente (une seule sélection par passage)")
+    void ouverture_idempotente() {
+        creerNuit(40);
 
-  @Test
-  @DisplayName("La taille est configurable (15 séquences demandées → 15 retenues)")
-  void taille_configurable() {
-    creerNuit(50);
+        SelectionDEcoute premiere = service.ouvrirVerification(idPassage);
+        SelectionDEcoute seconde = service.ouvrirVerification(idPassage);
 
-    SelectionDEcoute selection =
-        service.creerSelection(idPassage, MethodeSelection.REPARTITION_TEMPORELLE, 15);
+        assertThat(seconde.id()).isEqualTo(premiere.id());
+        assertThat(selectionDao.findByPassage(idPassage)).isPresent();
+    }
 
-    assertThat(selection.taille()).isEqualTo(15);
-    assertThat(service.sequencesDeLaSelection(selection.id())).hasSize(15);
-  }
+    @Test
+    @DisplayName("La taille est configurable (15 séquences demandées → 15 retenues)")
+    void taille_configurable() {
+        creerNuit(50);
 
-  @Test
-  @DisplayName("Marquer une séquence écoutée bascule son flag dans la jonction")
-  void marquer_sequence_ecoutee() {
-    creerNuit(40);
-    SelectionDEcoute selection = service.ouvrirVerification(idPassage);
-    Long premiere = service.sequencesDeLaSelection(selection.id()).get(0).idSequence();
+        SelectionDEcoute selection = service.creerSelection(idPassage, MethodeSelection.REPARTITION_TEMPORELLE, 15);
 
-    service.marquerSequenceEcoutee(selection.id(), premiere);
+        assertThat(selection.taille()).isEqualTo(15);
+        assertThat(service.sequencesDeLaSelection(selection.id())).hasSize(15);
+    }
 
-    SequenceSelectionnee relue =
-        service.sequencesDeLaSelection(selection.id()).stream()
-            .filter(s -> s.idSequence().equals(premiere))
-            .findFirst()
-            .orElseThrow();
-    assertThat(relue.ecoutee()).isTrue();
-  }
+    @Test
+    @DisplayName("Marquer une séquence écoutée bascule son flag dans la jonction")
+    void marquer_sequence_ecoutee() {
+        creerNuit(40);
+        SelectionDEcoute selection = service.ouvrirVerification(idPassage);
+        Long premiere = service.sequencesDeLaSelection(selection.id()).get(0).idSequence();
 
-  @Test
-  @DisplayName("Constituer une sélection sur un passage sans séquence est refusé")
-  void selection_sans_sequence_refusee() {
-    assertThatThrownBy(() -> service.ouvrirVerification(idPassage))
-        .isInstanceOf(RegleMetierException.class);
-  }
+        service.marquerSequenceEcoutee(selection.id(), premiere);
 
-  @Test
-  @DisplayName("Constituer une sélection sur un passage inconnu est refusé")
-  void selection_passage_inconnu_refusee() {
-    assertThatThrownBy(
-            () -> service.creerSelection(9999L, MethodeSelection.REPARTITION_TEMPORELLE, 20))
-        .isInstanceOf(RegleMetierException.class);
-  }
+        SequenceSelectionnee relue = service.sequencesDeLaSelection(selection.id()).stream()
+                .filter(s -> s.idSequence().equals(premiere))
+                .findFirst()
+                .orElseThrow();
+        assertThat(relue.ecoutee()).isTrue();
+    }
 
-  // --- R13 : verdict global + transition de statut --------------------------
+    @Test
+    @DisplayName("Constituer une sélection sur un passage sans séquence est refusé")
+    void selection_sans_sequence_refusee() {
+        assertThatThrownBy(() -> service.ouvrirVerification(idPassage)).isInstanceOf(RegleMetierException.class);
+    }
 
-  @Test
-  @DisplayName("R13 : enregistrer un verdict le persiste et fait transiter le passage vers Vérifié")
-  void verdict_persiste_et_transite() {
-    Passage verifie = service.enregistrerVerdict(idPassage, Verdict.OK, "vent faible vers 02:00");
+    @Test
+    @DisplayName("Constituer une sélection sur un passage inconnu est refusé")
+    void selection_passage_inconnu_refusee() {
+        assertThatThrownBy(() -> service.creerSelection(9999L, MethodeSelection.REPARTITION_TEMPORELLE, 20))
+                .isInstanceOf(RegleMetierException.class);
+    }
 
-    assertThat(verifie.verdictVerification()).isEqualTo(Verdict.OK);
-    assertThat(verifie.statutWorkflow()).isEqualTo(StatutWorkflow.VERIFIE);
-    Passage relu = passageDao.findById(idPassage).orElseThrow();
-    assertThat(relu.verdictVerification()).isEqualTo(Verdict.OK);
-    assertThat(relu.statutWorkflow()).isEqualTo(StatutWorkflow.VERIFIE);
-    assertThat(relu.commentaire()).isEqualTo("vent faible vers 02:00");
-  }
+    // --- R13 : verdict global + transition de statut --------------------------
 
-  @Test
-  @DisplayName("R13 : aucun seuil d'écoute obligatoire (verdict accepté sans aucune écoute)")
-  void verdict_sans_seuil_d_ecoute() {
-    creerNuit(40);
-    SelectionDEcoute selection = service.ouvrirVerification(idPassage);
-    // Aucune séquence marquée écoutée : le verdict doit néanmoins être accepté (R13).
-    assertThat(service.sequencesDeLaSelection(selection.id()))
-        .allSatisfy(s -> assertThat(s.ecoutee()).isFalse());
+    @Test
+    @DisplayName("R13 : enregistrer un verdict le persiste et fait transiter le passage vers Vérifié")
+    void verdict_persiste_et_transite() {
+        Passage verifie = service.enregistrerVerdict(idPassage, Verdict.OK, "vent faible vers 02:00");
 
-    Passage verifie = service.enregistrerVerdict(idPassage, Verdict.DOUTEUX, null);
+        assertThat(verifie.verdictVerification()).isEqualTo(Verdict.OK);
+        assertThat(verifie.statutWorkflow()).isEqualTo(StatutWorkflow.VERIFIE);
+        Passage relu = passageDao.findById(idPassage).orElseThrow();
+        assertThat(relu.verdictVerification()).isEqualTo(Verdict.OK);
+        assertThat(relu.statutWorkflow()).isEqualTo(StatutWorkflow.VERIFIE);
+        assertThat(relu.commentaire()).isEqualTo("vent faible vers 02:00");
+    }
 
-    assertThat(verifie.statutWorkflow()).isEqualTo(StatutWorkflow.VERIFIE);
-    assertThat(verifie.verdictVerification()).isEqualTo(Verdict.DOUTEUX);
-  }
+    @Test
+    @DisplayName("R13 : aucun seuil d'écoute obligatoire (verdict accepté sans aucune écoute)")
+    void verdict_sans_seuil_d_ecoute() {
+        creerNuit(40);
+        SelectionDEcoute selection = service.ouvrirVerification(idPassage);
+        // Aucune séquence marquée écoutée : le verdict doit néanmoins être accepté (R13).
+        assertThat(service.sequencesDeLaSelection(selection.id()))
+                .allSatisfy(s -> assertThat(s.ecoutee()).isFalse());
 
-  @Test
-  @DisplayName("Verdict À jeter mémorisé et restitué par estAJeter (prépare R14)")
-  void verdict_a_jeter_prepare_r14() {
-    service.enregistrerVerdict(idPassage, Verdict.A_JETER, null);
+        Passage verifie = service.enregistrerVerdict(idPassage, Verdict.DOUTEUX, null);
 
-    assertThat(service.estAJeter(idPassage)).isTrue();
-    assertThat(passageDao.findById(idPassage).orElseThrow().statutWorkflow())
-        .isEqualTo(StatutWorkflow.VERIFIE);
-  }
+        assertThat(verifie.statutWorkflow()).isEqualTo(StatutWorkflow.VERIFIE);
+        assertThat(verifie.verdictVerification()).isEqualTo(Verdict.DOUTEUX);
+    }
 
-  @Test
-  @DisplayName("Un verdict null ou À vérifier (sentinelle) est refusé")
-  void verdict_sentinelle_refuse() {
-    assertThatThrownBy(() -> service.enregistrerVerdict(idPassage, null, null))
-        .isInstanceOf(IllegalArgumentException.class);
-    assertThatThrownBy(() -> service.enregistrerVerdict(idPassage, Verdict.A_VERIFIER, null))
-        .isInstanceOf(IllegalArgumentException.class);
-  }
+    @Test
+    @DisplayName("Verdict À jeter mémorisé et restitué par estAJeter (prépare R14)")
+    void verdict_a_jeter_prepare_r14() {
+        service.enregistrerVerdict(idPassage, Verdict.A_JETER, null);
 
-  // --- P3 étape 1 : pré-check 3 feux ----------------------------------------
+        assertThat(service.estAJeter(idPassage)).isTrue();
+        assertThat(passageDao.findById(idPassage).orElseThrow().statutWorkflow())
+                .isEqualTo(StatutWorkflow.VERIFIE);
+    }
 
-  @Test
-  @DisplayName("Pré-check : nuit creuse bien nommée et bien couverte → orange/vert/vert")
-  void precheck_nuit_creuse() {
-    // 3 originaux bien nommés couvrant la fenêtre 20:00 → 06:00 (écarts < 30 min).
-    insererSequence("PaRecPR1925492_20260620_200500.wav");
-    insererSequence("PaRecPR1925492_20260621_030000.wav");
-    insererSequence("PaRecPR1925492_20260621_055500.wav");
+    @Test
+    @DisplayName("Un verdict null ou À vérifier (sentinelle) est refusé")
+    void verdict_sentinelle_refuse() {
+        assertThatThrownBy(() -> service.enregistrerVerdict(idPassage, null, null))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> service.enregistrerVerdict(idPassage, Verdict.A_VERIFIER, null))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
 
-    PreCheckNuit.Diagnostic diagnostic = service.precheck(idPassage);
+    // --- P3 étape 1 : pré-check 3 feux ----------------------------------------
 
-    assertThat(diagnostic.nombreFichiers()).as("3 fichiers < 50 → creux").isEqualTo(Feu.ORANGE);
-    assertThat(diagnostic.coherenceRenommage()).isEqualTo(Feu.VERT);
-    assertThat(diagnostic.couvertureHoraire()).isEqualTo(Feu.VERT);
-  }
+    @Test
+    @DisplayName("Pré-check : nuit creuse bien nommée et bien couverte → orange/vert/vert")
+    void precheck_nuit_creuse() {
+        // 3 originaux bien nommés couvrant la fenêtre 20:00 → 06:00 (écarts < 30 min).
+        insererSequence("PaRecPR1925492_20260620_200500.wav");
+        insererSequence("PaRecPR1925492_20260621_030000.wav");
+        insererSequence("PaRecPR1925492_20260621_055500.wav");
 
-  @Test
-  @DisplayName("Pré-check : un fichier au préfixe divergent → renommage rouge (R6)")
-  void precheck_renommage_rouge() {
-    insererSequence("PaRecPR1925492_20260620_220000.wav");
-    insererSequence("PaRecPR1925492_20260620_230000.wav");
-    insererOriginal("MAUVAIS-PaRecPR1925492_20260620_233000.wav");
+        PreCheckNuit.Diagnostic diagnostic = service.precheck(idPassage);
 
-    PreCheckNuit.Diagnostic diagnostic = service.precheck(idPassage);
+        assertThat(diagnostic.nombreFichiers()).as("3 fichiers < 50 → creux").isEqualTo(Feu.ORANGE);
+        assertThat(diagnostic.coherenceRenommage()).isEqualTo(Feu.VERT);
+        assertThat(diagnostic.couvertureHoraire()).isEqualTo(Feu.VERT);
+    }
 
-    assertThat(diagnostic.coherenceRenommage()).isEqualTo(Feu.ROUGE);
-  }
+    @Test
+    @DisplayName("Pré-check : un fichier au préfixe divergent → renommage rouge (R6)")
+    void precheck_renommage_rouge() {
+        insererSequence("PaRecPR1925492_20260620_220000.wav");
+        insererSequence("PaRecPR1925492_20260620_230000.wav");
+        insererOriginal("MAUVAIS-PaRecPR1925492_20260620_233000.wav");
 
-  @Test
-  @DisplayName("Pré-check : une moitié de nuit manquante → couverture rouge")
-  void precheck_couverture_rouge() {
-    // Tous les enregistrements concentrés en fin de nuit : la première moitié manque.
-    insererSequence("PaRecPR1925492_20260621_020000.wav");
-    insererSequence("PaRecPR1925492_20260621_023000.wav");
-    insererSequence("PaRecPR1925492_20260621_030000.wav");
+        PreCheckNuit.Diagnostic diagnostic = service.precheck(idPassage);
 
-    PreCheckNuit.Diagnostic diagnostic = service.precheck(idPassage);
+        assertThat(diagnostic.coherenceRenommage()).isEqualTo(Feu.ROUGE);
+    }
 
-    assertThat(diagnostic.couvertureHoraire()).isEqualTo(Feu.ROUGE);
-  }
+    @Test
+    @DisplayName("Pré-check : une moitié de nuit manquante → couverture rouge")
+    void precheck_couverture_rouge() {
+        // Tous les enregistrements concentrés en fin de nuit : la première moitié manque.
+        insererSequence("PaRecPR1925492_20260621_020000.wav");
+        insererSequence("PaRecPR1925492_20260621_023000.wav");
+        insererSequence("PaRecPR1925492_20260621_030000.wav");
 
-  @Test
-  @DisplayName("Pré-check : aucun fichier importé → nombre rouge")
-  void precheck_aucun_fichier() {
-    PreCheckNuit.Diagnostic diagnostic = service.precheck(idPassage);
+        PreCheckNuit.Diagnostic diagnostic = service.precheck(idPassage);
 
-    assertThat(diagnostic.nombreFichiers()).isEqualTo(Feu.ROUGE);
-  }
+        assertThat(diagnostic.couvertureHoraire()).isEqualTo(Feu.ROUGE);
+    }
 
-  // --- Projections de lecture (bandeau + liste) ----------------------------
+    @Test
+    @DisplayName("Pré-check : aucun fichier importé → nombre rouge")
+    void precheck_aucun_fichier() {
+        PreCheckNuit.Diagnostic diagnostic = service.precheck(idPassage);
 
-  @Test
-  @DisplayName("chargerContexte renvoie identité, plage horaire, totaux et statut du passage")
-  void charger_contexte() {
-    creerNuit(20);
+        assertThat(diagnostic.nombreFichiers()).isEqualTo(Feu.ROUGE);
+    }
 
-    ContexteVerification contexte = service.chargerContexte(idPassage);
+    // --- Projections de lecture (bandeau + liste) ----------------------------
 
-    assertThat(contexte.numeroCarre()).isEqualTo("040962");
-    assertThat(contexte.codePoint()).isEqualTo("A1");
-    assertThat(contexte.numeroPassage()).isEqualTo(1);
-    assertThat(contexte.annee()).isEqualTo(2026);
-    assertThat(contexte.date()).isEqualTo("2026-06-20");
-    assertThat(contexte.heureDebut()).isEqualTo("20:00:00");
-    assertThat(contexte.sequencesTotales()).isEqualTo(20);
-    assertThat(contexte.dureeAudibleSecondes()).isEqualTo(100.0); // 20 × 5,0 s
-    assertThat(contexte.statut()).isEqualTo(StatutWorkflow.TRANSFORME);
-    assertThat(contexte.verdict()).isNull();
-  }
+    @Test
+    @DisplayName("chargerContexte renvoie identité, plage horaire, totaux et statut du passage")
+    void charger_contexte() {
+        creerNuit(20);
 
-  @Test
-  @DisplayName("chargerContexte sur un passage introuvable lève RegleMetierException")
-  void charger_contexte_passage_introuvable() {
-    assertThatThrownBy(() -> service.chargerContexte(9999L))
-        .isInstanceOf(RegleMetierException.class)
-        .hasMessageContaining("introuvable");
-  }
+        ContexteVerification contexte = service.chargerContexte(idPassage);
 
-  @Test
-  @DisplayName("detaillerSelection joint les séquences (ordre position) et reflète le flag écouté")
-  void detailler_selection() {
-    List<SequenceDEcoute> nuit = creerNuit(50);
-    SelectionDEcoute selection = service.ouvrirVerification(idPassage);
+        assertThat(contexte.numeroCarre()).isEqualTo("040962");
+        assertThat(contexte.codePoint()).isEqualTo("A1");
+        assertThat(contexte.numeroPassage()).isEqualTo(1);
+        assertThat(contexte.annee()).isEqualTo(2026);
+        assertThat(contexte.date()).isEqualTo("2026-06-20");
+        assertThat(contexte.heureDebut()).isEqualTo("20:00:00");
+        assertThat(contexte.sequencesTotales()).isEqualTo(20);
+        assertThat(contexte.dureeAudibleSecondes()).isEqualTo(100.0); // 20 × 5,0 s
+        assertThat(contexte.statut()).isEqualTo(StatutWorkflow.TRANSFORME);
+        assertThat(contexte.verdict()).isNull();
+    }
 
-    List<SequenceEnSelection> lignes = service.detaillerSelection(selection.id());
+    @Test
+    @DisplayName("chargerContexte sur un passage introuvable lève RegleMetierException")
+    void charger_contexte_passage_introuvable() {
+        assertThatThrownBy(() -> service.chargerContexte(9999L))
+                .isInstanceOf(RegleMetierException.class)
+                .hasMessageContaining("introuvable");
+    }
 
-    assertThat(lignes).extracting(SequenceEnSelection::position).startsWith(0, 1, 2);
-    assertThat(lignes).allSatisfy(ligne -> assertThat(ligne.ecoutee()).isFalse());
-    assertThat(lignes.get(0).sequence().id()).isEqualTo(nuit.get(0).id());
+    @Test
+    @DisplayName("detaillerSelection joint les séquences (ordre position) et reflète le flag écouté")
+    void detailler_selection() {
+        List<SequenceDEcoute> nuit = creerNuit(50);
+        SelectionDEcoute selection = service.ouvrirVerification(idPassage);
 
-    Long premiere = lignes.get(0).sequence().id();
-    service.marquerSequenceEcoutee(selection.id(), premiere);
-    SequenceEnSelection rechargee =
-        service.detaillerSelection(selection.id()).stream()
-            .filter(ligne -> ligne.sequence().id().equals(premiere))
-            .findFirst()
-            .orElseThrow();
-    assertThat(rechargee.ecoutee()).isTrue();
-  }
+        List<SequenceEnSelection> lignes = service.detaillerSelection(selection.id());
+
+        assertThat(lignes).extracting(SequenceEnSelection::position).startsWith(0, 1, 2);
+        assertThat(lignes).allSatisfy(ligne -> assertThat(ligne.ecoutee()).isFalse());
+        assertThat(lignes.get(0).sequence().id()).isEqualTo(nuit.get(0).id());
+
+        Long premiere = lignes.get(0).sequence().id();
+        service.marquerSequenceEcoutee(selection.id(), premiere);
+        SequenceEnSelection rechargee = service.detaillerSelection(selection.id()).stream()
+                .filter(ligne -> ligne.sequence().id().equals(premiere))
+                .findFirst()
+                .orElseThrow();
+        assertThat(rechargee.ecoutee()).isTrue();
+    }
 }

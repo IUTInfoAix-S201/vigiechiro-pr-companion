@@ -25,93 +25,91 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class DiagnosticViewModelTest {
 
-  private static final long ID_PASSAGE = 42L;
+    private static final long ID_PASSAGE = 42L;
 
-  @Mock private ServiceDiagnostic service;
-  private DiagnosticViewModel viewModel;
+    @Mock
+    private ServiceDiagnostic service;
 
-  @BeforeEach
-  void preparer() {
-    viewModel = new DiagnosticViewModel(service);
-  }
+    private DiagnosticViewModel viewModel;
 
-  private static Diagnostic diagnostic(SerieClimatique climat, Double lat, Double lon) {
-    return new Diagnostic(
-        ID_PASSAGE,
-        7L,
-        "1925492",
-        new AnalyseAnomalies(List.of("Réveil non programmé à 03:12"), List.of("Démarrage 20:25")),
-        climat,
-        lat,
-        lon,
-        LocalDateTime.of(2026, 6, 23, 8, 0));
-  }
+    @BeforeEach
+    void preparer() {
+        viewModel = new DiagnosticViewModel(service);
+    }
 
-  private static SerieClimatique serie() {
-    return SerieClimatique.presente(
-        List.of(
-            new MesureClimatique(LocalDate.of(2026, 6, 22), LocalTime.of(22, 0), 18.5, 72),
-            new MesureClimatique(LocalDate.of(2026, 6, 23), LocalTime.of(2, 0), 14.0, 88)));
-  }
+    private static Diagnostic diagnostic(SerieClimatique climat, Double lat, Double lon) {
+        return new Diagnostic(
+                ID_PASSAGE,
+                7L,
+                "1925492",
+                new AnalyseAnomalies(List.of("Réveil non programmé à 03:12"), List.of("Démarrage 20:25")),
+                climat,
+                lat,
+                lon,
+                LocalDateTime.of(2026, 6, 23, 8, 0));
+    }
 
-  @Test
-  @DisplayName("ouvrirSur mappe l'enregistreur, la série climatique, les anomalies et évènements")
-  void ouvrir_mappe_le_diagnostic() {
-    when(service.diagnostiquer(ID_PASSAGE)).thenReturn(diagnostic(serie(), 43.5, 5.4));
+    private static SerieClimatique serie() {
+        return SerieClimatique.presente(List.of(
+                new MesureClimatique(LocalDate.of(2026, 6, 22), LocalTime.of(22, 0), 18.5, 72),
+                new MesureClimatique(LocalDate.of(2026, 6, 23), LocalTime.of(2, 0), 14.0, 88)));
+    }
 
-    viewModel.ouvrirSur(ID_PASSAGE);
+    @Test
+    @DisplayName("ouvrirSur mappe l'enregistreur, la série climatique, les anomalies et évènements")
+    void ouvrir_mappe_le_diagnostic() {
+        when(service.diagnostiquer(ID_PASSAGE)).thenReturn(diagnostic(serie(), 43.5, 5.4));
 
-    assertThat(viewModel.enregistreurProperty().get()).isEqualTo("PR 1925492");
-    assertThat(viewModel.mesures()).hasSize(2);
-    assertThat(viewModel.anomalies()).containsExactly("Réveil non programmé à 03:12");
-    assertThat(viewModel.evenements()).containsExactly("Démarrage 20:25");
-    assertThat(viewModel.releveClimatiqueAbsentProperty().get()).isFalse();
-    assertThat(viewModel.gpsDisponibleProperty().get()).isTrue();
-    assertThat(viewModel.resumeClimatProperty().get()).contains("2 mesures");
-    assertThat(viewModel.messageProperty().get()).isEmpty();
-  }
+        viewModel.ouvrirSur(ID_PASSAGE);
 
-  @Test
-  @DisplayName("Un relevé climatique absent est signalé (R20) et la série reste vide")
-  void releve_climatique_absent() {
-    when(service.diagnostiquer(ID_PASSAGE))
-        .thenReturn(diagnostic(SerieClimatique.absente(), null, null));
+        assertThat(viewModel.enregistreurProperty().get()).isEqualTo("PR 1925492");
+        assertThat(viewModel.mesures()).hasSize(2);
+        assertThat(viewModel.anomalies()).containsExactly("Réveil non programmé à 03:12");
+        assertThat(viewModel.evenements()).containsExactly("Démarrage 20:25");
+        assertThat(viewModel.releveClimatiqueAbsentProperty().get()).isFalse();
+        assertThat(viewModel.gpsDisponibleProperty().get()).isTrue();
+        assertThat(viewModel.resumeClimatProperty().get()).contains("2 mesures");
+        assertThat(viewModel.messageProperty().get()).isEmpty();
+    }
 
-    viewModel.ouvrirSur(ID_PASSAGE);
+    @Test
+    @DisplayName("Un relevé climatique absent est signalé (R20) et la série reste vide")
+    void releve_climatique_absent() {
+        when(service.diagnostiquer(ID_PASSAGE)).thenReturn(diagnostic(SerieClimatique.absente(), null, null));
 
-    assertThat(viewModel.releveClimatiqueAbsentProperty().get()).isTrue();
-    assertThat(viewModel.gpsDisponibleProperty().get()).isFalse();
-    assertThat(viewModel.resumeClimatProperty().get()).contains("absent");
-    assertThat(viewModel.mesures()).isEmpty();
-  }
+        viewModel.ouvrirSur(ID_PASSAGE);
 
-  @Test
-  @DisplayName("Un passage introuvable est restitué dans le message et laisse l'état vide")
-  void passage_introuvable() {
-    when(service.diagnostiquer(99L))
-        .thenThrow(new RegleMetierException("Passage introuvable : 99"));
+        assertThat(viewModel.releveClimatiqueAbsentProperty().get()).isTrue();
+        assertThat(viewModel.gpsDisponibleProperty().get()).isFalse();
+        assertThat(viewModel.resumeClimatProperty().get()).contains("absent");
+        assertThat(viewModel.mesures()).isEmpty();
+    }
 
-    viewModel.ouvrirSur(99L);
+    @Test
+    @DisplayName("Un passage introuvable est restitué dans le message et laisse l'état vide")
+    void passage_introuvable() {
+        when(service.diagnostiquer(99L)).thenThrow(new RegleMetierException("Passage introuvable : 99"));
 
-    assertThat(viewModel.messageProperty().get()).contains("introuvable");
-    assertThat(viewModel.enregistreurProperty().get()).isEmpty();
-    assertThat(viewModel.mesures()).isEmpty();
-  }
+        viewModel.ouvrirSur(99L);
 
-  @Test
-  @DisplayName("Une réouverture qui échoue nettoie le diagnostic du passage précédent")
-  void ouvrir_en_echec_nettoie_l_etat_precedent() {
-    when(service.diagnostiquer(ID_PASSAGE)).thenReturn(diagnostic(serie(), 43.5, 5.4));
-    when(service.diagnostiquer(99L))
-        .thenThrow(new RegleMetierException("Passage introuvable : 99"));
-    viewModel.ouvrirSur(ID_PASSAGE);
-    assertThat(viewModel.mesures()).isNotEmpty();
+        assertThat(viewModel.messageProperty().get()).contains("introuvable");
+        assertThat(viewModel.enregistreurProperty().get()).isEmpty();
+        assertThat(viewModel.mesures()).isEmpty();
+    }
 
-    viewModel.ouvrirSur(99L);
+    @Test
+    @DisplayName("Une réouverture qui échoue nettoie le diagnostic du passage précédent")
+    void ouvrir_en_echec_nettoie_l_etat_precedent() {
+        when(service.diagnostiquer(ID_PASSAGE)).thenReturn(diagnostic(serie(), 43.5, 5.4));
+        when(service.diagnostiquer(99L)).thenThrow(new RegleMetierException("Passage introuvable : 99"));
+        viewModel.ouvrirSur(ID_PASSAGE);
+        assertThat(viewModel.mesures()).isNotEmpty();
 
-    assertThat(viewModel.mesures()).isEmpty();
-    assertThat(viewModel.anomalies()).isEmpty();
-    assertThat(viewModel.enregistreurProperty().get()).isEmpty();
-    assertThat(viewModel.messageProperty().get()).contains("introuvable");
-  }
+        viewModel.ouvrirSur(99L);
+
+        assertThat(viewModel.mesures()).isEmpty();
+        assertThat(viewModel.anomalies()).isEmpty();
+        assertThat(viewModel.enregistreurProperty().get()).isEmpty();
+        assertThat(viewModel.messageProperty().get()).contains("introuvable");
+    }
 }

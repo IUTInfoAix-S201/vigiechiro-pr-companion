@@ -32,33 +32,33 @@ import org.testfx.framework.junit5.Start;
 @ExtendWith(ApplicationExtension.class)
 class NavigationValidationViewTest {
 
-  @Start
-  void start(Stage stage) throws Exception {
-    Path workspace = Files.createTempDirectory("vc-validation");
-    System.setProperty("vigiechiro.workspace", workspace.toString());
-    Injector injector = RacineInjecteur.creer();
-    SourceDeDonnees source = injector.getInstance(SourceDeDonnees.class);
-    new MigrationSchema(source).migrer();
-    FXMLLoader loader = new FXMLLoader(App.class.getResource("commun/view/MainView.fxml"));
-    loader.setControllerFactory(injector::getInstance);
-    Parent racine = loader.load();
-    stage.setScene(new Scene(racine, 1100, 760));
-    injector.getInstance(NavigationValidation.class).ouvrir(999L);
-    stage.show();
-  }
+    @Start
+    void start(Stage stage) throws Exception {
+        Path workspace = Files.createTempDirectory("vc-validation");
+        System.setProperty("vigiechiro.workspace", workspace.toString());
+        Injector injector = RacineInjecteur.creer();
+        SourceDeDonnees source = injector.getInstance(SourceDeDonnees.class);
+        new MigrationSchema(source).migrer();
+        FXMLLoader loader = new FXMLLoader(App.class.getResource("commun/view/MainView.fxml"));
+        loader.setControllerFactory(injector::getInstance);
+        Parent racine = loader.load();
+        stage.setScene(new Scene(racine, 1100, 760));
+        injector.getInstance(NavigationValidation.class).ouvrir(999L);
+        stage.show();
+    }
 
-  @AfterEach
-  void nettoyerWorkspace() {
-    System.clearProperty("vigiechiro.workspace");
-  }
+    @AfterEach
+    void nettoyerWorkspace() {
+        System.clearProperty("vigiechiro.workspace");
+    }
 
-  @Test
-  @DisplayName("ouvrir(idPassage) charge l'écran M-Vision-Tadarida via Guice")
-  void ouvrir_affiche_l_ecran(FxRobot robot) {
-    Label message = robot.lookup("#lblMessage").queryAs(Label.class);
-    TableView<?> table = robot.lookup("#tableObservations").queryAs(TableView.class);
+    @Test
+    @DisplayName("ouvrir(idPassage) charge l'écran M-Vision-Tadarida via Guice")
+    void ouvrir_affiche_l_ecran(FxRobot robot) {
+        Label message = robot.lookup("#lblMessage").queryAs(Label.class);
+        TableView<?> table = robot.lookup("#tableObservations").queryAs(TableView.class);
 
-    assertThat(message.getText()).contains("Aucun résultat Tadarida importé");
-    assertThat(table.getItems()).isEmpty();
-  }
+        assertThat(message.getText()).contains("Aucun résultat Tadarida importé");
+        assertThat(table.getItems()).isEmpty();
+    }
 }

@@ -10,22 +10,22 @@ import java.util.regex.Pattern;
 /// tête.
 public final class ValidateurCarre {
 
-  private static final Pattern SIX_CHIFFRES = Pattern.compile("\\d{6}");
+    private static final Pattern SIX_CHIFFRES = Pattern.compile("\\d{6}");
 
-  private ValidateurCarre() {}
+    private ValidateurCarre() {}
 
-  /// `true` si `carre` est composé d'exactement 6 chiffres.
-  public static boolean estValide(String carre) {
-    return carre != null && SIX_CHIFFRES.matcher(carre).matches();
-  }
-
-  /// Vérifie `carre` et le renvoie inchangé, ou lève une [IllegalArgumentException] si
-  /// la règle R1 n'est pas respectée.
-  public static String exigerValide(String carre) {
-    if (!estValide(carre)) {
-      throw new IllegalArgumentException(
-          "Numéro de carré invalide (R1 : 6 chiffres, zéro de tête obligatoire) : " + carre);
+    /// `true` si `carre` est composé d'exactement 6 chiffres.
+    public static boolean estValide(String carre) {
+        return carre != null && SIX_CHIFFRES.matcher(carre).matches();
     }
-    return carre;
-  }
+
+    /// Vérifie `carre` et le renvoie inchangé, ou lève une [IllegalArgumentException] si
+    /// la règle R1 n'est pas respectée.
+    public static String exigerValide(String carre) {
+        if (!estValide(carre)) {
+            throw new IllegalArgumentException(
+                    "Numéro de carré invalide (R1 : 6 chiffres, zéro de tête obligatoire) : " + carre);
+        }
+        return carre;
+    }
 }

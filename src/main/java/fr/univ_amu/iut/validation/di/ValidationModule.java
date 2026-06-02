@@ -34,76 +34,76 @@ import fr.univ_amu.iut.validation.viewmodel.ValidationViewModel;
 /// `ArchitectureTest`).
 public class ValidationModule extends AbstractModule {
 
-  /// Fournit le contrat de navigation socle [OuvrirValidation] : M-Passage l'injecte pour ouvrir la
-  /// validation Tadarida sans dépendre de la vue de cette feature (graphe de slices acyclique).
-  @Override
-  protected void configure() {
-    bind(OuvrirValidation.class).to(NavigationValidation.class);
-  }
+    /// Fournit le contrat de navigation socle [OuvrirValidation] : M-Passage l'injecte pour ouvrir la
+    /// validation Tadarida sans dépendre de la vue de cette feature (graphe de slices acyclique).
+    @Override
+    protected void configure() {
+        bind(OuvrirValidation.class).to(NavigationValidation.class);
+    }
 
-  @Provides
-  @Singleton
-  GroupeTaxonomiqueDao fournirGroupeTaxonomiqueDao(SourceDeDonnees source) {
-    return new GroupeTaxonomiqueDao(source);
-  }
+    @Provides
+    @Singleton
+    GroupeTaxonomiqueDao fournirGroupeTaxonomiqueDao(SourceDeDonnees source) {
+        return new GroupeTaxonomiqueDao(source);
+    }
 
-  @Provides
-  @Singleton
-  TaxonDao fournirTaxonDao(SourceDeDonnees source) {
-    return new TaxonDao(source);
-  }
+    @Provides
+    @Singleton
+    TaxonDao fournirTaxonDao(SourceDeDonnees source) {
+        return new TaxonDao(source);
+    }
 
-  @Provides
-  @Singleton
-  ResultatsIdentificationDao fournirResultatsIdentificationDao(SourceDeDonnees source) {
-    return new ResultatsIdentificationDao(source);
-  }
+    @Provides
+    @Singleton
+    ResultatsIdentificationDao fournirResultatsIdentificationDao(SourceDeDonnees source) {
+        return new ResultatsIdentificationDao(source);
+    }
 
-  @Provides
-  @Singleton
-  ObservationDao fournirObservationDao(SourceDeDonnees source) {
-    return new ObservationDao(source);
-  }
+    @Provides
+    @Singleton
+    ObservationDao fournirObservationDao(SourceDeDonnees source) {
+        return new ObservationDao(source);
+    }
 
-  @Provides
-  @Singleton
-  ParserCsvTadarida fournirParserCsvTadarida() {
-    return new ParserCsvTadarida();
-  }
+    @Provides
+    @Singleton
+    ParserCsvTadarida fournirParserCsvTadarida() {
+        return new ParserCsvTadarida();
+    }
 
-  @Provides
-  @Singleton
-  ExportVuCsv fournirExportVuCsv() {
-    return new ExportVuCsv();
-  }
+    @Provides
+    @Singleton
+    ExportVuCsv fournirExportVuCsv() {
+        return new ExportVuCsv();
+    }
 
-  @Provides
-  @Singleton
-  ServiceValidation fournirServiceValidation(
-      ResultatsIdentificationDao resultatsDao,
-      ObservationDao observationDao,
-      TaxonDao taxonDao,
-      SessionDao sessionDao,
-      SequenceDao sequenceDao,
-      ParserCsvTadarida parser,
-      ExportVuCsv export,
-      UniteDeTravail uniteDeTravail,
-      Horloge horloge) {
-    return new ServiceValidation(
-        resultatsDao,
-        observationDao,
-        taxonDao,
-        sessionDao,
-        sequenceDao,
-        parser,
-        export,
-        uniteDeTravail,
-        horloge);
-  }
+    @Provides
+    @Singleton
+    ServiceValidation fournirServiceValidation(
+            ResultatsIdentificationDao resultatsDao,
+            ObservationDao observationDao,
+            TaxonDao taxonDao,
+            SessionDao sessionDao,
+            SequenceDao sequenceDao,
+            ParserCsvTadarida parser,
+            ExportVuCsv export,
+            UniteDeTravail uniteDeTravail,
+            Horloge horloge) {
+        return new ServiceValidation(
+                resultatsDao,
+                observationDao,
+                taxonDao,
+                sessionDao,
+                sequenceDao,
+                parser,
+                export,
+                uniteDeTravail,
+                horloge);
+    }
 
-  /// ViewModel de M-Vision-Tadarida. **Non-singleton** (un VM frais par chargement FXML).
-  @Provides
-  ValidationViewModel fournirValidationViewModel(ServiceValidation service) {
-    return new ValidationViewModel(service);
-  }
+    /// ViewModel de M-Vision-Tadarida. **Non-singleton** (un VM frais par chargement FXML).
+    @Provides
+    ValidationViewModel fournirValidationViewModel(ServiceValidation service) {
+        return new ValidationViewModel(service);
+    }
 }

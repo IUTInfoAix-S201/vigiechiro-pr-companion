@@ -17,14 +17,14 @@ import java.util.List;
 /// @param nombreSequences nombre total de séquences d'écoute produites (R10)
 /// @param anomalies anomalies relevées dans le journal du capteur (R19), éventuellement vide
 public record ResultatImport(
-    Passage passage,
-    SessionDEnregistrement session,
-    String numeroSerieEnregistreur,
-    int nombreOriginaux,
-    int nombreSequences,
-    List<String> anomalies) {
+        Passage passage,
+        SessionDEnregistrement session,
+        String numeroSerieEnregistreur,
+        int nombreOriginaux,
+        int nombreSequences,
+        List<String> anomalies) {
 
-  public ResultatImport {
-    anomalies = List.copyOf(anomalies);
-  }
+    public ResultatImport {
+        anomalies = List.copyOf(anomalies);
+    }
 }

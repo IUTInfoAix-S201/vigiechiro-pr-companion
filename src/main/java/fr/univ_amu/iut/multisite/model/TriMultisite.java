@@ -14,38 +14,36 @@ import java.util.Comparator;
 /// en **fin** de tri.
 public enum TriMultisite {
 
-  /// Tri de lecture par défaut : site, puis point, puis année, puis n° de passage.
-  PAR_SITE(null),
+    /// Tri de lecture par défaut : site, puis point, puis année, puis n° de passage.
+    PAR_SITE(null),
 
-  /// Tri par année croissante, puis par l'ordre de référence.
-  PAR_ANNEE(Comparator.comparingInt(LignePassage::annee)),
+    /// Tri par année croissante, puis par l'ordre de référence.
+    PAR_ANNEE(Comparator.comparingInt(LignePassage::annee)),
 
-  /// Tri par statut de workflow (ordre de progression
-  /// [StatutWorkflow][fr.univ_amu.iut.commun.model.StatutWorkflow]), puis référence.
-  PAR_STATUT(Comparator.comparingInt((LignePassage ligne) -> ligne.statut().ordinal())),
+    /// Tri par statut de workflow (ordre de progression
+    /// [StatutWorkflow][fr.univ_amu.iut.commun.model.StatutWorkflow]), puis référence.
+    PAR_STATUT(Comparator.comparingInt((LignePassage ligne) -> ligne.statut().ordinal())),
 
-  /// Tri par verdict ([Verdict], passages non vérifiés en dernier), puis référence.
-  PAR_VERDICT(
-      Comparator.comparing(
-          LignePassage::verdict, Comparator.nullsLast(Comparator.comparingInt(Verdict::ordinal))));
+    /// Tri par verdict ([Verdict], passages non vérifiés en dernier), puis référence.
+    PAR_VERDICT(Comparator.comparing(
+            LignePassage::verdict, Comparator.nullsLast(Comparator.comparingInt(Verdict::ordinal))));
 
-  /// Ordre de référence stable, utilisé tel quel par [#PAR_SITE] et en départage ailleurs.
-  private static final Comparator<LignePassage> REFERENCE =
-      Comparator.comparing(LignePassage::numeroCarre)
-          .thenComparing(LignePassage::codePoint)
-          .thenComparingInt(LignePassage::annee)
-          .thenComparingInt(LignePassage::numeroPassage);
+    /// Ordre de référence stable, utilisé tel quel par [#PAR_SITE] et en départage ailleurs.
+    private static final Comparator<LignePassage> REFERENCE = Comparator.comparing(LignePassage::numeroCarre)
+            .thenComparing(LignePassage::codePoint)
+            .thenComparingInt(LignePassage::annee)
+            .thenComparingInt(LignePassage::numeroPassage);
 
-  private final Comparator<LignePassage> criterePrincipal;
+    private final Comparator<LignePassage> criterePrincipal;
 
-  TriMultisite(Comparator<LignePassage> criterePrincipal) {
-    this.criterePrincipal = criterePrincipal;
-  }
+    TriMultisite(Comparator<LignePassage> criterePrincipal) {
+        this.criterePrincipal = criterePrincipal;
+    }
 
-  /// Comparateur déterministe correspondant à ce critère de tri (critère principal puis ordre de
-  /// référence). Construit à l'appel : [#REFERENCE] est alors initialisé (contrairement à
-  /// l'instant de construction des constantes d'énum).
-  public Comparator<LignePassage> comparateur() {
-    return criterePrincipal == null ? REFERENCE : criterePrincipal.thenComparing(REFERENCE);
-  }
+    /// Comparateur déterministe correspondant à ce critère de tri (critère principal puis ordre de
+    /// référence). Construit à l'appel : [#REFERENCE] est alors initialisé (contrairement à
+    /// l'instant de construction des constantes d'énum).
+    public Comparator<LignePassage> comparateur() {
+        return criterePrincipal == null ? REFERENCE : criterePrincipal.thenComparing(REFERENCE);
+    }
 }

@@ -16,36 +16,36 @@ import java.util.Objects;
 ///   tout être vide si le fichier a été perdu (journal tronqué, R19).
 public final class SerieClimatique {
 
-  private final boolean present;
-  private final List<MesureClimatique> mesures;
+    private final boolean present;
+    private final List<MesureClimatique> mesures;
 
-  private SerieClimatique(boolean present, List<MesureClimatique> mesures) {
-    this.present = present;
-    this.mesures = List.copyOf(Objects.requireNonNull(mesures, "mesures"));
-  }
+    private SerieClimatique(boolean present, List<MesureClimatique> mesures) {
+        this.present = present;
+        this.mesures = List.copyOf(Objects.requireNonNull(mesures, "mesures"));
+    }
 
-  /// Aucun relevé climatique pour la session (R20, absence à signaler).
-  public static SerieClimatique absente() {
-    return new SerieClimatique(false, List.of());
-  }
+    /// Aucun relevé climatique pour la session (R20, absence à signaler).
+    public static SerieClimatique absente() {
+        return new SerieClimatique(false, List.of());
+    }
 
-  /// Un relevé existe ; `mesures` porte la série lue (éventuellement vide).
-  public static SerieClimatique presente(List<MesureClimatique> mesures) {
-    return new SerieClimatique(true, mesures);
-  }
+    /// Un relevé existe ; `mesures` porte la série lue (éventuellement vide).
+    public static SerieClimatique presente(List<MesureClimatique> mesures) {
+        return new SerieClimatique(true, mesures);
+    }
 
-  /// `true` si un relevé climatique est rattaché à la session (R20).
-  public boolean present() {
-    return present;
-  }
+    /// `true` si un relevé climatique est rattaché à la session (R20).
+    public boolean present() {
+        return present;
+    }
 
-  /// La série de mesures (immuable, dans l'ordre chronologique du fichier).
-  public List<MesureClimatique> mesures() {
-    return mesures;
-  }
+    /// La série de mesures (immuable, dans l'ordre chronologique du fichier).
+    public List<MesureClimatique> mesures() {
+        return mesures;
+    }
 
-  /// Nombre de mesures de la série.
-  public int nombreMesures() {
-    return mesures.size();
-  }
+    /// Nombre de mesures de la série.
+    public int nombreMesures() {
+        return mesures.size();
+    }
 }

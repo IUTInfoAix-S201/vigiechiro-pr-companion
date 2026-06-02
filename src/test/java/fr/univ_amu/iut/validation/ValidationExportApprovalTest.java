@@ -21,18 +21,16 @@ import org.junit.jupiter.api.Test;
 @UseReporter(QuietReporter.class)
 class ValidationExportApprovalTest {
 
-  @Test
-  @DisplayName("L'export _Vu des 473 observations réelles est stable (golden master)")
-  void le_csv_vu_exporte_est_stable() throws URISyntaxException {
-    Path brut =
-        Path.of(
-            ValidationExportApprovalTest.class
+    @Test
+    @DisplayName("L'export _Vu des 473 observations réelles est stable (golden master)")
+    void le_csv_vu_exporte_est_stable() throws URISyntaxException {
+        Path brut = Path.of(ValidationExportApprovalTest.class
                 .getResource("/validation/observations_brut.csv")
                 .toURI());
 
-    ParserCsvTadarida parser = new ParserCsvTadarida();
-    ExportVuCsv export = new ExportVuCsv();
+        ParserCsvTadarida parser = new ParserCsvTadarida();
+        ExportVuCsv export = new ExportVuCsv();
 
-    Approvals.verify(export.versChaine(parser.parser(brut).lignes()));
-  }
+        Approvals.verify(export.versChaine(parser.parser(brut).lignes()));
+    }
 }

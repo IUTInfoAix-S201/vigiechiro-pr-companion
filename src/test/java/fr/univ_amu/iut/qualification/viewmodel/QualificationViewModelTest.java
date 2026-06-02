@@ -28,146 +28,142 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class QualificationViewModelTest {
 
-  private static final long ID_PASSAGE = 42L;
+    private static final long ID_PASSAGE = 42L;
 
-  @Mock private ServiceQualification service;
-  private QualificationViewModel viewModel;
+    @Mock
+    private ServiceQualification service;
 
-  @BeforeEach
-  void preparer() {
-    viewModel = new QualificationViewModel(service);
-  }
+    private QualificationViewModel viewModel;
 
-  /// Stub du contexte lu par `ouvrirSur` après le pré-check : passage transformé, pas encore de
-  /// verdict persisté (le bandeau affiche donc `A_VERIFIER`).
-  private void stubContexte() {
-    when(service.chargerContexte(ID_PASSAGE))
-        .thenReturn(
-            new ContexteVerification(
-                "640380",
-                "A1",
-                "Étang de la Tuilière",
-                2,
-                2026,
-                "2026-06-22",
-                "20:25:00",
-                "07:47:00",
-                20,
-                100.0,
-                StatutWorkflow.TRANSFORME,
-                null));
-  }
+    @BeforeEach
+    void preparer() {
+        viewModel = new QualificationViewModel(service);
+    }
 
-  @Test
-  @DisplayName("ouvrirSur mappe le pré-check en 3 feux et amorce le bandeau verdict")
-  void ouvrir_mappe_le_precheck() {
-    when(service.precheck(ID_PASSAGE))
-        .thenReturn(new PreCheckNuit.Diagnostic(Feu.VERT, Feu.ORANGE, Feu.ROUGE));
-    stubContexte();
+    /// Stub du contexte lu par `ouvrirSur` après le pré-check : passage transformé, pas encore de
+    /// verdict persisté (le bandeau affiche donc `A_VERIFIER`).
+    private void stubContexte() {
+        when(service.chargerContexte(ID_PASSAGE))
+                .thenReturn(new ContexteVerification(
+                        "640380",
+                        "A1",
+                        "Étang de la Tuilière",
+                        2,
+                        2026,
+                        "2026-06-22",
+                        "20:25:00",
+                        "07:47:00",
+                        20,
+                        100.0,
+                        StatutWorkflow.TRANSFORME,
+                        null));
+    }
 
-    viewModel.ouvrirSur(ID_PASSAGE);
+    @Test
+    @DisplayName("ouvrirSur mappe le pré-check en 3 feux et amorce le bandeau verdict")
+    void ouvrir_mappe_le_precheck() {
+        when(service.precheck(ID_PASSAGE)).thenReturn(new PreCheckNuit.Diagnostic(Feu.VERT, Feu.ORANGE, Feu.ROUGE));
+        stubContexte();
 
-    assertThat(viewModel.feuCouvertureProperty().get()).isEqualTo(Feu.VERT);
-    assertThat(viewModel.feuNombreProperty().get()).isEqualTo(Feu.ORANGE);
-    assertThat(viewModel.feuRenommageProperty().get()).isEqualTo(Feu.ROUGE);
-    assertThat(viewModel.preCheckAnomalieProperty().get()).isTrue();
-    assertThat(viewModel.statutProperty().get()).isEqualTo(StatutWorkflow.TRANSFORME);
-    assertThat(viewModel.verdictActuelProperty().get()).isEqualTo(Verdict.A_VERIFIER);
-    assertThat(viewModel.messageProperty().get()).isEmpty();
-  }
+        viewModel.ouvrirSur(ID_PASSAGE);
 
-  @Test
-  @DisplayName("Sans verdict décisif, l'enregistrement est refusé sans toucher au service")
-  void verdict_manquant_refuse() {
-    assertThat(viewModel.peutEnregistrer().get()).isFalse();
-    viewModel.choisirVerdict(Verdict.A_VERIFIER);
-    assertThat(viewModel.peutEnregistrer().get()).isFalse();
+        assertThat(viewModel.feuCouvertureProperty().get()).isEqualTo(Feu.VERT);
+        assertThat(viewModel.feuNombreProperty().get()).isEqualTo(Feu.ORANGE);
+        assertThat(viewModel.feuRenommageProperty().get()).isEqualTo(Feu.ROUGE);
+        assertThat(viewModel.preCheckAnomalieProperty().get()).isTrue();
+        assertThat(viewModel.statutProperty().get()).isEqualTo(StatutWorkflow.TRANSFORME);
+        assertThat(viewModel.verdictActuelProperty().get()).isEqualTo(Verdict.A_VERIFIER);
+        assertThat(viewModel.messageProperty().get()).isEmpty();
+    }
 
-    viewModel.enregistrer();
+    @Test
+    @DisplayName("Sans verdict décisif, l'enregistrement est refusé sans toucher au service")
+    void verdict_manquant_refuse() {
+        assertThat(viewModel.peutEnregistrer().get()).isFalse();
+        viewModel.choisirVerdict(Verdict.A_VERIFIER);
+        assertThat(viewModel.peutEnregistrer().get()).isFalse();
 
-    assertThat(viewModel.messageProperty().get()).contains("verdict");
-    verify(service, never()).enregistrerVerdict(any(), any(), any());
-  }
+        viewModel.enregistrer();
 
-  @Test
-  @DisplayName("Enregistrer un verdict OK persiste et passe l'état à ENREGISTRE")
-  void enregistrer_ok() {
-    when(service.precheck(ID_PASSAGE))
-        .thenReturn(new PreCheckNuit.Diagnostic(Feu.VERT, Feu.VERT, Feu.VERT));
-    stubContexte();
-    when(service.estAJeter(ID_PASSAGE)).thenReturn(false);
-    viewModel.ouvrirSur(ID_PASSAGE);
-    viewModel.commentaireProperty().set("Beaux contacts de pipistrelle.");
-    viewModel.choisirVerdict(Verdict.OK);
+        assertThat(viewModel.messageProperty().get()).contains("verdict");
+        verify(service, never()).enregistrerVerdict(any(), any(), any());
+    }
 
-    assertThat(viewModel.peutEnregistrer().get()).isTrue();
-    viewModel.enregistrer();
+    @Test
+    @DisplayName("Enregistrer un verdict OK persiste et passe l'état à ENREGISTRE")
+    void enregistrer_ok() {
+        when(service.precheck(ID_PASSAGE)).thenReturn(new PreCheckNuit.Diagnostic(Feu.VERT, Feu.VERT, Feu.VERT));
+        stubContexte();
+        when(service.estAJeter(ID_PASSAGE)).thenReturn(false);
+        viewModel.ouvrirSur(ID_PASSAGE);
+        viewModel.commentaireProperty().set("Beaux contacts de pipistrelle.");
+        viewModel.choisirVerdict(Verdict.OK);
 
-    verify(service).enregistrerVerdict(ID_PASSAGE, Verdict.OK, "Beaux contacts de pipistrelle.");
-    assertThat(viewModel.etatVerdictProperty().get()).isEqualTo(EtatVerdict.ENREGISTRE);
-    assertThat(viewModel.verdictActuelProperty().get()).isEqualTo(Verdict.OK);
-    assertThat(viewModel.statutProperty().get()).isEqualTo(StatutWorkflow.VERIFIE);
-    assertThat(viewModel.avertissementAJeterProperty().get()).isEmpty();
-  }
+        assertThat(viewModel.peutEnregistrer().get()).isTrue();
+        viewModel.enregistrer();
 
-  @Test
-  @DisplayName("Un verdict « à jeter » enregistré déclenche l'avertissement R14")
-  void verdict_a_jeter_avertit() {
-    when(service.precheck(ID_PASSAGE))
-        .thenReturn(new PreCheckNuit.Diagnostic(Feu.VERT, Feu.VERT, Feu.VERT));
-    stubContexte();
-    when(service.estAJeter(ID_PASSAGE)).thenReturn(true);
-    viewModel.ouvrirSur(ID_PASSAGE);
-    viewModel.choisirVerdict(Verdict.A_JETER);
+        verify(service).enregistrerVerdict(ID_PASSAGE, Verdict.OK, "Beaux contacts de pipistrelle.");
+        assertThat(viewModel.etatVerdictProperty().get()).isEqualTo(EtatVerdict.ENREGISTRE);
+        assertThat(viewModel.verdictActuelProperty().get()).isEqualTo(Verdict.OK);
+        assertThat(viewModel.statutProperty().get()).isEqualTo(StatutWorkflow.VERIFIE);
+        assertThat(viewModel.avertissementAJeterProperty().get()).isEmpty();
+    }
 
-    viewModel.enregistrer();
+    @Test
+    @DisplayName("Un verdict « à jeter » enregistré déclenche l'avertissement R14")
+    void verdict_a_jeter_avertit() {
+        when(service.precheck(ID_PASSAGE)).thenReturn(new PreCheckNuit.Diagnostic(Feu.VERT, Feu.VERT, Feu.VERT));
+        stubContexte();
+        when(service.estAJeter(ID_PASSAGE)).thenReturn(true);
+        viewModel.ouvrirSur(ID_PASSAGE);
+        viewModel.choisirVerdict(Verdict.A_JETER);
 
-    assertThat(viewModel.etatVerdictProperty().get()).isEqualTo(EtatVerdict.ENREGISTRE);
-    assertThat(viewModel.avertissementAJeterProperty().get()).contains("à jeter");
-  }
+        viewModel.enregistrer();
 
-  @Test
-  @DisplayName("Un commentaire vide est transmis comme null (commentaire existant conservé)")
-  void commentaire_vide_devient_null() {
-    when(service.precheck(ID_PASSAGE))
-        .thenReturn(new PreCheckNuit.Diagnostic(Feu.VERT, Feu.VERT, Feu.VERT));
-    stubContexte();
-    when(service.estAJeter(ID_PASSAGE)).thenReturn(false);
-    viewModel.ouvrirSur(ID_PASSAGE);
-    viewModel.choisirVerdict(Verdict.DOUTEUX);
+        assertThat(viewModel.etatVerdictProperty().get()).isEqualTo(EtatVerdict.ENREGISTRE);
+        assertThat(viewModel.avertissementAJeterProperty().get()).contains("à jeter");
+    }
 
-    viewModel.enregistrer();
+    @Test
+    @DisplayName("Un commentaire vide est transmis comme null (commentaire existant conservé)")
+    void commentaire_vide_devient_null() {
+        when(service.precheck(ID_PASSAGE)).thenReturn(new PreCheckNuit.Diagnostic(Feu.VERT, Feu.VERT, Feu.VERT));
+        stubContexte();
+        when(service.estAJeter(ID_PASSAGE)).thenReturn(false);
+        viewModel.ouvrirSur(ID_PASSAGE);
+        viewModel.choisirVerdict(Verdict.DOUTEUX);
 
-    verify(service).enregistrerVerdict(eq(ID_PASSAGE), eq(Verdict.DOUTEUX), isNull());
-  }
+        viewModel.enregistrer();
 
-  @Test
-  @DisplayName("Un passage introuvable à l'ouverture est restitué dans le message")
-  void passage_introuvable() {
-    when(service.precheck(ID_PASSAGE))
-        .thenThrow(new RegleMetierException("Passage introuvable : 42"));
+        verify(service).enregistrerVerdict(eq(ID_PASSAGE), eq(Verdict.DOUTEUX), isNull());
+    }
 
-    viewModel.ouvrirSur(ID_PASSAGE);
+    @Test
+    @DisplayName("Un passage introuvable à l'ouverture est restitué dans le message")
+    void passage_introuvable() {
+        when(service.precheck(ID_PASSAGE)).thenThrow(new RegleMetierException("Passage introuvable : 42"));
 
-    assertThat(viewModel.messageProperty().get()).contains("introuvable");
-    assertThat(viewModel.feuCouvertureProperty().get()).isNull();
-  }
+        viewModel.ouvrirSur(ID_PASSAGE);
 
-  @Test
-  @DisplayName("Une réouverture qui échoue nettoie les feux/statut/verdict du passage précédent")
-  void ouvrir_en_echec_nettoie_l_etat_precedent() {
-    when(service.precheck(ID_PASSAGE))
-        .thenReturn(new PreCheckNuit.Diagnostic(Feu.VERT, Feu.VERT, Feu.VERT))
-        .thenThrow(new RegleMetierException("Passage introuvable : 42"));
-    stubContexte();
-    viewModel.ouvrirSur(ID_PASSAGE);
-    assertThat(viewModel.feuCouvertureProperty().get()).isEqualTo(Feu.VERT);
+        assertThat(viewModel.messageProperty().get()).contains("introuvable");
+        assertThat(viewModel.feuCouvertureProperty().get()).isNull();
+    }
 
-    viewModel.ouvrirSur(ID_PASSAGE);
+    @Test
+    @DisplayName("Une réouverture qui échoue nettoie les feux/statut/verdict du passage précédent")
+    void ouvrir_en_echec_nettoie_l_etat_precedent() {
+        when(service.precheck(ID_PASSAGE))
+                .thenReturn(new PreCheckNuit.Diagnostic(Feu.VERT, Feu.VERT, Feu.VERT))
+                .thenThrow(new RegleMetierException("Passage introuvable : 42"));
+        stubContexte();
+        viewModel.ouvrirSur(ID_PASSAGE);
+        assertThat(viewModel.feuCouvertureProperty().get()).isEqualTo(Feu.VERT);
 
-    assertThat(viewModel.feuCouvertureProperty().get()).isNull();
-    assertThat(viewModel.statutProperty().get()).isNull();
-    assertThat(viewModel.verdictActuelProperty().get()).isEqualTo(Verdict.A_VERIFIER);
-    assertThat(viewModel.messageProperty().get()).contains("introuvable");
-  }
+        viewModel.ouvrirSur(ID_PASSAGE);
+
+        assertThat(viewModel.feuCouvertureProperty().get()).isNull();
+        assertThat(viewModel.statutProperty().get()).isNull();
+        assertThat(viewModel.verdictActuelProperty().get()).isEqualTo(Verdict.A_VERIFIER);
+        assertThat(viewModel.messageProperty().get()).contains("introuvable");
+    }
 }

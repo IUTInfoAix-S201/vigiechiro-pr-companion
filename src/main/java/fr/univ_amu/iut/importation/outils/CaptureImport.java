@@ -49,110 +49,99 @@ import javafx.scene.Scene;
 /// Lancement headless : `.github/assets/capture-screenshots.sh` (Headless Platform JavaFX 26).
 public final class CaptureImport {
 
-  private static final String ID_UTILISATEUR = "demo-enseignant";
-  private static final LocalDate REFERENCE = LocalDate.of(2026, 9, 20);
-  private static final String IMPORT_FXML = "/fr/univ_amu/iut/importation/view/Importation.fxml";
+    private static final String ID_UTILISATEUR = "demo-enseignant";
+    private static final LocalDate REFERENCE = LocalDate.of(2026, 9, 20);
+    private static final String IMPORT_FXML = "/fr/univ_amu/iut/importation/view/Importation.fxml";
 
-  private static final String LOG =
-      "22/04/26 - 16:02:20 PR1925492 Demarrage Passive Recorder numero de serie 1925492, V1.01,"
-          + " CPU 600000000, T4.1\n"
-          + "22/04/26 - 16:02:21 PR1925492 Sonde temperature/hygrometrie presente, lecture toutes"
-          + " les 600s\n"
-          + "22/04/26 - 16:02:21 PR1925492 Parametres : Acquisi. 20:25-07:47, Fe384kHz, Bd. Freq."
-          + " 8-120kHz\n";
+    private static final String LOG =
+            "22/04/26 - 16:02:20 PR1925492 Demarrage Passive Recorder numero de serie 1925492, V1.01,"
+                    + " CPU 600000000, T4.1\n"
+                    + "22/04/26 - 16:02:21 PR1925492 Sonde temperature/hygrometrie presente, lecture toutes"
+                    + " les 600s\n"
+                    + "22/04/26 - 16:02:21 PR1925492 Parametres : Acquisi. 20:25-07:47, Fe384kHz, Bd. Freq."
+                    + " 8-120kHz\n";
 
-  private CaptureImport() {}
+    private CaptureImport() {}
 
-  public static void main(String[] args) throws InterruptedException {
-    CountDownLatch fini = new CountDownLatch(1);
-    AtomicReference<Throwable> erreur = new AtomicReference<>();
-    Platform.startup(
-        () -> {
-          try {
-            capturer();
-          } catch (RuntimeException | IOException probleme) {
-            erreur.set(probleme);
-          } finally {
-            fini.countDown();
-          }
+    public static void main(String[] args) throws InterruptedException {
+        CountDownLatch fini = new CountDownLatch(1);
+        AtomicReference<Throwable> erreur = new AtomicReference<>();
+        Platform.startup(() -> {
+            try {
+                capturer();
+            } catch (RuntimeException | IOException probleme) {
+                erreur.set(probleme);
+            } finally {
+                fini.countDown();
+            }
         });
-    fini.await();
-    Platform.exit();
-    Throwable probleme = erreur.get();
-    if (probleme != null) {
-      probleme.printStackTrace();
-      System.exit(1);
-    }
-    System.exit(0);
-  }
-
-  private static void capturer() throws IOException {
-    Path workspace = Files.createTempDirectory("vc-capture-import");
-    System.setProperty("vigiechiro.workspace", workspace.toString());
-    Path sortie = Path.of(System.getProperty("capture.outDir", ".github/assets"));
-
-    Injector injecteur = creerInjecteur();
-    injecteur.getInstance(MigrationSchema.class).migrer();
-    seeder(injecteur);
-    Path dossierSd = creerDossierEchantillon();
-
-    // VM connu, injecte dans le controller via une controllerFactory dediee, puis piloté pour
-    // remplir l'assistant comme le « cas standard » de la maquette.
-    ImportationViewModel vm = injecteur.getInstance(ImportationViewModel.class);
-    FXMLLoader loader = new FXMLLoader(CaptureImport.class.getResource(IMPORT_FXML));
-    loader.setControllerFactory(
-        type ->
-            type == ImportationController.class
-                ? new ImportationController(vm)
-                : injecteur.getInstance(type));
-    Parent vue = loader.load();
-
-    vm.dossierSourceProperty().set(dossierSd);
-    vm.inspecter();
-    if (!vm.sites().isEmpty()) {
-      vm.siteSelectionneProperty().set(vm.sites().get(0));
-    }
-    if (!vm.points().isEmpty()) {
-      vm.pointSelectionneProperty().set(vm.points().get(0));
+        fini.await();
+        Platform.exit();
+        Throwable probleme = erreur.get();
+        if (probleme != null) {
+            probleme.printStackTrace();
+            System.exit(1);
+        }
+        System.exit(0);
     }
 
-    Path fichier = sortie.resolve("apercu-import-assistant.png");
-    ApercuFx.enregistrerPng(new Scene(vue, 1100, 760), fichier);
-    System.out.println("Apercu ecrit dans " + fichier.toAbsolutePath());
-  }
+    private static void capturer() throws IOException {
+        Path workspace = Files.createTempDirectory("vc-capture-import");
+        System.setProperty("vigiechiro.workspace", workspace.toString());
+        Path sortie = Path.of(System.getProperty("capture.outDir", ".github/assets"));
 
-  private static Injector creerInjecteur() {
-    return Guice.createInjector(
-        Modules.override(
-                new CommunModule(),
-                new PersistenceModule(),
-                new SitesModule(),
-                new PassageModule(),
-                new ImportationModule())
-            .with(liaison -> liaison.bind(Horloge.class).toInstance(new HorlogeFigee(REFERENCE))));
-  }
+        Injector injecteur = creerInjecteur();
+        injecteur.getInstance(MigrationSchema.class).migrer();
+        seeder(injecteur);
+        Path dossierSd = creerDossierEchantillon();
 
-  private static void seeder(Injector injecteur) {
-    SourceDeDonnees source = injecteur.getInstance(SourceDeDonnees.class);
-    new UtilisateurDao(source).insert(new Utilisateur(ID_UTILISATEUR, "Capitaine Chiro (demo)"));
-    ServiceSites service = injecteur.getInstance(ServiceSites.class);
-    var site =
-        service.creerSite(
-            "640380",
-            "Etang de la Tuiliere",
-            Protocole.STANDARD,
-            "Aix-en-Provence",
-            ID_UTILISATEUR);
-    service.ajouterPoint(site.id(), "A1", 43.5298, 5.4474, "Pres du grand chene");
-  }
+        // VM connu, injecte dans le controller via une controllerFactory dediee, puis piloté pour
+        // remplir l'assistant comme le « cas standard » de la maquette.
+        ImportationViewModel vm = injecteur.getInstance(ImportationViewModel.class);
+        FXMLLoader loader = new FXMLLoader(CaptureImport.class.getResource(IMPORT_FXML));
+        loader.setControllerFactory(type ->
+                type == ImportationController.class ? new ImportationController(vm) : injecteur.getInstance(type));
+        Parent vue = loader.load();
 
-  private static Path creerDossierEchantillon() throws IOException {
-    Path sd = Files.createTempDirectory("vc-sd-demo");
-    Files.writeString(sd.resolve("LogPR1925492.txt"), LOG, StandardCharsets.UTF_8);
-    Files.writeString(
-        sd.resolve("PaRecPR1925492_THLog.csv"), "Date\tHour\n", StandardCharsets.UTF_8);
-    Files.writeString(sd.resolve("PaRecPR1925492_20260422_203922.wav"), "wav1");
-    Files.writeString(sd.resolve("PaRecPR1925492_20260422_204326.wav"), "wav2");
-    return sd;
-  }
+        vm.dossierSourceProperty().set(dossierSd);
+        vm.inspecter();
+        if (!vm.sites().isEmpty()) {
+            vm.siteSelectionneProperty().set(vm.sites().get(0));
+        }
+        if (!vm.points().isEmpty()) {
+            vm.pointSelectionneProperty().set(vm.points().get(0));
+        }
+
+        Path fichier = sortie.resolve("apercu-import-assistant.png");
+        ApercuFx.enregistrerPng(new Scene(vue, 1100, 760), fichier);
+        System.out.println("Apercu ecrit dans " + fichier.toAbsolutePath());
+    }
+
+    private static Injector creerInjecteur() {
+        return Guice.createInjector(Modules.override(
+                        new CommunModule(),
+                        new PersistenceModule(),
+                        new SitesModule(),
+                        new PassageModule(),
+                        new ImportationModule())
+                .with(liaison -> liaison.bind(Horloge.class).toInstance(new HorlogeFigee(REFERENCE))));
+    }
+
+    private static void seeder(Injector injecteur) {
+        SourceDeDonnees source = injecteur.getInstance(SourceDeDonnees.class);
+        new UtilisateurDao(source).insert(new Utilisateur(ID_UTILISATEUR, "Capitaine Chiro (demo)"));
+        ServiceSites service = injecteur.getInstance(ServiceSites.class);
+        var site = service.creerSite(
+                "640380", "Etang de la Tuiliere", Protocole.STANDARD, "Aix-en-Provence", ID_UTILISATEUR);
+        service.ajouterPoint(site.id(), "A1", 43.5298, 5.4474, "Pres du grand chene");
+    }
+
+    private static Path creerDossierEchantillon() throws IOException {
+        Path sd = Files.createTempDirectory("vc-sd-demo");
+        Files.writeString(sd.resolve("LogPR1925492.txt"), LOG, StandardCharsets.UTF_8);
+        Files.writeString(sd.resolve("PaRecPR1925492_THLog.csv"), "Date\tHour\n", StandardCharsets.UTF_8);
+        Files.writeString(sd.resolve("PaRecPR1925492_20260422_203922.wav"), "wav1");
+        Files.writeString(sd.resolve("PaRecPR1925492_20260422_204326.wav"), "wav2");
+        return sd;
+    }
 }

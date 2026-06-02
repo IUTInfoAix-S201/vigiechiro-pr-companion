@@ -27,102 +27,94 @@ import java.util.stream.Stream;
 /// rien n'a bougé et la cohérence base/disque est préservée.
 public class ReprefixeurSession {
 
-  /// Déplace `racineSession` vers le dossier du nouveau préfixe (même parent) et re-préfixe les
-  /// fichiers qu'il contient. Renvoie la nouvelle racine.
-  ///
-  /// @throws UncheckedIOException en cas d'erreur d'E/S (après tentative de rollback)
-  /// @throws IllegalStateException si le dossier cible existe déjà (quadruplet non libre)
-  public Path reprefixer(Path racineSession, Prefixe ancien, Prefixe nouveau) {
-    Objects.requireNonNull(racineSession, "racineSession");
-    Objects.requireNonNull(ancien, "ancien");
-    Objects.requireNonNull(nouveau, "nouveau");
-    Path nouvelleRacine = racineSession.resolveSibling(nouveau.nomDossierSession());
-    if (Files.exists(nouvelleRacine)) {
-      throw new IllegalStateException(
-          "Le dossier de session cible existe déjà : " + nouvelleRacine);
-    }
-    try {
-      Files.move(racineSession, nouvelleRacine);
-    } catch (IOException echec) {
-      throw new UncheckedIOException("Déplacement du dossier de session impossible", echec);
+    /// Déplace `racineSession` vers le dossier du nouveau préfixe (même parent) et re-préfixe les
+    /// fichiers qu'il contient. Renvoie la nouvelle racine.
+    ///
+    /// @throws UncheckedIOException en cas d'erreur d'E/S (après tentative de rollback)
+    /// @throws IllegalStateException si le dossier cible existe déjà (quadruplet non libre)
+    public Path reprefixer(Path racineSession, Prefixe ancien, Prefixe nouveau) {
+        Objects.requireNonNull(racineSession, "racineSession");
+        Objects.requireNonNull(ancien, "ancien");
+        Objects.requireNonNull(nouveau, "nouveau");
+        Path nouvelleRacine = racineSession.resolveSibling(nouveau.nomDossierSession());
+        if (Files.exists(nouvelleRacine)) {
+            throw new IllegalStateException("Le dossier de session cible existe déjà : " + nouvelleRacine);
+        }
+        try {
+            Files.move(racineSession, nouvelleRacine);
+        } catch (IOException echec) {
+            throw new UncheckedIOException("Déplacement du dossier de session impossible", echec);
+        }
+
+        String ancienPrefixe = ancien.prefixeFichier();
+        String nouveauPrefixe = nouveau.prefixeFichier();
+        Deque<Path[]> faits = new ArrayDeque<>();
+        try {
+            for (Path fichier : fichiersPrefixes(nouvelleRacine, ancienPrefixe)) {
+                Path cible = fichier.resolveSibling(
+                        nouveauPrefixe + fichier.getFileName().toString().substring(ancienPrefixe.length()));
+                Files.move(fichier, cible);
+                faits.push(new Path[] {fichier, cible});
+            }
+            return nouvelleRacine;
+        } catch (IOException | RuntimeException echec) {
+            annuler(faits);
+            remettreEnPlace(nouvelleRacine, racineSession);
+            throw new UncheckedIOException("Re-préfixage impossible (rollback effectué)", enErreurES(echec));
+        }
     }
 
-    String ancienPrefixe = ancien.prefixeFichier();
-    String nouveauPrefixe = nouveau.prefixeFichier();
-    Deque<Path[]> faits = new ArrayDeque<>();
-    try {
-      for (Path fichier : fichiersPrefixes(nouvelleRacine, ancienPrefixe)) {
-        Path cible =
-            fichier.resolveSibling(
-                nouveauPrefixe
-                    + fichier.getFileName().toString().substring(ancienPrefixe.length()));
-        Files.move(fichier, cible);
-        faits.push(new Path[] {fichier, cible});
-      }
-      return nouvelleRacine;
-    } catch (IOException | RuntimeException echec) {
-      annuler(faits);
-      remettreEnPlace(nouvelleRacine, racineSession);
-      throw new UncheckedIOException(
-          "Re-préfixage impossible (rollback effectué)", enErreurES(echec));
+    /// Nouveau chemin d'un fichier persisté après le re-préfixage d'une session.
+    ///
+    /// Si `stocke` est **structurellement sous** `ancienneRacine` (comparaison composant par
+    /// composant via [Path#startsWith], donc insensible à un parent contenant par coïncidence le nom
+    /// de dossier), il est relocalisé sous `nouvelleRacine` (relativize + resolve) et le préfixe de
+    /// son nom est remplacé s'il est présent. Sinon (chemin **externe** à la session, p. ex. un CSV
+    /// Tadarida importé d'ailleurs et non déplacé sur disque), il est renvoyé **inchangé**. Permet à
+    /// `RattachementDao` de réécrire les chemins persistés exactement comme le disque, sans les
+    /// fragilités d'un `replace` textuel.
+    public static String cheminApres(
+            String stocke, Path ancienneRacine, Path nouvelleRacine, String ancienPrefixe, String nouveauPrefixe) {
+        Path chemin = Path.of(stocke);
+        if (!chemin.startsWith(ancienneRacine)) {
+            return stocke;
+        }
+        Path cible = nouvelleRacine.resolve(ancienneRacine.relativize(chemin));
+        String nom = cible.getFileName().toString();
+        if (nom.startsWith(ancienPrefixe)) {
+            cible = cible.resolveSibling(nouveauPrefixe + nom.substring(ancienPrefixe.length()));
+        }
+        return cible.toString();
     }
-  }
 
-  /// Nouveau chemin d'un fichier persisté après le re-préfixage d'une session.
-  ///
-  /// Si `stocke` est **structurellement sous** `ancienneRacine` (comparaison composant par
-  /// composant via [Path#startsWith], donc insensible à un parent contenant par coïncidence le nom
-  /// de dossier), il est relocalisé sous `nouvelleRacine` (relativize + resolve) et le préfixe de
-  /// son nom est remplacé s'il est présent. Sinon (chemin **externe** à la session, p. ex. un CSV
-  /// Tadarida importé d'ailleurs et non déplacé sur disque), il est renvoyé **inchangé**. Permet à
-  /// `RattachementDao` de réécrire les chemins persistés exactement comme le disque, sans les
-  /// fragilités d'un `replace` textuel.
-  public static String cheminApres(
-      String stocke,
-      Path ancienneRacine,
-      Path nouvelleRacine,
-      String ancienPrefixe,
-      String nouveauPrefixe) {
-    Path chemin = Path.of(stocke);
-    if (!chemin.startsWith(ancienneRacine)) {
-      return stocke;
+    private static List<Path> fichiersPrefixes(Path racine, String ancienPrefixe) throws IOException {
+        try (Stream<Path> flux = Files.walk(racine)) {
+            return flux.filter(Files::isRegularFile)
+                    .filter(chemin -> chemin.getFileName().toString().startsWith(ancienPrefixe))
+                    .collect(ArrayList::new, List::add, List::addAll);
+        }
     }
-    Path cible = nouvelleRacine.resolve(ancienneRacine.relativize(chemin));
-    String nom = cible.getFileName().toString();
-    if (nom.startsWith(ancienPrefixe)) {
-      cible = cible.resolveSibling(nouveauPrefixe + nom.substring(ancienPrefixe.length()));
-    }
-    return cible.toString();
-  }
 
-  private static List<Path> fichiersPrefixes(Path racine, String ancienPrefixe) throws IOException {
-    try (Stream<Path> flux = Files.walk(racine)) {
-      return flux.filter(Files::isRegularFile)
-          .filter(chemin -> chemin.getFileName().toString().startsWith(ancienPrefixe))
-          .collect(ArrayList::new, List::add, List::addAll);
+    private static void annuler(Deque<Path[]> faits) {
+        while (!faits.isEmpty()) {
+            Path[] paire = faits.pop();
+            try {
+                Files.move(paire[1], paire[0]);
+            } catch (IOException ignore) {
+                // best-effort : on poursuit l'annulation des autres renommages
+            }
+        }
     }
-  }
 
-  private static void annuler(Deque<Path[]> faits) {
-    while (!faits.isEmpty()) {
-      Path[] paire = faits.pop();
-      try {
-        Files.move(paire[1], paire[0]);
-      } catch (IOException ignore) {
-        // best-effort : on poursuit l'annulation des autres renommages
-      }
+    private static void remettreEnPlace(Path nouvelleRacine, Path racineSession) {
+        try {
+            Files.move(nouvelleRacine, racineSession);
+        } catch (IOException ignore) {
+            // best-effort : le dossier reste sous le nouveau nom, mais ses fichiers ont été restaurés
+        }
     }
-  }
 
-  private static void remettreEnPlace(Path nouvelleRacine, Path racineSession) {
-    try {
-      Files.move(nouvelleRacine, racineSession);
-    } catch (IOException ignore) {
-      // best-effort : le dossier reste sous le nouveau nom, mais ses fichiers ont été restaurés
+    private static IOException enErreurES(Exception echec) {
+        return echec instanceof IOException io ? io : new IOException(echec);
     }
-  }
-
-  private static IOException enErreurES(Exception echec) {
-    return echec instanceof IOException io ? io : new IOException(echec);
-  }
 }

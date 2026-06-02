@@ -9,8 +9,8 @@ import java.util.List;
 /// @param lignes lignes d'observation parsées, dans l'ordre du fichier
 public record ResultatParseTadarida(FormatTadarida format, List<LigneObservation> lignes) {
 
-  /// Nombre d'observations parsées.
-  public int taille() {
-    return lignes.size();
-  }
+    /// Nombre d'observations parsées.
+    public int taille() {
+        return lignes.size();
+    }
 }

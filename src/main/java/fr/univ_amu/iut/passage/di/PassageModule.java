@@ -34,120 +34,113 @@ import fr.univ_amu.iut.passage.viewmodel.RattachementViewModel;
 /// de composition est faite en phase 3.
 public class PassageModule extends AbstractModule {
 
-  /// Fournit le contrat de navigation socle [OuvrirPassage] : `sites` (M-Site-detail) l'injecte
-  /// pour ouvrir M-Passage sans dépendre du `view` de cette feature.
-  @Override
-  protected void configure() {
-    bind(OuvrirPassage.class).to(NavigationPassage.class);
-  }
+    /// Fournit le contrat de navigation socle [OuvrirPassage] : `sites` (M-Site-detail) l'injecte
+    /// pour ouvrir M-Passage sans dépendre du `view` de cette feature.
+    @Override
+    protected void configure() {
+        bind(OuvrirPassage.class).to(NavigationPassage.class);
+    }
 
-  @Provides
-  @Singleton
-  EnregistreurDao fournirEnregistreurDao(SourceDeDonnees source) {
-    return new EnregistreurDao(source);
-  }
+    @Provides
+    @Singleton
+    EnregistreurDao fournirEnregistreurDao(SourceDeDonnees source) {
+        return new EnregistreurDao(source);
+    }
 
-  @Provides
-  @Singleton
-  MicroDao fournirMicroDao(SourceDeDonnees source) {
-    return new MicroDao(source);
-  }
+    @Provides
+    @Singleton
+    MicroDao fournirMicroDao(SourceDeDonnees source) {
+        return new MicroDao(source);
+    }
 
-  @Provides
-  @Singleton
-  PassageDao fournirPassageDao(SourceDeDonnees source) {
-    return new PassageDao(source);
-  }
+    @Provides
+    @Singleton
+    PassageDao fournirPassageDao(SourceDeDonnees source) {
+        return new PassageDao(source);
+    }
 
-  @Provides
-  @Singleton
-  SessionDao fournirSessionDao(SourceDeDonnees source) {
-    return new SessionDao(source);
-  }
+    @Provides
+    @Singleton
+    SessionDao fournirSessionDao(SourceDeDonnees source) {
+        return new SessionDao(source);
+    }
 
-  @Provides
-  @Singleton
-  EnregistrementOriginalDao fournirEnregistrementOriginalDao(SourceDeDonnees source) {
-    return new EnregistrementOriginalDao(source);
-  }
+    @Provides
+    @Singleton
+    EnregistrementOriginalDao fournirEnregistrementOriginalDao(SourceDeDonnees source) {
+        return new EnregistrementOriginalDao(source);
+    }
 
-  @Provides
-  @Singleton
-  SequenceDao fournirSequenceDao(SourceDeDonnees source) {
-    return new SequenceDao(source);
-  }
+    @Provides
+    @Singleton
+    SequenceDao fournirSequenceDao(SourceDeDonnees source) {
+        return new SequenceDao(source);
+    }
 
-  @Provides
-  @Singleton
-  JournalDuCapteurDao fournirJournalDuCapteurDao(SourceDeDonnees source) {
-    return new JournalDuCapteurDao(source);
-  }
+    @Provides
+    @Singleton
+    JournalDuCapteurDao fournirJournalDuCapteurDao(SourceDeDonnees source) {
+        return new JournalDuCapteurDao(source);
+    }
 
-  @Provides
-  @Singleton
-  ReleveClimatiqueDao fournirReleveClimatiqueDao(SourceDeDonnees source) {
-    return new ReleveClimatiqueDao(source);
-  }
+    @Provides
+    @Singleton
+    ReleveClimatiqueDao fournirReleveClimatiqueDao(SourceDeDonnees source) {
+        return new ReleveClimatiqueDao(source);
+    }
 
-  /// Moteur (pur) des transitions de workflow d'un passage.
-  @Provides
-  @Singleton
-  MoteurWorkflowPassage fournirMoteurWorkflowPassage() {
-    return new MoteurWorkflowPassage();
-  }
+    /// Moteur (pur) des transitions de workflow d'un passage.
+    @Provides
+    @Singleton
+    MoteurWorkflowPassage fournirMoteurWorkflowPassage() {
+        return new MoteurWorkflowPassage();
+    }
 
-  /// Re-préfixage disque du dossier de session (modification du rattachement, E2.S8).
-  @Provides
-  @Singleton
-  ReprefixeurSession fournirReprefixeurSession() {
-    return new ReprefixeurSession();
-  }
+    /// Re-préfixage disque du dossier de session (modification du rattachement, E2.S8).
+    @Provides
+    @Singleton
+    ReprefixeurSession fournirReprefixeurSession() {
+        return new ReprefixeurSession();
+    }
 
-  /// Écritures transactionnelles de la modification du rattachement (E2.S8). Sans état : toutes ses
-  /// méthodes reçoivent la connexion transactionnelle de l'[UniteDeTravail].
-  @Provides
-  @Singleton
-  RattachementDao fournirRattachementDao() {
-    return new RattachementDao();
-  }
+    /// Écritures transactionnelles de la modification du rattachement (E2.S8). Sans état : toutes ses
+    /// méthodes reçoivent la connexion transactionnelle de l'[UniteDeTravail].
+    @Provides
+    @Singleton
+    RattachementDao fournirRattachementDao() {
+        return new RattachementDao();
+    }
 
-  /// Service métier transverse de la feature. Comme le service de référence `ServiceSites`, il
-  /// reste sans annotation d'injection : c'est ce module qui assemble ses dépendances (DAO de la
-  /// feature, [MoteurWorkflowPassage], [Horloge], et pour E2.S8 le [ReprefixeurSession],
-  /// l'[UniteDeTravail] du socle et le [RattachementDao]).
-  @Provides
-  @Singleton
-  ServicePassage fournirServicePassage(
-      PassageDao passageDao,
-      MoteurWorkflowPassage moteur,
-      Horloge horloge,
-      SessionDao sessionDao,
-      SequenceDao sequenceDao,
-      ReprefixeurSession reprefixeur,
-      UniteDeTravail uniteDeTravail,
-      RattachementDao rattachementDao) {
-    return new ServicePassage(
-        passageDao,
-        moteur,
-        horloge,
-        sessionDao,
-        sequenceDao,
-        reprefixeur,
-        uniteDeTravail,
-        rattachementDao);
-  }
+    /// Service métier transverse de la feature. Comme le service de référence `ServiceSites`, il
+    /// reste sans annotation d'injection : c'est ce module qui assemble ses dépendances (DAO de la
+    /// feature, [MoteurWorkflowPassage], [Horloge], et pour E2.S8 le [ReprefixeurSession],
+    /// l'[UniteDeTravail] du socle et le [RattachementDao]).
+    @Provides
+    @Singleton
+    ServicePassage fournirServicePassage(
+            PassageDao passageDao,
+            MoteurWorkflowPassage moteur,
+            Horloge horloge,
+            SessionDao sessionDao,
+            SequenceDao sequenceDao,
+            ReprefixeurSession reprefixeur,
+            UniteDeTravail uniteDeTravail,
+            RattachementDao rattachementDao) {
+        return new ServicePassage(
+                passageDao, moteur, horloge, sessionDao, sequenceDao, reprefixeur, uniteDeTravail, rattachementDao);
+    }
 
-  /// ViewModel de l'écran M-Passage. **Non-singleton** (un VM frais par chargement FXML, comme les
-  /// autres features) : un écran rouvert ne réutilise pas l'état d'un précédent.
-  @Provides
-  PassageViewModel fournirPassageViewModel(ServicePassage service) {
-    return new PassageViewModel(service);
-  }
+    /// ViewModel de l'écran M-Passage. **Non-singleton** (un VM frais par chargement FXML, comme les
+    /// autres features) : un écran rouvert ne réutilise pas l'état d'un précédent.
+    @Provides
+    PassageViewModel fournirPassageViewModel(ServicePassage service) {
+        return new PassageViewModel(service);
+    }
 
-  /// ViewModel de la modale « Modifier le rattachement » (E2.S8). **Non-singleton** : un VM frais
-  /// par ouverture de modale.
-  @Provides
-  RattachementViewModel fournirRattachementViewModel(ServicePassage service) {
-    return new RattachementViewModel(service);
-  }
+    /// ViewModel de la modale « Modifier le rattachement » (E2.S8). **Non-singleton** : un VM frais
+    /// par ouverture de modale.
+    @Provides
+    RattachementViewModel fournirRattachementViewModel(ServicePassage service) {
+        return new RattachementViewModel(service);
+    }
 }

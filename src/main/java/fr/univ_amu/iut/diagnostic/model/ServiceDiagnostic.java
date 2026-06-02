@@ -33,86 +33,78 @@ import java.util.Objects;
 /// n'est créée.
 public class ServiceDiagnostic {
 
-  private final PassageDao passageDao;
-  private final SessionDao sessionDao;
-  private final JournalDuCapteurDao journalDao;
-  private final ReleveClimatiqueDao releveDao;
-  private final PointDao pointDao;
-  private final Horloge horloge;
+    private final PassageDao passageDao;
+    private final SessionDao sessionDao;
+    private final JournalDuCapteurDao journalDao;
+    private final ReleveClimatiqueDao releveDao;
+    private final PointDao pointDao;
+    private final Horloge horloge;
 
-  public ServiceDiagnostic(
-      PassageDao passageDao,
-      SessionDao sessionDao,
-      JournalDuCapteurDao journalDao,
-      ReleveClimatiqueDao releveDao,
-      PointDao pointDao,
-      Horloge horloge) {
-    this.passageDao = Objects.requireNonNull(passageDao, "passageDao");
-    this.sessionDao = Objects.requireNonNull(sessionDao, "sessionDao");
-    this.journalDao = Objects.requireNonNull(journalDao, "journalDao");
-    this.releveDao = Objects.requireNonNull(releveDao, "releveDao");
-    this.pointDao = Objects.requireNonNull(pointDao, "pointDao");
-    this.horloge = Objects.requireNonNull(horloge, "horloge");
-  }
-
-  /// Construit le diagnostic d'un passage importé.
-  ///
-  /// @param idPassage identifiant du passage à diagnostiquer
-  /// @return l'état consolidé (anomalies R19, série climatique R20, GPS, horodatage)
-  /// @throws RegleMetierException si le passage ou sa session d'enregistrement est introuvable
-  public Diagnostic diagnostiquer(Long idPassage) {
-    Passage passage =
-        passageDao
-            .findById(idPassage)
-            .orElseThrow(() -> new RegleMetierException("Passage introuvable : " + idPassage));
-    SessionDEnregistrement session =
-        sessionDao
-            .trouverParPassage(idPassage)
-            .orElseThrow(
-                () ->
-                    new RegleMetierException(
-                        "Session d'enregistrement introuvable pour le passage " + idPassage + "."));
-    Long idSession = session.id();
-
-    // R19 : anomalies/évènements du journal (1:1 session) ; analyse vide si le journal manque.
-    AnalyseAnomalies anomalies =
-        journalDao
-            .trouverParSession(idSession)
-            .map(AnalyseAnomalies::depuisJournal)
-            .orElseGet(AnalyseAnomalies::vide);
-
-    // R20 : relevé climatique optionnel ; absence explicitement signalée, sinon série relue du
-    // THLog.
-    SerieClimatique climat =
-        releveDao
-            .trouverParSession(idSession)
-            .map(
-                releve ->
-                    SerieClimatique.presente(LectureThLog.lire(chemin(releve.cheminFichier()))))
-            .orElseGet(SerieClimatique::absente);
-
-    // GPS depuis le point d'écoute (feature sites) ; nullable si point introuvable ou non
-    // géolocalisé.
-    Double latitude = null;
-    Double longitude = null;
-    PointDEcoute point = pointDao.findById(passage.idPoint()).orElse(null);
-    if (point != null) {
-      latitude = point.latitude();
-      longitude = point.longitude();
+    public ServiceDiagnostic(
+            PassageDao passageDao,
+            SessionDao sessionDao,
+            JournalDuCapteurDao journalDao,
+            ReleveClimatiqueDao releveDao,
+            PointDao pointDao,
+            Horloge horloge) {
+        this.passageDao = Objects.requireNonNull(passageDao, "passageDao");
+        this.sessionDao = Objects.requireNonNull(sessionDao, "sessionDao");
+        this.journalDao = Objects.requireNonNull(journalDao, "journalDao");
+        this.releveDao = Objects.requireNonNull(releveDao, "releveDao");
+        this.pointDao = Objects.requireNonNull(pointDao, "pointDao");
+        this.horloge = Objects.requireNonNull(horloge, "horloge");
     }
 
-    return new Diagnostic(
-        idPassage,
-        idSession,
-        passage.idEnregistreur(),
-        anomalies,
-        climat,
-        latitude,
-        longitude,
-        horloge.maintenant());
-  }
+    /// Construit le diagnostic d'un passage importé.
+    ///
+    /// @param idPassage identifiant du passage à diagnostiquer
+    /// @return l'état consolidé (anomalies R19, série climatique R20, GPS, horodatage)
+    /// @throws RegleMetierException si le passage ou sa session d'enregistrement est introuvable
+    public Diagnostic diagnostiquer(Long idPassage) {
+        Passage passage = passageDao
+                .findById(idPassage)
+                .orElseThrow(() -> new RegleMetierException("Passage introuvable : " + idPassage));
+        SessionDEnregistrement session = sessionDao
+                .trouverParPassage(idPassage)
+                .orElseThrow(() -> new RegleMetierException(
+                        "Session d'enregistrement introuvable pour le passage " + idPassage + "."));
+        Long idSession = session.id();
 
-  private static Path chemin(String valeur) {
-    return valeur == null || valeur.isBlank() ? null : Path.of(valeur);
-  }
+        // R19 : anomalies/évènements du journal (1:1 session) ; analyse vide si le journal manque.
+        AnalyseAnomalies anomalies = journalDao
+                .trouverParSession(idSession)
+                .map(AnalyseAnomalies::depuisJournal)
+                .orElseGet(AnalyseAnomalies::vide);
+
+        // R20 : relevé climatique optionnel ; absence explicitement signalée, sinon série relue du
+        // THLog.
+        SerieClimatique climat = releveDao
+                .trouverParSession(idSession)
+                .map(releve -> SerieClimatique.presente(LectureThLog.lire(chemin(releve.cheminFichier()))))
+                .orElseGet(SerieClimatique::absente);
+
+        // GPS depuis le point d'écoute (feature sites) ; nullable si point introuvable ou non
+        // géolocalisé.
+        Double latitude = null;
+        Double longitude = null;
+        PointDEcoute point = pointDao.findById(passage.idPoint()).orElse(null);
+        if (point != null) {
+            latitude = point.latitude();
+            longitude = point.longitude();
+        }
+
+        return new Diagnostic(
+                idPassage,
+                idSession,
+                passage.idEnregistreur(),
+                anomalies,
+                climat,
+                latitude,
+                longitude,
+                horloge.maintenant());
+    }
+
+    private static Path chemin(String valeur) {
+        return valeur == null || valeur.isBlank() ? null : Path.of(valeur);
+    }
 }

@@ -11,7 +11,7 @@ package fr.univ_amu.iut.commun.persistence;
 /// (tolérance aux erreurs, cf. objectifs qualité 5.3).
 public class DataAccessException extends RuntimeException {
 
-  public DataAccessException(String message, Throwable cause) {
-    super(message, cause);
-  }
+    public DataAccessException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

@@ -29,29 +29,27 @@ import org.junit.jupiter.api.io.TempDir;
 /// le service (la racine de composition réelle est validée à part par `RacineInjecteurTest`).
 class MultisiteModuleTest {
 
-  @TempDir Path workspaceJetable;
+    @TempDir
+    Path workspaceJetable;
 
-  @Test
-  @DisplayName("MultisiteModule assemble SavedViewDao et ServiceMultisite via Guice")
-  void multisite_module_resout_dao_et_service() {
-    SourceDeDonnees source = new SourceDeDonnees(new Workspace(workspaceJetable));
-    new MigrationSchema(source).migrer();
+    @Test
+    @DisplayName("MultisiteModule assemble SavedViewDao et ServiceMultisite via Guice")
+    void multisite_module_resout_dao_et_service() {
+        SourceDeDonnees source = new SourceDeDonnees(new Workspace(workspaceJetable));
+        new MigrationSchema(source).migrer();
 
-    Injector injecteur =
-        Guice.createInjector(
-            new MultisiteModule(),
-            new AbstractModule() {
-              @Override
-              protected void configure() {
+        Injector injecteur = Guice.createInjector(new MultisiteModule(), new AbstractModule() {
+            @Override
+            protected void configure() {
                 bind(SourceDeDonnees.class).toInstance(source);
                 bind(SiteDao.class).toInstance(new SiteDao(source));
                 bind(PointDao.class).toInstance(new PointDao(source));
                 bind(PassageDao.class).toInstance(new PassageDao(source));
                 bind(Horloge.class).toInstance(new HorlogeFigee(LocalDate.of(2026, 5, 31)));
-              }
-            });
+            }
+        });
 
-    assertThat(injecteur.getInstance(SavedViewDao.class)).isNotNull();
-    assertThat(injecteur.getInstance(ServiceMultisite.class)).isNotNull();
-  }
+        assertThat(injecteur.getInstance(SavedViewDao.class)).isNotNull();
+        assertThat(injecteur.getInstance(ServiceMultisite.class)).isNotNull();
+    }
 }

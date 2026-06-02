@@ -18,25 +18,25 @@ import java.util.Objects;
 /// ```
 public final class HorlogeFigee implements Horloge {
 
-  private final LocalDateTime instant;
+    private final LocalDateTime instant;
 
-  /// Fige l'horloge sur `jour` à minuit.
-  public HorlogeFigee(LocalDate jour) {
-    this(Objects.requireNonNull(jour, "jour").atStartOfDay());
-  }
+    /// Fige l'horloge sur `jour` à minuit.
+    public HorlogeFigee(LocalDate jour) {
+        this(Objects.requireNonNull(jour, "jour").atStartOfDay());
+    }
 
-  /// Fige l'horloge sur un instant précis (date + heure).
-  public HorlogeFigee(LocalDateTime instant) {
-    this.instant = Objects.requireNonNull(instant, "instant");
-  }
+    /// Fige l'horloge sur un instant précis (date + heure).
+    public HorlogeFigee(LocalDateTime instant) {
+        this.instant = Objects.requireNonNull(instant, "instant");
+    }
 
-  @Override
-  public LocalDate aujourdhui() {
-    return instant.toLocalDate();
-  }
+    @Override
+    public LocalDate aujourdhui() {
+        return instant.toLocalDate();
+    }
 
-  @Override
-  public LocalDateTime maintenant() {
-    return instant;
-  }
+    @Override
+    public LocalDateTime maintenant() {
+        return instant;
+    }
 }

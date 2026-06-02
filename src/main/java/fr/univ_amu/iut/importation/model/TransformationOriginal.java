@@ -15,15 +15,15 @@ import java.util.List;
 /// @param sha256 empreinte SHA-256 hexadécimale de l'original (intégrité bit-à-bit)
 /// @param sequences séquences produites, dans l'ordre des index
 public record TransformationOriginal(
-    String nomOriginal,
-    Path cheminOriginal,
-    int frequenceSourceHz,
-    int frequenceSortieHz,
-    double dureeSourceSecondes,
-    String sha256,
-    List<SequenceProduite> sequences) {
+        String nomOriginal,
+        Path cheminOriginal,
+        int frequenceSourceHz,
+        int frequenceSortieHz,
+        double dureeSourceSecondes,
+        String sha256,
+        List<SequenceProduite> sequences) {
 
-  public TransformationOriginal {
-    sequences = List.copyOf(sequences);
-  }
+    public TransformationOriginal {
+        sequences = List.copyOf(sequences);
+    }
 }

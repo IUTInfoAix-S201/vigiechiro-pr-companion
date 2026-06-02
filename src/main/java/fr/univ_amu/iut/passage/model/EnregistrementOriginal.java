@@ -15,10 +15,10 @@ package fr.univ_amu.iut.passage.model;
 /// @param sha256 empreinte SHA-256 hexadécimale (optionnel, intégrité bit-à-bit)
 /// @param idSession identifiant de la session contenante (FK → `recording_session.id`)
 public record EnregistrementOriginal(
-    Long id,
-    String nomFichier,
-    String cheminFichier,
-    Double dureeSecondes,
-    Integer frequenceEchantillonnageHz,
-    String sha256,
-    Long idSession) {}
+        Long id,
+        String nomFichier,
+        String cheminFichier,
+        Double dureeSecondes,
+        Integer frequenceEchantillonnageHz,
+        String sha256,
+        Long idSession) {}

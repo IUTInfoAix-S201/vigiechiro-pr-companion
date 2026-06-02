@@ -21,48 +21,48 @@ import java.util.Locale;
 /// @param enregistreur libellé de l'enregistreur (ex. `PR 1925492`)
 /// @param deposeLe date de dépôt, ou `—` si non déposé
 public record LignePassage(
-    Long idPassage,
-    String date,
-    String codePoint,
-    String numeroPassage,
-    StatutWorkflow statut,
-    Verdict verdict,
-    String enregistreur,
-    String deposeLe) {
+        Long idPassage,
+        String date,
+        String codePoint,
+        String numeroPassage,
+        StatutWorkflow statut,
+        Verdict verdict,
+        String enregistreur,
+        String deposeLe) {
 
-  /// Libellé du statut (toujours présent).
-  public String statutLibelle() {
-    return statut.libelle();
-  }
+    /// Libellé du statut (toujours présent).
+    public String statutLibelle() {
+        return statut.libelle();
+    }
 
-  /// Libellé du verdict : `— à vérifier` tant qu'aucun verdict n'est posé.
-  public String verdictLibelle() {
-    return verdict == null ? "— à vérifier" : verdict.libelle();
-  }
+    /// Libellé du verdict : `— à vérifier` tant qu'aucun verdict n'est posé.
+    public String verdictLibelle() {
+        return verdict == null ? "— à vérifier" : verdict.libelle();
+    }
 
-  /// Classe CSS du badge de statut, dérivée de l'énum (couleur jamais stockée). Ex.
-  /// `badge-statut-transforme`.
-  public String statutClasseCss() {
-    return "badge-statut-" + statut.name().toLowerCase(Locale.ROOT);
-  }
+    /// Classe CSS du badge de statut, dérivée de l'énum (couleur jamais stockée). Ex.
+    /// `badge-statut-transforme`.
+    public String statutClasseCss() {
+        return "badge-statut-" + statut.name().toLowerCase(Locale.ROOT);
+    }
 
-  /// Classe CSS du badge de verdict, dérivée de l'énum (`A_VERIFIER` si aucun verdict). Ex.
-  /// `badge-verdict-ok`.
-  public String verdictClasseCss() {
-    Verdict effectif = verdict == null ? Verdict.A_VERIFIER : verdict;
-    return "badge-verdict-" + effectif.name().toLowerCase(Locale.ROOT);
-  }
+    /// Classe CSS du badge de verdict, dérivée de l'énum (`A_VERIFIER` si aucun verdict). Ex.
+    /// `badge-verdict-ok`.
+    public String verdictClasseCss() {
+        Verdict effectif = verdict == null ? Verdict.A_VERIFIER : verdict;
+        return "badge-verdict-" + effectif.name().toLowerCase(Locale.ROOT);
+    }
 
-  /// Construit une ligne à partir d'un passage et du code de son point d'écoute.
-  public static LignePassage depuis(Passage passage, String codePoint) {
-    return new LignePassage(
-        passage.id(),
-        passage.dateEnregistrement(),
-        codePoint,
-        Integer.toString(passage.numeroPassage()),
-        passage.statutWorkflow(),
-        passage.verdictVerification(),
-        "PR " + passage.idEnregistreur(),
-        passage.deposeLe() == null ? "—" : passage.deposeLe());
-  }
+    /// Construit une ligne à partir d'un passage et du code de son point d'écoute.
+    public static LignePassage depuis(Passage passage, String codePoint) {
+        return new LignePassage(
+                passage.id(),
+                passage.dateEnregistrement(),
+                codePoint,
+                Integer.toString(passage.numeroPassage()),
+                passage.statutWorkflow(),
+                passage.verdictVerification(),
+                "PR " + passage.idEnregistreur(),
+                passage.deposeLe() == null ? "—" : passage.deposeLe());
+    }
 }

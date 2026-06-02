@@ -98,7 +98,7 @@
               <Button fx:id="boutonDiagnostic" text="🔧 Diagnostic matériel"
                       styleClass="action-secondaire" onAction="#diagnostiquer"/>
               <Button fx:id="boutonValidation" text="✅ Validation Tadarida 🔒"
-                      styleClass="action-secondaire"/>
+                      styleClass="action-secondaire" onAction="#validerTadarida"/>
               <Region HBox.hgrow="ALWAYS"/>
             </HBox>
             <Label fx:id="lblIndiceAction" styleClass="section-sous" wrapText="true"/>
@@ -113,8 +113,10 @@
           </VBox>
         </Tab>
         <Tab text="Validation Tadarida">
-          <VBox alignment="CENTER" spacing="8.0" styleClass="onglet-contenu">
+          <VBox alignment="CENTER" spacing="14.0" styleClass="onglet-contenu">
             <Label fx:id="lblValidation" styleClass="section-sous" wrapText="true"/>
+            <Button fx:id="boutonOuvrirValidation" text="✅ Ouvrir la validation Tadarida"
+                    styleClass="action-primaire" onAction="#validerTadarida"/>
           </VBox>
         </Tab>
       </tabs>

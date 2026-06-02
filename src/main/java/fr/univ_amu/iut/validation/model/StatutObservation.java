@@ -10,7 +10,7 @@ package fr.univ_amu.iut.validation.model;
 ///   renseignée.
 /// - [#CORRIGEE] (R16) : taxon observateur ≠ taxon Tadarida.
 public enum StatutObservation {
-  NON_TOUCHEE,
-  VALIDEE,
-  CORRIGEE
+    NON_TOUCHEE,
+    VALIDEE,
+    CORRIGEE
 }

@@ -35,35 +35,32 @@ import org.junit.jupiter.api.io.TempDir;
 /// `LotModule` assemblent correctement [VerificationCoherence] et [ServiceLot].
 class LotModuleTest {
 
-  @TempDir Path workspaceJetable;
+    @TempDir
+    Path workspaceJetable;
 
-  @Test
-  @DisplayName("LotModule assemble VerificationCoherence et ServiceLot via Guice")
-  void lot_module_resout_les_services() {
-    SourceDeDonnees source = new SourceDeDonnees(new Workspace(workspaceJetable));
-    new MigrationSchema(source).migrer();
+    @Test
+    @DisplayName("LotModule assemble VerificationCoherence et ServiceLot via Guice")
+    void lot_module_resout_les_services() {
+        SourceDeDonnees source = new SourceDeDonnees(new Workspace(workspaceJetable));
+        new MigrationSchema(source).migrer();
 
-    Injector injecteur =
-        Guice.createInjector(
-            new LotModule(),
-            new AbstractModule() {
-              @Override
-              protected void configure() {
+        Injector injecteur = Guice.createInjector(new LotModule(), new AbstractModule() {
+            @Override
+            protected void configure() {
                 bind(SiteDao.class).toInstance(new SiteDao(source));
                 bind(PointDao.class).toInstance(new PointDao(source));
                 bind(SessionDao.class).toInstance(new SessionDao(source));
-                bind(EnregistrementOriginalDao.class)
-                    .toInstance(new EnregistrementOriginalDao(source));
+                bind(EnregistrementOriginalDao.class).toInstance(new EnregistrementOriginalDao(source));
                 bind(SequenceDao.class).toInstance(new SequenceDao(source));
                 bind(JournalDuCapteurDao.class).toInstance(new JournalDuCapteurDao(source));
                 bind(ReleveClimatiqueDao.class).toInstance(new ReleveClimatiqueDao(source));
                 bind(PassageDao.class).toInstance(new PassageDao(source));
                 bind(MoteurWorkflowPassage.class).toInstance(new MoteurWorkflowPassage());
                 bind(Horloge.class).toInstance(new HorlogeFigee(LocalDate.of(2026, 5, 31)));
-              }
-            });
+            }
+        });
 
-    assertThat(injecteur.getInstance(VerificationCoherence.class)).isNotNull();
-    assertThat(injecteur.getInstance(ServiceLot.class)).isNotNull();
-  }
+        assertThat(injecteur.getInstance(VerificationCoherence.class)).isNotNull();
+        assertThat(injecteur.getInstance(ServiceLot.class)).isNotNull();
+    }
 }

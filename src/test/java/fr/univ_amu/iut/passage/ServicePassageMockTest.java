@@ -34,83 +34,85 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class ServicePassageMockTest {
 
-  @Mock private PassageDao passageDao;
-  @Mock private SessionDao sessionDao;
-  @Mock private SequenceDao sequenceDao;
-  @Mock private UniteDeTravail uniteDeTravail;
-  @Mock private RattachementDao rattachementDao;
+    @Mock
+    private PassageDao passageDao;
 
-  private ServicePassage service() {
-    return new ServicePassage(
-        passageDao,
-        new MoteurWorkflowPassage(),
-        new HorlogeFigee(LocalDate.of(2026, 6, 20)),
-        sessionDao,
-        sequenceDao,
-        new ReprefixeurSession(),
-        uniteDeTravail,
-        rattachementDao);
-  }
+    @Mock
+    private SessionDao sessionDao;
 
-  @Test
-  @DisplayName("R5 : si le quadruplet existe déjà, le service refuse sans tenter d'insérer")
-  void r5_quadruplet_existant_refuse_sans_insertion() {
-    Passage existant =
-        new Passage(
-            1L,
-            1,
-            2026,
-            "2026-06-20",
-            null,
-            null,
-            null,
-            StatutWorkflow.IMPORTE,
-            null,
-            null,
-            null,
-            null,
-            1L,
-            "1925492");
-    when(passageDao.trouverParPointAnneePassage(1L, 2026, 1)).thenReturn(Optional.of(existant));
+    @Mock
+    private SequenceDao sequenceDao;
 
-    assertThatThrownBy(
-            () ->
-                service()
-                    .creerPassage(
-                        1L, "1925492", 1, LocalDate.of(2026, 6, 20), null, null, null, null, null))
-        .isInstanceOf(RegleMetierException.class);
+    @Mock
+    private UniteDeTravail uniteDeTravail;
 
-    verify(passageDao, never()).insert(any());
-  }
+    @Mock
+    private RattachementDao rattachementDao;
 
-  @Test
-  @DisplayName("Quadruplet libre : le service délègue l'insertion au DAO")
-  void quadruplet_libre_delegue_insertion() {
-    Passage attendu =
-        new Passage(
-            7L,
-            1,
-            2026,
-            "2026-06-20",
-            null,
-            null,
-            null,
-            StatutWorkflow.IMPORTE,
-            null,
-            null,
-            null,
-            null,
-            1L,
-            "1925492");
-    when(passageDao.trouverParPointAnneePassage(1L, 2026, 1)).thenReturn(Optional.empty());
-    when(passageDao.insert(any())).thenReturn(attendu);
+    private ServicePassage service() {
+        return new ServicePassage(
+                passageDao,
+                new MoteurWorkflowPassage(),
+                new HorlogeFigee(LocalDate.of(2026, 6, 20)),
+                sessionDao,
+                sequenceDao,
+                new ReprefixeurSession(),
+                uniteDeTravail,
+                rattachementDao);
+    }
 
-    Passage cree =
-        service()
-            .creerPassage(
-                1L, "1925492", 1, LocalDate.of(2026, 6, 20), null, null, null, null, null);
+    @Test
+    @DisplayName("R5 : si le quadruplet existe déjà, le service refuse sans tenter d'insérer")
+    void r5_quadruplet_existant_refuse_sans_insertion() {
+        Passage existant = new Passage(
+                1L,
+                1,
+                2026,
+                "2026-06-20",
+                null,
+                null,
+                null,
+                StatutWorkflow.IMPORTE,
+                null,
+                null,
+                null,
+                null,
+                1L,
+                "1925492");
+        when(passageDao.trouverParPointAnneePassage(1L, 2026, 1)).thenReturn(Optional.of(existant));
 
-    assertThat(cree).isEqualTo(attendu);
-    verify(passageDao).insert(any());
-  }
+        assertThatThrownBy(() -> service()
+                        .creerPassage(1L, "1925492", 1, LocalDate.of(2026, 6, 20), null, null, null, null, null))
+                .isInstanceOf(RegleMetierException.class);
+
+        verify(passageDao, never()).insert(any());
+    }
+
+    @Test
+    @DisplayName("Quadruplet libre : le service délègue l'insertion au DAO")
+    void quadruplet_libre_delegue_insertion() {
+        Passage attendu = new Passage(
+                7L,
+                1,
+                2026,
+                "2026-06-20",
+                null,
+                null,
+                null,
+                StatutWorkflow.IMPORTE,
+                null,
+                null,
+                null,
+                null,
+                1L,
+                "1925492");
+        when(passageDao.trouverParPointAnneePassage(1L, 2026, 1)).thenReturn(Optional.empty());
+        when(passageDao.insert(any())).thenReturn(attendu);
+
+        Passage cree =
+                service().creerPassage(1L, "1925492", 1, LocalDate.of(2026, 6, 20), null, null, null, null, null);
+
+        assertThat(cree).isEqualTo(attendu);
+        verify(passageDao).insert(any());
+    }
 }

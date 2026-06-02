@@ -37,107 +37,105 @@ import java.util.Random;
 /// l'utilisateur.
 public class GenerateurSelection {
 
-  /// Borne basse conseillée pour la taille d'une sélection (R12 : « 10 à 30 séquences »).
-  public static final int TAILLE_MIN = 10;
+    /// Borne basse conseillée pour la taille d'une sélection (R12 : « 10 à 30 séquences »).
+    public static final int TAILLE_MIN = 10;
 
-  /// Borne haute conseillée pour la taille d'une sélection (R12 : « 10 à 30 séquences »).
-  public static final int TAILLE_MAX = 30;
+    /// Borne haute conseillée pour la taille d'une sélection (R12 : « 10 à 30 séquences »).
+    public static final int TAILLE_MAX = 30;
 
-  /// Taille par défaut à l'ouverture de la vue de vérification (dans la fourchette R12).
-  public static final int TAILLE_DEFAUT = 20;
+    /// Taille par défaut à l'ouverture de la vue de vérification (dans la fourchette R12).
+    public static final int TAILLE_DEFAUT = 20;
 
-  /// Ordre chronologique = ordre lexicographique du nom de fichier (cf. Javadoc de classe).
-  private static final Comparator<SequenceDEcoute> CHRONOLOGIQUE =
-      Comparator.comparing(
-          SequenceDEcoute::nomFichier, Comparator.nullsLast(Comparator.naturalOrder()));
+    /// Ordre chronologique = ordre lexicographique du nom de fichier (cf. Javadoc de classe).
+    private static final Comparator<SequenceDEcoute> CHRONOLOGIQUE =
+            Comparator.comparing(SequenceDEcoute::nomFichier, Comparator.nullsLast(Comparator.naturalOrder()));
 
-  /// Constitue la liste ordonnée des séquences retenues pour une sélection.
-  ///
-  /// La taille effective vaut `min(taille, nombre de séquences disponibles)` : si la nuit
-  /// compte moins de séquences que demandé, on retient tout ce qui existe (« 10 à 30 » suppose
-  /// un volume suffisant). La taille demandée n'est pas plafonnée à [#TAILLE_MAX] car elle est
-  /// configurable au-delà (cf. P3 : l'utilisateur peut monter à 50).
-  ///
-  /// @param sequencesDeLaNuit toutes les séquences d'écoute de la nuit (ordre quelconque)
-  /// @param methode méthode de constitution (R12)
-  /// @param taille taille cible (≥ 1)
-  /// @return les séquences retenues, ordonnées chronologiquement (par nom de fichier)
-  /// @throws IllegalArgumentException si `taille < 1`
-  public List<SequenceDEcoute> selectionner(
-      List<SequenceDEcoute> sequencesDeLaNuit, MethodeSelection methode, int taille) {
-    Objects.requireNonNull(sequencesDeLaNuit, "sequencesDeLaNuit");
-    Objects.requireNonNull(methode, "methode");
-    if (taille < 1) {
-      throw new IllegalArgumentException(
-          "La taille demandée doit être au moins 1 (reçu : " + taille + ").");
+    /// Constitue la liste ordonnée des séquences retenues pour une sélection.
+    ///
+    /// La taille effective vaut `min(taille, nombre de séquences disponibles)` : si la nuit
+    /// compte moins de séquences que demandé, on retient tout ce qui existe (« 10 à 30 » suppose
+    /// un volume suffisant). La taille demandée n'est pas plafonnée à [#TAILLE_MAX] car elle est
+    /// configurable au-delà (cf. P3 : l'utilisateur peut monter à 50).
+    ///
+    /// @param sequencesDeLaNuit toutes les séquences d'écoute de la nuit (ordre quelconque)
+    /// @param methode méthode de constitution (R12)
+    /// @param taille taille cible (≥ 1)
+    /// @return les séquences retenues, ordonnées chronologiquement (par nom de fichier)
+    /// @throws IllegalArgumentException si `taille < 1`
+    public List<SequenceDEcoute> selectionner(
+            List<SequenceDEcoute> sequencesDeLaNuit, MethodeSelection methode, int taille) {
+        Objects.requireNonNull(sequencesDeLaNuit, "sequencesDeLaNuit");
+        Objects.requireNonNull(methode, "methode");
+        if (taille < 1) {
+            throw new IllegalArgumentException("La taille demandée doit être au moins 1 (reçu : " + taille + ").");
+        }
+        List<SequenceDEcoute> triees = new ArrayList<>(sequencesDeLaNuit);
+        triees.sort(CHRONOLOGIQUE);
+        int k = Math.min(taille, triees.size());
+        if (k == 0) {
+            return List.of();
+        }
+        return switch (methode) {
+            case REPARTITION_TEMPORELLE -> repartitionTemporelle(triees, k);
+            case ALEATOIRE -> aleatoire(triees, k, new Random());
+            case MANUEL -> new ArrayList<>(triees.subList(0, k));
+        };
     }
-    List<SequenceDEcoute> triees = new ArrayList<>(sequencesDeLaNuit);
-    triees.sort(CHRONOLOGIQUE);
-    int k = Math.min(taille, triees.size());
-    if (k == 0) {
-      return List.of();
-    }
-    return switch (methode) {
-      case REPARTITION_TEMPORELLE -> repartitionTemporelle(triees, k);
-      case ALEATOIRE -> aleatoire(triees, k, new Random());
-      case MANUEL -> new ArrayList<>(triees.subList(0, k));
-    };
-  }
 
-  /// Échantillonnage temporel déterministe (R12, méthode par défaut) : retient `taille`
-  /// séquences **réparties uniformément** de la première à la dernière de la nuit.
-  ///
-  /// Algorithme : après tri chronologique des `n` séquences, on retient les indices
-  /// `round(i × (n-1) / (taille-1))` pour `i = 0 … taille-1`. La première et la dernière
-  /// séquence de la nuit sont toujours incluses, les autres sont espacées régulièrement.
-  /// Comme `taille < n` implique un pas `> 1`, les indices retenus sont strictement
-  /// croissants (donc distincts).
-  ///
-  /// @param sequences séquences candidates (triées défensivement)
-  /// @param taille nombre de séquences à retenir
-  /// @return les séquences retenues, ordre chronologique
-  public List<SequenceDEcoute> repartitionTemporelle(List<SequenceDEcoute> sequences, int taille) {
-    Objects.requireNonNull(sequences, "sequences");
-    List<SequenceDEcoute> triees = new ArrayList<>(sequences);
-    triees.sort(CHRONOLOGIQUE);
-    int n = triees.size();
-    int k = Math.min(Math.max(taille, 0), n);
-    if (k == 0) {
-      return List.of();
+    /// Échantillonnage temporel déterministe (R12, méthode par défaut) : retient `taille`
+    /// séquences **réparties uniformément** de la première à la dernière de la nuit.
+    ///
+    /// Algorithme : après tri chronologique des `n` séquences, on retient les indices
+    /// `round(i × (n-1) / (taille-1))` pour `i = 0 … taille-1`. La première et la dernière
+    /// séquence de la nuit sont toujours incluses, les autres sont espacées régulièrement.
+    /// Comme `taille < n` implique un pas `> 1`, les indices retenus sont strictement
+    /// croissants (donc distincts).
+    ///
+    /// @param sequences séquences candidates (triées défensivement)
+    /// @param taille nombre de séquences à retenir
+    /// @return les séquences retenues, ordre chronologique
+    public List<SequenceDEcoute> repartitionTemporelle(List<SequenceDEcoute> sequences, int taille) {
+        Objects.requireNonNull(sequences, "sequences");
+        List<SequenceDEcoute> triees = new ArrayList<>(sequences);
+        triees.sort(CHRONOLOGIQUE);
+        int n = triees.size();
+        int k = Math.min(Math.max(taille, 0), n);
+        if (k == 0) {
+            return List.of();
+        }
+        if (k == 1) {
+            return List.of(triees.get(n / 2));
+        }
+        if (k >= n) {
+            return triees;
+        }
+        List<SequenceDEcoute> choisies = new ArrayList<>(k);
+        for (int i = 0; i < k; i++) {
+            int index = (int) Math.round((double) i * (n - 1) / (k - 1));
+            choisies.add(triees.get(index));
+        }
+        return choisies;
     }
-    if (k == 1) {
-      return List.of(triees.get(n / 2));
-    }
-    if (k >= n) {
-      return triees;
-    }
-    List<SequenceDEcoute> choisies = new ArrayList<>(k);
-    for (int i = 0; i < k; i++) {
-      int index = (int) Math.round((double) i * (n - 1) / (k - 1));
-      choisies.add(triees.get(index));
-    }
-    return choisies;
-  }
 
-  /// Échantillonnage aléatoire : retient `taille` séquences tirées au hasard, puis les
-  /// réordonne chronologiquement pour un affichage cohérent. Déterministe à [Random] fixé
-  /// (utile en test).
-  ///
-  /// @param sequences séquences candidates
-  /// @param taille nombre de séquences à retenir
-  /// @param alea source d'aléa (un `new Random(graine)` rend le résultat reproductible)
-  /// @return les séquences retenues, ordre chronologique
-  public List<SequenceDEcoute> aleatoire(List<SequenceDEcoute> sequences, int taille, Random alea) {
-    Objects.requireNonNull(sequences, "sequences");
-    Objects.requireNonNull(alea, "alea");
-    List<SequenceDEcoute> copie = new ArrayList<>(sequences);
-    int k = Math.min(Math.max(taille, 0), copie.size());
-    if (k == 0) {
-      return List.of();
+    /// Échantillonnage aléatoire : retient `taille` séquences tirées au hasard, puis les
+    /// réordonne chronologiquement pour un affichage cohérent. Déterministe à [Random] fixé
+    /// (utile en test).
+    ///
+    /// @param sequences séquences candidates
+    /// @param taille nombre de séquences à retenir
+    /// @param alea source d'aléa (un `new Random(graine)` rend le résultat reproductible)
+    /// @return les séquences retenues, ordre chronologique
+    public List<SequenceDEcoute> aleatoire(List<SequenceDEcoute> sequences, int taille, Random alea) {
+        Objects.requireNonNull(sequences, "sequences");
+        Objects.requireNonNull(alea, "alea");
+        List<SequenceDEcoute> copie = new ArrayList<>(sequences);
+        int k = Math.min(Math.max(taille, 0), copie.size());
+        if (k == 0) {
+            return List.of();
+        }
+        Collections.shuffle(copie, alea);
+        List<SequenceDEcoute> choisies = new ArrayList<>(copie.subList(0, k));
+        choisies.sort(CHRONOLOGIQUE);
+        return choisies;
     }
-    Collections.shuffle(copie, alea);
-    List<SequenceDEcoute> choisies = new ArrayList<>(copie.subList(0, k));
-    choisies.sort(CHRONOLOGIQUE);
-    return choisies;
-  }
 }

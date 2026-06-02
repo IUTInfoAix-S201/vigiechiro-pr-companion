@@ -12,6 +12,6 @@ package fr.univ_amu.iut.commun.view;
 /// Même esprit que [ActiviteAccueil] : inversion de dépendance par le socle.
 public interface OuvrirVerification {
 
-  /// Ouvre l'écran de vérification par échantillonnage du passage `idPassage`.
-  void ouvrir(Long idPassage);
+    /// Ouvre l'écran de vérification par échantillonnage du passage `idPassage`.
+    void ouvrir(Long idPassage);
 }

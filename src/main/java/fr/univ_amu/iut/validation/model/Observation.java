@@ -32,17 +32,17 @@ import fr.univ_amu.iut.commun.model.ModeValidation;
 /// @param modeValidation mode de validation (R24 : manuel / auto / non validé)
 /// @param idResultats résultats d'identification agrégateurs (FK → `identification_results.id`)
 public record Observation(
-    Long id,
-    Long idSequence,
-    Double debutS,
-    Double finS,
-    Integer frequenceMedianeHz,
-    String taxonTadarida,
-    Double probTadarida,
-    String taxonAutreTadarida,
-    String taxonObservateur,
-    Double probObservateur,
-    String commentaire,
-    boolean reference,
-    ModeValidation modeValidation,
-    Long idResultats) {}
+        Long id,
+        Long idSequence,
+        Double debutS,
+        Double finS,
+        Integer frequenceMedianeHz,
+        String taxonTadarida,
+        Double probTadarida,
+        String taxonAutreTadarida,
+        String taxonObservateur,
+        Double probObservateur,
+        String commentaire,
+        boolean reference,
+        ModeValidation modeValidation,
+        Long idResultats) {}

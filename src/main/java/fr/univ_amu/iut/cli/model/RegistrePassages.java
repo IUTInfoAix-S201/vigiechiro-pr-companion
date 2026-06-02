@@ -30,64 +30,60 @@ import java.util.stream.Collectors;
 /// `"?"` plutôt que d'être masqués.
 public final class RegistrePassages {
 
-  private final PassageDao passageDao;
-  private final PointDao pointDao;
-  private final SiteDao siteDao;
+    private final PassageDao passageDao;
+    private final PointDao pointDao;
+    private final SiteDao siteDao;
 
-  public RegistrePassages(PassageDao passageDao, PointDao pointDao, SiteDao siteDao) {
-    this.passageDao = Objects.requireNonNull(passageDao, "passageDao");
-    this.pointDao = Objects.requireNonNull(pointDao, "pointDao");
-    this.siteDao = Objects.requireNonNull(siteDao, "siteDao");
-  }
+    public RegistrePassages(PassageDao passageDao, PointDao pointDao, SiteDao siteDao) {
+        this.passageDao = Objects.requireNonNull(passageDao, "passageDao");
+        this.pointDao = Objects.requireNonNull(pointDao, "pointDao");
+        this.siteDao = Objects.requireNonNull(siteDao, "siteDao");
+    }
 
-  /// Tous les passages enregistrés, enrichis du contexte site/point, triés pour un affichage
-  /// stable.
-  public List<LignePassage> lister() {
-    Map<Long, PointDEcoute> points =
-        pointDao.findAll().stream()
-            .collect(Collectors.toMap(PointDEcoute::id, Function.identity()));
-    Map<Long, Site> sites =
-        siteDao.findAll().stream().collect(Collectors.toMap(Site::id, Function.identity()));
+    /// Tous les passages enregistrés, enrichis du contexte site/point, triés pour un affichage
+    /// stable.
+    public List<LignePassage> lister() {
+        Map<Long, PointDEcoute> points =
+                pointDao.findAll().stream().collect(Collectors.toMap(PointDEcoute::id, Function.identity()));
+        Map<Long, Site> sites = siteDao.findAll().stream().collect(Collectors.toMap(Site::id, Function.identity()));
 
-    return passageDao.findAll().stream()
-        .map(passage -> versLigne(passage, points, sites))
-        .sorted(
-            Comparator.comparing(LignePassage::carre)
-                .thenComparing(LignePassage::codePoint)
-                .thenComparingInt(LignePassage::annee)
-                .thenComparingInt(LignePassage::numeroPassage))
-        .toList();
-  }
+        return passageDao.findAll().stream()
+                .map(passage -> versLigne(passage, points, sites))
+                .sorted(Comparator.comparing(LignePassage::carre)
+                        .thenComparing(LignePassage::codePoint)
+                        .thenComparingInt(LignePassage::annee)
+                        .thenComparingInt(LignePassage::numeroPassage))
+                .toList();
+    }
 
-  private static LignePassage versLigne(
-      Passage passage, Map<Long, PointDEcoute> points, Map<Long, Site> sites) {
-    PointDEcoute point = points.get(passage.idPoint());
-    Site site = point == null ? null : sites.get(point.idSite());
-    return new LignePassage(
-        passage.id(),
-        site == null ? "?" : site.numeroCarre(),
-        point == null ? "?" : point.code(),
-        passage.annee(),
-        passage.numeroPassage(),
-        passage.statutWorkflow(),
-        passage.verdictVerification());
-  }
+    private static LignePassage versLigne(Passage passage, Map<Long, PointDEcoute> points, Map<Long, Site> sites) {
+        PointDEcoute point = points.get(passage.idPoint());
+        Site site = point == null ? null : sites.get(point.idSite());
+        return new LignePassage(
+                passage.id(),
+                site == null ? "?" : site.numeroCarre(),
+                point == null ? "?" : point.code(),
+                passage.annee(),
+                passage.numeroPassage(),
+                passage.statutWorkflow(),
+                passage.verdictVerification());
+    }
 
-  /// Ligne d'affichage d'un passage (objet de présentation, pas une entité persistée).
-  ///
-  /// @param idPassage identifiant technique du passage
-  /// @param carre numéro de carré du site (ou `"?"` si introuvable)
-  /// @param codePoint code du point d'écoute (ou `"?"` si introuvable)
-  /// @param annee année du passage
-  /// @param numeroPassage numéro de passage dans l'année
-  /// @param statut statut du workflow
-  /// @param verdict verdict de vérification (`null` tant que non vérifié)
-  public record LignePassage(
-      Long idPassage,
-      String carre,
-      String codePoint,
-      int annee,
-      int numeroPassage,
-      StatutWorkflow statut,
-      Verdict verdict) {}
+    /// Ligne d'affichage d'un passage (objet de présentation, pas une entité persistée).
+    ///
+    /// @param idPassage identifiant technique du passage
+    /// @param carre numéro de carré du site (ou `"?"` si introuvable)
+    /// @param codePoint code du point d'écoute (ou `"?"` si introuvable)
+    /// @param annee année du passage
+    /// @param numeroPassage numéro de passage dans l'année
+    /// @param statut statut du workflow
+    /// @param verdict verdict de vérification (`null` tant que non vérifié)
+    public record LignePassage(
+            Long idPassage,
+            String carre,
+            String codePoint,
+            int annee,
+            int numeroPassage,
+            StatutWorkflow statut,
+            Verdict verdict) {}
 }

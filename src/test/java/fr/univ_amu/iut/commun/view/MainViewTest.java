@@ -29,48 +29,48 @@ import org.testfx.framework.junit5.Start;
 @ExtendWith(ApplicationExtension.class)
 class MainViewTest {
 
-  private Navigateur navigateur;
+    private Navigateur navigateur;
 
-  @Start
-  void start(Stage stage) throws Exception {
-    Path workspace = Files.createTempDirectory("vc-main");
-    System.setProperty("vigiechiro.workspace", workspace.toString());
-    Injector injector = RacineInjecteur.creer();
-    SourceDeDonnees source = injector.getInstance(SourceDeDonnees.class);
-    new MigrationSchema(source).migrer();
-    navigateur = injector.getInstance(Navigateur.class);
-    FXMLLoader loader = new FXMLLoader(App.class.getResource("commun/view/MainView.fxml"));
-    loader.setControllerFactory(injector::getInstance);
-    Parent racine = loader.load();
-    stage.setScene(new Scene(racine, 1000, 700));
-    stage.show();
-  }
+    @Start
+    void start(Stage stage) throws Exception {
+        Path workspace = Files.createTempDirectory("vc-main");
+        System.setProperty("vigiechiro.workspace", workspace.toString());
+        Injector injector = RacineInjecteur.creer();
+        SourceDeDonnees source = injector.getInstance(SourceDeDonnees.class);
+        new MigrationSchema(source).migrer();
+        navigateur = injector.getInstance(Navigateur.class);
+        FXMLLoader loader = new FXMLLoader(App.class.getResource("commun/view/MainView.fxml"));
+        loader.setControllerFactory(injector::getInstance);
+        Parent racine = loader.load();
+        stage.setScene(new Scene(racine, 1000, 700));
+        stage.show();
+    }
 
-  @AfterEach
-  void nettoyerWorkspace() {
-    System.clearProperty("vigiechiro.workspace");
-  }
+    @AfterEach
+    void nettoyerWorkspace() {
+        System.clearProperty("vigiechiro.workspace");
+    }
 
-  @Test
-  @DisplayName("Le lien « Accueil » est masqué sur l'accueil et apparaît dans une feature")
-  void lien_accueil_visible_hors_accueil(FxRobot robot) {
-    Hyperlink lien = robot.lookup("#lienAccueil").queryAs(Hyperlink.class);
-    assertThat(lien.isVisible()).isFalse();
+    @Test
+    @DisplayName("Le lien « Accueil » est masqué sur l'accueil et apparaît dans une feature")
+    void lien_accueil_visible_hors_accueil(FxRobot robot) {
+        Hyperlink lien = robot.lookup("#lienAccueil").queryAs(Hyperlink.class);
+        assertThat(lien.isVisible()).isFalse();
 
-    robot.interact(() -> navigateur.afficher(new Group(), "sites", "Mes sites de suivi"));
+        robot.interact(() -> navigateur.afficher(new Group(), "sites", "Mes sites de suivi"));
 
-    assertThat(lien.isVisible()).isTrue();
-  }
+        assertThat(lien.isVisible()).isTrue();
+    }
 
-  @Test
-  @DisplayName("Cliquer « Accueil » ramène à l'accueil et masque de nouveau le lien")
-  void clic_accueil_revient_a_l_accueil(FxRobot robot) {
-    robot.interact(() -> navigateur.afficher(new Group(), "sites", "Mes sites de suivi"));
-    Hyperlink lien = robot.lookup("#lienAccueil").queryAs(Hyperlink.class);
+    @Test
+    @DisplayName("Cliquer « Accueil » ramène à l'accueil et masque de nouveau le lien")
+    void clic_accueil_revient_a_l_accueil(FxRobot robot) {
+        robot.interact(() -> navigateur.afficher(new Group(), "sites", "Mes sites de suivi"));
+        Hyperlink lien = robot.lookup("#lienAccueil").queryAs(Hyperlink.class);
 
-    robot.interact(lien::fire);
+        robot.interact(lien::fire);
 
-    assertThat(lien.isVisible()).isFalse();
-    assertThat(robot.lookup("#cartesActivites").tryQuery()).isPresent();
-  }
+        assertThat(lien.isVisible()).isFalse();
+        assertThat(robot.lookup("#cartesActivites").tryQuery()).isPresent();
+    }
 }

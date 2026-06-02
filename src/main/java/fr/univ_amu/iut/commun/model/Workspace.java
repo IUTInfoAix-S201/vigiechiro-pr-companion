@@ -18,53 +18,53 @@ import java.nio.file.Path;
 /// ```
 public final class Workspace {
 
-  /// Nom du fichier SQLite à la racine du workspace (R21).
-  public static final String FICHIER_BASE = "vigiechiro.db";
+    /// Nom du fichier SQLite à la racine du workspace (R21).
+    public static final String FICHIER_BASE = "vigiechiro.db";
 
-  private static final String DOSSIER_DEFAUT = "VigieChiro-Companion";
-  private static final String SOUS_DOSSIER_BRUTS = "bruts";
-  private static final String SOUS_DOSSIER_TRANSFORMES = "transformes";
+    private static final String DOSSIER_DEFAUT = "VigieChiro-Companion";
+    private static final String SOUS_DOSSIER_BRUTS = "bruts";
+    private static final String SOUS_DOSSIER_TRANSFORMES = "transformes";
 
-  private final Path racine;
+    private final Path racine;
 
-  public Workspace(Path racine) {
-    this.racine = racine.toAbsolutePath();
-  }
+    public Workspace(Path racine) {
+        this.racine = racine.toAbsolutePath();
+    }
 
-  /// Workspace par défaut : `<home>/Documents/VigieChiro-Companion` (R21). Le dossier n'est
-  /// pas créé ici : il le sera paresseusement à la première connexion (cf. `SourceDeDonnees`).
-  public static Workspace parDefaut() {
-    Path documents = Path.of(System.getProperty("user.home"), "Documents", DOSSIER_DEFAUT);
-    return new Workspace(documents);
-  }
+    /// Workspace par défaut : `<home>/Documents/VigieChiro-Companion` (R21). Le dossier n'est
+    /// pas créé ici : il le sera paresseusement à la première connexion (cf. `SourceDeDonnees`).
+    public static Workspace parDefaut() {
+        Path documents = Path.of(System.getProperty("user.home"), "Documents", DOSSIER_DEFAUT);
+        return new Workspace(documents);
+    }
 
-  /// Dossier racine du workspace.
-  public Path racine() {
-    return racine;
-  }
+    /// Dossier racine du workspace.
+    public Path racine() {
+        return racine;
+    }
 
-  /// Chemin du fichier de base SQLite (R21).
-  public Path cheminBaseDeDonnees() {
-    return racine.resolve(FICHIER_BASE);
-  }
+    /// Chemin du fichier de base SQLite (R21).
+    public Path cheminBaseDeDonnees() {
+        return racine.resolve(FICHIER_BASE);
+    }
 
-  /// Dossier d'une session, nommé exactement comme le préfixe du passage (R22).
-  public Path dossierSession(String prefixe) {
-    return racine.resolve(prefixe);
-  }
+    /// Dossier d'une session, nommé exactement comme le préfixe du passage (R22).
+    public Path dossierSession(String prefixe) {
+        return racine.resolve(prefixe);
+    }
 
-  /// Sous-dossier `bruts/` d'une session (originaux R7).
-  public Path dossierBruts(String prefixe) {
-    return dossierSession(prefixe).resolve(SOUS_DOSSIER_BRUTS);
-  }
+    /// Sous-dossier `bruts/` d'une session (originaux R7).
+    public Path dossierBruts(String prefixe) {
+        return dossierSession(prefixe).resolve(SOUS_DOSSIER_BRUTS);
+    }
 
-  /// Sous-dossier `transformes/` d'une session (séquences R8 + CSV R23).
-  public Path dossierTransformes(String prefixe) {
-    return dossierSession(prefixe).resolve(SOUS_DOSSIER_TRANSFORMES);
-  }
+    /// Sous-dossier `transformes/` d'une session (séquences R8 + CSV R23).
+    public Path dossierTransformes(String prefixe) {
+        return dossierSession(prefixe).resolve(SOUS_DOSSIER_TRANSFORMES);
+    }
 
-  @Override
-  public String toString() {
-    return "Workspace[" + racine + "]";
-  }
+    @Override
+    public String toString() {
+        return "Workspace[" + racine + "]";
+    }
 }

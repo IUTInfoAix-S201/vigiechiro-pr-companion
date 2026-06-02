@@ -27,28 +27,28 @@ import fr.univ_amu.iut.sites.model.dao.PointDao;
 /// dépendre du `view` de cette feature.
 public class DiagnosticModule extends AbstractModule {
 
-  /// Fournit le contrat de navigation socle [OuvrirDiagnostic] : M-Passage l'injecte pour ouvrir
-  /// l'écran de diagnostic sans dépendre de cette feature (évite le cycle `passage ↔ diagnostic`).
-  @Override
-  protected void configure() {
-    bind(OuvrirDiagnostic.class).to(NavigationDiagnostic.class);
-  }
+    /// Fournit le contrat de navigation socle [OuvrirDiagnostic] : M-Passage l'injecte pour ouvrir
+    /// l'écran de diagnostic sans dépendre de cette feature (évite le cycle `passage ↔ diagnostic`).
+    @Override
+    protected void configure() {
+        bind(OuvrirDiagnostic.class).to(NavigationDiagnostic.class);
+    }
 
-  /// ViewModel de M-Diagnostic. **Non-singleton** (un VM frais par chargement FXML).
-  @Provides
-  DiagnosticViewModel fournirDiagnosticViewModel(ServiceDiagnostic service) {
-    return new DiagnosticViewModel(service);
-  }
+    /// ViewModel de M-Diagnostic. **Non-singleton** (un VM frais par chargement FXML).
+    @Provides
+    DiagnosticViewModel fournirDiagnosticViewModel(ServiceDiagnostic service) {
+        return new DiagnosticViewModel(service);
+    }
 
-  @Provides
-  @Singleton
-  ServiceDiagnostic fournirServiceDiagnostic(
-      PassageDao passageDao,
-      SessionDao sessionDao,
-      JournalDuCapteurDao journalDao,
-      ReleveClimatiqueDao releveDao,
-      PointDao pointDao,
-      Horloge horloge) {
-    return new ServiceDiagnostic(passageDao, sessionDao, journalDao, releveDao, pointDao, horloge);
-  }
+    @Provides
+    @Singleton
+    ServiceDiagnostic fournirServiceDiagnostic(
+            PassageDao passageDao,
+            SessionDao sessionDao,
+            JournalDuCapteurDao journalDao,
+            ReleveClimatiqueDao releveDao,
+            PointDao pointDao,
+            Horloge horloge) {
+        return new ServiceDiagnostic(passageDao, sessionDao, journalDao, releveDao, pointDao, horloge);
+    }
 }

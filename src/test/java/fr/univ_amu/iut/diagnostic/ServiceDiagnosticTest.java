@@ -48,171 +48,165 @@ import org.junit.jupiter.api.io.TempDir;
 /// signalée (R20).
 class ServiceDiagnosticTest {
 
-  private static final String ID_USER = "u-1";
-  private static final String SERIE = "1925492";
-  private static final LocalDateTime INSTANT = LocalDateTime.of(2026, 5, 31, 9, 0, 0);
+    private static final String ID_USER = "u-1";
+    private static final String SERIE = "1925492";
+    private static final LocalDateTime INSTANT = LocalDateTime.of(2026, 5, 31, 9, 0, 0);
 
-  @TempDir Path dossier;
-  private ServiceDiagnostic service;
-  private PassageDao passageDao;
-  private SessionDao sessionDao;
-  private JournalDuCapteurDao journalDao;
-  private ReleveClimatiqueDao releveDao;
-  private Long idPassage;
+    @TempDir
+    Path dossier;
 
-  @BeforeEach
-  void preparer() {
-    SourceDeDonnees source = new SourceDeDonnees(new Workspace(dossier));
-    new MigrationSchema(source).migrer();
-    new UtilisateurDao(source).insert(new Utilisateur(ID_USER, "Testeur"));
+    private ServiceDiagnostic service;
+    private PassageDao passageDao;
+    private SessionDao sessionDao;
+    private JournalDuCapteurDao journalDao;
+    private ReleveClimatiqueDao releveDao;
+    private Long idPassage;
 
-    SiteDao siteDao = new SiteDao(source);
-    PointDao pointDao = new PointDao(source);
-    Site site =
-        siteDao.insert(
-            new Site(null, "040962", "Étang", Protocole.STANDARD, null, "2026-05-01", ID_USER));
-    // Point géolocalisé : on vérifiera que le GPS remonte depuis la feature sites.
-    Long idPoint =
-        pointDao.insert(new PointDEcoute(null, "A1", 43.529, 5.447, "lisière", site.id())).id();
-    new EnregistreurDao(source).insert(new Enregistreur(SERIE, "V1.01", null));
+    @BeforeEach
+    void preparer() {
+        SourceDeDonnees source = new SourceDeDonnees(new Workspace(dossier));
+        new MigrationSchema(source).migrer();
+        new UtilisateurDao(source).insert(new Utilisateur(ID_USER, "Testeur"));
 
-    passageDao = new PassageDao(source);
-    sessionDao = new SessionDao(source);
-    journalDao = new JournalDuCapteurDao(source);
-    releveDao = new ReleveClimatiqueDao(source);
+        SiteDao siteDao = new SiteDao(source);
+        PointDao pointDao = new PointDao(source);
+        Site site = siteDao.insert(new Site(null, "040962", "Étang", Protocole.STANDARD, null, "2026-05-01", ID_USER));
+        // Point géolocalisé : on vérifiera que le GPS remonte depuis la feature sites.
+        Long idPoint = pointDao.insert(new PointDEcoute(null, "A1", 43.529, 5.447, "lisière", site.id()))
+                .id();
+        new EnregistreurDao(source).insert(new Enregistreur(SERIE, "V1.01", null));
 
-    idPassage =
-        passageDao
-            .insert(
-                new Passage(
-                    null,
-                    1,
-                    2026,
-                    "2026-04-22",
-                    "20:25:00",
-                    "07:47:00",
-                    null,
-                    StatutWorkflow.TRANSFORME,
-                    null,
-                    null,
-                    null,
-                    null,
-                    idPoint,
-                    SERIE))
-            .id();
+        passageDao = new PassageDao(source);
+        sessionDao = new SessionDao(source);
+        journalDao = new JournalDuCapteurDao(source);
+        releveDao = new ReleveClimatiqueDao(source);
 
-    service =
-        new ServiceDiagnostic(
-            passageDao, sessionDao, journalDao, releveDao, pointDao, new HorlogeFigee(INSTANT));
-  }
+        idPassage = passageDao
+                .insert(new Passage(
+                        null,
+                        1,
+                        2026,
+                        "2026-04-22",
+                        "20:25:00",
+                        "07:47:00",
+                        null,
+                        StatutWorkflow.TRANSFORME,
+                        null,
+                        null,
+                        null,
+                        null,
+                        idPoint,
+                        SERIE))
+                .id();
 
-  private Long creerSession() {
-    return sessionDao
-        .insert(
-            new SessionDEnregistrement(
-                null, dossier.resolve("Car040962-2026-Pass1-A1").toString(), null, null, idPassage))
-        .id();
-  }
-
-  /// Copie le THLog réel (ressource de test) dans le workspace jetable, comme le ferait l'import.
-  private Path copierThLogReel() {
-    Path cible = dossier.resolve("PaRecPR" + SERIE + "_THLog.csv");
-    try (InputStream in = getClass().getResourceAsStream("PaRecPR1925492_THLog.csv")) {
-      Files.copy(in, cible, StandardCopyOption.REPLACE_EXISTING);
-    } catch (Exception e) {
-      throw new UncheckedIOException(
-          "Copie du THLog de test impossible", new java.io.IOException(e));
+        service = new ServiceDiagnostic(
+                passageDao, sessionDao, journalDao, releveDao, pointDao, new HorlogeFigee(INSTANT));
     }
-    return cible;
-  }
 
-  @Test
-  @DisplayName("R19 : un journal avec anomalies seedées → anomalies listées et classées")
-  void anomalies_listees() {
-    Long idSession = creerSession();
-    List<String> anomalies =
-        List.of(
-            "Réveil non programmé : 22/04/26 - 03:00:00 PR1925492 Wakeup",
-            "Erreur SD : échec d'écriture sur la carte SD",
-            "Batterie faible (15%) : Batteries internes 15%");
-    journalDao.insert(
-        new JournalDuCapteur(
-            null,
-            "LogPR" + SERIE + ".txt",
-            JsonSimple.tableau(List.of("### Démarrage PR" + SERIE)),
-            JsonSimple.tableau(anomalies),
-            idSession));
+    private Long creerSession() {
+        return sessionDao
+                .insert(new SessionDEnregistrement(
+                        null, dossier.resolve("Car040962-2026-Pass1-A1").toString(), null, null, idPassage))
+                .id();
+    }
 
-    Diagnostic diagnostic = service.diagnostiquer(idPassage);
+    /// Copie le THLog réel (ressource de test) dans le workspace jetable, comme le ferait l'import.
+    private Path copierThLogReel() {
+        Path cible = dossier.resolve("PaRecPR" + SERIE + "_THLog.csv");
+        try (InputStream in = getClass().getResourceAsStream("PaRecPR1925492_THLog.csv")) {
+            Files.copy(in, cible, StandardCopyOption.REPLACE_EXISTING);
+        } catch (Exception e) {
+            throw new UncheckedIOException("Copie du THLog de test impossible", new java.io.IOException(e));
+        }
+        return cible;
+    }
 
-    assertThat(diagnostic.idSession()).isEqualTo(idSession);
-    assertThat(diagnostic.numeroSerieEnregistreur()).isEqualTo(SERIE);
-    assertThat(diagnostic.anomalies().aDesAnomalies()).isTrue();
-    assertThat(diagnostic.anomalies().anomalies()).hasSize(3);
-    assertThat(diagnostic.anomalies().reveilsNonProgrammes()).hasSize(1);
-    assertThat(diagnostic.anomalies().erreursSD()).hasSize(1);
-    assertThat(diagnostic.anomalies().alertesBatterie()).hasSize(1);
-    assertThat(diagnostic.genereLe()).isEqualTo(INSTANT);
-  }
+    @Test
+    @DisplayName("R19 : un journal avec anomalies seedées → anomalies listées et classées")
+    void anomalies_listees() {
+        Long idSession = creerSession();
+        List<String> anomalies = List.of(
+                "Réveil non programmé : 22/04/26 - 03:00:00 PR1925492 Wakeup",
+                "Erreur SD : échec d'écriture sur la carte SD",
+                "Batterie faible (15%) : Batteries internes 15%");
+        journalDao.insert(new JournalDuCapteur(
+                null,
+                "LogPR" + SERIE + ".txt",
+                JsonSimple.tableau(List.of("### Démarrage PR" + SERIE)),
+                JsonSimple.tableau(anomalies),
+                idSession));
 
-  @Test
-  @DisplayName("Le GPS du diagnostic provient du point d'écoute (feature sites)")
-  void gps_depuis_point() {
-    Long idSession = creerSession();
-    journalDao.insert(new JournalDuCapteur(null, "LogPR.txt", "[]", "[]", idSession));
+        Diagnostic diagnostic = service.diagnostiquer(idPassage);
 
-    Diagnostic diagnostic = service.diagnostiquer(idPassage);
+        assertThat(diagnostic.idSession()).isEqualTo(idSession);
+        assertThat(diagnostic.numeroSerieEnregistreur()).isEqualTo(SERIE);
+        assertThat(diagnostic.anomalies().aDesAnomalies()).isTrue();
+        assertThat(diagnostic.anomalies().anomalies()).hasSize(3);
+        assertThat(diagnostic.anomalies().reveilsNonProgrammes()).hasSize(1);
+        assertThat(diagnostic.anomalies().erreursSD()).hasSize(1);
+        assertThat(diagnostic.anomalies().alertesBatterie()).hasSize(1);
+        assertThat(diagnostic.genereLe()).isEqualTo(INSTANT);
+    }
 
-    assertThat(diagnostic.coordonneesGpsDisponibles()).isTrue();
-    assertThat(diagnostic.gpsLatitude()).isEqualTo(43.529);
-    assertThat(diagnostic.gpsLongitude()).isEqualTo(5.447);
-  }
+    @Test
+    @DisplayName("Le GPS du diagnostic provient du point d'écoute (feature sites)")
+    void gps_depuis_point() {
+        Long idSession = creerSession();
+        journalDao.insert(new JournalDuCapteur(null, "LogPR.txt", "[]", "[]", idSession));
 
-  @Test
-  @DisplayName("Relevé climatique présent → série lue depuis le THLog (~1 mesure/600s)")
-  void serie_climatique_lue() {
-    Long idSession = creerSession();
-    journalDao.insert(new JournalDuCapteur(null, "LogPR.txt", "[]", "[]", idSession));
-    releveDao.insert(new ReleveClimatique(null, copierThLogReel().toString(), null, idSession));
+        Diagnostic diagnostic = service.diagnostiquer(idPassage);
 
-    Diagnostic diagnostic = service.diagnostiquer(idPassage);
+        assertThat(diagnostic.coordonneesGpsDisponibles()).isTrue();
+        assertThat(diagnostic.gpsLatitude()).isEqualTo(43.529);
+        assertThat(diagnostic.gpsLongitude()).isEqualTo(5.447);
+    }
 
-    assertThat(diagnostic.releveClimatiqueAbsent()).isFalse();
-    assertThat(diagnostic.climat().present()).isTrue();
-    // 70 mesures dans la fixture réelle (71 lignes - entête).
-    assertThat(diagnostic.climat().nombreMesures()).isEqualTo(70);
-    assertThat(diagnostic.climat().mesures().getFirst().temperatureCelsius()).isEqualTo(23.9);
-    assertThat(diagnostic.climat().mesures().getFirst().humiditePourcent()).isEqualTo(64);
-  }
+    @Test
+    @DisplayName("Relevé climatique présent → série lue depuis le THLog (~1 mesure/600s)")
+    void serie_climatique_lue() {
+        Long idSession = creerSession();
+        journalDao.insert(new JournalDuCapteur(null, "LogPR.txt", "[]", "[]", idSession));
+        releveDao.insert(new ReleveClimatique(null, copierThLogReel().toString(), null, idSession));
 
-  @Test
-  @DisplayName("R20 : relevé climatique absent → signalé explicitement")
-  void releve_absent_signale() {
-    Long idSession = creerSession();
-    journalDao.insert(new JournalDuCapteur(null, "LogPR.txt", "[]", "[]", idSession));
-    // aucun climate_log inséré : la sonde manque.
+        Diagnostic diagnostic = service.diagnostiquer(idPassage);
 
-    Diagnostic diagnostic = service.diagnostiquer(idPassage);
+        assertThat(diagnostic.releveClimatiqueAbsent()).isFalse();
+        assertThat(diagnostic.climat().present()).isTrue();
+        // 70 mesures dans la fixture réelle (71 lignes - entête).
+        assertThat(diagnostic.climat().nombreMesures()).isEqualTo(70);
+        assertThat(diagnostic.climat().mesures().getFirst().temperatureCelsius())
+                .isEqualTo(23.9);
+        assertThat(diagnostic.climat().mesures().getFirst().humiditePourcent()).isEqualTo(64);
+    }
 
-    assertThat(diagnostic.releveClimatiqueAbsent()).isTrue();
-    assertThat(diagnostic.climat().present()).isFalse();
-    assertThat(diagnostic.climat().mesures()).isEmpty();
-  }
+    @Test
+    @DisplayName("R20 : relevé climatique absent → signalé explicitement")
+    void releve_absent_signale() {
+        Long idSession = creerSession();
+        journalDao.insert(new JournalDuCapteur(null, "LogPR.txt", "[]", "[]", idSession));
+        // aucun climate_log inséré : la sonde manque.
 
-  @Test
-  @DisplayName("Passage inconnu → RegleMetierException")
-  void passage_inconnu() {
-    assertThatThrownBy(() -> service.diagnostiquer(9999L))
-        .isInstanceOf(RegleMetierException.class)
-        .hasMessageContaining("introuvable");
-  }
+        Diagnostic diagnostic = service.diagnostiquer(idPassage);
 
-  @Test
-  @DisplayName("Session d'enregistrement manquante → RegleMetierException")
-  void session_manquante() {
-    // passage créé en @BeforeEach mais aucune session rattachée.
-    assertThatThrownBy(() -> service.diagnostiquer(idPassage))
-        .isInstanceOf(RegleMetierException.class)
-        .hasMessageContaining("Session");
-  }
+        assertThat(diagnostic.releveClimatiqueAbsent()).isTrue();
+        assertThat(diagnostic.climat().present()).isFalse();
+        assertThat(diagnostic.climat().mesures()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Passage inconnu → RegleMetierException")
+    void passage_inconnu() {
+        assertThatThrownBy(() -> service.diagnostiquer(9999L))
+                .isInstanceOf(RegleMetierException.class)
+                .hasMessageContaining("introuvable");
+    }
+
+    @Test
+    @DisplayName("Session d'enregistrement manquante → RegleMetierException")
+    void session_manquante() {
+        // passage créé en @BeforeEach mais aucune session rattachée.
+        assertThatThrownBy(() -> service.diagnostiquer(idPassage))
+                .isInstanceOf(RegleMetierException.class)
+                .hasMessageContaining("Session");
+    }
 }

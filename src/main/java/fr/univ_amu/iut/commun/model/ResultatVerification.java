@@ -17,44 +17,44 @@ import java.util.List;
 /// @param alertes liste des alertes (copie défensive immuable)
 public record ResultatVerification(List<Alerte> alertes) {
 
-  public ResultatVerification {
-    alertes = List.copyOf(alertes);
-  }
+    public ResultatVerification {
+        alertes = List.copyOf(alertes);
+    }
 
-  /// Résultat conforme : aucune alerte.
-  public static ResultatVerification ok() {
-    return new ResultatVerification(List.of());
-  }
+    /// Résultat conforme : aucune alerte.
+    public static ResultatVerification ok() {
+        return new ResultatVerification(List.of());
+    }
 
-  /// Résultat regroupant les alertes fournies.
-  public static ResultatVerification de(Alerte... alertes) {
-    return new ResultatVerification(List.of(alertes));
-  }
+    /// Résultat regroupant les alertes fournies.
+    public static ResultatVerification de(Alerte... alertes) {
+        return new ResultatVerification(List.of(alertes));
+    }
 
-  /// Renvoie un nouveau résultat enrichi de `alerte` (accumulation immuable et fluente).
-  public ResultatVerification avec(Alerte alerte) {
-    List<Alerte> copie = new ArrayList<>(alertes);
-    copie.add(alerte);
-    return new ResultatVerification(copie);
-  }
+    /// Renvoie un nouveau résultat enrichi de `alerte` (accumulation immuable et fluente).
+    public ResultatVerification avec(Alerte alerte) {
+        List<Alerte> copie = new ArrayList<>(alertes);
+        copie.add(alerte);
+        return new ResultatVerification(copie);
+    }
 
-  /// `true` si au moins une alerte est bloquante.
-  public boolean estBloquant() {
-    return alertes.stream().anyMatch(Alerte::estBloquante);
-  }
+    /// `true` si au moins une alerte est bloquante.
+    public boolean estBloquant() {
+        return alertes.stream().anyMatch(Alerte::estBloquante);
+    }
 
-  /// `true` si aucune alerte n'a été émise (rien à signaler).
-  public boolean estConforme() {
-    return alertes.isEmpty();
-  }
+    /// `true` si aucune alerte n'a été émise (rien à signaler).
+    public boolean estConforme() {
+        return alertes.isEmpty();
+    }
 
-  /// Sous-liste des seules alertes bloquantes.
-  public List<Alerte> alertesBloquantes() {
-    return alertes.stream().filter(Alerte::estBloquante).toList();
-  }
+    /// Sous-liste des seules alertes bloquantes.
+    public List<Alerte> alertesBloquantes() {
+        return alertes.stream().filter(Alerte::estBloquante).toList();
+    }
 
-  /// Messages de toutes les alertes, dans l'ordre.
-  public List<String> messages() {
-    return alertes.stream().map(Alerte::message).toList();
-  }
+    /// Messages de toutes les alertes, dans l'ordre.
+    public List<String> messages() {
+        return alertes.stream().map(Alerte::message).toList();
+    }
 }

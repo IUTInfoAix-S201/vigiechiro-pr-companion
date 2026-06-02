@@ -40,84 +40,75 @@ import fr.univ_amu.iut.sites.model.ServiceSites;
 /// validé par `ImportationModuleTest` (injecteur local socle + passage + importation).
 public class ImportationModule extends AbstractModule {
 
-  /// Enregistre la carte d'accueil de la feature dans le point d'extension du socle. Le
-  /// `MainController` la découvre via `Set<ActiviteAccueil>` sans que `commun` dépende de
-  /// `importation`.
-  @Override
-  protected void configure() {
-    Multibinder.newSetBinder(binder(), ActiviteAccueil.class)
-        .addBinding()
-        .to(ActiviteImporterNuit.class);
-  }
+    /// Enregistre la carte d'accueil de la feature dans le point d'extension du socle. Le
+    /// `MainController` la découvre via `Set<ActiviteAccueil>` sans que `commun` dépende de
+    /// `importation`.
+    @Override
+    protected void configure() {
+        Multibinder.newSetBinder(binder(), ActiviteAccueil.class).addBinding().to(ActiviteImporterNuit.class);
+    }
 
-  @Provides
-  @Singleton
-  AnalyseurLogPR fournirAnalyseurLogPR() {
-    return new AnalyseurLogPR();
-  }
+    @Provides
+    @Singleton
+    AnalyseurLogPR fournirAnalyseurLogPR() {
+        return new AnalyseurLogPR();
+    }
 
-  @Provides
-  @Singleton
-  InspecteurDossier fournirInspecteurDossier(AnalyseurLogPR analyseurLog) {
-    return new InspecteurDossier(analyseurLog);
-  }
+    @Provides
+    @Singleton
+    InspecteurDossier fournirInspecteurDossier(AnalyseurLogPR analyseurLog) {
+        return new InspecteurDossier(analyseurLog);
+    }
 
-  @Provides
-  @Singleton
-  CopieProtegee fournirCopieProtegee() {
-    return new CopieProtegee();
-  }
+    @Provides
+    @Singleton
+    CopieProtegee fournirCopieProtegee() {
+        return new CopieProtegee();
+    }
 
-  @Provides
-  @Singleton
-  Renommeur fournirRenommeur() {
-    return new Renommeur();
-  }
+    @Provides
+    @Singleton
+    Renommeur fournirRenommeur() {
+        return new Renommeur();
+    }
 
-  @Provides
-  @Singleton
-  TransformationAudio fournirTransformationAudio() {
-    return new TransformationAudio();
-  }
+    @Provides
+    @Singleton
+    TransformationAudio fournirTransformationAudio() {
+        return new TransformationAudio();
+    }
 
-  @Provides
-  @Singleton
-  AgregatImportDao fournirAgregatImportDao(SourceDeDonnees source) {
-    return new AgregatImportDao(source);
-  }
+    @Provides
+    @Singleton
+    AgregatImportDao fournirAgregatImportDao(SourceDeDonnees source) {
+        return new AgregatImportDao(source);
+    }
 
-  @Provides
-  @Singleton
-  ServiceImport fournirServiceImport(
-      InspecteurDossier inspecteur,
-      CopieProtegee copie,
-      Renommeur renommeur,
-      TransformationAudio transformation,
-      AgregatImportDao agregatDao,
-      UniteDeTravail uniteDeTravail,
-      Workspace workspace,
-      Horloge horloge) {
-    return new ServiceImport(
-        inspecteur,
-        copie,
-        renommeur,
-        transformation,
-        agregatDao,
-        uniteDeTravail,
-        workspace,
-        horloge);
-  }
+    @Provides
+    @Singleton
+    ServiceImport fournirServiceImport(
+            InspecteurDossier inspecteur,
+            CopieProtegee copie,
+            Renommeur renommeur,
+            TransformationAudio transformation,
+            AgregatImportDao agregatDao,
+            UniteDeTravail uniteDeTravail,
+            Workspace workspace,
+            Horloge horloge) {
+        return new ServiceImport(
+                inspecteur, copie, renommeur, transformation, agregatDao, uniteDeTravail, workspace, horloge);
+    }
 
-  /// ViewModel de l'assistant M-Import. **Non-singleton** (un VM frais par chargement FXML : un
-  /// écran rouvert ne réutilise pas l'état d'un précédent, cf. patron `SitesModule`). Dépend de
-  /// [ServiceSites] et de l'utilisateur courant (fournis par `SitesModule`) pour lister les
-  /// sites/points : dépendance `importation → sites` sur le `model` d'une autre feature.
-  @Provides
-  ImportationViewModel fournirImportationViewModel(
-      ServiceImport serviceImport,
-      ServiceSites serviceSites,
-      Horloge horloge,
-      @Named("idUtilisateurCourant") String idUtilisateur) {
-    return new ImportationViewModel(serviceImport, serviceSites, horloge, idUtilisateur);
-  }
+    /// ViewModel de l'assistant M-Import. **Non-singleton** (un VM frais par chargement FXML : un
+    /// écran rouvert ne réutilise pas l'état d'un précédent, cf. patron `SitesModule`). Dépend de
+    /// [ServiceSites] et de l'utilisateur courant (fournis par `SitesModule`) pour lister les
+    /// sites/points : dépendance `importation → sites` sur le `model` d'une autre feature.
+    @Provides
+    ImportationViewModel fournirImportationViewModel(
+            ServiceImport serviceImport,
+            ServiceSites serviceSites,
+            Horloge horloge,
+            @Named("idUtilisateurCourant") String idUtilisateur) {
+        return new ImportationViewModel(serviceImport, serviceSites, horloge, idUtilisateur);
+    }
 }

@@ -15,10 +15,10 @@ import java.nio.file.Path;
 /// @param offsetSourceSecondes position de la séquence dans le signal source, **avant** le ×10
 /// @param octets taille du fichier écrit, en octets
 public record SequenceProduite(
-    int index,
-    String nomFichier,
-    Path chemin,
-    int frequenceSortieHz,
-    double dureeSecondes,
-    double offsetSourceSecondes,
-    long octets) {}
+        int index,
+        String nomFichier,
+        Path chemin,
+        int frequenceSortieHz,
+        double dureeSecondes,
+        double offsetSourceSecondes,
+        long octets) {}

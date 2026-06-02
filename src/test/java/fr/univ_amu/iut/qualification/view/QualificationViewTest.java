@@ -51,177 +51,169 @@ import org.testfx.framework.junit5.Start;
 @ExtendWith(ApplicationExtension.class)
 class QualificationViewTest {
 
-  private static final long ID_PASSAGE = 42L;
-  private static final long ID_SELECTION = 7L;
+    private static final long ID_PASSAGE = 42L;
+    private static final long ID_SELECTION = 7L;
 
-  @Start
-  void start(Stage stage) throws Exception {
-    ServiceQualification service = mock(ServiceQualification.class);
-    when(service.precheck(anyLong()))
-        .thenReturn(new PreCheckNuit.Diagnostic(Feu.VERT, Feu.ORANGE, Feu.VERT));
-    when(service.chargerContexte(anyLong()))
-        .thenReturn(
-            new ContexteVerification(
-                "640380",
-                "A1",
-                "Étang de la Tuilière",
-                2,
-                2026,
-                "2026-06-22",
-                "20:25:00",
-                "07:47:00",
-                30,
-                18000.0,
-                StatutWorkflow.TRANSFORME,
-                null));
-    when(service.ouvrirVerification(anyLong()))
-        .thenReturn(
-            new SelectionDEcoute(
-                ID_SELECTION, MethodeSelection.REPARTITION_TEMPORELLE, 3, ID_PASSAGE));
-    when(service.detaillerSelection(anyLong())).thenReturn(lignes(3));
+    @Start
+    void start(Stage stage) throws Exception {
+        ServiceQualification service = mock(ServiceQualification.class);
+        when(service.precheck(anyLong())).thenReturn(new PreCheckNuit.Diagnostic(Feu.VERT, Feu.ORANGE, Feu.VERT));
+        when(service.chargerContexte(anyLong()))
+                .thenReturn(new ContexteVerification(
+                        "640380",
+                        "A1",
+                        "Étang de la Tuilière",
+                        2,
+                        2026,
+                        "2026-06-22",
+                        "20:25:00",
+                        "07:47:00",
+                        30,
+                        18000.0,
+                        StatutWorkflow.TRANSFORME,
+                        null));
+        when(service.ouvrirVerification(anyLong()))
+                .thenReturn(new SelectionDEcoute(ID_SELECTION, MethodeSelection.REPARTITION_TEMPORELLE, 3, ID_PASSAGE));
+        when(service.detaillerSelection(anyLong())).thenReturn(lignes(3));
 
-    Injector injector =
-        Guice.createInjector(
-            new AbstractModule() {
-              @Provides
-              QualificationViewModel verdict() {
+        Injector injector = Guice.createInjector(new AbstractModule() {
+            @Provides
+            QualificationViewModel verdict() {
                 return new QualificationViewModel(service);
-              }
+            }
 
-              @Provides
-              SelectionEcouteViewModel selection() {
+            @Provides
+            SelectionEcouteViewModel selection() {
                 return new SelectionEcouteViewModel(service);
-              }
+            }
 
-              @Provides
-              OuvrirPassage ouvrirPassage() {
+            @Provides
+            OuvrirPassage ouvrirPassage() {
                 return (id, contexte) -> {};
-              }
-            });
-    FXMLLoader loader =
-        new FXMLLoader(QualificationController.class.getResource("Qualification.fxml"));
-    loader.setControllerFactory(injector::getInstance);
-    Parent vue = loader.load();
-    QualificationController controleur = loader.getController();
-    controleur.ouvrirSur(ID_PASSAGE);
-    stage.setScene(new Scene(vue, 1100, 760));
-    stage.show();
-  }
-
-  private static List<SequenceEnSelection> lignes(int n) {
-    List<SequenceEnSelection> lignes = new ArrayList<>();
-    for (int i = 0; i < n; i++) {
-      SequenceDEcoute sequence =
-          new SequenceDEcoute(
-              (long) i, "PaRec_" + i + ".wav", null, i, 0.0, 5.0, "/ws/seq" + i + ".wav", true, 1L);
-      lignes.add(new SequenceEnSelection(sequence, i, false));
+            }
+        });
+        FXMLLoader loader = new FXMLLoader(QualificationController.class.getResource("Qualification.fxml"));
+        loader.setControllerFactory(injector::getInstance);
+        Parent vue = loader.load();
+        QualificationController controleur = loader.getController();
+        controleur.ouvrirSur(ID_PASSAGE);
+        stage.setScene(new Scene(vue, 1100, 760));
+        stage.show();
     }
-    return lignes;
-  }
 
-  @Test
-  @DisplayName("L'écran affiche le bandeau de contexte et la liste de la sélection")
-  void affiche_bandeau_et_liste(FxRobot robot) {
-    Label titre = robot.lookup("#lblTitreContexte").queryAs(Label.class);
-    TableView<?> table = robot.lookup("#tableSequences").queryAs(TableView.class);
+    private static List<SequenceEnSelection> lignes(int n) {
+        List<SequenceEnSelection> lignes = new ArrayList<>();
+        for (int i = 0; i < n; i++) {
+            SequenceDEcoute sequence = new SequenceDEcoute(
+                    (long) i, "PaRec_" + i + ".wav", null, i, 0.0, 5.0, "/ws/seq" + i + ".wav", true, 1L);
+            lignes.add(new SequenceEnSelection(sequence, i, false));
+        }
+        return lignes;
+    }
 
-    assertThat(titre.getText()).contains("640380").contains("A1");
-    assertThat(table.getItems()).hasSize(3);
-  }
+    @Test
+    @DisplayName("L'écran affiche le bandeau de contexte et la liste de la sélection")
+    void affiche_bandeau_et_liste(FxRobot robot) {
+        Label titre = robot.lookup("#lblTitreContexte").queryAs(Label.class);
+        TableView<?> table = robot.lookup("#tableSequences").queryAs(TableView.class);
 
-  @Test
-  @DisplayName("Le fil d'Ariane affiche le chemin de navigation jusqu'à la vérification (#32)")
-  void affiche_le_fil_ariane(FxRobot robot) {
-    Label fil = robot.lookup("#lblFilAriane").queryAs(Label.class);
-    Hyperlink retour = robot.lookup("#lienRetourPassage").queryAs(Hyperlink.class);
+        assertThat(titre.getText()).contains("640380").contains("A1");
+        assertThat(table.getItems()).hasSize(3);
+    }
 
-    assertThat(fil.getText())
-        .contains("Mes sites")
-        .contains("640380")
-        .contains("A1")
-        .contains("Vérifier");
-    assertThat(retour.isDisabled()).isFalse(); // contexte chargé → retour possible
-  }
+    @Test
+    @DisplayName("Le fil d'Ariane affiche le chemin de navigation jusqu'à la vérification (#32)")
+    void affiche_le_fil_ariane(FxRobot robot) {
+        Label fil = robot.lookup("#lblFilAriane").queryAs(Label.class);
+        Hyperlink retour = robot.lookup("#lienRetourPassage").queryAs(Hyperlink.class);
 
-  @Test
-  @DisplayName("Le bouton « Enregistrer » est désactivé tant qu'aucun verdict décisif n'est choisi")
-  void enregistrer_desactive_sans_verdict(FxRobot robot) {
-    Button enregistrer = robot.lookup("#boutonEnregistrer").queryAs(Button.class);
+        assertThat(fil.getText())
+                .contains("Mes sites")
+                .contains("640380")
+                .contains("A1")
+                .contains("Vérifier");
+        assertThat(retour.isDisabled()).isFalse(); // contexte chargé → retour possible
+    }
 
-    assertThat(enregistrer.isDisabled()).isTrue();
-  }
+    @Test
+    @DisplayName("Le bouton « Enregistrer » est désactivé tant qu'aucun verdict décisif n'est choisi")
+    void enregistrer_desactive_sans_verdict(FxRobot robot) {
+        Button enregistrer = robot.lookup("#boutonEnregistrer").queryAs(Button.class);
 
-  @Test
-  @DisplayName("Choisir un verdict OK active le bouton « Enregistrer »")
-  void choisir_ok_active_enregistrer(FxRobot robot) {
-    Button ok = robot.lookup("#boutonOk").queryAs(Button.class);
-    robot.interact(ok::fire);
+        assertThat(enregistrer.isDisabled()).isTrue();
+    }
 
-    Button enregistrer = robot.lookup("#boutonEnregistrer").queryAs(Button.class);
-    assertThat(enregistrer.isDisabled()).isFalse();
-  }
+    @Test
+    @DisplayName("Choisir un verdict OK active le bouton « Enregistrer »")
+    void choisir_ok_active_enregistrer(FxRobot robot) {
+        Button ok = robot.lookup("#boutonOk").queryAs(Button.class);
+        robot.interact(ok::fire);
 
-  @Test
-  @DisplayName("Les boutons de verdict reçoivent bien leurs classes CSS (liste FXML à virgules)")
-  void boutons_verdict_recoivent_leurs_classes_css(FxRobot robot) {
-    Button ok = robot.lookup("#boutonOk").queryAs(Button.class);
+        Button enregistrer = robot.lookup("#boutonEnregistrer").queryAs(Button.class);
+        assertThat(enregistrer.isDisabled()).isFalse();
+    }
 
-    assertThat(ok.getStyleClass()).contains("verdict", "verdict-ok");
-  }
+    @Test
+    @DisplayName("Les boutons de verdict reçoivent bien leurs classes CSS (liste FXML à virgules)")
+    void boutons_verdict_recoivent_leurs_classes_css(FxRobot robot) {
+        Button ok = robot.lookup("#boutonOk").queryAs(Button.class);
 
-  @Test
-  @DisplayName("La vue audio suit le fichier de la séquence sélectionnée")
-  void audio_suit_la_sequence_selectionnee(FxRobot robot) {
-    TableView<?> table = robot.lookup("#tableSequences").queryAs(TableView.class);
-    AudioView audio = robot.lookup("#audioView").queryAs(AudioView.class);
+        assertThat(ok.getStyleClass()).contains("verdict", "verdict-ok");
+    }
 
-    robot.interact(() -> table.getSelectionModel().select(0));
+    @Test
+    @DisplayName("La vue audio suit le fichier de la séquence sélectionnée")
+    void audio_suit_la_sequence_selectionnee(FxRobot robot) {
+        TableView<?> table = robot.lookup("#tableSequences").queryAs(TableView.class);
+        AudioView audio = robot.lookup("#audioView").queryAs(AudioView.class);
 
-    assertThat(audio.getAudioFile()).isNotNull();
-    assertThat(audio.getAudioFile().toString()).endsWith("seq0.wav");
-  }
+        robot.interact(() -> table.getSelectionModel().select(0));
 
-  @Test
-  @DisplayName("Le début de lecture marque la séquence courante comme écoutée (R10)")
-  void debut_de_lecture_marque_ecoutee(FxRobot robot) {
-    TableView<?> table = robot.lookup("#tableSequences").queryAs(TableView.class);
-    AudioView audio = robot.lookup("#audioView").queryAs(AudioView.class);
-    robot.interact(() -> table.getSelectionModel().select(0));
+        assertThat(audio.getAudioFile()).isNotNull();
+        assertThat(audio.getAudioFile().toString()).endsWith("seq0.wav");
+    }
 
-    robot.interact(() -> audio.setPlaying(true));
+    @Test
+    @DisplayName("Le début de lecture marque la séquence courante comme écoutée (R10)")
+    void debut_de_lecture_marque_ecoutee(FxRobot robot) {
+        TableView<?> table = robot.lookup("#tableSequences").queryAs(TableView.class);
+        AudioView audio = robot.lookup("#audioView").queryAs(AudioView.class);
+        robot.interact(() -> table.getSelectionModel().select(0));
 
-    SequenceEnSelection premiere = (SequenceEnSelection) table.getItems().get(0);
-    assertThat(premiere.ecoutee()).isTrue();
-  }
+        robot.interact(() -> audio.setPlaying(true));
 
-  @Test
-  @DisplayName("Le bouton « Personnaliser » est présent et actif dans l'en-tête de la liste")
-  void bouton_personnaliser_present(FxRobot robot) {
-    Button personnaliser = robot.lookup("#boutonPersonnaliser").queryAs(Button.class);
+        SequenceEnSelection premiere = (SequenceEnSelection) table.getItems().get(0);
+        assertThat(premiere.ecoutee()).isTrue();
+    }
 
-    assertThat(personnaliser.getText()).contains("Personnaliser");
-    assertThat(personnaliser.isDisabled()).isFalse();
-  }
+    @Test
+    @DisplayName("Le bouton « Personnaliser » est présent et actif dans l'en-tête de la liste")
+    void bouton_personnaliser_present(FxRobot robot) {
+        Button personnaliser = robot.lookup("#boutonPersonnaliser").queryAs(Button.class);
 
-  @Test
-  @DisplayName("Le raccourci clavier O choisit le verdict OK (active « Enregistrer »)")
-  void raccourci_o_choisit_verdict_ok(FxRobot robot) {
-    Button enregistrer = robot.lookup("#boutonEnregistrer").queryAs(Button.class);
-    assertThat(enregistrer.isDisabled()).isTrue();
+        assertThat(personnaliser.getText()).contains("Personnaliser");
+        assertThat(personnaliser.isDisabled()).isFalse();
+    }
 
-    robot.push(KeyCode.O);
+    @Test
+    @DisplayName("Le raccourci clavier O choisit le verdict OK (active « Enregistrer »)")
+    void raccourci_o_choisit_verdict_ok(FxRobot robot) {
+        Button enregistrer = robot.lookup("#boutonEnregistrer").queryAs(Button.class);
+        assertThat(enregistrer.isDisabled()).isTrue();
 
-    assertThat(enregistrer.isDisabled()).isFalse();
-  }
+        robot.push(KeyCode.O);
 
-  @Test
-  @DisplayName("Choisir « À jeter » affiche l'aperçu R14 avant l'enregistrement")
-  void apercu_r14_visible_quand_a_jeter_choisi(FxRobot robot) {
-    Label apercu = robot.lookup("#lblApercuR14").queryAs(Label.class);
-    assertThat(apercu.isVisible()).isFalse();
+        assertThat(enregistrer.isDisabled()).isFalse();
+    }
 
-    robot.push(KeyCode.J);
+    @Test
+    @DisplayName("Choisir « À jeter » affiche l'aperçu R14 avant l'enregistrement")
+    void apercu_r14_visible_quand_a_jeter_choisi(FxRobot robot) {
+        Label apercu = robot.lookup("#lblApercuR14").queryAs(Label.class);
+        assertThat(apercu.isVisible()).isFalse();
 
-    assertThat(apercu.isVisible()).isTrue();
-  }
+        robot.push(KeyCode.J);
+
+        assertThat(apercu.isVisible()).isTrue();
+    }
 }

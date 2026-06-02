@@ -27,21 +27,21 @@ import fr.univ_amu.iut.validation.di.ValidationModule;
 /// explicitement les dépendances issues de `commun.di` dans la détection de cycles.
 public final class RacineInjecteur {
 
-  private RacineInjecteur() {}
+    private RacineInjecteur() {}
 
-  /// Crée l'injecteur applicatif avec tous les modules câblés.
-  public static Injector creer() {
-    return Guice.createInjector(
-        new CommunModule(),
-        new PersistenceModule(),
-        new SitesModule(),
-        new PassageModule(),
-        new QualificationModule(),
-        new ValidationModule(),
-        new MultisiteModule(),
-        new ImportationModule(),
-        new LotModule(),
-        new DiagnosticModule(),
-        new BibliothequeModule());
-  }
+    /// Crée l'injecteur applicatif avec tous les modules câblés.
+    public static Injector creer() {
+        return Guice.createInjector(
+                new CommunModule(),
+                new PersistenceModule(),
+                new SitesModule(),
+                new PassageModule(),
+                new QualificationModule(),
+                new ValidationModule(),
+                new MultisiteModule(),
+                new ImportationModule(),
+                new LotModule(),
+                new DiagnosticModule(),
+                new BibliothequeModule());
+    }
 }

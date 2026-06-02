@@ -19,98 +19,95 @@ import javafx.collections.ObservableList;
 /// `viewmodel_sans_javafx_ui`) : seuls `javafx.beans`/`javafx.collections`. Non-singleton.
 public class DiagnosticViewModel {
 
-  private final ServiceDiagnostic service;
+    private final ServiceDiagnostic service;
 
-  private final ReadOnlyStringWrapper enregistreur =
-      new ReadOnlyStringWrapper(this, "enregistreur", "");
-  private final ReadOnlyStringWrapper resumeClimat =
-      new ReadOnlyStringWrapper(this, "resumeClimat", "");
-  private final ReadOnlyBooleanWrapper releveClimatiqueAbsent =
-      new ReadOnlyBooleanWrapper(this, "releveClimatiqueAbsent", false);
-  private final ReadOnlyBooleanWrapper gpsDisponible =
-      new ReadOnlyBooleanWrapper(this, "gpsDisponible", false);
-  private final ObservableList<MesureClimatique> mesures = FXCollections.observableArrayList();
-  private final ObservableList<String> anomalies = FXCollections.observableArrayList();
-  private final ObservableList<String> evenements = FXCollections.observableArrayList();
-  private final ReadOnlyStringWrapper message = new ReadOnlyStringWrapper(this, "message", "");
+    private final ReadOnlyStringWrapper enregistreur = new ReadOnlyStringWrapper(this, "enregistreur", "");
+    private final ReadOnlyStringWrapper resumeClimat = new ReadOnlyStringWrapper(this, "resumeClimat", "");
+    private final ReadOnlyBooleanWrapper releveClimatiqueAbsent =
+            new ReadOnlyBooleanWrapper(this, "releveClimatiqueAbsent", false);
+    private final ReadOnlyBooleanWrapper gpsDisponible = new ReadOnlyBooleanWrapper(this, "gpsDisponible", false);
+    private final ObservableList<MesureClimatique> mesures = FXCollections.observableArrayList();
+    private final ObservableList<String> anomalies = FXCollections.observableArrayList();
+    private final ObservableList<String> evenements = FXCollections.observableArrayList();
+    private final ReadOnlyStringWrapper message = new ReadOnlyStringWrapper(this, "message", "");
 
-  public DiagnosticViewModel(ServiceDiagnostic service) {
-    this.service = Objects.requireNonNull(service, "service");
-  }
-
-  /// Ouvre le diagnostic du passage `idPassage`. Une erreur (passage/session introuvable) est
-  /// restituée dans [#messageProperty()] sans lever, l'écran restant vide.
-  public void ouvrirSur(Long idPassage) {
-    reinitialiser();
-    try {
-      appliquer(service.diagnostiquer(idPassage));
-      message.set("");
-    } catch (RuntimeException echec) {
-      reinitialiser();
-      message.set(echec.getMessage());
+    public DiagnosticViewModel(ServiceDiagnostic service) {
+        this.service = Objects.requireNonNull(service, "service");
     }
-  }
 
-  private void appliquer(Diagnostic diagnostic) {
-    enregistreur.set("PR " + diagnostic.numeroSerieEnregistreur());
-    releveClimatiqueAbsent.set(diagnostic.releveClimatiqueAbsent());
-    gpsDisponible.set(diagnostic.coordonneesGpsDisponibles());
-    mesures.setAll(diagnostic.climat().mesures());
-    anomalies.setAll(diagnostic.anomalies().anomalies());
-    evenements.setAll(diagnostic.anomalies().evenements());
-    resumeClimat.set(
-        diagnostic.climat().present()
-            ? diagnostic.climat().nombreMesures() + " mesures T°/hygrométrie"
-            : "Relevé climatique absent (R20)");
-  }
+    /// Ouvre le diagnostic du passage `idPassage`. Une erreur (passage/session introuvable) est
+    /// restituée dans [#messageProperty()] sans lever, l'écran restant vide.
+    public void ouvrirSur(Long idPassage) {
+        reinitialiser();
+        try {
+            appliquer(service.diagnostiquer(idPassage));
+            message.set("");
+        } catch (RuntimeException echec) {
+            reinitialiser();
+            message.set(echec.getMessage());
+        }
+    }
 
-  private void reinitialiser() {
-    enregistreur.set("");
-    resumeClimat.set("");
-    releveClimatiqueAbsent.set(false);
-    gpsDisponible.set(false);
-    mesures.clear();
-    anomalies.clear();
-    evenements.clear();
-  }
+    private void appliquer(Diagnostic diagnostic) {
+        enregistreur.set("PR " + diagnostic.numeroSerieEnregistreur());
+        releveClimatiqueAbsent.set(diagnostic.releveClimatiqueAbsent());
+        gpsDisponible.set(diagnostic.coordonneesGpsDisponibles());
+        mesures.setAll(diagnostic.climat().mesures());
+        anomalies.setAll(diagnostic.anomalies().anomalies());
+        evenements.setAll(diagnostic.anomalies().evenements());
+        resumeClimat.set(
+                diagnostic.climat().present()
+                        ? diagnostic.climat().nombreMesures() + " mesures T°/hygrométrie"
+                        : "Relevé climatique absent (R20)");
+    }
 
-  /// Enregistreur de la nuit (`PR <n° de série>`).
-  public ReadOnlyStringProperty enregistreurProperty() {
-    return enregistreur.getReadOnlyProperty();
-  }
+    private void reinitialiser() {
+        enregistreur.set("");
+        resumeClimat.set("");
+        releveClimatiqueAbsent.set(false);
+        gpsDisponible.set(false);
+        mesures.clear();
+        anomalies.clear();
+        evenements.clear();
+    }
 
-  /// Résumé de la série climatique (`N mesures T°/hygrométrie`, ou absence R20).
-  public ReadOnlyStringProperty resumeClimatProperty() {
-    return resumeClimat.getReadOnlyProperty();
-  }
+    /// Enregistreur de la nuit (`PR <n° de série>`).
+    public ReadOnlyStringProperty enregistreurProperty() {
+        return enregistreur.getReadOnlyProperty();
+    }
 
-  /// `true` si aucun relevé climatique n'est rattaché (R20, à signaler).
-  public ReadOnlyBooleanProperty releveClimatiqueAbsentProperty() {
-    return releveClimatiqueAbsent.getReadOnlyProperty();
-  }
+    /// Résumé de la série climatique (`N mesures T°/hygrométrie`, ou absence R20).
+    public ReadOnlyStringProperty resumeClimatProperty() {
+        return resumeClimat.getReadOnlyProperty();
+    }
 
-  /// `true` si les coordonnées GPS du point sont disponibles (précondition de l'encart horaires).
-  public ReadOnlyBooleanProperty gpsDisponibleProperty() {
-    return gpsDisponible.getReadOnlyProperty();
-  }
+    /// `true` si aucun relevé climatique n'est rattaché (R20, à signaler).
+    public ReadOnlyBooleanProperty releveClimatiqueAbsentProperty() {
+        return releveClimatiqueAbsent.getReadOnlyProperty();
+    }
 
-  /// Série temporelle T°/hygrométrie de la nuit (points du graphe).
-  public ObservableList<MesureClimatique> mesures() {
-    return mesures;
-  }
+    /// `true` si les coordonnées GPS du point sont disponibles (précondition de l'encart horaires).
+    public ReadOnlyBooleanProperty gpsDisponibleProperty() {
+        return gpsDisponible.getReadOnlyProperty();
+    }
 
-  /// Anomalies détectées dans le journal du capteur (R19).
-  public ObservableList<String> anomalies() {
-    return anomalies;
-  }
+    /// Série temporelle T°/hygrométrie de la nuit (points du graphe).
+    public ObservableList<MesureClimatique> mesures() {
+        return mesures;
+    }
 
-  /// Évènements remarquables du journal du capteur (R19).
-  public ObservableList<String> evenements() {
-    return evenements;
-  }
+    /// Anomalies détectées dans le journal du capteur (R19).
+    public ObservableList<String> anomalies() {
+        return anomalies;
+    }
 
-  /// Message d'erreur (passage/session introuvable), vide en fonctionnement nominal.
-  public ReadOnlyStringProperty messageProperty() {
-    return message.getReadOnlyProperty();
-  }
+    /// Évènements remarquables du journal du capteur (R19).
+    public ObservableList<String> evenements() {
+        return evenements;
+    }
+
+    /// Message d'erreur (passage/session introuvable), vide en fonctionnement nominal.
+    public ReadOnlyStringProperty messageProperty() {
+        return message.getReadOnlyProperty();
+    }
 }

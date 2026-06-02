@@ -19,12 +19,12 @@ package fr.univ_amu.iut.passage.model;
 /// @param dansSelection `true` si la séquence fait partie de la sélection d'écoute
 /// @param idSession identifiant de la session contenante (FK → `recording_session.id`)
 public record SequenceDEcoute(
-    Long id,
-    String nomFichier,
-    Long idEnregistrementOriginal,
-    Integer indexSource,
-    Double offsetSourceSecondes,
-    Double dureeSecondes,
-    String cheminFichier,
-    boolean dansSelection,
-    Long idSession) {}
+        Long id,
+        String nomFichier,
+        Long idEnregistrementOriginal,
+        Integer indexSource,
+        Double offsetSourceSecondes,
+        Double dureeSecondes,
+        String cheminFichier,
+        boolean dansSelection,
+        Long idSession) {}

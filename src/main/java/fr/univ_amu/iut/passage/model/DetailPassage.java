@@ -24,16 +24,16 @@ import fr.univ_amu.iut.commun.model.Verdict;
 /// @param nombreSequences nombre de séquences d'écoute de la session
 /// @param dureeAudibleSecondes durée audible cumulée des séquences (secondes)
 public record DetailPassage(
-    int numeroPassage,
-    int annee,
-    String dateEnregistrement,
-    String heureDebut,
-    String heureFin,
-    String idEnregistreur,
-    StatutWorkflow statut,
-    Verdict verdict,
-    String deposeLe,
-    long volumeOriginauxOctets,
-    long volumeSequencesOctets,
-    int nombreSequences,
-    double dureeAudibleSecondes) {}
+        int numeroPassage,
+        int annee,
+        String dateEnregistrement,
+        String heureDebut,
+        String heureFin,
+        String idEnregistreur,
+        StatutWorkflow statut,
+        Verdict verdict,
+        String deposeLe,
+        long volumeOriginauxOctets,
+        long volumeSequencesOctets,
+        int nombreSequences,
+        double dureeAudibleSecondes) {}

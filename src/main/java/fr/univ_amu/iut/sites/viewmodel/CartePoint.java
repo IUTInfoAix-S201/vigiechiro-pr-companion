@@ -12,13 +12,13 @@ import fr.univ_amu.iut.sites.model.PointDEcoute;
 /// @param nombrePassages nombre de passages rattachés à ce point
 public record CartePoint(PointDEcoute point, int nombrePassages) {
 
-  /// `true` si les deux coordonnées GPS sont renseignées.
-  public boolean gpsPresent() {
-    return point.latitude() != null && point.longitude() != null;
-  }
+    /// `true` si les deux coordonnées GPS sont renseignées.
+    public boolean gpsPresent() {
+        return point.latitude() != null && point.longitude() != null;
+    }
 
-  /// `true` si au moins un passage est rattaché : la suppression du point est alors bloquée.
-  public boolean aDesPassages() {
-    return nombrePassages > 0;
-  }
+    /// `true` si au moins un passage est rattaché : la suppression du point est alors bloquée.
+    public boolean aDesPassages() {
+        return nombrePassages > 0;
+    }
 }

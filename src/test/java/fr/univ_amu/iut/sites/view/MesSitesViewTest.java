@@ -43,91 +43,91 @@ import org.testfx.framework.junit5.Start;
 @ExtendWith(ApplicationExtension.class)
 class MesSitesViewTest {
 
-  private static final String ID_USER = "u-test";
-  private Injector injector;
+    private static final String ID_USER = "u-test";
+    private Injector injector;
 
-  @Start
-  void start(Stage stage) throws Exception {
-    Path workspace = Files.createTempDirectory("vc-mes-sites");
-    System.setProperty("vigiechiro.workspace", workspace.toString());
-    injector = RacineInjecteur.creer();
-    SourceDeDonnees source = injector.getInstance(SourceDeDonnees.class);
-    new MigrationSchema(source).migrer();
-    seeder(source);
-    FXMLLoader loader = new FXMLLoader(App.class.getResource("commun/view/MainView.fxml"));
-    loader.setControllerFactory(injector::getInstance);
-    Parent racine = loader.load();
-    stage.setScene(new Scene(racine, 1100, 720));
-    injector.getInstance(NavigationSites.class).ouvrirAccueil();
-    stage.show();
-  }
+    @Start
+    void start(Stage stage) throws Exception {
+        Path workspace = Files.createTempDirectory("vc-mes-sites");
+        System.setProperty("vigiechiro.workspace", workspace.toString());
+        injector = RacineInjecteur.creer();
+        SourceDeDonnees source = injector.getInstance(SourceDeDonnees.class);
+        new MigrationSchema(source).migrer();
+        seeder(source);
+        FXMLLoader loader = new FXMLLoader(App.class.getResource("commun/view/MainView.fxml"));
+        loader.setControllerFactory(injector::getInstance);
+        Parent racine = loader.load();
+        stage.setScene(new Scene(racine, 1100, 720));
+        injector.getInstance(NavigationSites.class).ouvrirAccueil();
+        stage.show();
+    }
 
-  private void seeder(SourceDeDonnees source) {
-    new UtilisateurDao(source).insert(new Utilisateur(ID_USER, "Testeur"));
-    ServiceSites service = injector.getInstance(ServiceSites.class);
-    Site etang =
-        service.creerSite("640380", "Étang de la Tuilière", Protocole.STANDARD, null, ID_USER);
-    service.ajouterPoint(etang.id(), "A1", 43.5, 5.4, "Chêne");
-    Site zac = service.creerSite("752204", "ZAC Nord", Protocole.STANDARD, null, ID_USER);
-    service.ajouterPoint(zac.id(), "A1", null, null, null);
-  }
+    private void seeder(SourceDeDonnees source) {
+        new UtilisateurDao(source).insert(new Utilisateur(ID_USER, "Testeur"));
+        ServiceSites service = injector.getInstance(ServiceSites.class);
+        Site etang = service.creerSite("640380", "Étang de la Tuilière", Protocole.STANDARD, null, ID_USER);
+        service.ajouterPoint(etang.id(), "A1", 43.5, 5.4, "Chêne");
+        Site zac = service.creerSite("752204", "ZAC Nord", Protocole.STANDARD, null, ID_USER);
+        service.ajouterPoint(zac.id(), "A1", null, null, null);
+    }
 
-  @AfterEach
-  void nettoyerWorkspace() {
-    System.clearProperty("vigiechiro.workspace");
-  }
+    @AfterEach
+    void nettoyerWorkspace() {
+        System.clearProperty("vigiechiro.workspace");
+    }
 
-  @Test
-  @DisplayName("Les cartes des sites seedés sont affichées")
-  void affiche_les_cartes(FxRobot robot) {
-    List<String> titres =
-        robot.lookup(".carte-titre").queryAllAs(Label.class).stream().map(Label::getText).toList();
+    @Test
+    @DisplayName("Les cartes des sites seedés sont affichées")
+    void affiche_les_cartes(FxRobot robot) {
+        List<String> titres = robot.lookup(".carte-titre").queryAllAs(Label.class).stream()
+                .map(Label::getText)
+                .toList();
 
-    assertThat(titres).contains("Carré 640380", "Carré 752204");
-  }
+        assertThat(titres).contains("Carré 640380", "Carré 752204");
+    }
 
-  @Test
-  @DisplayName("Déclencher une carte ouvre le détail du site correspondant")
-  void clic_carte_ouvre_le_detail(FxRobot robot) {
-    HBox carte = trouverCarte(robot, "Carré 640380");
+    @Test
+    @DisplayName("Déclencher une carte ouvre le détail du site correspondant")
+    void clic_carte_ouvre_le_detail(FxRobot robot) {
+        HBox carte = trouverCarte(robot, "Carré 640380");
 
-    robot.interact(() -> carte.getOnMouseClicked().handle(clicGauche()));
+        robot.interact(() -> carte.getOnMouseClicked().handle(clicGauche()));
 
-    Label titreDetail = robot.lookup(".titre-page").queryAs(Label.class);
-    assertThat(titreDetail.getText()).isEqualTo("Carré 640380 — Étang de la Tuilière");
-  }
+        Label titreDetail = robot.lookup(".titre-page").queryAs(Label.class);
+        assertThat(titreDetail.getText()).isEqualTo("Carré 640380 — Étang de la Tuilière");
+    }
 
-  private static HBox trouverCarte(FxRobot robot, String titre) {
-    return robot.lookup(".carte-site").queryAllAs(HBox.class).stream()
-        .filter(carte -> contientTitre(carte, titre))
-        .findFirst()
-        .orElseThrow();
-  }
+    private static HBox trouverCarte(FxRobot robot, String titre) {
+        return robot.lookup(".carte-site").queryAllAs(HBox.class).stream()
+                .filter(carte -> contientTitre(carte, titre))
+                .findFirst()
+                .orElseThrow();
+    }
 
-  private static boolean contientTitre(HBox carte, String titre) {
-    return carte.lookupAll(".carte-titre").stream()
-        .anyMatch(noeud -> noeud instanceof Label label && titre.equals(label.getText()));
-  }
+    private static boolean contientTitre(HBox carte, String titre) {
+        return carte.lookupAll(".carte-titre").stream()
+                .anyMatch(noeud -> noeud instanceof Label label && titre.equals(label.getText()));
+    }
 
-  private static MouseEvent clicGauche() {
-    return new MouseEvent(
-        MouseEvent.MOUSE_CLICKED,
-        0,
-        0,
-        0,
-        0,
-        MouseButton.PRIMARY,
-        1,
-        false,
-        false,
-        false,
-        false,
-        true,
-        false,
-        false,
-        true,
-        false,
-        false,
-        null);
-  }
+    private static MouseEvent clicGauche() {
+        return new MouseEvent(
+                MouseEvent.MOUSE_CLICKED,
+                0,
+                0,
+                0,
+                0,
+                MouseButton.PRIMARY,
+                1,
+                false,
+                false,
+                false,
+                false,
+                true,
+                false,
+                false,
+                true,
+                false,
+                false,
+                null);
+    }
 }

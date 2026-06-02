@@ -18,19 +18,19 @@ import java.time.LocalDateTime;
 /// service.
 public interface Horloge {
 
-  /// Date locale courante (ISO `AAAA-MM-JJ` via [LocalDate#toString()]).
-  LocalDate aujourdhui();
+    /// Date locale courante (ISO `AAAA-MM-JJ` via [LocalDate#toString()]).
+    LocalDate aujourdhui();
 
-  /// Instant local courant (utile pour un horodatage complet, ex. date/heure de dépôt).
-  LocalDateTime maintenant();
+    /// Instant local courant (utile pour un horodatage complet, ex. date/heure de dépôt).
+    LocalDateTime maintenant();
 
-  /// Horloge réelle, adossée à l'horloge système. C'est l'implémentation de production.
-  static Horloge systeme() {
-    return new HorlogeSysteme();
-  }
+    /// Horloge réelle, adossée à l'horloge système. C'est l'implémentation de production.
+    static Horloge systeme() {
+        return new HorlogeSysteme();
+    }
 
-  /// Horloge figée sur une date donnée (minuit) : réservée aux tests déterministes.
-  static Horloge figeeAu(LocalDate jour) {
-    return new HorlogeFigee(jour);
-  }
+    /// Horloge figée sur une date donnée (minuit) : réservée aux tests déterministes.
+    static Horloge figeeAu(LocalDate jour) {
+        return new HorlogeFigee(jour);
+    }
 }

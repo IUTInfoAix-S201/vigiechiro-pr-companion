@@ -17,62 +17,66 @@ import org.junit.jupiter.api.io.TempDir;
 /// naturelle** (`serial_number`) et le comportement d'**upsert** de `insert`.
 class EnregistreurDaoTest {
 
-  @TempDir Path dossier;
-  private EnregistreurDao dao;
+    @TempDir
+    Path dossier;
 
-  @BeforeEach
-  void preparer() {
-    SourceDeDonnees source = new SourceDeDonnees(new Workspace(dossier));
-    new MigrationSchema(source).migrer();
-    // recorder n'a aucune FK parente : aucun pré-requis à insérer.
-    dao = new EnregistreurDao(source);
-  }
+    private EnregistreurDao dao;
 
-  @Test
-  @DisplayName("insert d'un enregistreur le rend relisible par sa clé naturelle")
-  void inserer_rend_l_enregistreur_relisible() {
-    Enregistreur insere = dao.insert(new Enregistreur("1925492", "V1.01, T4.1", "neuf"));
+    @BeforeEach
+    void preparer() {
+        SourceDeDonnees source = new SourceDeDonnees(new Workspace(dossier));
+        new MigrationSchema(source).migrer();
+        // recorder n'a aucune FK parente : aucun pré-requis à insérer.
+        dao = new EnregistreurDao(source);
+    }
 
-    assertThat(insere.numeroSerie()).isEqualTo("1925492");
-    Enregistreur relu = dao.findById("1925492").orElseThrow();
-    assertThat(relu.versionModele()).isEqualTo("V1.01, T4.1");
-    assertThat(relu.commentaire()).isEqualTo("neuf");
-  }
+    @Test
+    @DisplayName("insert d'un enregistreur le rend relisible par sa clé naturelle")
+    void inserer_rend_l_enregistreur_relisible() {
+        Enregistreur insere = dao.insert(new Enregistreur("1925492", "V1.01, T4.1", "neuf"));
 
-  @Test
-  @DisplayName("insert sur une clé existante fait un upsert (met à jour, ne plante pas)")
-  void inserer_deux_fois_la_meme_serie_fait_un_upsert() {
-    dao.insert(new Enregistreur("1925492", "V1.00", "premier import"));
+        assertThat(insere.numeroSerie()).isEqualTo("1925492");
+        Enregistreur relu = dao.findById("1925492").orElseThrow();
+        assertThat(relu.versionModele()).isEqualTo("V1.01, T4.1");
+        assertThat(relu.commentaire()).isEqualTo("neuf");
+    }
 
-    // Même n° de série rencontré sur un nouveau passage : on rafraîchit ses métadonnées.
-    dao.insert(new Enregistreur("1925492", "V1.01, T4.1", "firmware mis à jour"));
+    @Test
+    @DisplayName("insert sur une clé existante fait un upsert (met à jour, ne plante pas)")
+    void inserer_deux_fois_la_meme_serie_fait_un_upsert() {
+        dao.insert(new Enregistreur("1925492", "V1.00", "premier import"));
 
-    assertThat(dao.findAll()).as("un seul enregistreur, pas de doublon de clé").hasSize(1);
-    Enregistreur relu = dao.findById("1925492").orElseThrow();
-    assertThat(relu.versionModele()).isEqualTo("V1.01, T4.1");
-    assertThat(relu.commentaire()).isEqualTo("firmware mis à jour");
-  }
+        // Même n° de série rencontré sur un nouveau passage : on rafraîchit ses métadonnées.
+        dao.insert(new Enregistreur("1925492", "V1.01, T4.1", "firmware mis à jour"));
 
-  @Test
-  @DisplayName("update modifie les champs d'un enregistreur existant")
-  void mettre_a_jour_modifie_les_champs() {
-    dao.insert(new Enregistreur("1925492", "V1.00", null));
+        assertThat(dao.findAll())
+                .as("un seul enregistreur, pas de doublon de clé")
+                .hasSize(1);
+        Enregistreur relu = dao.findById("1925492").orElseThrow();
+        assertThat(relu.versionModele()).isEqualTo("V1.01, T4.1");
+        assertThat(relu.commentaire()).isEqualTo("firmware mis à jour");
+    }
 
-    dao.update(new Enregistreur("1925492", "V2.00", "carte SD remplacée"));
+    @Test
+    @DisplayName("update modifie les champs d'un enregistreur existant")
+    void mettre_a_jour_modifie_les_champs() {
+        dao.insert(new Enregistreur("1925492", "V1.00", null));
 
-    Enregistreur relu = dao.findById("1925492").orElseThrow();
-    assertThat(relu.versionModele()).isEqualTo("V2.00");
-    assertThat(relu.commentaire()).isEqualTo("carte SD remplacée");
-  }
+        dao.update(new Enregistreur("1925492", "V2.00", "carte SD remplacée"));
 
-  @Test
-  @DisplayName("delete retire l'enregistreur")
-  void supprimer_retire_l_enregistreur() {
-    dao.insert(new Enregistreur("1925492", null, null));
-    assertThat(dao.findById("1925492")).isPresent();
+        Enregistreur relu = dao.findById("1925492").orElseThrow();
+        assertThat(relu.versionModele()).isEqualTo("V2.00");
+        assertThat(relu.commentaire()).isEqualTo("carte SD remplacée");
+    }
 
-    dao.delete("1925492");
+    @Test
+    @DisplayName("delete retire l'enregistreur")
+    void supprimer_retire_l_enregistreur() {
+        dao.insert(new Enregistreur("1925492", null, null));
+        assertThat(dao.findById("1925492")).isPresent();
 
-    assertThat(dao.findById("1925492")).isEmpty();
-  }
+        dao.delete("1925492");
+
+        assertThat(dao.findById("1925492")).isEmpty();
+    }
 }

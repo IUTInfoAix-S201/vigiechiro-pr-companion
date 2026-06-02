@@ -29,32 +29,33 @@ import org.junit.jupiter.api.io.TempDir;
 /// `vigiechiro.workspace`) pour ne pas toucher au workspace réel de l'utilisateur·ice.
 class RacineInjecteurTest {
 
-  @TempDir Path workspaceJetable;
+    @TempDir
+    Path workspaceJetable;
 
-  @AfterEach
-  void nettoyerLaSurcharge() {
-    System.clearProperty("vigiechiro.workspace");
-  }
+    @AfterEach
+    void nettoyerLaSurcharge() {
+        System.clearProperty("vigiechiro.workspace");
+    }
 
-  @Test
-  void creer_assemble_tous_les_modules_et_resout_un_dao_par_feature() {
-    System.setProperty("vigiechiro.workspace", workspaceJetable.toString());
+    @Test
+    void creer_assemble_tous_les_modules_et_resout_un_dao_par_feature() {
+        System.setProperty("vigiechiro.workspace", workspaceJetable.toString());
 
-    Injector injecteur = RacineInjecteur.creer();
+        Injector injecteur = RacineInjecteur.creer();
 
-    assertThat(injecteur).isNotNull();
-    assertThat(injecteur.getInstance(SiteDao.class)).isNotNull();
-    assertThat(injecteur.getInstance(PointDao.class)).isNotNull();
-    assertThat(injecteur.getInstance(PassageDao.class)).isNotNull();
-    assertThat(injecteur.getInstance(SelectionDao.class)).isNotNull();
-    assertThat(injecteur.getInstance(ObservationDao.class)).isNotNull();
-    assertThat(injecteur.getInstance(SavedViewDao.class)).isNotNull();
-    // Service de référence : valide le câblage inter-modules (SitesModule reçoit le PassageDao de
-    // PassageModule et l'Horloge du socle).
-    assertThat(injecteur.getInstance(ServiceSites.class)).isNotNull();
-    // Features importation et lot : leurs services dépendent de DAO d'autres features (passage,
-    // sites) et du socle. On vérifie que la racine les résout sans conflit de binding.
-    assertThat(injecteur.getInstance(ServiceImport.class)).isNotNull();
-    assertThat(injecteur.getInstance(ServiceLot.class)).isNotNull();
-  }
+        assertThat(injecteur).isNotNull();
+        assertThat(injecteur.getInstance(SiteDao.class)).isNotNull();
+        assertThat(injecteur.getInstance(PointDao.class)).isNotNull();
+        assertThat(injecteur.getInstance(PassageDao.class)).isNotNull();
+        assertThat(injecteur.getInstance(SelectionDao.class)).isNotNull();
+        assertThat(injecteur.getInstance(ObservationDao.class)).isNotNull();
+        assertThat(injecteur.getInstance(SavedViewDao.class)).isNotNull();
+        // Service de référence : valide le câblage inter-modules (SitesModule reçoit le PassageDao de
+        // PassageModule et l'Horloge du socle).
+        assertThat(injecteur.getInstance(ServiceSites.class)).isNotNull();
+        // Features importation et lot : leurs services dépendent de DAO d'autres features (passage,
+        // sites) et du socle. On vérifie que la racine les résout sans conflit de binding.
+        assertThat(injecteur.getInstance(ServiceImport.class)).isNotNull();
+        assertThat(injecteur.getInstance(ServiceLot.class)).isNotNull();
+    }
 }

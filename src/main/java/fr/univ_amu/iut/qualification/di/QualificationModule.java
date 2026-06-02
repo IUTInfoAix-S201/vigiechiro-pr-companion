@@ -36,70 +36,70 @@ import fr.univ_amu.iut.sites.model.dao.SiteDao;
 /// (contrôlé par `ArchitectureTest`).
 public class QualificationModule extends AbstractModule {
 
-  /// Fournit le contrat de navigation socle [OuvrirVerification] : l'écran M-Passage l'injecte
-  /// pour ouvrir M-Qualification sans dépendre de cette feature (évite le cycle
-  /// `passage ↔ qualification`).
-  @Override
-  protected void configure() {
-    bind(OuvrirVerification.class).to(NavigationQualification.class);
-  }
+    /// Fournit le contrat de navigation socle [OuvrirVerification] : l'écran M-Passage l'injecte
+    /// pour ouvrir M-Qualification sans dépendre de cette feature (évite le cycle
+    /// `passage ↔ qualification`).
+    @Override
+    protected void configure() {
+        bind(OuvrirVerification.class).to(NavigationQualification.class);
+    }
 
-  @Provides
-  @Singleton
-  SelectionDao fournirSelectionDao(SourceDeDonnees source) {
-    return new SelectionDao(source);
-  }
+    @Provides
+    @Singleton
+    SelectionDao fournirSelectionDao(SourceDeDonnees source) {
+        return new SelectionDao(source);
+    }
 
-  @Provides
-  @Singleton
-  GenerateurSelection fournirGenerateurSelection() {
-    return new GenerateurSelection();
-  }
+    @Provides
+    @Singleton
+    GenerateurSelection fournirGenerateurSelection() {
+        return new GenerateurSelection();
+    }
 
-  @Provides
-  @Singleton
-  PreCheckNuit fournirPreCheckNuit() {
-    return new PreCheckNuit();
-  }
+    @Provides
+    @Singleton
+    PreCheckNuit fournirPreCheckNuit() {
+        return new PreCheckNuit();
+    }
 
-  @Provides
-  @Singleton
-  ServiceQualification fournirServiceQualification(
-      SelectionDao selectionDao,
-      SequenceDao sequenceDao,
-      SessionDao sessionDao,
-      EnregistrementOriginalDao originalDao,
-      PassageDao passageDao,
-      PointDao pointDao,
-      SiteDao siteDao,
-      GenerateurSelection generateur,
-      PreCheckNuit preCheck,
-      UniteDeTravail uniteDeTravail) {
-    return new ServiceQualification(
-        selectionDao,
-        sequenceDao,
-        sessionDao,
-        originalDao,
-        passageDao,
-        pointDao,
-        siteDao,
-        generateur,
-        preCheck,
-        uniteDeTravail);
-  }
+    @Provides
+    @Singleton
+    ServiceQualification fournirServiceQualification(
+            SelectionDao selectionDao,
+            SequenceDao sequenceDao,
+            SessionDao sessionDao,
+            EnregistrementOriginalDao originalDao,
+            PassageDao passageDao,
+            PointDao pointDao,
+            SiteDao siteDao,
+            GenerateurSelection generateur,
+            PreCheckNuit preCheck,
+            UniteDeTravail uniteDeTravail) {
+        return new ServiceQualification(
+                selectionDao,
+                sequenceDao,
+                sessionDao,
+                originalDao,
+                passageDao,
+                pointDao,
+                siteDao,
+                generateur,
+                preCheck,
+                uniteDeTravail);
+    }
 
-  /// ViewModel du noyau verdict de M-Qualification. **Non-singleton** (un VM frais par chargement
-  /// FXML, comme les autres features) : un écran rouvert ne réutilise pas l'état d'un précédent.
-  @Provides
-  QualificationViewModel fournirQualificationViewModel(ServiceQualification service) {
-    return new QualificationViewModel(service);
-  }
+    /// ViewModel du noyau verdict de M-Qualification. **Non-singleton** (un VM frais par chargement
+    /// FXML, comme les autres features) : un écran rouvert ne réutilise pas l'état d'un précédent.
+    @Provides
+    QualificationViewModel fournirQualificationViewModel(ServiceQualification service) {
+        return new QualificationViewModel(service);
+    }
 
-  /// ViewModel de la sélection d'écoute de M-Qualification. **Non-singleton** (idem). Câblé au même
-  /// [ServiceQualification] que le noyau verdict : le controller ouvre les deux VM sur le même
-  /// passage.
-  @Provides
-  SelectionEcouteViewModel fournirSelectionEcouteViewModel(ServiceQualification service) {
-    return new SelectionEcouteViewModel(service);
-  }
+    /// ViewModel de la sélection d'écoute de M-Qualification. **Non-singleton** (idem). Câblé au même
+    /// [ServiceQualification] que le noyau verdict : le controller ouvre les deux VM sur le même
+    /// passage.
+    @Provides
+    SelectionEcouteViewModel fournirSelectionEcouteViewModel(ServiceQualification service) {
+        return new SelectionEcouteViewModel(service);
+    }
 }

@@ -30,29 +30,27 @@ import org.junit.jupiter.api.io.TempDir;
 /// [ServiceDiagnostic].
 class DiagnosticModuleTest {
 
-  @TempDir Path workspaceJetable;
+    @TempDir
+    Path workspaceJetable;
 
-  @Test
-  @DisplayName("DiagnosticModule assemble ServiceDiagnostic via Guice")
-  void diagnostic_module_resout_le_service() {
-    SourceDeDonnees source = new SourceDeDonnees(new Workspace(workspaceJetable));
-    new MigrationSchema(source).migrer();
+    @Test
+    @DisplayName("DiagnosticModule assemble ServiceDiagnostic via Guice")
+    void diagnostic_module_resout_le_service() {
+        SourceDeDonnees source = new SourceDeDonnees(new Workspace(workspaceJetable));
+        new MigrationSchema(source).migrer();
 
-    Injector injecteur =
-        Guice.createInjector(
-            new DiagnosticModule(),
-            new AbstractModule() {
-              @Override
-              protected void configure() {
+        Injector injecteur = Guice.createInjector(new DiagnosticModule(), new AbstractModule() {
+            @Override
+            protected void configure() {
                 bind(PassageDao.class).toInstance(new PassageDao(source));
                 bind(SessionDao.class).toInstance(new SessionDao(source));
                 bind(JournalDuCapteurDao.class).toInstance(new JournalDuCapteurDao(source));
                 bind(ReleveClimatiqueDao.class).toInstance(new ReleveClimatiqueDao(source));
                 bind(PointDao.class).toInstance(new PointDao(source));
                 bind(Horloge.class).toInstance(new HorlogeFigee(LocalDate.of(2026, 5, 31)));
-              }
-            });
+            }
+        });
 
-    assertThat(injecteur.getInstance(ServiceDiagnostic.class)).isNotNull();
-  }
+        assertThat(injecteur.getInstance(ServiceDiagnostic.class)).isNotNull();
+    }
 }

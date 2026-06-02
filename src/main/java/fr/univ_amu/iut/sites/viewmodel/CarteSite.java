@@ -21,17 +21,17 @@ import fr.univ_amu.iut.sites.model.Site;
 /// @param fraicheur niveau de fraîcheur dérivé du dernier passage
 /// @param libelleFraicheur libellé affiché dans le badge (ex. `Dernier passage : il y a 2 j`)
 public record CarteSite(
-    Site site,
-    int nombrePoints,
-    String codesPoints,
-    int passagesDeLAnnee,
-    int anneeReference,
-    int passagesAVerifier,
-    Fraicheur fraicheur,
-    String libelleFraicheur) {
+        Site site,
+        int nombrePoints,
+        String codesPoints,
+        int passagesDeLAnnee,
+        int anneeReference,
+        int passagesAVerifier,
+        Fraicheur fraicheur,
+        String libelleFraicheur) {
 
-  /// `true` s'il reste au moins un passage à vérifier (pilote l'indicateur `⚠`).
-  public boolean aDesPassagesAVerifier() {
-    return passagesAVerifier > 0;
-  }
+    /// `true` s'il reste au moins un passage à vérifier (pilote l'indicateur `⚠`).
+    public boolean aDesPassagesAVerifier() {
+        return passagesAVerifier > 0;
+    }
 }

@@ -17,11 +17,11 @@ package fr.univ_amu.iut.commun.model;
 /// à une remontée jusqu'à la couche IHM (qui la traduit en message).
 public class RegleMetierException extends RuntimeException {
 
-  public RegleMetierException(String message) {
-    super(message);
-  }
+    public RegleMetierException(String message) {
+        super(message);
+    }
 
-  public RegleMetierException(String message, Throwable cause) {
-    super(message, cause);
-  }
+    public RegleMetierException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

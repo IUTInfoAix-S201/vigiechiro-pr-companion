@@ -32,74 +32,74 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class ServiceBibliothequeMockTest {
 
-  @Mock private ObservationDao observationDao;
-  @Mock private SequenceDao sequenceDao;
+    @Mock
+    private ObservationDao observationDao;
 
-  private ServiceBibliotheque service() {
-    return new ServiceBibliotheque(observationDao, sequenceDao);
-  }
+    @Mock
+    private SequenceDao sequenceDao;
 
-  @Test
-  @DisplayName("Le taxon retenu est l'observateur si saisi, sinon Tadarida")
-  void taxon_retenu_privilegie_l_observateur() {
-    Observation corrigee = obs(10L, 100L, "Pippip", "Rhihip"); // référence, observateur ≠ Tadarida
-    Observation brute = obs(11L, 101L, "Nyclei", null); // référence, pas d'observateur
-    when(observationDao.findAll()).thenReturn(List.of(corrigee, brute));
-    when(sequenceDao.findById(100L))
-        .thenReturn(Optional.of(seq(100L, "x_000.wav", "/ws/x_000.wav")));
-    when(sequenceDao.findById(101L))
-        .thenReturn(Optional.of(seq(101L, "y_000.wav", "/ws/y_000.wav")));
+    private ServiceBibliotheque service() {
+        return new ServiceBibliotheque(observationDao, sequenceDao);
+    }
 
-    List<EntreeBiblio> entrees = service().exporterBibliotheque().entrees();
+    @Test
+    @DisplayName("Le taxon retenu est l'observateur si saisi, sinon Tadarida")
+    void taxon_retenu_privilegie_l_observateur() {
+        Observation corrigee = obs(10L, 100L, "Pippip", "Rhihip"); // référence, observateur ≠ Tadarida
+        Observation brute = obs(11L, 101L, "Nyclei", null); // référence, pas d'observateur
+        when(observationDao.findAll()).thenReturn(List.of(corrigee, brute));
+        when(sequenceDao.findById(100L)).thenReturn(Optional.of(seq(100L, "x_000.wav", "/ws/x_000.wav")));
+        when(sequenceDao.findById(101L)).thenReturn(Optional.of(seq(101L, "y_000.wav", "/ws/y_000.wav")));
 
-    assertThat(entrees).extracting(EntreeBiblio::taxon).containsExactly("Nyclei", "Rhihip");
-  }
+        List<EntreeBiblio> entrees = service().exporterBibliotheque().entrees();
 
-  @Test
-  @DisplayName("Les observations non-référence ne déclenchent aucune lecture de séquence")
-  void non_references_ne_chargent_aucune_sequence() {
-    Observation nonRef = obs(false, 12L, 102L, "Tadten", null);
-    when(observationDao.findAll()).thenReturn(List.of(nonRef));
+        assertThat(entrees).extracting(EntreeBiblio::taxon).containsExactly("Nyclei", "Rhihip");
+    }
 
-    assertThat(service().exporterBibliotheque().nombre()).isZero();
-    verify(sequenceDao, never()).findById(102L);
-  }
+    @Test
+    @DisplayName("Les observations non-référence ne déclenchent aucune lecture de séquence")
+    void non_references_ne_chargent_aucune_sequence() {
+        Observation nonRef = obs(false, 12L, 102L, "Tadten", null);
+        when(observationDao.findAll()).thenReturn(List.of(nonRef));
 
-  @Test
-  @DisplayName("Une séquence introuvable lève une RegleMetierException")
-  void sequence_introuvable_leve_regle_metier() {
-    when(observationDao.findAll()).thenReturn(List.of(obs(13L, 999L, "Pippip", "Pippip")));
-    when(sequenceDao.findById(999L)).thenReturn(Optional.empty());
+        assertThat(service().exporterBibliotheque().nombre()).isZero();
+        verify(sequenceDao, never()).findById(102L);
+    }
 
-    assertThatThrownBy(() -> service().exporterBibliotheque())
-        .isInstanceOf(RegleMetierException.class)
-        .hasMessageContaining("Séquence d'écoute introuvable");
-  }
+    @Test
+    @DisplayName("Une séquence introuvable lève une RegleMetierException")
+    void sequence_introuvable_leve_regle_metier() {
+        when(observationDao.findAll()).thenReturn(List.of(obs(13L, 999L, "Pippip", "Pippip")));
+        when(sequenceDao.findById(999L)).thenReturn(Optional.empty());
 
-  private static Observation obs(long id, long idSequence, String tadarida, String observateur) {
-    return obs(true, id, idSequence, tadarida, observateur);
-  }
+        assertThatThrownBy(() -> service().exporterBibliotheque())
+                .isInstanceOf(RegleMetierException.class)
+                .hasMessageContaining("Séquence d'écoute introuvable");
+    }
 
-  private static Observation obs(
-      boolean reference, long id, long idSequence, String tadarida, String observateur) {
-    return new Observation(
-        id,
-        idSequence,
-        null,
-        null,
-        40000,
-        tadarida,
-        null,
-        null,
-        observateur,
-        observateur == null ? null : 0.9,
-        null,
-        reference,
-        ModeValidation.MANUEL,
-        1L);
-  }
+    private static Observation obs(long id, long idSequence, String tadarida, String observateur) {
+        return obs(true, id, idSequence, tadarida, observateur);
+    }
 
-  private static SequenceDEcoute seq(long id, String nom, String chemin) {
-    return new SequenceDEcoute(id, nom, 1L, 0, 0.0, 5.0, chemin, false, 1L);
-  }
+    private static Observation obs(boolean reference, long id, long idSequence, String tadarida, String observateur) {
+        return new Observation(
+                id,
+                idSequence,
+                null,
+                null,
+                40000,
+                tadarida,
+                null,
+                null,
+                observateur,
+                observateur == null ? null : 0.9,
+                null,
+                reference,
+                ModeValidation.MANUEL,
+                1L);
+    }
+
+    private static SequenceDEcoute seq(long id, String nom, String chemin) {
+        return new SequenceDEcoute(id, nom, 1L, 0, 0.0, 5.0, chemin, false, 1L);
+    }
 }

@@ -53,285 +53,255 @@ import org.junit.jupiter.api.io.TempDir;
 /// ```
 class ServiceMultisiteTest {
 
-  private static final String ID_USER = "u-1";
-  private static final String SERIE = "1925492";
+    private static final String ID_USER = "u-1";
+    private static final String SERIE = "1925492";
 
-  @TempDir Path dossier;
-  private ServiceMultisite service;
-  private SavedViewDao savedViewDao;
+    @TempDir
+    Path dossier;
 
-  @BeforeEach
-  void preparer() {
-    SourceDeDonnees source = new SourceDeDonnees(new Workspace(dossier));
-    new MigrationSchema(source).migrer();
-    new UtilisateurDao(source).insert(new Utilisateur(ID_USER, "Testeur"));
+    private ServiceMultisite service;
+    private SavedViewDao savedViewDao;
 
-    SiteDao siteDao = new SiteDao(source);
-    PointDao pointDao = new PointDao(source);
-    PassageDao passageDao = new PassageDao(source);
-    savedViewDao = new SavedViewDao(source);
-    new EnregistreurDao(source).insert(new Enregistreur(SERIE, "V1.01", null));
+    @BeforeEach
+    void preparer() {
+        SourceDeDonnees source = new SourceDeDonnees(new Workspace(dossier));
+        new MigrationSchema(source).migrer();
+        new UtilisateurDao(source).insert(new Utilisateur(ID_USER, "Testeur"));
 
-    Site siteA =
-        siteDao.insert(
-            new Site(null, "640380", "Étang", Protocole.STANDARD, null, "2025-01-01", ID_USER));
-    Site siteB =
-        siteDao.insert(
-            new Site(null, "640381", "Forêt", Protocole.STANDARD, null, "2025-01-01", ID_USER));
-    PointDEcoute pa1 = pointDao.insert(new PointDEcoute(null, "A1", null, null, null, siteA.id()));
-    PointDEcoute pb2 = pointDao.insert(new PointDEcoute(null, "B2", null, null, null, siteA.id()));
-    PointDEcoute pBa1 = pointDao.insert(new PointDEcoute(null, "A1", null, null, null, siteB.id()));
+        SiteDao siteDao = new SiteDao(source);
+        PointDao pointDao = new PointDao(source);
+        PassageDao passageDao = new PassageDao(source);
+        savedViewDao = new SavedViewDao(source);
+        new EnregistreurDao(source).insert(new Enregistreur(SERIE, "V1.01", null));
 
-    semerPassage(
-        passageDao, 1, 2025, "2025-06-20", StatutWorkflow.TRANSFORME, Verdict.OK, pa1.id());
-    semerPassage(
-        passageDao, 1, 2026, "2026-06-20", StatutWorkflow.VERIFIE, Verdict.DOUTEUX, pa1.id());
-    semerPassage(passageDao, 1, 2026, "2026-06-21", StatutWorkflow.IMPORTE, null, pb2.id());
-    semerPassage(passageDao, 1, 2026, "2026-06-22", StatutWorkflow.DEPOSE, Verdict.OK, pBa1.id());
-    semerPassage(
-        passageDao, 2, 2026, "2026-08-20", StatutWorkflow.VERIFIE, Verdict.A_JETER, pBa1.id());
+        Site siteA = siteDao.insert(new Site(null, "640380", "Étang", Protocole.STANDARD, null, "2025-01-01", ID_USER));
+        Site siteB = siteDao.insert(new Site(null, "640381", "Forêt", Protocole.STANDARD, null, "2025-01-01", ID_USER));
+        PointDEcoute pa1 = pointDao.insert(new PointDEcoute(null, "A1", null, null, null, siteA.id()));
+        PointDEcoute pb2 = pointDao.insert(new PointDEcoute(null, "B2", null, null, null, siteA.id()));
+        PointDEcoute pBa1 = pointDao.insert(new PointDEcoute(null, "A1", null, null, null, siteB.id()));
 
-    service =
-        new ServiceMultisite(
-            savedViewDao,
-            siteDao,
-            pointDao,
-            passageDao,
-            new HorlogeFigee(LocalDate.of(2026, 5, 31)));
-  }
+        semerPassage(passageDao, 1, 2025, "2025-06-20", StatutWorkflow.TRANSFORME, Verdict.OK, pa1.id());
+        semerPassage(passageDao, 1, 2026, "2026-06-20", StatutWorkflow.VERIFIE, Verdict.DOUTEUX, pa1.id());
+        semerPassage(passageDao, 1, 2026, "2026-06-21", StatutWorkflow.IMPORTE, null, pb2.id());
+        semerPassage(passageDao, 1, 2026, "2026-06-22", StatutWorkflow.DEPOSE, Verdict.OK, pBa1.id());
+        semerPassage(passageDao, 2, 2026, "2026-08-20", StatutWorkflow.VERIFIE, Verdict.A_JETER, pBa1.id());
 
-  private void semerPassage(
-      PassageDao dao,
-      int numero,
-      int annee,
-      String date,
-      StatutWorkflow statut,
-      Verdict verdict,
-      Long idPoint) {
-    dao.insert(
-        new Passage(
-            null,
-            numero,
-            annee,
-            date,
-            "21:00:00",
-            "05:00:00",
-            null,
-            statut,
-            verdict,
-            null,
-            null,
-            null,
-            idPoint,
-            SERIE));
-  }
+        service = new ServiceMultisite(
+                savedViewDao, siteDao, pointDao, passageDao, new HorlogeFigee(LocalDate.of(2026, 5, 31)));
+    }
 
-  // --- Agrégation + tri par défaut ---
+    private void semerPassage(
+            PassageDao dao, int numero, int annee, String date, StatutWorkflow statut, Verdict verdict, Long idPoint) {
+        dao.insert(new Passage(
+                null,
+                numero,
+                annee,
+                date,
+                "21:00:00",
+                "05:00:00",
+                null,
+                statut,
+                verdict,
+                null,
+                null,
+                null,
+                idPoint,
+                SERIE));
+    }
 
-  @Test
-  @DisplayName("Agrège tous les passages de tous les sites, dans l'ordre de lecture par défaut")
-  void agrege_tous_les_passages() {
-    List<LignePassage> lignes = service.listerPassages(ID_USER);
+    // --- Agrégation + tri par défaut ---
 
-    assertThat(lignes).hasSize(5);
-    assertThat(lignes)
-        .extracting(
-            LignePassage::numeroCarre,
-            LignePassage::codePoint,
-            LignePassage::annee,
-            LignePassage::numeroPassage)
-        .containsExactly(
-            tuple("640380", "A1", 2025, 1),
-            tuple("640380", "A1", 2026, 1),
-            tuple("640380", "B2", 2026, 1),
-            tuple("640381", "A1", 2026, 1),
-            tuple("640381", "A1", 2026, 2));
-  }
+    @Test
+    @DisplayName("Agrège tous les passages de tous les sites, dans l'ordre de lecture par défaut")
+    void agrege_tous_les_passages() {
+        List<LignePassage> lignes = service.listerPassages(ID_USER);
 
-  @Test
-  @DisplayName("Chaque ligne porte statut et verdict (verdict null si non vérifié)")
-  void chaque_ligne_porte_statut_et_verdict() {
-    List<LignePassage> lignes = service.listerPassages(ID_USER);
+        assertThat(lignes).hasSize(5);
+        assertThat(lignes)
+                .extracting(
+                        LignePassage::numeroCarre,
+                        LignePassage::codePoint,
+                        LignePassage::annee,
+                        LignePassage::numeroPassage)
+                .containsExactly(
+                        tuple("640380", "A1", 2025, 1),
+                        tuple("640380", "A1", 2026, 1),
+                        tuple("640380", "B2", 2026, 1),
+                        tuple("640381", "A1", 2026, 1),
+                        tuple("640381", "A1", 2026, 2));
+    }
 
-    assertThat(lignes.get(2).statut()).isEqualTo(StatutWorkflow.IMPORTE);
-    assertThat(lignes.get(2).verdict()).as("passage non vérifié → verdict null").isNull();
-    assertThat(lignes.get(4).verdict()).isEqualTo(Verdict.A_JETER);
-  }
+    @Test
+    @DisplayName("Chaque ligne porte statut et verdict (verdict null si non vérifié)")
+    void chaque_ligne_porte_statut_et_verdict() {
+        List<LignePassage> lignes = service.listerPassages(ID_USER);
 
-  @Test
-  @DisplayName("Un utilisateur sans site obtient une vue vide")
-  void utilisateur_sans_site_vue_vide() {
-    assertThat(service.listerPassages("inconnu")).isEmpty();
-  }
+        assertThat(lignes.get(2).statut()).isEqualTo(StatutWorkflow.IMPORTE);
+        assertThat(lignes.get(2).verdict())
+                .as("passage non vérifié → verdict null")
+                .isNull();
+        assertThat(lignes.get(4).verdict()).isEqualTo(Verdict.A_JETER);
+    }
 
-  // --- Filtres ---
+    @Test
+    @DisplayName("Un utilisateur sans site obtient une vue vide")
+    void utilisateur_sans_site_vue_vide() {
+        assertThat(service.listerPassages("inconnu")).isEmpty();
+    }
 
-  @Test
-  @DisplayName("Filtre par site : ne conserve que les passages du carré demandé")
-  void filtre_par_site() {
-    List<LignePassage> lignes = service.listerPassages(ID_USER, FiltresMultisite.parSite("640380"));
+    // --- Filtres ---
 
-    assertThat(lignes).hasSize(3).allMatch(l -> l.numeroCarre().equals("640380"));
-  }
+    @Test
+    @DisplayName("Filtre par site : ne conserve que les passages du carré demandé")
+    void filtre_par_site() {
+        List<LignePassage> lignes = service.listerPassages(ID_USER, FiltresMultisite.parSite("640380"));
 
-  @Test
-  @DisplayName("Filtre par statut : ne conserve que les passages dans ce statut")
-  void filtre_par_statut() {
-    List<LignePassage> lignes =
-        service.listerPassages(ID_USER, FiltresMultisite.parStatut(StatutWorkflow.VERIFIE));
+        assertThat(lignes).hasSize(3).allMatch(l -> l.numeroCarre().equals("640380"));
+    }
 
-    assertThat(lignes).hasSize(2).allMatch(l -> l.statut() == StatutWorkflow.VERIFIE);
-  }
+    @Test
+    @DisplayName("Filtre par statut : ne conserve que les passages dans ce statut")
+    void filtre_par_statut() {
+        List<LignePassage> lignes = service.listerPassages(ID_USER, FiltresMultisite.parStatut(StatutWorkflow.VERIFIE));
 
-  @Test
-  @DisplayName("Filtre par verdict : ne conserve que les passages portant ce verdict")
-  void filtre_par_verdict() {
-    List<LignePassage> lignes =
-        service.listerPassages(ID_USER, FiltresMultisite.parVerdict(Verdict.OK));
+        assertThat(lignes).hasSize(2).allMatch(l -> l.statut() == StatutWorkflow.VERIFIE);
+    }
 
-    assertThat(lignes)
-        .hasSize(2)
-        .extracting(LignePassage::numeroCarre, LignePassage::annee)
-        .containsExactly(tuple("640380", 2025), tuple("640381", 2026));
-  }
+    @Test
+    @DisplayName("Filtre par verdict : ne conserve que les passages portant ce verdict")
+    void filtre_par_verdict() {
+        List<LignePassage> lignes = service.listerPassages(ID_USER, FiltresMultisite.parVerdict(Verdict.OK));
 
-  @Test
-  @DisplayName("Filtre par année : ne conserve que les passages de l'année demandée")
-  void filtre_par_annee() {
-    assertThat(service.listerPassages(ID_USER, FiltresMultisite.parAnnee(2026))).hasSize(4);
-    assertThat(service.listerPassages(ID_USER, FiltresMultisite.parAnnee(2025))).hasSize(1);
-  }
+        assertThat(lignes)
+                .hasSize(2)
+                .extracting(LignePassage::numeroCarre, LignePassage::annee)
+                .containsExactly(tuple("640380", 2025), tuple("640381", 2026));
+    }
 
-  @Test
-  @DisplayName("Filtres combinés (ET logique) : site ET année")
-  void filtres_combines() {
-    List<LignePassage> lignes =
-        service.listerPassages(ID_USER, new FiltresMultisite("640380", null, null, 2026));
+    @Test
+    @DisplayName("Filtre par année : ne conserve que les passages de l'année demandée")
+    void filtre_par_annee() {
+        assertThat(service.listerPassages(ID_USER, FiltresMultisite.parAnnee(2026)))
+                .hasSize(4);
+        assertThat(service.listerPassages(ID_USER, FiltresMultisite.parAnnee(2025)))
+                .hasSize(1);
+    }
 
-    assertThat(lignes)
-        .hasSize(2)
-        .allMatch(l -> l.numeroCarre().equals("640380") && l.annee() == 2026);
-  }
+    @Test
+    @DisplayName("Filtres combinés (ET logique) : site ET année")
+    void filtres_combines() {
+        List<LignePassage> lignes = service.listerPassages(ID_USER, new FiltresMultisite("640380", null, null, 2026));
 
-  @Test
-  @DisplayName("Vue de la saison courante : année lue de l'horloge (2026)")
-  void vue_saison_courante() {
-    assertThat(service.listerPassagesDeLaSaison(ID_USER))
-        .hasSize(4)
-        .allMatch(l -> l.annee() == 2026);
-  }
+        assertThat(lignes).hasSize(2).allMatch(l -> l.numeroCarre().equals("640380") && l.annee() == 2026);
+    }
 
-  // --- Tri ---
+    @Test
+    @DisplayName("Vue de la saison courante : année lue de l'horloge (2026)")
+    void vue_saison_courante() {
+        assertThat(service.listerPassagesDeLaSaison(ID_USER)).hasSize(4).allMatch(l -> l.annee() == 2026);
+    }
 
-  @Test
-  @DisplayName("Tri par année : la plus ancienne d'abord")
-  void tri_par_annee() {
-    List<LignePassage> lignes =
-        service.listerPassages(ID_USER, FiltresMultisite.aucun(), TriMultisite.PAR_ANNEE);
+    // --- Tri ---
 
-    assertThat(lignes.get(0).annee()).isEqualTo(2025);
-  }
+    @Test
+    @DisplayName("Tri par année : la plus ancienne d'abord")
+    void tri_par_annee() {
+        List<LignePassage> lignes = service.listerPassages(ID_USER, FiltresMultisite.aucun(), TriMultisite.PAR_ANNEE);
 
-  @Test
-  @DisplayName("Tri par statut : suit l'ordre de progression du workflow")
-  void tri_par_statut() {
-    List<LignePassage> lignes =
-        service.listerPassages(ID_USER, FiltresMultisite.aucun(), TriMultisite.PAR_STATUT);
+        assertThat(lignes.get(0).annee()).isEqualTo(2025);
+    }
 
-    assertThat(lignes)
-        .extracting(LignePassage::statut)
-        .containsExactly(
-            StatutWorkflow.IMPORTE,
-            StatutWorkflow.TRANSFORME,
-            StatutWorkflow.VERIFIE,
-            StatutWorkflow.VERIFIE,
-            StatutWorkflow.DEPOSE);
-  }
+    @Test
+    @DisplayName("Tri par statut : suit l'ordre de progression du workflow")
+    void tri_par_statut() {
+        List<LignePassage> lignes = service.listerPassages(ID_USER, FiltresMultisite.aucun(), TriMultisite.PAR_STATUT);
 
-  @Test
-  @DisplayName("Tri par verdict : passages non vérifiés (verdict null) en dernier")
-  void tri_par_verdict_nulls_en_dernier() {
-    List<LignePassage> lignes =
-        service.listerPassages(ID_USER, FiltresMultisite.aucun(), TriMultisite.PAR_VERDICT);
+        assertThat(lignes)
+                .extracting(LignePassage::statut)
+                .containsExactly(
+                        StatutWorkflow.IMPORTE,
+                        StatutWorkflow.TRANSFORME,
+                        StatutWorkflow.VERIFIE,
+                        StatutWorkflow.VERIFIE,
+                        StatutWorkflow.DEPOSE);
+    }
 
-    assertThat(lignes.get(0).verdict()).isEqualTo(Verdict.OK);
-    assertThat(lignes.get(lignes.size() - 1).verdict()).as("verdict null trié en dernier").isNull();
-  }
+    @Test
+    @DisplayName("Tri par verdict : passages non vérifiés (verdict null) en dernier")
+    void tri_par_verdict_nulls_en_dernier() {
+        List<LignePassage> lignes = service.listerPassages(ID_USER, FiltresMultisite.aucun(), TriMultisite.PAR_VERDICT);
 
-  // --- CRUD des vues sauvegardées ---
+        assertThat(lignes.get(0).verdict()).isEqualTo(Verdict.OK);
+        assertThat(lignes.get(lignes.size() - 1).verdict())
+                .as("verdict null trié en dernier")
+                .isNull();
+    }
 
-  @Test
-  @DisplayName("Enregistrer puis recharger une vue restitue les mêmes critères")
-  void enregistrer_puis_charger_une_vue() {
-    FiltresMultisite filtres =
-        new FiltresMultisite("640380", StatutWorkflow.VERIFIE, Verdict.DOUTEUX, 2026);
+    // --- CRUD des vues sauvegardées ---
 
-    SavedView vue = service.enregistrerVue("Mes nuits douteuses", filtres);
+    @Test
+    @DisplayName("Enregistrer puis recharger une vue restitue les mêmes critères")
+    void enregistrer_puis_charger_une_vue() {
+        FiltresMultisite filtres = new FiltresMultisite("640380", StatutWorkflow.VERIFIE, Verdict.DOUTEUX, 2026);
 
-    assertThat(vue.id()).isNotNull();
-    assertThat(service.chargerVue(vue.id())).isEqualTo(filtres);
-  }
+        SavedView vue = service.enregistrerVue("Mes nuits douteuses", filtres);
 
-  @Test
-  @DisplayName("Appliquer une vue sauvegardée rejoue ses filtres sur la vue agrégée")
-  void appliquer_une_vue() {
-    SavedView vue =
-        service.enregistrerVue(
-            "640380 vérifiés 2026",
-            new FiltresMultisite("640380", StatutWorkflow.VERIFIE, null, 2026));
+        assertThat(vue.id()).isNotNull();
+        assertThat(service.chargerVue(vue.id())).isEqualTo(filtres);
+    }
 
-    List<LignePassage> lignes = service.appliquerVue(ID_USER, vue.id());
+    @Test
+    @DisplayName("Appliquer une vue sauvegardée rejoue ses filtres sur la vue agrégée")
+    void appliquer_une_vue() {
+        SavedView vue = service.enregistrerVue(
+                "640380 vérifiés 2026", new FiltresMultisite("640380", StatutWorkflow.VERIFIE, null, 2026));
 
-    assertThat(lignes)
-        .singleElement()
-        .satisfies(
-            l -> {
-              assertThat(l.numeroCarre()).isEqualTo("640380");
-              assertThat(l.statut()).isEqualTo(StatutWorkflow.VERIFIE);
-              assertThat(l.annee()).isEqualTo(2026);
-            });
-  }
+        List<LignePassage> lignes = service.appliquerVue(ID_USER, vue.id());
 
-  @Test
-  @DisplayName("Lister les vues restitue celles enregistrées")
-  void lister_les_vues() {
-    service.enregistrerVue("Vue A", FiltresMultisite.parAnnee(2026));
-    service.enregistrerVue("Vue B", FiltresMultisite.parSite("640381"));
+        assertThat(lignes).singleElement().satisfies(l -> {
+            assertThat(l.numeroCarre()).isEqualTo("640380");
+            assertThat(l.statut()).isEqualTo(StatutWorkflow.VERIFIE);
+            assertThat(l.annee()).isEqualTo(2026);
+        });
+    }
 
-    assertThat(service.listerVues())
-        .extracting(SavedView::nom)
-        .containsExactlyInAnyOrder("Vue A", "Vue B");
-  }
+    @Test
+    @DisplayName("Lister les vues restitue celles enregistrées")
+    void lister_les_vues() {
+        service.enregistrerVue("Vue A", FiltresMultisite.parAnnee(2026));
+        service.enregistrerVue("Vue B", FiltresMultisite.parSite("640381"));
 
-  @Test
-  @DisplayName("Mettre à jour une vue change son nom et ses critères")
-  void mettre_a_jour_une_vue() {
-    SavedView vue = service.enregistrerVue("Brouillon", FiltresMultisite.aucun());
+        assertThat(service.listerVues()).extracting(SavedView::nom).containsExactlyInAnyOrder("Vue A", "Vue B");
+    }
 
-    service.mettreAJourVue(vue.id(), "Définitive", FiltresMultisite.parVerdict(Verdict.A_JETER));
+    @Test
+    @DisplayName("Mettre à jour une vue change son nom et ses critères")
+    void mettre_a_jour_une_vue() {
+        SavedView vue = service.enregistrerVue("Brouillon", FiltresMultisite.aucun());
 
-    assertThat(service.chargerVue(vue.id()))
-        .isEqualTo(FiltresMultisite.parVerdict(Verdict.A_JETER));
-    assertThat(savedViewDao.findById(vue.id()).orElseThrow().nom()).isEqualTo("Définitive");
-  }
+        service.mettreAJourVue(vue.id(), "Définitive", FiltresMultisite.parVerdict(Verdict.A_JETER));
 
-  @Test
-  @DisplayName("Supprimer une vue la retire (rechargement refusé)")
-  void supprimer_une_vue() {
-    SavedView vue = service.enregistrerVue("À supprimer", FiltresMultisite.aucun());
+        assertThat(service.chargerVue(vue.id())).isEqualTo(FiltresMultisite.parVerdict(Verdict.A_JETER));
+        assertThat(savedViewDao.findById(vue.id()).orElseThrow().nom()).isEqualTo("Définitive");
+    }
 
-    service.supprimerVue(vue.id());
+    @Test
+    @DisplayName("Supprimer une vue la retire (rechargement refusé)")
+    void supprimer_une_vue() {
+        SavedView vue = service.enregistrerVue("À supprimer", FiltresMultisite.aucun());
 
-    assertThatThrownBy(() -> service.chargerVue(vue.id()))
-        .isInstanceOf(RegleMetierException.class)
-        .hasMessageContaining("introuvable");
-  }
+        service.supprimerVue(vue.id());
 
-  @Test
-  @DisplayName("Charger une vue inexistante est refusé (RegleMetierException)")
-  void charger_vue_inexistante() {
-    assertThatThrownBy(() -> service.chargerVue(9999L))
-        .isInstanceOf(RegleMetierException.class)
-        .hasMessageContaining("introuvable");
-  }
+        assertThatThrownBy(() -> service.chargerVue(vue.id()))
+                .isInstanceOf(RegleMetierException.class)
+                .hasMessageContaining("introuvable");
+    }
+
+    @Test
+    @DisplayName("Charger une vue inexistante est refusé (RegleMetierException)")
+    void charger_vue_inexistante() {
+        assertThatThrownBy(() -> service.chargerVue(9999L))
+                .isInstanceOf(RegleMetierException.class)
+                .hasMessageContaining("introuvable");
+    }
 }

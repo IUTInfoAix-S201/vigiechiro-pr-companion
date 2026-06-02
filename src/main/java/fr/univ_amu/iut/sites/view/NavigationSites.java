@@ -31,75 +31,74 @@ import javafx.stage.Window;
 @Singleton
 public class NavigationSites {
 
-  private final Injector injector;
-  private final Navigateur navigateur;
+    private final Injector injector;
+    private final Navigateur navigateur;
 
-  @Inject
-  public NavigationSites(Injector injector, Navigateur navigateur) {
-    this.injector = Objects.requireNonNull(injector, "injector");
-    this.navigateur = Objects.requireNonNull(navigateur, "navigateur");
-  }
-
-  /// Affiche l'écran d'accueil **M-Sites** dans la zone centrale du chrome.
-  public void ouvrirAccueil() {
-    FXMLLoader loader = charger("MesSites.fxml");
-    Parent vue = lire(loader);
-    navigateur.afficher(vue, "sites", "Mes sites de suivi");
-  }
-
-  /// Affiche l'écran de détail **M-Site-detail** du site donné (clic sur une carte).
-  public void ouvrirDetail(Site site) {
-    Objects.requireNonNull(site, "site");
-    FXMLLoader loader = charger("SiteDetail.fxml");
-    Parent vue = lire(loader);
-    SiteDetailController controller = loader.getController();
-    controller.afficher(site);
-    navigateur.afficher(vue, "site-detail", "Mes sites › Carré " + site.numeroCarre());
-  }
-
-  /// Ouvre la modale d'**ajout** d'un point d'écoute pour `site`.
-  ///
-  /// @param parent fenêtre propriétaire (pour la modalité)
-  /// @param site site auquel rattacher le nouveau point
-  /// @param apresSucces action exécutée après un ajout réussi (typiquement rafraîchir le détail)
-  public void ouvrirModaleCreationPoint(Window parent, Site site, Runnable apresSucces) {
-    FXMLLoader loader = charger("ModalePoint.fxml");
-    Parent vue = lire(loader);
-    ModalePointController controller = loader.getController();
-    controller.demarrerCreation(site, apresSucces);
-    afficherModale(parent, vue);
-  }
-
-  /// Ouvre la modale d'**édition** du point `point` (champs pré-remplis).
-  public void ouvrirModaleEditionPoint(
-      Window parent, Site site, PointDEcoute point, Runnable apresSucces) {
-    FXMLLoader loader = charger("ModalePoint.fxml");
-    Parent vue = lire(loader);
-    ModalePointController controller = loader.getController();
-    controller.demarrerEdition(site, point, apresSucces);
-    afficherModale(parent, vue);
-  }
-
-  private void afficherModale(Window parent, Parent vue) {
-    Stage modale = new Stage();
-    modale.initOwner(parent);
-    modale.initModality(Modality.WINDOW_MODAL);
-    modale.setTitle("Point d'écoute");
-    modale.setScene(new Scene(vue));
-    modale.show();
-  }
-
-  private FXMLLoader charger(String fxml) {
-    FXMLLoader loader = new FXMLLoader(NavigationSites.class.getResource(fxml));
-    loader.setControllerFactory(injector::getInstance);
-    return loader;
-  }
-
-  private static Parent lire(FXMLLoader loader) {
-    try {
-      return loader.load();
-    } catch (IOException echec) {
-      throw new UncheckedIOException("Chargement FXML impossible : " + loader.getLocation(), echec);
+    @Inject
+    public NavigationSites(Injector injector, Navigateur navigateur) {
+        this.injector = Objects.requireNonNull(injector, "injector");
+        this.navigateur = Objects.requireNonNull(navigateur, "navigateur");
     }
-  }
+
+    /// Affiche l'écran d'accueil **M-Sites** dans la zone centrale du chrome.
+    public void ouvrirAccueil() {
+        FXMLLoader loader = charger("MesSites.fxml");
+        Parent vue = lire(loader);
+        navigateur.afficher(vue, "sites", "Mes sites de suivi");
+    }
+
+    /// Affiche l'écran de détail **M-Site-detail** du site donné (clic sur une carte).
+    public void ouvrirDetail(Site site) {
+        Objects.requireNonNull(site, "site");
+        FXMLLoader loader = charger("SiteDetail.fxml");
+        Parent vue = lire(loader);
+        SiteDetailController controller = loader.getController();
+        controller.afficher(site);
+        navigateur.afficher(vue, "site-detail", "Mes sites › Carré " + site.numeroCarre());
+    }
+
+    /// Ouvre la modale d'**ajout** d'un point d'écoute pour `site`.
+    ///
+    /// @param parent fenêtre propriétaire (pour la modalité)
+    /// @param site site auquel rattacher le nouveau point
+    /// @param apresSucces action exécutée après un ajout réussi (typiquement rafraîchir le détail)
+    public void ouvrirModaleCreationPoint(Window parent, Site site, Runnable apresSucces) {
+        FXMLLoader loader = charger("ModalePoint.fxml");
+        Parent vue = lire(loader);
+        ModalePointController controller = loader.getController();
+        controller.demarrerCreation(site, apresSucces);
+        afficherModale(parent, vue);
+    }
+
+    /// Ouvre la modale d'**édition** du point `point` (champs pré-remplis).
+    public void ouvrirModaleEditionPoint(Window parent, Site site, PointDEcoute point, Runnable apresSucces) {
+        FXMLLoader loader = charger("ModalePoint.fxml");
+        Parent vue = lire(loader);
+        ModalePointController controller = loader.getController();
+        controller.demarrerEdition(site, point, apresSucces);
+        afficherModale(parent, vue);
+    }
+
+    private void afficherModale(Window parent, Parent vue) {
+        Stage modale = new Stage();
+        modale.initOwner(parent);
+        modale.initModality(Modality.WINDOW_MODAL);
+        modale.setTitle("Point d'écoute");
+        modale.setScene(new Scene(vue));
+        modale.show();
+    }
+
+    private FXMLLoader charger(String fxml) {
+        FXMLLoader loader = new FXMLLoader(NavigationSites.class.getResource(fxml));
+        loader.setControllerFactory(injector::getInstance);
+        return loader;
+    }
+
+    private static Parent lire(FXMLLoader loader) {
+        try {
+            return loader.load();
+        } catch (IOException echec) {
+            throw new UncheckedIOException("Chargement FXML impossible : " + loader.getLocation(), echec);
+        }
+    }
 }

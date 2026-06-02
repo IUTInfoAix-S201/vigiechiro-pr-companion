@@ -17,8 +17,4 @@ package fr.univ_amu.iut.bibliotheque.model;
 /// @param frequenceHz fréquence médiane en Hz de l'observation (`null` si absente)
 /// @param commentaire commentaire libre de l'observateur (`null` si absent)
 public record EntreeBiblio(
-    String taxon,
-    String nomSequence,
-    String cheminFichier,
-    Integer frequenceHz,
-    String commentaire) {}
+        String taxon, String nomSequence, String cheminFichier, Integer frequenceHz, String commentaire) {}

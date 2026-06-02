@@ -17,16 +17,16 @@ import org.testfx.framework.junit5.Start;
 @ExtendWith(ApplicationExtension.class)
 class AppTest {
 
-  @Start
-  void start(Stage stage) throws Exception {
-    stage.setScene(null); // évite la fuite de Scene entre tests (TestFX réutilise le Stage)
-    new App().start(stage);
-  }
+    @Start
+    void start(Stage stage) throws Exception {
+        stage.setScene(null); // évite la fuite de Scene entre tests (TestFX réutilise le Stage)
+        new App().start(stage);
+    }
 
-  @Test
-  void le_chrome_principal_est_affiche(FxRobot robot) {
-    Label titre = robot.lookup("#titreApplication").queryAs(Label.class);
-    assertThat(titre).isNotNull();
-    assertThat(titre.getText()).isEqualTo("VigieChiro PR Companion");
-  }
+    @Test
+    void le_chrome_principal_est_affiche(FxRobot robot) {
+        Label titre = robot.lookup("#titreApplication").queryAs(Label.class);
+        assertThat(titre).isNotNull();
+        assertThat(titre.getText()).isEqualTo("VigieChiro PR Companion");
+    }
 }

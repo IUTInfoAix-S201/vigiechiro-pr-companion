@@ -16,20 +16,20 @@ import javafx.stage.Stage;
 /// ce qui leur donne accès aux ViewModels et services du socle et des features.
 public class App extends Application {
 
-  @Override
-  public void start(Stage primaryStage) throws Exception {
-    Injector injector = RacineInjecteur.creer();
+    @Override
+    public void start(Stage primaryStage) throws Exception {
+        Injector injector = RacineInjecteur.creer();
 
-    FXMLLoader loader = new FXMLLoader(getClass().getResource("commun/view/MainView.fxml"));
-    loader.setControllerFactory(injector::getInstance);
-    Parent root = loader.load();
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("commun/view/MainView.fxml"));
+        loader.setControllerFactory(injector::getInstance);
+        Parent root = loader.load();
 
-    primaryStage.setScene(new Scene(root));
-    primaryStage.setTitle("VigieChiro PR Companion");
-    primaryStage.show();
-  }
+        primaryStage.setScene(new Scene(root));
+        primaryStage.setTitle("VigieChiro PR Companion");
+        primaryStage.show();
+    }
 
-  public static void main(String[] args) {
-    launch(args);
-  }
+    public static void main(String[] args) {
+        launch(args);
+    }
 }

@@ -9,13 +9,13 @@ import java.time.LocalDateTime;
 /// classe directement : il reçoit une [Horloge] par injection (constructeur).
 public final class HorlogeSysteme implements Horloge {
 
-  @Override
-  public LocalDate aujourdhui() {
-    return LocalDate.now();
-  }
+    @Override
+    public LocalDate aujourdhui() {
+        return LocalDate.now();
+    }
 
-  @Override
-  public LocalDateTime maintenant() {
-    return LocalDateTime.now();
-  }
+    @Override
+    public LocalDateTime maintenant() {
+        return LocalDateTime.now();
+    }
 }

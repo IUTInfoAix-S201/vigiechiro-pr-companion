@@ -30,33 +30,33 @@ import org.testfx.framework.junit5.Start;
 @ExtendWith(ApplicationExtension.class)
 class NavigationDiagnosticViewTest {
 
-  @Start
-  void start(Stage stage) throws Exception {
-    Path workspace = Files.createTempDirectory("vc-diagnostic");
-    System.setProperty("vigiechiro.workspace", workspace.toString());
-    Injector injector = RacineInjecteur.creer();
-    SourceDeDonnees source = injector.getInstance(SourceDeDonnees.class);
-    new MigrationSchema(source).migrer();
-    FXMLLoader loader = new FXMLLoader(App.class.getResource("commun/view/MainView.fxml"));
-    loader.setControllerFactory(injector::getInstance);
-    Parent racine = loader.load();
-    stage.setScene(new Scene(racine, 1100, 760));
-    injector.getInstance(NavigationDiagnostic.class).ouvrir(999L);
-    stage.show();
-  }
+    @Start
+    void start(Stage stage) throws Exception {
+        Path workspace = Files.createTempDirectory("vc-diagnostic");
+        System.setProperty("vigiechiro.workspace", workspace.toString());
+        Injector injector = RacineInjecteur.creer();
+        SourceDeDonnees source = injector.getInstance(SourceDeDonnees.class);
+        new MigrationSchema(source).migrer();
+        FXMLLoader loader = new FXMLLoader(App.class.getResource("commun/view/MainView.fxml"));
+        loader.setControllerFactory(injector::getInstance);
+        Parent racine = loader.load();
+        stage.setScene(new Scene(racine, 1100, 760));
+        injector.getInstance(NavigationDiagnostic.class).ouvrir(999L);
+        stage.show();
+    }
 
-  @AfterEach
-  void nettoyerWorkspace() {
-    System.clearProperty("vigiechiro.workspace");
-  }
+    @AfterEach
+    void nettoyerWorkspace() {
+        System.clearProperty("vigiechiro.workspace");
+    }
 
-  @Test
-  @DisplayName("ouvrir(idPassage) charge l'écran M-Diagnostic via Guice")
-  void ouvrir_affiche_l_ecran(FxRobot robot) {
-    Label message = robot.lookup("#lblMessage").queryAs(Label.class);
-    Label gps = robot.lookup("#lblGps").queryAs(Label.class);
+    @Test
+    @DisplayName("ouvrir(idPassage) charge l'écran M-Diagnostic via Guice")
+    void ouvrir_affiche_l_ecran(FxRobot robot) {
+        Label message = robot.lookup("#lblMessage").queryAs(Label.class);
+        Label gps = robot.lookup("#lblGps").queryAs(Label.class);
 
-    assertThat(message.getText()).contains("introuvable");
-    assertThat(gps.isVisible()).isFalse(); // pas de note GPS tant qu'aucun diagnostic n'est chargé
-  }
+        assertThat(message.getText()).contains("introuvable");
+        assertThat(gps.isVisible()).isFalse(); // pas de note GPS tant qu'aucun diagnostic n'est chargé
+    }
 }

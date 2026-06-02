@@ -23,22 +23,22 @@ import java.time.LocalDateTime;
 /// @param gpsLongitude longitude du point d'écoute, ou `null`
 /// @param genereLe horodatage de calcul du diagnostic (issu de l'horloge injectée)
 public record Diagnostic(
-    Long idPassage,
-    Long idSession,
-    String numeroSerieEnregistreur,
-    AnalyseAnomalies anomalies,
-    SerieClimatique climat,
-    Double gpsLatitude,
-    Double gpsLongitude,
-    LocalDateTime genereLe) {
+        Long idPassage,
+        Long idSession,
+        String numeroSerieEnregistreur,
+        AnalyseAnomalies anomalies,
+        SerieClimatique climat,
+        Double gpsLatitude,
+        Double gpsLongitude,
+        LocalDateTime genereLe) {
 
-  /// `true` si aucun relevé climatique n'est rattaché à la session (R20, à signaler).
-  public boolean releveClimatiqueAbsent() {
-    return !climat.present();
-  }
+    /// `true` si aucun relevé climatique n'est rattaché à la session (R20, à signaler).
+    public boolean releveClimatiqueAbsent() {
+        return !climat.present();
+    }
 
-  /// `true` si les coordonnées GPS du point sont disponibles (précondition encart horaires).
-  public boolean coordonneesGpsDisponibles() {
-    return gpsLatitude != null && gpsLongitude != null;
-  }
+    /// `true` si les coordonnées GPS du point sont disponibles (précondition encart horaires).
+    public boolean coordonneesGpsDisponibles() {
+        return gpsLatitude != null && gpsLongitude != null;
+    }
 }

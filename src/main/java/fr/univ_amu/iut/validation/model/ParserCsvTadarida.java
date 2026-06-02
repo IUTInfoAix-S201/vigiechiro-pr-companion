@@ -52,142 +52,141 @@ import java.util.Objects;
 /// `validation_mode` (R24) est facultative.
 public final class ParserCsvTadarida {
 
-  static final String COL_NOM = "nom du fichier";
-  static final String COL_DEBUT = "temps_debut";
-  static final String COL_FIN = "temps_fin";
-  static final String COL_FREQ = "frequence_mediane";
-  static final String COL_TAXON_TADARIDA = "tadarida_taxon";
-  static final String COL_PROB_TADARIDA = "tadarida_probabilite";
-  static final String COL_TAXON_AUTRE = "tadarida_taxon_autre";
-  static final String COL_TAXON_OBSERVATEUR = "observateur_taxon";
-  static final String COL_PROB_OBSERVATEUR = "observateur_probabilite";
-  static final String COL_MODE_VALIDATION = "validation_mode";
+    static final String COL_NOM = "nom du fichier";
+    static final String COL_DEBUT = "temps_debut";
+    static final String COL_FIN = "temps_fin";
+    static final String COL_FREQ = "frequence_mediane";
+    static final String COL_TAXON_TADARIDA = "tadarida_taxon";
+    static final String COL_PROB_TADARIDA = "tadarida_probabilite";
+    static final String COL_TAXON_AUTRE = "tadarida_taxon_autre";
+    static final String COL_TAXON_OBSERVATEUR = "observateur_taxon";
+    static final String COL_PROB_OBSERVATEUR = "observateur_probabilite";
+    static final String COL_MODE_VALIDATION = "validation_mode";
 
-  private static final char BOM = '﻿';
+    private static final char BOM = '﻿';
 
-  private final LecteurCsv lecteur = new LecteurCsv(); // séparateur ';'
+    private final LecteurCsv lecteur = new LecteurCsv(); // séparateur ';'
 
-  /// Détecte le [FormatTadarida] d'un contenu CSV : [FormatTadarida#BRUT] si l'entête est
-  /// guillemetée (commence par `"`), [FormatTadarida#VU] sinon.
-  public FormatTadarida detecterFormat(String contenu) {
-    Objects.requireNonNull(contenu, "contenu");
-    String debut = sansBom(contenu).stripLeading();
-    return debut.startsWith("\"") ? FormatTadarida.BRUT : FormatTadarida.VU;
-  }
-
-  /// Variante fichier de [#detecterFormat(String)].
-  public FormatTadarida detecterFormat(Path fichier) {
-    return detecterFormat(lire(fichier));
-  }
-
-  /// Parse un contenu CSV Tadarida (Brut ou Vu) en [ResultatParseTadarida].
-  public ResultatParseTadarida parser(String contenu) {
-    Objects.requireNonNull(contenu, "contenu");
-    String propre = sansBom(contenu);
-    FormatTadarida format = detecterFormat(propre);
-    List<List<String>> lignes = lecteur.lire(propre);
-    if (lignes.isEmpty()) {
-      throw new IllegalArgumentException("CSV Tadarida vide : aucune entête.");
+    /// Détecte le [FormatTadarida] d'un contenu CSV : [FormatTadarida#BRUT] si l'entête est
+    /// guillemetée (commence par `"`), [FormatTadarida#VU] sinon.
+    public FormatTadarida detecterFormat(String contenu) {
+        Objects.requireNonNull(contenu, "contenu");
+        String debut = sansBom(contenu).stripLeading();
+        return debut.startsWith("\"") ? FormatTadarida.BRUT : FormatTadarida.VU;
     }
-    Map<String, Integer> index = indexerColonnes(lignes.get(0));
-    int colNom = exigerColonne(index, COL_NOM);
-    int colTaxon = exigerColonne(index, COL_TAXON_TADARIDA);
 
-    List<LigneObservation> observations = new ArrayList<>();
-    for (int i = 1; i < lignes.size(); i++) {
-      List<String> ligne = lignes.get(i);
-      String nom = texte(cellule(ligne, colNom));
-      if (nom == null) {
-        continue; // ligne vide (saut final, ligne blanche) : pas une observation
-      }
-      observations.add(
-          new LigneObservation(
-              nom,
-              nombre(cellule(ligne, index.get(COL_DEBUT))),
-              nombre(cellule(ligne, index.get(COL_FIN))),
-              entier(cellule(ligne, index.get(COL_FREQ))),
-              texte(cellule(ligne, colTaxon)),
-              nombre(cellule(ligne, index.get(COL_PROB_TADARIDA))),
-              texte(cellule(ligne, index.get(COL_TAXON_AUTRE))),
-              texte(cellule(ligne, index.get(COL_TAXON_OBSERVATEUR))),
-              nombre(cellule(ligne, index.get(COL_PROB_OBSERVATEUR))),
-              mode(cellule(ligne, index.get(COL_MODE_VALIDATION)))));
+    /// Variante fichier de [#detecterFormat(String)].
+    public FormatTadarida detecterFormat(Path fichier) {
+        return detecterFormat(lire(fichier));
     }
-    return new ResultatParseTadarida(format, observations);
-  }
 
-  /// Variante fichier de [#parser(String)].
-  public ResultatParseTadarida parser(Path fichier) {
-    return parser(lire(fichier));
-  }
+    /// Parse un contenu CSV Tadarida (Brut ou Vu) en [ResultatParseTadarida].
+    public ResultatParseTadarida parser(String contenu) {
+        Objects.requireNonNull(contenu, "contenu");
+        String propre = sansBom(contenu);
+        FormatTadarida format = detecterFormat(propre);
+        List<List<String>> lignes = lecteur.lire(propre);
+        if (lignes.isEmpty()) {
+            throw new IllegalArgumentException("CSV Tadarida vide : aucune entête.");
+        }
+        Map<String, Integer> index = indexerColonnes(lignes.get(0));
+        int colNom = exigerColonne(index, COL_NOM);
+        int colTaxon = exigerColonne(index, COL_TAXON_TADARIDA);
 
-  /// Lit le texte brut du fichier (UTF-8). On a besoin du texte non parsé pour la détection de
-  /// format (qui repose sur les guillemets, perdus une fois le CSV parsé par [LecteurCsv]).
-  private static String lire(Path fichier) {
-    Objects.requireNonNull(fichier, "fichier");
-    try {
-      return Files.readString(fichier, StandardCharsets.UTF_8);
-    } catch (IOException e) {
-      throw new UncheckedIOException("Lecture CSV Tadarida impossible : " + fichier, e);
+        List<LigneObservation> observations = new ArrayList<>();
+        for (int i = 1; i < lignes.size(); i++) {
+            List<String> ligne = lignes.get(i);
+            String nom = texte(cellule(ligne, colNom));
+            if (nom == null) {
+                continue; // ligne vide (saut final, ligne blanche) : pas une observation
+            }
+            observations.add(new LigneObservation(
+                    nom,
+                    nombre(cellule(ligne, index.get(COL_DEBUT))),
+                    nombre(cellule(ligne, index.get(COL_FIN))),
+                    entier(cellule(ligne, index.get(COL_FREQ))),
+                    texte(cellule(ligne, colTaxon)),
+                    nombre(cellule(ligne, index.get(COL_PROB_TADARIDA))),
+                    texte(cellule(ligne, index.get(COL_TAXON_AUTRE))),
+                    texte(cellule(ligne, index.get(COL_TAXON_OBSERVATEUR))),
+                    nombre(cellule(ligne, index.get(COL_PROB_OBSERVATEUR))),
+                    mode(cellule(ligne, index.get(COL_MODE_VALIDATION)))));
+        }
+        return new ResultatParseTadarida(format, observations);
     }
-  }
 
-  /// Indexe l'entête : nom de colonne (en minuscules, trimé) → position.
-  private static Map<String, Integer> indexerColonnes(List<String> entete) {
-    Map<String, Integer> index = new HashMap<>();
-    for (int i = 0; i < entete.size(); i++) {
-      String nom = entete.get(i);
-      if (nom != null) {
-        index.put(nom.trim().toLowerCase(Locale.ROOT), i);
-      }
+    /// Variante fichier de [#parser(String)].
+    public ResultatParseTadarida parser(Path fichier) {
+        return parser(lire(fichier));
     }
-    return index;
-  }
 
-  private static int exigerColonne(Map<String, Integer> index, String nom) {
-    Integer position = index.get(nom);
-    if (position == null) {
-      throw new IllegalArgumentException(
-          "Colonne « " + nom + " » absente de l'entête Tadarida : " + index.keySet());
+    /// Lit le texte brut du fichier (UTF-8). On a besoin du texte non parsé pour la détection de
+    /// format (qui repose sur les guillemets, perdus une fois le CSV parsé par [LecteurCsv]).
+    private static String lire(Path fichier) {
+        Objects.requireNonNull(fichier, "fichier");
+        try {
+            return Files.readString(fichier, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new UncheckedIOException("Lecture CSV Tadarida impossible : " + fichier, e);
+        }
     }
-    return position;
-  }
 
-  /// Cellule à la position `col` (ou `null` si la position est absente / hors borne).
-  private static String cellule(List<String> ligne, Integer col) {
-    if (col == null || col < 0 || col >= ligne.size()) {
-      return null;
+    /// Indexe l'entête : nom de colonne (en minuscules, trimé) → position.
+    private static Map<String, Integer> indexerColonnes(List<String> entete) {
+        Map<String, Integer> index = new HashMap<>();
+        for (int i = 0; i < entete.size(); i++) {
+            String nom = entete.get(i);
+            if (nom != null) {
+                index.put(nom.trim().toLowerCase(Locale.ROOT), i);
+            }
+        }
+        return index;
     }
-    return ligne.get(col);
-  }
 
-  /// Un champ est « vide » s'il est `null`, blanc, ou réduit à un guillemet littéral seul (`"`) —
-  /// l'encodage d'un champ vide rencontré dans certains exports `_Vu`.
-  static boolean estVide(String champ) {
-    if (champ == null) {
-      return true;
+    private static int exigerColonne(Map<String, Integer> index, String nom) {
+        Integer position = index.get(nom);
+        if (position == null) {
+            throw new IllegalArgumentException(
+                    "Colonne « " + nom + " » absente de l'entête Tadarida : " + index.keySet());
+        }
+        return position;
     }
-    String trim = champ.trim();
-    return trim.isEmpty() || trim.equals("\"");
-  }
 
-  private static String texte(String champ) {
-    return estVide(champ) ? null : champ.trim();
-  }
+    /// Cellule à la position `col` (ou `null` si la position est absente / hors borne).
+    private static String cellule(List<String> ligne, Integer col) {
+        if (col == null || col < 0 || col >= ligne.size()) {
+            return null;
+        }
+        return ligne.get(col);
+    }
 
-  private static Double nombre(String champ) {
-    return estVide(champ) ? null : Double.valueOf(champ.trim());
-  }
+    /// Un champ est « vide » s'il est `null`, blanc, ou réduit à un guillemet littéral seul (`"`) —
+    /// l'encodage d'un champ vide rencontré dans certains exports `_Vu`.
+    static boolean estVide(String champ) {
+        if (champ == null) {
+            return true;
+        }
+        String trim = champ.trim();
+        return trim.isEmpty() || trim.equals("\"");
+    }
 
-  private static Integer entier(String champ) {
-    return estVide(champ) ? null : (int) Math.round(Double.parseDouble(champ.trim()));
-  }
+    private static String texte(String champ) {
+        return estVide(champ) ? null : champ.trim();
+    }
 
-  private static ModeValidation mode(String champ) {
-    return estVide(champ) ? ModeValidation.NON_VALIDE : ModeValidation.parLibelle(champ.trim());
-  }
+    private static Double nombre(String champ) {
+        return estVide(champ) ? null : Double.valueOf(champ.trim());
+    }
 
-  private static String sansBom(String contenu) {
-    return (!contenu.isEmpty() && contenu.charAt(0) == BOM) ? contenu.substring(1) : contenu;
-  }
+    private static Integer entier(String champ) {
+        return estVide(champ) ? null : (int) Math.round(Double.parseDouble(champ.trim()));
+    }
+
+    private static ModeValidation mode(String champ) {
+        return estVide(champ) ? ModeValidation.NON_VALIDE : ModeValidation.parLibelle(champ.trim());
+    }
+
+    private static String sansBom(String contenu) {
+        return (!contenu.isEmpty() && contenu.charAt(0) == BOM) ? contenu.substring(1) : contenu;
+    }
 }

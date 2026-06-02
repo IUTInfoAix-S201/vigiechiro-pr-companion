@@ -22,11 +22,11 @@ import fr.univ_amu.iut.commun.model.Verdict;
 /// @param statut statut d'avancement dans le workflow d'import → dépôt
 /// @param verdict verdict de vérification (`null` tant que le passage n'a pas été vérifié)
 public record LignePassage(
-    Long idPassage,
-    String numeroCarre,
-    String codePoint,
-    int annee,
-    int numeroPassage,
-    String dateEnregistrement,
-    StatutWorkflow statut,
-    Verdict verdict) {}
+        Long idPassage,
+        String numeroCarre,
+        String codePoint,
+        int annee,
+        int numeroPassage,
+        String dateEnregistrement,
+        StatutWorkflow statut,
+        Verdict verdict) {}

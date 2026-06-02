@@ -17,12 +17,12 @@ package fr.univ_amu.iut.passage.model;
 /// @param commentaire commentaire libre (optionnel)
 /// @param idEnregistreur n° de série de l'enregistreur porteur (FK → `recorder.serial_number`)
 public record Micro(
-    Long id,
-    String modeleReference,
-    String bandePassante,
-    String sensibilite,
-    String miseEnServiceLe,
-    String retireLe,
-    boolean actif,
-    String commentaire,
-    String idEnregistreur) {}
+        Long id,
+        String modeleReference,
+        String bandePassante,
+        String sensibilite,
+        String miseEnServiceLe,
+        String retireLe,
+        boolean actif,
+        String commentaire,
+        String idEnregistreur) {}

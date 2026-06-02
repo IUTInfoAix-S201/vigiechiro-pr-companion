@@ -19,22 +19,23 @@ import org.junit.jupiter.api.io.TempDir;
 /// surcharge le workspace vers un `@TempDir` pour ne pas toucher au workspace réel.
 class ValidationInjectionTest {
 
-  @TempDir Path workspaceJetable;
+    @TempDir
+    Path workspaceJetable;
 
-  @AfterEach
-  void nettoyerLaSurcharge() {
-    System.clearProperty("vigiechiro.workspace");
-  }
+    @AfterEach
+    void nettoyerLaSurcharge() {
+        System.clearProperty("vigiechiro.workspace");
+    }
 
-  @Test
-  @DisplayName("La racine résout ServiceValidation, ParserCsvTadarida et ExportVuCsv")
-  void resout_le_service_et_ses_moteurs() {
-    System.setProperty("vigiechiro.workspace", workspaceJetable.toString());
+    @Test
+    @DisplayName("La racine résout ServiceValidation, ParserCsvTadarida et ExportVuCsv")
+    void resout_le_service_et_ses_moteurs() {
+        System.setProperty("vigiechiro.workspace", workspaceJetable.toString());
 
-    Injector injecteur = RacineInjecteur.creer();
+        Injector injecteur = RacineInjecteur.creer();
 
-    assertThat(injecteur.getInstance(ParserCsvTadarida.class)).isNotNull();
-    assertThat(injecteur.getInstance(ExportVuCsv.class)).isNotNull();
-    assertThat(injecteur.getInstance(ServiceValidation.class)).isNotNull();
-  }
+        assertThat(injecteur.getInstance(ParserCsvTadarida.class)).isNotNull();
+        assertThat(injecteur.getInstance(ExportVuCsv.class)).isNotNull();
+        assertThat(injecteur.getInstance(ServiceValidation.class)).isNotNull();
+    }
 }

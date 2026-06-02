@@ -20,36 +20,36 @@ import java.nio.file.Path;
 /// Guice.
 public class CommunModule extends AbstractModule {
 
-  @Override
-  protected void configure() {
-    // Socle IHM transverse : état de navigation observable + service de swap de la zone
-    // centrale. Singletons pour que le chrome et toutes les features partagent la même
-    // instance. Pas de @Provides : pas de logique de construction (constructeurs @Inject).
-    bind(NavigationViewModel.class).in(Singleton.class);
-    bind(Navigateur.class).in(Singleton.class);
-  }
+    @Override
+    protected void configure() {
+        // Socle IHM transverse : état de navigation observable + service de swap de la zone
+        // centrale. Singletons pour que le chrome et toutes les features partagent la même
+        // instance. Pas de @Provides : pas de logique de construction (constructeurs @Inject).
+        bind(NavigationViewModel.class).in(Singleton.class);
+        bind(Navigateur.class).in(Singleton.class);
+    }
 
-  @Provides
-  @Singleton
-  Workspace fournirWorkspace() {
-    String surcharge = System.getProperty("vigiechiro.workspace");
-    return surcharge != null ? new Workspace(Path.of(surcharge)) : Workspace.parDefaut();
-  }
+    @Provides
+    @Singleton
+    Workspace fournirWorkspace() {
+        String surcharge = System.getProperty("vigiechiro.workspace");
+        return surcharge != null ? new Workspace(Path.of(surcharge)) : Workspace.parDefaut();
+    }
 
-  @Provides
-  @Singleton
-  SourceDeDonnees fournirSourceDeDonnees(Workspace workspace) {
-    return new SourceDeDonnees(workspace);
-  }
+    @Provides
+    @Singleton
+    SourceDeDonnees fournirSourceDeDonnees(Workspace workspace) {
+        return new SourceDeDonnees(workspace);
+    }
 
-  /// Horloge applicative : l'horloge système en production. Transverse (les règles de dates R3/R4
-  /// et
-  /// les horodatages des features la réclament), elle est donc bindée au niveau du socle. Les tests
-  /// n'utilisent pas ce binding : ils injectent directement une
-  /// [fr.univ_amu.iut.commun.model.HorlogeFigee].
-  @Provides
-  @Singleton
-  Horloge fournirHorloge() {
-    return Horloge.systeme();
-  }
+    /// Horloge applicative : l'horloge système en production. Transverse (les règles de dates R3/R4
+    /// et
+    /// les horodatages des features la réclament), elle est donc bindée au niveau du socle. Les tests
+    /// n'utilisent pas ce binding : ils injectent directement une
+    /// [fr.univ_amu.iut.commun.model.HorlogeFigee].
+    @Provides
+    @Singleton
+    Horloge fournirHorloge() {
+        return Horloge.systeme();
+    }
 }

@@ -24,25 +24,23 @@ import org.junit.jupiter.api.io.TempDir;
 /// que la méthode `@Provides` assemble correctement [ServiceBibliotheque].
 class BibliothequeModuleTest {
 
-  @TempDir Path workspaceJetable;
+    @TempDir
+    Path workspaceJetable;
 
-  @Test
-  @DisplayName("BibliothequeModule assemble ServiceBibliotheque via Guice")
-  void bibliotheque_module_resout_le_service() {
-    SourceDeDonnees source = new SourceDeDonnees(new Workspace(workspaceJetable));
-    new MigrationSchema(source).migrer();
+    @Test
+    @DisplayName("BibliothequeModule assemble ServiceBibliotheque via Guice")
+    void bibliotheque_module_resout_le_service() {
+        SourceDeDonnees source = new SourceDeDonnees(new Workspace(workspaceJetable));
+        new MigrationSchema(source).migrer();
 
-    Injector injecteur =
-        Guice.createInjector(
-            new BibliothequeModule(),
-            new AbstractModule() {
-              @Override
-              protected void configure() {
+        Injector injecteur = Guice.createInjector(new BibliothequeModule(), new AbstractModule() {
+            @Override
+            protected void configure() {
                 bind(ObservationDao.class).toInstance(new ObservationDao(source));
                 bind(SequenceDao.class).toInstance(new SequenceDao(source));
-              }
-            });
+            }
+        });
 
-    assertThat(injecteur.getInstance(ServiceBibliotheque.class)).isNotNull();
-  }
+        assertThat(injecteur.getInstance(ServiceBibliotheque.class)).isNotNull();
+    }
 }

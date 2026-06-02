@@ -207,10 +207,13 @@
                 <executions>
                     <execution>
                         <phase>package</phase>
-                        <goals><goal>shade</goal></goals>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
                         <configuration>
                             <transformers>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                <transformer
+                                    implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass>fr.univ_amu.iut.App</mainClass>
                                 </transformer>
                             </transformers>
@@ -263,12 +266,20 @@
                 <version>${spotless.maven.plugin.version}</version>
                 <configuration>
                     <java>
-                        <googleJavaFormat>
-                            <version>${google.java.format.version}</version>
-                        </googleJavaFormat>
-                        <removeUnusedImports/>
-                        <trimTrailingWhitespace/>
-                        <endWithNewline/>
+                        <palantirJavaFormat>
+                            <version>2.91.0</version>                     <!-- optional -->
+                            <style>PALANTIR</style>                       <!-- or AOSP/GOOGLE (optional) -->
+                            <formatJavadoc>false</formatJavadoc>          <!-- defaults to false (optional,
+                            requires at least Palantir 2.39.0) -->
+                        </palantirJavaFormat>
+                        <tableTestFormatter /> <!-- has its own section below -->
+
+                        <importOrder /> <!-- standard import order -->
+                        <removeUnusedImports />
+                        <formatAnnotations />  <!-- fixes formatting of type annotations, see below -->
+
+                        <trimTrailingWhitespace />
+                        <endWithNewline />
                     </java>
                 </configuration>
             </plugin>
@@ -285,7 +296,11 @@
                     </gitConfig>
                 </configuration>
                 <executions>
-                    <execution><goals><goal>configure</goal></goals></execution>
+                    <execution>
+                        <goals>
+                            <goal>configure</goal>
+                        </goals>
+                    </execution>
                 </executions>
             </plugin>
 
@@ -311,7 +326,9 @@
                     <execution>
                         <id>pmd-check</id>
                         <phase>verify</phase>
-                        <goals><goal>check</goal></goals>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
                     </execution>
                 </executions>
             </plugin>
@@ -326,7 +343,9 @@
                 <executions>
                     <execution>
                         <id>prepare-agent</id>
-                        <goals><goal>prepare-agent</goal></goals>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
                         <configuration>
                             <propertyName>jacocoArgLine</propertyName>
                         </configuration>
@@ -334,12 +353,16 @@
                     <execution>
                         <id>report</id>
                         <phase>test</phase>
-                        <goals><goal>report</goal></goals>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
                     </execution>
                     <execution>
                         <id>check</id>
                         <phase>verify</phase>
-                        <goals><goal>check</goal></goals>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
                         <configuration>
                             <haltOnFailure>false</haltOnFailure>
                             <rules>

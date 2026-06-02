@@ -13,49 +13,46 @@ import java.util.List;
 /// niveau hiérarchique.
 public class GroupeTaxonomiqueDao extends DaoGenerique<GroupeTaxonomique, Long> {
 
-  private static final RowMapper<GroupeTaxonomique> MAPPER =
-      rs -> new GroupeTaxonomique(rs.getLong("id"), rs.getString("level"), rs.getString("name"));
+    private static final RowMapper<GroupeTaxonomique> MAPPER =
+            rs -> new GroupeTaxonomique(rs.getLong("id"), rs.getString("level"), rs.getString("name"));
 
-  public GroupeTaxonomiqueDao(SourceDeDonnees source) {
-    super(source);
-  }
+    public GroupeTaxonomiqueDao(SourceDeDonnees source) {
+        super(source);
+    }
 
-  @Override
-  protected String table() {
-    return "taxonomic_group";
-  }
+    @Override
+    protected String table() {
+        return "taxonomic_group";
+    }
 
-  @Override
-  protected String colonneCle() {
-    return "id";
-  }
+    @Override
+    protected String colonneCle() {
+        return "id";
+    }
 
-  @Override
-  protected RowMapper<GroupeTaxonomique> mapper() {
-    return MAPPER;
-  }
+    @Override
+    protected RowMapper<GroupeTaxonomique> mapper() {
+        return MAPPER;
+    }
 
-  /// Groupes d'un niveau hiérarchique donné (ex. `"Genre"`), triés par nom.
-  public List<GroupeTaxonomique> findByNiveau(String niveau) {
-    return query("SELECT * FROM taxonomic_group WHERE level = ? ORDER BY name", MAPPER, niveau);
-  }
+    /// Groupes d'un niveau hiérarchique donné (ex. `"Genre"`), triés par nom.
+    public List<GroupeTaxonomique> findByNiveau(String niveau) {
+        return query("SELECT * FROM taxonomic_group WHERE level = ? ORDER BY name", MAPPER, niveau);
+    }
 
-  @Override
-  public GroupeTaxonomique insert(GroupeTaxonomique groupe) {
-    long id =
-        insererEtRecupererCle(
-            "INSERT INTO taxonomic_group (level, name) VALUES (?, ?)",
-            groupe.niveau(),
-            groupe.nom());
-    return new GroupeTaxonomique(id, groupe.niveau(), groupe.nom());
-  }
+    @Override
+    public GroupeTaxonomique insert(GroupeTaxonomique groupe) {
+        long id = insererEtRecupererCle(
+                "INSERT INTO taxonomic_group (level, name) VALUES (?, ?)", groupe.niveau(), groupe.nom());
+        return new GroupeTaxonomique(id, groupe.niveau(), groupe.nom());
+    }
 
-  @Override
-  public void update(GroupeTaxonomique groupe) {
-    executerMaj(
-        "UPDATE taxonomic_group SET level = ?, name = ? WHERE id = ?",
-        groupe.niveau(),
-        groupe.nom(),
-        groupe.id());
-  }
+    @Override
+    public void update(GroupeTaxonomique groupe) {
+        executerMaj(
+                "UPDATE taxonomic_group SET level = ?, name = ? WHERE id = ?",
+                groupe.niveau(),
+                groupe.nom(),
+                groupe.id());
+    }
 }

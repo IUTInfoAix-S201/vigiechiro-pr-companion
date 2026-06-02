@@ -10,6 +10,6 @@ package fr.univ_amu.iut.commun.view;
 /// [OuvrirVerification] et [OuvrirPassage].
 public interface OuvrirDiagnostic {
 
-  /// Ouvre l'écran de diagnostic matériel du passage `idPassage`.
-  void ouvrir(Long idPassage);
+    /// Ouvre l'écran de diagnostic matériel du passage `idPassage`.
+    void ouvrir(Long idPassage);
 }

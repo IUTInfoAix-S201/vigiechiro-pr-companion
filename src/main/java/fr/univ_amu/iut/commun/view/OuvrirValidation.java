@@ -8,6 +8,6 @@ package fr.univ_amu.iut.commun.view;
 /// l'écran **sans dépendre** de `validation.view` (le graphe de slices reste acyclique).
 public interface OuvrirValidation {
 
-  /// Ouvre l'écran de validation taxonomique des résultats Tadarida du passage `idPassage`.
-  void ouvrir(Long idPassage);
+    /// Ouvre l'écran de validation taxonomique des résultats Tadarida du passage `idPassage`.
+    void ouvrir(Long idPassage);
 }

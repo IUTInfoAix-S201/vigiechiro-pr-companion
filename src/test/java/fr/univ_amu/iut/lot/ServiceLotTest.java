@@ -49,194 +49,174 @@ import org.junit.jupiter.api.io.TempDir;
 /// transition de statut avec horodatage du dépôt.
 class ServiceLotTest {
 
-  private static final String ID_USER = "u-1";
-  private static final String SERIE = "1925492";
-  private static final Prefixe PREFIXE = new Prefixe("040962", 2026, 1, "A1");
-  private static final String NOM_ORIGINAL =
-      PREFIXE.nommerOriginal("PaRecPR" + SERIE + "_20260620_213000.wav");
-  private static final LocalDateTime INSTANT_DEPOT = LocalDateTime.of(2026, 5, 31, 22, 30, 0);
+    private static final String ID_USER = "u-1";
+    private static final String SERIE = "1925492";
+    private static final Prefixe PREFIXE = new Prefixe("040962", 2026, 1, "A1");
+    private static final String NOM_ORIGINAL = PREFIXE.nommerOriginal("PaRecPR" + SERIE + "_20260620_213000.wav");
+    private static final LocalDateTime INSTANT_DEPOT = LocalDateTime.of(2026, 5, 31, 22, 30, 0);
 
-  @TempDir Path dossier;
-  private ServiceLot service;
-  private PassageDao passageDao;
-  private SessionDao sessionDao;
-  private EnregistrementOriginalDao originalDao;
-  private SequenceDao sequenceDao;
-  private JournalDuCapteurDao journalDao;
-  private final Horloge horloge = new HorlogeFigee(INSTANT_DEPOT);
-  private Long idPoint;
+    @TempDir
+    Path dossier;
 
-  @BeforeEach
-  void preparer() {
-    SourceDeDonnees source = new SourceDeDonnees(new Workspace(dossier));
-    new MigrationSchema(source).migrer();
-    new UtilisateurDao(source).insert(new Utilisateur(ID_USER, "Testeur"));
-    SiteDao siteDao = new SiteDao(source);
-    PointDao pointDao = new PointDao(source);
-    Site site =
-        siteDao.insert(
-            new Site(null, "040962", "Étang", Protocole.STANDARD, null, "2026-05-01", ID_USER));
-    idPoint = pointDao.insert(new PointDEcoute(null, "A1", null, null, null, site.id())).id();
-    new EnregistreurDao(source).insert(new Enregistreur(SERIE, "V1.01", null));
+    private ServiceLot service;
+    private PassageDao passageDao;
+    private SessionDao sessionDao;
+    private EnregistrementOriginalDao originalDao;
+    private SequenceDao sequenceDao;
+    private JournalDuCapteurDao journalDao;
+    private final Horloge horloge = new HorlogeFigee(INSTANT_DEPOT);
+    private Long idPoint;
 
-    passageDao = new PassageDao(source);
-    sessionDao = new SessionDao(source);
-    originalDao = new EnregistrementOriginalDao(source);
-    sequenceDao = new SequenceDao(source);
-    journalDao = new JournalDuCapteurDao(source);
-    ReleveClimatiqueDao releveDao = new ReleveClimatiqueDao(source);
+    @BeforeEach
+    void preparer() {
+        SourceDeDonnees source = new SourceDeDonnees(new Workspace(dossier));
+        new MigrationSchema(source).migrer();
+        new UtilisateurDao(source).insert(new Utilisateur(ID_USER, "Testeur"));
+        SiteDao siteDao = new SiteDao(source);
+        PointDao pointDao = new PointDao(source);
+        Site site = siteDao.insert(new Site(null, "040962", "Étang", Protocole.STANDARD, null, "2026-05-01", ID_USER));
+        idPoint = pointDao.insert(new PointDEcoute(null, "A1", null, null, null, site.id()))
+                .id();
+        new EnregistreurDao(source).insert(new Enregistreur(SERIE, "V1.01", null));
 
-    VerificationCoherence verification =
-        new VerificationCoherence(
-            siteDao, pointDao, sessionDao, originalDao, sequenceDao, journalDao, releveDao);
-    service =
-        new ServiceLot(
-            passageDao,
-            sessionDao,
-            sequenceDao,
-            verification,
-            new MoteurWorkflowPassage(),
-            horloge);
-  }
+        passageDao = new PassageDao(source);
+        sessionDao = new SessionDao(source);
+        originalDao = new EnregistrementOriginalDao(source);
+        sequenceDao = new SequenceDao(source);
+        journalDao = new JournalDuCapteurDao(source);
+        ReleveClimatiqueDao releveDao = new ReleveClimatiqueDao(source);
 
-  private Passage creerPassage(Verdict verdict) {
-    return passageDao.insert(
-        new Passage(
-            null,
-            1,
-            2026,
-            "2026-06-20",
-            "21:30:00",
-            "05:15:00",
-            null,
-            StatutWorkflow.VERIFIE,
-            verdict,
-            null,
-            null,
-            null,
-            idPoint,
-            SERIE));
-  }
-
-  /// Session entièrement cohérente : 2 séquences préfixées issues d'un original + journal.
-  private Long creerSessionCoherente(Long idPassage) {
-    Long idSession =
-        sessionDao
-            .insert(
-                new SessionDEnregistrement(
-                    null,
-                    dossier.resolve(PREFIXE.nomDossierSession()).toString(),
-                    null,
-                    8192L,
-                    idPassage))
-            .id();
-    Long idOriginal =
-        originalDao
-            .insert(
-                new EnregistrementOriginal(
-                    null, NOM_ORIGINAL, "bruts/" + NOM_ORIGINAL, 12.0, 384000, null, idSession))
-            .id();
-    for (int i = 0; i < 2; i++) {
-      String nom = PREFIXE.nommerSequence(NOM_ORIGINAL, i);
-      sequenceDao.insert(
-          new SequenceDEcoute(
-              null, nom, idOriginal, i, i * 5.0, 5.0, "transformes/" + nom, true, idSession));
+        VerificationCoherence verification = new VerificationCoherence(
+                siteDao, pointDao, sessionDao, originalDao, sequenceDao, journalDao, releveDao);
+        service =
+                new ServiceLot(passageDao, sessionDao, sequenceDao, verification, new MoteurWorkflowPassage(), horloge);
     }
-    journalDao.insert(new JournalDuCapteur(null, "LogPR" + SERIE + ".txt", null, null, idSession));
-    return idSession;
-  }
 
-  @Test
-  @DisplayName("preparerLot assemble le récapitulatif et passe le statut à « Prêt à déposer »")
-  void preparer_lot_coherent() {
-    Passage passage = creerPassage(Verdict.OK);
-    creerSessionCoherente(passage.id());
+    private Passage creerPassage(Verdict verdict) {
+        return passageDao.insert(new Passage(
+                null,
+                1,
+                2026,
+                "2026-06-20",
+                "21:30:00",
+                "05:15:00",
+                null,
+                StatutWorkflow.VERIFIE,
+                verdict,
+                null,
+                null,
+                null,
+                idPoint,
+                SERIE));
+    }
 
-    Lot lot = service.preparerLot(passage.id());
+    /// Session entièrement cohérente : 2 séquences préfixées issues d'un original + journal.
+    private Long creerSessionCoherente(Long idPassage) {
+        Long idSession = sessionDao
+                .insert(new SessionDEnregistrement(
+                        null, dossier.resolve(PREFIXE.nomDossierSession()).toString(), null, 8192L, idPassage))
+                .id();
+        Long idOriginal = originalDao
+                .insert(new EnregistrementOriginal(
+                        null, NOM_ORIGINAL, "bruts/" + NOM_ORIGINAL, 12.0, 384000, null, idSession))
+                .id();
+        for (int i = 0; i < 2; i++) {
+            String nom = PREFIXE.nommerSequence(NOM_ORIGINAL, i);
+            sequenceDao.insert(
+                    new SequenceDEcoute(null, nom, idOriginal, i, i * 5.0, 5.0, "transformes/" + nom, true, idSession));
+        }
+        journalDao.insert(new JournalDuCapteur(null, "LogPR" + SERIE + ".txt", null, null, idSession));
+        return idSession;
+    }
 
-    assertThat(lot.idPassage()).isEqualTo(passage.id());
-    assertThat(lot.nombreSequences()).isEqualTo(2);
-    assertThat(lot.volumeSequencesOctets()).isEqualTo(8192L);
-    assertThat(lot.cheminDossier()).endsWith(PREFIXE.nomDossierSession());
-    assertThat(lot.sequences())
-        .extracting(SequenceDEcoute::nomFichier)
-        .allMatch(nom -> nom.startsWith(PREFIXE.prefixeFichier()));
-    assertThat(passageDao.findById(passage.id()).orElseThrow().statutWorkflow())
-        .isEqualTo(StatutWorkflow.PRET_A_DEPOSER);
-  }
+    @Test
+    @DisplayName("preparerLot assemble le récapitulatif et passe le statut à « Prêt à déposer »")
+    void preparer_lot_coherent() {
+        Passage passage = creerPassage(Verdict.OK);
+        creerSessionCoherente(passage.id());
 
-  @Test
-  @DisplayName("R14 : preparerLot refuse un passage « À jeter » (RegleMetierException)")
-  void preparer_lot_a_jeter_refuse() {
-    Passage passage = creerPassage(Verdict.A_JETER);
-    creerSessionCoherente(passage.id());
+        Lot lot = service.preparerLot(passage.id());
 
-    assertThatThrownBy(() -> service.preparerLot(passage.id()))
-        .isInstanceOf(RegleMetierException.class)
-        .hasMessageContaining("À jeter");
+        assertThat(lot.idPassage()).isEqualTo(passage.id());
+        assertThat(lot.nombreSequences()).isEqualTo(2);
+        assertThat(lot.volumeSequencesOctets()).isEqualTo(8192L);
+        assertThat(lot.cheminDossier()).endsWith(PREFIXE.nomDossierSession());
+        assertThat(lot.sequences())
+                .extracting(SequenceDEcoute::nomFichier)
+                .allMatch(nom -> nom.startsWith(PREFIXE.prefixeFichier()));
+        assertThat(passageDao.findById(passage.id()).orElseThrow().statutWorkflow())
+                .isEqualTo(StatutWorkflow.PRET_A_DEPOSER);
+    }
 
-    assertThat(passageDao.findById(passage.id()).orElseThrow().statutWorkflow())
-        .as("statut inchangé après refus R14")
-        .isEqualTo(StatutWorkflow.VERIFIE);
-  }
+    @Test
+    @DisplayName("R14 : preparerLot refuse un passage « À jeter » (RegleMetierException)")
+    void preparer_lot_a_jeter_refuse() {
+        Passage passage = creerPassage(Verdict.A_JETER);
+        creerSessionCoherente(passage.id());
 
-  @Test
-  @DisplayName("preparerLot refuse un passage incohérent (originaux non transformés)")
-  void preparer_lot_incoherent_refuse() {
-    Passage passage = creerPassage(Verdict.OK);
-    Long idSession =
-        sessionDao
-            .insert(new SessionDEnregistrement(null, "racine", null, null, passage.id()))
-            .id();
-    originalDao.insert(
-        new EnregistrementOriginal(
-            null, NOM_ORIGINAL, "bruts/" + NOM_ORIGINAL, 12.0, 384000, null, idSession));
-    journalDao.insert(new JournalDuCapteur(null, "LogPR" + SERIE + ".txt", null, null, idSession));
-    // aucune séquence : transformation manquante
+        assertThatThrownBy(() -> service.preparerLot(passage.id()))
+                .isInstanceOf(RegleMetierException.class)
+                .hasMessageContaining("À jeter");
 
-    assertThatThrownBy(() -> service.preparerLot(passage.id()))
-        .isInstanceOf(RegleMetierException.class)
-        .hasMessageContaining("impossible");
+        assertThat(passageDao.findById(passage.id()).orElseThrow().statutWorkflow())
+                .as("statut inchangé après refus R14")
+                .isEqualTo(StatutWorkflow.VERIFIE);
+    }
 
-    assertThat(passageDao.findById(passage.id()).orElseThrow().statutWorkflow())
-        .isEqualTo(StatutWorkflow.VERIFIE);
-  }
+    @Test
+    @DisplayName("preparerLot refuse un passage incohérent (originaux non transformés)")
+    void preparer_lot_incoherent_refuse() {
+        Passage passage = creerPassage(Verdict.OK);
+        Long idSession = sessionDao
+                .insert(new SessionDEnregistrement(null, "racine", null, null, passage.id()))
+                .id();
+        originalDao.insert(
+                new EnregistrementOriginal(null, NOM_ORIGINAL, "bruts/" + NOM_ORIGINAL, 12.0, 384000, null, idSession));
+        journalDao.insert(new JournalDuCapteur(null, "LogPR" + SERIE + ".txt", null, null, idSession));
+        // aucune séquence : transformation manquante
 
-  @Test
-  @DisplayName("preparerLot sur un passage inconnu est refusé")
-  void preparer_lot_passage_inconnu() {
-    assertThatThrownBy(() -> service.preparerLot(9999L))
-        .isInstanceOf(RegleMetierException.class)
-        .hasMessageContaining("introuvable");
-  }
+        assertThatThrownBy(() -> service.preparerLot(passage.id()))
+                .isInstanceOf(RegleMetierException.class)
+                .hasMessageContaining("impossible");
 
-  @Test
-  @DisplayName("marquerDepose passe le statut à « Déposé » et horodate la date de dépôt")
-  void marquer_depose_pose_statut_et_date() {
-    Passage passage = creerPassage(Verdict.OK);
-    creerSessionCoherente(passage.id());
-    service.preparerLot(passage.id());
+        assertThat(passageDao.findById(passage.id()).orElseThrow().statutWorkflow())
+                .isEqualTo(StatutWorkflow.VERIFIE);
+    }
 
-    Passage depose = service.marquerDepose(passage.id());
+    @Test
+    @DisplayName("preparerLot sur un passage inconnu est refusé")
+    void preparer_lot_passage_inconnu() {
+        assertThatThrownBy(() -> service.preparerLot(9999L))
+                .isInstanceOf(RegleMetierException.class)
+                .hasMessageContaining("introuvable");
+    }
 
-    assertThat(depose.statutWorkflow()).isEqualTo(StatutWorkflow.DEPOSE);
-    assertThat(depose.deposeLe()).isEqualTo(horloge.maintenant().toString());
-    Passage relu = passageDao.findById(passage.id()).orElseThrow();
-    assertThat(relu.statutWorkflow()).isEqualTo(StatutWorkflow.DEPOSE);
-    assertThat(relu.deposeLe()).isEqualTo(horloge.maintenant().toString());
-  }
+    @Test
+    @DisplayName("marquerDepose passe le statut à « Déposé » et horodate la date de dépôt")
+    void marquer_depose_pose_statut_et_date() {
+        Passage passage = creerPassage(Verdict.OK);
+        creerSessionCoherente(passage.id());
+        service.preparerLot(passage.id());
 
-  @Test
-  @DisplayName("R14 : marquerDepose refuse aussi un passage « À jeter »")
-  void marquer_depose_a_jeter_refuse() {
-    Passage passage = creerPassage(Verdict.A_JETER);
-    creerSessionCoherente(passage.id());
+        Passage depose = service.marquerDepose(passage.id());
 
-    assertThatThrownBy(() -> service.marquerDepose(passage.id()))
-        .isInstanceOf(RegleMetierException.class);
+        assertThat(depose.statutWorkflow()).isEqualTo(StatutWorkflow.DEPOSE);
+        assertThat(depose.deposeLe()).isEqualTo(horloge.maintenant().toString());
+        Passage relu = passageDao.findById(passage.id()).orElseThrow();
+        assertThat(relu.statutWorkflow()).isEqualTo(StatutWorkflow.DEPOSE);
+        assertThat(relu.deposeLe()).isEqualTo(horloge.maintenant().toString());
+    }
 
-    assertThat(passageDao.findById(passage.id()).orElseThrow().deposeLe())
-        .as("aucune date de dépôt posée après refus")
-        .isNull();
-  }
+    @Test
+    @DisplayName("R14 : marquerDepose refuse aussi un passage « À jeter »")
+    void marquer_depose_a_jeter_refuse() {
+        Passage passage = creerPassage(Verdict.A_JETER);
+        creerSessionCoherente(passage.id());
+
+        assertThatThrownBy(() -> service.marquerDepose(passage.id())).isInstanceOf(RegleMetierException.class);
+
+        assertThat(passageDao.findById(passage.id()).orElseThrow().deposeLe())
+                .as("aucune date de dépôt posée après refus")
+                .isNull();
+    }
 }

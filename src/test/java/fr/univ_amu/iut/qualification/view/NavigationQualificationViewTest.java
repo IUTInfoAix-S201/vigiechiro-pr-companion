@@ -34,31 +34,31 @@ import org.testfx.framework.junit5.Start;
 @ExtendWith(ApplicationExtension.class)
 class NavigationQualificationViewTest {
 
-  @Start
-  void start(Stage stage) throws Exception {
-    Path workspace = Files.createTempDirectory("vc-qualif");
-    System.setProperty("vigiechiro.workspace", workspace.toString());
-    Injector injector = RacineInjecteur.creer();
-    SourceDeDonnees source = injector.getInstance(SourceDeDonnees.class);
-    new MigrationSchema(source).migrer();
-    FXMLLoader loader = new FXMLLoader(App.class.getResource("commun/view/MainView.fxml"));
-    loader.setControllerFactory(injector::getInstance);
-    Parent racine = loader.load();
-    stage.setScene(new Scene(racine, 1100, 760));
-    injector.getInstance(NavigationQualification.class).ouvrir(999L);
-    stage.show();
-  }
+    @Start
+    void start(Stage stage) throws Exception {
+        Path workspace = Files.createTempDirectory("vc-qualif");
+        System.setProperty("vigiechiro.workspace", workspace.toString());
+        Injector injector = RacineInjecteur.creer();
+        SourceDeDonnees source = injector.getInstance(SourceDeDonnees.class);
+        new MigrationSchema(source).migrer();
+        FXMLLoader loader = new FXMLLoader(App.class.getResource("commun/view/MainView.fxml"));
+        loader.setControllerFactory(injector::getInstance);
+        Parent racine = loader.load();
+        stage.setScene(new Scene(racine, 1100, 760));
+        injector.getInstance(NavigationQualification.class).ouvrir(999L);
+        stage.show();
+    }
 
-  @AfterEach
-  void nettoyerWorkspace() {
-    System.clearProperty("vigiechiro.workspace");
-  }
+    @AfterEach
+    void nettoyerWorkspace() {
+        System.clearProperty("vigiechiro.workspace");
+    }
 
-  @Test
-  @DisplayName("ouvrir(idPassage) charge et affiche l'écran de qualification via Guice")
-  void ouvrir_affiche_l_ecran(FxRobot robot) {
-    Label titre = robot.lookup(".titre-page").queryAs(Label.class);
+    @Test
+    @DisplayName("ouvrir(idPassage) charge et affiche l'écran de qualification via Guice")
+    void ouvrir_affiche_l_ecran(FxRobot robot) {
+        Label titre = robot.lookup(".titre-page").queryAs(Label.class);
 
-    assertThat(titre.getText()).contains("Vérifier l'enregistrement");
-  }
+        assertThat(titre.getText()).contains("Vérifier l'enregistrement");
+    }
 }

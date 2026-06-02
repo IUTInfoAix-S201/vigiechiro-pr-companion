@@ -8,32 +8,32 @@
 /// de l'étudiant·e qui n'a pas à comprendre les nuances JPMS la première fois). Plus permissif
 /// mais pédagogiquement plus simple.
 open module tp1.javafx {
-  // JavaFX dependencies (alignées sur les 4 deps + javafx-media du pom).
-  requires transitive javafx.base;
-  requires transitive javafx.controls;
-  requires transitive javafx.graphics;
-  requires transitive javafx.fxml;
-  requires transitive javafx.media;
+    // JavaFX dependencies (alignées sur les 4 deps + javafx-media du pom).
+    requires transitive javafx.base;
+    requires transitive javafx.controls;
+    requires transitive javafx.graphics;
+    requires transitive javafx.fxml;
+    requires transitive javafx.media;
 
-  // javafx.swing (SwingFXUtils) + java.desktop (ImageIO / BufferedImage) : capture d'écran
-  // hors-écran de l'outil enseignant `commun.outils.ApercuFx`. À retirer en passe A2 si l'outil
-  // de capture est supprimé de la version étudiante.
-  requires javafx.swing;
-  requires java.desktop;
+    // javafx.swing (SwingFXUtils) + java.desktop (ImageIO / BufferedImage) : capture d'écran
+    // hors-écran de l'outil enseignant `commun.outils.ApercuFx`. À retirer en passe A2 si l'outil
+    // de capture est supprimé de la version étudiante.
+    requires javafx.swing;
+    requires java.desktop;
 
-  // Persistance : API JDBC + driver SQLite (module automatique).
-  requires java.sql;
-  requires org.xerial.sqlitejdbc;
+    // Persistance : API JDBC + driver SQLite (module automatique).
+    requires java.sql;
+    requires org.xerial.sqlitejdbc;
 
-  // Injection de dépendances (Guice 7). `open module` ouvre déjà tous les paquets
-  // à la réflexion, donc Guice peut instancier les classes sans `opens ... to`.
-  requires com.google.guice;
+    // Injection de dépendances (Guice 7). `open module` ouvre déjà tous les paquets
+    // à la réflexion, donc Guice peut instancier les classes sans `opens ... to`.
+    requires com.google.guice;
 
-  // Composant audio fourni pour la SAÉ 2.01 (sonogramme / spectrogramme).
-  requires fr.nedjar.vigiechiro.audio;
+    // Composant audio fourni pour la SAÉ 2.01 (sonogramme / spectrogramme).
+    requires fr.nedjar.vigiechiro.audio;
 
-  // Export base package
-  exports fr.univ_amu.iut;
+    // Export base package
+    exports fr.univ_amu.iut;
 
 // ========== FEATURES - Ajouter les exports ici au fil de l'eau ==========
 // exports fr.univ_amu.iut.sites.view;

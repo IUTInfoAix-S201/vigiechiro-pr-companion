@@ -63,393 +63,365 @@ import java.util.regex.Pattern;
 /// modification).
 public class ServiceQualification {
 
-  /// Horodatage de l'enregistreur dans le nom de fichier (R7) : `_AAAAMMJJ_HHMMSS`.
-  private static final Pattern HORODATAGE = Pattern.compile("_(\\d{8})_(\\d{6})");
+    /// Horodatage de l'enregistreur dans le nom de fichier (R7) : `_AAAAMMJJ_HHMMSS`.
+    private static final Pattern HORODATAGE = Pattern.compile("_(\\d{8})_(\\d{6})");
 
-  /// Message d'erreur métier émis quand l'`id` de passage ne correspond à aucune ligne.
-  private static final String PASSAGE_INTROUVABLE = "Passage introuvable : ";
+    /// Message d'erreur métier émis quand l'`id` de passage ne correspond à aucune ligne.
+    private static final String PASSAGE_INTROUVABLE = "Passage introuvable : ";
 
-  private final SelectionDao selectionDao;
-  private final SequenceDao sequenceDao;
-  private final SessionDao sessionDao;
-  private final EnregistrementOriginalDao originalDao;
-  private final PassageDao passageDao;
-  private final PointDao pointDao;
-  private final SiteDao siteDao;
-  private final GenerateurSelection generateur;
-  private final PreCheckNuit preCheck;
-  private final UniteDeTravail uniteDeTravail;
+    private final SelectionDao selectionDao;
+    private final SequenceDao sequenceDao;
+    private final SessionDao sessionDao;
+    private final EnregistrementOriginalDao originalDao;
+    private final PassageDao passageDao;
+    private final PointDao pointDao;
+    private final SiteDao siteDao;
+    private final GenerateurSelection generateur;
+    private final PreCheckNuit preCheck;
+    private final UniteDeTravail uniteDeTravail;
 
-  public ServiceQualification(
-      SelectionDao selectionDao,
-      SequenceDao sequenceDao,
-      SessionDao sessionDao,
-      EnregistrementOriginalDao originalDao,
-      PassageDao passageDao,
-      PointDao pointDao,
-      SiteDao siteDao,
-      GenerateurSelection generateur,
-      PreCheckNuit preCheck,
-      UniteDeTravail uniteDeTravail) {
-    this.selectionDao = Objects.requireNonNull(selectionDao, "selectionDao");
-    this.sequenceDao = Objects.requireNonNull(sequenceDao, "sequenceDao");
-    this.sessionDao = Objects.requireNonNull(sessionDao, "sessionDao");
-    this.originalDao = Objects.requireNonNull(originalDao, "originalDao");
-    this.passageDao = Objects.requireNonNull(passageDao, "passageDao");
-    this.pointDao = Objects.requireNonNull(pointDao, "pointDao");
-    this.siteDao = Objects.requireNonNull(siteDao, "siteDao");
-    this.generateur = Objects.requireNonNull(generateur, "generateur");
-    this.preCheck = Objects.requireNonNull(preCheck, "preCheck");
-    this.uniteDeTravail = Objects.requireNonNull(uniteDeTravail, "uniteDeTravail");
-  }
-
-  // ===========================================================================
-  // R12 — Constitution de la sélection d'écoute
-  // ===========================================================================
-
-  /// Constitue la sélection d'écoute **à l'ouverture de la vue** (R12) : méthode
-  /// [MethodeSelection#REPARTITION_TEMPORELLE] par défaut, taille
-  /// [GenerateurSelection#TAILLE_DEFAUT]. Idempotent : si une sélection existe déjà pour ce
-  /// passage (relation 0:1), elle est renvoyée telle quelle plutôt que reconstituée.
-  ///
-  /// @return la sélection (existante ou nouvellement créée)
-  /// @throws RegleMetierException si le passage est introuvable, sans session, ou sans séquence
-  public SelectionDEcoute ouvrirVerification(Long idPassage) {
-    Optional<SelectionDEcoute> existante = selectionDao.findByPassage(idPassage);
-    return existante.orElseGet(
-        () ->
-            creerSelection(
-                idPassage,
-                MethodeSelection.REPARTITION_TEMPORELLE,
-                GenerateurSelection.TAILLE_DEFAUT));
-  }
-
-  /// (Re)constitue la sélection d'écoute d'un passage avec une méthode et une taille choisies
-  /// (P3 : l'utilisateur peut changer de méthode ou augmenter la taille). Une éventuelle
-  /// sélection existante est remplacée atomiquement.
-  ///
-  /// La taille persistée (`listening_selection.size`) est le nombre **réel** de séquences
-  /// retenues (≤ `taille` si la nuit en compte moins).
-  ///
-  /// @throws RegleMetierException si le passage est introuvable, sans session, ou sans séquence
-  /// @throws IllegalArgumentException si `taille < 1`
-  public SelectionDEcoute creerSelection(Long idPassage, MethodeSelection methode, int taille) {
-    Objects.requireNonNull(idPassage, "idPassage");
-    Objects.requireNonNull(methode, "methode");
-    passageDao
-        .findById(idPassage)
-        .orElseThrow(() -> new RegleMetierException(PASSAGE_INTROUVABLE + idPassage));
-    SessionDEnregistrement session =
-        sessionDao
-            .trouverParPassage(idPassage)
-            .orElseThrow(
-                () ->
-                    new RegleMetierException(
-                        "Aucune session d'enregistrement pour le passage " + idPassage + "."));
-    List<SequenceDEcoute> nuit = sequenceDao.findBySession(session.id());
-    if (nuit.isEmpty()) {
-      throw new RegleMetierException(
-          "Aucune séquence d'écoute à échantillonner pour ce passage (transformation requise).");
+    public ServiceQualification(
+            SelectionDao selectionDao,
+            SequenceDao sequenceDao,
+            SessionDao sessionDao,
+            EnregistrementOriginalDao originalDao,
+            PassageDao passageDao,
+            PointDao pointDao,
+            SiteDao siteDao,
+            GenerateurSelection generateur,
+            PreCheckNuit preCheck,
+            UniteDeTravail uniteDeTravail) {
+        this.selectionDao = Objects.requireNonNull(selectionDao, "selectionDao");
+        this.sequenceDao = Objects.requireNonNull(sequenceDao, "sequenceDao");
+        this.sessionDao = Objects.requireNonNull(sessionDao, "sessionDao");
+        this.originalDao = Objects.requireNonNull(originalDao, "originalDao");
+        this.passageDao = Objects.requireNonNull(passageDao, "passageDao");
+        this.pointDao = Objects.requireNonNull(pointDao, "pointDao");
+        this.siteDao = Objects.requireNonNull(siteDao, "siteDao");
+        this.generateur = Objects.requireNonNull(generateur, "generateur");
+        this.preCheck = Objects.requireNonNull(preCheck, "preCheck");
+        this.uniteDeTravail = Objects.requireNonNull(uniteDeTravail, "uniteDeTravail");
     }
-    List<SequenceDEcoute> choisies = generateur.selectionner(nuit, methode, taille);
-    Optional<SelectionDEcoute> existante = selectionDao.findByPassage(idPassage);
 
-    uniteDeTravail.executer(
-        connexion -> {
-          if (existante.isPresent()) {
-            selectionDao.supprimerDansTransaction(connexion, existante.get().id());
-          }
-          long idSelection =
-              selectionDao.insererDansTransaction(connexion, methode, choisies.size(), idPassage);
-          int position = 0;
-          for (SequenceDEcoute sequence : choisies) {
-            selectionDao.attacherDansTransaction(
-                connexion, idSelection, sequence.id(), position++, false);
-          }
+    // ===========================================================================
+    // R12 — Constitution de la sélection d'écoute
+    // ===========================================================================
+
+    /// Constitue la sélection d'écoute **à l'ouverture de la vue** (R12) : méthode
+    /// [MethodeSelection#REPARTITION_TEMPORELLE] par défaut, taille
+    /// [GenerateurSelection#TAILLE_DEFAUT]. Idempotent : si une sélection existe déjà pour ce
+    /// passage (relation 0:1), elle est renvoyée telle quelle plutôt que reconstituée.
+    ///
+    /// @return la sélection (existante ou nouvellement créée)
+    /// @throws RegleMetierException si le passage est introuvable, sans session, ou sans séquence
+    public SelectionDEcoute ouvrirVerification(Long idPassage) {
+        Optional<SelectionDEcoute> existante = selectionDao.findByPassage(idPassage);
+        return existante.orElseGet(() ->
+                creerSelection(idPassage, MethodeSelection.REPARTITION_TEMPORELLE, GenerateurSelection.TAILLE_DEFAUT));
+    }
+
+    /// (Re)constitue la sélection d'écoute d'un passage avec une méthode et une taille choisies
+    /// (P3 : l'utilisateur peut changer de méthode ou augmenter la taille). Une éventuelle
+    /// sélection existante est remplacée atomiquement.
+    ///
+    /// La taille persistée (`listening_selection.size`) est le nombre **réel** de séquences
+    /// retenues (≤ `taille` si la nuit en compte moins).
+    ///
+    /// @throws RegleMetierException si le passage est introuvable, sans session, ou sans séquence
+    /// @throws IllegalArgumentException si `taille < 1`
+    public SelectionDEcoute creerSelection(Long idPassage, MethodeSelection methode, int taille) {
+        Objects.requireNonNull(idPassage, "idPassage");
+        Objects.requireNonNull(methode, "methode");
+        passageDao.findById(idPassage).orElseThrow(() -> new RegleMetierException(PASSAGE_INTROUVABLE + idPassage));
+        SessionDEnregistrement session = sessionDao
+                .trouverParPassage(idPassage)
+                .orElseThrow(() ->
+                        new RegleMetierException("Aucune session d'enregistrement pour le passage " + idPassage + "."));
+        List<SequenceDEcoute> nuit = sequenceDao.findBySession(session.id());
+        if (nuit.isEmpty()) {
+            throw new RegleMetierException(
+                    "Aucune séquence d'écoute à échantillonner pour ce passage (transformation requise).");
+        }
+        List<SequenceDEcoute> choisies = generateur.selectionner(nuit, methode, taille);
+        Optional<SelectionDEcoute> existante = selectionDao.findByPassage(idPassage);
+
+        uniteDeTravail.executer(connexion -> {
+            if (existante.isPresent()) {
+                selectionDao.supprimerDansTransaction(connexion, existante.get().id());
+            }
+            long idSelection = selectionDao.insererDansTransaction(connexion, methode, choisies.size(), idPassage);
+            int position = 0;
+            for (SequenceDEcoute sequence : choisies) {
+                selectionDao.attacherDansTransaction(connexion, idSelection, sequence.id(), position++, false);
+            }
         });
-    return selectionDao
-        .findByPassage(idPassage)
-        .orElseThrow(
-            () -> new RegleMetierException("Sélection non persistée pour le passage " + idPassage));
-  }
-
-  /// Séquences de la sélection, ordonnées par position d'affichage (relecture).
-  public List<SequenceSelectionnee> sequencesDeLaSelection(Long idSelection) {
-    return selectionDao.listerSequences(idSelection);
-  }
-
-  /// Marque une séquence de la sélection comme **écoutée** (flag `listened` de la jonction).
-  /// Sans effet si le couple (sélection, séquence) n'est pas rattaché.
-  public void marquerSequenceEcoutee(Long idSelection, Long idSequence) {
-    selectionDao.marquerEcoutee(idSelection, idSequence);
-  }
-
-  // ===========================================================================
-  // Projections de lecture pour l'IHM (bandeau d'en-tête + liste de la sélection)
-  // ===========================================================================
-
-  /// Charge le contexte d'en-tête du passage à vérifier (identité du site/point, plage horaire,
-  /// volumétrie de la nuit, statut, verdict) pour le bandeau de M-Qualification. Lecture seule.
-  ///
-  /// @throws RegleMetierException si le passage est introuvable
-  public ContexteVerification chargerContexte(Long idPassage) {
-    Passage passage =
-        passageDao
-            .findById(idPassage)
-            .orElseThrow(() -> new RegleMetierException(PASSAGE_INTROUVABLE + idPassage));
-    String numeroCarre = "?";
-    String codePoint = "?";
-    String nomSite = "";
-    Optional<PointDEcoute> point = pointDao.findById(passage.idPoint());
-    if (point.isPresent()) {
-      codePoint = point.get().code();
-      Optional<Site> site = siteDao.findById(point.get().idSite());
-      numeroCarre = site.map(Site::numeroCarre).orElse("?");
-      nomSite = site.map(Site::nomConvivial).orElse("");
+        return selectionDao
+                .findByPassage(idPassage)
+                .orElseThrow(() -> new RegleMetierException("Sélection non persistée pour le passage " + idPassage));
     }
-    List<SequenceDEcoute> sequences =
-        sessionDao
-            .trouverParPassage(idPassage)
-            .map(session -> sequenceDao.findBySession(session.id()))
-            .orElseGet(List::of);
-    double dureeAudible =
-        sequences.stream()
-            .map(SequenceDEcoute::dureeSecondes)
-            .filter(Objects::nonNull)
-            .mapToDouble(Double::doubleValue)
-            .sum();
-    return new ContexteVerification(
-        numeroCarre,
-        codePoint,
-        nomSite,
-        passage.numeroPassage(),
-        passage.annee(),
-        passage.dateEnregistrement(),
-        passage.heureDebut(),
-        passage.heureFin(),
-        sequences.size(),
-        dureeAudible,
-        passage.statutWorkflow(),
-        passage.verdictVerification());
-  }
 
-  /// Détaille la sélection : joint chaque rattachement (position + flag écouté) à sa séquence
-  /// d'écoute ([SequenceDEcoute]), ordonné par position. Lecture seule.
-  public List<SequenceEnSelection> detaillerSelection(Long idSelection) {
-    List<SequenceEnSelection> lignes = new ArrayList<>();
-    for (SequenceSelectionnee rattachement : selectionDao.listerSequences(idSelection)) {
-      sequenceDao
-          .findById(rattachement.idSequence())
-          .ifPresent(
-              sequence ->
-                  lignes.add(
-                      new SequenceEnSelection(
-                          sequence, rattachement.position(), rattachement.ecoutee())));
+    /// Séquences de la sélection, ordonnées par position d'affichage (relecture).
+    public List<SequenceSelectionnee> sequencesDeLaSelection(Long idSelection) {
+        return selectionDao.listerSequences(idSelection);
     }
-    return lignes;
-  }
 
-  // ===========================================================================
-  // R13 — Verdict global et transition de statut
-  // ===========================================================================
-
-  /// Enregistre le **verdict global** de vérification d'un passage et le fait transiter vers
-  /// le statut [StatutWorkflow#VERIFIE] (P3, étape 3).
-  ///
-  /// **R13 : aucun seuil d'écoute obligatoire.** Le verdict est accepté quel que soit le
-  /// nombre de séquences réellement écoutées (l'utilisateur reste responsable) : la méthode ne
-  /// consulte donc jamais l'état d'écoute de la sélection. Un verdict [Verdict#A_JETER] est
-  /// simplement mémorisé tel quel — le refus d'inclusion dans un lot (R14) sera appliqué en
-  /// aval par la feature `lot`.
-  ///
-  /// @param verdict `OK`, `Douteux` ou `À jeter` (le sentinelle `À vérifier` est refusé : il
-  ///     dénote l'absence de verdict)
-  /// @param commentaire commentaire libre facultatif (`null` ⇒ commentaire existant conservé)
-  /// @return le passage mis à jour
-  /// @throws IllegalArgumentException si `verdict` est `null` ou [Verdict#A_VERIFIER]
-  /// @throws RegleMetierException si le passage est introuvable
-  public Passage enregistrerVerdict(Long idPassage, Verdict verdict, String commentaire) {
-    if (verdict == null || verdict == Verdict.A_VERIFIER) {
-      throw new IllegalArgumentException(
-          "Un verdict explicite est requis (OK, Douteux ou À jeter).");
+    /// Marque une séquence de la sélection comme **écoutée** (flag `listened` de la jonction).
+    /// Sans effet si le couple (sélection, séquence) n'est pas rattaché.
+    public void marquerSequenceEcoutee(Long idSelection, Long idSequence) {
+        selectionDao.marquerEcoutee(idSelection, idSequence);
     }
-    Passage passage =
-        passageDao
-            .findById(idPassage)
-            .orElseThrow(() -> new RegleMetierException(PASSAGE_INTROUVABLE + idPassage));
-    String commentaireFinal = commentaire != null ? commentaire : passage.commentaire();
-    Passage verifie =
-        new Passage(
-            passage.id(),
-            passage.numeroPassage(),
-            passage.annee(),
-            passage.dateEnregistrement(),
-            passage.heureDebut(),
-            passage.heureFin(),
-            passage.parametresAcquisition(),
-            StatutWorkflow.VERIFIE,
-            verdict,
-            commentaireFinal,
-            passage.donneesMeteo(),
-            passage.deposeLe(),
-            passage.idPoint(),
-            passage.idEnregistreur());
-    passageDao.update(verifie);
-    return verifie;
-  }
 
-  /// `true` si le passage porte le verdict [Verdict#A_JETER]. Point d'extension pour R14 (un
-  /// passage « À jeter » ne peut pas rejoindre un lot prêt à déposer) : la feature `lot`
-  /// s'appuiera sur cette information.
-  ///
-  /// @throws RegleMetierException si le passage est introuvable
-  public boolean estAJeter(Long idPassage) {
-    Passage passage =
-        passageDao
-            .findById(idPassage)
-            .orElseThrow(() -> new RegleMetierException(PASSAGE_INTROUVABLE + idPassage));
-    return passage.verdictVerification() == Verdict.A_JETER;
-  }
+    // ===========================================================================
+    // Projections de lecture pour l'IHM (bandeau d'en-tête + liste de la sélection)
+    // ===========================================================================
 
-  // ===========================================================================
-  // P3 étape 1 — Pré-check synthétique (3 feux)
-  // ===========================================================================
-
-  /// Évalue les trois feux du pré-check d'une nuit (P3) : couverture horaire, nombre de
-  /// fichiers, cohérence du renommage. Rassemble les mesures depuis les DAO puis délègue la
-  /// décision au moteur pur [PreCheckNuit].
-  ///
-  /// **Couverture horaire — limite connue.** La fenêtre théorique « coucher de soleil - 30
-  /// min → lever de soleil + 30 min » (R3) suppose un calcul astronomique (position du soleil
-  /// selon GPS + date) non disponible dans cette couche. À défaut, on utilise comme fenêtre de
-  /// référence la plage déclarée du passage (`start_time` → `end_time`, à cheval sur minuit le
-  /// cas échéant) et on la compare à la plage observée (premier → dernier horodatage
-  /// d'original). C'est un **point d'intégration** : brancher un vrai calcul d'éphémérides
-  /// quand il sera disponible.
-  ///
-  /// @throws RegleMetierException si le passage est introuvable
-  public PreCheckNuit.Diagnostic precheck(Long idPassage) {
-    Passage passage =
-        passageDao
-            .findById(idPassage)
-            .orElseThrow(() -> new RegleMetierException(PASSAGE_INTROUVABLE + idPassage));
-    List<EnregistrementOriginal> originaux =
-        sessionDao
-            .trouverParPassage(idPassage)
-            .map(session -> originalDao.findBySession(session.id()))
-            .orElseGet(List::of);
-
-    int nombreFichiers = originaux.size();
-    int fichiersMalNommes = compterFichiersMalNommes(passage, originaux);
-    long[] couverture = mesurerCouverture(passage, originaux);
-    PreCheckNuit.Mesures mesures =
-        new PreCheckNuit.Mesures(
-            nombreFichiers, fichiersMalNommes, couverture[0], couverture[1] == 1L);
-    return preCheck.evaluer(mesures);
-  }
-
-  // --- Helpers de mesure (privés) -------------------------------------------
-
-  /// Compte les originaux dont le nom ne commence pas par le préfixe R6 attendu.
-  private int compterFichiersMalNommes(Passage passage, List<EnregistrementOriginal> originaux) {
-    String prefixeAttendu = prefixeAttendu(passage);
-    if (prefixeAttendu == null) {
-      return 0; // site/point introuvable : on ne peut pas statuer, on ne pénalise pas.
+    /// Charge le contexte d'en-tête du passage à vérifier (identité du site/point, plage horaire,
+    /// volumétrie de la nuit, statut, verdict) pour le bandeau de M-Qualification. Lecture seule.
+    ///
+    /// @throws RegleMetierException si le passage est introuvable
+    public ContexteVerification chargerContexte(Long idPassage) {
+        Passage passage = passageDao
+                .findById(idPassage)
+                .orElseThrow(() -> new RegleMetierException(PASSAGE_INTROUVABLE + idPassage));
+        String numeroCarre = "?";
+        String codePoint = "?";
+        String nomSite = "";
+        Optional<PointDEcoute> point = pointDao.findById(passage.idPoint());
+        if (point.isPresent()) {
+            codePoint = point.get().code();
+            Optional<Site> site = siteDao.findById(point.get().idSite());
+            numeroCarre = site.map(Site::numeroCarre).orElse("?");
+            nomSite = site.map(Site::nomConvivial).orElse("");
+        }
+        List<SequenceDEcoute> sequences = sessionDao
+                .trouverParPassage(idPassage)
+                .map(session -> sequenceDao.findBySession(session.id()))
+                .orElseGet(List::of);
+        double dureeAudible = sequences.stream()
+                .map(SequenceDEcoute::dureeSecondes)
+                .filter(Objects::nonNull)
+                .mapToDouble(Double::doubleValue)
+                .sum();
+        return new ContexteVerification(
+                numeroCarre,
+                codePoint,
+                nomSite,
+                passage.numeroPassage(),
+                passage.annee(),
+                passage.dateEnregistrement(),
+                passage.heureDebut(),
+                passage.heureFin(),
+                sequences.size(),
+                dureeAudible,
+                passage.statutWorkflow(),
+                passage.verdictVerification());
     }
-    int malNommes = 0;
-    for (EnregistrementOriginal original : originaux) {
-      String nom = original.nomFichier();
-      if (nom == null || !nom.startsWith(prefixeAttendu)) {
-        malNommes++;
-      }
-    }
-    return malNommes;
-  }
 
-  /// Préfixe R6 attendu pour ce passage, ou `null` si le point/site est introuvable.
-  private String prefixeAttendu(Passage passage) {
-    PointDEcoute point = pointDao.findById(passage.idPoint()).orElse(null);
-    if (point == null) {
-      return null;
+    /// Détaille la sélection : joint chaque rattachement (position + flag écouté) à sa séquence
+    /// d'écoute ([SequenceDEcoute]), ordonné par position. Lecture seule.
+    public List<SequenceEnSelection> detaillerSelection(Long idSelection) {
+        List<SequenceEnSelection> lignes = new ArrayList<>();
+        for (SequenceSelectionnee rattachement : selectionDao.listerSequences(idSelection)) {
+            sequenceDao
+                    .findById(rattachement.idSequence())
+                    .ifPresent(sequence -> lignes.add(
+                            new SequenceEnSelection(sequence, rattachement.position(), rattachement.ecoutee())));
+        }
+        return lignes;
     }
-    Site site = siteDao.findById(point.idSite()).orElse(null);
-    if (site == null) {
-      return null;
-    }
-    return new Prefixe(site.numeroCarre(), passage.annee(), passage.numeroPassage(), point.code())
-        .prefixeFichier();
-  }
 
-  /// Mesure le déficit de couverture horaire.
-  ///
-  /// @return `[ecartMinutes, moitieManquante (0|1)]`
-  private long[] mesurerCouverture(Passage passage, List<EnregistrementOriginal> originaux) {
-    List<LocalDateTime> horodatages =
-        originaux.stream()
-            .map(original -> horodatageDe(original.nomFichier()))
-            .filter(Optional::isPresent)
-            .map(Optional::get)
-            .sorted()
-            .toList();
-    Optional<LocalDateTime[]> fenetre = fenetreAttendue(passage);
-    if (horodatages.isEmpty() || fenetre.isEmpty()) {
-      return new long[] {0L, 0L}; // pas de quoi statuer : couverture neutre (verte).
-    }
-    LocalDateTime debutObserve = horodatages.get(0);
-    LocalDateTime finObservee = horodatages.get(horodatages.size() - 1);
-    LocalDateTime debutAttendu = fenetre.get()[0];
-    LocalDateTime finAttendue = fenetre.get()[1];
+    // ===========================================================================
+    // R13 — Verdict global et transition de statut
+    // ===========================================================================
 
-    long manqueDebut = Math.max(0, Duration.between(debutAttendu, debutObserve).toMinutes());
-    long manqueFin = Math.max(0, Duration.between(finObservee, finAttendue).toMinutes());
-    long ecart = Math.max(manqueDebut, manqueFin);
-    long dureeFenetre = Math.max(1, Duration.between(debutAttendu, finAttendue).toMinutes());
-    boolean moitieManquante = ecart * 2 >= dureeFenetre;
-    return new long[] {ecart, moitieManquante ? 1L : 0L};
-  }
+    /// Enregistre le **verdict global** de vérification d'un passage et le fait transiter vers
+    /// le statut [StatutWorkflow#VERIFIE] (P3, étape 3).
+    ///
+    /// **R13 : aucun seuil d'écoute obligatoire.** Le verdict est accepté quel que soit le
+    /// nombre de séquences réellement écoutées (l'utilisateur reste responsable) : la méthode ne
+    /// consulte donc jamais l'état d'écoute de la sélection. Un verdict [Verdict#A_JETER] est
+    /// simplement mémorisé tel quel — le refus d'inclusion dans un lot (R14) sera appliqué en
+    /// aval par la feature `lot`.
+    ///
+    /// @param verdict `OK`, `Douteux` ou `À jeter` (le sentinelle `À vérifier` est refusé : il
+    ///     dénote l'absence de verdict)
+    /// @param commentaire commentaire libre facultatif (`null` ⇒ commentaire existant conservé)
+    /// @return le passage mis à jour
+    /// @throws IllegalArgumentException si `verdict` est `null` ou [Verdict#A_VERIFIER]
+    /// @throws RegleMetierException si le passage est introuvable
+    public Passage enregistrerVerdict(Long idPassage, Verdict verdict, String commentaire) {
+        if (verdict == null || verdict == Verdict.A_VERIFIER) {
+            throw new IllegalArgumentException("Un verdict explicite est requis (OK, Douteux ou À jeter).");
+        }
+        Passage passage = passageDao
+                .findById(idPassage)
+                .orElseThrow(() -> new RegleMetierException(PASSAGE_INTROUVABLE + idPassage));
+        String commentaireFinal = commentaire != null ? commentaire : passage.commentaire();
+        Passage verifie = new Passage(
+                passage.id(),
+                passage.numeroPassage(),
+                passage.annee(),
+                passage.dateEnregistrement(),
+                passage.heureDebut(),
+                passage.heureFin(),
+                passage.parametresAcquisition(),
+                StatutWorkflow.VERIFIE,
+                verdict,
+                commentaireFinal,
+                passage.donneesMeteo(),
+                passage.deposeLe(),
+                passage.idPoint(),
+                passage.idEnregistreur());
+        passageDao.update(verifie);
+        return verifie;
+    }
 
-  /// Fenêtre théorique de la nuit déduite de `start_time`/`end_time` du passage.
-  private static Optional<LocalDateTime[]> fenetreAttendue(Passage passage) {
-    try {
-      LocalDate date = LocalDate.parse(passage.dateEnregistrement());
-      LocalTime heureDebut = LocalTime.parse(passage.heureDebut());
-      LocalTime heureFin = LocalTime.parse(passage.heureFin());
-      LocalDateTime debut = LocalDateTime.of(date, heureDebut);
-      LocalDateTime fin = LocalDateTime.of(date, heureFin);
-      if (!fin.isAfter(debut)) {
-        fin = fin.plusDays(1); // nuit à cheval sur minuit
-      }
-      return Optional.of(new LocalDateTime[] {debut, fin});
-    } catch (RuntimeException invalide) {
-      return Optional.empty();
+    /// `true` si le passage porte le verdict [Verdict#A_JETER]. Point d'extension pour R14 (un
+    /// passage « À jeter » ne peut pas rejoindre un lot prêt à déposer) : la feature `lot`
+    /// s'appuiera sur cette information.
+    ///
+    /// @throws RegleMetierException si le passage est introuvable
+    public boolean estAJeter(Long idPassage) {
+        Passage passage = passageDao
+                .findById(idPassage)
+                .orElseThrow(() -> new RegleMetierException(PASSAGE_INTROUVABLE + idPassage));
+        return passage.verdictVerification() == Verdict.A_JETER;
     }
-  }
 
-  /// Extrait l'horodatage `_AAAAMMJJ_HHMMSS` d'un nom de fichier (R7), si présent.
-  private static Optional<LocalDateTime> horodatageDe(String nomFichier) {
-    if (nomFichier == null) {
-      return Optional.empty();
+    // ===========================================================================
+    // P3 étape 1 — Pré-check synthétique (3 feux)
+    // ===========================================================================
+
+    /// Évalue les trois feux du pré-check d'une nuit (P3) : couverture horaire, nombre de
+    /// fichiers, cohérence du renommage. Rassemble les mesures depuis les DAO puis délègue la
+    /// décision au moteur pur [PreCheckNuit].
+    ///
+    /// **Couverture horaire — limite connue.** La fenêtre théorique « coucher de soleil - 30
+    /// min → lever de soleil + 30 min » (R3) suppose un calcul astronomique (position du soleil
+    /// selon GPS + date) non disponible dans cette couche. À défaut, on utilise comme fenêtre de
+    /// référence la plage déclarée du passage (`start_time` → `end_time`, à cheval sur minuit le
+    /// cas échéant) et on la compare à la plage observée (premier → dernier horodatage
+    /// d'original). C'est un **point d'intégration** : brancher un vrai calcul d'éphémérides
+    /// quand il sera disponible.
+    ///
+    /// @throws RegleMetierException si le passage est introuvable
+    public PreCheckNuit.Diagnostic precheck(Long idPassage) {
+        Passage passage = passageDao
+                .findById(idPassage)
+                .orElseThrow(() -> new RegleMetierException(PASSAGE_INTROUVABLE + idPassage));
+        List<EnregistrementOriginal> originaux = sessionDao
+                .trouverParPassage(idPassage)
+                .map(session -> originalDao.findBySession(session.id()))
+                .orElseGet(List::of);
+
+        int nombreFichiers = originaux.size();
+        int fichiersMalNommes = compterFichiersMalNommes(passage, originaux);
+        long[] couverture = mesurerCouverture(passage, originaux);
+        PreCheckNuit.Mesures mesures =
+                new PreCheckNuit.Mesures(nombreFichiers, fichiersMalNommes, couverture[0], couverture[1] == 1L);
+        return preCheck.evaluer(mesures);
     }
-    Matcher matcher = HORODATAGE.matcher(nomFichier);
-    if (!matcher.find()) {
-      return Optional.empty();
+
+    // --- Helpers de mesure (privés) -------------------------------------------
+
+    /// Compte les originaux dont le nom ne commence pas par le préfixe R6 attendu.
+    private int compterFichiersMalNommes(Passage passage, List<EnregistrementOriginal> originaux) {
+        String prefixeAttendu = prefixeAttendu(passage);
+        if (prefixeAttendu == null) {
+            return 0; // site/point introuvable : on ne peut pas statuer, on ne pénalise pas.
+        }
+        int malNommes = 0;
+        for (EnregistrementOriginal original : originaux) {
+            String nom = original.nomFichier();
+            if (nom == null || !nom.startsWith(prefixeAttendu)) {
+                malNommes++;
+            }
+        }
+        return malNommes;
     }
-    String date = matcher.group(1);
-    String heure = matcher.group(2);
-    try {
-      LocalDate jour =
-          LocalDate.of(
-              Integer.parseInt(date.substring(0, 4)),
-              Integer.parseInt(date.substring(4, 6)),
-              Integer.parseInt(date.substring(6, 8)));
-      LocalTime moment =
-          LocalTime.of(
-              Integer.parseInt(heure.substring(0, 2)),
-              Integer.parseInt(heure.substring(2, 4)),
-              Integer.parseInt(heure.substring(4, 6)));
-      return Optional.of(LocalDateTime.of(jour, moment));
-    } catch (RuntimeException invalide) {
-      return Optional.empty();
+
+    /// Préfixe R6 attendu pour ce passage, ou `null` si le point/site est introuvable.
+    private String prefixeAttendu(Passage passage) {
+        PointDEcoute point = pointDao.findById(passage.idPoint()).orElse(null);
+        if (point == null) {
+            return null;
+        }
+        Site site = siteDao.findById(point.idSite()).orElse(null);
+        if (site == null) {
+            return null;
+        }
+        return new Prefixe(site.numeroCarre(), passage.annee(), passage.numeroPassage(), point.code()).prefixeFichier();
     }
-  }
+
+    /// Mesure le déficit de couverture horaire.
+    ///
+    /// @return `[ecartMinutes, moitieManquante (0|1)]`
+    private long[] mesurerCouverture(Passage passage, List<EnregistrementOriginal> originaux) {
+        List<LocalDateTime> horodatages = originaux.stream()
+                .map(original -> horodatageDe(original.nomFichier()))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .sorted()
+                .toList();
+        Optional<LocalDateTime[]> fenetre = fenetreAttendue(passage);
+        if (horodatages.isEmpty() || fenetre.isEmpty()) {
+            return new long[] {0L, 0L}; // pas de quoi statuer : couverture neutre (verte).
+        }
+        LocalDateTime debutObserve = horodatages.get(0);
+        LocalDateTime finObservee = horodatages.get(horodatages.size() - 1);
+        LocalDateTime debutAttendu = fenetre.get()[0];
+        LocalDateTime finAttendue = fenetre.get()[1];
+
+        long manqueDebut =
+                Math.max(0, Duration.between(debutAttendu, debutObserve).toMinutes());
+        long manqueFin = Math.max(0, Duration.between(finObservee, finAttendue).toMinutes());
+        long ecart = Math.max(manqueDebut, manqueFin);
+        long dureeFenetre =
+                Math.max(1, Duration.between(debutAttendu, finAttendue).toMinutes());
+        boolean moitieManquante = ecart * 2 >= dureeFenetre;
+        return new long[] {ecart, moitieManquante ? 1L : 0L};
+    }
+
+    /// Fenêtre théorique de la nuit déduite de `start_time`/`end_time` du passage.
+    private static Optional<LocalDateTime[]> fenetreAttendue(Passage passage) {
+        try {
+            LocalDate date = LocalDate.parse(passage.dateEnregistrement());
+            LocalTime heureDebut = LocalTime.parse(passage.heureDebut());
+            LocalTime heureFin = LocalTime.parse(passage.heureFin());
+            LocalDateTime debut = LocalDateTime.of(date, heureDebut);
+            LocalDateTime fin = LocalDateTime.of(date, heureFin);
+            if (!fin.isAfter(debut)) {
+                fin = fin.plusDays(1); // nuit à cheval sur minuit
+            }
+            return Optional.of(new LocalDateTime[] {debut, fin});
+        } catch (RuntimeException invalide) {
+            return Optional.empty();
+        }
+    }
+
+    /// Extrait l'horodatage `_AAAAMMJJ_HHMMSS` d'un nom de fichier (R7), si présent.
+    private static Optional<LocalDateTime> horodatageDe(String nomFichier) {
+        if (nomFichier == null) {
+            return Optional.empty();
+        }
+        Matcher matcher = HORODATAGE.matcher(nomFichier);
+        if (!matcher.find()) {
+            return Optional.empty();
+        }
+        String date = matcher.group(1);
+        String heure = matcher.group(2);
+        try {
+            LocalDate jour = LocalDate.of(
+                    Integer.parseInt(date.substring(0, 4)),
+                    Integer.parseInt(date.substring(4, 6)),
+                    Integer.parseInt(date.substring(6, 8)));
+            LocalTime moment = LocalTime.of(
+                    Integer.parseInt(heure.substring(0, 2)),
+                    Integer.parseInt(heure.substring(2, 4)),
+                    Integer.parseInt(heure.substring(4, 6)));
+            return Optional.of(LocalDateTime.of(jour, moment));
+        } catch (RuntimeException invalide) {
+            return Optional.empty();
+        }
+    }
 }

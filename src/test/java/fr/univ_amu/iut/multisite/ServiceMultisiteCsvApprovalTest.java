@@ -37,77 +37,63 @@ import org.junit.jupiter.api.io.TempDir;
 @UseReporter(QuietReporter.class)
 class ServiceMultisiteCsvApprovalTest {
 
-  private static final String ID_USER = "u-1";
-  private static final String SERIE = "1925492";
+    private static final String ID_USER = "u-1";
+    private static final String SERIE = "1925492";
 
-  @TempDir Path dossier;
-  private ServiceMultisite service;
+    @TempDir
+    Path dossier;
 
-  @BeforeEach
-  void preparer() {
-    SourceDeDonnees source = new SourceDeDonnees(new Workspace(dossier));
-    new MigrationSchema(source).migrer();
-    new UtilisateurDao(source).insert(new Utilisateur(ID_USER, "Testeur"));
+    private ServiceMultisite service;
 
-    SiteDao siteDao = new SiteDao(source);
-    PointDao pointDao = new PointDao(source);
-    PassageDao passageDao = new PassageDao(source);
-    new EnregistreurDao(source).insert(new Enregistreur(SERIE, "V1.01", null));
+    @BeforeEach
+    void preparer() {
+        SourceDeDonnees source = new SourceDeDonnees(new Workspace(dossier));
+        new MigrationSchema(source).migrer();
+        new UtilisateurDao(source).insert(new Utilisateur(ID_USER, "Testeur"));
 
-    Site siteA =
-        siteDao.insert(
-            new Site(null, "640380", "Étang", Protocole.STANDARD, null, "2025-01-01", ID_USER));
-    Site siteB =
-        siteDao.insert(
-            new Site(null, "640381", "Forêt", Protocole.STANDARD, null, "2025-01-01", ID_USER));
-    PointDEcoute pa1 = pointDao.insert(new PointDEcoute(null, "A1", null, null, null, siteA.id()));
-    PointDEcoute pb2 = pointDao.insert(new PointDEcoute(null, "B2", null, null, null, siteA.id()));
-    PointDEcoute pBa1 = pointDao.insert(new PointDEcoute(null, "A1", null, null, null, siteB.id()));
+        SiteDao siteDao = new SiteDao(source);
+        PointDao pointDao = new PointDao(source);
+        PassageDao passageDao = new PassageDao(source);
+        new EnregistreurDao(source).insert(new Enregistreur(SERIE, "V1.01", null));
 
-    semer(passageDao, 1, 2025, "2025-06-20", StatutWorkflow.TRANSFORME, Verdict.OK, pa1.id());
-    semer(passageDao, 1, 2026, "2026-06-20", StatutWorkflow.VERIFIE, Verdict.DOUTEUX, pa1.id());
-    semer(passageDao, 1, 2026, "2026-06-21", StatutWorkflow.IMPORTE, null, pb2.id());
-    semer(passageDao, 1, 2026, "2026-06-22", StatutWorkflow.DEPOSE, Verdict.OK, pBa1.id());
-    semer(passageDao, 2, 2026, "2026-08-20", StatutWorkflow.VERIFIE, Verdict.A_JETER, pBa1.id());
+        Site siteA = siteDao.insert(new Site(null, "640380", "Étang", Protocole.STANDARD, null, "2025-01-01", ID_USER));
+        Site siteB = siteDao.insert(new Site(null, "640381", "Forêt", Protocole.STANDARD, null, "2025-01-01", ID_USER));
+        PointDEcoute pa1 = pointDao.insert(new PointDEcoute(null, "A1", null, null, null, siteA.id()));
+        PointDEcoute pb2 = pointDao.insert(new PointDEcoute(null, "B2", null, null, null, siteA.id()));
+        PointDEcoute pBa1 = pointDao.insert(new PointDEcoute(null, "A1", null, null, null, siteB.id()));
 
-    service =
-        new ServiceMultisite(
-            new SavedViewDao(source),
-            siteDao,
-            pointDao,
-            passageDao,
-            new HorlogeFigee(LocalDate.of(2026, 5, 31)));
-  }
+        semer(passageDao, 1, 2025, "2025-06-20", StatutWorkflow.TRANSFORME, Verdict.OK, pa1.id());
+        semer(passageDao, 1, 2026, "2026-06-20", StatutWorkflow.VERIFIE, Verdict.DOUTEUX, pa1.id());
+        semer(passageDao, 1, 2026, "2026-06-21", StatutWorkflow.IMPORTE, null, pb2.id());
+        semer(passageDao, 1, 2026, "2026-06-22", StatutWorkflow.DEPOSE, Verdict.OK, pBa1.id());
+        semer(passageDao, 2, 2026, "2026-08-20", StatutWorkflow.VERIFIE, Verdict.A_JETER, pBa1.id());
 
-  private void semer(
-      PassageDao dao,
-      int numero,
-      int annee,
-      String date,
-      StatutWorkflow statut,
-      Verdict verdict,
-      Long idPoint) {
-    dao.insert(
-        new Passage(
-            null,
-            numero,
-            annee,
-            date,
-            "21:00:00",
-            "05:00:00",
-            null,
-            statut,
-            verdict,
-            null,
-            null,
-            null,
-            idPoint,
-            SERIE));
-  }
+        service = new ServiceMultisite(
+                new SavedViewDao(source), siteDao, pointDao, passageDao, new HorlogeFigee(LocalDate.of(2026, 5, 31)));
+    }
 
-  @Test
-  @DisplayName("Export CSV déterministe de la vue agrégée (golden)")
-  void exporte_la_vue_agregee_en_csv() {
-    Approvals.verify(service.exporterCsv(service.listerPassages(ID_USER)));
-  }
+    private void semer(
+            PassageDao dao, int numero, int annee, String date, StatutWorkflow statut, Verdict verdict, Long idPoint) {
+        dao.insert(new Passage(
+                null,
+                numero,
+                annee,
+                date,
+                "21:00:00",
+                "05:00:00",
+                null,
+                statut,
+                verdict,
+                null,
+                null,
+                null,
+                idPoint,
+                SERIE));
+    }
+
+    @Test
+    @DisplayName("Export CSV déterministe de la vue agrégée (golden)")
+    void exporte_la_vue_agregee_en_csv() {
+        Approvals.verify(service.exporterCsv(service.listerPassages(ID_USER)));
+    }
 }

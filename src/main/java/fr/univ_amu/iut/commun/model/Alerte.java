@@ -20,31 +20,31 @@ import java.util.Objects;
 /// @param message texte affichable (français)
 public record Alerte(Niveau niveau, String message) {
 
-  /// Niveau de gravité d'une alerte métier.
-  public enum Niveau {
-    /// Avertissement non bloquant (l'utilisateur peut passer outre).
-    SOFT,
-    /// Violation bloquante (l'action est refusée).
-    BLOQUANT
-  }
+    /// Niveau de gravité d'une alerte métier.
+    public enum Niveau {
+        /// Avertissement non bloquant (l'utilisateur peut passer outre).
+        SOFT,
+        /// Violation bloquante (l'action est refusée).
+        BLOQUANT
+    }
 
-  public Alerte {
-    Objects.requireNonNull(niveau, "niveau");
-    Objects.requireNonNull(message, "message");
-  }
+    public Alerte {
+        Objects.requireNonNull(niveau, "niveau");
+        Objects.requireNonNull(message, "message");
+    }
 
-  /// Crée une alerte non bloquante (avertissement).
-  public static Alerte soft(String message) {
-    return new Alerte(Niveau.SOFT, message);
-  }
+    /// Crée une alerte non bloquante (avertissement).
+    public static Alerte soft(String message) {
+        return new Alerte(Niveau.SOFT, message);
+    }
 
-  /// Crée une alerte bloquante.
-  public static Alerte bloquante(String message) {
-    return new Alerte(Niveau.BLOQUANT, message);
-  }
+    /// Crée une alerte bloquante.
+    public static Alerte bloquante(String message) {
+        return new Alerte(Niveau.BLOQUANT, message);
+    }
 
-  /// `true` si cette alerte est bloquante.
-  public boolean estBloquante() {
-    return niveau == Niveau.BLOQUANT;
-  }
+    /// `true` si cette alerte est bloquante.
+    public boolean estBloquante() {
+        return niveau == Niveau.BLOQUANT;
+    }
 }

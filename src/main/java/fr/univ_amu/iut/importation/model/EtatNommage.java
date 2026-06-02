@@ -7,10 +7,10 @@ package fr.univ_amu.iut.importation.model;
 /// (R6). L'inspection (lecture seule) détecte si le dossier est encore **brut** ou déjà
 /// **préfixé**, ce qui dit au [Renommeur] s'il a du travail.
 public enum EtatNommage {
-  /// Aucun original n'a encore reçu le préfixe R6 (noms bruts de l'enregistreur).
-  BRUT,
-  /// Tous les originaux portent déjà le préfixe R6 (dossier déjà renommé).
-  PREFIXE,
-  /// Le dossier ne contient aucun enregistrement original (rien à nommer).
-  VIDE
+    /// Aucun original n'a encore reçu le préfixe R6 (noms bruts de l'enregistreur).
+    BRUT,
+    /// Tous les originaux portent déjà le préfixe R6 (dossier déjà renommé).
+    PREFIXE,
+    /// Le dossier ne contient aucun enregistrement original (rien à nommer).
+    VIDE
 }

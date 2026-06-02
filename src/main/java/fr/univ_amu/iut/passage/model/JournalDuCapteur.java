@@ -14,8 +14,4 @@ package fr.univ_amu.iut.passage.model;
 /// @param anomaliesDetectees anomalies détectées sérialisées en JSON (dérivé, optionnel)
 /// @param idSession identifiant de la session référencée (FK → `recording_session.id`, unique)
 public record JournalDuCapteur(
-    Long id,
-    String cheminFichier,
-    String evenementsParses,
-    String anomaliesDetectees,
-    Long idSession) {}
+        Long id, String cheminFichier, String evenementsParses, String anomaliesDetectees, Long idSession) {}

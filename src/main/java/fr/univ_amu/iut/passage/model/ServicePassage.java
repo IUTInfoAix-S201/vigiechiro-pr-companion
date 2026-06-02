@@ -44,159 +44,154 @@ import java.util.Optional;
 /// `ServiceSites.rappelsProtocole(Protocole)`.
 public class ServicePassage {
 
-  /// Nom du paramètre `passage` (messages `requireNonNull`).
-  private static final String PASSAGE = "passage";
+    /// Nom du paramètre `passage` (messages `requireNonNull`).
+    private static final String PASSAGE = "passage";
 
-  /// Nom du paramètre `idPassage` (messages `requireNonNull`).
-  private static final String ID_PASSAGE = "idPassage";
+    /// Nom du paramètre `idPassage` (messages `requireNonNull`).
+    private static final String ID_PASSAGE = "idPassage";
 
-  /// Préfixe du message d'erreur « passage introuvable ».
-  private static final String PASSAGE_INTROUVABLE = "Passage introuvable : ";
+    /// Préfixe du message d'erreur « passage introuvable ».
+    private static final String PASSAGE_INTROUVABLE = "Passage introuvable : ";
 
-  private final PassageDao passageDao;
-  private final MoteurWorkflowPassage moteur;
-  private final Horloge horloge;
-  private final SessionDao sessionDao;
-  private final SequenceDao sequenceDao;
-  private final ReprefixeurSession reprefixeur;
-  private final UniteDeTravail uniteDeTravail;
-  private final RattachementDao rattachementDao;
+    private final PassageDao passageDao;
+    private final MoteurWorkflowPassage moteur;
+    private final Horloge horloge;
+    private final SessionDao sessionDao;
+    private final SequenceDao sequenceDao;
+    private final ReprefixeurSession reprefixeur;
+    private final UniteDeTravail uniteDeTravail;
+    private final RattachementDao rattachementDao;
 
-  public ServicePassage(
-      PassageDao passageDao,
-      MoteurWorkflowPassage moteur,
-      Horloge horloge,
-      SessionDao sessionDao,
-      SequenceDao sequenceDao,
-      ReprefixeurSession reprefixeur,
-      UniteDeTravail uniteDeTravail,
-      RattachementDao rattachementDao) {
-    this.passageDao = Objects.requireNonNull(passageDao, "passageDao");
-    this.moteur = Objects.requireNonNull(moteur, "moteur");
-    this.horloge = Objects.requireNonNull(horloge, "horloge");
-    this.sessionDao = Objects.requireNonNull(sessionDao, "sessionDao");
-    this.sequenceDao = Objects.requireNonNull(sequenceDao, "sequenceDao");
-    this.reprefixeur = Objects.requireNonNull(reprefixeur, "reprefixeur");
-    this.uniteDeTravail = Objects.requireNonNull(uniteDeTravail, "uniteDeTravail");
-    this.rattachementDao = Objects.requireNonNull(rattachementDao, "rattachementDao");
-  }
-
-  /// Projection de lecture pour l'écran **M-Passage** : le passage `idPassage` et les agrégats de
-  /// sa session (volumes, durée audible, nombre de séquences). Sans jointure `sites` : le contexte
-  /// site (carré, code point) est fourni à la vue par la navigation.
-  ///
-  /// @throws RegleMetierException si le passage est introuvable
-  public DetailPassage detailPassage(Long idPassage) {
-    Objects.requireNonNull(idPassage, ID_PASSAGE);
-    Passage passage =
-        passageDao
-            .findById(idPassage)
-            .orElseThrow(() -> new RegleMetierException(PASSAGE_INTROUVABLE + idPassage));
-    Optional<SessionDEnregistrement> session = sessionDao.trouverParPassage(idPassage);
-    List<SequenceDEcoute> sequences =
-        session.map(s -> sequenceDao.findBySession(s.id())).orElseGet(List::of);
-    double dureeAudible =
-        sequences.stream()
-            .map(SequenceDEcoute::dureeSecondes)
-            .filter(Objects::nonNull)
-            .mapToDouble(Double::doubleValue)
-            .sum();
-    return new DetailPassage(
-        passage.numeroPassage(),
-        passage.annee(),
-        passage.dateEnregistrement(),
-        passage.heureDebut(),
-        passage.heureFin(),
-        passage.idEnregistreur(),
-        passage.statutWorkflow(),
-        passage.verdictVerification(),
-        passage.deposeLe(),
-        session.map(SessionDEnregistrement::volumeOriginauxOctets).orElse(0L),
-        session.map(SessionDEnregistrement::volumeSequencesOctets).orElse(0L),
-        sequences.size(),
-        dureeAudible);
-  }
-
-  /// Crée un passage à l'état initial [StatutWorkflow#IMPORTE], sans verdict.
-  ///
-  /// - R5 (dur) : refuse si le quadruplet `(point, année, n° de passage)` existe déjà —
-  /// pré-vérifié via [PassageDao#trouverParPointAnneePassage] (filet : contrainte `UNIQUE` du
-  /// schéma).
-  /// - Année : déduite de la date d'enregistrement. Si `dateEnregistrement` est `null`, on prend
-  /// la date du jour de l'[Horloge] (déterministe en test).
-  ///
-  /// @param idPoint point d'écoute rattaché (FK `listening_point.id`)
-  /// @param idEnregistreur n° de série de l'enregistreur (FK `recorder.serial_number`)
-  /// @param numeroPassage n° de passage dans l'année (typiquement 1 ou 2)
-  /// @param dateEnregistrement date du soir d'enregistrement, ou `null` pour « aujourd'hui »
-  /// @return le passage inséré, avec son `id` auto-généré
-  /// @throws RegleMetierException si le quadruplet existe déjà (R5)
-  public Passage creerPassage(
-      Long idPoint,
-      String idEnregistreur,
-      int numeroPassage,
-      LocalDate dateEnregistrement,
-      String heureDebut,
-      String heureFin,
-      String parametresAcquisition,
-      String commentaire,
-      String donneesMeteo) {
-    Objects.requireNonNull(idPoint, "idPoint");
-    LocalDate date = dateEnregistrement != null ? dateEnregistrement : horloge.aujourdhui();
-    int annee = date.getYear();
-    exigerQuadrupletUnique(idPoint, annee, numeroPassage); // R5
-    Passage aCreer =
-        new Passage(
-            null,
-            numeroPassage,
-            annee,
-            date.toString(),
-            heureDebut,
-            heureFin,
-            parametresAcquisition,
-            StatutWorkflow.IMPORTE,
-            null,
-            commentaire,
-            donneesMeteo,
-            null,
-            idPoint,
-            idEnregistreur);
-    return passageDao.insert(aCreer);
-  }
-
-  /// Vérifications de protocole non bloquantes (R3 + R4) à présenter à l'utilisateur après saisie
-  /// d'un passage. Accumule les alertes des deux règles dans un seul [ResultatVerification]
-  /// (patron d'accumulation immuable et fluente, cf. SERVICE-CONVENTIONS §2.3).
-  ///
-  /// Sur un site [Protocole#RECHERCHE], les deux règles sont muettes : le résultat est conforme.
-  public ResultatVerification verifierProtocole(Passage passage, Protocole protocole) {
-    ResultatVerification resultat = verifierFenetreSaisonniere(passage, protocole);
-    for (Alerte alerte : verifierIntervalleEntrePassages(passage, protocole).alertes()) {
-      resultat = resultat.avec(alerte);
+    public ServicePassage(
+            PassageDao passageDao,
+            MoteurWorkflowPassage moteur,
+            Horloge horloge,
+            SessionDao sessionDao,
+            SequenceDao sequenceDao,
+            ReprefixeurSession reprefixeur,
+            UniteDeTravail uniteDeTravail,
+            RattachementDao rattachementDao) {
+        this.passageDao = Objects.requireNonNull(passageDao, "passageDao");
+        this.moteur = Objects.requireNonNull(moteur, "moteur");
+        this.horloge = Objects.requireNonNull(horloge, "horloge");
+        this.sessionDao = Objects.requireNonNull(sessionDao, "sessionDao");
+        this.sequenceDao = Objects.requireNonNull(sequenceDao, "sequenceDao");
+        this.reprefixeur = Objects.requireNonNull(reprefixeur, "reprefixeur");
+        this.uniteDeTravail = Objects.requireNonNull(uniteDeTravail, "uniteDeTravail");
+        this.rattachementDao = Objects.requireNonNull(rattachementDao, "rattachementDao");
     }
-    return resultat;
-  }
 
-  /// R3 (soft, `PointFixeStandard` uniquement) : le passage 1 est attendu entre le 15 juin et le
-  /// 31 juillet, le passage 2 entre le 15 août et le 30 septembre. Hors fenêtre → alerte non
-  /// bloquante. Sur [Protocole#RECHERCHE], ou pour un n° de passage sans fenêtre définie (autre
-  /// que 1 ou 2), la règle est muette.
-  public ResultatVerification verifierFenetreSaisonniere(Passage passage, Protocole protocole) {
-    Objects.requireNonNull(passage, PASSAGE);
-    if (protocole != Protocole.STANDARD || passage.dateEnregistrement() == null) {
-      return ResultatVerification.ok();
+    /// Projection de lecture pour l'écran **M-Passage** : le passage `idPassage` et les agrégats de
+    /// sa session (volumes, durée audible, nombre de séquences). Sans jointure `sites` : le contexte
+    /// site (carré, code point) est fourni à la vue par la navigation.
+    ///
+    /// @throws RegleMetierException si le passage est introuvable
+    public DetailPassage detailPassage(Long idPassage) {
+        Objects.requireNonNull(idPassage, ID_PASSAGE);
+        Passage passage = passageDao
+                .findById(idPassage)
+                .orElseThrow(() -> new RegleMetierException(PASSAGE_INTROUVABLE + idPassage));
+        Optional<SessionDEnregistrement> session = sessionDao.trouverParPassage(idPassage);
+        List<SequenceDEcoute> sequences =
+                session.map(s -> sequenceDao.findBySession(s.id())).orElseGet(List::of);
+        double dureeAudible = sequences.stream()
+                .map(SequenceDEcoute::dureeSecondes)
+                .filter(Objects::nonNull)
+                .mapToDouble(Double::doubleValue)
+                .sum();
+        return new DetailPassage(
+                passage.numeroPassage(),
+                passage.annee(),
+                passage.dateEnregistrement(),
+                passage.heureDebut(),
+                passage.heureFin(),
+                passage.idEnregistreur(),
+                passage.statutWorkflow(),
+                passage.verdictVerification(),
+                passage.deposeLe(),
+                session.map(SessionDEnregistrement::volumeOriginauxOctets).orElse(0L),
+                session.map(SessionDEnregistrement::volumeSequencesOctets).orElse(0L),
+                sequences.size(),
+                dureeAudible);
     }
-    Optional<Fenetre> fenetre = fenetrePour(passage.numeroPassage(), passage.annee());
-    if (fenetre.isEmpty()) {
-      return ResultatVerification.ok();
+
+    /// Crée un passage à l'état initial [StatutWorkflow#IMPORTE], sans verdict.
+    ///
+    /// - R5 (dur) : refuse si le quadruplet `(point, année, n° de passage)` existe déjà —
+    /// pré-vérifié via [PassageDao#trouverParPointAnneePassage] (filet : contrainte `UNIQUE` du
+    /// schéma).
+    /// - Année : déduite de la date d'enregistrement. Si `dateEnregistrement` est `null`, on prend
+    /// la date du jour de l'[Horloge] (déterministe en test).
+    ///
+    /// @param idPoint point d'écoute rattaché (FK `listening_point.id`)
+    /// @param idEnregistreur n° de série de l'enregistreur (FK `recorder.serial_number`)
+    /// @param numeroPassage n° de passage dans l'année (typiquement 1 ou 2)
+    /// @param dateEnregistrement date du soir d'enregistrement, ou `null` pour « aujourd'hui »
+    /// @return le passage inséré, avec son `id` auto-généré
+    /// @throws RegleMetierException si le quadruplet existe déjà (R5)
+    public Passage creerPassage(
+            Long idPoint,
+            String idEnregistreur,
+            int numeroPassage,
+            LocalDate dateEnregistrement,
+            String heureDebut,
+            String heureFin,
+            String parametresAcquisition,
+            String commentaire,
+            String donneesMeteo) {
+        Objects.requireNonNull(idPoint, "idPoint");
+        LocalDate date = dateEnregistrement != null ? dateEnregistrement : horloge.aujourdhui();
+        int annee = date.getYear();
+        exigerQuadrupletUnique(idPoint, annee, numeroPassage); // R5
+        Passage aCreer = new Passage(
+                null,
+                numeroPassage,
+                annee,
+                date.toString(),
+                heureDebut,
+                heureFin,
+                parametresAcquisition,
+                StatutWorkflow.IMPORTE,
+                null,
+                commentaire,
+                donneesMeteo,
+                null,
+                idPoint,
+                idEnregistreur);
+        return passageDao.insert(aCreer);
     }
-    LocalDate date = LocalDate.parse(passage.dateEnregistrement());
-    if (fenetre.get().contient(date)) {
-      return ResultatVerification.ok();
+
+    /// Vérifications de protocole non bloquantes (R3 + R4) à présenter à l'utilisateur après saisie
+    /// d'un passage. Accumule les alertes des deux règles dans un seul [ResultatVerification]
+    /// (patron d'accumulation immuable et fluente, cf. SERVICE-CONVENTIONS §2.3).
+    ///
+    /// Sur un site [Protocole#RECHERCHE], les deux règles sont muettes : le résultat est conforme.
+    public ResultatVerification verifierProtocole(Passage passage, Protocole protocole) {
+        ResultatVerification resultat = verifierFenetreSaisonniere(passage, protocole);
+        for (Alerte alerte : verifierIntervalleEntrePassages(passage, protocole).alertes()) {
+            resultat = resultat.avec(alerte);
+        }
+        return resultat;
     }
-    return ResultatVerification.de(
-        Alerte.soft(
-            "R3 : le passage n°"
+
+    /// R3 (soft, `PointFixeStandard` uniquement) : le passage 1 est attendu entre le 15 juin et le
+    /// 31 juillet, le passage 2 entre le 15 août et le 30 septembre. Hors fenêtre → alerte non
+    /// bloquante. Sur [Protocole#RECHERCHE], ou pour un n° de passage sans fenêtre définie (autre
+    /// que 1 ou 2), la règle est muette.
+    public ResultatVerification verifierFenetreSaisonniere(Passage passage, Protocole protocole) {
+        Objects.requireNonNull(passage, PASSAGE);
+        if (protocole != Protocole.STANDARD || passage.dateEnregistrement() == null) {
+            return ResultatVerification.ok();
+        }
+        Optional<Fenetre> fenetre = fenetrePour(passage.numeroPassage(), passage.annee());
+        if (fenetre.isEmpty()) {
+            return ResultatVerification.ok();
+        }
+        LocalDate date = LocalDate.parse(passage.dateEnregistrement());
+        if (fenetre.get().contient(date)) {
+            return ResultatVerification.ok();
+        }
+        return ResultatVerification.de(Alerte.soft("R3 : le passage n°"
                 + passage.numeroPassage()
                 + " du "
                 + date
@@ -205,37 +200,33 @@ public class ServicePassage {
                 + " → "
                 + fenetre.get().fin()
                 + "] pour un site PointFixeStandard. Alerte non bloquante."));
-  }
-
-  /// R4 (soft, `PointFixeStandard` uniquement) : l'intervalle conseillé entre les deux passages
-  /// d'un même point dans la même année est d'au moins 1 mois. Si un autre passage du même point
-  /// (même année, n° différent) est à moins d'un mois, une alerte non bloquante est émise.
-  ///
-  /// Granularité : la règle est évaluée **par point d'écoute** (et non par site). C'est la maille
-  /// atteignable depuis la feature `passage` sans dépendre de `sites` (cf. la note de découplage
-  /// de cette classe) ; un passage appartenant à exactement un point, comparer ses frères de point
-  /// est une lecture fidèle de la règle. Sur [Protocole#RECHERCHE], muette.
-  public ResultatVerification verifierIntervalleEntrePassages(
-      Passage passage, Protocole protocole) {
-    Objects.requireNonNull(passage, PASSAGE);
-    if (protocole != Protocole.STANDARD || passage.dateEnregistrement() == null) {
-      return ResultatVerification.ok();
     }
-    LocalDate dateCourante = LocalDate.parse(passage.dateEnregistrement());
-    ResultatVerification resultat = ResultatVerification.ok();
-    for (Passage autre : passageDao.findByPoint(passage.idPoint())) {
-      if (estLeMemePassage(autre, passage)
-          || autre.numeroPassage() == passage.numeroPassage()
-          || autre.annee() != passage.annee()
-          || autre.dateEnregistrement() == null) {
-        continue;
-      }
-      LocalDate dateAutre = LocalDate.parse(autre.dateEnregistrement());
-      if (intervalleInferieurAUnMois(dateCourante, dateAutre)) {
-        resultat =
-            resultat.avec(
-                Alerte.soft(
-                    "R4 : moins d'un mois entre le passage n°"
+
+    /// R4 (soft, `PointFixeStandard` uniquement) : l'intervalle conseillé entre les deux passages
+    /// d'un même point dans la même année est d'au moins 1 mois. Si un autre passage du même point
+    /// (même année, n° différent) est à moins d'un mois, une alerte non bloquante est émise.
+    ///
+    /// Granularité : la règle est évaluée **par point d'écoute** (et non par site). C'est la maille
+    /// atteignable depuis la feature `passage` sans dépendre de `sites` (cf. la note de découplage
+    /// de cette classe) ; un passage appartenant à exactement un point, comparer ses frères de point
+    /// est une lecture fidèle de la règle. Sur [Protocole#RECHERCHE], muette.
+    public ResultatVerification verifierIntervalleEntrePassages(Passage passage, Protocole protocole) {
+        Objects.requireNonNull(passage, PASSAGE);
+        if (protocole != Protocole.STANDARD || passage.dateEnregistrement() == null) {
+            return ResultatVerification.ok();
+        }
+        LocalDate dateCourante = LocalDate.parse(passage.dateEnregistrement());
+        ResultatVerification resultat = ResultatVerification.ok();
+        for (Passage autre : passageDao.findByPoint(passage.idPoint())) {
+            if (estLeMemePassage(autre, passage)
+                    || autre.numeroPassage() == passage.numeroPassage()
+                    || autre.annee() != passage.annee()
+                    || autre.dateEnregistrement() == null) {
+                continue;
+            }
+            LocalDate dateAutre = LocalDate.parse(autre.dateEnregistrement());
+            if (intervalleInferieurAUnMois(dateCourante, dateAutre)) {
+                resultat = resultat.avec(Alerte.soft("R4 : moins d'un mois entre le passage n°"
                         + passage.numeroPassage()
                         + " ("
                         + dateCourante
@@ -244,228 +235,213 @@ public class ServicePassage {
                         + " ("
                         + dateAutre
                         + ") sur ce point. Intervalle conseillé ≥ 1 mois. Alerte non bloquante."));
-      }
-    }
-    return resultat;
-  }
-
-  /// Fait avancer un passage à l'étape suivante du workflow (cf. [MoteurWorkflowPassage]).
-  ///
-  /// @throws RegleMetierException si le passage est déjà au statut terminal
-  /// ([StatutWorkflow#DEPOSE])
-  public Passage avancerStatut(Passage passage) {
-    Objects.requireNonNull(passage, PASSAGE);
-    StatutWorkflow suivant =
-        moteur
-            .suivant(passage.statutWorkflow())
-            .orElseThrow(
-                () ->
-                    new RegleMetierException(
-                        "Le passage est déjà au statut terminal « "
-                            + passage.statutWorkflow().libelle()
-                            + " » : aucune transition possible."));
-    return changerStatut(passage, suivant);
-  }
-
-  /// Applique une transition de workflow explicite après l'avoir validée.
-  ///
-  /// Le passage à [StatutWorkflow#DEPOSE] horodate automatiquement `deposeLe` via l'[Horloge]
-  /// (`maintenant()`, déterministe en test).
-  ///
-  /// @return le passage mis à jour (persisté)
-  /// @throws RegleMetierException si la transition n'est pas le passage à l'étape suivante
-  public Passage changerStatut(Passage passage, StatutWorkflow nouveauStatut) {
-    Objects.requireNonNull(passage, PASSAGE);
-    Objects.requireNonNull(nouveauStatut, "nouveauStatut");
-    moteur.exigerTransitionAutorisee(passage.statutWorkflow(), nouveauStatut);
-    String deposeLe =
-        nouveauStatut == StatutWorkflow.DEPOSE
-            ? horloge.maintenant().toString()
-            : passage.deposeLe();
-    Passage misAJour =
-        new Passage(
-            passage.id(),
-            passage.numeroPassage(),
-            passage.annee(),
-            passage.dateEnregistrement(),
-            passage.heureDebut(),
-            passage.heureFin(),
-            passage.parametresAcquisition(),
-            nouveauStatut,
-            passage.verdictVerification(),
-            passage.commentaire(),
-            passage.donneesMeteo(),
-            deposeLe,
-            passage.idPoint(),
-            passage.idEnregistreur());
-    passageDao.update(misAJour);
-    return misAJour;
-  }
-
-  /// Pose (ou met à jour) le verdict de vérification d'un passage (R13 : verdict `À vérifier` /
-  /// `OK` / `Douteux` / `À jeter`, saisi par l'utilisateur après écoute).
-  ///
-  /// Invariant dur : un passage déjà [StatutWorkflow#DEPOSE] ne peut plus être re-jugé (son
-  /// verdict est figé une fois déposé sur Vigie-Chiro).
-  ///
-  /// @return le passage mis à jour (persisté)
-  /// @throws RegleMetierException si le passage est déjà déposé
-  public Passage poserVerdict(Passage passage, Verdict verdict) {
-    Objects.requireNonNull(passage, PASSAGE);
-    Objects.requireNonNull(verdict, "verdict");
-    if (passage.statutWorkflow() == StatutWorkflow.DEPOSE) {
-      throw new RegleMetierException(
-          "Verdict figé : un passage déposé ne peut plus changer de verdict de vérification.");
-    }
-    Passage misAJour =
-        new Passage(
-            passage.id(),
-            passage.numeroPassage(),
-            passage.annee(),
-            passage.dateEnregistrement(),
-            passage.heureDebut(),
-            passage.heureFin(),
-            passage.parametresAcquisition(),
-            passage.statutWorkflow(),
-            verdict,
-            passage.commentaire(),
-            passage.donneesMeteo(),
-            passage.deposeLe(),
-            passage.idPoint(),
-            passage.idEnregistreur());
-    passageDao.update(misAJour);
-    return misAJour;
-  }
-
-  /// Supprime définitivement un passage. Par cascade DB (`ON DELETE CASCADE`), sa session, ses
-  /// originaux, séquences, sélection et relevés capteur/climat disparaissent aussi : un seul
-  /// `DELETE` sur la table `passage` suffit. Les fichiers du workspace (bruts, transformés) ne
-  /// sont pas touchés, comme pour [fr.univ_amu.iut.sites.model.ServiceSites#supprimerSite] : seule
-  /// la base est nettoyée.
-  ///
-  /// **Refuse** un passage déposé : une nuit déposée est une donnée officielle transmise à
-  /// Vigie-Chiro, on ne la détruit pas depuis l'IHM.
-  ///
-  /// @throws RegleMetierException si le passage est introuvable ou déjà déposé
-  public void supprimer(Long idPassage) {
-    Objects.requireNonNull(idPassage, ID_PASSAGE);
-    Passage passage =
-        passageDao
-            .findById(idPassage)
-            .orElseThrow(() -> new RegleMetierException(PASSAGE_INTROUVABLE + idPassage));
-    if (passage.statutWorkflow() == StatutWorkflow.DEPOSE) {
-      throw new RegleMetierException(
-          "Suppression refusée : un passage déposé ne peut pas être supprimé.");
-    }
-    passageDao.delete(idPassage);
-  }
-
-  /// Modifie rétroactivement le rattachement d'un passage (E2.S8) : nouvelle année et/ou n° de
-  /// passage, **même site/point**. Le préfixe `Car<carré>-<année>-Pass<n>-<point>` change : tous
-  /// les fichiers de la nuit (dossier, originaux, séquences) sont re-renommés.
-  ///
-  /// Ordre (atomicité best-effort base/disque) : (1) contrôle **R5** du nouveau quadruplet ;
-  /// (2) re-préfixage **disque** ([ReprefixeurSession], rollback interne) ; (3) transaction
-  /// **base** ([UniteDeTravail]) du quadruplet et des chemins (session, originaux, séquences,
-  /// journal, relevé — [RattachementDao]). Si la transaction échoue, le disque est **remis dans
-  /// son état initial** (compensation) avant que l'erreur ne soit propagée.
-  ///
-  /// Le carré et le code point (inchangés) sont fournis par l'appelant via `nouveau` (le `model` ne
-  /// dépend pas de `sites`) ; l'ancien préfixe est reconstruit depuis l'année/n° courants.
-  ///
-  /// @param nouveau préfixe cible (même carré/point, nouvelle année et/ou n° de passage)
-  /// @throws RegleMetierException si le passage est introuvable ou si le nouveau quadruplet existe
-  public void modifierRattachement(Long idPassage, Prefixe nouveau) {
-    Objects.requireNonNull(idPassage, ID_PASSAGE);
-    Objects.requireNonNull(nouveau, "nouveau");
-    Passage passage =
-        passageDao
-            .findById(idPassage)
-            .orElseThrow(() -> new RegleMetierException(PASSAGE_INTROUVABLE + idPassage));
-    Prefixe ancien =
-        new Prefixe(nouveau.carre(), passage.annee(), passage.numeroPassage(), nouveau.codePoint());
-    if (ancien.equals(nouveau)) {
-      return; // ni l'année ni le n° de passage n'ont changé : rien à faire
-    }
-    exigerQuadrupletUnique(passage.idPoint(), nouveau.annee(), nouveau.numeroPassage());
-
-    Optional<SessionDEnregistrement> session = sessionDao.trouverParPassage(idPassage);
-    Long idSession = session.map(SessionDEnregistrement::id).orElse(null);
-    Path ancienneRacine = session.map(s -> Path.of(s.cheminRacine())).orElse(null);
-    // Une session en base implique un dossier sur disque : on le re-préfixe ([ReprefixeurSession]
-    // échoue, avant toute écriture base, si le dossier est absent ou la cible occupée). Seul un
-    // passage sans session du tout (jamais importé) saute l'étape disque.
-    Path nouvelleRacine =
-        ancienneRacine == null ? null : reprefixeur.reprefixer(ancienneRacine, ancien, nouveau);
-
-    try {
-      uniteDeTravail.executer(
-          cx -> {
-            rattachementDao.majQuadruplet(cx, idPassage, nouveau.annee(), nouveau.numeroPassage());
-            if (idSession != null) {
-              rattachementDao.reprefixerChemins(
-                  cx,
-                  idPassage,
-                  idSession,
-                  ancienneRacine,
-                  nouvelleRacine,
-                  ancien.prefixeFichier(),
-                  nouveau.prefixeFichier());
             }
-          });
-    } catch (RuntimeException echec) {
-      if (nouvelleRacine != null) {
-        compenser(nouvelleRacine, nouveau, ancien, echec);
-      }
-      throw echec;
+        }
+        return resultat;
     }
-  }
 
-  /// Remet le dossier de session dans son état initial après un échec de la transaction base ; une
-  /// erreur de compensation est rattachée à l'erreur d'origine plutôt que de la masquer.
-  private void compenser(
-      Path nouvelleRacine, Prefixe nouveau, Prefixe ancien, RuntimeException origine) {
-    try {
-      reprefixeur.reprefixer(nouvelleRacine, nouveau, ancien);
-    } catch (RuntimeException echecCompensation) {
-      origine.addSuppressed(echecCompensation);
+    /// Fait avancer un passage à l'étape suivante du workflow (cf. [MoteurWorkflowPassage]).
+    ///
+    /// @throws RegleMetierException si le passage est déjà au statut terminal
+    /// ([StatutWorkflow#DEPOSE])
+    public Passage avancerStatut(Passage passage) {
+        Objects.requireNonNull(passage, PASSAGE);
+        StatutWorkflow suivant = moteur.suivant(passage.statutWorkflow())
+                .orElseThrow(() -> new RegleMetierException("Le passage est déjà au statut terminal « "
+                        + passage.statutWorkflow().libelle()
+                        + " » : aucune transition possible."));
+        return changerStatut(passage, suivant);
     }
-  }
 
-  private void exigerQuadrupletUnique(Long idPoint, int annee, int numeroPassage) {
-    if (passageDao.trouverParPointAnneePassage(idPoint, annee, numeroPassage).isPresent()) {
-      throw new RegleMetierException(
-          "R5 : un passage n°"
-              + numeroPassage
-              + " existe déjà pour ce point en "
-              + annee
-              + " (le quadruplet point/année/n° de passage doit être unique).");
+    /// Applique une transition de workflow explicite après l'avoir validée.
+    ///
+    /// Le passage à [StatutWorkflow#DEPOSE] horodate automatiquement `deposeLe` via l'[Horloge]
+    /// (`maintenant()`, déterministe en test).
+    ///
+    /// @return le passage mis à jour (persisté)
+    /// @throws RegleMetierException si la transition n'est pas le passage à l'étape suivante
+    public Passage changerStatut(Passage passage, StatutWorkflow nouveauStatut) {
+        Objects.requireNonNull(passage, PASSAGE);
+        Objects.requireNonNull(nouveauStatut, "nouveauStatut");
+        moteur.exigerTransitionAutorisee(passage.statutWorkflow(), nouveauStatut);
+        String deposeLe =
+                nouveauStatut == StatutWorkflow.DEPOSE ? horloge.maintenant().toString() : passage.deposeLe();
+        Passage misAJour = new Passage(
+                passage.id(),
+                passage.numeroPassage(),
+                passage.annee(),
+                passage.dateEnregistrement(),
+                passage.heureDebut(),
+                passage.heureFin(),
+                passage.parametresAcquisition(),
+                nouveauStatut,
+                passage.verdictVerification(),
+                passage.commentaire(),
+                passage.donneesMeteo(),
+                deposeLe,
+                passage.idPoint(),
+                passage.idEnregistreur());
+        passageDao.update(misAJour);
+        return misAJour;
     }
-  }
 
-  private static boolean estLeMemePassage(Passage a, Passage b) {
-    return a.id() != null && a.id().equals(b.id());
-  }
-
-  /// Vrai si les deux dates sont distantes de strictement moins d'un mois calendaire (R4).
-  private static boolean intervalleInferieurAUnMois(LocalDate a, LocalDate b) {
-    LocalDate plusTot = a.isAfter(b) ? b : a;
-    LocalDate plusTard = a.isAfter(b) ? a : b;
-    return plusTot.plusMonths(1).isAfter(plusTard);
-  }
-
-  private static Optional<Fenetre> fenetrePour(int numeroPassage, int annee) {
-    return switch (numeroPassage) {
-      case 1 -> Optional.of(new Fenetre(LocalDate.of(annee, 6, 15), LocalDate.of(annee, 7, 31)));
-      case 2 -> Optional.of(new Fenetre(LocalDate.of(annee, 8, 15), LocalDate.of(annee, 9, 30)));
-      default -> Optional.empty();
-    };
-  }
-
-  /// Fenêtre saisonnière fermée [debut, fin] pour la vérification R3.
-  private record Fenetre(LocalDate debut, LocalDate fin) {
-    boolean contient(LocalDate date) {
-      return !date.isBefore(debut) && !date.isAfter(fin);
+    /// Pose (ou met à jour) le verdict de vérification d'un passage (R13 : verdict `À vérifier` /
+    /// `OK` / `Douteux` / `À jeter`, saisi par l'utilisateur après écoute).
+    ///
+    /// Invariant dur : un passage déjà [StatutWorkflow#DEPOSE] ne peut plus être re-jugé (son
+    /// verdict est figé une fois déposé sur Vigie-Chiro).
+    ///
+    /// @return le passage mis à jour (persisté)
+    /// @throws RegleMetierException si le passage est déjà déposé
+    public Passage poserVerdict(Passage passage, Verdict verdict) {
+        Objects.requireNonNull(passage, PASSAGE);
+        Objects.requireNonNull(verdict, "verdict");
+        if (passage.statutWorkflow() == StatutWorkflow.DEPOSE) {
+            throw new RegleMetierException(
+                    "Verdict figé : un passage déposé ne peut plus changer de verdict de vérification.");
+        }
+        Passage misAJour = new Passage(
+                passage.id(),
+                passage.numeroPassage(),
+                passage.annee(),
+                passage.dateEnregistrement(),
+                passage.heureDebut(),
+                passage.heureFin(),
+                passage.parametresAcquisition(),
+                passage.statutWorkflow(),
+                verdict,
+                passage.commentaire(),
+                passage.donneesMeteo(),
+                passage.deposeLe(),
+                passage.idPoint(),
+                passage.idEnregistreur());
+        passageDao.update(misAJour);
+        return misAJour;
     }
-  }
+
+    /// Supprime définitivement un passage. Par cascade DB (`ON DELETE CASCADE`), sa session, ses
+    /// originaux, séquences, sélection et relevés capteur/climat disparaissent aussi : un seul
+    /// `DELETE` sur la table `passage` suffit. Les fichiers du workspace (bruts, transformés) ne
+    /// sont pas touchés, comme pour [fr.univ_amu.iut.sites.model.ServiceSites#supprimerSite] : seule
+    /// la base est nettoyée.
+    ///
+    /// **Refuse** un passage déposé : une nuit déposée est une donnée officielle transmise à
+    /// Vigie-Chiro, on ne la détruit pas depuis l'IHM.
+    ///
+    /// @throws RegleMetierException si le passage est introuvable ou déjà déposé
+    public void supprimer(Long idPassage) {
+        Objects.requireNonNull(idPassage, ID_PASSAGE);
+        Passage passage = passageDao
+                .findById(idPassage)
+                .orElseThrow(() -> new RegleMetierException(PASSAGE_INTROUVABLE + idPassage));
+        if (passage.statutWorkflow() == StatutWorkflow.DEPOSE) {
+            throw new RegleMetierException("Suppression refusée : un passage déposé ne peut pas être supprimé.");
+        }
+        passageDao.delete(idPassage);
+    }
+
+    /// Modifie rétroactivement le rattachement d'un passage (E2.S8) : nouvelle année et/ou n° de
+    /// passage, **même site/point**. Le préfixe `Car<carré>-<année>-Pass<n>-<point>` change : tous
+    /// les fichiers de la nuit (dossier, originaux, séquences) sont re-renommés.
+    ///
+    /// Ordre (atomicité best-effort base/disque) : (1) contrôle **R5** du nouveau quadruplet ;
+    /// (2) re-préfixage **disque** ([ReprefixeurSession], rollback interne) ; (3) transaction
+    /// **base** ([UniteDeTravail]) du quadruplet et des chemins (session, originaux, séquences,
+    /// journal, relevé — [RattachementDao]). Si la transaction échoue, le disque est **remis dans
+    /// son état initial** (compensation) avant que l'erreur ne soit propagée.
+    ///
+    /// Le carré et le code point (inchangés) sont fournis par l'appelant via `nouveau` (le `model` ne
+    /// dépend pas de `sites`) ; l'ancien préfixe est reconstruit depuis l'année/n° courants.
+    ///
+    /// @param nouveau préfixe cible (même carré/point, nouvelle année et/ou n° de passage)
+    /// @throws RegleMetierException si le passage est introuvable ou si le nouveau quadruplet existe
+    public void modifierRattachement(Long idPassage, Prefixe nouveau) {
+        Objects.requireNonNull(idPassage, ID_PASSAGE);
+        Objects.requireNonNull(nouveau, "nouveau");
+        Passage passage = passageDao
+                .findById(idPassage)
+                .orElseThrow(() -> new RegleMetierException(PASSAGE_INTROUVABLE + idPassage));
+        Prefixe ancien = new Prefixe(nouveau.carre(), passage.annee(), passage.numeroPassage(), nouveau.codePoint());
+        if (ancien.equals(nouveau)) {
+            return; // ni l'année ni le n° de passage n'ont changé : rien à faire
+        }
+        exigerQuadrupletUnique(passage.idPoint(), nouveau.annee(), nouveau.numeroPassage());
+
+        Optional<SessionDEnregistrement> session = sessionDao.trouverParPassage(idPassage);
+        Long idSession = session.map(SessionDEnregistrement::id).orElse(null);
+        Path ancienneRacine = session.map(s -> Path.of(s.cheminRacine())).orElse(null);
+        // Une session en base implique un dossier sur disque : on le re-préfixe ([ReprefixeurSession]
+        // échoue, avant toute écriture base, si le dossier est absent ou la cible occupée). Seul un
+        // passage sans session du tout (jamais importé) saute l'étape disque.
+        Path nouvelleRacine = ancienneRacine == null ? null : reprefixeur.reprefixer(ancienneRacine, ancien, nouveau);
+
+        try {
+            uniteDeTravail.executer(cx -> {
+                rattachementDao.majQuadruplet(cx, idPassage, nouveau.annee(), nouveau.numeroPassage());
+                if (idSession != null) {
+                    rattachementDao.reprefixerChemins(
+                            cx,
+                            idPassage,
+                            idSession,
+                            ancienneRacine,
+                            nouvelleRacine,
+                            ancien.prefixeFichier(),
+                            nouveau.prefixeFichier());
+                }
+            });
+        } catch (RuntimeException echec) {
+            if (nouvelleRacine != null) {
+                compenser(nouvelleRacine, nouveau, ancien, echec);
+            }
+            throw echec;
+        }
+    }
+
+    /// Remet le dossier de session dans son état initial après un échec de la transaction base ; une
+    /// erreur de compensation est rattachée à l'erreur d'origine plutôt que de la masquer.
+    private void compenser(Path nouvelleRacine, Prefixe nouveau, Prefixe ancien, RuntimeException origine) {
+        try {
+            reprefixeur.reprefixer(nouvelleRacine, nouveau, ancien);
+        } catch (RuntimeException echecCompensation) {
+            origine.addSuppressed(echecCompensation);
+        }
+    }
+
+    private void exigerQuadrupletUnique(Long idPoint, int annee, int numeroPassage) {
+        if (passageDao
+                .trouverParPointAnneePassage(idPoint, annee, numeroPassage)
+                .isPresent()) {
+            throw new RegleMetierException("R5 : un passage n°"
+                    + numeroPassage
+                    + " existe déjà pour ce point en "
+                    + annee
+                    + " (le quadruplet point/année/n° de passage doit être unique).");
+        }
+    }
+
+    private static boolean estLeMemePassage(Passage a, Passage b) {
+        return a.id() != null && a.id().equals(b.id());
+    }
+
+    /// Vrai si les deux dates sont distantes de strictement moins d'un mois calendaire (R4).
+    private static boolean intervalleInferieurAUnMois(LocalDate a, LocalDate b) {
+        LocalDate plusTot = a.isAfter(b) ? b : a;
+        LocalDate plusTard = a.isAfter(b) ? a : b;
+        return plusTot.plusMonths(1).isAfter(plusTard);
+    }
+
+    private static Optional<Fenetre> fenetrePour(int numeroPassage, int annee) {
+        return switch (numeroPassage) {
+            case 1 -> Optional.of(new Fenetre(LocalDate.of(annee, 6, 15), LocalDate.of(annee, 7, 31)));
+            case 2 -> Optional.of(new Fenetre(LocalDate.of(annee, 8, 15), LocalDate.of(annee, 9, 30)));
+            default -> Optional.empty();
+        };
+    }
+
+    /// Fenêtre saisonnière fermée [debut, fin] pour la vérification R3.
+    private record Fenetre(LocalDate debut, LocalDate fin) {
+        boolean contient(LocalDate date) {
+            return !date.isBefore(debut) && !date.isAfter(fin);
+        }
+    }
 }

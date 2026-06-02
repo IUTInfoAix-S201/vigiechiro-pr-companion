@@ -43,201 +43,237 @@ import javafx.stage.Window;
 /// ouverture des modales de point, retour à l'accueil après suppression du site.
 public class SiteDetailController {
 
-  private final SiteDetailViewModel viewModel;
-  private final NavigationSites navigation;
-  private final OuvrirPassage ouvrirPassage;
+    private final SiteDetailViewModel viewModel;
+    private final NavigationSites navigation;
+    private final OuvrirPassage ouvrirPassage;
 
-  @FXML private Label titre;
-  @FXML private Label sousTitre;
-  @FXML private Label valNumeroCarre;
-  @FXML private Label valDepartement;
-  @FXML private Label valProtocole;
-  @FXML private Label valDateCreation;
-  @FXML private Label valDerniereNuit;
-  @FXML private Label valPassages;
-  @FXML private Button boutonModifier;
-  @FXML private Button boutonSupprimer;
-  @FXML private FlowPane cartesPoints;
-  @FXML private TableView<LignePassage> tablePassages;
-  @FXML private TableColumn<LignePassage, String> colDate;
-  @FXML private TableColumn<LignePassage, String> colPoint;
-  @FXML private TableColumn<LignePassage, String> colNumero;
-  @FXML private TableColumn<LignePassage, String> colStatut;
-  @FXML private TableColumn<LignePassage, String> colVerdict;
-  @FXML private TableColumn<LignePassage, String> colEnregistreur;
-  @FXML private TableColumn<LignePassage, String> colDepose;
+    @FXML
+    private Label titre;
 
-  @Inject
-  public SiteDetailController(
-      SiteDetailViewModel viewModel, NavigationSites navigation, OuvrirPassage ouvrirPassage) {
-    this.viewModel = Objects.requireNonNull(viewModel, "viewModel");
-    this.navigation = Objects.requireNonNull(navigation, "navigation");
-    this.ouvrirPassage = Objects.requireNonNull(ouvrirPassage, "ouvrirPassage");
-  }
+    @FXML
+    private Label sousTitre;
 
-  /// Charge le site à afficher (appelée par [NavigationSites] juste après le chargement FXML).
-  public void afficher(Site site) {
-    viewModel.chargerSite(site);
-  }
+    @FXML
+    private Label valNumeroCarre;
 
-  @FXML
-  private void initialize() {
-    titre.textProperty().bind(viewModel.titreProperty());
-    sousTitre.textProperty().bind(viewModel.sousTitreProperty());
-    valNumeroCarre.textProperty().bind(viewModel.numeroCarreProperty());
-    valDepartement.textProperty().bind(viewModel.departementProperty());
-    valProtocole.textProperty().bind(viewModel.protocoleProperty());
-    valDateCreation.textProperty().bind(viewModel.dateCreationProperty());
-    valDerniereNuit.textProperty().bind(viewModel.derniereNuitProperty());
-    valPassages.textProperty().bind(viewModel.passagesDeLAnneeProperty());
-    boutonSupprimer.disableProperty().bind(viewModel.suppressionPossibleProperty().not());
-    boutonModifier.setDisable(true);
-    boutonModifier.setTooltip(new Tooltip("Édition de la fiche site : à venir."));
-    configurerColonnes();
-    tablePassages.setItems(viewModel.passages());
-    tablePassages.setRowFactory(
-        tableau -> {
-          TableRow<LignePassage> ligne = new TableRow<>();
-          ligne.setOnMouseClicked(
-              evenement -> {
+    @FXML
+    private Label valDepartement;
+
+    @FXML
+    private Label valProtocole;
+
+    @FXML
+    private Label valDateCreation;
+
+    @FXML
+    private Label valDerniereNuit;
+
+    @FXML
+    private Label valPassages;
+
+    @FXML
+    private Button boutonModifier;
+
+    @FXML
+    private Button boutonSupprimer;
+
+    @FXML
+    private FlowPane cartesPoints;
+
+    @FXML
+    private TableView<LignePassage> tablePassages;
+
+    @FXML
+    private TableColumn<LignePassage, String> colDate;
+
+    @FXML
+    private TableColumn<LignePassage, String> colPoint;
+
+    @FXML
+    private TableColumn<LignePassage, String> colNumero;
+
+    @FXML
+    private TableColumn<LignePassage, String> colStatut;
+
+    @FXML
+    private TableColumn<LignePassage, String> colVerdict;
+
+    @FXML
+    private TableColumn<LignePassage, String> colEnregistreur;
+
+    @FXML
+    private TableColumn<LignePassage, String> colDepose;
+
+    @Inject
+    public SiteDetailController(
+            SiteDetailViewModel viewModel, NavigationSites navigation, OuvrirPassage ouvrirPassage) {
+        this.viewModel = Objects.requireNonNull(viewModel, "viewModel");
+        this.navigation = Objects.requireNonNull(navigation, "navigation");
+        this.ouvrirPassage = Objects.requireNonNull(ouvrirPassage, "ouvrirPassage");
+    }
+
+    /// Charge le site à afficher (appelée par [NavigationSites] juste après le chargement FXML).
+    public void afficher(Site site) {
+        viewModel.chargerSite(site);
+    }
+
+    @FXML
+    private void initialize() {
+        titre.textProperty().bind(viewModel.titreProperty());
+        sousTitre.textProperty().bind(viewModel.sousTitreProperty());
+        valNumeroCarre.textProperty().bind(viewModel.numeroCarreProperty());
+        valDepartement.textProperty().bind(viewModel.departementProperty());
+        valProtocole.textProperty().bind(viewModel.protocoleProperty());
+        valDateCreation.textProperty().bind(viewModel.dateCreationProperty());
+        valDerniereNuit.textProperty().bind(viewModel.derniereNuitProperty());
+        valPassages.textProperty().bind(viewModel.passagesDeLAnneeProperty());
+        boutonSupprimer
+                .disableProperty()
+                .bind(viewModel.suppressionPossibleProperty().not());
+        boutonModifier.setDisable(true);
+        boutonModifier.setTooltip(new Tooltip("Édition de la fiche site : à venir."));
+        configurerColonnes();
+        tablePassages.setItems(viewModel.passages());
+        tablePassages.setRowFactory(tableau -> {
+            TableRow<LignePassage> ligne = new TableRow<>();
+            ligne.setOnMouseClicked(evenement -> {
                 if (evenement.getButton() == MouseButton.PRIMARY
-                    && evenement.getClickCount() == 2
-                    && !ligne.isEmpty()) {
-                  ouvrirPassage.ouvrir(ligne.getItem().idPassage(), contexteSite(ligne.getItem()));
+                        && evenement.getClickCount() == 2
+                        && !ligne.isEmpty()) {
+                    ouvrirPassage.ouvrir(ligne.getItem().idPassage(), contexteSite(ligne.getItem()));
                 }
-              });
-          return ligne;
+            });
+            return ligne;
         });
-    viewModel
-        .points()
-        .addListener((ListChangeListener<CartePoint>) changement -> reconstruirePoints());
-    reconstruirePoints();
-  }
-
-  @FXML
-  private void retour() {
-    navigation.ouvrirAccueil();
-  }
-
-  /// Contexte d'identité (carré/code/nom) transmis à M-Passage pour éviter une dépendance
-  /// `passage → sites` : la vue passage affiche ces libellés sans rejoindre les tables `sites`.
-  private ContexteSite contexteSite(LignePassage ligne) {
-    Site site = viewModel.siteCourant();
-    return new ContexteSite(site.numeroCarre(), ligne.codePoint(), site.nomConvivial());
-  }
-
-  @FXML
-  private void ajouterPoint() {
-    navigation.ouvrirModaleCreationPoint(fenetre(), viewModel.siteCourant(), viewModel::rafraichir);
-  }
-
-  @FXML
-  private void supprimerSite() {
-    if (!confirmer("Supprimer ce site et ses points d'écoute ?")) {
-      return;
+        viewModel.points().addListener((ListChangeListener<CartePoint>) changement -> reconstruirePoints());
+        reconstruirePoints();
     }
-    try {
-      viewModel.supprimerSite();
-      navigation.ouvrirAccueil();
-    } catch (RegleMetierException refus) {
-      alerteErreur(refus.getMessage());
+
+    @FXML
+    private void retour() {
+        navigation.ouvrirAccueil();
     }
-  }
 
-  private void configurerColonnes() {
-    colDate.setCellValueFactory(cd -> valeur(cd.getValue().date()));
-    colPoint.setCellValueFactory(cd -> valeur(cd.getValue().codePoint()));
-    colNumero.setCellValueFactory(cd -> valeur(cd.getValue().numeroPassage()));
-    colStatut.setCellValueFactory(cd -> valeur(cd.getValue().statutLibelle()));
-    colVerdict.setCellValueFactory(cd -> valeur(cd.getValue().verdictLibelle()));
-    colEnregistreur.setCellValueFactory(cd -> valeur(cd.getValue().enregistreur()));
-    colDepose.setCellValueFactory(cd -> valeur(cd.getValue().deposeLe()));
-    colStatut.setCellFactory(colonne -> celluleBadge(LignePassage::statutClasseCss));
-    colVerdict.setCellFactory(colonne -> celluleBadge(LignePassage::verdictClasseCss));
-  }
-
-  private void reconstruirePoints() {
-    cartesPoints.getChildren().clear();
-    for (CartePoint carte : viewModel.points()) {
-      cartesPoints.getChildren().add(construireCartePoint(carte));
+    /// Contexte d'identité (carré/code/nom) transmis à M-Passage pour éviter une dépendance
+    /// `passage → sites` : la vue passage affiche ces libellés sans rejoindre les tables `sites`.
+    private ContexteSite contexteSite(LignePassage ligne) {
+        Site site = viewModel.siteCourant();
+        return new ContexteSite(site.numeroCarre(), ligne.codePoint(), site.nomConvivial());
     }
-  }
 
-  private VBox construireCartePoint(CartePoint carte) {
-    PointDEcoute point = carte.point();
-    Label code = new Label(point.code());
-    code.getStyleClass().add("carte-point-code");
-    Label description = new Label(libelleDescription(point));
-    description.getStyleClass().add("carte-point-desc");
-    Label gps = new Label(carte.gpsPresent() ? "✓ GPS" : "⚠ GPS manquant");
-    gps.getStyleClass().add(carte.gpsPresent() ? "gps-ok" : "gps-manquant");
-    Label passages = new Label(carte.nombrePassages() + " passage(s) rattaché(s)");
-    passages.getStyleClass().add("carte-point-desc");
-    VBox boite = new VBox(code, description, gps, passages, actionsPoint(carte));
-    boite.getStyleClass().add("carte-point");
-    return boite;
-  }
-
-  private HBox actionsPoint(CartePoint carte) {
-    Hyperlink editer = new Hyperlink("✏ Modifier");
-    editer.setOnAction(
-        evenement ->
-            navigation.ouvrirModaleEditionPoint(
-                fenetre(), viewModel.siteCourant(), carte.point(), viewModel::rafraichir));
-    Hyperlink supprimer = new Hyperlink("🗑 Supprimer");
-    supprimer.setOnAction(evenement -> supprimerPoint(carte));
-    HBox actions = new HBox(editer, supprimer);
-    actions.getStyleClass().add("carte-point-actions");
-    return actions;
-  }
-
-  private void supprimerPoint(CartePoint carte) {
-    if (carte.aDesPassages()) {
-      alerteErreur(
-          "Le point « " + carte.point().code() + " » porte des passages : suppression bloquée.");
-      return;
+    @FXML
+    private void ajouterPoint() {
+        navigation.ouvrirModaleCreationPoint(fenetre(), viewModel.siteCourant(), viewModel::rafraichir);
     }
-    if (confirmer("Supprimer le point « " + carte.point().code() + " » ?")) {
-      viewModel.supprimerPoint(carte.point());
-    }
-  }
 
-  private TableCell<LignePassage, String> celluleBadge(Function<LignePassage, String> classeCss) {
-    return new TableCell<>() {
-      @Override
-      protected void updateItem(String valeur, boolean vide) {
-        super.updateItem(valeur, vide);
-        getStyleClass().removeIf(classe -> classe.startsWith("badge"));
-        if (vide || valeur == null || getTableRow() == null || getTableRow().getItem() == null) {
-          setText(null);
-        } else {
-          setText(valeur);
-          getStyleClass().addAll("badge", classeCss.apply(getTableRow().getItem()));
+    @FXML
+    private void supprimerSite() {
+        if (!confirmer("Supprimer ce site et ses points d'écoute ?")) {
+            return;
         }
-      }
-    };
-  }
+        try {
+            viewModel.supprimerSite();
+            navigation.ouvrirAccueil();
+        } catch (RegleMetierException refus) {
+            alerteErreur(refus.getMessage());
+        }
+    }
 
-  private Window fenetre() {
-    return cartesPoints.getScene().getWindow();
-  }
+    private void configurerColonnes() {
+        colDate.setCellValueFactory(cd -> valeur(cd.getValue().date()));
+        colPoint.setCellValueFactory(cd -> valeur(cd.getValue().codePoint()));
+        colNumero.setCellValueFactory(cd -> valeur(cd.getValue().numeroPassage()));
+        colStatut.setCellValueFactory(cd -> valeur(cd.getValue().statutLibelle()));
+        colVerdict.setCellValueFactory(cd -> valeur(cd.getValue().verdictLibelle()));
+        colEnregistreur.setCellValueFactory(cd -> valeur(cd.getValue().enregistreur()));
+        colDepose.setCellValueFactory(cd -> valeur(cd.getValue().deposeLe()));
+        colStatut.setCellFactory(colonne -> celluleBadge(LignePassage::statutClasseCss));
+        colVerdict.setCellFactory(colonne -> celluleBadge(LignePassage::verdictClasseCss));
+    }
 
-  private boolean confirmer(String message) {
-    Alert alerte = new Alert(AlertType.CONFIRMATION, message, ButtonType.OK, ButtonType.CANCEL);
-    return alerte.showAndWait().filter(bouton -> bouton == ButtonType.OK).isPresent();
-  }
+    private void reconstruirePoints() {
+        cartesPoints.getChildren().clear();
+        for (CartePoint carte : viewModel.points()) {
+            cartesPoints.getChildren().add(construireCartePoint(carte));
+        }
+    }
 
-  private void alerteErreur(String message) {
-    Alert alerte = new Alert(AlertType.WARNING, message, ButtonType.OK);
-    alerte.setHeaderText("Action impossible");
-    alerte.showAndWait();
-  }
+    private VBox construireCartePoint(CartePoint carte) {
+        PointDEcoute point = carte.point();
+        Label code = new Label(point.code());
+        code.getStyleClass().add("carte-point-code");
+        Label description = new Label(libelleDescription(point));
+        description.getStyleClass().add("carte-point-desc");
+        Label gps = new Label(carte.gpsPresent() ? "✓ GPS" : "⚠ GPS manquant");
+        gps.getStyleClass().add(carte.gpsPresent() ? "gps-ok" : "gps-manquant");
+        Label passages = new Label(carte.nombrePassages() + " passage(s) rattaché(s)");
+        passages.getStyleClass().add("carte-point-desc");
+        VBox boite = new VBox(code, description, gps, passages, actionsPoint(carte));
+        boite.getStyleClass().add("carte-point");
+        return boite;
+    }
 
-  private static ReadOnlyStringWrapper valeur(String texte) {
-    return new ReadOnlyStringWrapper(texte);
-  }
+    private HBox actionsPoint(CartePoint carte) {
+        Hyperlink editer = new Hyperlink("✏ Modifier");
+        editer.setOnAction(evenement -> navigation.ouvrirModaleEditionPoint(
+                fenetre(), viewModel.siteCourant(), carte.point(), viewModel::rafraichir));
+        Hyperlink supprimer = new Hyperlink("🗑 Supprimer");
+        supprimer.setOnAction(evenement -> supprimerPoint(carte));
+        HBox actions = new HBox(editer, supprimer);
+        actions.getStyleClass().add("carte-point-actions");
+        return actions;
+    }
 
-  private static String libelleDescription(PointDEcoute point) {
-    return point.description() == null ? "(pas de description)" : point.description();
-  }
+    private void supprimerPoint(CartePoint carte) {
+        if (carte.aDesPassages()) {
+            alerteErreur("Le point « " + carte.point().code() + " » porte des passages : suppression bloquée.");
+            return;
+        }
+        if (confirmer("Supprimer le point « " + carte.point().code() + " » ?")) {
+            viewModel.supprimerPoint(carte.point());
+        }
+    }
+
+    private TableCell<LignePassage, String> celluleBadge(Function<LignePassage, String> classeCss) {
+        return new TableCell<>() {
+            @Override
+            protected void updateItem(String valeur, boolean vide) {
+                super.updateItem(valeur, vide);
+                getStyleClass().removeIf(classe -> classe.startsWith("badge"));
+                if (vide
+                        || valeur == null
+                        || getTableRow() == null
+                        || getTableRow().getItem() == null) {
+                    setText(null);
+                } else {
+                    setText(valeur);
+                    getStyleClass()
+                            .addAll("badge", classeCss.apply(getTableRow().getItem()));
+                }
+            }
+        };
+    }
+
+    private Window fenetre() {
+        return cartesPoints.getScene().getWindow();
+    }
+
+    private boolean confirmer(String message) {
+        Alert alerte = new Alert(AlertType.CONFIRMATION, message, ButtonType.OK, ButtonType.CANCEL);
+        return alerte.showAndWait().filter(bouton -> bouton == ButtonType.OK).isPresent();
+    }
+
+    private void alerteErreur(String message) {
+        Alert alerte = new Alert(AlertType.WARNING, message, ButtonType.OK);
+        alerte.setHeaderText("Action impossible");
+        alerte.showAndWait();
+    }
+
+    private static ReadOnlyStringWrapper valeur(String texte) {
+        return new ReadOnlyStringWrapper(texte);
+    }
+
+    private static String libelleDescription(PointDEcoute point) {
+        return point.description() == null ? "(pas de description)" : point.description();
+    }
 }

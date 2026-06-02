@@ -18,71 +18,70 @@ import javafx.beans.property.StringProperty;
 /// les met à jour quand une feature change de zone centrale.
 public class NavigationViewModel {
 
-  private final StringProperty titreApplication =
-      new SimpleStringProperty(this, "titreApplication", "VigieChiro PR Companion");
-  private final StringProperty vueCourante =
-      new SimpleStringProperty(this, "vueCourante", "accueil");
-  private final StringProperty filAriane = new SimpleStringProperty(this, "filAriane", "Accueil");
-  private final StringProperty piedDePage =
-      new SimpleStringProperty(this, "piedDePage", "SAÉ 2.01 · IUT d'Aix-Marseille");
+    private final StringProperty titreApplication =
+            new SimpleStringProperty(this, "titreApplication", "VigieChiro PR Companion");
+    private final StringProperty vueCourante = new SimpleStringProperty(this, "vueCourante", "accueil");
+    private final StringProperty filAriane = new SimpleStringProperty(this, "filAriane", "Accueil");
+    private final StringProperty piedDePage =
+            new SimpleStringProperty(this, "piedDePage", "SAÉ 2.01 · IUT d'Aix-Marseille");
 
-  /// Propriété observable du titre de l'application affiché dans la barre haute.
-  public StringProperty titreApplicationProperty() {
-    return titreApplication;
-  }
+    /// Propriété observable du titre de l'application affiché dans la barre haute.
+    public StringProperty titreApplicationProperty() {
+        return titreApplication;
+    }
 
-  public String getTitreApplication() {
-    return titreApplication.get();
-  }
+    public String getTitreApplication() {
+        return titreApplication.get();
+    }
 
-  public void setTitreApplication(String valeur) {
-    titreApplication.set(valeur);
-  }
+    public void setTitreApplication(String valeur) {
+        titreApplication.set(valeur);
+    }
 
-  /// Propriété observable de la vue courante (identifiant logique, ex. `accueil`, `sites`).
-  public StringProperty vueCouranteProperty() {
-    return vueCourante;
-  }
+    /// Propriété observable de la vue courante (identifiant logique, ex. `accueil`, `sites`).
+    public StringProperty vueCouranteProperty() {
+        return vueCourante;
+    }
 
-  public String getVueCourante() {
-    return vueCourante.get();
-  }
+    public String getVueCourante() {
+        return vueCourante.get();
+    }
 
-  public void setVueCourante(String valeur) {
-    vueCourante.set(valeur);
-  }
+    public void setVueCourante(String valeur) {
+        vueCourante.set(valeur);
+    }
 
-  /// Propriété observable du fil d'Ariane (libellé lisible affiché à l'utilisateur).
-  public StringProperty filArianeProperty() {
-    return filAriane;
-  }
+    /// Propriété observable du fil d'Ariane (libellé lisible affiché à l'utilisateur).
+    public StringProperty filArianeProperty() {
+        return filAriane;
+    }
 
-  public String getFilAriane() {
-    return filAriane.get();
-  }
+    public String getFilAriane() {
+        return filAriane.get();
+    }
 
-  public void setFilAriane(String valeur) {
-    filAriane.set(valeur);
-  }
+    public void setFilAriane(String valeur) {
+        filAriane.set(valeur);
+    }
 
-  /// Propriété observable du texte de pied de page.
-  public StringProperty piedDePageProperty() {
-    return piedDePage;
-  }
+    /// Propriété observable du texte de pied de page.
+    public StringProperty piedDePageProperty() {
+        return piedDePage;
+    }
 
-  public String getPiedDePage() {
-    return piedDePage.get();
-  }
+    public String getPiedDePage() {
+        return piedDePage.get();
+    }
 
-  public void setPiedDePage(String valeur) {
-    piedDePage.set(valeur);
-  }
+    public void setPiedDePage(String valeur) {
+        piedDePage.set(valeur);
+    }
 
-  /// Met à jour l'état de navigation en une étape : la vue courante et son libellé de fil
-  /// d'Ariane. Les features appellent cette méthode quand elles prennent la main sur la zone
-  /// centrale, pour garder le chrome cohérent avec le contenu affiché.
-  public void naviguerVers(String vue, String libelleFilAriane) {
-    vueCourante.set(vue);
-    filAriane.set(libelleFilAriane);
-  }
+    /// Met à jour l'état de navigation en une étape : la vue courante et son libellé de fil
+    /// d'Ariane. Les features appellent cette méthode quand elles prennent la main sur la zone
+    /// centrale, pour garder le chrome cohérent avec le contenu affiché.
+    public void naviguerVers(String vue, String libelleFilAriane) {
+        vueCourante.set(vue);
+        filAriane.set(libelleFilAriane);
+    }
 }

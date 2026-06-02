@@ -27,40 +27,38 @@ import java.util.stream.Stream;
 /// place. On peut donc relancer le renommage sans risque (réimport).
 public class Renommeur {
 
-  /// Renomme tous les WAV de `dossierBruts` en leur appliquant le préfixe R6 (R7 conserve le
-  /// suffixe d'origine). Les fichiers déjà préfixés sont inchangés.
-  ///
-  /// @param dossierBruts dossier `bruts/` contenant les originaux à renommer
-  /// @param prefixe préfixe de la session (R6)
-  /// @return la liste des chemins finaux des originaux, triée par nom de fichier
-  public List<Path> renommer(Path dossierBruts, Prefixe prefixe) {
-    Objects.requireNonNull(dossierBruts, "dossierBruts");
-    Objects.requireNonNull(prefixe, "prefixe");
-    String prefixeFichier = prefixe.prefixeFichier();
-    List<Path> resultats = new ArrayList<>();
-    try (Stream<Path> flux = Files.list(dossierBruts)) {
-      List<Path> originaux =
-          flux.filter(Files::isRegularFile)
-              .filter(p -> p.getFileName().toString().toLowerCase().endsWith(".wav"))
-              .sorted(Comparator.comparing(p -> p.getFileName().toString()))
-              .toList();
-      for (Path original : originaux) {
-        resultats.add(renommerUn(original, prefixe, prefixeFichier));
-      }
-    } catch (IOException e) {
-      throw new UncheckedIOException("Renommage impossible dans " + dossierBruts, e);
+    /// Renomme tous les WAV de `dossierBruts` en leur appliquant le préfixe R6 (R7 conserve le
+    /// suffixe d'origine). Les fichiers déjà préfixés sont inchangés.
+    ///
+    /// @param dossierBruts dossier `bruts/` contenant les originaux à renommer
+    /// @param prefixe préfixe de la session (R6)
+    /// @return la liste des chemins finaux des originaux, triée par nom de fichier
+    public List<Path> renommer(Path dossierBruts, Prefixe prefixe) {
+        Objects.requireNonNull(dossierBruts, "dossierBruts");
+        Objects.requireNonNull(prefixe, "prefixe");
+        String prefixeFichier = prefixe.prefixeFichier();
+        List<Path> resultats = new ArrayList<>();
+        try (Stream<Path> flux = Files.list(dossierBruts)) {
+            List<Path> originaux = flux.filter(Files::isRegularFile)
+                    .filter(p -> p.getFileName().toString().toLowerCase().endsWith(".wav"))
+                    .sorted(Comparator.comparing(p -> p.getFileName().toString()))
+                    .toList();
+            for (Path original : originaux) {
+                resultats.add(renommerUn(original, prefixe, prefixeFichier));
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException("Renommage impossible dans " + dossierBruts, e);
+        }
+        resultats.sort(Comparator.comparing(p -> p.getFileName().toString()));
+        return resultats;
     }
-    resultats.sort(Comparator.comparing(p -> p.getFileName().toString()));
-    return resultats;
-  }
 
-  private Path renommerUn(Path original, Prefixe prefixe, String prefixeFichier)
-      throws IOException {
-    String nom = original.getFileName().toString();
-    if (nom.startsWith(prefixeFichier)) {
-      return original; // déjà préfixé : idempotent
+    private Path renommerUn(Path original, Prefixe prefixe, String prefixeFichier) throws IOException {
+        String nom = original.getFileName().toString();
+        if (nom.startsWith(prefixeFichier)) {
+            return original; // déjà préfixé : idempotent
+        }
+        Path cible = original.resolveSibling(prefixe.nommerOriginal(nom));
+        return Files.move(original, cible, StandardCopyOption.ATOMIC_MOVE);
     }
-    Path cible = original.resolveSibling(prefixe.nommerOriginal(nom));
-    return Files.move(original, cible, StandardCopyOption.ATOMIC_MOVE);
-  }
 }

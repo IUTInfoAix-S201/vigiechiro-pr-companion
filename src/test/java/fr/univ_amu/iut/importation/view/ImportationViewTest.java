@@ -39,68 +39,66 @@ import org.testfx.framework.junit5.Start;
 @ExtendWith(ApplicationExtension.class)
 class ImportationViewTest {
 
-  private static final String ID_USER = "u-test";
-  private Injector injector;
+    private static final String ID_USER = "u-test";
+    private Injector injector;
 
-  @Start
-  void start(Stage stage) throws Exception {
-    Path workspace = Files.createTempDirectory("vc-import");
-    System.setProperty("vigiechiro.workspace", workspace.toString());
-    injector = RacineInjecteur.creer();
-    SourceDeDonnees source = injector.getInstance(SourceDeDonnees.class);
-    new MigrationSchema(source).migrer();
-    seeder(source);
-    FXMLLoader loader = new FXMLLoader(App.class.getResource("commun/view/MainView.fxml"));
-    loader.setControllerFactory(injector::getInstance);
-    Parent racine = loader.load();
-    stage.setScene(new Scene(racine, 1100, 760));
-    injector.getInstance(NavigationImportation.class).ouvrir();
-    stage.show();
-  }
+    @Start
+    void start(Stage stage) throws Exception {
+        Path workspace = Files.createTempDirectory("vc-import");
+        System.setProperty("vigiechiro.workspace", workspace.toString());
+        injector = RacineInjecteur.creer();
+        SourceDeDonnees source = injector.getInstance(SourceDeDonnees.class);
+        new MigrationSchema(source).migrer();
+        seeder(source);
+        FXMLLoader loader = new FXMLLoader(App.class.getResource("commun/view/MainView.fxml"));
+        loader.setControllerFactory(injector::getInstance);
+        Parent racine = loader.load();
+        stage.setScene(new Scene(racine, 1100, 760));
+        injector.getInstance(NavigationImportation.class).ouvrir();
+        stage.show();
+    }
 
-  private void seeder(SourceDeDonnees source) {
-    new UtilisateurDao(source).insert(new Utilisateur(ID_USER, "Testeur"));
-    ServiceSites service = injector.getInstance(ServiceSites.class);
-    Site etang =
-        service.creerSite("640380", "Étang de la Tuilière", Protocole.STANDARD, null, ID_USER);
-    service.ajouterPoint(etang.id(), "A1", 43.5, 5.4, "Chêne");
-  }
+    private void seeder(SourceDeDonnees source) {
+        new UtilisateurDao(source).insert(new Utilisateur(ID_USER, "Testeur"));
+        ServiceSites service = injector.getInstance(ServiceSites.class);
+        Site etang = service.creerSite("640380", "Étang de la Tuilière", Protocole.STANDARD, null, ID_USER);
+        service.ajouterPoint(etang.id(), "A1", 43.5, 5.4, "Chêne");
+    }
 
-  @AfterEach
-  void nettoyerWorkspace() {
-    System.clearProperty("vigiechiro.workspace");
-  }
+    @AfterEach
+    void nettoyerWorkspace() {
+        System.clearProperty("vigiechiro.workspace");
+    }
 
-  @Test
-  @DisplayName("L'assistant d'import s'affiche avec son titre")
-  void affiche_le_titre(FxRobot robot) {
-    Label titre = robot.lookup(".titre-page").queryAs(Label.class);
+    @Test
+    @DisplayName("L'assistant d'import s'affiche avec son titre")
+    void affiche_le_titre(FxRobot robot) {
+        Label titre = robot.lookup(".titre-page").queryAs(Label.class);
 
-    assertThat(titre.getText()).isEqualTo("Importer une nuit d'enregistrement");
-  }
+        assertThat(titre.getText()).isEqualTo("Importer une nuit d'enregistrement");
+    }
 
-  @Test
-  @DisplayName("Le bouton « Importer » est désactivé tant que rien n'est inspecté ni rattaché")
-  void bouton_importer_desactive_au_depart(FxRobot robot) {
-    Button importer = robot.lookup("#boutonImporter").queryAs(Button.class);
+    @Test
+    @DisplayName("Le bouton « Importer » est désactivé tant que rien n'est inspecté ni rattaché")
+    void bouton_importer_desactive_au_depart(FxRobot robot) {
+        Button importer = robot.lookup("#boutonImporter").queryAs(Button.class);
 
-    assertThat(importer.isDisabled()).isTrue();
-  }
+        assertThat(importer.isDisabled()).isTrue();
+    }
 
-  @Test
-  @DisplayName("La combo des sites est alimentée par les sites de l'utilisateur (chargerSites)")
-  void combo_sites_alimentee(FxRobot robot) {
-    ComboBox<?> comboSites = robot.lookup("#comboSites").queryAs(ComboBox.class);
+    @Test
+    @DisplayName("La combo des sites est alimentée par les sites de l'utilisateur (chargerSites)")
+    void combo_sites_alimentee(FxRobot robot) {
+        ComboBox<?> comboSites = robot.lookup("#comboSites").queryAs(ComboBox.class);
 
-    assertThat(comboSites.getItems()).hasSize(1);
-  }
+        assertThat(comboSites.getItems()).hasSize(1);
+    }
 
-  @Test
-  @DisplayName("L'indicateur de progression est masqué tant qu'aucun import n'est lancé")
-  void indicateur_progression_cache_au_depart(FxRobot robot) {
-    ProgressIndicator indicateur =
-        robot.lookup("#indicateurProgression").queryAs(ProgressIndicator.class);
+    @Test
+    @DisplayName("L'indicateur de progression est masqué tant qu'aucun import n'est lancé")
+    void indicateur_progression_cache_au_depart(FxRobot robot) {
+        ProgressIndicator indicateur = robot.lookup("#indicateurProgression").queryAs(ProgressIndicator.class);
 
-    assertThat(indicateur.isVisible()).isFalse();
-  }
+        assertThat(indicateur.isVisible()).isFalse();
+    }
 }

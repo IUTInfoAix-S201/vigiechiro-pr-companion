@@ -16,29 +16,29 @@ package fr.univ_amu.iut.validation.model;
 /// `fr.univ_amu.iut.commun.model` (libellé porteur de sens, parLibelle tolérant à la casse
 /// historique).
 public enum FormatTadarida {
-  BRUT("Brut"),
-  VU("Vu");
+    BRUT("Brut"),
+    VU("Vu");
 
-  private final String libelle;
+    private final String libelle;
 
-  FormatTadarida(String libelle) {
-    this.libelle = libelle;
-  }
-
-  /// Valeur persistée (colonne `detected_format`).
-  public String libelle() {
-    return libelle;
-  }
-
-  /// Retrouve un format depuis son libellé persisté (insensible à la casse).
-  public static FormatTadarida parLibelle(String libelle) {
-    if (libelle != null) {
-      for (FormatTadarida format : values()) {
-        if (format.libelle.equalsIgnoreCase(libelle.trim())) {
-          return format;
-        }
-      }
+    FormatTadarida(String libelle) {
+        this.libelle = libelle;
     }
-    throw new IllegalArgumentException("Format Tadarida inconnu : " + libelle);
-  }
+
+    /// Valeur persistée (colonne `detected_format`).
+    public String libelle() {
+        return libelle;
+    }
+
+    /// Retrouve un format depuis son libellé persisté (insensible à la casse).
+    public static FormatTadarida parLibelle(String libelle) {
+        if (libelle != null) {
+            for (FormatTadarida format : values()) {
+                if (format.libelle.equalsIgnoreCase(libelle.trim())) {
+                    return format;
+                }
+            }
+        }
+        throw new IllegalArgumentException("Format Tadarida inconnu : " + libelle);
+    }
 }

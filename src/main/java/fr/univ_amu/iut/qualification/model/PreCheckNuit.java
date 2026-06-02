@@ -29,116 +29,107 @@ import java.util.Objects;
 /// (verdict « À jeter » ⇒ exclu d'un lot), traitée en aval par la feature `lot`.
 public class PreCheckNuit {
 
-  /// En-deçà de ce nombre d'enregistrements, la nuit est jugée anormalement creuse (🟠).
-  public static final int SEUIL_FICHIERS_CREUX = 50;
+    /// En-deçà de ce nombre d'enregistrements, la nuit est jugée anormalement creuse (🟠).
+    public static final int SEUIL_FICHIERS_CREUX = 50;
 
-  /// Tolérance (minutes) sur la couverture horaire avant de passer le feu à l'orange.
-  public static final long TOLERANCE_COUVERTURE_MINUTES = 30;
+    /// Tolérance (minutes) sur la couverture horaire avant de passer le feu à l'orange.
+    public static final long TOLERANCE_COUVERTURE_MINUTES = 30;
 
-  /// Couleur d'un indicateur du pré-check.
-  public enum Feu {
-    VERT,
-    ORANGE,
-    ROUGE
-  }
-
-  /// Mesures brutes d'une nuit, calculées en amont (par `ServiceQualification`) et fournies
-  /// au moteur. Toutes les grandeurs sont ≥ 0.
-  ///
-  /// @param nombreFichiers nombre d'enregistrements originaux de la session
-  /// @param fichiersMalNommes nombre d'originaux dont le nom diverge du préfixe attendu (R6)
-  /// @param ecartCouvertureMinutes plus grand déficit de couverture observé d'un côté (minutes)
-  /// @param moitieNuitManquante `true` si une moitié de nuit complète manque
-  public record Mesures(
-      int nombreFichiers,
-      int fichiersMalNommes,
-      long ecartCouvertureMinutes,
-      boolean moitieNuitManquante) {
-
-    public Mesures {
-      if (nombreFichiers < 0 || fichiersMalNommes < 0 || ecartCouvertureMinutes < 0) {
-        throw new IllegalArgumentException("Les mesures de la nuit doivent être positives.");
-      }
-    }
-  }
-
-  /// Les trois feux du pré-check.
-  ///
-  /// @param couvertureHoraire couverture de la fenêtre théorique de la nuit (R3)
-  /// @param nombreFichiers volume d'enregistrements
-  /// @param coherenceRenommage conformité des noms de fichiers au préfixe attendu (R6)
-  public record Diagnostic(Feu couvertureHoraire, Feu nombreFichiers, Feu coherenceRenommage) {
-
-    public Diagnostic {
-      Objects.requireNonNull(couvertureHoraire, "couvertureHoraire");
-      Objects.requireNonNull(nombreFichiers, "nombreFichiers");
-      Objects.requireNonNull(coherenceRenommage, "coherenceRenommage");
+    /// Couleur d'un indicateur du pré-check.
+    public enum Feu {
+        VERT,
+        ORANGE,
+        ROUGE
     }
 
-    /// `true` si les trois feux sont au vert (rien à signaler).
-    public boolean toutAuVert() {
-      return couvertureHoraire == Feu.VERT
-          && nombreFichiers == Feu.VERT
-          && coherenceRenommage == Feu.VERT;
+    /// Mesures brutes d'une nuit, calculées en amont (par `ServiceQualification`) et fournies
+    /// au moteur. Toutes les grandeurs sont ≥ 0.
+    ///
+    /// @param nombreFichiers nombre d'enregistrements originaux de la session
+    /// @param fichiersMalNommes nombre d'originaux dont le nom diverge du préfixe attendu (R6)
+    /// @param ecartCouvertureMinutes plus grand déficit de couverture observé d'un côté (minutes)
+    /// @param moitieNuitManquante `true` si une moitié de nuit complète manque
+    public record Mesures(
+            int nombreFichiers, int fichiersMalNommes, long ecartCouvertureMinutes, boolean moitieNuitManquante) {
+
+        public Mesures {
+            if (nombreFichiers < 0 || fichiersMalNommes < 0 || ecartCouvertureMinutes < 0) {
+                throw new IllegalArgumentException("Les mesures de la nuit doivent être positives.");
+            }
+        }
     }
 
-    /// `true` si au moins un feu est au rouge (anomalie à examiner).
-    public boolean presenteUneAnomalie() {
-      return couvertureHoraire == Feu.ROUGE
-          || nombreFichiers == Feu.ROUGE
-          || coherenceRenommage == Feu.ROUGE;
+    /// Les trois feux du pré-check.
+    ///
+    /// @param couvertureHoraire couverture de la fenêtre théorique de la nuit (R3)
+    /// @param nombreFichiers volume d'enregistrements
+    /// @param coherenceRenommage conformité des noms de fichiers au préfixe attendu (R6)
+    public record Diagnostic(Feu couvertureHoraire, Feu nombreFichiers, Feu coherenceRenommage) {
+
+        public Diagnostic {
+            Objects.requireNonNull(couvertureHoraire, "couvertureHoraire");
+            Objects.requireNonNull(nombreFichiers, "nombreFichiers");
+            Objects.requireNonNull(coherenceRenommage, "coherenceRenommage");
+        }
+
+        /// `true` si les trois feux sont au vert (rien à signaler).
+        public boolean toutAuVert() {
+            return couvertureHoraire == Feu.VERT && nombreFichiers == Feu.VERT && coherenceRenommage == Feu.VERT;
+        }
+
+        /// `true` si au moins un feu est au rouge (anomalie à examiner).
+        public boolean presenteUneAnomalie() {
+            return couvertureHoraire == Feu.ROUGE || nombreFichiers == Feu.ROUGE || coherenceRenommage == Feu.ROUGE;
+        }
+
+        /// Restitue le diagnostic « sous forme de [ResultatVerification] » pour l'IHM : un feu
+        /// vert n'ajoute rien, un feu orange ou rouge ajoute une alerte **soft** (le pré-check
+        /// est consultatif, R13). `estConforme()` équivaut donc à [#toutAuVert()], et
+        /// `estBloquant()` est toujours `false`.
+        public ResultatVerification versResultatVerification() {
+            ResultatVerification resultat = ResultatVerification.ok();
+            resultat = ajouter(resultat, couvertureHoraire, "Couverture horaire");
+            resultat = ajouter(resultat, nombreFichiers, "Nombre de fichiers");
+            resultat = ajouter(resultat, coherenceRenommage, "Cohérence du renommage");
+            return resultat;
+        }
+
+        private static ResultatVerification ajouter(ResultatVerification resultat, Feu feu, String libelle) {
+            return switch (feu) {
+                case VERT -> resultat;
+                case ORANGE -> resultat.avec(Alerte.soft(libelle + " : à surveiller (feu orange)."));
+                case ROUGE -> resultat.avec(Alerte.soft(libelle + " : anomalie détectée (feu rouge)."));
+            };
+        }
     }
 
-    /// Restitue le diagnostic « sous forme de [ResultatVerification] » pour l'IHM : un feu
-    /// vert n'ajoute rien, un feu orange ou rouge ajoute une alerte **soft** (le pré-check
-    /// est consultatif, R13). `estConforme()` équivaut donc à [#toutAuVert()], et
-    /// `estBloquant()` est toujours `false`.
-    public ResultatVerification versResultatVerification() {
-      ResultatVerification resultat = ResultatVerification.ok();
-      resultat = ajouter(resultat, couvertureHoraire, "Couverture horaire");
-      resultat = ajouter(resultat, nombreFichiers, "Nombre de fichiers");
-      resultat = ajouter(resultat, coherenceRenommage, "Cohérence du renommage");
-      return resultat;
+    /// Décide les trois feux à partir des mesures de la nuit.
+    public Diagnostic evaluer(Mesures mesures) {
+        Objects.requireNonNull(mesures, "mesures");
+        return new Diagnostic(evaluerCouverture(mesures), evaluerNombre(mesures), evaluerRenommage(mesures));
     }
 
-    private static ResultatVerification ajouter(
-        ResultatVerification resultat, Feu feu, String libelle) {
-      return switch (feu) {
-        case VERT -> resultat;
-        case ORANGE -> resultat.avec(Alerte.soft(libelle + " : à surveiller (feu orange)."));
-        case ROUGE -> resultat.avec(Alerte.soft(libelle + " : anomalie détectée (feu rouge)."));
-      };
+    private static Feu evaluerCouverture(Mesures mesures) {
+        if (mesures.moitieNuitManquante()) {
+            return Feu.ROUGE;
+        }
+        if (mesures.ecartCouvertureMinutes() > TOLERANCE_COUVERTURE_MINUTES) {
+            return Feu.ORANGE;
+        }
+        return Feu.VERT;
     }
-  }
 
-  /// Décide les trois feux à partir des mesures de la nuit.
-  public Diagnostic evaluer(Mesures mesures) {
-    Objects.requireNonNull(mesures, "mesures");
-    return new Diagnostic(
-        evaluerCouverture(mesures), evaluerNombre(mesures), evaluerRenommage(mesures));
-  }
+    private static Feu evaluerNombre(Mesures mesures) {
+        if (mesures.nombreFichiers() == 0) {
+            return Feu.ROUGE;
+        }
+        if (mesures.nombreFichiers() < SEUIL_FICHIERS_CREUX) {
+            return Feu.ORANGE;
+        }
+        return Feu.VERT;
+    }
 
-  private static Feu evaluerCouverture(Mesures mesures) {
-    if (mesures.moitieNuitManquante()) {
-      return Feu.ROUGE;
+    private static Feu evaluerRenommage(Mesures mesures) {
+        return mesures.fichiersMalNommes() > 0 ? Feu.ROUGE : Feu.VERT;
     }
-    if (mesures.ecartCouvertureMinutes() > TOLERANCE_COUVERTURE_MINUTES) {
-      return Feu.ORANGE;
-    }
-    return Feu.VERT;
-  }
-
-  private static Feu evaluerNombre(Mesures mesures) {
-    if (mesures.nombreFichiers() == 0) {
-      return Feu.ROUGE;
-    }
-    if (mesures.nombreFichiers() < SEUIL_FICHIERS_CREUX) {
-      return Feu.ORANGE;
-    }
-    return Feu.VERT;
-  }
-
-  private static Feu evaluerRenommage(Mesures mesures) {
-    return mesures.fichiersMalNommes() > 0 ? Feu.ROUGE : Feu.VERT;
-  }
 }

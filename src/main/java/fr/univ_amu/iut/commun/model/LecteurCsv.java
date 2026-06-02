@@ -29,101 +29,101 @@ import java.util.Objects;
 /// ligne, [#lireSansEntete] la retire.
 public final class LecteurCsv {
 
-  /// Séparateur de champs par défaut (CSV Tadarida, exports).
-  public static final char SEPARATEUR_PAR_DEFAUT = ';';
+    /// Séparateur de champs par défaut (CSV Tadarida, exports).
+    public static final char SEPARATEUR_PAR_DEFAUT = ';';
 
-  private final char separateur;
+    private final char separateur;
 
-  /// Lecteur au séparateur par défaut `';'`.
-  public LecteurCsv() {
-    this(SEPARATEUR_PAR_DEFAUT);
-  }
-
-  /// Lecteur au séparateur indiqué (ex. `';'` pour Tadarida, `'\t'` pour le THLog).
-  ///
-  /// @param separateur caractère séparant les champs d'une même ligne
-  public LecteurCsv(char separateur) {
-    this.separateur = separateur;
-  }
-
-  /// Séparateur de champs utilisé par ce lecteur.
-  public char separateur() {
-    return separateur;
-  }
-
-  /// Lit le fichier `fichier` en UTF-8 et renvoie toutes ses lignes (entête comprise).
-  ///
-  /// @throws UncheckedIOException si le fichier est illisible
-  public List<List<String>> lire(Path fichier) {
-    Objects.requireNonNull(fichier, "fichier");
-    try {
-      return lire(Files.readString(fichier, StandardCharsets.UTF_8));
-    } catch (IOException e) {
-      throw new UncheckedIOException("Lecture CSV impossible : " + fichier, e);
+    /// Lecteur au séparateur par défaut `';'`.
+    public LecteurCsv() {
+        this(SEPARATEUR_PAR_DEFAUT);
     }
-  }
 
-  /// Variante de [#lire(Path)] qui retire la première ligne (l'entête).
-  public List<List<String>> lireSansEntete(Path fichier) {
-    return sansEntete(lire(fichier));
-  }
+    /// Lecteur au séparateur indiqué (ex. `';'` pour Tadarida, `'\t'` pour le THLog).
+    ///
+    /// @param separateur caractère séparant les champs d'une même ligne
+    public LecteurCsv(char separateur) {
+        this.separateur = separateur;
+    }
 
-  /// Analyse le contenu CSV déjà chargé en mémoire et renvoie toutes ses lignes (entête comprise).
-  public List<List<String>> lire(String contenu) {
-    Objects.requireNonNull(contenu, "contenu");
-    List<List<String>> lignes = new ArrayList<>();
-    List<String> champs = new ArrayList<>();
-    StringBuilder champ = new StringBuilder();
-    boolean dansGuillemets = false;
-    int n = contenu.length();
-    int i = 0;
-    while (i < n) {
-      char c = contenu.charAt(i);
-      if (dansGuillemets) {
-        if (c == '"') {
-          if (i + 1 < n && contenu.charAt(i + 1) == '"') {
-            champ.append('"'); // guillemet littéral doublé
-            i += 2;
-          } else {
-            dansGuillemets = false;
-            i++;
-          }
-        } else {
-          champ.append(c);
-          i++;
+    /// Séparateur de champs utilisé par ce lecteur.
+    public char separateur() {
+        return separateur;
+    }
+
+    /// Lit le fichier `fichier` en UTF-8 et renvoie toutes ses lignes (entête comprise).
+    ///
+    /// @throws UncheckedIOException si le fichier est illisible
+    public List<List<String>> lire(Path fichier) {
+        Objects.requireNonNull(fichier, "fichier");
+        try {
+            return lire(Files.readString(fichier, StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            throw new UncheckedIOException("Lecture CSV impossible : " + fichier, e);
         }
-      } else if (c == '"') {
-        dansGuillemets = true;
-        i++;
-      } else if (c == separateur) {
-        champs.add(champ.toString());
-        champ.setLength(0);
-        i++;
-      } else if (c == '\n' || c == '\r') {
-        champs.add(champ.toString());
-        champ.setLength(0);
-        lignes.add(champs);
-        champs = new ArrayList<>();
-        i += (c == '\r' && i + 1 < n && contenu.charAt(i + 1) == '\n') ? 2 : 1;
-      } else {
-        champ.append(c);
-        i++;
-      }
     }
-    // Dernière ligne sans saut final : on la pousse seulement si elle a du contenu.
-    if (champ.length() > 0 || !champs.isEmpty()) {
-      champs.add(champ.toString());
-      lignes.add(champs);
+
+    /// Variante de [#lire(Path)] qui retire la première ligne (l'entête).
+    public List<List<String>> lireSansEntete(Path fichier) {
+        return sansEntete(lire(fichier));
     }
-    return lignes;
-  }
 
-  /// Variante de [#lire(String)] qui retire la première ligne (l'entête).
-  public List<List<String>> lireSansEntete(String contenu) {
-    return sansEntete(lire(contenu));
-  }
+    /// Analyse le contenu CSV déjà chargé en mémoire et renvoie toutes ses lignes (entête comprise).
+    public List<List<String>> lire(String contenu) {
+        Objects.requireNonNull(contenu, "contenu");
+        List<List<String>> lignes = new ArrayList<>();
+        List<String> champs = new ArrayList<>();
+        StringBuilder champ = new StringBuilder();
+        boolean dansGuillemets = false;
+        int n = contenu.length();
+        int i = 0;
+        while (i < n) {
+            char c = contenu.charAt(i);
+            if (dansGuillemets) {
+                if (c == '"') {
+                    if (i + 1 < n && contenu.charAt(i + 1) == '"') {
+                        champ.append('"'); // guillemet littéral doublé
+                        i += 2;
+                    } else {
+                        dansGuillemets = false;
+                        i++;
+                    }
+                } else {
+                    champ.append(c);
+                    i++;
+                }
+            } else if (c == '"') {
+                dansGuillemets = true;
+                i++;
+            } else if (c == separateur) {
+                champs.add(champ.toString());
+                champ.setLength(0);
+                i++;
+            } else if (c == '\n' || c == '\r') {
+                champs.add(champ.toString());
+                champ.setLength(0);
+                lignes.add(champs);
+                champs = new ArrayList<>();
+                i += (c == '\r' && i + 1 < n && contenu.charAt(i + 1) == '\n') ? 2 : 1;
+            } else {
+                champ.append(c);
+                i++;
+            }
+        }
+        // Dernière ligne sans saut final : on la pousse seulement si elle a du contenu.
+        if (champ.length() > 0 || !champs.isEmpty()) {
+            champs.add(champ.toString());
+            lignes.add(champs);
+        }
+        return lignes;
+    }
 
-  private static List<List<String>> sansEntete(List<List<String>> lignes) {
-    return lignes.isEmpty() ? lignes : new ArrayList<>(lignes.subList(1, lignes.size()));
-  }
+    /// Variante de [#lire(String)] qui retire la première ligne (l'entête).
+    public List<List<String>> lireSansEntete(String contenu) {
+        return sansEntete(lire(contenu));
+    }
+
+    private static List<List<String>> sansEntete(List<List<String>> lignes) {
+        return lignes.isEmpty() ? lignes : new ArrayList<>(lignes.subList(1, lignes.size()));
+    }
 }

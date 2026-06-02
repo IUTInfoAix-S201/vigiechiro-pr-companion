@@ -31,89 +31,88 @@ import org.junit.jupiter.api.io.TempDir;
 /// volumes dérivés nullables, FK et suppression en cascade depuis le passage.
 class SessionDaoTest {
 
-  @TempDir Path dossier;
-  private PassageDao passageDao;
-  private SessionDao dao;
-  private Long idPassage;
+    @TempDir
+    Path dossier;
 
-  @BeforeEach
-  void preparer() {
-    SourceDeDonnees source = new SourceDeDonnees(new Workspace(dossier));
-    new MigrationSchema(source).migrer();
-    new UtilisateurDao(source).insert(new Utilisateur("u-1", "Testeur"));
-    Site site =
-        new SiteDao(source)
-            .insert(new Site(null, "040962", null, Protocole.STANDARD, null, "2026-05-01", "u-1"));
-    Long idPoint =
-        new PointDao(source).insert(new PointDEcoute(null, "A1", null, null, null, site.id())).id();
-    new EnregistreurDao(source).insert(new Enregistreur("1925492", null, null));
-    passageDao = new PassageDao(source);
-    idPassage =
-        passageDao
-            .insert(
-                new Passage(
-                    null,
-                    1,
-                    2026,
-                    "2026-06-20",
-                    "21:30:00",
-                    "05:15:00",
-                    null,
-                    StatutWorkflow.IMPORTE,
-                    null,
-                    null,
-                    null,
-                    null,
-                    idPoint,
-                    "1925492"))
-            .id();
-    dao = new SessionDao(source);
-  }
+    private PassageDao passageDao;
+    private SessionDao dao;
+    private Long idPassage;
 
-  @Test
-  @DisplayName("insert rend la session relisible et préserve les volumes (renseignés ou null)")
-  void inserer_rend_la_session_relisible() {
-    SessionDEnregistrement insere =
-        dao.insert(
-            new SessionDEnregistrement(null, "Car040962-2026-Pass1-A1", 42_000L, null, idPassage));
+    @BeforeEach
+    void preparer() {
+        SourceDeDonnees source = new SourceDeDonnees(new Workspace(dossier));
+        new MigrationSchema(source).migrer();
+        new UtilisateurDao(source).insert(new Utilisateur("u-1", "Testeur"));
+        Site site = new SiteDao(source)
+                .insert(new Site(null, "040962", null, Protocole.STANDARD, null, "2026-05-01", "u-1"));
+        Long idPoint = new PointDao(source)
+                .insert(new PointDEcoute(null, "A1", null, null, null, site.id()))
+                .id();
+        new EnregistreurDao(source).insert(new Enregistreur("1925492", null, null));
+        passageDao = new PassageDao(source);
+        idPassage = passageDao
+                .insert(new Passage(
+                        null,
+                        1,
+                        2026,
+                        "2026-06-20",
+                        "21:30:00",
+                        "05:15:00",
+                        null,
+                        StatutWorkflow.IMPORTE,
+                        null,
+                        null,
+                        null,
+                        null,
+                        idPoint,
+                        "1925492"))
+                .id();
+        dao = new SessionDao(source);
+    }
 
-    assertThat(insere.id()).isNotNull();
-    SessionDEnregistrement relu = dao.findById(insere.id()).orElseThrow();
-    assertThat(relu.cheminRacine()).isEqualTo("Car040962-2026-Pass1-A1");
-    assertThat(relu.volumeOriginauxOctets()).isEqualTo(42_000L);
-    assertThat(relu.volumeSequencesOctets()).as("volume dérivé non calculé : reste null").isNull();
-    assertThat(dao.trouverParPassage(idPassage).orElseThrow().id()).isEqualTo(insere.id());
-  }
+    @Test
+    @DisplayName("insert rend la session relisible et préserve les volumes (renseignés ou null)")
+    void inserer_rend_la_session_relisible() {
+        SessionDEnregistrement insere =
+                dao.insert(new SessionDEnregistrement(null, "Car040962-2026-Pass1-A1", 42_000L, null, idPassage));
 
-  @Test
-  @DisplayName("relation 1:1 : deux sessions pour le même passage sont interdites")
-  void unicite_passage_id_est_garantie() {
-    dao.insert(new SessionDEnregistrement(null, "racine-1", null, null, idPassage));
+        assertThat(insere.id()).isNotNull();
+        SessionDEnregistrement relu = dao.findById(insere.id()).orElseThrow();
+        assertThat(relu.cheminRacine()).isEqualTo("Car040962-2026-Pass1-A1");
+        assertThat(relu.volumeOriginauxOctets()).isEqualTo(42_000L);
+        assertThat(relu.volumeSequencesOctets())
+                .as("volume dérivé non calculé : reste null")
+                .isNull();
+        assertThat(dao.trouverParPassage(idPassage).orElseThrow().id()).isEqualTo(insere.id());
+    }
 
-    assertThatThrownBy(
-            () -> dao.insert(new SessionDEnregistrement(null, "racine-2", null, null, idPassage)))
-        .as("passage_id UNIQUE impose une seule session par passage")
-        .isInstanceOf(DataAccessException.class);
-  }
+    @Test
+    @DisplayName("relation 1:1 : deux sessions pour le même passage sont interdites")
+    void unicite_passage_id_est_garantie() {
+        dao.insert(new SessionDEnregistrement(null, "racine-1", null, null, idPassage));
 
-  @Test
-  @DisplayName("FK active : un passage inconnu est rejeté")
-  void clef_etrangere_active_un_passage_inconnu_est_rejete() {
-    assertThatThrownBy(
-            () -> dao.insert(new SessionDEnregistrement(null, "racine", null, null, 9999L)))
-        .isInstanceOf(DataAccessException.class);
-  }
+        assertThatThrownBy(() -> dao.insert(new SessionDEnregistrement(null, "racine-2", null, null, idPassage)))
+                .as("passage_id UNIQUE impose une seule session par passage")
+                .isInstanceOf(DataAccessException.class);
+    }
 
-  @Test
-  @DisplayName("supprimer le passage supprime sa session en cascade")
-  void supprimer_le_passage_supprime_la_session_en_cascade() {
-    dao.insert(new SessionDEnregistrement(null, "racine", null, null, idPassage));
-    assertThat(dao.trouverParPassage(idPassage)).isPresent();
+    @Test
+    @DisplayName("FK active : un passage inconnu est rejeté")
+    void clef_etrangere_active_un_passage_inconnu_est_rejete() {
+        assertThatThrownBy(() -> dao.insert(new SessionDEnregistrement(null, "racine", null, null, 9999L)))
+                .isInstanceOf(DataAccessException.class);
+    }
 
-    passageDao.delete(idPassage);
+    @Test
+    @DisplayName("supprimer le passage supprime sa session en cascade")
+    void supprimer_le_passage_supprime_la_session_en_cascade() {
+        dao.insert(new SessionDEnregistrement(null, "racine", null, null, idPassage));
+        assertThat(dao.trouverParPassage(idPassage)).isPresent();
 
-    assertThat(dao.trouverParPassage(idPassage))
-        .as("ON DELETE CASCADE doit avoir supprimé la session")
-        .isEmpty();
-  }
+        passageDao.delete(idPassage);
+
+        assertThat(dao.trouverParPassage(idPassage))
+                .as("ON DELETE CASCADE doit avoir supprimé la session")
+                .isEmpty();
+    }
 }

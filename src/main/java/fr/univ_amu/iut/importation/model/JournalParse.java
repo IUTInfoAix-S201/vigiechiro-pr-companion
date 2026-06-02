@@ -27,49 +27,47 @@ import java.util.Map;
 /// @param anomalies anomalies détectées (réveils non programmés, batterie faible, erreurs SD,
 /// sonde absente…)
 public record JournalParse(
-    String numeroSerie,
-    String versionModele,
-    LocalDate dateDebut,
-    String heureDebut,
-    String heureFin,
-    Integer frequenceEchantillonnageHz,
-    String bandePassante,
-    String sensibilite,
-    boolean sondePresente,
-    String parametresBruts,
-    List<String> evenements,
-    List<String> anomalies) {
+        String numeroSerie,
+        String versionModele,
+        LocalDate dateDebut,
+        String heureDebut,
+        String heureFin,
+        Integer frequenceEchantillonnageHz,
+        String bandePassante,
+        String sensibilite,
+        boolean sondePresente,
+        String parametresBruts,
+        List<String> evenements,
+        List<String> anomalies) {
 
-  public JournalParse {
-    evenements = List.copyOf(evenements);
-    anomalies = List.copyOf(anomalies);
-  }
+    public JournalParse {
+        evenements = List.copyOf(evenements);
+        anomalies = List.copyOf(anomalies);
+    }
 
-  /// `true` si au moins une anomalie a été détectée dans le journal.
-  public boolean aDesAnomalies() {
-    return !anomalies.isEmpty();
-  }
+    /// `true` si au moins une anomalie a été détectée dans le journal.
+    public boolean aDesAnomalies() {
+        return !anomalies.isEmpty();
+    }
 
-  /// Paramètres d'acquisition sérialisés en JSON (colonne `passage.acquisition_params`).
-  public String parametresAcquisitionJson() {
-    Map<String, String> champs = new LinkedHashMap<>();
-    champs.put(
-        "feHz", frequenceEchantillonnageHz == null ? null : frequenceEchantillonnageHz.toString());
-    champs.put(
-        "fenetre", heureDebut == null || heureFin == null ? null : heureDebut + "-" + heureFin);
-    champs.put("bandePassante", bandePassante);
-    champs.put("sensibilite", sensibilite);
-    champs.put("brut", parametresBruts);
-    return JsonSimple.objet(champs);
-  }
+    /// Paramètres d'acquisition sérialisés en JSON (colonne `passage.acquisition_params`).
+    public String parametresAcquisitionJson() {
+        Map<String, String> champs = new LinkedHashMap<>();
+        champs.put("feHz", frequenceEchantillonnageHz == null ? null : frequenceEchantillonnageHz.toString());
+        champs.put("fenetre", heureDebut == null || heureFin == null ? null : heureDebut + "-" + heureFin);
+        champs.put("bandePassante", bandePassante);
+        champs.put("sensibilite", sensibilite);
+        champs.put("brut", parametresBruts);
+        return JsonSimple.objet(champs);
+    }
 
-  /// Évènements sérialisés en tableau JSON (colonne `sensor_log.parsed_events`).
-  public String evenementsJson() {
-    return JsonSimple.tableau(evenements);
-  }
+    /// Évènements sérialisés en tableau JSON (colonne `sensor_log.parsed_events`).
+    public String evenementsJson() {
+        return JsonSimple.tableau(evenements);
+    }
 
-  /// Anomalies sérialisées en tableau JSON (colonne `sensor_log.detected_anomalies`).
-  public String anomaliesJson() {
-    return JsonSimple.tableau(anomalies);
-  }
+    /// Anomalies sérialisées en tableau JSON (colonne `sensor_log.detected_anomalies`).
+    public String anomaliesJson() {
+        return JsonSimple.tableau(anomalies);
+    }
 }

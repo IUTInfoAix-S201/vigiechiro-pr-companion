@@ -35,13 +35,13 @@ import fr.univ_amu.iut.commun.model.ModeValidation;
 /// @param probObservateur probabilité saisie par l'observateur (optionnelle)
 /// @param modeValidation mode de validation (R24 : manuel / auto / non validé)
 public record LigneObservation(
-    String nomSequence,
-    Double debutS,
-    Double finS,
-    Integer frequenceMedianeHz,
-    String taxonTadarida,
-    Double probTadarida,
-    String taxonAutreTadarida,
-    String taxonObservateur,
-    Double probObservateur,
-    ModeValidation modeValidation) {}
+        String nomSequence,
+        Double debutS,
+        Double finS,
+        Integer frequenceMedianeHz,
+        String taxonTadarida,
+        Double probTadarida,
+        String taxonAutreTadarida,
+        String taxonObservateur,
+        Double probObservateur,
+        ModeValidation modeValidation) {}

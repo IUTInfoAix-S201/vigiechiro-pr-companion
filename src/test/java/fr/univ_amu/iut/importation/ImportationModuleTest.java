@@ -28,33 +28,33 @@ import org.junit.jupiter.api.io.TempDir;
 /// d'import dépend de `sites`.
 class ImportationModuleTest {
 
-  @TempDir Path workspaceJetable;
+    @TempDir
+    Path workspaceJetable;
 
-  @AfterEach
-  void nettoyerLaSurcharge() {
-    System.clearProperty("vigiechiro.workspace");
-  }
+    @AfterEach
+    void nettoyerLaSurcharge() {
+        System.clearProperty("vigiechiro.workspace");
+    }
 
-  @Test
-  @DisplayName("L'injecteur résout ServiceImport et tous les moteurs de l'import")
-  void resout_le_service_et_ses_moteurs() {
-    System.setProperty("vigiechiro.workspace", workspaceJetable.toString());
+    @Test
+    @DisplayName("L'injecteur résout ServiceImport et tous les moteurs de l'import")
+    void resout_le_service_et_ses_moteurs() {
+        System.setProperty("vigiechiro.workspace", workspaceJetable.toString());
 
-    // SitesModule est inclus car ImportationModule fournit désormais ImportationViewModel, qui
-    // dépend de ServiceSites et de l'utilisateur courant (bindings fournis par SitesModule).
-    Injector injecteur =
-        Guice.createInjector(
-            new CommunModule(),
-            new PersistenceModule(),
-            new PassageModule(),
-            new SitesModule(),
-            new ImportationModule());
+        // SitesModule est inclus car ImportationModule fournit désormais ImportationViewModel, qui
+        // dépend de ServiceSites et de l'utilisateur courant (bindings fournis par SitesModule).
+        Injector injecteur = Guice.createInjector(
+                new CommunModule(),
+                new PersistenceModule(),
+                new PassageModule(),
+                new SitesModule(),
+                new ImportationModule());
 
-    assertThat(injecteur.getInstance(InspecteurDossier.class)).isNotNull();
-    assertThat(injecteur.getInstance(CopieProtegee.class)).isNotNull();
-    assertThat(injecteur.getInstance(Renommeur.class)).isNotNull();
-    assertThat(injecteur.getInstance(TransformationAudio.class)).isNotNull();
-    assertThat(injecteur.getInstance(AgregatImportDao.class)).isNotNull();
-    assertThat(injecteur.getInstance(ServiceImport.class)).isNotNull();
-  }
+        assertThat(injecteur.getInstance(InspecteurDossier.class)).isNotNull();
+        assertThat(injecteur.getInstance(CopieProtegee.class)).isNotNull();
+        assertThat(injecteur.getInstance(Renommeur.class)).isNotNull();
+        assertThat(injecteur.getInstance(TransformationAudio.class)).isNotNull();
+        assertThat(injecteur.getInstance(AgregatImportDao.class)).isNotNull();
+        assertThat(injecteur.getInstance(ServiceImport.class)).isNotNull();
+    }
 }

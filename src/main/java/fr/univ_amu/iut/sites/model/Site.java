@@ -17,10 +17,10 @@ import fr.univ_amu.iut.commun.model.Protocole;
 /// @param dateCreation date de création (ISO `AAAA-MM-JJ`)
 /// @param idUtilisateur identifiant de l'utilisateur propriétaire (FK → `user.local_id`)
 public record Site(
-    Long id,
-    String numeroCarre,
-    String nomConvivial,
-    Protocole protocole,
-    String commentaire,
-    String dateCreation,
-    String idUtilisateur) {}
+        Long id,
+        String numeroCarre,
+        String nomConvivial,
+        Protocole protocole,
+        String commentaire,
+        String dateCreation,
+        String idUtilisateur) {}

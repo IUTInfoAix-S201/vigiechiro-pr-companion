@@ -17,47 +17,46 @@ import fr.univ_amu.iut.commun.model.Verdict;
 /// @param statut statut de workflow à conserver, ou `null` pour tous les statuts
 /// @param verdict verdict de vérification à conserver, ou `null` pour tous les verdicts
 /// @param annee année à conserver, ou `null` pour toutes les années
-public record FiltresMultisite(
-    String numeroCarre, StatutWorkflow statut, Verdict verdict, Integer annee) {
+public record FiltresMultisite(String numeroCarre, StatutWorkflow statut, Verdict verdict, Integer annee) {
 
-  /// Aucun filtre : toutes les lignes sont conservées.
-  public static FiltresMultisite aucun() {
-    return new FiltresMultisite(null, null, null, null);
-  }
-
-  /// Filtre ne retenant qu'un site (par son n° de carré).
-  public static FiltresMultisite parSite(String numeroCarre) {
-    return new FiltresMultisite(numeroCarre, null, null, null);
-  }
-
-  /// Filtre ne retenant qu'un statut de workflow.
-  public static FiltresMultisite parStatut(StatutWorkflow statut) {
-    return new FiltresMultisite(null, statut, null, null);
-  }
-
-  /// Filtre ne retenant qu'un verdict de vérification.
-  public static FiltresMultisite parVerdict(Verdict verdict) {
-    return new FiltresMultisite(null, null, verdict, null);
-  }
-
-  /// Filtre ne retenant qu'une année.
-  public static FiltresMultisite parAnnee(int annee) {
-    return new FiltresMultisite(null, null, null, annee);
-  }
-
-  /// Indique si `ligne` satisfait **tous** les critères renseignés (les critères `null` sont
-  /// ignorés). C'est le prédicat appliqué par [ServiceMultisite] pour filtrer la
-  /// vue agrégée.
-  public boolean accepte(LignePassage ligne) {
-    if (numeroCarre != null && !numeroCarre.equals(ligne.numeroCarre())) {
-      return false;
+    /// Aucun filtre : toutes les lignes sont conservées.
+    public static FiltresMultisite aucun() {
+        return new FiltresMultisite(null, null, null, null);
     }
-    if (statut != null && statut != ligne.statut()) {
-      return false;
+
+    /// Filtre ne retenant qu'un site (par son n° de carré).
+    public static FiltresMultisite parSite(String numeroCarre) {
+        return new FiltresMultisite(numeroCarre, null, null, null);
     }
-    if (verdict != null && verdict != ligne.verdict()) {
-      return false;
+
+    /// Filtre ne retenant qu'un statut de workflow.
+    public static FiltresMultisite parStatut(StatutWorkflow statut) {
+        return new FiltresMultisite(null, statut, null, null);
     }
-    return annee == null || annee.intValue() == ligne.annee();
-  }
+
+    /// Filtre ne retenant qu'un verdict de vérification.
+    public static FiltresMultisite parVerdict(Verdict verdict) {
+        return new FiltresMultisite(null, null, verdict, null);
+    }
+
+    /// Filtre ne retenant qu'une année.
+    public static FiltresMultisite parAnnee(int annee) {
+        return new FiltresMultisite(null, null, null, annee);
+    }
+
+    /// Indique si `ligne` satisfait **tous** les critères renseignés (les critères `null` sont
+    /// ignorés). C'est le prédicat appliqué par [ServiceMultisite] pour filtrer la
+    /// vue agrégée.
+    public boolean accepte(LignePassage ligne) {
+        if (numeroCarre != null && !numeroCarre.equals(ligne.numeroCarre())) {
+            return false;
+        }
+        if (statut != null && statut != ligne.statut()) {
+            return false;
+        }
+        if (verdict != null && verdict != ligne.verdict()) {
+            return false;
+        }
+        return annee == null || annee.intValue() == ligne.annee();
+    }
 }

@@ -16,86 +16,80 @@ import java.util.List;
 /// d'un zéro. Rattaché à une session (`ON DELETE CASCADE`).
 public class EnregistrementOriginalDao extends DaoGenerique<EnregistrementOriginal, Long> {
 
-  private static final RowMapper<EnregistrementOriginal> MAPPER =
-      rs ->
-          new EnregistrementOriginal(
-              rs.getLong("id"),
-              rs.getString("file_name"),
-              rs.getString("file_path"),
-              (Double) rs.getObject("duration_s"),
-              lireIntNullable(rs, "sample_rate_hz"),
-              rs.getString("sha256"),
-              rs.getLong("session_id"));
+    private static final RowMapper<EnregistrementOriginal> MAPPER = rs -> new EnregistrementOriginal(
+            rs.getLong("id"),
+            rs.getString("file_name"),
+            rs.getString("file_path"),
+            (Double) rs.getObject("duration_s"),
+            lireIntNullable(rs, "sample_rate_hz"),
+            rs.getString("sha256"),
+            rs.getLong("session_id"));
 
-  /// Lit une colonne `INTEGER` nullable en [Integer], en préservant le `null`.
-  private static Integer lireIntNullable(ResultSet rs, String colonne) throws SQLException {
-    Object valeur = rs.getObject(colonne);
-    return valeur == null ? null : ((Number) valeur).intValue();
-  }
+    /// Lit une colonne `INTEGER` nullable en [Integer], en préservant le `null`.
+    private static Integer lireIntNullable(ResultSet rs, String colonne) throws SQLException {
+        Object valeur = rs.getObject(colonne);
+        return valeur == null ? null : ((Number) valeur).intValue();
+    }
 
-  public EnregistrementOriginalDao(SourceDeDonnees source) {
-    super(source);
-  }
+    public EnregistrementOriginalDao(SourceDeDonnees source) {
+        super(source);
+    }
 
-  @Override
-  protected String table() {
-    return "original_recording";
-  }
+    @Override
+    protected String table() {
+        return "original_recording";
+    }
 
-  @Override
-  protected String colonneCle() {
-    return "id";
-  }
+    @Override
+    protected String colonneCle() {
+        return "id";
+    }
 
-  @Override
-  protected RowMapper<EnregistrementOriginal> mapper() {
-    return MAPPER;
-  }
+    @Override
+    protected RowMapper<EnregistrementOriginal> mapper() {
+        return MAPPER;
+    }
 
-  /// Enregistrements originaux d'une session, triés par nom de fichier.
-  public List<EnregistrementOriginal> findBySession(Long idSession) {
-    return query(
-        "SELECT * FROM original_recording WHERE session_id = ? ORDER BY file_name",
-        MAPPER,
-        idSession);
-  }
+    /// Enregistrements originaux d'une session, triés par nom de fichier.
+    public List<EnregistrementOriginal> findBySession(Long idSession) {
+        return query("SELECT * FROM original_recording WHERE session_id = ? ORDER BY file_name", MAPPER, idSession);
+    }
 
-  @Override
-  public EnregistrementOriginal insert(EnregistrementOriginal original) {
-    long id =
-        insererEtRecupererCle(
-            "INSERT INTO original_recording"
-                + " (file_name, file_path, duration_s, sample_rate_hz, sha256, session_id)"
-                + " VALUES (?, ?, ?, ?, ?, ?)",
-            original.nomFichier(),
-            original.cheminFichier(),
-            original.dureeSecondes(),
-            original.frequenceEchantillonnageHz(),
-            original.sha256(),
-            original.idSession());
-    return new EnregistrementOriginal(
-        id,
-        original.nomFichier(),
-        original.cheminFichier(),
-        original.dureeSecondes(),
-        original.frequenceEchantillonnageHz(),
-        original.sha256(),
-        original.idSession());
-  }
+    @Override
+    public EnregistrementOriginal insert(EnregistrementOriginal original) {
+        long id = insererEtRecupererCle(
+                "INSERT INTO original_recording"
+                        + " (file_name, file_path, duration_s, sample_rate_hz, sha256, session_id)"
+                        + " VALUES (?, ?, ?, ?, ?, ?)",
+                original.nomFichier(),
+                original.cheminFichier(),
+                original.dureeSecondes(),
+                original.frequenceEchantillonnageHz(),
+                original.sha256(),
+                original.idSession());
+        return new EnregistrementOriginal(
+                id,
+                original.nomFichier(),
+                original.cheminFichier(),
+                original.dureeSecondes(),
+                original.frequenceEchantillonnageHz(),
+                original.sha256(),
+                original.idSession());
+    }
 
-  @Override
-  public void update(EnregistrementOriginal original) {
-    executerMaj(
-        "UPDATE original_recording SET"
-            + " file_name = ?, file_path = ?, duration_s = ?, sample_rate_hz = ?, sha256 = ?,"
-            + " session_id = ?"
-            + " WHERE id = ?",
-        original.nomFichier(),
-        original.cheminFichier(),
-        original.dureeSecondes(),
-        original.frequenceEchantillonnageHz(),
-        original.sha256(),
-        original.idSession(),
-        original.id());
-  }
+    @Override
+    public void update(EnregistrementOriginal original) {
+        executerMaj(
+                "UPDATE original_recording SET"
+                        + " file_name = ?, file_path = ?, duration_s = ?, sample_rate_hz = ?, sha256 = ?,"
+                        + " session_id = ?"
+                        + " WHERE id = ?",
+                original.nomFichier(),
+                original.cheminFichier(),
+                original.dureeSecondes(),
+                original.frequenceEchantillonnageHz(),
+                original.sha256(),
+                original.idSession(),
+                original.id());
+    }
 }

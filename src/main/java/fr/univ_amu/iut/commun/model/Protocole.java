@@ -10,27 +10,27 @@ package fr.univ_amu.iut.commun.model;
 /// La liste est volontairement extensible (Pédestre, Routier… à venir) : le `libelle` est
 /// la valeur persistée en base, distincte du nom Java de la constante.
 public enum Protocole {
-  STANDARD("PointFixeStandard"),
-  RECHERCHE("PointFixeRecherche");
+    STANDARD("PointFixeStandard"),
+    RECHERCHE("PointFixeRecherche");
 
-  private final String libelle;
+    private final String libelle;
 
-  Protocole(String libelle) {
-    this.libelle = libelle;
-  }
-
-  /// Valeur stockée en base (colonne `protocol`).
-  public String libelle() {
-    return libelle;
-  }
-
-  /// Retrouve un protocole depuis sa valeur persistée.
-  public static Protocole parLibelle(String libelle) {
-    for (Protocole protocole : values()) {
-      if (protocole.libelle.equals(libelle)) {
-        return protocole;
-      }
+    Protocole(String libelle) {
+        this.libelle = libelle;
     }
-    throw new IllegalArgumentException("Protocole inconnu : " + libelle);
-  }
+
+    /// Valeur stockée en base (colonne `protocol`).
+    public String libelle() {
+        return libelle;
+    }
+
+    /// Retrouve un protocole depuis sa valeur persistée.
+    public static Protocole parLibelle(String libelle) {
+        for (Protocole protocole : values()) {
+            if (protocole.libelle.equals(libelle)) {
+                return protocole;
+            }
+        }
+        throw new IllegalArgumentException("Protocole inconnu : " + libelle);
+    }
 }

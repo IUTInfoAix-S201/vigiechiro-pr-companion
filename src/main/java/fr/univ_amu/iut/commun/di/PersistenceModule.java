@@ -15,25 +15,25 @@ import fr.univ_amu.iut.commun.persistence.UniteDeTravail;
 /// framework d'injection.
 public class PersistenceModule extends AbstractModule {
 
-  @Override
-  protected void configure() {
-    // Tout passe par des @Provides.
-  }
+    @Override
+    protected void configure() {
+        // Tout passe par des @Provides.
+    }
 
-  @Provides
-  @Singleton
-  MigrationSchema fournirMigrationSchema(SourceDeDonnees source) {
-    return new MigrationSchema(source);
-  }
+    @Provides
+    @Singleton
+    MigrationSchema fournirMigrationSchema(SourceDeDonnees source) {
+        return new MigrationSchema(source);
+    }
 
-  @Provides
-  UniteDeTravail fournirUniteDeTravail(SourceDeDonnees source) {
-    return new UniteDeTravail(source);
-  }
+    @Provides
+    UniteDeTravail fournirUniteDeTravail(SourceDeDonnees source) {
+        return new UniteDeTravail(source);
+    }
 
-  @Provides
-  @Singleton
-  UtilisateurDao fournirUtilisateurDao(SourceDeDonnees source) {
-    return new UtilisateurDao(source);
-  }
+    @Provides
+    @Singleton
+    UtilisateurDao fournirUtilisateurDao(SourceDeDonnees source) {
+        return new UtilisateurDao(source);
+    }
 }

@@ -28,116 +28,117 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class RattachementViewModelTest {
 
-  private static final long ID = 7L;
+    private static final long ID = 7L;
 
-  @Mock private ServicePassage service;
-  private RattachementViewModel viewModel;
+    @Mock
+    private ServicePassage service;
 
-  @BeforeEach
-  void preparer() {
-    viewModel = new RattachementViewModel(service);
-  }
+    private RattachementViewModel viewModel;
 
-  private static DetailPassage detail(int numero, int annee, int nombreSequences) {
-    return new DetailPassage(
-        numero,
-        annee,
-        "2026-06-20",
-        "21:00:00",
-        "05:00:00",
-        "1925492",
-        StatutWorkflow.TRANSFORME,
-        Verdict.OK,
-        null,
-        0L,
-        0L,
-        nombreSequences,
-        0.0);
-  }
+    @BeforeEach
+    void preparer() {
+        viewModel = new RattachementViewModel(service);
+    }
 
-  @Test
-  @DisplayName(
-      "ouvrirSur pré-remplit l'année et le n° ; le récap est neutre tant que rien ne change")
-  void ouvrir_pre_remplit_et_recap_neutre() {
-    when(service.detailPassage(ID)).thenReturn(detail(1, 2026, 30));
+    private static DetailPassage detail(int numero, int annee, int nombreSequences) {
+        return new DetailPassage(
+                numero,
+                annee,
+                "2026-06-20",
+                "21:00:00",
+                "05:00:00",
+                "1925492",
+                StatutWorkflow.TRANSFORME,
+                Verdict.OK,
+                null,
+                0L,
+                0L,
+                nombreSequences,
+                0.0);
+    }
 
-    viewModel.ouvrirSur(ID, "040962", "A1");
+    @Test
+    @DisplayName("ouvrirSur pré-remplit l'année et le n° ; le récap est neutre tant que rien ne change")
+    void ouvrir_pre_remplit_et_recap_neutre() {
+        when(service.detailPassage(ID)).thenReturn(detail(1, 2026, 30));
 
-    assertThat(viewModel.anneeProperty().get()).isEqualTo(2026);
-    assertThat(viewModel.numeroPassageProperty().get()).isEqualTo(1);
-    assertThat(viewModel.recapProperty().get()).contains("Aucun changement");
-  }
+        viewModel.ouvrirSur(ID, "040962", "A1");
 
-  @Test
-  @DisplayName("Changer le n° met à jour le récap (quadruplet X → Y + nombre de séquences)")
-  void changer_numero_met_a_jour_le_recap() {
-    when(service.detailPassage(ID)).thenReturn(detail(1, 2026, 30));
-    viewModel.ouvrirSur(ID, "040962", "A1");
+        assertThat(viewModel.anneeProperty().get()).isEqualTo(2026);
+        assertThat(viewModel.numeroPassageProperty().get()).isEqualTo(1);
+        assertThat(viewModel.recapProperty().get()).contains("Aucun changement");
+    }
 
-    viewModel.numeroPassageProperty().set(2);
+    @Test
+    @DisplayName("Changer le n° met à jour le récap (quadruplet X → Y + nombre de séquences)")
+    void changer_numero_met_a_jour_le_recap() {
+        when(service.detailPassage(ID)).thenReturn(detail(1, 2026, 30));
+        viewModel.ouvrirSur(ID, "040962", "A1");
 
-    assertThat(viewModel.recapProperty().get())
-        .contains("Car040962-2026-Pass1-A1")
-        .contains("Car040962-2026-Pass2-A1")
-        .contains("30");
-  }
+        viewModel.numeroPassageProperty().set(2);
 
-  @Test
-  @DisplayName("valider délègue à modifierRattachement avec le nouveau préfixe et réussit")
-  void valider_delegue_et_reussit() {
-    when(service.detailPassage(ID)).thenReturn(detail(1, 2026, 30));
-    viewModel.ouvrirSur(ID, "040962", "A1");
-    viewModel.numeroPassageProperty().set(2);
+        assertThat(viewModel.recapProperty().get())
+                .contains("Car040962-2026-Pass1-A1")
+                .contains("Car040962-2026-Pass2-A1")
+                .contains("30");
+    }
 
-    boolean ok = viewModel.valider();
+    @Test
+    @DisplayName("valider délègue à modifierRattachement avec le nouveau préfixe et réussit")
+    void valider_delegue_et_reussit() {
+        when(service.detailPassage(ID)).thenReturn(detail(1, 2026, 30));
+        viewModel.ouvrirSur(ID, "040962", "A1");
+        viewModel.numeroPassageProperty().set(2);
 
-    assertThat(ok).isTrue();
-    verify(service).modifierRattachement(ID, new Prefixe("040962", 2026, 2, "A1"));
-  }
+        boolean ok = viewModel.valider();
 
-  @Test
-  @DisplayName("valider restitue l'erreur métier (R5) et renvoie false")
-  void valider_restitue_l_erreur() {
-    when(service.detailPassage(ID)).thenReturn(detail(1, 2026, 30));
-    viewModel.ouvrirSur(ID, "040962", "A1");
-    viewModel.numeroPassageProperty().set(2);
-    doThrow(new RegleMetierException("R5 : un passage n°2 existe déjà"))
-        .when(service)
-        .modifierRattachement(eq(ID), any());
+        assertThat(ok).isTrue();
+        verify(service).modifierRattachement(ID, new Prefixe("040962", 2026, 2, "A1"));
+    }
 
-    boolean ok = viewModel.valider();
+    @Test
+    @DisplayName("valider restitue l'erreur métier (R5) et renvoie false")
+    void valider_restitue_l_erreur() {
+        when(service.detailPassage(ID)).thenReturn(detail(1, 2026, 30));
+        viewModel.ouvrirSur(ID, "040962", "A1");
+        viewModel.numeroPassageProperty().set(2);
+        doThrow(new RegleMetierException("R5 : un passage n°2 existe déjà"))
+                .when(service)
+                .modifierRattachement(eq(ID), any());
 
-    assertThat(ok).isFalse();
-    assertThat(viewModel.messageErreurProperty().get()).contains("R5");
-  }
+        boolean ok = viewModel.valider();
 
-  @Test
-  @DisplayName("valider refuse un n° de passage < 1 sans appeler le service")
-  void valider_refuse_numero_invalide() {
-    when(service.detailPassage(ID)).thenReturn(detail(1, 2026, 30));
-    viewModel.ouvrirSur(ID, "040962", "A1");
-    viewModel.numeroPassageProperty().set(0);
+        assertThat(ok).isFalse();
+        assertThat(viewModel.messageErreurProperty().get()).contains("R5");
+    }
 
-    boolean ok = viewModel.valider();
+    @Test
+    @DisplayName("valider refuse un n° de passage < 1 sans appeler le service")
+    void valider_refuse_numero_invalide() {
+        when(service.detailPassage(ID)).thenReturn(detail(1, 2026, 30));
+        viewModel.ouvrirSur(ID, "040962", "A1");
+        viewModel.numeroPassageProperty().set(0);
 
-    assertThat(ok).isFalse();
-    assertThat(viewModel.messageErreurProperty().get()).contains("numéro de passage");
-    verify(service, never()).modifierRattachement(any(), any());
-  }
+        boolean ok = viewModel.valider();
 
-  @Test
-  @DisplayName("valider surface une défaillance disque/base dans le message au lieu de la propager")
-  void valider_surface_une_defaillance_operationnelle() {
-    when(service.detailPassage(ID)).thenReturn(detail(1, 2026, 30));
-    viewModel.ouvrirSur(ID, "040962", "A1");
-    viewModel.numeroPassageProperty().set(2);
-    doThrow(new UncheckedIOException("Déplacement du dossier impossible", new IOException()))
-        .when(service)
-        .modifierRattachement(eq(ID), any());
+        assertThat(ok).isFalse();
+        assertThat(viewModel.messageErreurProperty().get()).contains("numéro de passage");
+        verify(service, never()).modifierRattachement(any(), any());
+    }
 
-    boolean ok = viewModel.valider();
+    @Test
+    @DisplayName("valider surface une défaillance disque/base dans le message au lieu de la propager")
+    void valider_surface_une_defaillance_operationnelle() {
+        when(service.detailPassage(ID)).thenReturn(detail(1, 2026, 30));
+        viewModel.ouvrirSur(ID, "040962", "A1");
+        viewModel.numeroPassageProperty().set(2);
+        doThrow(new UncheckedIOException("Déplacement du dossier impossible", new IOException()))
+                .when(service)
+                .modifierRattachement(eq(ID), any());
 
-    assertThat(ok).isFalse();
-    assertThat(viewModel.messageErreurProperty().get()).contains("Déplacement");
-  }
+        boolean ok = viewModel.valider();
+
+        assertThat(ok).isFalse();
+        assertThat(viewModel.messageErreurProperty().get()).contains("Déplacement");
+    }
 }

@@ -31,47 +31,53 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class ServiceLotMockTest {
 
-  @Mock private PassageDao passageDao;
-  @Mock private SessionDao sessionDao;
-  @Mock private SequenceDao sequenceDao;
-  @Mock private VerificationCoherence verification;
+    @Mock
+    private PassageDao passageDao;
 
-  private static Passage passageAJeter(Long id) {
-    return new Passage(
-        id,
-        1,
-        2026,
-        "2026-06-20",
-        "21:30:00",
-        "05:15:00",
-        null,
-        StatutWorkflow.VERIFIE,
-        Verdict.A_JETER,
-        null,
-        null,
-        null,
-        10L,
-        "1925492");
-  }
+    @Mock
+    private SessionDao sessionDao;
 
-  @Test
-  @DisplayName("R14 : preparerLot refuse « À jeter » sans vérifier la cohérence ni écrire")
-  void preparer_lot_a_jeter_court_circuite() {
-    ServiceLot service =
-        new ServiceLot(
-            passageDao,
-            sessionDao,
-            sequenceDao,
-            verification,
-            new MoteurWorkflowPassage(),
-            new HorlogeFigee(LocalDate.of(2026, 5, 31)));
-    when(passageDao.findById(1L)).thenReturn(Optional.of(passageAJeter(1L)));
+    @Mock
+    private SequenceDao sequenceDao;
 
-    assertThatThrownBy(() -> service.preparerLot(1L))
-        .isInstanceOf(RegleMetierException.class)
-        .hasMessageContaining("À jeter");
+    @Mock
+    private VerificationCoherence verification;
 
-    verify(verification, never()).verifier(any());
-    verify(passageDao, never()).update(any());
-  }
+    private static Passage passageAJeter(Long id) {
+        return new Passage(
+                id,
+                1,
+                2026,
+                "2026-06-20",
+                "21:30:00",
+                "05:15:00",
+                null,
+                StatutWorkflow.VERIFIE,
+                Verdict.A_JETER,
+                null,
+                null,
+                null,
+                10L,
+                "1925492");
+    }
+
+    @Test
+    @DisplayName("R14 : preparerLot refuse « À jeter » sans vérifier la cohérence ni écrire")
+    void preparer_lot_a_jeter_court_circuite() {
+        ServiceLot service = new ServiceLot(
+                passageDao,
+                sessionDao,
+                sequenceDao,
+                verification,
+                new MoteurWorkflowPassage(),
+                new HorlogeFigee(LocalDate.of(2026, 5, 31)));
+        when(passageDao.findById(1L)).thenReturn(Optional.of(passageAJeter(1L)));
+
+        assertThatThrownBy(() -> service.preparerLot(1L))
+                .isInstanceOf(RegleMetierException.class)
+                .hasMessageContaining("À jeter");
+
+        verify(verification, never()).verifier(any());
+        verify(passageDao, never()).update(any());
+    }
 }

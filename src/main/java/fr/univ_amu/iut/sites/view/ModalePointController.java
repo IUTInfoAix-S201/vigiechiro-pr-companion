@@ -24,78 +24,94 @@ import javafx.stage.Stage;
 /// exécute le `Runnable` fourni par l'appelant (typiquement le rafraîchissement de M-Site-detail).
 public class ModalePointController {
 
-  private static final String STYLE_CHAMP_INVALIDE = "champ-invalide";
+    private static final String STYLE_CHAMP_INVALIDE = "champ-invalide";
 
-  private final PointEditViewModel viewModel;
-  private Runnable apresSucces = () -> {};
+    private final PointEditViewModel viewModel;
+    private Runnable apresSucces = () -> {};
 
-  @FXML private VBox racine;
-  @FXML private Label titreModale;
-  @FXML private TextField champCode;
-  @FXML private Label messageErreur;
-  @FXML private TextArea champDescription;
-  @FXML private TextField champLatitude;
-  @FXML private TextField champLongitude;
-  @FXML private Button boutonValider;
+    @FXML
+    private VBox racine;
 
-  @Inject
-  public ModalePointController(PointEditViewModel viewModel) {
-    this.viewModel = Objects.requireNonNull(viewModel, "viewModel");
-  }
+    @FXML
+    private Label titreModale;
 
-  @FXML
-  private void initialize() {
-    titreModale.textProperty().bind(viewModel.titreProperty());
-    champCode.textProperty().bindBidirectional(viewModel.codeProperty());
-    champDescription.textProperty().bindBidirectional(viewModel.descriptionProperty());
-    champLatitude.textProperty().bindBidirectional(viewModel.latitudeProperty());
-    champLongitude.textProperty().bindBidirectional(viewModel.longitudeProperty());
-    boutonValider.textProperty().bind(viewModel.libelleBoutonProperty());
-    boutonValider.disableProperty().bind(viewModel.peutEnregistrer().not());
-    messageErreur.textProperty().bind(viewModel.messageErreurProperty());
-    messageErreur.visibleProperty().bind(viewModel.messageErreurProperty().isNotEmpty());
-    messageErreur.managedProperty().bind(viewModel.messageErreurProperty().isNotEmpty());
-    viewModel.codeValide().addListener((observable, avant, valide) -> majStyleCode());
-    viewModel.codeProperty().addListener((observable, avant, apres) -> majStyleCode());
-  }
+    @FXML
+    private TextField champCode;
 
-  /// Prépare la modale en mode création et mémorise l'action de succès.
-  public void demarrerCreation(Site site, Runnable apresSucces) {
-    this.apresSucces = Objects.requireNonNull(apresSucces, "apresSucces");
-    viewModel.preparerCreation(site);
-    majStyleCode();
-  }
+    @FXML
+    private Label messageErreur;
 
-  /// Prépare la modale en mode édition (champs pré-remplis) et mémorise l'action de succès.
-  public void demarrerEdition(Site site, PointDEcoute point, Runnable apresSucces) {
-    this.apresSucces = Objects.requireNonNull(apresSucces, "apresSucces");
-    viewModel.preparerEdition(site, point);
-    majStyleCode();
-  }
+    @FXML
+    private TextArea champDescription;
 
-  @FXML
-  private void valider() {
-    if (viewModel.enregistrer()) {
-      apresSucces.run();
-      fermer();
+    @FXML
+    private TextField champLatitude;
+
+    @FXML
+    private TextField champLongitude;
+
+    @FXML
+    private Button boutonValider;
+
+    @Inject
+    public ModalePointController(PointEditViewModel viewModel) {
+        this.viewModel = Objects.requireNonNull(viewModel, "viewModel");
     }
-  }
 
-  @FXML
-  private void annuler() {
-    fermer();
-  }
-
-  /// Surligne le champ code uniquement quand il est non vide et invalide (R2).
-  private void majStyleCode() {
-    boolean afficherErreur = !viewModel.codeValide().get() && !champCode.getText().isBlank();
-    champCode.getStyleClass().remove(STYLE_CHAMP_INVALIDE);
-    if (afficherErreur) {
-      champCode.getStyleClass().add(STYLE_CHAMP_INVALIDE);
+    @FXML
+    private void initialize() {
+        titreModale.textProperty().bind(viewModel.titreProperty());
+        champCode.textProperty().bindBidirectional(viewModel.codeProperty());
+        champDescription.textProperty().bindBidirectional(viewModel.descriptionProperty());
+        champLatitude.textProperty().bindBidirectional(viewModel.latitudeProperty());
+        champLongitude.textProperty().bindBidirectional(viewModel.longitudeProperty());
+        boutonValider.textProperty().bind(viewModel.libelleBoutonProperty());
+        boutonValider.disableProperty().bind(viewModel.peutEnregistrer().not());
+        messageErreur.textProperty().bind(viewModel.messageErreurProperty());
+        messageErreur.visibleProperty().bind(viewModel.messageErreurProperty().isNotEmpty());
+        messageErreur.managedProperty().bind(viewModel.messageErreurProperty().isNotEmpty());
+        viewModel.codeValide().addListener((observable, avant, valide) -> majStyleCode());
+        viewModel.codeProperty().addListener((observable, avant, apres) -> majStyleCode());
     }
-  }
 
-  private void fermer() {
-    ((Stage) racine.getScene().getWindow()).close();
-  }
+    /// Prépare la modale en mode création et mémorise l'action de succès.
+    public void demarrerCreation(Site site, Runnable apresSucces) {
+        this.apresSucces = Objects.requireNonNull(apresSucces, "apresSucces");
+        viewModel.preparerCreation(site);
+        majStyleCode();
+    }
+
+    /// Prépare la modale en mode édition (champs pré-remplis) et mémorise l'action de succès.
+    public void demarrerEdition(Site site, PointDEcoute point, Runnable apresSucces) {
+        this.apresSucces = Objects.requireNonNull(apresSucces, "apresSucces");
+        viewModel.preparerEdition(site, point);
+        majStyleCode();
+    }
+
+    @FXML
+    private void valider() {
+        if (viewModel.enregistrer()) {
+            apresSucces.run();
+            fermer();
+        }
+    }
+
+    @FXML
+    private void annuler() {
+        fermer();
+    }
+
+    /// Surligne le champ code uniquement quand il est non vide et invalide (R2).
+    private void majStyleCode() {
+        boolean afficherErreur =
+                !viewModel.codeValide().get() && !champCode.getText().isBlank();
+        champCode.getStyleClass().remove(STYLE_CHAMP_INVALIDE);
+        if (afficherErreur) {
+            champCode.getStyleClass().add(STYLE_CHAMP_INVALIDE);
+        }
+    }
+
+    private void fermer() {
+        ((Stage) racine.getScene().getWindow()).close();
+    }
 }

@@ -21,96 +21,96 @@ import org.junit.jupiter.api.io.TempDir;
 /// nom et sur le JSON des filtres.
 class SavedViewDaoTest {
 
-  @TempDir Path dossier;
-  private SavedViewDao dao;
+    @TempDir
+    Path dossier;
 
-  @BeforeEach
-  void preparer() {
-    SourceDeDonnees source = new SourceDeDonnees(new Workspace(dossier));
-    new MigrationSchema(source).migrer();
-    dao = new SavedViewDao(source);
-  }
+    private SavedViewDao dao;
 
-  private SavedView nouvelleVue(String nom) {
-    return new SavedView(null, nom, "{\"statut\":\"À vérifier\",\"sites\":[640380,640381]}");
-  }
+    @BeforeEach
+    void preparer() {
+        SourceDeDonnees source = new SourceDeDonnees(new Workspace(dossier));
+        new MigrationSchema(source).migrer();
+        dao = new SavedViewDao(source);
+    }
 
-  @Test
-  @DisplayName("Insérer attribue un id et rend la vue relisible (filtres JSON inclus)")
-  void inserer_attribue_un_id_et_rend_la_vue_relisible() {
-    SavedView insere = dao.insert(nouvelleVue("Mes nuits à vérifier"));
+    private SavedView nouvelleVue(String nom) {
+        return new SavedView(null, nom, "{\"statut\":\"À vérifier\",\"sites\":[640380,640381]}");
+    }
 
-    assertThat(insere.id()).as("la clé auto-incrémentée est renseignée").isNotNull();
-    SavedView relue = dao.findById(insere.id()).orElseThrow();
-    assertThat(relue.nom()).isEqualTo("Mes nuits à vérifier");
-    assertThat(relue.filtresJson())
-        .as("le JSON des filtres est persisté tel quel")
-        .isEqualTo("{\"statut\":\"À vérifier\",\"sites\":[640380,640381]}");
-  }
+    @Test
+    @DisplayName("Insérer attribue un id et rend la vue relisible (filtres JSON inclus)")
+    void inserer_attribue_un_id_et_rend_la_vue_relisible() {
+        SavedView insere = dao.insert(nouvelleVue("Mes nuits à vérifier"));
 
-  @Test
-  @DisplayName("Mettre à jour modifie le nom et les filtres")
-  void mettre_a_jour_modifie_les_champs() {
-    SavedView insere = dao.insert(nouvelleVue("Brouillon"));
+        assertThat(insere.id()).as("la clé auto-incrémentée est renseignée").isNotNull();
+        SavedView relue = dao.findById(insere.id()).orElseThrow();
+        assertThat(relue.nom()).isEqualTo("Mes nuits à vérifier");
+        assertThat(relue.filtresJson())
+                .as("le JSON des filtres est persisté tel quel")
+                .isEqualTo("{\"statut\":\"À vérifier\",\"sites\":[640380,640381]}");
+    }
 
-    dao.update(new SavedView(insere.id(), "Vue définitive", "{\"verdict\":\"Validé\"}"));
+    @Test
+    @DisplayName("Mettre à jour modifie le nom et les filtres")
+    void mettre_a_jour_modifie_les_champs() {
+        SavedView insere = dao.insert(nouvelleVue("Brouillon"));
 
-    SavedView relue = dao.findById(insere.id()).orElseThrow();
-    assertThat(relue.nom()).isEqualTo("Vue définitive");
-    assertThat(relue.filtresJson()).isEqualTo("{\"verdict\":\"Validé\"}");
-  }
+        dao.update(new SavedView(insere.id(), "Vue définitive", "{\"verdict\":\"Validé\"}"));
 
-  @Test
-  @DisplayName("Supprimer retire la vue")
-  void supprimer_retire_la_vue() {
-    SavedView insere = dao.insert(nouvelleVue("À supprimer"));
-    assertThat(dao.findById(insere.id())).isPresent();
+        SavedView relue = dao.findById(insere.id()).orElseThrow();
+        assertThat(relue.nom()).isEqualTo("Vue définitive");
+        assertThat(relue.filtresJson()).isEqualTo("{\"verdict\":\"Validé\"}");
+    }
 
-    dao.delete(insere.id());
+    @Test
+    @DisplayName("Supprimer retire la vue")
+    void supprimer_retire_la_vue() {
+        SavedView insere = dao.insert(nouvelleVue("À supprimer"));
+        assertThat(dao.findById(insere.id())).isPresent();
 
-    assertThat(dao.findById(insere.id())).isEmpty();
-  }
+        dao.delete(insere.id());
 
-  @Test
-  @DisplayName("findByNom remonte toutes les vues enregistrées sous un nom donné")
-  void rechercher_par_nom_remonte_les_vues_correspondantes() {
-    dao.insert(nouvelleVue("Saison 2026"));
-    dao.insert(nouvelleVue("Saison 2026"));
-    dao.insert(nouvelleVue("Autre vue"));
+        assertThat(dao.findById(insere.id())).isEmpty();
+    }
 
-    assertThat(dao.findByNom("Saison 2026")).hasSize(2);
-    assertThat(dao.findByNom("Autre vue")).extracting(SavedView::nom).containsExactly("Autre vue");
-    assertThat(dao.findByNom("Inconnue")).isEmpty();
-  }
+    @Test
+    @DisplayName("findByNom remonte toutes les vues enregistrées sous un nom donné")
+    void rechercher_par_nom_remonte_les_vues_correspondantes() {
+        dao.insert(nouvelleVue("Saison 2026"));
+        dao.insert(nouvelleVue("Saison 2026"));
+        dao.insert(nouvelleVue("Autre vue"));
 
-  @Test
-  @DisplayName("findAll restitue toutes les vues enregistrées")
-  void lister_restitue_toutes_les_vues() {
-    dao.insert(nouvelleVue("Vue A"));
-    dao.insert(nouvelleVue("Vue B"));
+        assertThat(dao.findByNom("Saison 2026")).hasSize(2);
+        assertThat(dao.findByNom("Autre vue")).extracting(SavedView::nom).containsExactly("Autre vue");
+        assertThat(dao.findByNom("Inconnue")).isEmpty();
+    }
 
-    assertThat(dao.findAll())
-        .extracting(SavedView::nom)
-        .containsExactlyInAnyOrder("Vue A", "Vue B");
-  }
+    @Test
+    @DisplayName("findAll restitue toutes les vues enregistrées")
+    void lister_restitue_toutes_les_vues() {
+        dao.insert(nouvelleVue("Vue A"));
+        dao.insert(nouvelleVue("Vue B"));
 
-  @Test
-  @DisplayName("Le nom est obligatoire (contrainte NOT NULL sur name)")
-  void nom_obligatoire_est_refuse() {
-    SavedView sansNom = new SavedView(null, null, "{}");
+        assertThat(dao.findAll()).extracting(SavedView::nom).containsExactlyInAnyOrder("Vue A", "Vue B");
+    }
 
-    assertThatThrownBy(() -> dao.insert(sansNom))
-        .as("name NOT NULL doit refuser une vue sans nom")
-        .isInstanceOf(DataAccessException.class);
-  }
+    @Test
+    @DisplayName("Le nom est obligatoire (contrainte NOT NULL sur name)")
+    void nom_obligatoire_est_refuse() {
+        SavedView sansNom = new SavedView(null, null, "{}");
 
-  @Test
-  @DisplayName("Le JSON des filtres est obligatoire (contrainte NOT NULL sur filters_json)")
-  void filtres_json_obligatoire_est_refuse() {
-    SavedView sansFiltres = new SavedView(null, "Vue vide", null);
+        assertThatThrownBy(() -> dao.insert(sansNom))
+                .as("name NOT NULL doit refuser une vue sans nom")
+                .isInstanceOf(DataAccessException.class);
+    }
 
-    assertThatThrownBy(() -> dao.insert(sansFiltres))
-        .as("filters_json NOT NULL doit refuser une vue sans critères")
-        .isInstanceOf(DataAccessException.class);
-  }
+    @Test
+    @DisplayName("Le JSON des filtres est obligatoire (contrainte NOT NULL sur filters_json)")
+    void filtres_json_obligatoire_est_refuse() {
+        SavedView sansFiltres = new SavedView(null, "Vue vide", null);
+
+        assertThatThrownBy(() -> dao.insert(sansFiltres))
+                .as("filters_json NOT NULL doit refuser une vue sans critères")
+                .isInstanceOf(DataAccessException.class);
+    }
 }

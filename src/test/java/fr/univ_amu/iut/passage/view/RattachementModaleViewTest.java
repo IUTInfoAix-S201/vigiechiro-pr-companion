@@ -33,81 +33,75 @@ import org.testfx.framework.junit5.Start;
 @ExtendWith(ApplicationExtension.class)
 class RattachementModaleViewTest {
 
-  @Start
-  void start(Stage stage) throws Exception {
-    ServicePassage service = mock(ServicePassage.class);
-    when(service.detailPassage(anyLong()))
-        .thenReturn(
-            new DetailPassage(
-                1,
-                2026,
-                "2026-06-20",
-                "21:00:00",
-                "05:00:00",
-                "1925492",
-                StatutWorkflow.TRANSFORME,
-                Verdict.OK,
-                null,
-                0L,
-                0L,
-                30,
-                0.0));
-    Injector injector =
-        Guice.createInjector(
-            new AbstractModule() {
-              @Provides
-              RattachementViewModel viewModel() {
+    @Start
+    void start(Stage stage) throws Exception {
+        ServicePassage service = mock(ServicePassage.class);
+        when(service.detailPassage(anyLong()))
+                .thenReturn(new DetailPassage(
+                        1,
+                        2026,
+                        "2026-06-20",
+                        "21:00:00",
+                        "05:00:00",
+                        "1925492",
+                        StatutWorkflow.TRANSFORME,
+                        Verdict.OK,
+                        null,
+                        0L,
+                        0L,
+                        30,
+                        0.0));
+        Injector injector = Guice.createInjector(new AbstractModule() {
+            @Provides
+            RattachementViewModel viewModel() {
                 return new RattachementViewModel(service);
-              }
-            });
-    FXMLLoader loader =
-        new FXMLLoader(RattachementModaleController.class.getResource("RattachementModale.fxml"));
-    loader.setControllerFactory(injector::getInstance);
-    Parent vue = loader.load();
-    RattachementModaleController controleur = loader.getController();
-    controleur.demarrer(7L, "040962", "A1", () -> {});
-    stage.setScene(new Scene(vue));
-    stage.show();
-  }
+            }
+        });
+        FXMLLoader loader = new FXMLLoader(RattachementModaleController.class.getResource("RattachementModale.fxml"));
+        loader.setControllerFactory(injector::getInstance);
+        Parent vue = loader.load();
+        RattachementModaleController controleur = loader.getController();
+        controleur.demarrer(7L, "040962", "A1", () -> {});
+        stage.setScene(new Scene(vue));
+        stage.show();
+    }
 
-  @Test
-  @DisplayName("Les spinners sont pré-remplis et le récap est neutre tant que rien ne change")
-  void prerempli_et_recap_neutre(FxRobot robot) {
-    Spinner<?> annee = robot.lookup("#spinnerAnnee").queryAs(Spinner.class);
-    Spinner<?> numero = robot.lookup("#spinnerNumero").queryAs(Spinner.class);
-    Label recap = robot.lookup("#labelRecap").queryAs(Label.class);
+    @Test
+    @DisplayName("Les spinners sont pré-remplis et le récap est neutre tant que rien ne change")
+    void prerempli_et_recap_neutre(FxRobot robot) {
+        Spinner<?> annee = robot.lookup("#spinnerAnnee").queryAs(Spinner.class);
+        Spinner<?> numero = robot.lookup("#spinnerNumero").queryAs(Spinner.class);
+        Label recap = robot.lookup("#labelRecap").queryAs(Label.class);
 
-    assertThat(annee.getValue()).isEqualTo(2026);
-    assertThat(numero.getValue()).isEqualTo(1);
-    assertThat(recap.getText()).contains("Aucun changement");
-  }
+        assertThat(annee.getValue()).isEqualTo(2026);
+        assertThat(numero.getValue()).isEqualTo(1);
+        assertThat(recap.getText()).contains("Aucun changement");
+    }
 
-  @Test
-  @DisplayName("Changer le n° dans le spinner met à jour le récap (quadruplet X → Y)")
-  void changer_numero_met_a_jour_le_recap(FxRobot robot) {
-    @SuppressWarnings("unchecked")
-    Spinner<Integer> numero = robot.lookup("#spinnerNumero").queryAs(Spinner.class);
-    Label recap = robot.lookup("#labelRecap").queryAs(Label.class);
+    @Test
+    @DisplayName("Changer le n° dans le spinner met à jour le récap (quadruplet X → Y)")
+    void changer_numero_met_a_jour_le_recap(FxRobot robot) {
+        @SuppressWarnings("unchecked")
+        Spinner<Integer> numero = robot.lookup("#spinnerNumero").queryAs(Spinner.class);
+        Label recap = robot.lookup("#labelRecap").queryAs(Label.class);
 
-    robot.interact(() -> numero.getValueFactory().setValue(2));
+        robot.interact(() -> numero.getValueFactory().setValue(2));
 
-    assertThat(recap.getText())
-        .contains("Car040962-2026-Pass1-A1")
-        .contains("Car040962-2026-Pass2-A1");
-  }
+        assertThat(recap.getText()).contains("Car040962-2026-Pass1-A1").contains("Car040962-2026-Pass2-A1");
+    }
 
-  @Test
-  @DisplayName("Le spinner n'écrête pas une valeur hors domaine : le ViewModel reste l'autorité")
-  void spinner_ne_preclampe_pas_la_saisie(FxRobot robot) {
-    @SuppressWarnings("unchecked")
-    Spinner<Integer> numero = robot.lookup("#spinnerNumero").queryAs(Spinner.class);
+    @Test
+    @DisplayName("Le spinner n'écrête pas une valeur hors domaine : le ViewModel reste l'autorité")
+    void spinner_ne_preclampe_pas_la_saisie(FxRobot robot) {
+        @SuppressWarnings("unchecked")
+        Spinner<Integer> numero = robot.lookup("#spinnerNumero").queryAs(Spinner.class);
 
-    // 0 (hors domaine) et 100000 (au-delà d'une borne arbitraire) sont conservés tels quels : c'est
-    // valider() qui rejettera 0 — le spinner ne le normalise pas silencieusement.
-    robot.interact(() -> numero.getValueFactory().setValue(0));
-    assertThat(numero.getValue()).isZero();
+        // 0 (hors domaine) et 100000 (au-delà d'une borne arbitraire) sont conservés tels quels : c'est
+        // valider() qui rejettera 0 — le spinner ne le normalise pas silencieusement.
+        robot.interact(() -> numero.getValueFactory().setValue(0));
+        assertThat(numero.getValue()).isZero();
 
-    robot.interact(() -> numero.getValueFactory().setValue(100000));
-    assertThat(numero.getValue()).isEqualTo(100000);
-  }
+        robot.interact(() -> numero.getValueFactory().setValue(100000));
+        assertThat(numero.getValue()).isEqualTo(100000);
+    }
 }

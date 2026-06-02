@@ -15,5 +15,4 @@ package fr.univ_amu.iut.qualification.model;
 /// @param idSequence identifiant de la séquence rattachée (FK → `listening_sequence.id`)
 /// @param position rang d'affichage dans la sélection (≥ 0)
 /// @param ecoutee `true` si la séquence a déjà été écoutée (flag `listened`)
-public record SequenceSelectionnee(
-    Long idSelection, Long idSequence, int position, boolean ecoutee) {}
+public record SequenceSelectionnee(Long idSelection, Long idSequence, int position, boolean ecoutee) {}

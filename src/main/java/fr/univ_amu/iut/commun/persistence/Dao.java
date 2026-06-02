@@ -16,19 +16,19 @@ import java.util.Optional;
 /// pour une clé naturelle)
 public interface Dao<T, ID> {
 
-  /// Toutes les entités, triées sur la colonne clé.
-  List<T> findAll();
+    /// Toutes les entités, triées sur la colonne clé.
+    List<T> findAll();
 
-  /// L'entité d'identifiant `id`, ou [Optional#empty()] si elle n'existe pas.
-  Optional<T> findById(ID id);
+    /// L'entité d'identifiant `id`, ou [Optional#empty()] si elle n'existe pas.
+    Optional<T> findById(ID id);
 
-  /// Insère une nouvelle entité et renvoie l'entité telle qu'elle est stockée (avec sa clé générée
-  /// si la table utilise un `INTEGER PRIMARY KEY AUTOINCREMENT`).
-  T insert(T entite);
+    /// Insère une nouvelle entité et renvoie l'entité telle qu'elle est stockée (avec sa clé générée
+    /// si la table utilise un `INTEGER PRIMARY KEY AUTOINCREMENT`).
+    T insert(T entite);
 
-  /// Met à jour une entité existante (identifiée par sa clé primaire).
-  void update(T entite);
+    /// Met à jour une entité existante (identifiée par sa clé primaire).
+    void update(T entite);
 
-  /// Supprime l'entité d'identifiant `id`.
-  void delete(ID id);
+    /// Supprime l'entité d'identifiant `id`.
+    void delete(ID id);
 }

@@ -18,21 +18,22 @@ import org.junit.jupiter.api.io.TempDir;
 /// ne pas toucher au workspace réel.
 class PassageModuleInjectionTest {
 
-  @TempDir Path workspaceJetable;
+    @TempDir
+    Path workspaceJetable;
 
-  @AfterEach
-  void nettoyerLaSurcharge() {
-    System.clearProperty("vigiechiro.workspace");
-  }
+    @AfterEach
+    void nettoyerLaSurcharge() {
+        System.clearProperty("vigiechiro.workspace");
+    }
 
-  @Test
-  @DisplayName("La racine de composition résout le moteur et le service de la feature passage")
-  void resout_moteur_et_service_passage() {
-    System.setProperty("vigiechiro.workspace", workspaceJetable.toString());
+    @Test
+    @DisplayName("La racine de composition résout le moteur et le service de la feature passage")
+    void resout_moteur_et_service_passage() {
+        System.setProperty("vigiechiro.workspace", workspaceJetable.toString());
 
-    Injector injecteur = RacineInjecteur.creer();
+        Injector injecteur = RacineInjecteur.creer();
 
-    assertThat(injecteur.getInstance(MoteurWorkflowPassage.class)).isNotNull();
-    assertThat(injecteur.getInstance(ServicePassage.class)).isNotNull();
-  }
+        assertThat(injecteur.getInstance(MoteurWorkflowPassage.class)).isNotNull();
+        assertThat(injecteur.getInstance(ServicePassage.class)).isNotNull();
+    }
 }

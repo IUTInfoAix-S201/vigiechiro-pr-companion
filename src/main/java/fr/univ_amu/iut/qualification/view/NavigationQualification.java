@@ -25,29 +25,28 @@ import javafx.scene.Parent;
 @Singleton
 public class NavigationQualification implements OuvrirVerification {
 
-  private final Injector injector;
-  private final Navigateur navigateur;
+    private final Injector injector;
+    private final Navigateur navigateur;
 
-  @Inject
-  public NavigationQualification(Injector injector, Navigateur navigateur) {
-    this.injector = Objects.requireNonNull(injector, "injector");
-    this.navigateur = Objects.requireNonNull(navigateur, "navigateur");
-  }
-
-  /// Affiche l'écran « Vérifier l'enregistrement » pour le passage `idPassage` dans la zone
-  /// centrale du chrome (les deux ViewModel sont ouverts sur ce passage).
-  @Override
-  public void ouvrir(Long idPassage) {
-    FXMLLoader loader =
-        new FXMLLoader(NavigationQualification.class.getResource("Qualification.fxml"));
-    loader.setControllerFactory(injector::getInstance);
-    try {
-      Parent vue = loader.load();
-      QualificationController controleur = loader.getController();
-      controleur.ouvrirSur(idPassage);
-      navigateur.afficher(vue, "qualification", "Vérifier l'enregistrement");
-    } catch (IOException echec) {
-      throw new UncheckedIOException("Chargement FXML impossible : " + loader.getLocation(), echec);
+    @Inject
+    public NavigationQualification(Injector injector, Navigateur navigateur) {
+        this.injector = Objects.requireNonNull(injector, "injector");
+        this.navigateur = Objects.requireNonNull(navigateur, "navigateur");
     }
-  }
+
+    /// Affiche l'écran « Vérifier l'enregistrement » pour le passage `idPassage` dans la zone
+    /// centrale du chrome (les deux ViewModel sont ouverts sur ce passage).
+    @Override
+    public void ouvrir(Long idPassage) {
+        FXMLLoader loader = new FXMLLoader(NavigationQualification.class.getResource("Qualification.fxml"));
+        loader.setControllerFactory(injector::getInstance);
+        try {
+            Parent vue = loader.load();
+            QualificationController controleur = loader.getController();
+            controleur.ouvrirSur(idPassage);
+            navigateur.afficher(vue, "qualification", "Vérifier l'enregistrement");
+        } catch (IOException echec) {
+            throw new UncheckedIOException("Chargement FXML impossible : " + loader.getLocation(), echec);
+        }
+    }
 }

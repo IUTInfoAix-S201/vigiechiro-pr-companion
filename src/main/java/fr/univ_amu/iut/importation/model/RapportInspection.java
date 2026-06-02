@@ -19,34 +19,34 @@ import java.util.Optional;
 /// @param originaux enregistrements originaux WAV détectés, triés par nom de fichier
 /// @param etatNommage état de nommage des originaux : bruts, déjà préfixés, ou aucun (R6)
 public record RapportInspection(
-    Path dossierSource,
-    Path cheminJournal,
-    JournalParse journal,
-    Path cheminReleveClimatique,
-    List<Path> originaux,
-    EtatNommage etatNommage) {
+        Path dossierSource,
+        Path cheminJournal,
+        JournalParse journal,
+        Path cheminReleveClimatique,
+        List<Path> originaux,
+        EtatNommage etatNommage) {
 
-  public RapportInspection {
-    originaux = List.copyOf(originaux);
-  }
+    public RapportInspection {
+        originaux = List.copyOf(originaux);
+    }
 
-  /// `true` si un journal du capteur a pu être localisé et parsé.
-  public boolean aUnJournal() {
-    return journal != null;
-  }
+    /// `true` si un journal du capteur a pu être localisé et parsé.
+    public boolean aUnJournal() {
+        return journal != null;
+    }
 
-  /// `true` si un relevé climatique accompagne la nuit (sonde présente, R20).
-  public boolean aUnReleveClimatique() {
-    return cheminReleveClimatique != null;
-  }
+    /// `true` si un relevé climatique accompagne la nuit (sonde présente, R20).
+    public boolean aUnReleveClimatique() {
+        return cheminReleveClimatique != null;
+    }
 
-  /// Journal parsé sous forme d'[Optional] (pratique côté appelant).
-  public Optional<JournalParse> journalOptionnel() {
-    return Optional.ofNullable(journal);
-  }
+    /// Journal parsé sous forme d'[Optional] (pratique côté appelant).
+    public Optional<JournalParse> journalOptionnel() {
+        return Optional.ofNullable(journal);
+    }
 
-  /// Nombre d'enregistrements originaux détectés.
-  public int nombreOriginaux() {
-    return originaux.size();
-  }
+    /// Nombre d'enregistrements originaux détectés.
+    public int nombreOriginaux() {
+        return originaux.size();
+    }
 }

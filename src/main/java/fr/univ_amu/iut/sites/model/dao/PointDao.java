@@ -13,65 +13,62 @@ import java.util.List;
 /// `rs.getDouble(...)` (qui renverrait 0.0).
 public class PointDao extends DaoGenerique<PointDEcoute, Long> {
 
-  private static final RowMapper<PointDEcoute> MAPPER =
-      rs ->
-          new PointDEcoute(
-              rs.getLong("id"),
-              rs.getString("code"),
-              (Double) rs.getObject("gps_lat"),
-              (Double) rs.getObject("gps_lon"),
-              rs.getString("description"),
-              rs.getLong("site_id"));
+    private static final RowMapper<PointDEcoute> MAPPER = rs -> new PointDEcoute(
+            rs.getLong("id"),
+            rs.getString("code"),
+            (Double) rs.getObject("gps_lat"),
+            (Double) rs.getObject("gps_lon"),
+            rs.getString("description"),
+            rs.getLong("site_id"));
 
-  public PointDao(SourceDeDonnees source) {
-    super(source);
-  }
+    public PointDao(SourceDeDonnees source) {
+        super(source);
+    }
 
-  @Override
-  protected String table() {
-    return "listening_point";
-  }
+    @Override
+    protected String table() {
+        return "listening_point";
+    }
 
-  @Override
-  protected String colonneCle() {
-    return "id";
-  }
+    @Override
+    protected String colonneCle() {
+        return "id";
+    }
 
-  @Override
-  protected RowMapper<PointDEcoute> mapper() {
-    return MAPPER;
-  }
+    @Override
+    protected RowMapper<PointDEcoute> mapper() {
+        return MAPPER;
+    }
 
-  /// Points d'écoute d'un site donné, triés par code.
-  public List<PointDEcoute> findBySite(Long idSite) {
-    return query("SELECT * FROM listening_point WHERE site_id = ? ORDER BY code", MAPPER, idSite);
-  }
+    /// Points d'écoute d'un site donné, triés par code.
+    public List<PointDEcoute> findBySite(Long idSite) {
+        return query("SELECT * FROM listening_point WHERE site_id = ? ORDER BY code", MAPPER, idSite);
+    }
 
-  @Override
-  public PointDEcoute insert(PointDEcoute point) {
-    long id =
-        insererEtRecupererCle(
-            "INSERT INTO listening_point (code, gps_lat, gps_lon, description, site_id)"
-                + " VALUES (?, ?, ?, ?, ?)",
-            point.code(),
-            point.latitude(),
-            point.longitude(),
-            point.description(),
-            point.idSite());
-    return new PointDEcoute(
-        id, point.code(), point.latitude(), point.longitude(), point.description(), point.idSite());
-  }
+    @Override
+    public PointDEcoute insert(PointDEcoute point) {
+        long id = insererEtRecupererCle(
+                "INSERT INTO listening_point (code, gps_lat, gps_lon, description, site_id)"
+                        + " VALUES (?, ?, ?, ?, ?)",
+                point.code(),
+                point.latitude(),
+                point.longitude(),
+                point.description(),
+                point.idSite());
+        return new PointDEcoute(
+                id, point.code(), point.latitude(), point.longitude(), point.description(), point.idSite());
+    }
 
-  @Override
-  public void update(PointDEcoute point) {
-    executerMaj(
-        "UPDATE listening_point SET code = ?, gps_lat = ?, gps_lon = ?, description = ?, site_id = ?"
-            + " WHERE id = ?",
-        point.code(),
-        point.latitude(),
-        point.longitude(),
-        point.description(),
-        point.idSite(),
-        point.id());
-  }
+    @Override
+    public void update(PointDEcoute point) {
+        executerMaj(
+                "UPDATE listening_point SET code = ?, gps_lat = ?, gps_lon = ?, description = ?, site_id = ?"
+                        + " WHERE id = ?",
+                point.code(),
+                point.latitude(),
+                point.longitude(),
+                point.description(),
+                point.idSite(),
+                point.id());
+    }
 }

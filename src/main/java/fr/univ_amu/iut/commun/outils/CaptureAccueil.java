@@ -30,48 +30,47 @@ import javafx.scene.Scene;
 /// Lancement headless : `.github/assets/capture-screenshots.sh` (Headless Platform JavaFX 26).
 public final class CaptureAccueil {
 
-  private static final String CHROME = "/fr/univ_amu/iut/commun/view/MainView.fxml";
+    private static final String CHROME = "/fr/univ_amu/iut/commun/view/MainView.fxml";
 
-  private CaptureAccueil() {}
+    private CaptureAccueil() {}
 
-  public static void main(String[] args) throws InterruptedException {
-    CountDownLatch fini = new CountDownLatch(1);
-    AtomicReference<Throwable> erreur = new AtomicReference<>();
-    Platform.startup(
-        () -> {
-          try {
-            capturer();
-          } catch (RuntimeException | IOException probleme) {
-            erreur.set(probleme);
-          } finally {
-            fini.countDown();
-          }
+    public static void main(String[] args) throws InterruptedException {
+        CountDownLatch fini = new CountDownLatch(1);
+        AtomicReference<Throwable> erreur = new AtomicReference<>();
+        Platform.startup(() -> {
+            try {
+                capturer();
+            } catch (RuntimeException | IOException probleme) {
+                erreur.set(probleme);
+            } finally {
+                fini.countDown();
+            }
         });
-    fini.await();
-    Platform.exit();
-    Throwable probleme = erreur.get();
-    if (probleme != null) {
-      probleme.printStackTrace();
-      System.exit(1);
+        fini.await();
+        Platform.exit();
+        Throwable probleme = erreur.get();
+        if (probleme != null) {
+            probleme.printStackTrace();
+            System.exit(1);
+        }
+        System.exit(0);
     }
-    System.exit(0);
-  }
 
-  private static void capturer() throws IOException {
-    Path workspace = Files.createTempDirectory("vc-capture-accueil");
-    System.setProperty("vigiechiro.workspace", workspace.toString());
-    Path sortie = Path.of(System.getProperty("capture.outDir", ".github/assets"));
+    private static void capturer() throws IOException {
+        Path workspace = Files.createTempDirectory("vc-capture-accueil");
+        System.setProperty("vigiechiro.workspace", workspace.toString());
+        Path sortie = Path.of(System.getProperty("capture.outDir", ".github/assets"));
 
-    Injector injecteur = RacineInjecteur.creer();
-    Parent chrome = chargerFxml(injecteur, CHROME);
-    ApercuFx.enregistrerPng(new Scene(chrome, 1100, 720), sortie.resolve("apercu-accueil.png"));
+        Injector injecteur = RacineInjecteur.creer();
+        Parent chrome = chargerFxml(injecteur, CHROME);
+        ApercuFx.enregistrerPng(new Scene(chrome, 1100, 720), sortie.resolve("apercu-accueil.png"));
 
-    System.out.println("Apercu d'accueil ecrit dans " + sortie.toAbsolutePath());
-  }
+        System.out.println("Apercu d'accueil ecrit dans " + sortie.toAbsolutePath());
+    }
 
-  private static Parent chargerFxml(Injector injecteur, String chemin) throws IOException {
-    FXMLLoader loader = new FXMLLoader(CaptureAccueil.class.getResource(chemin));
-    loader.setControllerFactory(injecteur::getInstance);
-    return loader.load();
-  }
+    private static Parent chargerFxml(Injector injecteur, String chemin) throws IOException {
+        FXMLLoader loader = new FXMLLoader(CaptureAccueil.class.getResource(chemin));
+        loader.setControllerFactory(injecteur::getInstance);
+        return loader.load();
+    }
 }

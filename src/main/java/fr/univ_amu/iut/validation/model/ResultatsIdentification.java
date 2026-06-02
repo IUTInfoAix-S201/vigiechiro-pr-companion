@@ -17,4 +17,4 @@ package fr.univ_amu.iut.validation.model;
 /// @param dateImport date/heure d'import (ISO-8601)
 /// @param idPassage identifiant du passage annoté (FK → `passage.id`, unique)
 public record ResultatsIdentification(
-    Long id, String cheminFichier, String formatDetecte, String dateImport, Long idPassage) {}
+        Long id, String cheminFichier, String formatDetecte, String dateImport, Long idPassage) {}

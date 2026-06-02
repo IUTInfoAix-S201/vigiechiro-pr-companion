@@ -19,83 +19,83 @@ import java.util.OptionalInt;
 /// la `Cli` traduit en code de sortie « mauvaise invocation ».
 public final class ArgumentsCli {
 
-  private final Map<String, String> options;
+    private final Map<String, String> options;
 
-  private ArgumentsCli(Map<String, String> options) {
-    this.options = options;
-  }
+    private ArgumentsCli(Map<String, String> options) {
+        this.options = options;
+    }
 
-  /// Analyse les jetons situés **après** le nom de la sous-commande.
-  ///
-  /// @param jetons tableau des arguments restants (peut être vide)
-  /// @return la table des options reconnues (ordre d'apparition préservé)
-  public static ArgumentsCli analyser(String[] jetons) {
-    Map<String, String> options = new LinkedHashMap<>();
-    int i = 0;
-    while (i < jetons.length) {
-      String jeton = jetons[i];
-      if (jeton.startsWith("--") && jeton.length() > 2) {
-        String cle = jeton.substring(2);
-        if (i + 1 < jetons.length && !jetons[i + 1].startsWith("--")) {
-          options.put(cle, jetons[i + 1]);
-          i += 2;
-        } else {
-          options.put(cle, null); // drapeau sans valeur
-          i += 1;
+    /// Analyse les jetons situés **après** le nom de la sous-commande.
+    ///
+    /// @param jetons tableau des arguments restants (peut être vide)
+    /// @return la table des options reconnues (ordre d'apparition préservé)
+    public static ArgumentsCli analyser(String[] jetons) {
+        Map<String, String> options = new LinkedHashMap<>();
+        int i = 0;
+        while (i < jetons.length) {
+            String jeton = jetons[i];
+            if (jeton.startsWith("--") && jeton.length() > 2) {
+                String cle = jeton.substring(2);
+                if (i + 1 < jetons.length && !jetons[i + 1].startsWith("--")) {
+                    options.put(cle, jetons[i + 1]);
+                    i += 2;
+                } else {
+                    options.put(cle, null); // drapeau sans valeur
+                    i += 1;
+                }
+            } else {
+                // Jeton positionnel non reconnu : ignoré (les commandes lisent des options nommées).
+                i += 1;
+            }
         }
-      } else {
-        // Jeton positionnel non reconnu : ignoré (les commandes lisent des options nommées).
-        i += 1;
-      }
+        return new ArgumentsCli(options);
     }
-    return new ArgumentsCli(options);
-  }
 
-  /// `true` si l'option `--cle` a été fournie (avec ou sans valeur).
-  public boolean present(String cle) {
-    return options.containsKey(cle);
-  }
-
-  /// Valeur de `--cle` si elle est présente et porte une valeur, sinon [Optional#empty()].
-  public Optional<String> valeur(String cle) {
-    return Optional.ofNullable(options.get(cle));
-  }
-
-  /// Valeur obligatoire de `--cle`.
-  ///
-  /// @throws ErreurUsage si l'option est absente ou fournie sans valeur
-  public String exiger(String cle) {
-    String valeur = options.get(cle);
-    if (valeur == null) {
-      throw new ErreurUsage("Argument requis manquant ou sans valeur : --" + cle);
+    /// `true` si l'option `--cle` a été fournie (avec ou sans valeur).
+    public boolean present(String cle) {
+        return options.containsKey(cle);
     }
-    return valeur;
-  }
 
-  /// Valeur obligatoire de `--cle` convertie en `long`.
-  ///
-  /// @throws ErreurUsage si l'option est absente, sans valeur, ou non numérique
-  public long exigerLong(String cle) {
-    String valeur = exiger(cle);
-    try {
-      return Long.parseLong(valeur.trim());
-    } catch (NumberFormatException e) {
-      throw new ErreurUsage("L'argument --" + cle + " doit être un entier : « " + valeur + " ».");
+    /// Valeur de `--cle` si elle est présente et porte une valeur, sinon [Optional#empty()].
+    public Optional<String> valeur(String cle) {
+        return Optional.ofNullable(options.get(cle));
     }
-  }
 
-  /// Valeur entière optionnelle de `--cle`.
-  ///
-  /// @throws ErreurUsage si l'option est présente mais non numérique
-  public OptionalInt entierOptionnel(String cle) {
-    String valeur = options.get(cle);
-    if (valeur == null) {
-      return OptionalInt.empty();
+    /// Valeur obligatoire de `--cle`.
+    ///
+    /// @throws ErreurUsage si l'option est absente ou fournie sans valeur
+    public String exiger(String cle) {
+        String valeur = options.get(cle);
+        if (valeur == null) {
+            throw new ErreurUsage("Argument requis manquant ou sans valeur : --" + cle);
+        }
+        return valeur;
     }
-    try {
-      return OptionalInt.of(Integer.parseInt(valeur.trim()));
-    } catch (NumberFormatException e) {
-      throw new ErreurUsage("L'argument --" + cle + " doit être un entier : « " + valeur + " ».");
+
+    /// Valeur obligatoire de `--cle` convertie en `long`.
+    ///
+    /// @throws ErreurUsage si l'option est absente, sans valeur, ou non numérique
+    public long exigerLong(String cle) {
+        String valeur = exiger(cle);
+        try {
+            return Long.parseLong(valeur.trim());
+        } catch (NumberFormatException e) {
+            throw new ErreurUsage("L'argument --" + cle + " doit être un entier : « " + valeur + " ».");
+        }
     }
-  }
+
+    /// Valeur entière optionnelle de `--cle`.
+    ///
+    /// @throws ErreurUsage si l'option est présente mais non numérique
+    public OptionalInt entierOptionnel(String cle) {
+        String valeur = options.get(cle);
+        if (valeur == null) {
+            return OptionalInt.empty();
+        }
+        try {
+            return OptionalInt.of(Integer.parseInt(valeur.trim()));
+        } catch (NumberFormatException e) {
+            throw new ErreurUsage("L'argument --" + cle + " doit être un entier : « " + valeur + " ».");
+        }
+    }
 }

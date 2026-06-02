@@ -15,8 +15,4 @@ package fr.univ_amu.iut.passage.model;
 /// @param volumeSequencesOctets volume total des séquences en octets (dérivé, optionnel)
 /// @param idPassage identifiant du passage producteur (FK → `passage.id`, unique)
 public record SessionDEnregistrement(
-    Long id,
-    String cheminRacine,
-    Long volumeOriginauxOctets,
-    Long volumeSequencesOctets,
-    Long idPassage) {}
+        Long id, String cheminRacine, Long volumeOriginauxOctets, Long volumeSequencesOctets, Long idPassage) {}

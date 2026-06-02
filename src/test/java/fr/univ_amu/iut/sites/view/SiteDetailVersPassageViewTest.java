@@ -41,61 +41,59 @@ import org.testfx.framework.junit5.Start;
 @ExtendWith(ApplicationExtension.class)
 class SiteDetailVersPassageViewTest {
 
-  private static final String ID_USER = "u-1";
-  private static final String DATE = "2026-06-22";
+    private static final String ID_USER = "u-1";
+    private static final String DATE = "2026-06-22";
 
-  @Start
-  void start(Stage stage) throws Exception {
-    Path workspace = Files.createTempDirectory("vc-nav-passage");
-    System.setProperty("vigiechiro.workspace", workspace.toString());
-    Injector injector = RacineInjecteur.creer();
-    SourceDeDonnees source = injector.getInstance(SourceDeDonnees.class);
-    new MigrationSchema(source).migrer();
-    new UtilisateurDao(source).insert(new Utilisateur(ID_USER, "Testeur"));
-    Site site =
-        new SiteDao(source)
-            .insert(
-                new Site(null, "640380", "Étang", Protocole.STANDARD, null, "2026-01-01", ID_USER));
-    Long idPoint =
-        new PointDao(source).insert(new PointDEcoute(null, "A1", 43.5, 5.4, null, site.id())).id();
-    new EnregistreurDao(source).insert(new Enregistreur("1925492", "V1.01", null));
-    new PassageDao(source)
-        .insert(
-            new Passage(
-                null,
-                2,
-                2026,
-                DATE,
-                "20:25:00",
-                "07:47:00",
-                null,
-                StatutWorkflow.TRANSFORME,
-                null,
-                null,
-                null,
-                null,
-                idPoint,
-                "1925492"));
+    @Start
+    void start(Stage stage) throws Exception {
+        Path workspace = Files.createTempDirectory("vc-nav-passage");
+        System.setProperty("vigiechiro.workspace", workspace.toString());
+        Injector injector = RacineInjecteur.creer();
+        SourceDeDonnees source = injector.getInstance(SourceDeDonnees.class);
+        new MigrationSchema(source).migrer();
+        new UtilisateurDao(source).insert(new Utilisateur(ID_USER, "Testeur"));
+        Site site = new SiteDao(source)
+                .insert(new Site(null, "640380", "Étang", Protocole.STANDARD, null, "2026-01-01", ID_USER));
+        Long idPoint = new PointDao(source)
+                .insert(new PointDEcoute(null, "A1", 43.5, 5.4, null, site.id()))
+                .id();
+        new EnregistreurDao(source).insert(new Enregistreur("1925492", "V1.01", null));
+        new PassageDao(source)
+                .insert(new Passage(
+                        null,
+                        2,
+                        2026,
+                        DATE,
+                        "20:25:00",
+                        "07:47:00",
+                        null,
+                        StatutWorkflow.TRANSFORME,
+                        null,
+                        null,
+                        null,
+                        null,
+                        idPoint,
+                        "1925492"));
 
-    FXMLLoader loader = new FXMLLoader(App.class.getResource("commun/view/MainView.fxml"));
-    loader.setControllerFactory(injector::getInstance);
-    Parent racine = loader.load();
-    stage.setScene(new Scene(racine, 1100, 760));
-    injector.getInstance(NavigationSites.class).ouvrirDetail(site);
-    stage.show();
-  }
+        FXMLLoader loader = new FXMLLoader(App.class.getResource("commun/view/MainView.fxml"));
+        loader.setControllerFactory(injector::getInstance);
+        Parent racine = loader.load();
+        stage.setScene(new Scene(racine, 1100, 760));
+        injector.getInstance(NavigationSites.class).ouvrirDetail(site);
+        stage.show();
+    }
 
-  @AfterEach
-  void nettoyerWorkspace() {
-    System.clearProperty("vigiechiro.workspace");
-  }
+    @AfterEach
+    void nettoyerWorkspace() {
+        System.clearProperty("vigiechiro.workspace");
+    }
 
-  @Test
-  @DisplayName("Double-cliquer une ligne de passage ouvre l'écran pivot M-Passage")
-  void double_clic_ouvre_m_passage(FxRobot robot) {
-    robot.doubleClickOn(DATE);
+    @Test
+    @DisplayName("Double-cliquer une ligne de passage ouvre l'écran pivot M-Passage")
+    void double_clic_ouvre_m_passage(FxRobot robot) {
+        robot.doubleClickOn(DATE);
 
-    HBox stepper = robot.lookup("#stepper").queryAs(HBox.class);
-    assertThat(stepper.getChildren()).isNotEmpty();
-  }
+        HBox stepper = robot.lookup("#stepper").queryAs(HBox.class);
+        assertThat(stepper.getChildren()).isNotEmpty();
+    }
 }

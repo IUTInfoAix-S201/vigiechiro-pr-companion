@@ -30,190 +30,179 @@ import javafx.collections.ObservableList;
 /// `viewmodel_sans_javafx_ui`) : seuls `javafx.beans`/`javafx.collections`. Non-singleton.
 public class PassageViewModel {
 
-  private final ServicePassage service;
+    private final ServicePassage service;
 
-  private final ReadOnlyStringWrapper titreContexte =
-      new ReadOnlyStringWrapper(this, "titreContexte", "");
-  private final ReadOnlyStringWrapper plageHoraire =
-      new ReadOnlyStringWrapper(this, "plageHoraire", "");
-  private final ReadOnlyStringWrapper enregistreur =
-      new ReadOnlyStringWrapper(this, "enregistreur", "");
-  private final ReadOnlyObjectWrapper<StatutWorkflow> statut =
-      new ReadOnlyObjectWrapper<>(this, "statut");
-  private final ReadOnlyObjectWrapper<Verdict> verdict =
-      new ReadOnlyObjectWrapper<>(this, "verdict");
-  private final ReadOnlyStringWrapper volumeBruts =
-      new ReadOnlyStringWrapper(this, "volumeBruts", "");
-  private final ReadOnlyStringWrapper volumeTransformes =
-      new ReadOnlyStringWrapper(this, "volumeTransformes", "");
-  private final ReadOnlyStringWrapper dureeAudible =
-      new ReadOnlyStringWrapper(this, "dureeAudible", "");
-  private final ReadOnlyIntegerWrapper nombreSequences =
-      new ReadOnlyIntegerWrapper(this, "nombreSequences", 0);
-  private final ObservableList<EtapeWorkflow> etapes = FXCollections.observableArrayList();
-  private final ReadOnlyBooleanWrapper verificationDisponible =
-      new ReadOnlyBooleanWrapper(this, "verificationDisponible", false);
-  private final ReadOnlyBooleanWrapper validationVerrouillee =
-      new ReadOnlyBooleanWrapper(this, "validationVerrouillee", true);
-  private final ReadOnlyStringWrapper message = new ReadOnlyStringWrapper(this, "message", "");
+    private final ReadOnlyStringWrapper titreContexte = new ReadOnlyStringWrapper(this, "titreContexte", "");
+    private final ReadOnlyStringWrapper plageHoraire = new ReadOnlyStringWrapper(this, "plageHoraire", "");
+    private final ReadOnlyStringWrapper enregistreur = new ReadOnlyStringWrapper(this, "enregistreur", "");
+    private final ReadOnlyObjectWrapper<StatutWorkflow> statut = new ReadOnlyObjectWrapper<>(this, "statut");
+    private final ReadOnlyObjectWrapper<Verdict> verdict = new ReadOnlyObjectWrapper<>(this, "verdict");
+    private final ReadOnlyStringWrapper volumeBruts = new ReadOnlyStringWrapper(this, "volumeBruts", "");
+    private final ReadOnlyStringWrapper volumeTransformes = new ReadOnlyStringWrapper(this, "volumeTransformes", "");
+    private final ReadOnlyStringWrapper dureeAudible = new ReadOnlyStringWrapper(this, "dureeAudible", "");
+    private final ReadOnlyIntegerWrapper nombreSequences = new ReadOnlyIntegerWrapper(this, "nombreSequences", 0);
+    private final ObservableList<EtapeWorkflow> etapes = FXCollections.observableArrayList();
+    private final ReadOnlyBooleanWrapper verificationDisponible =
+            new ReadOnlyBooleanWrapper(this, "verificationDisponible", false);
+    private final ReadOnlyBooleanWrapper validationVerrouillee =
+            new ReadOnlyBooleanWrapper(this, "validationVerrouillee", true);
+    private final ReadOnlyStringWrapper message = new ReadOnlyStringWrapper(this, "message", "");
 
-  /// Identifiant du passage affiché, mémorisé pour les actions (ex. suppression).
-  private Long idPassage;
+    /// Identifiant du passage affiché, mémorisé pour les actions (ex. suppression).
+    private Long idPassage;
 
-  public PassageViewModel(ServicePassage service) {
-    this.service = Objects.requireNonNull(service, "service");
-  }
-
-  /// Ouvre l'écran sur le passage `idPassage`, avec le contexte site fourni par la navigation.
-  /// Une erreur (passage introuvable) est restituée dans [#messageProperty()] sans lever.
-  public void ouvrirSur(Long idPassage, ContexteSite contexte) {
-    this.idPassage = idPassage;
-    reinitialiser();
-    try {
-      appliquer(service.detailPassage(idPassage), contexte);
-      message.set("");
-    } catch (RuntimeException echec) {
-      reinitialiser();
-      message.set(echec.getMessage());
+    public PassageViewModel(ServicePassage service) {
+        this.service = Objects.requireNonNull(service, "service");
     }
-  }
 
-  /// Supprime le passage courant (action « Supprimer » de M-Passage). Délègue à
-  /// [ServicePassage#supprimer] ; la [fr.univ_amu.iut.commun.model.RegleMetierException] d'un
-  /// passage déposé remonte à la vue, qui l'affiche (même patron que la suppression d'un site).
-  public void supprimer() {
-    service.supprimer(idPassage);
-  }
-
-  private void appliquer(DetailPassage detail, ContexteSite contexte) {
-    titreContexte.set(
-        "Carré "
-            + contexte.numeroCarre()
-            + " / "
-            + contexte.codePoint()
-            + " / N° "
-            + detail.numeroPassage()
-            + " ("
-            + detail.annee()
-            + ")");
-    plageHoraire.set(
-        detail.dateEnregistrement() + "  " + detail.heureDebut() + " → " + detail.heureFin());
-    enregistreur.set("PR " + detail.idEnregistreur());
-    statut.set(detail.statut());
-    verdict.set(detail.verdict());
-    volumeBruts.set(formatOctets(detail.volumeOriginauxOctets()));
-    volumeTransformes.set(formatOctets(detail.volumeSequencesOctets()));
-    dureeAudible.set(Formats.dureeLisible(detail.dureeAudibleSecondes()));
-    nombreSequences.set(detail.nombreSequences());
-    etapes.setAll(construireEtapes(detail.statut()));
-    verificationDisponible.set(detail.statut().ordinal() >= StatutWorkflow.TRANSFORME.ordinal());
-    validationVerrouillee.set(detail.statut() != StatutWorkflow.DEPOSE);
-  }
-
-  private void reinitialiser() {
-    titreContexte.set("");
-    plageHoraire.set("");
-    enregistreur.set("");
-    statut.set(null);
-    verdict.set(null);
-    volumeBruts.set("");
-    volumeTransformes.set("");
-    dureeAudible.set("");
-    nombreSequences.set(0);
-    etapes.clear();
-    verificationDisponible.set(false);
-    validationVerrouillee.set(true);
-  }
-
-  private static List<EtapeWorkflow> construireEtapes(StatutWorkflow courant) {
-    List<EtapeWorkflow> liste = new ArrayList<>();
-    for (StatutWorkflow etape : StatutWorkflow.values()) {
-      EtatEtape etat;
-      if (etape.ordinal() < courant.ordinal()) {
-        etat = EtatEtape.FRANCHIE;
-      } else if (etape == courant) {
-        etat = EtatEtape.COURANTE;
-      } else {
-        etat = EtatEtape.A_VENIR;
-      }
-      liste.add(new EtapeWorkflow(etape, etat));
+    /// Ouvre l'écran sur le passage `idPassage`, avec le contexte site fourni par la navigation.
+    /// Une erreur (passage introuvable) est restituée dans [#messageProperty()] sans lever.
+    public void ouvrirSur(Long idPassage, ContexteSite contexte) {
+        this.idPassage = idPassage;
+        reinitialiser();
+        try {
+            appliquer(service.detailPassage(idPassage), contexte);
+            message.set("");
+        } catch (RuntimeException echec) {
+            reinitialiser();
+            message.set(echec.getMessage());
+        }
     }
-    return liste;
-  }
 
-  private static String formatOctets(long octets) {
-    long valeur = Math.max(0, octets);
-    if (valeur >= 1_073_741_824L) {
-      return String.format(Locale.FRANCE, "%.1f Go", valeur / 1_073_741_824.0);
+    /// Supprime le passage courant (action « Supprimer » de M-Passage). Délègue à
+    /// [ServicePassage#supprimer] ; la [fr.univ_amu.iut.commun.model.RegleMetierException] d'un
+    /// passage déposé remonte à la vue, qui l'affiche (même patron que la suppression d'un site).
+    public void supprimer() {
+        service.supprimer(idPassage);
     }
-    if (valeur >= 1_048_576L) {
-      return String.format(Locale.FRANCE, "%.0f Mo", valeur / 1_048_576.0);
+
+    private void appliquer(DetailPassage detail, ContexteSite contexte) {
+        titreContexte.set("Carré "
+                + contexte.numeroCarre()
+                + " / "
+                + contexte.codePoint()
+                + " / N° "
+                + detail.numeroPassage()
+                + " ("
+                + detail.annee()
+                + ")");
+        plageHoraire.set(detail.dateEnregistrement() + "  " + detail.heureDebut() + " → " + detail.heureFin());
+        enregistreur.set("PR " + detail.idEnregistreur());
+        statut.set(detail.statut());
+        verdict.set(detail.verdict());
+        volumeBruts.set(formatOctets(detail.volumeOriginauxOctets()));
+        volumeTransformes.set(formatOctets(detail.volumeSequencesOctets()));
+        dureeAudible.set(Formats.dureeLisible(detail.dureeAudibleSecondes()));
+        nombreSequences.set(detail.nombreSequences());
+        etapes.setAll(construireEtapes(detail.statut()));
+        verificationDisponible.set(detail.statut().ordinal() >= StatutWorkflow.TRANSFORME.ordinal());
+        validationVerrouillee.set(detail.statut() != StatutWorkflow.DEPOSE);
     }
-    return String.format(Locale.FRANCE, "%d Ko", valeur / 1024);
-  }
 
-  /// Titre d'identité du passage (`Carré 640380 / A1 / N° 2 (2026)`).
-  public ReadOnlyStringProperty titreContexteProperty() {
-    return titreContexte.getReadOnlyProperty();
-  }
+    private void reinitialiser() {
+        titreContexte.set("");
+        plageHoraire.set("");
+        enregistreur.set("");
+        statut.set(null);
+        verdict.set(null);
+        volumeBruts.set("");
+        volumeTransformes.set("");
+        dureeAudible.set("");
+        nombreSequences.set(0);
+        etapes.clear();
+        verificationDisponible.set(false);
+        validationVerrouillee.set(true);
+    }
 
-  /// Plage horaire de la nuit (`date  début → fin`).
-  public ReadOnlyStringProperty plageHoraireProperty() {
-    return plageHoraire.getReadOnlyProperty();
-  }
+    private static List<EtapeWorkflow> construireEtapes(StatutWorkflow courant) {
+        List<EtapeWorkflow> liste = new ArrayList<>();
+        for (StatutWorkflow etape : StatutWorkflow.values()) {
+            EtatEtape etat;
+            if (etape.ordinal() < courant.ordinal()) {
+                etat = EtatEtape.FRANCHIE;
+            } else if (etape == courant) {
+                etat = EtatEtape.COURANTE;
+            } else {
+                etat = EtatEtape.A_VENIR;
+            }
+            liste.add(new EtapeWorkflow(etape, etat));
+        }
+        return liste;
+    }
 
-  /// Enregistreur (`PR <n° de série>`).
-  public ReadOnlyStringProperty enregistreurProperty() {
-    return enregistreur.getReadOnlyProperty();
-  }
+    private static String formatOctets(long octets) {
+        long valeur = Math.max(0, octets);
+        if (valeur >= 1_073_741_824L) {
+            return String.format(Locale.FRANCE, "%.1f Go", valeur / 1_073_741_824.0);
+        }
+        if (valeur >= 1_048_576L) {
+            return String.format(Locale.FRANCE, "%.0f Mo", valeur / 1_048_576.0);
+        }
+        return String.format(Locale.FRANCE, "%d Ko", valeur / 1024);
+    }
 
-  /// Statut workflow courant du passage.
-  public ReadOnlyObjectProperty<StatutWorkflow> statutProperty() {
-    return statut.getReadOnlyProperty();
-  }
+    /// Titre d'identité du passage (`Carré 640380 / A1 / N° 2 (2026)`).
+    public ReadOnlyStringProperty titreContexteProperty() {
+        return titreContexte.getReadOnlyProperty();
+    }
 
-  /// Verdict de vérification, ou `null` tant qu'aucun n'est posé.
-  public ReadOnlyObjectProperty<Verdict> verdictProperty() {
-    return verdict.getReadOnlyProperty();
-  }
+    /// Plage horaire de la nuit (`date  début → fin`).
+    public ReadOnlyStringProperty plageHoraireProperty() {
+        return plageHoraire.getReadOnlyProperty();
+    }
 
-  /// Volume des enregistrements bruts, formaté (`Ko`/`Mo`/`Go`).
-  public ReadOnlyStringProperty volumeBrutsProperty() {
-    return volumeBruts.getReadOnlyProperty();
-  }
+    /// Enregistreur (`PR <n° de série>`).
+    public ReadOnlyStringProperty enregistreurProperty() {
+        return enregistreur.getReadOnlyProperty();
+    }
 
-  /// Volume des séquences transformées, formaté.
-  public ReadOnlyStringProperty volumeTransformesProperty() {
-    return volumeTransformes.getReadOnlyProperty();
-  }
+    /// Statut workflow courant du passage.
+    public ReadOnlyObjectProperty<StatutWorkflow> statutProperty() {
+        return statut.getReadOnlyProperty();
+    }
 
-  /// Durée audible cumulée, formatée (`Xh Ymin` ou `X min Y s`).
-  public ReadOnlyStringProperty dureeAudibleProperty() {
-    return dureeAudible.getReadOnlyProperty();
-  }
+    /// Verdict de vérification, ou `null` tant qu'aucun n'est posé.
+    public ReadOnlyObjectProperty<Verdict> verdictProperty() {
+        return verdict.getReadOnlyProperty();
+    }
 
-  /// Nombre de séquences d'écoute de la session.
-  public ReadOnlyIntegerProperty nombreSequencesProperty() {
-    return nombreSequences.getReadOnlyProperty();
-  }
+    /// Volume des enregistrements bruts, formaté (`Ko`/`Mo`/`Go`).
+    public ReadOnlyStringProperty volumeBrutsProperty() {
+        return volumeBruts.getReadOnlyProperty();
+    }
 
-  /// Étapes du stepper de statut (5 statuts, du plus ancien au dépôt), avec leur état.
-  public ObservableList<EtapeWorkflow> etapes() {
-    return etapes;
-  }
+    /// Volume des séquences transformées, formaté.
+    public ReadOnlyStringProperty volumeTransformesProperty() {
+        return volumeTransformes.getReadOnlyProperty();
+    }
 
-  /// `true` si la vérification par échantillonnage est possible (passage au moins transformé).
-  public ReadOnlyBooleanProperty verificationDisponibleProperty() {
-    return verificationDisponible.getReadOnlyProperty();
-  }
+    /// Durée audible cumulée, formatée (`Xh Ymin` ou `X min Y s`).
+    public ReadOnlyStringProperty dureeAudibleProperty() {
+        return dureeAudible.getReadOnlyProperty();
+    }
 
-  /// `true` tant que la validation Tadarida est verrouillée (passage non encore déposé).
-  public ReadOnlyBooleanProperty validationVerrouilleeProperty() {
-    return validationVerrouillee.getReadOnlyProperty();
-  }
+    /// Nombre de séquences d'écoute de la session.
+    public ReadOnlyIntegerProperty nombreSequencesProperty() {
+        return nombreSequences.getReadOnlyProperty();
+    }
 
-  /// Message d'erreur (passage introuvable), vide en fonctionnement nominal.
-  public ReadOnlyStringProperty messageProperty() {
-    return message.getReadOnlyProperty();
-  }
+    /// Étapes du stepper de statut (5 statuts, du plus ancien au dépôt), avec leur état.
+    public ObservableList<EtapeWorkflow> etapes() {
+        return etapes;
+    }
+
+    /// `true` si la vérification par échantillonnage est possible (passage au moins transformé).
+    public ReadOnlyBooleanProperty verificationDisponibleProperty() {
+        return verificationDisponible.getReadOnlyProperty();
+    }
+
+    /// `true` tant que la validation Tadarida est verrouillée (passage non encore déposé).
+    public ReadOnlyBooleanProperty validationVerrouilleeProperty() {
+        return validationVerrouillee.getReadOnlyProperty();
+    }
+
+    /// Message d'erreur (passage introuvable), vide en fonctionnement nominal.
+    public ReadOnlyStringProperty messageProperty() {
+        return message.getReadOnlyProperty();
+    }
 }

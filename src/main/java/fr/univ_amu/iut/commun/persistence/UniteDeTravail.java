@@ -17,35 +17,35 @@ import java.sql.SQLException;
 /// ```
 public class UniteDeTravail {
 
-  private final SourceDeDonnees source;
+    private final SourceDeDonnees source;
 
-  public UniteDeTravail(SourceDeDonnees source) {
-    this.source = source;
-  }
-
-  /// Ouvre une connexion, désactive l'auto-commit, exécute `travail`, puis valide (commit). En
-  /// cas d'erreur, annule (rollback) et propage une [DataAccessException].
-  public void executer(TravailTransactionnel travail) {
-    try (Connection connexion = source.getConnection()) {
-      boolean autoCommitInitial = connexion.getAutoCommit();
-      connexion.setAutoCommit(false);
-      try {
-        travail.executer(connexion);
-        connexion.commit();
-      } catch (SQLException | RuntimeException erreur) {
-        connexion.rollback();
-        throw new DataAccessException("Transaction annulée (rollback)", erreur);
-      } finally {
-        connexion.setAutoCommit(autoCommitInitial);
-      }
-    } catch (SQLException e) {
-      throw new DataAccessException("Échec d'ouverture de la transaction", e);
+    public UniteDeTravail(SourceDeDonnees source) {
+        this.source = source;
     }
-  }
 
-  /// Bloc de travail s'exécutant sur la connexion transactionnelle fournie.
-  @FunctionalInterface
-  public interface TravailTransactionnel {
-    void executer(Connection connexion) throws SQLException;
-  }
+    /// Ouvre une connexion, désactive l'auto-commit, exécute `travail`, puis valide (commit). En
+    /// cas d'erreur, annule (rollback) et propage une [DataAccessException].
+    public void executer(TravailTransactionnel travail) {
+        try (Connection connexion = source.getConnection()) {
+            boolean autoCommitInitial = connexion.getAutoCommit();
+            connexion.setAutoCommit(false);
+            try {
+                travail.executer(connexion);
+                connexion.commit();
+            } catch (SQLException | RuntimeException erreur) {
+                connexion.rollback();
+                throw new DataAccessException("Transaction annulée (rollback)", erreur);
+            } finally {
+                connexion.setAutoCommit(autoCommitInitial);
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Échec d'ouverture de la transaction", e);
+        }
+    }
+
+    /// Bloc de travail s'exécutant sur la connexion transactionnelle fournie.
+    @FunctionalInterface
+    public interface TravailTransactionnel {
+        void executer(Connection connexion) throws SQLException;
+    }
 }

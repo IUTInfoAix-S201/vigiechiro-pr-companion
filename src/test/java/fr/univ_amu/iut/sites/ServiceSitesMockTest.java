@@ -30,37 +30,41 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class ServiceSitesMockTest {
 
-  @Mock private SiteDao siteDao;
-  @Mock private PointDao pointDao;
-  @Mock private PassageDao passageDao;
+    @Mock
+    private SiteDao siteDao;
 
-  @Test
-  @DisplayName("R5 : si un carré identique existe déjà, le service refuse sans tenter d'insérer")
-  void unicite_carre_refusee_sans_insertion() {
-    ServiceSites service =
-        new ServiceSites(siteDao, pointDao, passageDao, new HorlogeFigee(LocalDate.of(2026, 1, 1)));
-    when(siteDao.findByUtilisateur("u-1"))
-        .thenReturn(
-            List.of(new Site(1L, "640380", null, Protocole.STANDARD, null, "2026-01-01", "u-1")));
+    @Mock
+    private PointDao pointDao;
 
-    assertThatThrownBy(() -> service.creerSite("640380", null, Protocole.STANDARD, null, "u-1"))
-        .isInstanceOf(RegleMetierException.class);
+    @Mock
+    private PassageDao passageDao;
 
-    verify(siteDao, never()).insert(ArgumentMatchers.any());
-  }
+    @Test
+    @DisplayName("R5 : si un carré identique existe déjà, le service refuse sans tenter d'insérer")
+    void unicite_carre_refusee_sans_insertion() {
+        ServiceSites service =
+                new ServiceSites(siteDao, pointDao, passageDao, new HorlogeFigee(LocalDate.of(2026, 1, 1)));
+        when(siteDao.findByUtilisateur("u-1"))
+                .thenReturn(List.of(new Site(1L, "640380", null, Protocole.STANDARD, null, "2026-01-01", "u-1")));
 
-  @Test
-  @DisplayName("Carré libre : le service délègue l'insertion au DAO")
-  void carre_libre_delegue_insertion() {
-    ServiceSites service =
-        new ServiceSites(siteDao, pointDao, passageDao, new HorlogeFigee(LocalDate.of(2026, 1, 1)));
-    Site attendu = new Site(7L, "640380", null, Protocole.STANDARD, null, "2026-01-01", "u-1");
-    when(siteDao.findByUtilisateur("u-1")).thenReturn(List.of());
-    when(siteDao.insert(ArgumentMatchers.any())).thenReturn(attendu);
+        assertThatThrownBy(() -> service.creerSite("640380", null, Protocole.STANDARD, null, "u-1"))
+                .isInstanceOf(RegleMetierException.class);
 
-    Site cree = service.creerSite("640380", null, Protocole.STANDARD, null, "u-1");
+        verify(siteDao, never()).insert(ArgumentMatchers.any());
+    }
 
-    assertThat(cree).isEqualTo(attendu);
-    verify(siteDao).insert(ArgumentMatchers.any());
-  }
+    @Test
+    @DisplayName("Carré libre : le service délègue l'insertion au DAO")
+    void carre_libre_delegue_insertion() {
+        ServiceSites service =
+                new ServiceSites(siteDao, pointDao, passageDao, new HorlogeFigee(LocalDate.of(2026, 1, 1)));
+        Site attendu = new Site(7L, "640380", null, Protocole.STANDARD, null, "2026-01-01", "u-1");
+        when(siteDao.findByUtilisateur("u-1")).thenReturn(List.of());
+        when(siteDao.insert(ArgumentMatchers.any())).thenReturn(attendu);
+
+        Site cree = service.creerSite("640380", null, Protocole.STANDARD, null, "u-1");
+
+        assertThat(cree).isEqualTo(attendu);
+        verify(siteDao).insert(ArgumentMatchers.any());
+    }
 }

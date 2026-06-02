@@ -44,125 +44,112 @@ import org.junit.jupiter.api.io.TempDir;
 /// nombre de séquences), **sans jointure `sites`** (carré/code fournis par la navigation).
 class ServicePassageDetailTest {
 
-  private static final String ID_USER = "u-1";
-  private static final String SERIE = "1925492";
+    private static final String ID_USER = "u-1";
+    private static final String SERIE = "1925492";
 
-  @TempDir Path dossier;
-  private ServicePassage service;
-  private PassageDao passageDao;
-  private SessionDao sessionDao;
-  private EnregistrementOriginalDao originalDao;
-  private SequenceDao sequenceDao;
-  private Long idPoint;
+    @TempDir
+    Path dossier;
 
-  @BeforeEach
-  void preparer() {
-    SourceDeDonnees source = new SourceDeDonnees(new Workspace(dossier));
-    new MigrationSchema(source).migrer();
-    new UtilisateurDao(source).insert(new Utilisateur(ID_USER, "Testeur"));
-    Site site =
-        new SiteDao(source)
-            .insert(
-                new Site(null, "640380", "Étang", Protocole.STANDARD, null, "2026-01-01", ID_USER));
-    idPoint =
-        new PointDao(source).insert(new PointDEcoute(null, "A1", 43.5, 5.4, null, site.id())).id();
-    new EnregistreurDao(source).insert(new Enregistreur(SERIE, "V1.01", null));
-    passageDao = new PassageDao(source);
-    sessionDao = new SessionDao(source);
-    originalDao = new EnregistrementOriginalDao(source);
-    sequenceDao = new SequenceDao(source);
-    service =
-        new ServicePassage(
-            passageDao,
-            new MoteurWorkflowPassage(),
-            new HorlogeFigee(LocalDate.of(2026, 6, 22)),
-            sessionDao,
-            sequenceDao,
-            new ReprefixeurSession(),
-            new UniteDeTravail(source),
-            new RattachementDao());
-  }
+    private ServicePassage service;
+    private PassageDao passageDao;
+    private SessionDao sessionDao;
+    private EnregistrementOriginalDao originalDao;
+    private SequenceDao sequenceDao;
+    private Long idPoint;
 
-  private Passage insererPassage(int numero, StatutWorkflow statut) {
-    return passageDao.insert(
-        new Passage(
-            null,
-            numero,
-            2026,
-            "2026-06-22",
-            "20:25:00",
-            "07:47:00",
-            null,
-            statut,
-            null,
-            null,
-            null,
-            null,
-            idPoint,
-            SERIE));
-  }
+    @BeforeEach
+    void preparer() {
+        SourceDeDonnees source = new SourceDeDonnees(new Workspace(dossier));
+        new MigrationSchema(source).migrer();
+        new UtilisateurDao(source).insert(new Utilisateur(ID_USER, "Testeur"));
+        Site site = new SiteDao(source)
+                .insert(new Site(null, "640380", "Étang", Protocole.STANDARD, null, "2026-01-01", ID_USER));
+        idPoint = new PointDao(source)
+                .insert(new PointDEcoute(null, "A1", 43.5, 5.4, null, site.id()))
+                .id();
+        new EnregistreurDao(source).insert(new Enregistreur(SERIE, "V1.01", null));
+        passageDao = new PassageDao(source);
+        sessionDao = new SessionDao(source);
+        originalDao = new EnregistrementOriginalDao(source);
+        sequenceDao = new SequenceDao(source);
+        service = new ServicePassage(
+                passageDao,
+                new MoteurWorkflowPassage(),
+                new HorlogeFigee(LocalDate.of(2026, 6, 22)),
+                sessionDao,
+                sequenceDao,
+                new ReprefixeurSession(),
+                new UniteDeTravail(source),
+                new RattachementDao());
+    }
 
-  private void insererSequence(Long idSession, double duree) {
-    EnregistrementOriginal original =
-        originalDao.insert(
-            new EnregistrementOriginal(
+    private Passage insererPassage(int numero, StatutWorkflow statut) {
+        return passageDao.insert(new Passage(
+                null,
+                numero,
+                2026,
+                "2026-06-22",
+                "20:25:00",
+                "07:47:00",
+                null,
+                statut,
+                null,
+                null,
+                null,
+                null,
+                idPoint,
+                SERIE));
+    }
+
+    private void insererSequence(Long idSession, double duree) {
+        EnregistrementOriginal original = originalDao.insert(new EnregistrementOriginal(
                 null, "o-" + duree + ".wav", "/ws/bruts/o.wav", duree, 384000, null, idSession));
-    sequenceDao.insert(
-        new SequenceDEcoute(
-            null,
-            "s-" + duree + ".wav",
-            original.id(),
-            0,
-            0.0,
-            duree,
-            "/ws/x.wav",
-            true,
-            idSession));
-  }
+        sequenceDao.insert(new SequenceDEcoute(
+                null, "s-" + duree + ".wav", original.id(), 0, 0.0, duree, "/ws/x.wav", true, idSession));
+    }
 
-  @Test
-  @DisplayName("detailPassage agrège le passage et les volumes/durée/nombre de sa session")
-  void detail_agrege_la_session() {
-    Passage passage = insererPassage(2, StatutWorkflow.TRANSFORME);
-    SessionDEnregistrement session =
-        sessionDao.insert(
-            new SessionDEnregistrement(null, "/ws/session", 4096L, 1024L, passage.id()));
-    insererSequence(session.id(), 5.0);
-    insererSequence(session.id(), 7.5);
+    @Test
+    @DisplayName("detailPassage agrège le passage et les volumes/durée/nombre de sa session")
+    void detail_agrege_la_session() {
+        Passage passage = insererPassage(2, StatutWorkflow.TRANSFORME);
+        SessionDEnregistrement session =
+                sessionDao.insert(new SessionDEnregistrement(null, "/ws/session", 4096L, 1024L, passage.id()));
+        insererSequence(session.id(), 5.0);
+        insererSequence(session.id(), 7.5);
 
-    DetailPassage detail = service.detailPassage(passage.id());
+        DetailPassage detail = service.detailPassage(passage.id());
 
-    assertThat(detail.numeroPassage()).isEqualTo(2);
-    assertThat(detail.annee()).isEqualTo(2026);
-    assertThat(detail.heureDebut()).isEqualTo("20:25:00");
-    assertThat(detail.heureFin()).isEqualTo("07:47:00");
-    assertThat(detail.idEnregistreur()).isEqualTo(SERIE);
-    assertThat(detail.statut()).isEqualTo(StatutWorkflow.TRANSFORME);
-    assertThat(detail.verdict()).isNull();
-    assertThat(detail.volumeOriginauxOctets()).isEqualTo(4096L);
-    assertThat(detail.volumeSequencesOctets()).isEqualTo(1024L);
-    assertThat(detail.nombreSequences()).isEqualTo(2);
-    assertThat(detail.dureeAudibleSecondes()).isEqualTo(12.5);
-  }
+        assertThat(detail.numeroPassage()).isEqualTo(2);
+        assertThat(detail.annee()).isEqualTo(2026);
+        assertThat(detail.heureDebut()).isEqualTo("20:25:00");
+        assertThat(detail.heureFin()).isEqualTo("07:47:00");
+        assertThat(detail.idEnregistreur()).isEqualTo(SERIE);
+        assertThat(detail.statut()).isEqualTo(StatutWorkflow.TRANSFORME);
+        assertThat(detail.verdict()).isNull();
+        assertThat(detail.volumeOriginauxOctets()).isEqualTo(4096L);
+        assertThat(detail.volumeSequencesOctets()).isEqualTo(1024L);
+        assertThat(detail.nombreSequences()).isEqualTo(2);
+        assertThat(detail.dureeAudibleSecondes()).isEqualTo(12.5);
+    }
 
-  @Test
-  @DisplayName("detailPassage sans session renvoie des volumes et une durée nuls")
-  void detail_sans_session() {
-    Passage passage = insererPassage(1, StatutWorkflow.IMPORTE);
+    @Test
+    @DisplayName("detailPassage sans session renvoie des volumes et une durée nuls")
+    void detail_sans_session() {
+        Passage passage = insererPassage(1, StatutWorkflow.IMPORTE);
 
-    DetailPassage detail = service.detailPassage(passage.id());
+        DetailPassage detail = service.detailPassage(passage.id());
 
-    assertThat(detail.nombreSequences()).isZero();
-    assertThat(detail.volumeOriginauxOctets()).isZero();
-    assertThat(detail.volumeSequencesOctets()).isZero();
-    assertThat(detail.dureeAudibleSecondes()).isZero();
-  }
+        assertThat(detail.nombreSequences()).isZero();
+        assertThat(detail.volumeOriginauxOctets()).isZero();
+        assertThat(detail.volumeSequencesOctets()).isZero();
+        assertThat(detail.dureeAudibleSecondes()).isZero();
+    }
 
-  @Test
-  @DisplayName("detailPassage sur un passage introuvable lève une RegleMetierException")
-  void detail_passage_introuvable() {
-    assertThatThrownBy(() -> service.detailPassage(999L))
-        .isInstanceOf(RegleMetierException.class)
-        .hasMessageContaining("introuvable");
-  }
+    @Test
+    @DisplayName("detailPassage sur un passage introuvable lève une RegleMetierException")
+    void detail_passage_introuvable() {
+        assertThatThrownBy(() -> service.detailPassage(999L))
+                .isInstanceOf(RegleMetierException.class)
+                .hasMessageContaining("introuvable");
+    }
 }

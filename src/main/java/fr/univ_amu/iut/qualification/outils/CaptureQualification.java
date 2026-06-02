@@ -65,100 +65,92 @@ import javafx.scene.Scene;
 /// Lancement headless : `.github/assets/capture-screenshots.sh` (Headless Platform JavaFX 26).
 public final class CaptureQualification {
 
-  private static final String ID_UTILISATEUR = "demo-enseignant";
-  private static final String ENREGISTREUR = "1925492";
-  private static final String QUALIF_FXML =
-      "/fr/univ_amu/iut/qualification/view/Qualification.fxml";
-  private static final Prefixe PREFIXE = new Prefixe("640380", 2026, 2, "A1");
-  private static final int NB_ENREGISTREMENTS = 60;
-  private static final int TAILLE_SELECTION = 30;
-  private static final int NB_ECOUTEES = 12;
+    private static final String ID_UTILISATEUR = "demo-enseignant";
+    private static final String ENREGISTREUR = "1925492";
+    private static final String QUALIF_FXML = "/fr/univ_amu/iut/qualification/view/Qualification.fxml";
+    private static final Prefixe PREFIXE = new Prefixe("640380", 2026, 2, "A1");
+    private static final int NB_ENREGISTREMENTS = 60;
+    private static final int TAILLE_SELECTION = 30;
+    private static final int NB_ECOUTEES = 12;
 
-  private CaptureQualification() {}
+    private CaptureQualification() {}
 
-  public static void main(String[] args) throws InterruptedException {
-    CountDownLatch fini = new CountDownLatch(1);
-    AtomicReference<Throwable> erreur = new AtomicReference<>();
-    Platform.startup(
-        () -> {
-          try {
-            capturer();
-          } catch (RuntimeException | IOException probleme) {
-            erreur.set(probleme);
-          } finally {
-            fini.countDown();
-          }
+    public static void main(String[] args) throws InterruptedException {
+        CountDownLatch fini = new CountDownLatch(1);
+        AtomicReference<Throwable> erreur = new AtomicReference<>();
+        Platform.startup(() -> {
+            try {
+                capturer();
+            } catch (RuntimeException | IOException probleme) {
+                erreur.set(probleme);
+            } finally {
+                fini.countDown();
+            }
         });
-    fini.await();
-    Platform.exit();
-    if (erreur.get() != null) {
-      erreur.get().printStackTrace();
-      System.exit(1);
+        fini.await();
+        Platform.exit();
+        if (erreur.get() != null) {
+            erreur.get().printStackTrace();
+            System.exit(1);
+        }
+        System.exit(0);
     }
-    System.exit(0);
-  }
 
-  private static void capturer() throws IOException {
-    Path workspace = Files.createTempDirectory("vc-capture-qualif");
-    System.setProperty("vigiechiro.workspace", workspace.toString());
-    Path sortie = Path.of(System.getProperty("capture.outDir", ".github/assets"));
+    private static void capturer() throws IOException {
+        Path workspace = Files.createTempDirectory("vc-capture-qualif");
+        System.setProperty("vigiechiro.workspace", workspace.toString());
+        Path sortie = Path.of(System.getProperty("capture.outDir", ".github/assets"));
 
-    Injector injecteur =
-        Guice.createInjector(
-            new CommunModule(),
-            new PersistenceModule(),
-            new SitesModule(),
-            new PassageModule(),
-            new QualificationModule());
-    SourceDeDonnees source = injecteur.getInstance(SourceDeDonnees.class);
-    new MigrationSchema(source).migrer();
-    long idPassage = seeder(source, workspace);
+        Injector injecteur = Guice.createInjector(
+                new CommunModule(),
+                new PersistenceModule(),
+                new SitesModule(),
+                new PassageModule(),
+                new QualificationModule());
+        SourceDeDonnees source = injecteur.getInstance(SourceDeDonnees.class);
+        new MigrationSchema(source).migrer();
+        long idPassage = seeder(source, workspace);
 
-    QualificationViewModel verdictVm = injecteur.getInstance(QualificationViewModel.class);
-    SelectionEcouteViewModel selectionVm = injecteur.getInstance(SelectionEcouteViewModel.class);
-    FXMLLoader loader = new FXMLLoader(CaptureQualification.class.getResource(QUALIF_FXML));
-    loader.setControllerFactory(
-        type ->
-            type == QualificationController.class
+        QualificationViewModel verdictVm = injecteur.getInstance(QualificationViewModel.class);
+        SelectionEcouteViewModel selectionVm = injecteur.getInstance(SelectionEcouteViewModel.class);
+        FXMLLoader loader = new FXMLLoader(CaptureQualification.class.getResource(QUALIF_FXML));
+        loader.setControllerFactory(type -> type == QualificationController.class
                 ? new QualificationController(verdictVm, selectionVm, (id, contexte) -> {})
                 : injecteur.getInstance(type));
-    Parent vue = loader.load();
-    QualificationController controleur = loader.getController();
+        Parent vue = loader.load();
+        QualificationController controleur = loader.getController();
 
-    // Pilotage vers l'état « standard » de la maquette.
-    controleur.ouvrirSur(idPassage);
-    selectionVm.tailleProperty().set(TAILLE_SELECTION);
-    selectionVm.regenerer();
-    for (int i = 0; i < NB_ECOUTEES && i < selectionVm.lignes().size(); i++) {
-      selectionVm.selectionner(selectionVm.lignes().get(i));
-      selectionVm.marquerCouranteEcoutee();
+        // Pilotage vers l'état « standard » de la maquette.
+        controleur.ouvrirSur(idPassage);
+        selectionVm.tailleProperty().set(TAILLE_SELECTION);
+        selectionVm.regenerer();
+        for (int i = 0; i < NB_ECOUTEES && i < selectionVm.lignes().size(); i++) {
+            selectionVm.selectionner(selectionVm.lignes().get(i));
+            selectionVm.marquerCouranteEcoutee();
+        }
+        if (selectionVm.lignes().size() > NB_ECOUTEES) {
+            selectionVm.selectionner(selectionVm.lignes().get(NB_ECOUTEES)); // séquence courante à écouter
+        }
+        verdictVm.choisirVerdict(Verdict.OK);
+
+        Path fichier = sortie.resolve("apercu-qualification.png");
+        ApercuFx.enregistrerPng(new Scene(vue, 1240, 900), fichier);
+        System.out.println("Apercu ecrit dans " + fichier.toAbsolutePath());
     }
-    if (selectionVm.lignes().size() > NB_ECOUTEES) {
-      selectionVm.selectionner(
-          selectionVm.lignes().get(NB_ECOUTEES)); // séquence courante à écouter
-    }
-    verdictVm.choisirVerdict(Verdict.OK);
 
-    Path fichier = sortie.resolve("apercu-qualification.png");
-    ApercuFx.enregistrerPng(new Scene(vue, 1240, 900), fichier);
-    System.out.println("Apercu ecrit dans " + fichier.toAbsolutePath());
-  }
+    /// Seede une nuit complète (chemins sous le `workspace` temporaire) et renvoie l'identifiant du
+    /// passage à vérifier.
+    private static long seeder(SourceDeDonnees source, Path workspace) {
+        new UtilisateurDao(source).insert(new Utilisateur(ID_UTILISATEUR, "Capitaine Chiro (demo)"));
+        SiteDao siteDao = new SiteDao(source);
+        PointDao pointDao = new PointDao(source);
+        PassageDao passageDao = new PassageDao(source);
+        SessionDao sessionDao = new SessionDao(source);
+        EnregistrementOriginalDao originalDao = new EnregistrementOriginalDao(source);
+        SequenceDao sequenceDao = new SequenceDao(source);
+        new EnregistreurDao(source).insert(new Enregistreur(ENREGISTREUR, "V1.01", null));
 
-  /// Seede une nuit complète (chemins sous le `workspace` temporaire) et renvoie l'identifiant du
-  /// passage à vérifier.
-  private static long seeder(SourceDeDonnees source, Path workspace) {
-    new UtilisateurDao(source).insert(new Utilisateur(ID_UTILISATEUR, "Capitaine Chiro (demo)"));
-    SiteDao siteDao = new SiteDao(source);
-    PointDao pointDao = new PointDao(source);
-    PassageDao passageDao = new PassageDao(source);
-    SessionDao sessionDao = new SessionDao(source);
-    EnregistrementOriginalDao originalDao = new EnregistrementOriginalDao(source);
-    SequenceDao sequenceDao = new SequenceDao(source);
-    new EnregistreurDao(source).insert(new Enregistreur(ENREGISTREUR, "V1.01", null));
-
-    Site site =
-        siteDao.insert(
-            new Site(
+        Site site = siteDao.insert(new Site(
                 null,
                 "640380",
                 "Étang de la Tuilière",
@@ -166,12 +158,9 @@ public final class CaptureQualification {
                 "Aix-en-Provence",
                 "2026-01-01",
                 ID_UTILISATEUR));
-    PointDEcoute point =
-        pointDao.insert(
-            new PointDEcoute(null, "A1", 43.5298, 5.4474, "Près du grand chêne", site.id()));
-    Passage passage =
-        passageDao.insert(
-            new Passage(
+        PointDEcoute point =
+                pointDao.insert(new PointDEcoute(null, "A1", 43.5298, 5.4474, "Près du grand chêne", site.id()));
+        Passage passage = passageDao.insert(new Passage(
                 null,
                 2,
                 2026,
@@ -186,44 +175,35 @@ public final class CaptureQualification {
                 null,
                 point.id(),
                 ENREGISTREUR));
-    SessionDEnregistrement session =
-        sessionDao.insert(
-            new SessionDEnregistrement(
-                null,
-                workspace.resolve(PREFIXE.nomDossierSession()).toString(),
-                null,
-                null,
-                passage.id()));
+        SessionDEnregistrement session = sessionDao.insert(new SessionDEnregistrement(
+                null, workspace.resolve(PREFIXE.nomDossierSession()).toString(), null, null, passage.id()));
 
-    LocalDateTime debut = LocalDateTime.of(2026, 6, 22, 20, 25, 0);
-    DateTimeFormatter horodatage = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
-    for (int i = 0; i < NB_ENREGISTREMENTS; i++) {
-      String suffixe =
-          "PaRecPR" + ENREGISTREUR + "_" + debut.plusMinutes(12L * i).format(horodatage) + ".wav";
-      String nomOriginal = PREFIXE.nommerOriginal(suffixe);
-      EnregistrementOriginal original =
-          originalDao.insert(
-              new EnregistrementOriginal(
-                  null,
-                  nomOriginal,
-                  workspace.resolve("bruts").resolve(nomOriginal).toString(),
-                  5.0,
-                  384000,
-                  null,
-                  session.id()));
-      String nomSequence = PREFIXE.nommerSequence(nomOriginal, 0);
-      sequenceDao.insert(
-          new SequenceDEcoute(
-              null,
-              nomSequence,
-              original.id(),
-              0,
-              0.0,
-              5.0,
-              workspace.resolve("transformes").resolve(nomSequence).toString(),
-              false,
-              session.id()));
+        LocalDateTime debut = LocalDateTime.of(2026, 6, 22, 20, 25, 0);
+        DateTimeFormatter horodatage = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
+        for (int i = 0; i < NB_ENREGISTREMENTS; i++) {
+            String suffixe =
+                    "PaRecPR" + ENREGISTREUR + "_" + debut.plusMinutes(12L * i).format(horodatage) + ".wav";
+            String nomOriginal = PREFIXE.nommerOriginal(suffixe);
+            EnregistrementOriginal original = originalDao.insert(new EnregistrementOriginal(
+                    null,
+                    nomOriginal,
+                    workspace.resolve("bruts").resolve(nomOriginal).toString(),
+                    5.0,
+                    384000,
+                    null,
+                    session.id()));
+            String nomSequence = PREFIXE.nommerSequence(nomOriginal, 0);
+            sequenceDao.insert(new SequenceDEcoute(
+                    null,
+                    nomSequence,
+                    original.id(),
+                    0,
+                    0.0,
+                    5.0,
+                    workspace.resolve("transformes").resolve(nomSequence).toString(),
+                    false,
+                    session.id()));
+        }
+        return passage.id();
     }
-    return passage.id();
-  }
 }

@@ -23,75 +23,85 @@ import javafx.scene.control.ListView;
 /// ici (règle ArchUnit `view_sans_jdbc`).
 public class DiagnosticController {
 
-  private static final DateTimeFormatter MOMENT = DateTimeFormatter.ofPattern("dd/MM HH:mm");
+    private static final DateTimeFormatter MOMENT = DateTimeFormatter.ofPattern("dd/MM HH:mm");
 
-  private final DiagnosticViewModel viewModel;
+    private final DiagnosticViewModel viewModel;
 
-  @FXML private Label lblEnregistreur;
-  @FXML private Label lblReleveAbsent;
-  @FXML private Label lblResumeClimat;
-  @FXML private LineChart<String, Number> grapheClimat;
-  @FXML private ListView<String> listeAnomalies;
-  @FXML private ListView<String> listeEvenements;
-  @FXML private Label lblGps;
-  @FXML private Label lblMessage;
+    @FXML
+    private Label lblEnregistreur;
 
-  @Inject
-  public DiagnosticController(DiagnosticViewModel viewModel) {
-    this.viewModel = Objects.requireNonNull(viewModel, "viewModel");
-  }
+    @FXML
+    private Label lblReleveAbsent;
 
-  @FXML
-  private void initialize() {
-    lblEnregistreur.textProperty().bind(viewModel.enregistreurProperty());
-    lblResumeClimat.textProperty().bind(viewModel.resumeClimatProperty());
-    lblReleveAbsent.visibleProperty().bind(viewModel.releveClimatiqueAbsentProperty());
-    lblReleveAbsent.managedProperty().bind(viewModel.releveClimatiqueAbsentProperty());
+    @FXML
+    private Label lblResumeClimat;
 
-    listeAnomalies.setItems(viewModel.anomalies());
-    listeEvenements.setItems(viewModel.evenements());
+    @FXML
+    private LineChart<String, Number> grapheClimat;
 
-    viewModel
-        .mesures()
-        .addListener((ListChangeListener<MesureClimatique>) changement -> majGraphe());
-    majGraphe();
+    @FXML
+    private ListView<String> listeAnomalies;
 
-    lblGps
-        .textProperty()
-        .bind(
-            Bindings.createStringBinding(
-                () ->
-                    viewModel.gpsDisponibleProperty().get()
-                        ? "📍 GPS du point disponible (cohérence horaires possible)."
-                        : "📍 GPS du point non renseigné : cohérence horaires indisponible.",
-                viewModel.gpsDisponibleProperty()));
-    // La note GPS n'a de sens qu'une fois un diagnostic chargé : masquée à l'erreur / au démarrage.
-    var diagnosticCharge = viewModel.enregistreurProperty().isNotEmpty();
-    lblGps.visibleProperty().bind(diagnosticCharge);
-    lblGps.managedProperty().bind(diagnosticCharge);
+    @FXML
+    private ListView<String> listeEvenements;
 
-    lblMessage.textProperty().bind(viewModel.messageProperty());
-    var messagePresent = viewModel.messageProperty().isNotEmpty();
-    lblMessage.visibleProperty().bind(messagePresent);
-    lblMessage.managedProperty().bind(messagePresent);
-  }
+    @FXML
+    private Label lblGps;
 
-  /// Ouvre le diagnostic du passage `idPassage`. Appelée par [NavigationDiagnostic] après le
-  /// chargement du FXML.
-  public void ouvrirSur(Long idPassage) {
-    viewModel.ouvrirSur(idPassage);
-  }
+    @FXML
+    private Label lblMessage;
 
-  private void majGraphe() {
-    XYChart.Series<String, Number> temperature = new XYChart.Series<>();
-    temperature.setName("T° (°C)");
-    XYChart.Series<String, Number> humidite = new XYChart.Series<>();
-    humidite.setName("Humidité (%)");
-    for (MesureClimatique mesure : viewModel.mesures()) {
-      String moment = LocalDateTime.of(mesure.date(), mesure.heure()).format(MOMENT);
-      temperature.getData().add(new XYChart.Data<>(moment, mesure.temperatureCelsius()));
-      humidite.getData().add(new XYChart.Data<>(moment, mesure.humiditePourcent()));
+    @Inject
+    public DiagnosticController(DiagnosticViewModel viewModel) {
+        this.viewModel = Objects.requireNonNull(viewModel, "viewModel");
     }
-    grapheClimat.getData().setAll(List.of(temperature, humidite));
-  }
+
+    @FXML
+    private void initialize() {
+        lblEnregistreur.textProperty().bind(viewModel.enregistreurProperty());
+        lblResumeClimat.textProperty().bind(viewModel.resumeClimatProperty());
+        lblReleveAbsent.visibleProperty().bind(viewModel.releveClimatiqueAbsentProperty());
+        lblReleveAbsent.managedProperty().bind(viewModel.releveClimatiqueAbsentProperty());
+
+        listeAnomalies.setItems(viewModel.anomalies());
+        listeEvenements.setItems(viewModel.evenements());
+
+        viewModel.mesures().addListener((ListChangeListener<MesureClimatique>) changement -> majGraphe());
+        majGraphe();
+
+        lblGps.textProperty()
+                .bind(Bindings.createStringBinding(
+                        () -> viewModel.gpsDisponibleProperty().get()
+                                ? "📍 GPS du point disponible (cohérence horaires possible)."
+                                : "📍 GPS du point non renseigné : cohérence horaires indisponible.",
+                        viewModel.gpsDisponibleProperty()));
+        // La note GPS n'a de sens qu'une fois un diagnostic chargé : masquée à l'erreur / au démarrage.
+        var diagnosticCharge = viewModel.enregistreurProperty().isNotEmpty();
+        lblGps.visibleProperty().bind(diagnosticCharge);
+        lblGps.managedProperty().bind(diagnosticCharge);
+
+        lblMessage.textProperty().bind(viewModel.messageProperty());
+        var messagePresent = viewModel.messageProperty().isNotEmpty();
+        lblMessage.visibleProperty().bind(messagePresent);
+        lblMessage.managedProperty().bind(messagePresent);
+    }
+
+    /// Ouvre le diagnostic du passage `idPassage`. Appelée par [NavigationDiagnostic] après le
+    /// chargement du FXML.
+    public void ouvrirSur(Long idPassage) {
+        viewModel.ouvrirSur(idPassage);
+    }
+
+    private void majGraphe() {
+        XYChart.Series<String, Number> temperature = new XYChart.Series<>();
+        temperature.setName("T° (°C)");
+        XYChart.Series<String, Number> humidite = new XYChart.Series<>();
+        humidite.setName("Humidité (%)");
+        for (MesureClimatique mesure : viewModel.mesures()) {
+            String moment = LocalDateTime.of(mesure.date(), mesure.heure()).format(MOMENT);
+            temperature.getData().add(new XYChart.Data<>(moment, mesure.temperatureCelsius()));
+            humidite.getData().add(new XYChart.Data<>(moment, mesure.humiditePourcent()));
+        }
+        grapheClimat.getData().setAll(List.of(temperature, humidite));
+    }
 }

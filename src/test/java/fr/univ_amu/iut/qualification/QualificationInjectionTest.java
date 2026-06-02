@@ -20,22 +20,23 @@ import org.junit.jupiter.api.io.TempDir;
 /// toucher au workspace réel.
 class QualificationInjectionTest {
 
-  @TempDir Path workspaceJetable;
+    @TempDir
+    Path workspaceJetable;
 
-  @AfterEach
-  void nettoyerLaSurcharge() {
-    System.clearProperty("vigiechiro.workspace");
-  }
+    @AfterEach
+    void nettoyerLaSurcharge() {
+        System.clearProperty("vigiechiro.workspace");
+    }
 
-  @Test
-  @DisplayName("La racine résout ServiceQualification et ses moteurs (câblage inter-modules)")
-  void resout_le_service_et_ses_moteurs() {
-    System.setProperty("vigiechiro.workspace", workspaceJetable.toString());
+    @Test
+    @DisplayName("La racine résout ServiceQualification et ses moteurs (câblage inter-modules)")
+    void resout_le_service_et_ses_moteurs() {
+        System.setProperty("vigiechiro.workspace", workspaceJetable.toString());
 
-    Injector injecteur = RacineInjecteur.creer();
+        Injector injecteur = RacineInjecteur.creer();
 
-    assertThat(injecteur.getInstance(GenerateurSelection.class)).isNotNull();
-    assertThat(injecteur.getInstance(PreCheckNuit.class)).isNotNull();
-    assertThat(injecteur.getInstance(ServiceQualification.class)).isNotNull();
-  }
+        assertThat(injecteur.getInstance(GenerateurSelection.class)).isNotNull();
+        assertThat(injecteur.getInstance(PreCheckNuit.class)).isNotNull();
+        assertThat(injecteur.getInstance(ServiceQualification.class)).isNotNull();
+    }
 }

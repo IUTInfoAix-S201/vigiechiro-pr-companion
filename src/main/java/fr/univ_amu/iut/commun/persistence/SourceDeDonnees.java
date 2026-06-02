@@ -21,39 +21,39 @@ import org.sqlite.SQLiteDataSource;
 /// via un `PRAGMA` explicite à l'ouverture.
 public class SourceDeDonnees {
 
-  private final Workspace workspace;
-  private final SQLiteDataSource dataSource;
+    private final Workspace workspace;
+    private final SQLiteDataSource dataSource;
 
-  /// Crée une source pointant vers `<workspace>/vigiechiro.db`. En test, on passe un `Workspace`
-  /// construit sur un `@TempDir` (base jetable) ; en production, c'est le workspace
-  /// par défaut.
-  public SourceDeDonnees(Workspace workspace) {
-    this.workspace = workspace;
-    SQLiteConfig config = new SQLiteConfig();
-    config.enforceForeignKeys(true);
-    SQLiteDataSource source = new SQLiteDataSource(config);
-    source.setUrl("jdbc:sqlite:" + workspace.cheminBaseDeDonnees());
-    this.dataSource = source;
-  }
-
-  /// Ouvre une nouvelle connexion (clés étrangères activées). L'appelant est responsable de la
-  /// fermer (idéalement dans un `try-with-resources`).
-  public Connection getConnection() {
-    try {
-      // Création paresseuse du workspace : la base ne peut exister sans son dossier.
-      Files.createDirectories(workspace.racine());
-      Connection connexion = dataSource.getConnection();
-      try (Statement st = connexion.createStatement()) {
-        st.execute("PRAGMA foreign_keys = ON");
-      }
-      return connexion;
-    } catch (SQLException | IOException e) {
-      throw new DataAccessException("Connexion SQLite impossible (" + workspace + ")", e);
+    /// Crée une source pointant vers `<workspace>/vigiechiro.db`. En test, on passe un `Workspace`
+    /// construit sur un `@TempDir` (base jetable) ; en production, c'est le workspace
+    /// par défaut.
+    public SourceDeDonnees(Workspace workspace) {
+        this.workspace = workspace;
+        SQLiteConfig config = new SQLiteConfig();
+        config.enforceForeignKeys(true);
+        SQLiteDataSource source = new SQLiteDataSource(config);
+        source.setUrl("jdbc:sqlite:" + workspace.cheminBaseDeDonnees());
+        this.dataSource = source;
     }
-  }
 
-  /// Workspace adossé à cette source (utile pour résoudre les chemins de sessions).
-  public Workspace workspace() {
-    return workspace;
-  }
+    /// Ouvre une nouvelle connexion (clés étrangères activées). L'appelant est responsable de la
+    /// fermer (idéalement dans un `try-with-resources`).
+    public Connection getConnection() {
+        try {
+            // Création paresseuse du workspace : la base ne peut exister sans son dossier.
+            Files.createDirectories(workspace.racine());
+            Connection connexion = dataSource.getConnection();
+            try (Statement st = connexion.createStatement()) {
+                st.execute("PRAGMA foreign_keys = ON");
+            }
+            return connexion;
+        } catch (SQLException | IOException e) {
+            throw new DataAccessException("Connexion SQLite impossible (" + workspace + ")", e);
+        }
+    }
+
+    /// Workspace adossé à cette source (utile pour résoudre les chemins de sessions).
+    public Workspace workspace() {
+        return workspace;
+    }
 }

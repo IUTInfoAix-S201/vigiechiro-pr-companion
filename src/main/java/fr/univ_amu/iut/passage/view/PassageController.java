@@ -5,6 +5,7 @@ import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.model.Verdict;
 import fr.univ_amu.iut.commun.view.OuvrirDiagnostic;
+import fr.univ_amu.iut.commun.view.OuvrirValidation;
 import fr.univ_amu.iut.commun.view.OuvrirVerification;
 import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
 import fr.univ_amu.iut.passage.viewmodel.EtapeWorkflow;
@@ -26,191 +27,233 @@ import javafx.scene.layout.HBox;
 /// d'identité, stepper de statut et onglet « Vue d'ensemble » (stats + actions rapides).
 ///
 /// Pur câblage (patron CM4) : lie les contrôles aux propriétés du [PassageViewModel]. Les boutons
-/// « Vérifier » et « Diagnostic » ouvrent M-Qualification et M-Diagnostic via les contrats socle
-/// [OuvrirVerification] et [OuvrirDiagnostic] (sans dépendre des features `qualification` ni
-/// `diagnostic`). Aucun accès base de données ni logique métier ici (règle ArchUnit
-/// `view_sans_jdbc`). La validation Tadarida : tranche suivante.
+/// « Vérifier », « Diagnostic » et « Validation Tadarida » ouvrent M-Qualification, M-Diagnostic et
+/// M-Vision-Tadarida via les contrats socle [OuvrirVerification], [OuvrirDiagnostic] et
+/// [OuvrirValidation] (sans dépendre des features `qualification`, `diagnostic` ni `validation`).
+/// Aucun accès base de données ni logique métier ici (règle ArchUnit `view_sans_jdbc`).
 public class PassageController {
 
-  private final PassageViewModel viewModel;
-  private final OuvrirVerification ouvrirVerification;
-  private final OuvrirDiagnostic ouvrirDiagnostic;
-  private final NavigationPassage navigation;
-  private Long idPassage;
-  private ContexteSite contexte;
+    private final PassageViewModel viewModel;
+    private final OuvrirVerification ouvrirVerification;
+    private final OuvrirDiagnostic ouvrirDiagnostic;
+    private final OuvrirValidation ouvrirValidation;
+    private final NavigationPassage navigation;
+    private Long idPassage;
+    private ContexteSite contexte;
 
-  @FXML private BorderPane racine;
-  @FXML private Label lblFilAriane;
-  @FXML private Label lblTitre;
-  @FXML private Label lblPlageHoraire;
-  @FXML private Label lblEnregistreur;
-  @FXML private Label lblStatut;
-  @FXML private Label lblVerdict;
-  @FXML private HBox stepper;
-  @FXML private Label lblMessage;
-  @FXML private Label lblVolBruts;
-  @FXML private Label lblVolTransformes;
-  @FXML private Label lblDureeAudible;
-  @FXML private Label lblNbSequences;
-  @FXML private Button boutonVerifier;
-  @FXML private Button boutonValidation;
-  @FXML private Label lblIndiceAction;
-  @FXML private Label lblValidation;
+    @FXML
+    private BorderPane racine;
 
-  @Inject
-  public PassageController(
-      PassageViewModel viewModel,
-      OuvrirVerification ouvrirVerification,
-      OuvrirDiagnostic ouvrirDiagnostic,
-      NavigationPassage navigation) {
-    this.viewModel = Objects.requireNonNull(viewModel, "viewModel");
-    this.ouvrirVerification = Objects.requireNonNull(ouvrirVerification, "ouvrirVerification");
-    this.ouvrirDiagnostic = Objects.requireNonNull(ouvrirDiagnostic, "ouvrirDiagnostic");
-    this.navigation = Objects.requireNonNull(navigation, "navigation");
-  }
+    @FXML
+    private Label lblFilAriane;
 
-  @FXML
-  private void initialize() {
-    lblTitre.textProperty().bind(viewModel.titreContexteProperty());
-    lblFilAriane
-        .textProperty()
-        .bind(
-            Bindings.createStringBinding(
-                () -> {
-                  String titre = viewModel.titreContexteProperty().get();
-                  return titre.isEmpty() ? "" : "‹ Mes sites › " + titre;
-                },
-                viewModel.titreContexteProperty()));
-    lblPlageHoraire.textProperty().bind(viewModel.plageHoraireProperty());
-    lblEnregistreur.textProperty().bind(viewModel.enregistreurProperty());
-    lblStatut
-        .textProperty()
-        .bind(
-            Bindings.createStringBinding(
-                () -> libelleStatut(viewModel.statutProperty().get()), viewModel.statutProperty()));
-    lblVerdict
-        .textProperty()
-        .bind(
-            Bindings.createStringBinding(
-                () -> libelleVerdict(viewModel.verdictProperty().get()),
-                viewModel.verdictProperty()));
+    @FXML
+    private Label lblTitre;
 
-    viewModel.etapes().addListener((ListChangeListener<EtapeWorkflow>) changement -> majStepper());
-    majStepper();
+    @FXML
+    private Label lblPlageHoraire;
 
-    lblMessage.textProperty().bind(viewModel.messageProperty());
-    var messagePresent = viewModel.messageProperty().isNotEmpty();
-    lblMessage.visibleProperty().bind(messagePresent);
-    lblMessage.managedProperty().bind(messagePresent);
+    @FXML
+    private Label lblEnregistreur;
 
-    // Onglet « Vue d'ensemble » : statistiques + actions rapides.
-    lblVolBruts.textProperty().bind(viewModel.volumeBrutsProperty());
-    lblVolTransformes.textProperty().bind(viewModel.volumeTransformesProperty());
-    lblDureeAudible.textProperty().bind(viewModel.dureeAudibleProperty());
-    lblNbSequences.textProperty().bind(viewModel.nombreSequencesProperty().asString());
+    @FXML
+    private Label lblStatut;
 
-    boutonVerifier.disableProperty().bind(viewModel.verificationDisponibleProperty().not());
-    boutonValidation.disableProperty().bind(viewModel.validationVerrouilleeProperty());
-    lblIndiceAction
-        .textProperty()
-        .bind(
-            Bindings.createStringBinding(
-                () ->
-                    viewModel.verificationDisponibleProperty().get()
-                        ? ""
-                        : "🔒 La vérification sera possible une fois la nuit transformée.",
-                viewModel.verificationDisponibleProperty()));
+    @FXML
+    private Label lblVerdict;
 
-    lblValidation
-        .textProperty()
-        .bind(
-            Bindings.createStringBinding(
-                () ->
-                    viewModel.validationVerrouilleeProperty().get()
-                        ? "🔒 La validation Tadarida sera disponible une fois le passage déposé."
-                        : "✅ Passage déposé : la validation des identifications Tadarida"
-                            + " (M-Vision-Tadarida) s'ouvrira depuis cet onglet.",
-                viewModel.validationVerrouilleeProperty()));
-  }
+    @FXML
+    private HBox stepper;
 
-  /// Ouvre l'écran sur le passage `idPassage`, avec le contexte site fourni par la navigation.
-  /// Appelée par [NavigationPassage] après le chargement du FXML.
-  public void ouvrirSur(Long idPassage, ContexteSite contexte) {
-    this.idPassage = idPassage;
-    this.contexte = contexte;
-    viewModel.ouvrirSur(idPassage, contexte);
-  }
+    @FXML
+    private Label lblMessage;
 
-  /// « Vérifier l'enregistrement » : ouvre M-Qualification sur ce passage via le contrat socle
-  /// [OuvrirVerification] (la feature `qualification` en fournit l'implémentation).
-  @FXML
-  private void verifier() {
-    // Le bouton n'est actif qu'après ouvrirSur (verificationDisponible) : idPassage est défini.
-    ouvrirVerification.ouvrir(idPassage);
-  }
+    @FXML
+    private Label lblVolBruts;
 
-  /// « Diagnostic matériel » : ouvre M-Diagnostic sur ce passage via le contrat socle
-  /// [OuvrirDiagnostic] (implémenté par la feature `diagnostic`). Toujours disponible : le
-  /// relevé climatique et le journal existent dès l'import de la nuit.
-  @FXML
-  private void diagnostiquer() {
-    ouvrirDiagnostic.ouvrir(idPassage);
-  }
+    @FXML
+    private Label lblVolTransformes;
 
-  /// « Supprimer » : après confirmation, supprime le passage (et sa nuit, par cascade) puis revient
-  /// à l'accueil. Un passage déposé est refusé par le service ([RegleMetierException]) ; l'erreur
-  /// est alors présentée à l'utilisateur sans quitter l'écran.
-  @FXML
-  private void supprimer() {
-    if (!confirmer("Supprimer définitivement ce passage et toute sa nuit (séquences, relevés) ?")) {
-      return;
+    @FXML
+    private Label lblDureeAudible;
+
+    @FXML
+    private Label lblNbSequences;
+
+    @FXML
+    private Button boutonVerifier;
+
+    @FXML
+    private Button boutonValidation;
+
+    @FXML
+    private Button boutonOuvrirValidation;
+
+    @FXML
+    private Label lblIndiceAction;
+
+    @FXML
+    private Label lblValidation;
+
+    @Inject
+    public PassageController(
+            PassageViewModel viewModel,
+            OuvrirVerification ouvrirVerification,
+            OuvrirDiagnostic ouvrirDiagnostic,
+            OuvrirValidation ouvrirValidation,
+            NavigationPassage navigation) {
+        this.viewModel = Objects.requireNonNull(viewModel, "viewModel");
+        this.ouvrirVerification = Objects.requireNonNull(ouvrirVerification, "ouvrirVerification");
+        this.ouvrirDiagnostic = Objects.requireNonNull(ouvrirDiagnostic, "ouvrirDiagnostic");
+        this.ouvrirValidation = Objects.requireNonNull(ouvrirValidation, "ouvrirValidation");
+        this.navigation = Objects.requireNonNull(navigation, "navigation");
     }
-    try {
-      viewModel.supprimer();
-      navigation.ouvrirAccueil();
-    } catch (RegleMetierException refus) {
-      alerteErreur(refus.getMessage());
+
+    @FXML
+    private void initialize() {
+        lblTitre.textProperty().bind(viewModel.titreContexteProperty());
+        lblFilAriane
+                .textProperty()
+                .bind(Bindings.createStringBinding(
+                        () -> {
+                            String titre = viewModel.titreContexteProperty().get();
+                            return titre.isEmpty() ? "" : "‹ Mes sites › " + titre;
+                        },
+                        viewModel.titreContexteProperty()));
+        lblPlageHoraire.textProperty().bind(viewModel.plageHoraireProperty());
+        lblEnregistreur.textProperty().bind(viewModel.enregistreurProperty());
+        lblStatut
+                .textProperty()
+                .bind(Bindings.createStringBinding(
+                        () -> libelleStatut(viewModel.statutProperty().get()), viewModel.statutProperty()));
+        lblVerdict
+                .textProperty()
+                .bind(Bindings.createStringBinding(
+                        () -> libelleVerdict(viewModel.verdictProperty().get()), viewModel.verdictProperty()));
+
+        viewModel.etapes().addListener((ListChangeListener<EtapeWorkflow>) changement -> majStepper());
+        majStepper();
+
+        lblMessage.textProperty().bind(viewModel.messageProperty());
+        var messagePresent = viewModel.messageProperty().isNotEmpty();
+        lblMessage.visibleProperty().bind(messagePresent);
+        lblMessage.managedProperty().bind(messagePresent);
+
+        // Onglet « Vue d'ensemble » : statistiques + actions rapides.
+        lblVolBruts.textProperty().bind(viewModel.volumeBrutsProperty());
+        lblVolTransformes.textProperty().bind(viewModel.volumeTransformesProperty());
+        lblDureeAudible.textProperty().bind(viewModel.dureeAudibleProperty());
+        lblNbSequences.textProperty().bind(viewModel.nombreSequencesProperty().asString());
+
+        boutonVerifier
+                .disableProperty()
+                .bind(viewModel.verificationDisponibleProperty().not());
+        boutonValidation.disableProperty().bind(viewModel.validationVerrouilleeProperty());
+        boutonOuvrirValidation.disableProperty().bind(viewModel.validationVerrouilleeProperty());
+        lblIndiceAction
+                .textProperty()
+                .bind(Bindings.createStringBinding(
+                        () -> viewModel.verificationDisponibleProperty().get()
+                                ? ""
+                                : "🔒 La vérification sera possible une fois la nuit transformée.",
+                        viewModel.verificationDisponibleProperty()));
+
+        lblValidation
+                .textProperty()
+                .bind(Bindings.createStringBinding(
+                        () -> viewModel.validationVerrouilleeProperty().get()
+                                ? "🔒 La validation Tadarida sera disponible une fois le passage déposé."
+                                : "✅ Passage déposé : la validation des identifications Tadarida"
+                                        + " (M-Vision-Tadarida) s'ouvrira depuis cet onglet.",
+                        viewModel.validationVerrouilleeProperty()));
     }
-  }
 
-  /// « Modifier rattachement » : ouvre la modale E2.S8 (année + n° de passage) en fenêtre modale.
-  /// Après une modification réussie, M-Passage est rouvert sur le passage pour refléter le nouveau
-  /// quadruplet (titre, fil d'Ariane).
-  @FXML
-  private void modifierRattachement() {
-    navigation.ouvrirModaleRattachement(
-        racine.getScene().getWindow(),
-        idPassage,
-        contexte.numeroCarre(),
-        contexte.codePoint(),
-        () -> viewModel.ouvrirSur(idPassage, contexte));
-  }
-
-  private void majStepper() {
-    stepper.getChildren().clear();
-    for (EtapeWorkflow etape : viewModel.etapes()) {
-      Label puce = new Label(etape.statut().libelle());
-      puce.getStyleClass().addAll("etape", "etape-" + etape.etat().name().toLowerCase(Locale.ROOT));
-      stepper.getChildren().add(puce);
+    /// Ouvre l'écran sur le passage `idPassage`, avec le contexte site fourni par la navigation.
+    /// Appelée par [NavigationPassage] après le chargement du FXML.
+    public void ouvrirSur(Long idPassage, ContexteSite contexte) {
+        this.idPassage = idPassage;
+        this.contexte = contexte;
+        viewModel.ouvrirSur(idPassage, contexte);
     }
-  }
 
-  private static String libelleStatut(StatutWorkflow statut) {
-    return statut == null ? "" : statut.libelle();
-  }
+    /// « Vérifier l'enregistrement » : ouvre M-Qualification sur ce passage via le contrat socle
+    /// [OuvrirVerification] (la feature `qualification` en fournit l'implémentation).
+    @FXML
+    private void verifier() {
+        // Le bouton n'est actif qu'après ouvrirSur (verificationDisponible) : idPassage est défini.
+        ouvrirVerification.ouvrir(idPassage);
+    }
 
-  private static String libelleVerdict(Verdict verdict) {
-    return verdict == null || verdict == Verdict.A_VERIFIER ? "non saisi" : verdict.libelle();
-  }
+    /// « Diagnostic matériel » : ouvre M-Diagnostic sur ce passage via le contrat socle
+    /// [OuvrirDiagnostic] (implémenté par la feature `diagnostic`). Toujours disponible : le
+    /// relevé climatique et le journal existent dès l'import de la nuit.
+    @FXML
+    private void diagnostiquer() {
+        ouvrirDiagnostic.ouvrir(idPassage);
+    }
 
-  private boolean confirmer(String message) {
-    Alert alerte = new Alert(AlertType.CONFIRMATION, message, ButtonType.OK, ButtonType.CANCEL);
-    return alerte.showAndWait().filter(bouton -> bouton == ButtonType.OK).isPresent();
-  }
+    /// « Validation Tadarida » : ouvre M-Vision-Tadarida sur ce passage via le contrat socle
+    /// [OuvrirValidation] (implémenté par la feature `validation`). Le bouton n'est actif qu'une fois
+    /// le passage déposé (validationVerrouillee) : idPassage est alors défini.
+    @FXML
+    private void validerTadarida() {
+        ouvrirValidation.ouvrir(idPassage);
+    }
 
-  private void alerteErreur(String message) {
-    Alert alerte = new Alert(AlertType.WARNING, message, ButtonType.OK);
-    alerte.setHeaderText("Suppression impossible");
-    alerte.showAndWait();
-  }
+    /// « Supprimer » : après confirmation, supprime le passage (et sa nuit, par cascade) puis revient
+    /// à l'accueil. Un passage déposé est refusé par le service ([RegleMetierException]) ; l'erreur
+    /// est alors présentée à l'utilisateur sans quitter l'écran.
+    @FXML
+    private void supprimer() {
+        if (!confirmer("Supprimer définitivement ce passage et toute sa nuit (séquences, relevés) ?")) {
+            return;
+        }
+        try {
+            viewModel.supprimer();
+            navigation.ouvrirAccueil();
+        } catch (RegleMetierException refus) {
+            alerteErreur(refus.getMessage());
+        }
+    }
+
+    /// « Modifier rattachement » : ouvre la modale E2.S8 (année + n° de passage) en fenêtre modale.
+    /// Après une modification réussie, M-Passage est rouvert sur le passage pour refléter le nouveau
+    /// quadruplet (titre, fil d'Ariane).
+    @FXML
+    private void modifierRattachement() {
+        navigation.ouvrirModaleRattachement(
+                racine.getScene().getWindow(),
+                idPassage,
+                contexte.numeroCarre(),
+                contexte.codePoint(),
+                () -> viewModel.ouvrirSur(idPassage, contexte));
+    }
+
+    private void majStepper() {
+        stepper.getChildren().clear();
+        for (EtapeWorkflow etape : viewModel.etapes()) {
+            Label puce = new Label(etape.statut().libelle());
+            puce.getStyleClass().addAll("etape", "etape-" + etape.etat().name().toLowerCase(Locale.ROOT));
+            stepper.getChildren().add(puce);
+        }
+    }
+
+    private static String libelleStatut(StatutWorkflow statut) {
+        return statut == null ? "" : statut.libelle();
+    }
+
+    private static String libelleVerdict(Verdict verdict) {
+        return verdict == null || verdict == Verdict.A_VERIFIER ? "non saisi" : verdict.libelle();
+    }
+
+    private boolean confirmer(String message) {
+        Alert alerte = new Alert(AlertType.CONFIRMATION, message, ButtonType.OK, ButtonType.CANCEL);
+        return alerte.showAndWait().filter(bouton -> bouton == ButtonType.OK).isPresent();
+    }
+
+    private void alerteErreur(String message) {
+        Alert alerte = new Alert(AlertType.WARNING, message, ButtonType.OK);
+        alerte.setHeaderText("Suppression impossible");
+        alerte.showAndWait();
+    }
 }

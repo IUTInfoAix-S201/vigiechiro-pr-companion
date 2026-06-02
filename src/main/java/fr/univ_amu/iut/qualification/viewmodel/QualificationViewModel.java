@@ -30,177 +30,171 @@ import javafx.beans.property.StringProperty;
 /// sont importés, jamais `javafx.scene`. Construit non-singleton (un VM frais par FXML).
 public class QualificationViewModel {
 
-  private final ServiceQualification service;
-  private Long idPassage;
+    private final ServiceQualification service;
+    private Long idPassage;
 
-  // Pré-check (étape 1) : 3 feux consultatifs + indicateur d'anomalie.
-  private final ReadOnlyObjectWrapper<PreCheckNuit.Feu> feuCouverture =
-      new ReadOnlyObjectWrapper<>(this, "feuCouverture");
-  private final ReadOnlyObjectWrapper<PreCheckNuit.Feu> feuNombre =
-      new ReadOnlyObjectWrapper<>(this, "feuNombre");
-  private final ReadOnlyObjectWrapper<PreCheckNuit.Feu> feuRenommage =
-      new ReadOnlyObjectWrapper<>(this, "feuRenommage");
-  private final ReadOnlyBooleanWrapper preCheckAnomalie =
-      new ReadOnlyBooleanWrapper(this, "preCheckAnomalie", false);
+    // Pré-check (étape 1) : 3 feux consultatifs + indicateur d'anomalie.
+    private final ReadOnlyObjectWrapper<PreCheckNuit.Feu> feuCouverture =
+            new ReadOnlyObjectWrapper<>(this, "feuCouverture");
+    private final ReadOnlyObjectWrapper<PreCheckNuit.Feu> feuNombre = new ReadOnlyObjectWrapper<>(this, "feuNombre");
+    private final ReadOnlyObjectWrapper<PreCheckNuit.Feu> feuRenommage =
+            new ReadOnlyObjectWrapper<>(this, "feuRenommage");
+    private final ReadOnlyBooleanWrapper preCheckAnomalie = new ReadOnlyBooleanWrapper(this, "preCheckAnomalie", false);
 
-  // Statut/verdict persistés du passage (bandeau), mutés à l'enregistrement.
-  private final ReadOnlyObjectWrapper<Verdict> verdictActuel =
-      new ReadOnlyObjectWrapper<>(this, "verdictActuel", Verdict.A_VERIFIER);
-  private final ReadOnlyObjectWrapper<StatutWorkflow> statut =
-      new ReadOnlyObjectWrapper<>(this, "statut");
+    // Statut/verdict persistés du passage (bandeau), mutés à l'enregistrement.
+    private final ReadOnlyObjectWrapper<Verdict> verdictActuel =
+            new ReadOnlyObjectWrapper<>(this, "verdictActuel", Verdict.A_VERIFIER);
+    private final ReadOnlyObjectWrapper<StatutWorkflow> statut = new ReadOnlyObjectWrapper<>(this, "statut");
 
-  // Verdict différé (étape 3) : choix + commentaire, persiste en une fois.
-  private final ObjectProperty<Verdict> verdictChoisi =
-      new SimpleObjectProperty<>(this, "verdictChoisi");
-  private final StringProperty commentaire = new SimpleStringProperty(this, "commentaire", "");
-  private final ReadOnlyObjectWrapper<EtatVerdict> etatVerdict =
-      new ReadOnlyObjectWrapper<>(this, "etatVerdict", EtatVerdict.BROUILLON);
-  private final ReadOnlyStringWrapper avertissementAJeter =
-      new ReadOnlyStringWrapper(this, "avertissementAJeter", "");
-  private final ReadOnlyStringWrapper message = new ReadOnlyStringWrapper(this, "message", "");
+    // Verdict différé (étape 3) : choix + commentaire, persiste en une fois.
+    private final ObjectProperty<Verdict> verdictChoisi = new SimpleObjectProperty<>(this, "verdictChoisi");
+    private final StringProperty commentaire = new SimpleStringProperty(this, "commentaire", "");
+    private final ReadOnlyObjectWrapper<EtatVerdict> etatVerdict =
+            new ReadOnlyObjectWrapper<>(this, "etatVerdict", EtatVerdict.BROUILLON);
+    private final ReadOnlyStringWrapper avertissementAJeter =
+            new ReadOnlyStringWrapper(this, "avertissementAJeter", "");
+    private final ReadOnlyStringWrapper message = new ReadOnlyStringWrapper(this, "message", "");
 
-  private final BooleanBinding peutEnregistrer;
+    private final BooleanBinding peutEnregistrer;
 
-  public QualificationViewModel(ServiceQualification service) {
-    this.service = Objects.requireNonNull(service, "service");
-    peutEnregistrer =
-        Bindings.createBooleanBinding(
-            () -> verdictChoisi.get() != null && verdictChoisi.get() != Verdict.A_VERIFIER,
-            verdictChoisi);
-  }
-
-  /// Ouvre la vérification du passage `idPassage` : pré-check (3 feux) et amorçage du bandeau
-  /// verdict (statut workflow + verdict déjà persisté). Appelée par la navigation après le
-  /// chargement du FXML. Une erreur (passage introuvable) est restituée dans [#messageProperty()]
-  /// sans lever.
-  public void ouvrirSur(Long idPassage) {
-    this.idPassage = idPassage;
-    reinitialiser();
-    try {
-      appliquerPrecheck(service.precheck(idPassage));
-      ContexteVerification contexte = service.chargerContexte(idPassage);
-      statut.set(contexte.statut());
-      verdictActuel.set(contexte.verdict() == null ? Verdict.A_VERIFIER : contexte.verdict());
-      message.set("");
-    } catch (RuntimeException echec) {
-      reinitialiser();
-      message.set(echec.getMessage());
+    public QualificationViewModel(ServiceQualification service) {
+        this.service = Objects.requireNonNull(service, "service");
+        peutEnregistrer = Bindings.createBooleanBinding(
+                () -> verdictChoisi.get() != null && verdictChoisi.get() != Verdict.A_VERIFIER, verdictChoisi);
     }
-  }
 
-  /// Remet l'écran à un état vierge avant chaque (ré)ouverture et après un échec : feux, bandeau et
-  /// saisie de verdict d'un passage précédent ne doivent jamais subsister à l'écran (le VM est
-  /// non-singleton, mais rien n'empêche une réouverture sur un autre passage).
-  private void reinitialiser() {
-    feuCouverture.set(null);
-    feuNombre.set(null);
-    feuRenommage.set(null);
-    preCheckAnomalie.set(false);
-    statut.set(null);
-    verdictActuel.set(Verdict.A_VERIFIER);
-    verdictChoisi.set(null);
-    commentaire.set("");
-    etatVerdict.set(EtatVerdict.BROUILLON);
-    avertissementAJeter.set("");
-  }
-
-  /// Choix (différé) du verdict global de la nuit (boutons OK / douteux / à jeter).
-  public void choisirVerdict(Verdict verdict) {
-    verdictChoisi.set(verdict);
-  }
-
-  /// Enregistre le verdict choisi : transite le passage vers `VERIFIE`. Refuse si aucun verdict
-  /// décisif n'est choisi. Signale (R14) si « à jeter » exclura le passage du dépôt.
-  public void enregistrer() {
-    if (!peutEnregistrer.get()) {
-      message.set("Choisissez un verdict (OK, douteux ou à jeter) avant d'enregistrer.");
-      return;
+    /// Ouvre la vérification du passage `idPassage` : pré-check (3 feux) et amorçage du bandeau
+    /// verdict (statut workflow + verdict déjà persisté). Appelée par la navigation après le
+    /// chargement du FXML. Une erreur (passage introuvable) est restituée dans [#messageProperty()]
+    /// sans lever.
+    public void ouvrirSur(Long idPassage) {
+        this.idPassage = idPassage;
+        reinitialiser();
+        try {
+            appliquerPrecheck(service.precheck(idPassage));
+            ContexteVerification contexte = service.chargerContexte(idPassage);
+            statut.set(contexte.statut());
+            verdictActuel.set(contexte.verdict() == null ? Verdict.A_VERIFIER : contexte.verdict());
+            message.set("");
+        } catch (RuntimeException echec) {
+            reinitialiser();
+            message.set(echec.getMessage());
+        }
     }
-    try {
-      service.enregistrerVerdict(idPassage, verdictChoisi.get(), commentaireOuNull());
-      verdictActuel.set(verdictChoisi.get());
-      statut.set(StatutWorkflow.VERIFIE);
-      avertissementAJeter.set(
-          service.estAJeter(idPassage)
-              ? "⚠ Passage marqué « à jeter » : il sera exclu du prochain lot de dépôt (R14)."
-              : "");
-      message.set("");
-      etatVerdict.set(EtatVerdict.ENREGISTRE);
-    } catch (RuntimeException refus) {
-      message.set(refus.getMessage());
+
+    /// Remet l'écran à un état vierge avant chaque (ré)ouverture et après un échec : feux, bandeau et
+    /// saisie de verdict d'un passage précédent ne doivent jamais subsister à l'écran (le VM est
+    /// non-singleton, mais rien n'empêche une réouverture sur un autre passage).
+    private void reinitialiser() {
+        feuCouverture.set(null);
+        feuNombre.set(null);
+        feuRenommage.set(null);
+        preCheckAnomalie.set(false);
+        statut.set(null);
+        verdictActuel.set(Verdict.A_VERIFIER);
+        verdictChoisi.set(null);
+        commentaire.set("");
+        etatVerdict.set(EtatVerdict.BROUILLON);
+        avertissementAJeter.set("");
     }
-  }
 
-  private void appliquerPrecheck(PreCheckNuit.Diagnostic diagnostic) {
-    feuCouverture.set(diagnostic.couvertureHoraire());
-    feuNombre.set(diagnostic.nombreFichiers());
-    feuRenommage.set(diagnostic.coherenceRenommage());
-    preCheckAnomalie.set(diagnostic.presenteUneAnomalie());
-  }
+    /// Choix (différé) du verdict global de la nuit (boutons OK / douteux / à jeter).
+    public void choisirVerdict(Verdict verdict) {
+        verdictChoisi.set(verdict);
+    }
 
-  private String commentaireOuNull() {
-    String texte = commentaire.get();
-    return texte == null || texte.isBlank() ? null : texte;
-  }
+    /// Enregistre le verdict choisi : transite le passage vers `VERIFIE`. Refuse si aucun verdict
+    /// décisif n'est choisi. Signale (R14) si « à jeter » exclura le passage du dépôt.
+    public void enregistrer() {
+        if (!peutEnregistrer.get()) {
+            message.set("Choisissez un verdict (OK, douteux ou à jeter) avant d'enregistrer.");
+            return;
+        }
+        try {
+            service.enregistrerVerdict(idPassage, verdictChoisi.get(), commentaireOuNull());
+            verdictActuel.set(verdictChoisi.get());
+            statut.set(StatutWorkflow.VERIFIE);
+            avertissementAJeter.set(
+                    service.estAJeter(idPassage)
+                            ? "⚠ Passage marqué « à jeter » : il sera exclu du prochain lot de dépôt (R14)."
+                            : "");
+            message.set("");
+            etatVerdict.set(EtatVerdict.ENREGISTRE);
+        } catch (RuntimeException refus) {
+            message.set(refus.getMessage());
+        }
+    }
 
-  /// Feu du pré-check sur la couverture horaire de la nuit (R3).
-  public ReadOnlyObjectProperty<PreCheckNuit.Feu> feuCouvertureProperty() {
-    return feuCouverture.getReadOnlyProperty();
-  }
+    private void appliquerPrecheck(PreCheckNuit.Diagnostic diagnostic) {
+        feuCouverture.set(diagnostic.couvertureHoraire());
+        feuNombre.set(diagnostic.nombreFichiers());
+        feuRenommage.set(diagnostic.coherenceRenommage());
+        preCheckAnomalie.set(diagnostic.presenteUneAnomalie());
+    }
 
-  /// Feu du pré-check sur le nombre de fichiers enregistrés.
-  public ReadOnlyObjectProperty<PreCheckNuit.Feu> feuNombreProperty() {
-    return feuNombre.getReadOnlyProperty();
-  }
+    private String commentaireOuNull() {
+        String texte = commentaire.get();
+        return texte == null || texte.isBlank() ? null : texte;
+    }
 
-  /// Feu du pré-check sur la cohérence du renommage (R6).
-  public ReadOnlyObjectProperty<PreCheckNuit.Feu> feuRenommageProperty() {
-    return feuRenommage.getReadOnlyProperty();
-  }
+    /// Feu du pré-check sur la couverture horaire de la nuit (R3).
+    public ReadOnlyObjectProperty<PreCheckNuit.Feu> feuCouvertureProperty() {
+        return feuCouverture.getReadOnlyProperty();
+    }
 
-  /// `true` si au moins un feu est rouge (pilote un bandeau d'alerte). Consultatif, jamais
-  /// bloquant (R13).
-  public ReadOnlyBooleanProperty preCheckAnomalieProperty() {
-    return preCheckAnomalie.getReadOnlyProperty();
-  }
+    /// Feu du pré-check sur le nombre de fichiers enregistrés.
+    public ReadOnlyObjectProperty<PreCheckNuit.Feu> feuNombreProperty() {
+        return feuNombre.getReadOnlyProperty();
+    }
 
-  /// Verdict persisté du passage (`A_VERIFIER` tant qu'aucun verdict n'est enregistré).
-  public ReadOnlyObjectProperty<Verdict> verdictActuelProperty() {
-    return verdictActuel.getReadOnlyProperty();
-  }
+    /// Feu du pré-check sur la cohérence du renommage (R6).
+    public ReadOnlyObjectProperty<PreCheckNuit.Feu> feuRenommageProperty() {
+        return feuRenommage.getReadOnlyProperty();
+    }
 
-  /// Statut workflow courant du passage (`TRANSFORME` → `VERIFIE` après enregistrement).
-  public ReadOnlyObjectProperty<StatutWorkflow> statutProperty() {
-    return statut.getReadOnlyProperty();
-  }
+    /// `true` si au moins un feu est rouge (pilote un bandeau d'alerte). Consultatif, jamais
+    /// bloquant (R13).
+    public ReadOnlyBooleanProperty preCheckAnomalieProperty() {
+        return preCheckAnomalie.getReadOnlyProperty();
+    }
 
-  /// Verdict choisi mais pas encore enregistré (sélection différée des boutons O / D / J).
-  public ObjectProperty<Verdict> verdictChoisiProperty() {
-    return verdictChoisi;
-  }
+    /// Verdict persisté du passage (`A_VERIFIER` tant qu'aucun verdict n'est enregistré).
+    public ReadOnlyObjectProperty<Verdict> verdictActuelProperty() {
+        return verdictActuel.getReadOnlyProperty();
+    }
 
-  /// Commentaire libre accompagnant le verdict (vide = commentaire existant conservé côté service).
-  public StringProperty commentaireProperty() {
-    return commentaire;
-  }
+    /// Statut workflow courant du passage (`TRANSFORME` → `VERIFIE` après enregistrement).
+    public ReadOnlyObjectProperty<StatutWorkflow> statutProperty() {
+        return statut.getReadOnlyProperty();
+    }
 
-  /// État du verdict : `BROUILLON` tant qu'il n'est pas persisté, `ENREGISTRE` après.
-  public ReadOnlyObjectProperty<EtatVerdict> etatVerdictProperty() {
-    return etatVerdict.getReadOnlyProperty();
-  }
+    /// Verdict choisi mais pas encore enregistré (sélection différée des boutons O / D / J).
+    public ObjectProperty<Verdict> verdictChoisiProperty() {
+        return verdictChoisi;
+    }
 
-  /// Avertissement R14 affiché après l'enregistrement d'un verdict « à jeter », vide sinon.
-  public ReadOnlyStringProperty avertissementAJeterProperty() {
-    return avertissementAJeter.getReadOnlyProperty();
-  }
+    /// Commentaire libre accompagnant le verdict (vide = commentaire existant conservé côté service).
+    public StringProperty commentaireProperty() {
+        return commentaire;
+    }
 
-  /// Message d'erreur (passage introuvable, verdict manquant), vide en fonctionnement nominal.
-  public ReadOnlyStringProperty messageProperty() {
-    return message.getReadOnlyProperty();
-  }
+    /// État du verdict : `BROUILLON` tant qu'il n'est pas persisté, `ENREGISTRE` après.
+    public ReadOnlyObjectProperty<EtatVerdict> etatVerdictProperty() {
+        return etatVerdict.getReadOnlyProperty();
+    }
 
-  /// Activation du bouton « Enregistrer le verdict » : un verdict décisif (≠ `A_VERIFIER`) choisi.
-  public BooleanBinding peutEnregistrer() {
-    return peutEnregistrer;
-  }
+    /// Avertissement R14 affiché après l'enregistrement d'un verdict « à jeter », vide sinon.
+    public ReadOnlyStringProperty avertissementAJeterProperty() {
+        return avertissementAJeter.getReadOnlyProperty();
+    }
+
+    /// Message d'erreur (passage introuvable, verdict manquant), vide en fonctionnement nominal.
+    public ReadOnlyStringProperty messageProperty() {
+        return message.getReadOnlyProperty();
+    }
+
+    /// Activation du bouton « Enregistrer le verdict » : un verdict décisif (≠ `A_VERIFIER`) choisi.
+    public BooleanBinding peutEnregistrer() {
+        return peutEnregistrer;
+    }
 }

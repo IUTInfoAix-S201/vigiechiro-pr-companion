@@ -20,24 +20,20 @@ import fr.univ_amu.iut.sites.model.dao.SiteDao;
 /// O6). C'est ce module qui sait les assembler.
 public class MultisiteModule extends AbstractModule {
 
-  @Provides
-  @Singleton
-  SavedViewDao fournirSavedViewDao(SourceDeDonnees source) {
-    return new SavedViewDao(source);
-  }
+    @Provides
+    @Singleton
+    SavedViewDao fournirSavedViewDao(SourceDeDonnees source) {
+        return new SavedViewDao(source);
+    }
 
-  /// Vue agrégée multi-sites (parcours P5). Reçoit son propre [SavedViewDao] ainsi que les DAO
-  /// en lecture des features `sites` ([SiteDao], [PointDao]) et `passage`
-  /// ([PassageDao]), fournis par leurs modules respectifs, plus l'[Horloge] du socle.
-  /// L'assemblage inter-modules est résolu par `RacineInjecteur`.
-  @Provides
-  @Singleton
-  ServiceMultisite fournirServiceMultisite(
-      SavedViewDao savedViewDao,
-      SiteDao siteDao,
-      PointDao pointDao,
-      PassageDao passageDao,
-      Horloge horloge) {
-    return new ServiceMultisite(savedViewDao, siteDao, pointDao, passageDao, horloge);
-  }
+    /// Vue agrégée multi-sites (parcours P5). Reçoit son propre [SavedViewDao] ainsi que les DAO
+    /// en lecture des features `sites` ([SiteDao], [PointDao]) et `passage`
+    /// ([PassageDao]), fournis par leurs modules respectifs, plus l'[Horloge] du socle.
+    /// L'assemblage inter-modules est résolu par `RacineInjecteur`.
+    @Provides
+    @Singleton
+    ServiceMultisite fournirServiceMultisite(
+            SavedViewDao savedViewDao, SiteDao siteDao, PointDao pointDao, PassageDao passageDao, Horloge horloge) {
+        return new ServiceMultisite(savedViewDao, siteDao, pointDao, passageDao, horloge);
+    }
 }

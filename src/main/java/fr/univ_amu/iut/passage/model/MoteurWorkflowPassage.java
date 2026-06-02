@@ -26,44 +26,44 @@ import java.util.Optional;
 /// SERVICE-CONVENTIONS §2.3).
 public final class MoteurWorkflowPassage {
 
-  /// Ordre canonique des statuts : l'index dans cette liste définit la progression.
-  private static final List<StatutWorkflow> ORDRE =
-      List.of(
-          StatutWorkflow.IMPORTE,
-          StatutWorkflow.TRANSFORME,
-          StatutWorkflow.VERIFIE,
-          StatutWorkflow.PRET_A_DEPOSER,
-          StatutWorkflow.DEPOSE);
+    /// Ordre canonique des statuts : l'index dans cette liste définit la progression.
+    private static final List<StatutWorkflow> ORDRE = List.of(
+            StatutWorkflow.IMPORTE,
+            StatutWorkflow.TRANSFORME,
+            StatutWorkflow.VERIFIE,
+            StatutWorkflow.PRET_A_DEPOSER,
+            StatutWorkflow.DEPOSE);
 
-  /// Successeur immédiat d'un statut, ou [Optional#empty()] si `actuel` est le statut terminal
-  /// ([StatutWorkflow#DEPOSE]).
-  public Optional<StatutWorkflow> suivant(StatutWorkflow actuel) {
-    int index = ORDRE.indexOf(actuel);
-    if (index < 0 || index == ORDRE.size() - 1) {
-      return Optional.empty();
+    /// Successeur immédiat d'un statut, ou [Optional#empty()] si `actuel` est le statut terminal
+    /// ([StatutWorkflow#DEPOSE]).
+    public Optional<StatutWorkflow> suivant(StatutWorkflow actuel) {
+        int index = ORDRE.indexOf(actuel);
+        if (index < 0 || index == ORDRE.size() - 1) {
+            return Optional.empty();
+        }
+        return Optional.of(ORDRE.get(index + 1));
     }
-    return Optional.of(ORDRE.get(index + 1));
-  }
 
-  /// `true` si l'on peut passer de `actuel` à `cible`, c'est-à-dire si `cible` est exactement le
-  /// successeur immédiat de `actuel`.
-  public boolean estTransitionAutorisee(StatutWorkflow actuel, StatutWorkflow cible) {
-    return suivant(actuel).map(attendu -> attendu == cible).orElse(false);
-  }
-
-  /// Exige que la transition `actuel → cible` soit autorisée.
-  ///
-  /// @throws RegleMetierException si la transition n'est pas le passage à l'étape suivante (saut
-  /// d'étape, retour en arrière, ou statut déjà terminal)
-  public void exigerTransitionAutorisee(StatutWorkflow actuel, StatutWorkflow cible) {
-    if (!estTransitionAutorisee(actuel, cible)) {
-      throw new RegleMetierException(
-          "Transition de workflow interdite : « "
-              + actuel.libelle()
-              + " » → « "
-              + cible.libelle()
-              + " ». Seul le passage à l'étape suivante est autorisé"
-              + suivant(actuel).map(s -> " (attendu : « " + s.libelle() + " »).").orElse("."));
+    /// `true` si l'on peut passer de `actuel` à `cible`, c'est-à-dire si `cible` est exactement le
+    /// successeur immédiat de `actuel`.
+    public boolean estTransitionAutorisee(StatutWorkflow actuel, StatutWorkflow cible) {
+        return suivant(actuel).map(attendu -> attendu == cible).orElse(false);
     }
-  }
+
+    /// Exige que la transition `actuel → cible` soit autorisée.
+    ///
+    /// @throws RegleMetierException si la transition n'est pas le passage à l'étape suivante (saut
+    /// d'étape, retour en arrière, ou statut déjà terminal)
+    public void exigerTransitionAutorisee(StatutWorkflow actuel, StatutWorkflow cible) {
+        if (!estTransitionAutorisee(actuel, cible)) {
+            throw new RegleMetierException("Transition de workflow interdite : « "
+                    + actuel.libelle()
+                    + " » → « "
+                    + cible.libelle()
+                    + " ». Seul le passage à l'étape suivante est autorisé"
+                    + suivant(actuel)
+                            .map(s -> " (attendu : « " + s.libelle() + " »).")
+                            .orElse("."));
+        }
+    }
 }

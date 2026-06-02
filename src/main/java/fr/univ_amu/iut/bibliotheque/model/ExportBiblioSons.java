@@ -24,60 +24,59 @@ import java.util.List;
 /// *approval*.
 public record ExportBiblioSons(List<EntreeBiblio> entrees) {
 
-  /// En-tête du CSV récapitulatif. Ordre des colonnes figé (déterminisme).
-  public static final List<String> ENTETE =
-      List.of("taxon", "sequence source", "fichier", "frequence", "commentaire");
+    /// En-tête du CSV récapitulatif. Ordre des colonnes figé (déterminisme).
+    public static final List<String> ENTETE =
+            List.of("taxon", "sequence source", "fichier", "frequence", "commentaire");
 
-  /// Copie défensive immuable de la liste d'entrées.
-  public ExportBiblioSons {
-    entrees = List.copyOf(entrees);
-  }
-
-  /// Nombre d'entrées (observations de référence exportées).
-  public int nombre() {
-    return entrees.size();
-  }
-
-  /// Lignes du CSV récapitulatif : l'[en-tête][#ENTETE] suivi d'une ligne par entrée. Les
-  /// valeurs `null` (fréquence, commentaire absents) deviennent une chaîne vide.
-  public List<List<String>> lignesCsv() {
-    List<List<String>> lignes = new ArrayList<>();
-    lignes.add(ENTETE);
-    for (EntreeBiblio entree : entrees) {
-      lignes.add(
-          List.of(
-              texte(entree.taxon()),
-              texte(entree.nomSequence()),
-              texte(entree.cheminFichier()),
-              entree.frequenceHz() == null ? "" : String.valueOf(entree.frequenceHz()),
-              texte(entree.commentaire())));
+    /// Copie défensive immuable de la liste d'entrées.
+    public ExportBiblioSons {
+        entrees = List.copyOf(entrees);
     }
-    return lignes;
-  }
 
-  /// CSV récapitulatif sérialisé (séparateur `;`, guillemets seulement si nécessaire).
-  public String versCsv() {
-    return EcrivainCsv.minimal().versChaine(lignesCsv());
-  }
-
-  /// Écrit le CSV récapitulatif en UTF-8 dans `fichier` (crée les dossiers parents).
-  public void ecrireCsv(Path fichier) {
-    EcrivainCsv.minimal().ecrire(fichier, lignesCsv());
-  }
-
-  /// Chemins des fichiers de séquences à copier, **dédupliqués** (une séquence portant plusieurs
-  /// observations de référence n'est copiée qu'une fois) et dans l'ordre des entrées.
-  public List<String> cheminsSequences() {
-    LinkedHashSet<String> chemins = new LinkedHashSet<>();
-    for (EntreeBiblio entree : entrees) {
-      if (entree.cheminFichier() != null) {
-        chemins.add(entree.cheminFichier());
-      }
+    /// Nombre d'entrées (observations de référence exportées).
+    public int nombre() {
+        return entrees.size();
     }
-    return List.copyOf(chemins);
-  }
 
-  private static String texte(String valeur) {
-    return valeur == null ? "" : valeur;
-  }
+    /// Lignes du CSV récapitulatif : l'[en-tête][#ENTETE] suivi d'une ligne par entrée. Les
+    /// valeurs `null` (fréquence, commentaire absents) deviennent une chaîne vide.
+    public List<List<String>> lignesCsv() {
+        List<List<String>> lignes = new ArrayList<>();
+        lignes.add(ENTETE);
+        for (EntreeBiblio entree : entrees) {
+            lignes.add(List.of(
+                    texte(entree.taxon()),
+                    texte(entree.nomSequence()),
+                    texte(entree.cheminFichier()),
+                    entree.frequenceHz() == null ? "" : String.valueOf(entree.frequenceHz()),
+                    texte(entree.commentaire())));
+        }
+        return lignes;
+    }
+
+    /// CSV récapitulatif sérialisé (séparateur `;`, guillemets seulement si nécessaire).
+    public String versCsv() {
+        return EcrivainCsv.minimal().versChaine(lignesCsv());
+    }
+
+    /// Écrit le CSV récapitulatif en UTF-8 dans `fichier` (crée les dossiers parents).
+    public void ecrireCsv(Path fichier) {
+        EcrivainCsv.minimal().ecrire(fichier, lignesCsv());
+    }
+
+    /// Chemins des fichiers de séquences à copier, **dédupliqués** (une séquence portant plusieurs
+    /// observations de référence n'est copiée qu'une fois) et dans l'ordre des entrées.
+    public List<String> cheminsSequences() {
+        LinkedHashSet<String> chemins = new LinkedHashSet<>();
+        for (EntreeBiblio entree : entrees) {
+            if (entree.cheminFichier() != null) {
+                chemins.add(entree.cheminFichier());
+            }
+        }
+        return List.copyOf(chemins);
+    }
+
+    private static String texte(String valeur) {
+        return valeur == null ? "" : valeur;
+    }
 }

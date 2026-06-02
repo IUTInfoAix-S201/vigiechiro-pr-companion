@@ -11,5 +11,4 @@ package fr.univ_amu.iut.sites.model;
 /// @param longitude longitude GPS (optionnelle)
 /// @param description descriptif (optionnel)
 /// @param idSite identifiant du site parent (FK → `monitoring_site.id`)
-public record PointDEcoute(
-    Long id, String code, Double latitude, Double longitude, String description, Long idSite) {}
+public record PointDEcoute(Long id, String code, Double latitude, Double longitude, String description, Long idSite) {}

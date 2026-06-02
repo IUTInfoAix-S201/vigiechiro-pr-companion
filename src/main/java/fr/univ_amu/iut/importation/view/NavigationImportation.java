@@ -20,24 +20,24 @@ import javafx.scene.Parent;
 @Singleton
 public class NavigationImportation {
 
-  private final Injector injector;
-  private final Navigateur navigateur;
+    private final Injector injector;
+    private final Navigateur navigateur;
 
-  @Inject
-  public NavigationImportation(Injector injector, Navigateur navigateur) {
-    this.injector = Objects.requireNonNull(injector, "injector");
-    this.navigateur = Objects.requireNonNull(navigateur, "navigateur");
-  }
-
-  /// Affiche l'assistant « Importer une nuit » dans la zone centrale du chrome.
-  public void ouvrir() {
-    FXMLLoader loader = new FXMLLoader(NavigationImportation.class.getResource("Importation.fxml"));
-    loader.setControllerFactory(injector::getInstance);
-    try {
-      Parent vue = loader.load();
-      navigateur.afficher(vue, "import", "Importer une nuit");
-    } catch (IOException echec) {
-      throw new UncheckedIOException("Chargement FXML impossible : " + loader.getLocation(), echec);
+    @Inject
+    public NavigationImportation(Injector injector, Navigateur navigateur) {
+        this.injector = Objects.requireNonNull(injector, "injector");
+        this.navigateur = Objects.requireNonNull(navigateur, "navigateur");
     }
-  }
+
+    /// Affiche l'assistant « Importer une nuit » dans la zone centrale du chrome.
+    public void ouvrir() {
+        FXMLLoader loader = new FXMLLoader(NavigationImportation.class.getResource("Importation.fxml"));
+        loader.setControllerFactory(injector::getInstance);
+        try {
+            Parent vue = loader.load();
+            navigateur.afficher(vue, "import", "Importer une nuit");
+        } catch (IOException echec) {
+            throw new UncheckedIOException("Chargement FXML impossible : " + loader.getLocation(), echec);
+        }
+    }
 }

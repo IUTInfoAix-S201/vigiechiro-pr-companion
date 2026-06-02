@@ -32,128 +32,128 @@ import org.junit.jupiter.api.io.TempDir;
 /// état vide). L'[HorlogeFigee] rend la fraîcheur déterministe.
 class SitesViewModelTest {
 
-  private static final String ID_USER = "u-1";
-  private static final LocalDate JOUR_FIXE = LocalDate.of(2026, 5, 31);
+    private static final String ID_USER = "u-1";
+    private static final LocalDate JOUR_FIXE = LocalDate.of(2026, 5, 31);
 
-  @TempDir Path dossier;
-  private ServiceSites service;
-  private PassageDao passageDao;
-  private PointDao pointDao;
-  private EnregistreurDao enregistreurDao;
-  private SitesViewModel viewModel;
+    @TempDir
+    Path dossier;
 
-  @BeforeEach
-  void preparer() {
-    SourceDeDonnees source = new SourceDeDonnees(new Workspace(dossier));
-    new MigrationSchema(source).migrer();
-    new UtilisateurDao(source).insert(new Utilisateur(ID_USER, "Testeur"));
-    SiteDao siteDao = new SiteDao(source);
-    pointDao = new PointDao(source);
-    passageDao = new PassageDao(source);
-    enregistreurDao = new EnregistreurDao(source);
-    enregistreurDao.insert(new Enregistreur("1925492", "V1.01", null));
-    HorlogeFigee horloge = new HorlogeFigee(JOUR_FIXE);
-    service = new ServiceSites(siteDao, pointDao, passageDao, horloge);
-    viewModel = new SitesViewModel(service, passageDao, horloge, ID_USER);
-  }
+    private ServiceSites service;
+    private PassageDao passageDao;
+    private PointDao pointDao;
+    private EnregistreurDao enregistreurDao;
+    private SitesViewModel viewModel;
 
-  @Test
-  @DisplayName("Sans aucun site, le ViewModel signale l'état vide")
-  void etat_vide_sans_site() {
-    viewModel.rafraichir();
+    @BeforeEach
+    void preparer() {
+        SourceDeDonnees source = new SourceDeDonnees(new Workspace(dossier));
+        new MigrationSchema(source).migrer();
+        new UtilisateurDao(source).insert(new Utilisateur(ID_USER, "Testeur"));
+        SiteDao siteDao = new SiteDao(source);
+        pointDao = new PointDao(source);
+        passageDao = new PassageDao(source);
+        enregistreurDao = new EnregistreurDao(source);
+        enregistreurDao.insert(new Enregistreur("1925492", "V1.01", null));
+        HorlogeFigee horloge = new HorlogeFigee(JOUR_FIXE);
+        service = new ServiceSites(siteDao, pointDao, passageDao, horloge);
+        viewModel = new SitesViewModel(service, passageDao, horloge, ID_USER);
+    }
 
-    assertThat(viewModel.cartes()).isEmpty();
-    assertThat(viewModel.videProperty().get()).isTrue();
-  }
+    @Test
+    @DisplayName("Sans aucun site, le ViewModel signale l'état vide")
+    void etat_vide_sans_site() {
+        viewModel.rafraichir();
 
-  @Test
-  @DisplayName("Une carte agrège points, codes et compteur de passages de l'année")
-  void carte_agrege_points_et_passages() {
-    Site site = service.creerSite("640380", "Étang", Protocole.STANDARD, null, ID_USER);
-    PointDEcoute a1 = service.ajouterPoint(site.id(), "A1", 43.5, 5.4, "Chêne");
-    service.ajouterPoint(site.id(), "B2", null, null, null);
-    insererPassage(a1, 1, "2026-05-29", Verdict.OK);
-    insererPassage(a1, 2, "2026-05-20", null);
+        assertThat(viewModel.cartes()).isEmpty();
+        assertThat(viewModel.videProperty().get()).isTrue();
+    }
 
-    viewModel.rafraichir();
+    @Test
+    @DisplayName("Une carte agrège points, codes et compteur de passages de l'année")
+    void carte_agrege_points_et_passages() {
+        Site site = service.creerSite("640380", "Étang", Protocole.STANDARD, null, ID_USER);
+        PointDEcoute a1 = service.ajouterPoint(site.id(), "A1", 43.5, 5.4, "Chêne");
+        service.ajouterPoint(site.id(), "B2", null, null, null);
+        insererPassage(a1, 1, "2026-05-29", Verdict.OK);
+        insererPassage(a1, 2, "2026-05-20", null);
 
-    assertThat(viewModel.videProperty().get()).isFalse();
-    assertThat(viewModel.cartes()).hasSize(1);
-    CarteSite carte = viewModel.cartes().getFirst();
-    assertThat(carte.nombrePoints()).isEqualTo(2);
-    assertThat(carte.codesPoints()).isEqualTo("A1 · B2");
-    assertThat(carte.passagesDeLAnnee()).isEqualTo(2);
-    assertThat(carte.passagesAVerifier()).isEqualTo(1);
-    assertThat(carte.aDesPassagesAVerifier()).isTrue();
-  }
+        viewModel.rafraichir();
 
-  @Test
-  @DisplayName("La fraîcheur dérive de la date du dernier passage")
-  void fraicheur_du_dernier_passage() {
-    Site site = service.creerSite("640380", "Étang", Protocole.STANDARD, null, ID_USER);
-    PointDEcoute a1 = service.ajouterPoint(site.id(), "A1", null, null, null);
-    insererPassage(a1, 1, "2026-05-29", Verdict.OK);
+        assertThat(viewModel.videProperty().get()).isFalse();
+        assertThat(viewModel.cartes()).hasSize(1);
+        CarteSite carte = viewModel.cartes().getFirst();
+        assertThat(carte.nombrePoints()).isEqualTo(2);
+        assertThat(carte.codesPoints()).isEqualTo("A1 · B2");
+        assertThat(carte.passagesDeLAnnee()).isEqualTo(2);
+        assertThat(carte.passagesAVerifier()).isEqualTo(1);
+        assertThat(carte.aDesPassagesAVerifier()).isTrue();
+    }
 
-    viewModel.rafraichir();
+    @Test
+    @DisplayName("La fraîcheur dérive de la date du dernier passage")
+    void fraicheur_du_dernier_passage() {
+        Site site = service.creerSite("640380", "Étang", Protocole.STANDARD, null, ID_USER);
+        PointDEcoute a1 = service.ajouterPoint(site.id(), "A1", null, null, null);
+        insererPassage(a1, 1, "2026-05-29", Verdict.OK);
 
-    assertThat(viewModel.cartes().getFirst().fraicheur()).isEqualTo(Fraicheur.FRAIS);
-    assertThat(viewModel.cartes().getFirst().libelleFraicheur()).contains("il y a 2 j");
-  }
+        viewModel.rafraichir();
 
-  @Test
-  @DisplayName("Un site sans passage est froid et marqué « jamais utilisé »")
-  void site_sans_passage_est_froid() {
-    Site site = service.creerSite("013570", null, Protocole.STANDARD, null, ID_USER);
-    service.ajouterPoint(site.id(), "A1", null, null, null);
+        assertThat(viewModel.cartes().getFirst().fraicheur()).isEqualTo(Fraicheur.FRAIS);
+        assertThat(viewModel.cartes().getFirst().libelleFraicheur()).contains("il y a 2 j");
+    }
 
-    viewModel.rafraichir();
+    @Test
+    @DisplayName("Un site sans passage est froid et marqué « jamais utilisé »")
+    void site_sans_passage_est_froid() {
+        Site site = service.creerSite("013570", null, Protocole.STANDARD, null, ID_USER);
+        service.ajouterPoint(site.id(), "A1", null, null, null);
 
-    CarteSite carte = viewModel.cartes().getFirst();
-    assertThat(carte.fraicheur()).isEqualTo(Fraicheur.FROID);
-    assertThat(carte.passagesDeLAnnee()).isZero();
-    assertThat(carte.libelleFraicheur()).isEqualTo("Aucun passage");
-  }
+        viewModel.rafraichir();
 
-  @Test
-  @DisplayName("Le sous-titre récapitule sites et passages de l'année")
-  void sous_titre_recapitulatif() {
-    Site site = service.creerSite("640380", "Étang", Protocole.STANDARD, null, ID_USER);
-    PointDEcoute a1 = service.ajouterPoint(site.id(), "A1", null, null, null);
-    insererPassage(a1, 1, "2026-05-29", Verdict.OK);
+        CarteSite carte = viewModel.cartes().getFirst();
+        assertThat(carte.fraicheur()).isEqualTo(Fraicheur.FROID);
+        assertThat(carte.passagesDeLAnnee()).isZero();
+        assertThat(carte.libelleFraicheur()).isEqualTo("Aucun passage");
+    }
 
-    viewModel.rafraichir();
+    @Test
+    @DisplayName("Le sous-titre récapitule sites et passages de l'année")
+    void sous_titre_recapitulatif() {
+        Site site = service.creerSite("640380", "Étang", Protocole.STANDARD, null, ID_USER);
+        PointDEcoute a1 = service.ajouterPoint(site.id(), "A1", null, null, null);
+        insererPassage(a1, 1, "2026-05-29", Verdict.OK);
 
-    assertThat(viewModel.sousTitreProperty().get())
-        .isEqualTo("1 site déclaré · 1 passage enregistré en 2026");
-  }
+        viewModel.rafraichir();
 
-  @Test
-  @DisplayName("creerSite ajoute le site et rafraîchit la liste")
-  void creer_site_rafraichit() {
-    viewModel.rafraichir();
+        assertThat(viewModel.sousTitreProperty().get()).isEqualTo("1 site déclaré · 1 passage enregistré en 2026");
+    }
 
-    viewModel.creerSite("752204", "ZAC Nord", Protocole.STANDARD, null);
+    @Test
+    @DisplayName("creerSite ajoute le site et rafraîchit la liste")
+    void creer_site_rafraichit() {
+        viewModel.rafraichir();
 
-    assertThat(viewModel.cartes()).hasSize(1);
-    assertThat(viewModel.cartes().getFirst().site().numeroCarre()).isEqualTo("752204");
-  }
+        viewModel.creerSite("752204", "ZAC Nord", Protocole.STANDARD, null);
 
-  private void insererPassage(PointDEcoute point, int numeroPassage, String date, Verdict verdict) {
-    passageDao.insert(
-        new Passage(
-            null,
-            numeroPassage,
-            2026,
-            date,
-            "21:00:00",
-            "05:00:00",
-            null,
-            StatutWorkflow.TRANSFORME,
-            verdict,
-            null,
-            null,
-            null,
-            point.id(),
-            "1925492"));
-  }
+        assertThat(viewModel.cartes()).hasSize(1);
+        assertThat(viewModel.cartes().getFirst().site().numeroCarre()).isEqualTo("752204");
+    }
+
+    private void insererPassage(PointDEcoute point, int numeroPassage, String date, Verdict verdict) {
+        passageDao.insert(new Passage(
+                null,
+                numeroPassage,
+                2026,
+                date,
+                "21:00:00",
+                "05:00:00",
+                null,
+                StatutWorkflow.TRANSFORME,
+                verdict,
+                null,
+                null,
+                null,
+                point.id(),
+                "1925492"));
+    }
 }

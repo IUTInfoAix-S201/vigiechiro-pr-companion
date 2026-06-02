@@ -35,129 +35,115 @@ import org.junit.jupiter.api.io.TempDir;
 /// l'original source et la session, suppression en cascade depuis l'original.
 class SequenceDaoTest {
 
-  @TempDir Path dossier;
-  private EnregistrementOriginalDao originalDao;
-  private SequenceDao dao;
-  private Long idSession;
-  private Long idOriginal;
+    @TempDir
+    Path dossier;
 
-  @BeforeEach
-  void preparer() {
-    SourceDeDonnees source = new SourceDeDonnees(new Workspace(dossier));
-    new MigrationSchema(source).migrer();
-    new UtilisateurDao(source).insert(new Utilisateur("u-1", "Testeur"));
-    Site site =
-        new SiteDao(source)
-            .insert(new Site(null, "040962", null, Protocole.STANDARD, null, "2026-05-01", "u-1"));
-    Long idPoint =
-        new PointDao(source).insert(new PointDEcoute(null, "A1", null, null, null, site.id())).id();
-    new EnregistreurDao(source).insert(new Enregistreur("1925492", null, null));
-    Long idPassage =
-        new PassageDao(source)
-            .insert(
-                new Passage(
-                    null,
-                    1,
-                    2026,
-                    "2026-06-20",
-                    "21:30:00",
-                    "05:15:00",
-                    null,
-                    StatutWorkflow.IMPORTE,
-                    null,
-                    null,
-                    null,
-                    null,
-                    idPoint,
-                    "1925492"))
-            .id();
-    idSession =
-        new SessionDao(source)
-            .insert(new SessionDEnregistrement(null, "racine", null, null, idPassage))
-            .id();
-    originalDao = new EnregistrementOriginalDao(source);
-    idOriginal =
-        originalDao
-            .insert(
-                new EnregistrementOriginal(
-                    null, "orig.wav", "bruts/orig.wav", 12.0, 384000, null, idSession))
-            .id();
-    dao = new SequenceDao(source);
-  }
+    private EnregistrementOriginalDao originalDao;
+    private SequenceDao dao;
+    private Long idSession;
+    private Long idOriginal;
 
-  private SequenceDEcoute sequence(String nom, int index, boolean dansSelection) {
-    return new SequenceDEcoute(
-        null,
-        nom,
-        idOriginal,
-        index,
-        index * 5.0,
-        5.0,
-        "transformes/" + nom,
-        dansSelection,
-        idSession);
-  }
+    @BeforeEach
+    void preparer() {
+        SourceDeDonnees source = new SourceDeDonnees(new Workspace(dossier));
+        new MigrationSchema(source).migrer();
+        new UtilisateurDao(source).insert(new Utilisateur("u-1", "Testeur"));
+        Site site = new SiteDao(source)
+                .insert(new Site(null, "040962", null, Protocole.STANDARD, null, "2026-05-01", "u-1"));
+        Long idPoint = new PointDao(source)
+                .insert(new PointDEcoute(null, "A1", null, null, null, site.id()))
+                .id();
+        new EnregistreurDao(source).insert(new Enregistreur("1925492", null, null));
+        Long idPassage = new PassageDao(source)
+                .insert(new Passage(
+                        null,
+                        1,
+                        2026,
+                        "2026-06-20",
+                        "21:30:00",
+                        "05:15:00",
+                        null,
+                        StatutWorkflow.IMPORTE,
+                        null,
+                        null,
+                        null,
+                        null,
+                        idPoint,
+                        "1925492"))
+                .id();
+        idSession = new SessionDao(source)
+                .insert(new SessionDEnregistrement(null, "racine", null, null, idPassage))
+                .id();
+        originalDao = new EnregistrementOriginalDao(source);
+        idOriginal = originalDao
+                .insert(new EnregistrementOriginal(null, "orig.wav", "bruts/orig.wav", 12.0, 384000, null, idSession))
+                .id();
+        dao = new SequenceDao(source);
+    }
 
-  @Test
-  @DisplayName("insert attribue un id ; le drapeau in_selection est relisible")
-  void inserer_rend_la_sequence_relisible() {
-    SequenceDEcoute insere = dao.insert(sequence("orig_000.wav", 0, true));
+    private SequenceDEcoute sequence(String nom, int index, boolean dansSelection) {
+        return new SequenceDEcoute(
+                null, nom, idOriginal, index, index * 5.0, 5.0, "transformes/" + nom, dansSelection, idSession);
+    }
 
-    assertThat(insere.id()).isNotNull();
-    SequenceDEcoute relu = dao.findById(insere.id()).orElseThrow();
-    assertThat(relu.nomFichier()).isEqualTo("orig_000.wav");
-    assertThat(relu.dansSelection()).isTrue();
-    assertThat(relu.indexSource()).isEqualTo(0);
-    assertThat(dao.findBySession(idSession)).hasSize(1);
-  }
+    @Test
+    @DisplayName("insert attribue un id ; le drapeau in_selection est relisible")
+    void inserer_rend_la_sequence_relisible() {
+        SequenceDEcoute insere = dao.insert(sequence("orig_000.wav", 0, true));
 
-  @Test
-  @DisplayName("colonnes nullables et drapeau false persistés correctement")
-  void colonnes_nullables_et_drapeau_false() {
-    SequenceDEcoute minimale =
-        new SequenceDEcoute(
-            null, "min.wav", idOriginal, null, null, null, "transformes/min.wav", false, idSession);
+        assertThat(insere.id()).isNotNull();
+        SequenceDEcoute relu = dao.findById(insere.id()).orElseThrow();
+        assertThat(relu.nomFichier()).isEqualTo("orig_000.wav");
+        assertThat(relu.dansSelection()).isTrue();
+        assertThat(relu.indexSource()).isEqualTo(0);
+        assertThat(dao.findBySession(idSession)).hasSize(1);
+    }
 
-    SequenceDEcoute relu = dao.findById(dao.insert(minimale).id()).orElseThrow();
+    @Test
+    @DisplayName("colonnes nullables et drapeau false persistés correctement")
+    void colonnes_nullables_et_drapeau_false() {
+        SequenceDEcoute minimale = new SequenceDEcoute(
+                null, "min.wav", idOriginal, null, null, null, "transformes/min.wav", false, idSession);
 
-    assertThat(relu.dansSelection()).isFalse();
-    assertThat(relu.indexSource()).isNull();
-    assertThat(relu.offsetSourceSecondes()).isNull();
-    assertThat(relu.dureeSecondes()).isNull();
-  }
+        SequenceDEcoute relu = dao.findById(dao.insert(minimale).id()).orElseThrow();
 
-  @Test
-  @DisplayName("on retrouve les séquences issues d'un même original, ordonnées par index")
-  void retrouver_les_sequences_par_original() {
-    dao.insert(sequence("orig_001.wav", 1, false));
-    dao.insert(sequence("orig_000.wav", 0, true));
+        assertThat(relu.dansSelection()).isFalse();
+        assertThat(relu.indexSource()).isNull();
+        assertThat(relu.offsetSourceSecondes()).isNull();
+        assertThat(relu.dureeSecondes()).isNull();
+    }
 
-    assertThat(dao.findByOriginal(idOriginal))
-        .extracting(SequenceDEcoute::indexSource)
-        .containsExactly(0, 1);
-  }
+    @Test
+    @DisplayName("on retrouve les séquences issues d'un même original, ordonnées par index")
+    void retrouver_les_sequences_par_original() {
+        dao.insert(sequence("orig_001.wav", 1, false));
+        dao.insert(sequence("orig_000.wav", 0, true));
 
-  @Test
-  @DisplayName("FK active : un original source inconnu est rejeté")
-  void clef_etrangere_active_un_original_inconnu_est_rejete() {
-    SequenceDEcoute orphelin =
-        new SequenceDEcoute(
-            null, "x.wav", 9999L, 0, 0.0, 5.0, "transformes/x.wav", false, idSession);
+        assertThat(dao.findByOriginal(idOriginal))
+                .extracting(SequenceDEcoute::indexSource)
+                .containsExactly(0, 1);
+    }
 
-    assertThatThrownBy(() -> dao.insert(orphelin)).isInstanceOf(DataAccessException.class);
-  }
+    @Test
+    @DisplayName("FK active : un original source inconnu est rejeté")
+    void clef_etrangere_active_un_original_inconnu_est_rejete() {
+        SequenceDEcoute orphelin =
+                new SequenceDEcoute(null, "x.wav", 9999L, 0, 0.0, 5.0, "transformes/x.wav", false, idSession);
 
-  @Test
-  @DisplayName("supprimer l'original supprime ses séquences dérivées en cascade")
-  void supprimer_l_original_supprime_les_sequences_en_cascade() {
-    dao.insert(sequence("orig_000.wav", 0, true));
-    dao.insert(sequence("orig_001.wav", 1, false));
-    assertThat(dao.findByOriginal(idOriginal)).hasSize(2);
+        assertThatThrownBy(() -> dao.insert(orphelin)).isInstanceOf(DataAccessException.class);
+    }
 
-    originalDao.delete(idOriginal);
+    @Test
+    @DisplayName("supprimer l'original supprime ses séquences dérivées en cascade")
+    void supprimer_l_original_supprime_les_sequences_en_cascade() {
+        dao.insert(sequence("orig_000.wav", 0, true));
+        dao.insert(sequence("orig_001.wav", 1, false));
+        assertThat(dao.findByOriginal(idOriginal)).hasSize(2);
 
-    assertThat(dao.findByOriginal(idOriginal))
-        .as("ON DELETE CASCADE doit avoir supprimé les séquences de l'original")
-        .isEmpty();
-  }
+        originalDao.delete(idOriginal);
+
+        assertThat(dao.findByOriginal(idOriginal))
+                .as("ON DELETE CASCADE doit avoir supprimé les séquences de l'original")
+                .isEmpty();
+    }
 }

@@ -31,17 +31,17 @@ import fr.univ_amu.iut.commun.model.Verdict;
 /// @param idPoint identifiant du point d'écoute (FK → `listening_point.id`)
 /// @param idEnregistreur n° de série de l'enregistreur (FK → `recorder.serial_number`)
 public record Passage(
-    Long id,
-    int numeroPassage,
-    int annee,
-    String dateEnregistrement,
-    String heureDebut,
-    String heureFin,
-    String parametresAcquisition,
-    StatutWorkflow statutWorkflow,
-    Verdict verdictVerification,
-    String commentaire,
-    String donneesMeteo,
-    String deposeLe,
-    Long idPoint,
-    String idEnregistreur) {}
+        Long id,
+        int numeroPassage,
+        int annee,
+        String dateEnregistrement,
+        String heureDebut,
+        String heureFin,
+        String parametresAcquisition,
+        StatutWorkflow statutWorkflow,
+        Verdict verdictVerification,
+        String commentaire,
+        String donneesMeteo,
+        String deposeLe,
+        Long idPoint,
+        String idEnregistreur) {}

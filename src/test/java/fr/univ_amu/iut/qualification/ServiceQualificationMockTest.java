@@ -39,85 +39,96 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class ServiceQualificationMockTest {
 
-  @Mock private SelectionDao selectionDao;
-  @Mock private SequenceDao sequenceDao;
-  @Mock private SessionDao sessionDao;
-  @Mock private EnregistrementOriginalDao originalDao;
-  @Mock private PassageDao passageDao;
-  @Mock private PointDao pointDao;
-  @Mock private SiteDao siteDao;
-  @Mock private UniteDeTravail uniteDeTravail;
+    @Mock
+    private SelectionDao selectionDao;
 
-  private ServiceQualification service;
+    @Mock
+    private SequenceDao sequenceDao;
 
-  @BeforeEach
-  void preparer() {
-    service =
-        new ServiceQualification(
-            selectionDao,
-            sequenceDao,
-            sessionDao,
-            originalDao,
-            passageDao,
-            pointDao,
-            siteDao,
-            new GenerateurSelection(),
-            new PreCheckNuit(),
-            uniteDeTravail);
-  }
+    @Mock
+    private SessionDao sessionDao;
 
-  private static Passage passageTransforme(long id) {
-    return new Passage(
-        id,
-        1,
-        2026,
-        "2026-06-20",
-        "20:00:00",
-        "06:00:00",
-        null,
-        StatutWorkflow.TRANSFORME,
-        Verdict.A_VERIFIER,
-        null,
-        null,
-        null,
-        10L,
-        "1925492");
-  }
+    @Mock
+    private EnregistrementOriginalDao originalDao;
 
-  @Test
-  @DisplayName("R13 : le verdict est enregistré sans consulter l'écoute (aucun seuil obligatoire)")
-  void verdict_sans_consulter_l_ecoute() {
-    when(passageDao.findById(1L)).thenReturn(Optional.of(passageTransforme(1L)));
+    @Mock
+    private PassageDao passageDao;
 
-    service.enregistrerVerdict(1L, Verdict.OK, "RAS");
+    @Mock
+    private PointDao pointDao;
 
-    verify(passageDao)
-        .update(
-            argThat(
-                p ->
-                    p.statutWorkflow() == StatutWorkflow.VERIFIE
-                        && p.verdictVerification() == Verdict.OK));
-    // R13 : aucune lecture de la jonction / de l'état d'écoute pour décider du verdict.
-    verifyNoInteractions(selectionDao, sequenceDao, sessionDao);
-  }
+    @Mock
+    private SiteDao siteDao;
 
-  @Test
-  @DisplayName("Un verdict À vérifier (sentinelle) est refusé avant toute écriture")
-  void verdict_sentinelle_court_circuite_l_ecriture() {
-    assertThatThrownBy(() -> service.enregistrerVerdict(1L, Verdict.A_VERIFIER, null))
-        .isInstanceOf(IllegalArgumentException.class);
+    @Mock
+    private UniteDeTravail uniteDeTravail;
 
-    verify(passageDao, never()).update(any());
-  }
+    private ServiceQualification service;
 
-  @Test
-  @DisplayName("Passage introuvable : le verdict lève une RegleMetierException")
-  void verdict_passage_introuvable() {
-    when(passageDao.findById(9L)).thenReturn(Optional.empty());
+    @BeforeEach
+    void preparer() {
+        service = new ServiceQualification(
+                selectionDao,
+                sequenceDao,
+                sessionDao,
+                originalDao,
+                passageDao,
+                pointDao,
+                siteDao,
+                new GenerateurSelection(),
+                new PreCheckNuit(),
+                uniteDeTravail);
+    }
 
-    assertThatThrownBy(() -> service.enregistrerVerdict(9L, Verdict.OK, null))
-        .isInstanceOf(RegleMetierException.class);
+    private static Passage passageTransforme(long id) {
+        return new Passage(
+                id,
+                1,
+                2026,
+                "2026-06-20",
+                "20:00:00",
+                "06:00:00",
+                null,
+                StatutWorkflow.TRANSFORME,
+                Verdict.A_VERIFIER,
+                null,
+                null,
+                null,
+                10L,
+                "1925492");
+    }
 
-    verify(passageDao, never()).update(any());
-  }
+    @Test
+    @DisplayName("R13 : le verdict est enregistré sans consulter l'écoute (aucun seuil obligatoire)")
+    void verdict_sans_consulter_l_ecoute() {
+        when(passageDao.findById(1L)).thenReturn(Optional.of(passageTransforme(1L)));
+
+        service.enregistrerVerdict(1L, Verdict.OK, "RAS");
+
+        verify(passageDao)
+                .update(argThat(
+                        p -> p.statutWorkflow() == StatutWorkflow.VERIFIE && p.verdictVerification() == Verdict.OK));
+        // R13 : aucune lecture de la jonction / de l'état d'écoute pour décider du verdict.
+        verifyNoInteractions(selectionDao, sequenceDao, sessionDao);
+    }
+
+    @Test
+    @DisplayName("Un verdict À vérifier (sentinelle) est refusé avant toute écriture")
+    void verdict_sentinelle_court_circuite_l_ecriture() {
+        assertThatThrownBy(() -> service.enregistrerVerdict(1L, Verdict.A_VERIFIER, null))
+                .isInstanceOf(IllegalArgumentException.class);
+
+        verify(passageDao, never()).update(any());
+    }
+
+    @Test
+    @DisplayName("Passage introuvable : le verdict lève une RegleMetierException")
+    void verdict_passage_introuvable() {
+        when(passageDao.findById(9L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.enregistrerVerdict(9L, Verdict.OK, null))
+                .isInstanceOf(RegleMetierException.class);
+
+        verify(passageDao, never()).update(any());
+    }
 }

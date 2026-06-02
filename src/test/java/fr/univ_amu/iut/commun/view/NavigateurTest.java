@@ -18,36 +18,36 @@ import org.testfx.framework.junit5.Start;
 @ExtendWith(ApplicationExtension.class)
 class NavigateurTest {
 
-  @Start
-  void start(Stage stage) {
-    // Toolkit JavaFX initialisé ; aucune scène nécessaire pour ces tests.
-  }
+    @Start
+    void start(Stage stage) {
+        // Toolkit JavaFX initialisé ; aucune scène nécessaire pour ces tests.
+    }
 
-  @Test
-  @DisplayName("afficherAccueil revient à la vue mémorisée et réinitialise le fil d'Ariane")
-  void afficherAccueil_revient_a_l_accueil() {
-    NavigationViewModel navigation = new NavigationViewModel();
-    Navigateur navigateur = new Navigateur(navigation);
-    Parent accueil = new Group();
-    navigateur.memoriserAccueil(accueil);
-    navigateur.afficher(new Group(), "sites", "Mes sites de suivi");
+    @Test
+    @DisplayName("afficherAccueil revient à la vue mémorisée et réinitialise le fil d'Ariane")
+    void afficherAccueil_revient_a_l_accueil() {
+        NavigationViewModel navigation = new NavigationViewModel();
+        Navigateur navigateur = new Navigateur(navigation);
+        Parent accueil = new Group();
+        navigateur.memoriserAccueil(accueil);
+        navigateur.afficher(new Group(), "sites", "Mes sites de suivi");
 
-    navigateur.afficherAccueil();
+        navigateur.afficherAccueil();
 
-    assertThat(navigateur.getVueCentrale()).isSameAs(accueil);
-    assertThat(navigation.filArianeProperty().get()).isEqualTo("Accueil");
-    assertThat(navigation.vueCouranteProperty().get()).isEqualTo("accueil");
-  }
+        assertThat(navigateur.getVueCentrale()).isSameAs(accueil);
+        assertThat(navigation.filArianeProperty().get()).isEqualTo("Accueil");
+        assertThat(navigation.vueCouranteProperty().get()).isEqualTo("accueil");
+    }
 
-  @Test
-  @DisplayName("afficherAccueil est sans effet tant qu'aucun accueil n'a été mémorisé")
-  void afficherAccueil_sans_memorisation_est_neutre() {
-    Navigateur navigateur = new Navigateur(new NavigationViewModel());
-    Parent vue = new Group();
-    navigateur.afficher(vue);
+    @Test
+    @DisplayName("afficherAccueil est sans effet tant qu'aucun accueil n'a été mémorisé")
+    void afficherAccueil_sans_memorisation_est_neutre() {
+        Navigateur navigateur = new Navigateur(new NavigationViewModel());
+        Parent vue = new Group();
+        navigateur.afficher(vue);
 
-    navigateur.afficherAccueil();
+        navigateur.afficherAccueil();
 
-    assertThat(navigateur.getVueCentrale()).isSameAs(vue);
-  }
+        assertThat(navigateur.getVueCentrale()).isSameAs(vue);
+    }
 }

@@ -35,211 +35,197 @@ import java.sql.Statement;
 /// l'import) et n'entre donc pas dans la transaction.
 public class AgregatImportDao {
 
-  private final SourceDeDonnees source;
+    private final SourceDeDonnees source;
 
-  public AgregatImportDao(SourceDeDonnees source) {
-    this.source = java.util.Objects.requireNonNull(source, "source");
-  }
-
-  // ---------------------------------------------------------------------------
-  // Lecture hors transaction : pré-contrôle d'unicité R5
-  // ---------------------------------------------------------------------------
-
-  /// `true` si un passage existe déjà pour ce quadruplet `(point, année, n° de passage)` (R5).
-  /// Permet de refuser un réimport en doublon **avant** de copier/transformer quoi que ce soit.
-  public boolean passageExistePour(Long idPoint, int annee, int numeroPassage) {
-    String sql = "SELECT 1 FROM passage WHERE point_id = ? AND year = ? AND passage_number = ?";
-    try (Connection cx = source.getConnection();
-        PreparedStatement ps = cx.prepareStatement(sql)) {
-      ps.setObject(1, idPoint);
-      ps.setInt(2, annee);
-      ps.setInt(3, numeroPassage);
-      try (ResultSet rs = ps.executeQuery()) {
-        return rs.next();
-      }
-    } catch (SQLException e) {
-      throw new DataAccessException("Échec du pré-contrôle d'unicité R5 : " + sql, e);
+    public AgregatImportDao(SourceDeDonnees source) {
+        this.source = java.util.Objects.requireNonNull(source, "source");
     }
-  }
 
-  // ---------------------------------------------------------------------------
-  // Écritures « connection-aware » (à appeler dans UniteDeTravail.executer)
-  // ---------------------------------------------------------------------------
+    // ---------------------------------------------------------------------------
+    // Lecture hors transaction : pré-contrôle d'unicité R5
+    // ---------------------------------------------------------------------------
 
-  /// Upsert de l'enregistreur sur sa clé naturelle `serial_number` (même patron que
-  /// `EnregistreurDao`, mais sur la connexion transactionnelle). Rencontré deux fois, ses
-  /// métadonnées sont rafraîchies plutôt que dupliquées.
-  public void upsertEnregistreur(Connection cx, Enregistreur enregistreur) throws SQLException {
-    try (PreparedStatement ps =
-        cx.prepareStatement(
-            "INSERT INTO recorder (serial_number, model_version, comment) VALUES (?, ?, ?)"
-                + " ON CONFLICT(serial_number) DO UPDATE SET"
-                + " model_version = excluded.model_version, comment = excluded.comment")) {
-      ps.setString(1, enregistreur.numeroSerie());
-      ps.setString(2, enregistreur.versionModele());
-      ps.setString(3, enregistreur.commentaire());
-      ps.executeUpdate();
+    /// `true` si un passage existe déjà pour ce quadruplet `(point, année, n° de passage)` (R5).
+    /// Permet de refuser un réimport en doublon **avant** de copier/transformer quoi que ce soit.
+    public boolean passageExistePour(Long idPoint, int annee, int numeroPassage) {
+        String sql = "SELECT 1 FROM passage WHERE point_id = ? AND year = ? AND passage_number = ?";
+        try (Connection cx = source.getConnection();
+                PreparedStatement ps = cx.prepareStatement(sql)) {
+            ps.setObject(1, idPoint);
+            ps.setInt(2, annee);
+            ps.setInt(3, numeroPassage);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Échec du pré-contrôle d'unicité R5 : " + sql, e);
+        }
     }
-  }
 
-  /// Insère le micro porté par l'enregistreur **seulement s'il n'en a pas déjà un actif**
-  /// (historisation : un seul `is_active = 1` par enregistreur). Idempotent au réimport : on ne
-  /// crée pas un doublon de micro à chaque nuit.
-  public void insererMicroSiAbsent(Connection cx, Micro micro) throws SQLException {
-    if (aUnMicroActif(cx, micro.idEnregistreur())) {
-      return;
+    // ---------------------------------------------------------------------------
+    // Écritures « connection-aware » (à appeler dans UniteDeTravail.executer)
+    // ---------------------------------------------------------------------------
+
+    /// Upsert de l'enregistreur sur sa clé naturelle `serial_number` (même patron que
+    /// `EnregistreurDao`, mais sur la connexion transactionnelle). Rencontré deux fois, ses
+    /// métadonnées sont rafraîchies plutôt que dupliquées.
+    public void upsertEnregistreur(Connection cx, Enregistreur enregistreur) throws SQLException {
+        try (PreparedStatement ps =
+                cx.prepareStatement("INSERT INTO recorder (serial_number, model_version, comment) VALUES (?, ?, ?)"
+                        + " ON CONFLICT(serial_number) DO UPDATE SET"
+                        + " model_version = excluded.model_version, comment = excluded.comment")) {
+            ps.setString(1, enregistreur.numeroSerie());
+            ps.setString(2, enregistreur.versionModele());
+            ps.setString(3, enregistreur.commentaire());
+            ps.executeUpdate();
+        }
     }
-    try (PreparedStatement ps =
-        cx.prepareStatement(
-            "INSERT INTO microphone"
+
+    /// Insère le micro porté par l'enregistreur **seulement s'il n'en a pas déjà un actif**
+    /// (historisation : un seul `is_active = 1` par enregistreur). Idempotent au réimport : on ne
+    /// crée pas un doublon de micro à chaque nuit.
+    public void insererMicroSiAbsent(Connection cx, Micro micro) throws SQLException {
+        if (aUnMicroActif(cx, micro.idEnregistreur())) {
+            return;
+        }
+        try (PreparedStatement ps = cx.prepareStatement("INSERT INTO microphone"
                 + " (model_ref, bandwidth, sensitivity, commissioned_at, decommissioned_at,"
                 + " is_active, comment, recorder_id)"
                 + " VALUES (?, ?, ?, ?, ?, ?, ?, ?)")) {
-      ps.setString(1, micro.modeleReference());
-      ps.setString(2, micro.bandePassante());
-      ps.setString(3, micro.sensibilite());
-      ps.setString(4, micro.miseEnServiceLe());
-      ps.setString(5, micro.retireLe());
-      ps.setInt(6, micro.actif() ? 1 : 0);
-      ps.setString(7, micro.commentaire());
-      ps.setString(8, micro.idEnregistreur());
-      ps.executeUpdate();
+            ps.setString(1, micro.modeleReference());
+            ps.setString(2, micro.bandePassante());
+            ps.setString(3, micro.sensibilite());
+            ps.setString(4, micro.miseEnServiceLe());
+            ps.setString(5, micro.retireLe());
+            ps.setInt(6, micro.actif() ? 1 : 0);
+            ps.setString(7, micro.commentaire());
+            ps.setString(8, micro.idEnregistreur());
+            ps.executeUpdate();
+        }
     }
-  }
 
-  private boolean aUnMicroActif(Connection cx, String idEnregistreur) throws SQLException {
-    try (PreparedStatement ps =
-        cx.prepareStatement("SELECT 1 FROM microphone WHERE recorder_id = ? AND is_active = 1")) {
-      ps.setString(1, idEnregistreur);
-      try (ResultSet rs = ps.executeQuery()) {
-        return rs.next();
-      }
+    private boolean aUnMicroActif(Connection cx, String idEnregistreur) throws SQLException {
+        try (PreparedStatement ps =
+                cx.prepareStatement("SELECT 1 FROM microphone WHERE recorder_id = ? AND is_active = 1")) {
+            ps.setString(1, idEnregistreur);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        }
     }
-  }
 
-  /// Insère le passage (FK `point_id`, `recorder_id`) et renvoie sa clé générée.
-  public long insererPassage(Connection cx, Passage passage) throws SQLException {
-    try (PreparedStatement ps =
-        cx.prepareStatement(
-            "INSERT INTO passage"
-                + " (passage_number, year, recording_date, start_time, end_time,"
-                + " acquisition_params, workflow_status, verification_verdict, comment,"
-                + " weather_data, deposited_at, point_id, recorder_id)"
-                + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            Statement.RETURN_GENERATED_KEYS)) {
-      ps.setInt(1, passage.numeroPassage());
-      ps.setInt(2, passage.annee());
-      ps.setString(3, passage.dateEnregistrement());
-      ps.setString(4, passage.heureDebut());
-      ps.setString(5, passage.heureFin());
-      ps.setString(6, passage.parametresAcquisition());
-      ps.setString(7, passage.statutWorkflow().libelle());
-      ps.setString(
-          8,
-          passage.verdictVerification() == null ? null : passage.verdictVerification().libelle());
-      ps.setString(9, passage.commentaire());
-      ps.setString(10, passage.donneesMeteo());
-      ps.setString(11, passage.deposeLe());
-      ps.setObject(12, passage.idPoint());
-      ps.setString(13, passage.idEnregistreur());
-      return executerEtRecupererCle(ps, "passage");
+    /// Insère le passage (FK `point_id`, `recorder_id`) et renvoie sa clé générée.
+    public long insererPassage(Connection cx, Passage passage) throws SQLException {
+        try (PreparedStatement ps = cx.prepareStatement(
+                "INSERT INTO passage"
+                        + " (passage_number, year, recording_date, start_time, end_time,"
+                        + " acquisition_params, workflow_status, verification_verdict, comment,"
+                        + " weather_data, deposited_at, point_id, recorder_id)"
+                        + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                Statement.RETURN_GENERATED_KEYS)) {
+            ps.setInt(1, passage.numeroPassage());
+            ps.setInt(2, passage.annee());
+            ps.setString(3, passage.dateEnregistrement());
+            ps.setString(4, passage.heureDebut());
+            ps.setString(5, passage.heureFin());
+            ps.setString(6, passage.parametresAcquisition());
+            ps.setString(7, passage.statutWorkflow().libelle());
+            ps.setString(
+                    8,
+                    passage.verdictVerification() == null
+                            ? null
+                            : passage.verdictVerification().libelle());
+            ps.setString(9, passage.commentaire());
+            ps.setString(10, passage.donneesMeteo());
+            ps.setString(11, passage.deposeLe());
+            ps.setObject(12, passage.idPoint());
+            ps.setString(13, passage.idEnregistreur());
+            return executerEtRecupererCle(ps, "passage");
+        }
     }
-  }
 
-  /// Insère la session 1:1 du passage et renvoie sa clé générée.
-  public long insererSession(Connection cx, long idPassage, SessionDEnregistrement session)
-      throws SQLException {
-    try (PreparedStatement ps =
-        cx.prepareStatement(
-            "INSERT INTO recording_session"
-                + " (root_path, originals_total_bytes, sequences_total_bytes, passage_id)"
-                + " VALUES (?, ?, ?, ?)",
-            Statement.RETURN_GENERATED_KEYS)) {
-      ps.setString(1, session.cheminRacine());
-      ps.setObject(2, session.volumeOriginauxOctets());
-      ps.setObject(3, session.volumeSequencesOctets());
-      ps.setLong(4, idPassage);
-      return executerEtRecupererCle(ps, "recording_session");
+    /// Insère la session 1:1 du passage et renvoie sa clé générée.
+    public long insererSession(Connection cx, long idPassage, SessionDEnregistrement session) throws SQLException {
+        try (PreparedStatement ps = cx.prepareStatement(
+                "INSERT INTO recording_session"
+                        + " (root_path, originals_total_bytes, sequences_total_bytes, passage_id)"
+                        + " VALUES (?, ?, ?, ?)",
+                Statement.RETURN_GENERATED_KEYS)) {
+            ps.setString(1, session.cheminRacine());
+            ps.setObject(2, session.volumeOriginauxOctets());
+            ps.setObject(3, session.volumeSequencesOctets());
+            ps.setLong(4, idPassage);
+            return executerEtRecupererCle(ps, "recording_session");
+        }
     }
-  }
 
-  /// Insère le journal du capteur 1:1 de la session (sensor_log).
-  public void insererJournal(Connection cx, long idSession, JournalDuCapteur journal)
-      throws SQLException {
-    try (PreparedStatement ps =
-        cx.prepareStatement(
-            "INSERT INTO sensor_log (file_path, parsed_events, detected_anomalies, session_id)"
-                + " VALUES (?, ?, ?, ?)")) {
-      ps.setString(1, journal.cheminFichier());
-      ps.setString(2, journal.evenementsParses());
-      ps.setString(3, journal.anomaliesDetectees());
-      ps.setLong(4, idSession);
-      ps.executeUpdate();
+    /// Insère le journal du capteur 1:1 de la session (sensor_log).
+    public void insererJournal(Connection cx, long idSession, JournalDuCapteur journal) throws SQLException {
+        try (PreparedStatement ps =
+                cx.prepareStatement("INSERT INTO sensor_log (file_path, parsed_events, detected_anomalies, session_id)"
+                        + " VALUES (?, ?, ?, ?)")) {
+            ps.setString(1, journal.cheminFichier());
+            ps.setString(2, journal.evenementsParses());
+            ps.setString(3, journal.anomaliesDetectees());
+            ps.setLong(4, idSession);
+            ps.executeUpdate();
+        }
     }
-  }
 
-  /// Insère le relevé climatique 0:1 de la session (climate_log), s'il existe (R20).
-  public void insererReleve(Connection cx, long idSession, ReleveClimatique releve)
-      throws SQLException {
-    try (PreparedStatement ps =
-        cx.prepareStatement(
-            "INSERT INTO climate_log (file_path, measurements, session_id) VALUES (?, ?, ?)")) {
-      ps.setString(1, releve.cheminFichier());
-      ps.setString(2, releve.mesures());
-      ps.setLong(3, idSession);
-      ps.executeUpdate();
+    /// Insère le relevé climatique 0:1 de la session (climate_log), s'il existe (R20).
+    public void insererReleve(Connection cx, long idSession, ReleveClimatique releve) throws SQLException {
+        try (PreparedStatement ps =
+                cx.prepareStatement("INSERT INTO climate_log (file_path, measurements, session_id) VALUES (?, ?, ?)")) {
+            ps.setString(1, releve.cheminFichier());
+            ps.setString(2, releve.mesures());
+            ps.setLong(3, idSession);
+            ps.executeUpdate();
+        }
     }
-  }
 
-  /// Insère un enregistrement original de la session et renvoie sa clé générée.
-  public long insererOriginal(Connection cx, long idSession, EnregistrementOriginal original)
-      throws SQLException {
-    try (PreparedStatement ps =
-        cx.prepareStatement(
-            "INSERT INTO original_recording"
-                + " (file_name, file_path, duration_s, sample_rate_hz, sha256, session_id)"
-                + " VALUES (?, ?, ?, ?, ?, ?)",
-            Statement.RETURN_GENERATED_KEYS)) {
-      ps.setString(1, original.nomFichier());
-      ps.setString(2, original.cheminFichier());
-      ps.setObject(3, original.dureeSecondes());
-      ps.setObject(4, original.frequenceEchantillonnageHz());
-      ps.setString(5, original.sha256());
-      ps.setLong(6, idSession);
-      return executerEtRecupererCle(ps, "original_recording");
+    /// Insère un enregistrement original de la session et renvoie sa clé générée.
+    public long insererOriginal(Connection cx, long idSession, EnregistrementOriginal original) throws SQLException {
+        try (PreparedStatement ps = cx.prepareStatement(
+                "INSERT INTO original_recording"
+                        + " (file_name, file_path, duration_s, sample_rate_hz, sha256, session_id)"
+                        + " VALUES (?, ?, ?, ?, ?, ?)",
+                Statement.RETURN_GENERATED_KEYS)) {
+            ps.setString(1, original.nomFichier());
+            ps.setString(2, original.cheminFichier());
+            ps.setObject(3, original.dureeSecondes());
+            ps.setObject(4, original.frequenceEchantillonnageHz());
+            ps.setString(5, original.sha256());
+            ps.setLong(6, idSession);
+            return executerEtRecupererCle(ps, "original_recording");
+        }
     }
-  }
 
-  /// Insère une séquence d'écoute rattachée à sa session et à son original source (R8/R10).
-  public void insererSequence(
-      Connection cx, long idSession, long idOriginal, SequenceDEcoute sequence)
-      throws SQLException {
-    try (PreparedStatement ps =
-        cx.prepareStatement(
-            "INSERT INTO listening_sequence"
+    /// Insère une séquence d'écoute rattachée à sa session et à son original source (R8/R10).
+    public void insererSequence(Connection cx, long idSession, long idOriginal, SequenceDEcoute sequence)
+            throws SQLException {
+        try (PreparedStatement ps = cx.prepareStatement("INSERT INTO listening_sequence"
                 + " (file_name, original_recording_id, source_index, source_offset_s, duration_s,"
                 + " file_path, in_selection, session_id)"
                 + " VALUES (?, ?, ?, ?, ?, ?, ?, ?)")) {
-      ps.setString(1, sequence.nomFichier());
-      ps.setLong(2, idOriginal);
-      ps.setObject(3, sequence.indexSource());
-      ps.setObject(4, sequence.offsetSourceSecondes());
-      ps.setObject(5, sequence.dureeSecondes());
-      ps.setString(6, sequence.cheminFichier());
-      ps.setInt(7, sequence.dansSelection() ? 1 : 0);
-      ps.setLong(8, idSession);
-      ps.executeUpdate();
+            ps.setString(1, sequence.nomFichier());
+            ps.setLong(2, idOriginal);
+            ps.setObject(3, sequence.indexSource());
+            ps.setObject(4, sequence.offsetSourceSecondes());
+            ps.setObject(5, sequence.dureeSecondes());
+            ps.setString(6, sequence.cheminFichier());
+            ps.setInt(7, sequence.dansSelection() ? 1 : 0);
+            ps.setLong(8, idSession);
+            ps.executeUpdate();
+        }
     }
-  }
 
-  private static long executerEtRecupererCle(PreparedStatement ps, String table)
-      throws SQLException {
-    ps.executeUpdate();
-    try (ResultSet cles = ps.getGeneratedKeys()) {
-      if (cles.next()) {
-        return cles.getLong(1);
-      }
-      throw new SQLException("Aucune clé générée pour l'insertion dans " + table + ".");
+    private static long executerEtRecupererCle(PreparedStatement ps, String table) throws SQLException {
+        ps.executeUpdate();
+        try (ResultSet cles = ps.getGeneratedKeys()) {
+            if (cles.next()) {
+                return cles.getLong(1);
+            }
+            throw new SQLException("Aucune clé générée pour l'insertion dans " + table + ".");
+        }
     }
-  }
 }

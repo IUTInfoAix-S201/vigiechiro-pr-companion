@@ -23,72 +23,72 @@ import java.util.stream.Stream;
 /// - l'**état de nommage** ([EtatNommage]) : fichiers encore bruts (R7) ou déjà préfixés (R6).
 public class InspecteurDossier {
 
-  private static final String SOUS_DOSSIER_BRUTS = "bruts";
+    private static final String SOUS_DOSSIER_BRUTS = "bruts";
 
-  private final AnalyseurLogPR analyseurLog;
+    private final AnalyseurLogPR analyseurLog;
 
-  public InspecteurDossier(AnalyseurLogPR analyseurLog) {
-    this.analyseurLog = Objects.requireNonNull(analyseurLog, "analyseurLog");
-  }
-
-  /// Inspecte `dossierSource` sans le modifier.
-  ///
-  /// @throws IllegalArgumentException si le chemin n'existe pas ou n'est pas un dossier
-  public RapportInspection inspecter(Path dossierSource) {
-    Objects.requireNonNull(dossierSource, "dossierSource");
-    if (!Files.isDirectory(dossierSource)) {
-      throw new IllegalArgumentException("Dossier source introuvable : " + dossierSource);
+    public InspecteurDossier(AnalyseurLogPR analyseurLog) {
+        this.analyseurLog = Objects.requireNonNull(analyseurLog, "analyseurLog");
     }
-    Path cheminJournal = trouverPremier(dossierSource, this::estJournalLog);
-    JournalParse journal = cheminJournal == null ? null : analyseurLog.analyser(cheminJournal);
-    Path releve = trouverPremier(dossierSource, this::estReleveClimatique);
-    List<Path> originaux = listerOriginaux(dossierSource);
-    EtatNommage etat = determinerEtatNommage(originaux);
-    return new RapportInspection(dossierSource, cheminJournal, journal, releve, originaux, etat);
-  }
 
-  /// Enregistrements originaux : dans `bruts/` si présent, sinon à la racine du dossier.
-  private List<Path> listerOriginaux(Path dossierSource) {
-    Path bruts = dossierSource.resolve(SOUS_DOSSIER_BRUTS);
-    Path ou = Files.isDirectory(bruts) ? bruts : dossierSource;
-    try (Stream<Path> flux = Files.list(ou)) {
-      return flux.filter(Files::isRegularFile)
-          .filter(p -> p.getFileName().toString().toLowerCase().endsWith(".wav"))
-          .sorted(Comparator.comparing(p -> p.getFileName().toString()))
-          .toList();
-    } catch (IOException e) {
-      throw new UncheckedIOException("Lecture du dossier impossible : " + ou, e);
+    /// Inspecte `dossierSource` sans le modifier.
+    ///
+    /// @throws IllegalArgumentException si le chemin n'existe pas ou n'est pas un dossier
+    public RapportInspection inspecter(Path dossierSource) {
+        Objects.requireNonNull(dossierSource, "dossierSource");
+        if (!Files.isDirectory(dossierSource)) {
+            throw new IllegalArgumentException("Dossier source introuvable : " + dossierSource);
+        }
+        Path cheminJournal = trouverPremier(dossierSource, this::estJournalLog);
+        JournalParse journal = cheminJournal == null ? null : analyseurLog.analyser(cheminJournal);
+        Path releve = trouverPremier(dossierSource, this::estReleveClimatique);
+        List<Path> originaux = listerOriginaux(dossierSource);
+        EtatNommage etat = determinerEtatNommage(originaux);
+        return new RapportInspection(dossierSource, cheminJournal, journal, releve, originaux, etat);
     }
-  }
 
-  /// Détermine l'état de nommage des originaux : aucun fichier [EtatNommage#VIDE] ; tous préfixés
-  /// `Car...` [EtatNommage#PREFIXE] ; au moins un fichier brut [EtatNommage#BRUT].
-  private EtatNommage determinerEtatNommage(List<Path> originaux) {
-    if (originaux.isEmpty()) {
-      return EtatNommage.VIDE;
+    /// Enregistrements originaux : dans `bruts/` si présent, sinon à la racine du dossier.
+    private List<Path> listerOriginaux(Path dossierSource) {
+        Path bruts = dossierSource.resolve(SOUS_DOSSIER_BRUTS);
+        Path ou = Files.isDirectory(bruts) ? bruts : dossierSource;
+        try (Stream<Path> flux = Files.list(ou)) {
+            return flux.filter(Files::isRegularFile)
+                    .filter(p -> p.getFileName().toString().toLowerCase().endsWith(".wav"))
+                    .sorted(Comparator.comparing(p -> p.getFileName().toString()))
+                    .toList();
+        } catch (IOException e) {
+            throw new UncheckedIOException("Lecture du dossier impossible : " + ou, e);
+        }
     }
-    boolean tousPrefixes =
-        originaux.stream().allMatch(p -> p.getFileName().toString().startsWith("Car"));
-    return tousPrefixes ? EtatNommage.PREFIXE : EtatNommage.BRUT;
-  }
 
-  private boolean estJournalLog(String nom) {
-    return nom.matches("(?i)LogPR\\d+\\.txt");
-  }
-
-  private boolean estReleveClimatique(String nom) {
-    return nom.toUpperCase().contains("THLOG") && nom.toLowerCase().endsWith(".csv");
-  }
-
-  private Path trouverPremier(Path dossier, java.util.function.Predicate<String> nomAccepte) {
-    try (Stream<Path> flux = Files.list(dossier)) {
-      return flux.filter(Files::isRegularFile)
-          .filter(p -> nomAccepte.test(p.getFileName().toString()))
-          .sorted(Comparator.comparing(p -> p.getFileName().toString()))
-          .findFirst()
-          .orElse(null);
-    } catch (IOException e) {
-      throw new UncheckedIOException("Lecture du dossier impossible : " + dossier, e);
+    /// Détermine l'état de nommage des originaux : aucun fichier [EtatNommage#VIDE] ; tous préfixés
+    /// `Car...` [EtatNommage#PREFIXE] ; au moins un fichier brut [EtatNommage#BRUT].
+    private EtatNommage determinerEtatNommage(List<Path> originaux) {
+        if (originaux.isEmpty()) {
+            return EtatNommage.VIDE;
+        }
+        boolean tousPrefixes =
+                originaux.stream().allMatch(p -> p.getFileName().toString().startsWith("Car"));
+        return tousPrefixes ? EtatNommage.PREFIXE : EtatNommage.BRUT;
     }
-  }
+
+    private boolean estJournalLog(String nom) {
+        return nom.matches("(?i)LogPR\\d+\\.txt");
+    }
+
+    private boolean estReleveClimatique(String nom) {
+        return nom.toUpperCase().contains("THLOG") && nom.toLowerCase().endsWith(".csv");
+    }
+
+    private Path trouverPremier(Path dossier, java.util.function.Predicate<String> nomAccepte) {
+        try (Stream<Path> flux = Files.list(dossier)) {
+            return flux.filter(Files::isRegularFile)
+                    .filter(p -> nomAccepte.test(p.getFileName().toString()))
+                    .sorted(Comparator.comparing(p -> p.getFileName().toString()))
+                    .findFirst()
+                    .orElse(null);
+        } catch (IOException e) {
+            throw new UncheckedIOException("Lecture du dossier impossible : " + dossier, e);
+        }
+    }
 }

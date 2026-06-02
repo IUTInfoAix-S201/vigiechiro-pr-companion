@@ -15,5 +15,4 @@ import java.time.LocalTime;
 /// @param heure heure de la mesure
 /// @param temperatureCelsius température en degrés Celsius
 /// @param humiditePourcent humidité relative en pourcentage
-public record MesureClimatique(
-    LocalDate date, LocalTime heure, double temperatureCelsius, int humiditePourcent) {}
+public record MesureClimatique(LocalDate date, LocalTime heure, double temperatureCelsius, int humiditePourcent) {}

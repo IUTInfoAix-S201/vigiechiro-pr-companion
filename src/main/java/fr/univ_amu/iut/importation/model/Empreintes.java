@@ -21,33 +21,33 @@ import java.util.HexFormat;
 /// Implémenté avec [MessageDigest] de `java.base` (aucune dépendance externe ni `java.desktop`).
 public final class Empreintes {
 
-  private Empreintes() {}
+    private Empreintes() {}
 
-  /// SHA-256 hexadécimal d'un fichier, lu par blocs (n'occupe pas toute la RAM).
-  public static String sha256Hex(Path fichier) {
-    MessageDigest digest = nouveauSha256();
-    byte[] tampon = new byte[1 << 16];
-    try (InputStream flux = Files.newInputStream(fichier)) {
-      int lus;
-      while ((lus = flux.read(tampon)) != -1) {
-        digest.update(tampon, 0, lus);
-      }
-    } catch (IOException e) {
-      throw new IllegalStateException("Lecture impossible pour le SHA-256 : " + fichier, e);
+    /// SHA-256 hexadécimal d'un fichier, lu par blocs (n'occupe pas toute la RAM).
+    public static String sha256Hex(Path fichier) {
+        MessageDigest digest = nouveauSha256();
+        byte[] tampon = new byte[1 << 16];
+        try (InputStream flux = Files.newInputStream(fichier)) {
+            int lus;
+            while ((lus = flux.read(tampon)) != -1) {
+                digest.update(tampon, 0, lus);
+            }
+        } catch (IOException e) {
+            throw new IllegalStateException("Lecture impossible pour le SHA-256 : " + fichier, e);
+        }
+        return HexFormat.of().formatHex(digest.digest());
     }
-    return HexFormat.of().formatHex(digest.digest());
-  }
 
-  /// SHA-256 hexadécimal d'un tableau d'octets.
-  public static String sha256Hex(byte[] octets) {
-    return HexFormat.of().formatHex(nouveauSha256().digest(octets));
-  }
-
-  private static MessageDigest nouveauSha256() {
-    try {
-      return MessageDigest.getInstance("SHA-256");
-    } catch (NoSuchAlgorithmException e) {
-      throw new IllegalStateException("SHA-256 indisponible sur cette JVM", e);
+    /// SHA-256 hexadécimal d'un tableau d'octets.
+    public static String sha256Hex(byte[] octets) {
+        return HexFormat.of().formatHex(nouveauSha256().digest(octets));
     }
-  }
+
+    private static MessageDigest nouveauSha256() {
+        try {
+            return MessageDigest.getInstance("SHA-256");
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 indisponible sur cette JVM", e);
+        }
+    }
 }

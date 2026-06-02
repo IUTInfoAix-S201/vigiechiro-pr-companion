@@ -21,27 +21,27 @@ import javafx.scene.Parent;
 @Singleton
 public class NavigationDiagnostic implements OuvrirDiagnostic {
 
-  private final Injector injector;
-  private final Navigateur navigateur;
+    private final Injector injector;
+    private final Navigateur navigateur;
 
-  @Inject
-  public NavigationDiagnostic(Injector injector, Navigateur navigateur) {
-    this.injector = Objects.requireNonNull(injector, "injector");
-    this.navigateur = Objects.requireNonNull(navigateur, "navigateur");
-  }
-
-  /// Affiche le diagnostic matériel du passage `idPassage` dans la zone centrale du chrome.
-  @Override
-  public void ouvrir(Long idPassage) {
-    FXMLLoader loader = new FXMLLoader(NavigationDiagnostic.class.getResource("Diagnostic.fxml"));
-    loader.setControllerFactory(injector::getInstance);
-    try {
-      Parent vue = loader.load();
-      DiagnosticController controleur = loader.getController();
-      controleur.ouvrirSur(idPassage);
-      navigateur.afficher(vue, "diagnostic", "Diagnostic matériel");
-    } catch (IOException echec) {
-      throw new UncheckedIOException("Chargement FXML impossible : " + loader.getLocation(), echec);
+    @Inject
+    public NavigationDiagnostic(Injector injector, Navigateur navigateur) {
+        this.injector = Objects.requireNonNull(injector, "injector");
+        this.navigateur = Objects.requireNonNull(navigateur, "navigateur");
     }
-  }
+
+    /// Affiche le diagnostic matériel du passage `idPassage` dans la zone centrale du chrome.
+    @Override
+    public void ouvrir(Long idPassage) {
+        FXMLLoader loader = new FXMLLoader(NavigationDiagnostic.class.getResource("Diagnostic.fxml"));
+        loader.setControllerFactory(injector::getInstance);
+        try {
+            Parent vue = loader.load();
+            DiagnosticController controleur = loader.getController();
+            controleur.ouvrirSur(idPassage);
+            navigateur.afficher(vue, "diagnostic", "Diagnostic matériel");
+        } catch (IOException echec) {
+            throw new UncheckedIOException("Chargement FXML impossible : " + loader.getLocation(), echec);
+        }
+    }
 }

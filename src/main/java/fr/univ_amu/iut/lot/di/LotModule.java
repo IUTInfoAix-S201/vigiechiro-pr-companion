@@ -30,30 +30,29 @@ import fr.univ_amu.iut.sites.model.dao.SiteDao;
 /// en isolation reste validé par `LotModuleTest` (injecteur local).
 public class LotModule extends AbstractModule {
 
-  @Provides
-  @Singleton
-  VerificationCoherence fournirVerificationCoherence(
-      SiteDao siteDao,
-      PointDao pointDao,
-      SessionDao sessionDao,
-      EnregistrementOriginalDao originalDao,
-      SequenceDao sequenceDao,
-      JournalDuCapteurDao journalDao,
-      ReleveClimatiqueDao releveDao) {
-    return new VerificationCoherence(
-        siteDao, pointDao, sessionDao, originalDao, sequenceDao, journalDao, releveDao);
-  }
+    @Provides
+    @Singleton
+    VerificationCoherence fournirVerificationCoherence(
+            SiteDao siteDao,
+            PointDao pointDao,
+            SessionDao sessionDao,
+            EnregistrementOriginalDao originalDao,
+            SequenceDao sequenceDao,
+            JournalDuCapteurDao journalDao,
+            ReleveClimatiqueDao releveDao) {
+        return new VerificationCoherence(
+                siteDao, pointDao, sessionDao, originalDao, sequenceDao, journalDao, releveDao);
+    }
 
-  @Provides
-  @Singleton
-  ServiceLot fournirServiceLot(
-      PassageDao passageDao,
-      SessionDao sessionDao,
-      SequenceDao sequenceDao,
-      VerificationCoherence verification,
-      MoteurWorkflowPassage moteurWorkflow,
-      Horloge horloge) {
-    return new ServiceLot(
-        passageDao, sessionDao, sequenceDao, verification, moteurWorkflow, horloge);
-  }
+    @Provides
+    @Singleton
+    ServiceLot fournirServiceLot(
+            PassageDao passageDao,
+            SessionDao sessionDao,
+            SequenceDao sequenceDao,
+            VerificationCoherence verification,
+            MoteurWorkflowPassage moteurWorkflow,
+            Horloge horloge) {
+        return new ServiceLot(passageDao, sessionDao, sequenceDao, verification, moteurWorkflow, horloge);
+    }
 }

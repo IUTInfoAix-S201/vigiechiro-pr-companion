@@ -11,35 +11,35 @@ import java.util.Objects;
 /// [fr.univ_amu.iut.importation.di.ImportationModule].
 public final class ActiviteImporterNuit implements ActiviteAccueil {
 
-  private final NavigationImportation navigation;
+    private final NavigationImportation navigation;
 
-  @Inject
-  public ActiviteImporterNuit(NavigationImportation navigation) {
-    this.navigation = Objects.requireNonNull(navigation, "navigation");
-  }
+    @Inject
+    public ActiviteImporterNuit(NavigationImportation navigation) {
+        this.navigation = Objects.requireNonNull(navigation, "navigation");
+    }
 
-  @Override
-  public int ordre() {
-    return 20;
-  }
+    @Override
+    public int ordre() {
+        return 20;
+    }
 
-  @Override
-  public String icone() {
-    return "📥";
-  }
+    @Override
+    public String icone() {
+        return "📥";
+    }
 
-  @Override
-  public String titre() {
-    return "Importer une nuit";
-  }
+    @Override
+    public String titre() {
+        return "Importer une nuit";
+    }
 
-  @Override
-  public String description() {
-    return "Une nuit de Passive Recorder.";
-  }
+    @Override
+    public String description() {
+        return "Une nuit de Passive Recorder.";
+    }
 
-  @Override
-  public void ouvrir() {
-    navigation.ouvrir();
-  }
+    @Override
+    public void ouvrir() {
+        navigation.ouvrir();
+    }
 }

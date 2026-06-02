@@ -18,19 +18,15 @@ import java.util.Objects;
 /// @param cheminDossier chemin sur disque du sous-dossier de session prêt à téléverser (R22)
 /// @param sequences séquences d'écoute transformées à déposer (copie défensive immuable)
 /// @param volumeSequencesOctets volume total des séquences en octets (`null` si non calculé)
-public record Lot(
-    Long idPassage,
-    String cheminDossier,
-    List<SequenceDEcoute> sequences,
-    Long volumeSequencesOctets) {
+public record Lot(Long idPassage, String cheminDossier, List<SequenceDEcoute> sequences, Long volumeSequencesOctets) {
 
-  public Lot {
-    Objects.requireNonNull(idPassage, "idPassage");
-    sequences = List.copyOf(sequences);
-  }
+    public Lot {
+        Objects.requireNonNull(idPassage, "idPassage");
+        sequences = List.copyOf(sequences);
+    }
 
-  /// Nombre de séquences d'écoute à déposer (affiché dans le récapitulatif).
-  public int nombreSequences() {
-    return sequences.size();
-  }
+    /// Nombre de séquences d'écoute à déposer (affiché dans le récapitulatif).
+    public int nombreSequences() {
+        return sequences.size();
+    }
 }

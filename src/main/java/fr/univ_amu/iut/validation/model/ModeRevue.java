@@ -12,6 +12,6 @@ package fr.univ_amu.iut.validation.model;
 /// une donnée persistée de l'observation. La trace de ce qui a été propagé vit, elle, dans la
 /// colonne `validation_mode` de chaque observation (R24 : `manuel` vs `auto`).
 public enum ModeRevue {
-  INVENTAIRE,
-  ACTIVITE
+    INVENTAIRE,
+    ACTIVITE
 }

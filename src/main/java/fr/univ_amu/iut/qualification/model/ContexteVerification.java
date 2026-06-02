@@ -23,15 +23,15 @@ import fr.univ_amu.iut.commun.model.Verdict;
 /// @param statut statut workflow courant du passage
 /// @param verdict verdict de vérification (`null` tant qu'aucun verdict n'est posé)
 public record ContexteVerification(
-    String numeroCarre,
-    String codePoint,
-    String nomSite,
-    int numeroPassage,
-    int annee,
-    String date,
-    String heureDebut,
-    String heureFin,
-    int sequencesTotales,
-    double dureeAudibleSecondes,
-    StatutWorkflow statut,
-    Verdict verdict) {}
+        String numeroCarre,
+        String codePoint,
+        String nomSite,
+        int numeroPassage,
+        int annee,
+        String date,
+        String heureDebut,
+        String heureFin,
+        int sequencesTotales,
+        double dureeAudibleSecondes,
+        StatutWorkflow statut,
+        Verdict verdict) {}

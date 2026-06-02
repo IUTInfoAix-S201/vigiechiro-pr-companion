@@ -22,33 +22,33 @@ import javax.imageio.ImageIO;
 /// `fr.univ_amu.iut.sites.outils.CaptureEcrans`).
 public final class ApercuFx {
 
-  private ApercuFx() {}
+    private ApercuFx() {}
 
-  /// Capture `scene` hors-ecran et l'ecrit en PNG dans `fichier` (cree les dossiers parents).
-  ///
-  /// La scene est attachee a un [Stage] transitoire que l'on montre brievement : cela garantit une
-  /// passe de layout/CSS complete (les controles virtualises comme `TableView` peuplent leurs
-  /// lignes) avant le `snapshot`, qui reste deterministe. Le stage est referme aussitot.
-  public static void enregistrerPng(Scene scene, Path fichier) {
-    Stage stageTransitoire = new Stage();
-    stageTransitoire.setScene(scene);
-    stageTransitoire.show();
-    scene.getRoot().applyCss();
-    scene.getRoot().layout();
-    WritableImage image = scene.snapshot(null);
-    stageTransitoire.hide();
-    ecrire(image, fichier);
-  }
-
-  private static void ecrire(WritableImage image, Path fichier) {
-    try {
-      Path parent = fichier.getParent();
-      if (parent != null) {
-        Files.createDirectories(parent);
-      }
-      ImageIO.write(SwingFXUtils.fromFXImage(image, null), "png", fichier.toFile());
-    } catch (IOException echec) {
-      throw new UncheckedIOException("Ecriture PNG impossible : " + fichier, echec);
+    /// Capture `scene` hors-ecran et l'ecrit en PNG dans `fichier` (cree les dossiers parents).
+    ///
+    /// La scene est attachee a un [Stage] transitoire que l'on montre brievement : cela garantit une
+    /// passe de layout/CSS complete (les controles virtualises comme `TableView` peuplent leurs
+    /// lignes) avant le `snapshot`, qui reste deterministe. Le stage est referme aussitot.
+    public static void enregistrerPng(Scene scene, Path fichier) {
+        Stage stageTransitoire = new Stage();
+        stageTransitoire.setScene(scene);
+        stageTransitoire.show();
+        scene.getRoot().applyCss();
+        scene.getRoot().layout();
+        WritableImage image = scene.snapshot(null);
+        stageTransitoire.hide();
+        ecrire(image, fichier);
     }
-  }
+
+    private static void ecrire(WritableImage image, Path fichier) {
+        try {
+            Path parent = fichier.getParent();
+            if (parent != null) {
+                Files.createDirectories(parent);
+            }
+            ImageIO.write(SwingFXUtils.fromFXImage(image, null), "png", fichier.toFile());
+        } catch (IOException echec) {
+            throw new UncheckedIOException("Ecriture PNG impossible : " + fichier, echec);
+        }
+    }
 }

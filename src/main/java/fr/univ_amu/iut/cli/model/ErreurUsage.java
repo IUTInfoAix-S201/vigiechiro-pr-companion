@@ -10,7 +10,7 @@ package fr.univ_amu.iut.cli.model;
 /// JavaFX (classe `model` pure, cf. règle ArchUnit `..model..` sans `javafx..`).
 public final class ErreurUsage extends RuntimeException {
 
-  public ErreurUsage(String message) {
-    super(message);
-  }
+    public ErreurUsage(String message) {
+        super(message);
+    }
 }

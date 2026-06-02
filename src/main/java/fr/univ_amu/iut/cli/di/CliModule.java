@@ -25,10 +25,9 @@ import fr.univ_amu.iut.sites.model.dao.SiteDao;
 /// features reste acyclique (`ArchitectureTest`).
 public class CliModule extends AbstractModule {
 
-  @Provides
-  @Singleton
-  RegistrePassages fournirRegistrePassages(
-      PassageDao passageDao, PointDao pointDao, SiteDao siteDao) {
-    return new RegistrePassages(passageDao, pointDao, siteDao);
-  }
+    @Provides
+    @Singleton
+    RegistrePassages fournirRegistrePassages(PassageDao passageDao, PointDao pointDao, SiteDao siteDao) {
+        return new RegistrePassages(passageDao, pointDao, siteDao);
+    }
 }

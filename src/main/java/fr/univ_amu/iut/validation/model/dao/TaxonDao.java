@@ -14,56 +14,54 @@ import java.util.List;
 /// directement via `rs.getString`, qui renvoie `null`).
 public class TaxonDao extends DaoGenerique<Taxon, String> {
 
-  private static final RowMapper<Taxon> MAPPER =
-      rs ->
-          new Taxon(
-              rs.getString("code"),
-              rs.getString("latin_name"),
-              rs.getString("vernacular_name_fr"),
-              rs.getLong("group_id"));
+    private static final RowMapper<Taxon> MAPPER = rs -> new Taxon(
+            rs.getString("code"),
+            rs.getString("latin_name"),
+            rs.getString("vernacular_name_fr"),
+            rs.getLong("group_id"));
 
-  public TaxonDao(SourceDeDonnees source) {
-    super(source);
-  }
+    public TaxonDao(SourceDeDonnees source) {
+        super(source);
+    }
 
-  @Override
-  protected String table() {
-    return "taxon";
-  }
+    @Override
+    protected String table() {
+        return "taxon";
+    }
 
-  @Override
-  protected String colonneCle() {
-    return "code";
-  }
+    @Override
+    protected String colonneCle() {
+        return "code";
+    }
 
-  @Override
-  protected RowMapper<Taxon> mapper() {
-    return MAPPER;
-  }
+    @Override
+    protected RowMapper<Taxon> mapper() {
+        return MAPPER;
+    }
 
-  /// Taxons rattachés à un groupe taxonomique donné, triés par code.
-  public List<Taxon> findByGroupe(Long idGroupe) {
-    return query("SELECT * FROM taxon WHERE group_id = ? ORDER BY code", MAPPER, idGroupe);
-  }
+    /// Taxons rattachés à un groupe taxonomique donné, triés par code.
+    public List<Taxon> findByGroupe(Long idGroupe) {
+        return query("SELECT * FROM taxon WHERE group_id = ? ORDER BY code", MAPPER, idGroupe);
+    }
 
-  @Override
-  public Taxon insert(Taxon taxon) {
-    executerMaj(
-        "INSERT INTO taxon (code, latin_name, vernacular_name_fr, group_id) VALUES (?, ?, ?, ?)",
-        taxon.code(),
-        taxon.nomLatin(),
-        taxon.nomVernaculaireFr(),
-        taxon.idGroupe());
-    return taxon;
-  }
+    @Override
+    public Taxon insert(Taxon taxon) {
+        executerMaj(
+                "INSERT INTO taxon (code, latin_name, vernacular_name_fr, group_id) VALUES (?, ?, ?, ?)",
+                taxon.code(),
+                taxon.nomLatin(),
+                taxon.nomVernaculaireFr(),
+                taxon.idGroupe());
+        return taxon;
+    }
 
-  @Override
-  public void update(Taxon taxon) {
-    executerMaj(
-        "UPDATE taxon SET latin_name = ?, vernacular_name_fr = ?, group_id = ? WHERE code = ?",
-        taxon.nomLatin(),
-        taxon.nomVernaculaireFr(),
-        taxon.idGroupe(),
-        taxon.code());
-  }
+    @Override
+    public void update(Taxon taxon) {
+        executerMaj(
+                "UPDATE taxon SET latin_name = ?, vernacular_name_fr = ?, group_id = ? WHERE code = ?",
+                taxon.nomLatin(),
+                taxon.nomVernaculaireFr(),
+                taxon.idGroupe(),
+                taxon.code());
+    }
 }

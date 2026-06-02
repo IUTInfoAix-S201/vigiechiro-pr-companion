@@ -11,35 +11,35 @@ import java.util.Objects;
 /// [fr.univ_amu.iut.sites.di.SitesModule].
 public final class ActiviteMesSites implements ActiviteAccueil {
 
-  private final NavigationSites navigation;
+    private final NavigationSites navigation;
 
-  @Inject
-  public ActiviteMesSites(NavigationSites navigation) {
-    this.navigation = Objects.requireNonNull(navigation, "navigation");
-  }
+    @Inject
+    public ActiviteMesSites(NavigationSites navigation) {
+        this.navigation = Objects.requireNonNull(navigation, "navigation");
+    }
 
-  @Override
-  public int ordre() {
-    return 10;
-  }
+    @Override
+    public int ordre() {
+        return 10;
+    }
 
-  @Override
-  public String icone() {
-    return "🗺";
-  }
+    @Override
+    public String icone() {
+        return "🗺";
+    }
 
-  @Override
-  public String titre() {
-    return "Mes sites";
-  }
+    @Override
+    public String titre() {
+        return "Mes sites";
+    }
 
-  @Override
-  public String description() {
-    return "Vos carrés et points d'écoute.";
-  }
+    @Override
+    public String description() {
+        return "Vos carrés et points d'écoute.";
+    }
 
-  @Override
-  public void ouvrir() {
-    navigation.ouvrirAccueil();
-  }
+    @Override
+    public void ouvrir() {
+        navigation.ouvrirAccueil();
+    }
 }

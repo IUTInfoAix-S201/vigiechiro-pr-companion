@@ -20,39 +20,39 @@ import java.util.Objects;
 /// est identique avant et après l'opération (la source n'a pas bougé).
 public class CopieProtegee {
 
-  /// Copie `source` vers le fichier `destination` (les dossiers parents sont créés). La source
-  /// n'est jamais modifiée. Écrase une destination existante (réimport idempotent).
-  ///
-  /// @return le chemin de la destination écrite
-  /// @throws IllegalStateException si la copie n'est pas fidèle (empreintes différentes)
-  public Path copier(Path source, Path destination) {
-    Objects.requireNonNull(source, "source");
-    Objects.requireNonNull(destination, "destination");
-    try {
-      String empreinteSource = Empreintes.sha256Hex(source);
-      Path parent = destination.getParent();
-      if (parent != null) {
-        Files.createDirectories(parent);
-      }
-      Files.copy(source, destination, StandardCopyOption.REPLACE_EXISTING);
-      String empreinteCopie = Empreintes.sha256Hex(destination);
-      if (!empreinteSource.equals(empreinteCopie)) {
-        throw new IllegalStateException(
-            "Copie non fidèle de " + source + " : empreinte SHA-256 divergente après copie.");
-      }
-      return destination;
-    } catch (IOException e) {
-      throw new UncheckedIOException("Échec de la copie protégée de " + source, e);
+    /// Copie `source` vers le fichier `destination` (les dossiers parents sont créés). La source
+    /// n'est jamais modifiée. Écrase une destination existante (réimport idempotent).
+    ///
+    /// @return le chemin de la destination écrite
+    /// @throws IllegalStateException si la copie n'est pas fidèle (empreintes différentes)
+    public Path copier(Path source, Path destination) {
+        Objects.requireNonNull(source, "source");
+        Objects.requireNonNull(destination, "destination");
+        try {
+            String empreinteSource = Empreintes.sha256Hex(source);
+            Path parent = destination.getParent();
+            if (parent != null) {
+                Files.createDirectories(parent);
+            }
+            Files.copy(source, destination, StandardCopyOption.REPLACE_EXISTING);
+            String empreinteCopie = Empreintes.sha256Hex(destination);
+            if (!empreinteSource.equals(empreinteCopie)) {
+                throw new IllegalStateException(
+                        "Copie non fidèle de " + source + " : empreinte SHA-256 divergente après copie.");
+            }
+            return destination;
+        } catch (IOException e) {
+            throw new UncheckedIOException("Échec de la copie protégée de " + source, e);
+        }
     }
-  }
 
-  /// Copie `source` dans le dossier `dossierDestination`, en conservant le nom de fichier
-  /// d'origine (le dossier est créé au besoin).
-  ///
-  /// @return le chemin du fichier copié
-  public Path copierVers(Path source, Path dossierDestination) {
-    Objects.requireNonNull(source, "source");
-    Objects.requireNonNull(dossierDestination, "dossierDestination");
-    return copier(source, dossierDestination.resolve(source.getFileName().toString()));
-  }
+    /// Copie `source` dans le dossier `dossierDestination`, en conservant le nom de fichier
+    /// d'origine (le dossier est créé au besoin).
+    ///
+    /// @return le chemin du fichier copié
+    public Path copierVers(Path source, Path dossierDestination) {
+        Objects.requireNonNull(source, "source");
+        Objects.requireNonNull(dossierDestination, "dossierDestination");
+        return copier(source, dossierDestination.resolve(source.getFileName().toString()));
+    }
 }

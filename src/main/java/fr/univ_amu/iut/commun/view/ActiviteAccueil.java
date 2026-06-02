@@ -10,19 +10,19 @@ package fr.univ_amu.iut.commun.view;
 /// écrire une implémentation + une ligne de binding — le socle n'est jamais retouché.
 public interface ActiviteAccueil {
 
-  /// Rang d'affichage (ordre croissant : les plus petits en premier).
-  int ordre();
+    /// Rang d'affichage (ordre croissant : les plus petits en premier).
+    int ordre();
 
-  /// Pictogramme (emoji) affiché en tête de carte.
-  String icone();
+    /// Pictogramme (emoji) affiché en tête de carte.
+    String icone();
 
-  /// Titre court de l'activité (ex. « Mes sites »).
-  String titre();
+    /// Titre court de l'activité (ex. « Mes sites »).
+    String titre();
 
-  /// Courte phrase d'invite décrivant l'activité.
-  String description();
+    /// Courte phrase d'invite décrivant l'activité.
+    String description();
 
-  /// Ouvre l'activité (typiquement via la façade de navigation de la feature, qui publie une
-  /// nouvelle vue dans le [Navigateur]).
-  void ouvrir();
+    /// Ouvre l'activité (typiquement via la façade de navigation de la feature, qui publie une
+    /// nouvelle vue dans le [Navigateur]).
+    void ouvrir();
 }

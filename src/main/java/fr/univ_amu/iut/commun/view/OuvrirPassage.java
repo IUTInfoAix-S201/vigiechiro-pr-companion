@@ -11,7 +11,7 @@ import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
 /// [OuvrirVerification].
 public interface OuvrirPassage {
 
-  /// Ouvre l'écran pivot du passage `idPassage`, avec le [ContexteSite] (carré/code/nom du site)
-  /// fourni par l'écran appelant.
-  void ouvrir(Long idPassage, ContexteSite contexte);
+    /// Ouvre l'écran pivot du passage `idPassage`, avec le [ContexteSite] (carré/code/nom du site)
+    /// fourni par l'écran appelant.
+    void ouvrir(Long idPassage, ContexteSite contexte);
 }

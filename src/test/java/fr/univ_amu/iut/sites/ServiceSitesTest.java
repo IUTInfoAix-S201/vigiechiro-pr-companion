@@ -36,266 +36,265 @@ import org.junit.jupiter.api.io.TempDir;
 /// service est exercé de bout en bout sur une vraie base, pas sur des mocks).
 class ServiceSitesTest {
 
-  private static final String ID_USER = "u-1";
-  private static final LocalDate JOUR_FIXE = LocalDate.of(2026, 5, 31);
+    private static final String ID_USER = "u-1";
+    private static final LocalDate JOUR_FIXE = LocalDate.of(2026, 5, 31);
 
-  @TempDir Path dossier;
-  private ServiceSites service;
-  private SiteDao siteDao;
-  private PointDao pointDao;
-  private PassageDao passageDao;
-  private EnregistreurDao enregistreurDao;
+    @TempDir
+    Path dossier;
 
-  @BeforeEach
-  void preparer() {
-    SourceDeDonnees source = new SourceDeDonnees(new Workspace(dossier));
-    new MigrationSchema(source).migrer();
-    new UtilisateurDao(source).insert(new Utilisateur(ID_USER, "Testeur"));
-    siteDao = new SiteDao(source);
-    pointDao = new PointDao(source);
-    passageDao = new PassageDao(source);
-    enregistreurDao = new EnregistreurDao(source);
-    service = new ServiceSites(siteDao, pointDao, passageDao, new HorlogeFigee(JOUR_FIXE));
-  }
+    private ServiceSites service;
+    private SiteDao siteDao;
+    private PointDao pointDao;
+    private PassageDao passageDao;
+    private EnregistreurDao enregistreurDao;
 
-  // --- Création de site (R1, protocole, R5) ---
+    @BeforeEach
+    void preparer() {
+        SourceDeDonnees source = new SourceDeDonnees(new Workspace(dossier));
+        new MigrationSchema(source).migrer();
+        new UtilisateurDao(source).insert(new Utilisateur(ID_USER, "Testeur"));
+        siteDao = new SiteDao(source);
+        pointDao = new PointDao(source);
+        passageDao = new PassageDao(source);
+        enregistreurDao = new EnregistreurDao(source);
+        service = new ServiceSites(siteDao, pointDao, passageDao, new HorlogeFigee(JOUR_FIXE));
+    }
 
-  @Test
-  @DisplayName("Créer un site valide l'insère, date de création lue de l'horloge")
-  void creer_site_valide() {
-    Site site = service.creerSite("640380", "Étang", Protocole.STANDARD, null, ID_USER);
+    // --- Création de site (R1, protocole, R5) ---
 
-    assertThat(site.id()).isNotNull();
-    assertThat(site.dateCreation()).isEqualTo("2026-05-31");
-    assertThat(siteDao.findById(site.id())).isPresent();
-    assertThat(service.listerSites(ID_USER))
-        .extracting(Site::numeroCarre)
-        .containsExactly("640380");
-  }
+    @Test
+    @DisplayName("Créer un site valide l'insère, date de création lue de l'horloge")
+    void creer_site_valide() {
+        Site site = service.creerSite("640380", "Étang", Protocole.STANDARD, null, ID_USER);
 
-  @Test
-  @DisplayName("R1 : un numéro de carré mal formé est refusé (IllegalArgumentException)")
-  void creer_site_carre_invalide() {
-    assertThatThrownBy(() -> service.creerSite("64038", null, Protocole.STANDARD, null, ID_USER))
-        .isInstanceOf(IllegalArgumentException.class);
-  }
+        assertThat(site.id()).isNotNull();
+        assertThat(site.dateCreation()).isEqualTo("2026-05-31");
+        assertThat(siteDao.findById(site.id())).isPresent();
+        assertThat(service.listerSites(ID_USER)).extracting(Site::numeroCarre).containsExactly("640380");
+    }
 
-  @Test
-  @DisplayName("Protocole null bascule sur PointFixeStandard par défaut (P1)")
-  void creer_site_protocole_par_defaut() {
-    Site site = service.creerSite("123456", null, null, null, ID_USER);
+    @Test
+    @DisplayName("R1 : un numéro de carré mal formé est refusé (IllegalArgumentException)")
+    void creer_site_carre_invalide() {
+        assertThatThrownBy(() -> service.creerSite("64038", null, Protocole.STANDARD, null, ID_USER))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
 
-    assertThat(site.protocole()).isEqualTo(Protocole.STANDARD);
-  }
+    @Test
+    @DisplayName("Protocole null bascule sur PointFixeStandard par défaut (P1)")
+    void creer_site_protocole_par_defaut() {
+        Site site = service.creerSite("123456", null, null, null, ID_USER);
 
-  @Test
-  @DisplayName("R5 : deux fois le même carré pour le même utilisateur est refusé")
-  void creer_site_carre_duplique_meme_utilisateur() {
-    service.creerSite("888888", null, Protocole.STANDARD, null, ID_USER);
+        assertThat(site.protocole()).isEqualTo(Protocole.STANDARD);
+    }
 
-    assertThatThrownBy(() -> service.creerSite("888888", null, Protocole.STANDARD, null, ID_USER))
-        .isInstanceOf(RegleMetierException.class)
-        .hasMessageContaining("888888");
-  }
+    @Test
+    @DisplayName("R5 : deux fois le même carré pour le même utilisateur est refusé")
+    void creer_site_carre_duplique_meme_utilisateur() {
+        service.creerSite("888888", null, Protocole.STANDARD, null, ID_USER);
 
-  @Test
-  @DisplayName("R5 : le même carré reste possible pour deux utilisateurs distincts")
-  void creer_site_meme_carre_utilisateurs_distincts() {
-    new UtilisateurDao(new SourceDeDonnees(new Workspace(dossier)))
-        .insert(new Utilisateur("u-2", "Autre"));
-    service.creerSite("777777", null, Protocole.STANDARD, null, ID_USER);
+        assertThatThrownBy(() -> service.creerSite("888888", null, Protocole.STANDARD, null, ID_USER))
+                .isInstanceOf(RegleMetierException.class)
+                .hasMessageContaining("888888");
+    }
 
-    Site autre = service.creerSite("777777", null, Protocole.STANDARD, null, "u-2");
+    @Test
+    @DisplayName("R5 : le même carré reste possible pour deux utilisateurs distincts")
+    void creer_site_meme_carre_utilisateurs_distincts() {
+        new UtilisateurDao(new SourceDeDonnees(new Workspace(dossier))).insert(new Utilisateur("u-2", "Autre"));
+        service.creerSite("777777", null, Protocole.STANDARD, null, ID_USER);
 
-    assertThat(autre.id()).isNotNull();
-  }
+        Site autre = service.creerSite("777777", null, Protocole.STANDARD, null, "u-2");
 
-  // --- Ajout de point (R2, unicité code) ---
+        assertThat(autre.id()).isNotNull();
+    }
 
-  @Test
-  @DisplayName("Ajouter un point valide l'insère et le rattache au site")
-  void ajouter_point_valide() {
-    Site site = service.creerSite("640380", null, Protocole.STANDARD, null, ID_USER);
+    // --- Ajout de point (R2, unicité code) ---
 
-    PointDEcoute point = service.ajouterPoint(site.id(), "A1", 43.5, 5.4, "Lisière");
+    @Test
+    @DisplayName("Ajouter un point valide l'insère et le rattache au site")
+    void ajouter_point_valide() {
+        Site site = service.creerSite("640380", null, Protocole.STANDARD, null, ID_USER);
 
-    assertThat(point.id()).isNotNull();
-    assertThat(point.idSite()).isEqualTo(site.id());
-    assertThat(service.listerPoints(site.id()))
-        .extracting(PointDEcoute::code)
-        .containsExactly("A1");
-  }
+        PointDEcoute point = service.ajouterPoint(site.id(), "A1", 43.5, 5.4, "Lisière");
 
-  @Test
-  @DisplayName("R2 : un code de point mal formé est refusé (IllegalArgumentException)")
-  void ajouter_point_code_invalide() {
-    Site site = service.creerSite("640380", null, Protocole.STANDARD, null, ID_USER);
+        assertThat(point.id()).isNotNull();
+        assertThat(point.idSite()).isEqualTo(site.id());
+        assertThat(service.listerPoints(site.id()))
+                .extracting(PointDEcoute::code)
+                .containsExactly("A1");
+    }
 
-    assertThatThrownBy(() -> service.ajouterPoint(site.id(), "AA", null, null, null))
-        .isInstanceOf(IllegalArgumentException.class);
-  }
+    @Test
+    @DisplayName("R2 : un code de point mal formé est refusé (IllegalArgumentException)")
+    void ajouter_point_code_invalide() {
+        Site site = service.creerSite("640380", null, Protocole.STANDARD, null, ID_USER);
 
-  @Test
-  @DisplayName("Le code de point doit être unique dans le site")
-  void ajouter_point_code_duplique_dans_site() {
-    Site site = service.creerSite("640380", null, Protocole.STANDARD, null, ID_USER);
-    service.ajouterPoint(site.id(), "A1", null, null, null);
+        assertThatThrownBy(() -> service.ajouterPoint(site.id(), "AA", null, null, null))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
 
-    assertThatThrownBy(() -> service.ajouterPoint(site.id(), "A1", null, null, null))
-        .isInstanceOf(RegleMetierException.class)
-        .hasMessageContaining("A1");
-  }
+    @Test
+    @DisplayName("Le code de point doit être unique dans le site")
+    void ajouter_point_code_duplique_dans_site() {
+        Site site = service.creerSite("640380", null, Protocole.STANDARD, null, ID_USER);
+        service.ajouterPoint(site.id(), "A1", null, null, null);
 
-  @Test
-  @DisplayName("Le même code reste possible dans deux sites différents")
-  void ajouter_point_meme_code_sites_distincts() {
-    Site site1 = service.creerSite("640380", null, Protocole.STANDARD, null, ID_USER);
-    Site site2 = service.creerSite("640381", null, Protocole.STANDARD, null, ID_USER);
-    service.ajouterPoint(site1.id(), "A1", null, null, null);
+        assertThatThrownBy(() -> service.ajouterPoint(site.id(), "A1", null, null, null))
+                .isInstanceOf(RegleMetierException.class)
+                .hasMessageContaining("A1");
+    }
 
-    PointDEcoute point2 = service.ajouterPoint(site2.id(), "A1", null, null, null);
+    @Test
+    @DisplayName("Le même code reste possible dans deux sites différents")
+    void ajouter_point_meme_code_sites_distincts() {
+        Site site1 = service.creerSite("640380", null, Protocole.STANDARD, null, ID_USER);
+        Site site2 = service.creerSite("640381", null, Protocole.STANDARD, null, ID_USER);
+        service.ajouterPoint(site1.id(), "A1", null, null, null);
 
-    assertThat(point2.id()).isNotNull();
-  }
+        PointDEcoute point2 = service.ajouterPoint(site2.id(), "A1", null, null, null);
 
-  @Test
-  @DisplayName("Ajouter un point à un site inconnu est refusé")
-  void ajouter_point_site_inconnu() {
-    assertThatThrownBy(() -> service.ajouterPoint(9999L, "A1", null, null, null))
-        .isInstanceOf(RegleMetierException.class);
-  }
+        assertThat(point2.id()).isNotNull();
+    }
 
-  // --- Modification de point (R2, intégrité point/site, unicité hors soi) ---
+    @Test
+    @DisplayName("Ajouter un point à un site inconnu est refusé")
+    void ajouter_point_site_inconnu() {
+        assertThatThrownBy(() -> service.ajouterPoint(9999L, "A1", null, null, null))
+                .isInstanceOf(RegleMetierException.class);
+    }
 
-  @Test
-  @DisplayName("Modifier un point met à jour code et coordonnées")
-  void modifier_point_valide() {
-    Site site = service.creerSite("640380", null, Protocole.STANDARD, null, ID_USER);
-    PointDEcoute point = service.ajouterPoint(site.id(), "A1", null, null, "Avant");
+    // --- Modification de point (R2, intégrité point/site, unicité hors soi) ---
 
-    service.modifierPoint(point.id(), site.id(), "B2", 43.5, 5.4, "Après");
+    @Test
+    @DisplayName("Modifier un point met à jour code et coordonnées")
+    void modifier_point_valide() {
+        Site site = service.creerSite("640380", null, Protocole.STANDARD, null, ID_USER);
+        PointDEcoute point = service.ajouterPoint(site.id(), "A1", null, null, "Avant");
 
-    assertThat(pointDao.findById(point.id()))
-        .get()
-        .satisfies(
-            p -> {
-              assertThat(p.code()).isEqualTo("B2");
-              assertThat(p.latitude()).isEqualTo(43.5);
-              assertThat(p.description()).isEqualTo("Après");
-            });
-  }
+        service.modifierPoint(point.id(), site.id(), "B2", 43.5, 5.4, "Après");
 
-  @Test
-  @DisplayName("Conserver son propre code en modification est autorisé (pas de faux conflit)")
-  void modifier_point_conserve_son_code() {
-    Site site = service.creerSite("640380", null, Protocole.STANDARD, null, ID_USER);
-    PointDEcoute point = service.ajouterPoint(site.id(), "A1", null, null, "Avant");
+        assertThat(pointDao.findById(point.id())).get().satisfies(p -> {
+            assertThat(p.code()).isEqualTo("B2");
+            assertThat(p.latitude()).isEqualTo(43.5);
+            assertThat(p.description()).isEqualTo("Après");
+        });
+    }
 
-    PointDEcoute maj = service.modifierPoint(point.id(), site.id(), "A1", null, null, "Après");
+    @Test
+    @DisplayName("Conserver son propre code en modification est autorisé (pas de faux conflit)")
+    void modifier_point_conserve_son_code() {
+        Site site = service.creerSite("640380", null, Protocole.STANDARD, null, ID_USER);
+        PointDEcoute point = service.ajouterPoint(site.id(), "A1", null, null, "Avant");
 
-    assertThat(maj.code()).isEqualTo("A1");
-    assertThat(pointDao.findById(point.id()))
-        .get()
-        .extracting(PointDEcoute::description)
-        .isEqualTo("Après");
-  }
+        PointDEcoute maj = service.modifierPoint(point.id(), site.id(), "A1", null, null, "Après");
 
-  @Test
-  @DisplayName("Modifier vers le code d'un AUTRE point du site est refusé (unicité)")
-  void modifier_point_code_duplique_refuse() {
-    Site site = service.creerSite("640380", null, Protocole.STANDARD, null, ID_USER);
-    service.ajouterPoint(site.id(), "A1", null, null, null);
-    PointDEcoute b1 = service.ajouterPoint(site.id(), "B1", null, null, null);
+        assertThat(maj.code()).isEqualTo("A1");
+        assertThat(pointDao.findById(point.id()))
+                .get()
+                .extracting(PointDEcoute::description)
+                .isEqualTo("Après");
+    }
 
-    assertThatThrownBy(() -> service.modifierPoint(b1.id(), site.id(), "A1", null, null, null))
-        .isInstanceOf(RegleMetierException.class)
-        .hasMessageContaining("A1");
-  }
+    @Test
+    @DisplayName("Modifier vers le code d'un AUTRE point du site est refusé (unicité)")
+    void modifier_point_code_duplique_refuse() {
+        Site site = service.creerSite("640380", null, Protocole.STANDARD, null, ID_USER);
+        service.ajouterPoint(site.id(), "A1", null, null, null);
+        PointDEcoute b1 = service.ajouterPoint(site.id(), "B1", null, null, null);
 
-  @Test
-  @DisplayName("Modifier un point introuvable est refusé")
-  void modifier_point_introuvable() {
-    Site site = service.creerSite("640380", null, Protocole.STANDARD, null, ID_USER);
+        assertThatThrownBy(() -> service.modifierPoint(b1.id(), site.id(), "A1", null, null, null))
+                .isInstanceOf(RegleMetierException.class)
+                .hasMessageContaining("A1");
+    }
 
-    assertThatThrownBy(() -> service.modifierPoint(9999L, site.id(), "A1", null, null, null))
-        .isInstanceOf(RegleMetierException.class)
-        .hasMessageContaining("introuvable");
-  }
+    @Test
+    @DisplayName("Modifier un point introuvable est refusé")
+    void modifier_point_introuvable() {
+        Site site = service.creerSite("640380", null, Protocole.STANDARD, null, ID_USER);
 
-  @Test
-  @DisplayName("Modifier un point avec un site incohérent est refusé (intégrité)")
-  void modifier_point_autre_site_refuse() {
-    Site site1 = service.creerSite("640380", null, Protocole.STANDARD, null, ID_USER);
-    Site site2 = service.creerSite("640381", null, Protocole.STANDARD, null, ID_USER);
-    PointDEcoute point = service.ajouterPoint(site1.id(), "A1", null, null, null);
+        assertThatThrownBy(() -> service.modifierPoint(9999L, site.id(), "A1", null, null, null))
+                .isInstanceOf(RegleMetierException.class)
+                .hasMessageContaining("introuvable");
+    }
 
-    assertThatThrownBy(() -> service.modifierPoint(point.id(), site2.id(), "A1", null, null, null))
-        .isInstanceOf(RegleMetierException.class)
-        .hasMessageContaining("n'appartient pas");
-  }
+    @Test
+    @DisplayName("Modifier un point avec un site incohérent est refusé (intégrité)")
+    void modifier_point_autre_site_refuse() {
+        Site site1 = service.creerSite("640380", null, Protocole.STANDARD, null, ID_USER);
+        Site site2 = service.creerSite("640381", null, Protocole.STANDARD, null, ID_USER);
+        PointDEcoute point = service.ajouterPoint(site1.id(), "A1", null, null, null);
 
-  // --- Suppression de site (refus si passage rattaché) ---
+        assertThatThrownBy(() -> service.modifierPoint(point.id(), site2.id(), "A1", null, null, null))
+                .isInstanceOf(RegleMetierException.class)
+                .hasMessageContaining("n'appartient pas");
+    }
 
-  @Test
-  @DisplayName("Supprimer un site sans passage retire aussi ses points (cascade)")
-  void supprimer_site_sans_passage() {
-    Site site = service.creerSite("640380", null, Protocole.STANDARD, null, ID_USER);
-    PointDEcoute point = service.ajouterPoint(site.id(), "A1", null, null, null);
+    // --- Suppression de site (refus si passage rattaché) ---
 
-    service.supprimerSite(site.id());
+    @Test
+    @DisplayName("Supprimer un site sans passage retire aussi ses points (cascade)")
+    void supprimer_site_sans_passage() {
+        Site site = service.creerSite("640380", null, Protocole.STANDARD, null, ID_USER);
+        PointDEcoute point = service.ajouterPoint(site.id(), "A1", null, null, null);
 
-    assertThat(siteDao.findById(site.id())).isEmpty();
-    assertThat(pointDao.findById(point.id())).as("point supprimé par cascade").isEmpty();
-  }
+        service.supprimerSite(site.id());
 
-  @Test
-  @DisplayName("Supprimer un site avec un passage rattaché est refusé, rien n'est supprimé")
-  void supprimer_site_avec_passage_refuse() {
-    Site site = service.creerSite("640380", null, Protocole.STANDARD, null, ID_USER);
-    PointDEcoute point = service.ajouterPoint(site.id(), "A1", null, null, null);
-    enregistreurDao.insert(new Enregistreur("1925492", "V1.01", null));
-    passageDao.insert(
-        new Passage(
-            null,
-            1,
-            2026,
-            "2026-06-20",
-            "21:00:00",
-            "05:00:00",
-            null,
-            StatutWorkflow.TRANSFORME,
-            null,
-            null,
-            null,
-            null,
-            point.id(),
-            "1925492"));
+        assertThat(siteDao.findById(site.id())).isEmpty();
+        assertThat(pointDao.findById(point.id()))
+                .as("point supprimé par cascade")
+                .isEmpty();
+    }
 
-    assertThatThrownBy(() -> service.supprimerSite(site.id()))
-        .isInstanceOf(RegleMetierException.class)
-        .hasMessageContaining("passage");
+    @Test
+    @DisplayName("Supprimer un site avec un passage rattaché est refusé, rien n'est supprimé")
+    void supprimer_site_avec_passage_refuse() {
+        Site site = service.creerSite("640380", null, Protocole.STANDARD, null, ID_USER);
+        PointDEcoute point = service.ajouterPoint(site.id(), "A1", null, null, null);
+        enregistreurDao.insert(new Enregistreur("1925492", "V1.01", null));
+        passageDao.insert(new Passage(
+                null,
+                1,
+                2026,
+                "2026-06-20",
+                "21:00:00",
+                "05:00:00",
+                null,
+                StatutWorkflow.TRANSFORME,
+                null,
+                null,
+                null,
+                null,
+                point.id(),
+                "1925492"));
 
-    assertThat(siteDao.findById(site.id())).as("site conservé").isPresent();
-    assertThat(passageDao.findByPoint(point.id())).as("passage conservé").isNotEmpty();
-  }
+        assertThatThrownBy(() -> service.supprimerSite(site.id()))
+                .isInstanceOf(RegleMetierException.class)
+                .hasMessageContaining("passage");
 
-  // --- Rappels protocole (R3, règle soft → ResultatVerification) ---
+        assertThat(siteDao.findById(site.id())).as("site conservé").isPresent();
+        assertThat(passageDao.findByPoint(point.id())).as("passage conservé").isNotEmpty();
+    }
 
-  @Test
-  @DisplayName("R3 : un site PointFixeStandard émet un rappel soft non bloquant")
-  void rappels_protocole_standard() {
-    var resultat = service.rappelsProtocole(Protocole.STANDARD);
+    // --- Rappels protocole (R3, règle soft → ResultatVerification) ---
 
-    assertThat(resultat.estConforme()).isFalse();
-    assertThat(resultat.estBloquant()).as("rappel R3 = soft, jamais bloquant").isFalse();
-    assertThat(resultat.messages()).hasSize(1);
-  }
+    @Test
+    @DisplayName("R3 : un site PointFixeStandard émet un rappel soft non bloquant")
+    void rappels_protocole_standard() {
+        var resultat = service.rappelsProtocole(Protocole.STANDARD);
 
-  @Test
-  @DisplayName("R3 : un site PointFixeRecherche est muet (résultat conforme)")
-  void rappels_protocole_recherche() {
-    var resultat = service.rappelsProtocole(Protocole.RECHERCHE);
+        assertThat(resultat.estConforme()).isFalse();
+        assertThat(resultat.estBloquant())
+                .as("rappel R3 = soft, jamais bloquant")
+                .isFalse();
+        assertThat(resultat.messages()).hasSize(1);
+    }
 
-    assertThat(resultat.estConforme()).isTrue();
-  }
+    @Test
+    @DisplayName("R3 : un site PointFixeRecherche est muet (résultat conforme)")
+    void rappels_protocole_recherche() {
+        var resultat = service.rappelsProtocole(Protocole.RECHERCHE);
+
+        assertThat(resultat.estConforme()).isTrue();
+    }
 }

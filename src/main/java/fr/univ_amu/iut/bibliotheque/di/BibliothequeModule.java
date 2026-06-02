@@ -24,10 +24,9 @@ import fr.univ_amu.iut.validation.model.dao.ObservationDao;
 /// `ValidationModule` y sont déjà).
 public class BibliothequeModule extends AbstractModule {
 
-  @Provides
-  @Singleton
-  ServiceBibliotheque fournirServiceBibliotheque(
-      ObservationDao observationDao, SequenceDao sequenceDao) {
-    return new ServiceBibliotheque(observationDao, sequenceDao);
-  }
+    @Provides
+    @Singleton
+    ServiceBibliotheque fournirServiceBibliotheque(ObservationDao observationDao, SequenceDao sequenceDao) {
+        return new ServiceBibliotheque(observationDao, sequenceDao);
+    }
 }

@@ -27,56 +27,55 @@ import javafx.stage.Window;
 @Singleton
 public class NavigationPassage implements OuvrirPassage {
 
-  private final Injector injector;
-  private final Navigateur navigateur;
+    private final Injector injector;
+    private final Navigateur navigateur;
 
-  @Inject
-  public NavigationPassage(Injector injector, Navigateur navigateur) {
-    this.injector = Objects.requireNonNull(injector, "injector");
-    this.navigateur = Objects.requireNonNull(navigateur, "navigateur");
-  }
-
-  /// Affiche le détail du passage `idPassage` (avec son contexte site) dans la zone centrale.
-  @Override
-  public void ouvrir(Long idPassage, ContexteSite contexte) {
-    FXMLLoader loader = new FXMLLoader(NavigationPassage.class.getResource("Passage.fxml"));
-    loader.setControllerFactory(injector::getInstance);
-    try {
-      Parent vue = loader.load();
-      PassageController controleur = loader.getController();
-      controleur.ouvrirSur(idPassage, contexte);
-      navigateur.afficher(vue, "passage", "Détail du passage");
-    } catch (IOException echec) {
-      throw new UncheckedIOException("Chargement FXML impossible : " + loader.getLocation(), echec);
+    @Inject
+    public NavigationPassage(Injector injector, Navigateur navigateur) {
+        this.injector = Objects.requireNonNull(injector, "injector");
+        this.navigateur = Objects.requireNonNull(navigateur, "navigateur");
     }
-  }
 
-  /// Revient à l'accueil global du chrome (cartes des features). Utilisé après une action qui
-  /// détruit l'écran courant (ex. suppression du passage). Délègue au socle [Navigateur].
-  public void ouvrirAccueil() {
-    navigateur.afficherAccueil();
-  }
-
-  /// Ouvre la modale **« Modifier le rattachement »** (E2.S8) dans une fenêtre modale appartenant à
-  /// `parent`. Le carré et le code point (inchangés) sont fournis par M-Passage. Après une
-  /// modification réussie, `apresSucces` est exécuté (rafraîchir l'écran appelant).
-  public void ouvrirModaleRattachement(
-      Window parent, Long idPassage, String carre, String codePoint, Runnable apresSucces) {
-    FXMLLoader loader =
-        new FXMLLoader(NavigationPassage.class.getResource("RattachementModale.fxml"));
-    loader.setControllerFactory(injector::getInstance);
-    try {
-      Parent vue = loader.load();
-      RattachementModaleController controleur = loader.getController();
-      controleur.demarrer(idPassage, carre, codePoint, apresSucces);
-      Stage modale = new Stage();
-      modale.initOwner(parent);
-      modale.initModality(Modality.WINDOW_MODAL);
-      modale.setTitle("Modifier le rattachement");
-      modale.setScene(new Scene(vue));
-      modale.show();
-    } catch (IOException echec) {
-      throw new UncheckedIOException("Chargement FXML impossible : " + loader.getLocation(), echec);
+    /// Affiche le détail du passage `idPassage` (avec son contexte site) dans la zone centrale.
+    @Override
+    public void ouvrir(Long idPassage, ContexteSite contexte) {
+        FXMLLoader loader = new FXMLLoader(NavigationPassage.class.getResource("Passage.fxml"));
+        loader.setControllerFactory(injector::getInstance);
+        try {
+            Parent vue = loader.load();
+            PassageController controleur = loader.getController();
+            controleur.ouvrirSur(idPassage, contexte);
+            navigateur.afficher(vue, "passage", "Détail du passage");
+        } catch (IOException echec) {
+            throw new UncheckedIOException("Chargement FXML impossible : " + loader.getLocation(), echec);
+        }
     }
-  }
+
+    /// Revient à l'accueil global du chrome (cartes des features). Utilisé après une action qui
+    /// détruit l'écran courant (ex. suppression du passage). Délègue au socle [Navigateur].
+    public void ouvrirAccueil() {
+        navigateur.afficherAccueil();
+    }
+
+    /// Ouvre la modale **« Modifier le rattachement »** (E2.S8) dans une fenêtre modale appartenant à
+    /// `parent`. Le carré et le code point (inchangés) sont fournis par M-Passage. Après une
+    /// modification réussie, `apresSucces` est exécuté (rafraîchir l'écran appelant).
+    public void ouvrirModaleRattachement(
+            Window parent, Long idPassage, String carre, String codePoint, Runnable apresSucces) {
+        FXMLLoader loader = new FXMLLoader(NavigationPassage.class.getResource("RattachementModale.fxml"));
+        loader.setControllerFactory(injector::getInstance);
+        try {
+            Parent vue = loader.load();
+            RattachementModaleController controleur = loader.getController();
+            controleur.demarrer(idPassage, carre, codePoint, apresSucces);
+            Stage modale = new Stage();
+            modale.initOwner(parent);
+            modale.initModality(Modality.WINDOW_MODAL);
+            modale.setTitle("Modifier le rattachement");
+            modale.setScene(new Scene(vue));
+            modale.show();
+        } catch (IOException echec) {
+            throw new UncheckedIOException("Chargement FXML impossible : " + loader.getLocation(), echec);
+        }
+    }
 }

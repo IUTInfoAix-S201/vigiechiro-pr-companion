@@ -97,13 +97,17 @@ class RattachementModaleViewTest {
   }
 
   @Test
-  @DisplayName("Le spinner n° n'a pas de borne haute arbitraire (pas d'écrêtage sous le domaine)")
-  void spinner_numero_sans_borne_haute(FxRobot robot) {
+  @DisplayName("Le spinner n'écrête pas une valeur hors domaine : le ViewModel reste l'autorité")
+  void spinner_ne_preclampe_pas_la_saisie(FxRobot robot) {
     @SuppressWarnings("unchecked")
     Spinner<Integer> numero = robot.lookup("#spinnerNumero").queryAs(Spinner.class);
 
-    robot.interact(() -> numero.getValueFactory().setValue(100000));
+    // 0 (hors domaine) et 100000 (au-delà d'une borne arbitraire) sont conservés tels quels : c'est
+    // valider() qui rejettera 0 — le spinner ne le normalise pas silencieusement.
+    robot.interact(() -> numero.getValueFactory().setValue(0));
+    assertThat(numero.getValue()).isZero();
 
+    robot.interact(() -> numero.getValueFactory().setValue(100000));
     assertThat(numero.getValue()).isEqualTo(100000);
   }
 }

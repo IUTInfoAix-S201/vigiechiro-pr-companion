@@ -37,13 +37,17 @@ public class RattachementModaleController {
 
   @FXML
   private void initialize() {
-    // Bornes alignées sur la validation du domaine (année à 4 chiffres ; n° de passage >= 1, sans
-    // borne haute) pour ne jamais écrêter une valeur valide déjà en base : le ViewModel reste
-    // l'autorité (cf. valider()).
+    // Bornes volontairement ouvertes (tout l'entier) : un IntegerSpinnerValueFactory **écrête** la
+    // saisie au commit, ce qui masquerait au ViewModel une valeur hors domaine (ex. 0, ou année à 3
+    // chiffres) en la normalisant silencieusement. On laisse donc passer toute valeur saisie ;
+    // c'est
+    // [RattachementViewModel#valider] qui reste l'unique autorité (n° >= 1, année à 4 chiffres).
     spinnerAnnee.setValueFactory(
-        new SpinnerValueFactory.IntegerSpinnerValueFactory(1000, 9999, 2026));
+        new SpinnerValueFactory.IntegerSpinnerValueFactory(
+            Integer.MIN_VALUE, Integer.MAX_VALUE, 2026));
     spinnerNumero.setValueFactory(
-        new SpinnerValueFactory.IntegerSpinnerValueFactory(1, Integer.MAX_VALUE, 1));
+        new SpinnerValueFactory.IntegerSpinnerValueFactory(
+            Integer.MIN_VALUE, Integer.MAX_VALUE, 1));
 
     // Réfs de champ sur les wrappers asObject() : sinon ils seraient éligibles au GC et la liaison
     // bidirectionnelle avec les Spinner cesserait silencieusement de fonctionner.

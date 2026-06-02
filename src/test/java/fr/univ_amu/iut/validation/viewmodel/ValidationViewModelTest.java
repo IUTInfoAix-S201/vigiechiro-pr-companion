@@ -347,22 +347,29 @@ class ValidationViewModelTest {
     assertThat(viewModel.observations()).isEmpty();
     assertThat(viewModel.peutImporter()).isTrue();
 
+    viewModel.marquerImportEnCours(); // le controller bloque un second lancement
+    assertThat(viewModel.importEnCoursProperty().get()).isTrue();
+    assertThat(viewModel.peutImporter()).isFalse(); // import déjà en cours
+
     VueValidation vue = viewModel.executerImport(csv); // étape lourde (hors fil JavaFX)
     verify(service).importer(ID_PASSAGE, csv);
 
     viewModel.appliquerImport(vue); // application sur le fil JavaFX
     assertThat(viewModel.observations()).hasSize(3);
+    assertThat(viewModel.importEnCoursProperty().get()).isFalse(); // import clos
     assertThat(viewModel.peutImporter()).isFalse(); // un seul jeu par passage
   }
 
   @Test
-  @DisplayName("import : executerImport propage l'erreur, signalerErreurImport la restitue")
+  @DisplayName(
+      "import : executerImport propage l'erreur, signalerErreurImport la restitue + débloque")
   void import_propage_puis_signale_erreur() {
     Path csv = Path.of("nuit-observations.csv");
     when(service.chargerValidation(ID_PASSAGE)).thenReturn(new VueValidation(null, List.of()));
     when(service.importer(ID_PASSAGE, csv))
         .thenThrow(new RegleMetierException("Aucune session d'enregistrement"));
     viewModel.ouvrirSur(ID_PASSAGE);
+    viewModel.marquerImportEnCours();
 
     assertThatThrownBy(() -> viewModel.executerImport(csv))
         .isInstanceOf(RegleMetierException.class)
@@ -370,6 +377,8 @@ class ValidationViewModelTest {
 
     viewModel.signalerErreurImport("Aucune session d'enregistrement");
     assertThat(viewModel.messageProperty().get()).isEqualTo("Aucune session d'enregistrement");
+    assertThat(viewModel.importEnCoursProperty().get()).isFalse(); // débloqué, on peut réessayer
+    assertThat(viewModel.peutImporter()).isTrue();
   }
 
   @Test

@@ -91,8 +91,10 @@ public class ValidationController {
         .bind(viewModel.selectionPresenteProperty().not().or(choixTaxon.valueProperty().isNull()));
 
     // Import = point d'entrée : actif tant qu'aucun résultat n'existe (un seul jeu par passage,
-    // passage_id unique) ; export = inverse, actif une fois les résultats chargés.
-    btnImporter.disableProperty().bind(viewModel.resultatsDisponiblesProperty());
+    // passage_id unique) et qu'aucun import ne tourne ; export = actif une fois les résultats là.
+    btnImporter
+        .disableProperty()
+        .bind(viewModel.resultatsDisponiblesProperty().or(viewModel.importEnCoursProperty()));
     chkInclureMode.selectedProperty().bindBidirectional(viewModel.inclureModeProperty());
     btnExporter.disableProperty().bind(viewModel.resultatsDisponiblesProperty().not());
 
@@ -125,6 +127,7 @@ public class ValidationController {
       return;
     }
     Path cheminCsv = fichier.toPath();
+    viewModel.marquerImportEnCours(); // bloque un second lancement avant la fin du thread
     Thread.ofVirtual()
         .name("import-tadarida")
         .start(

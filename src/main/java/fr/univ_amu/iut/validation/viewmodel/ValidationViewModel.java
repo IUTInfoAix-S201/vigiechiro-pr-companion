@@ -50,6 +50,8 @@ public class ValidationViewModel {
       new ReadOnlyBooleanWrapper(this, "selectionPresente", false);
   private final ReadOnlyBooleanWrapper resultatsDisponibles =
       new ReadOnlyBooleanWrapper(this, "resultatsDisponibles", false);
+  private final ReadOnlyBooleanWrapper importEnCours =
+      new ReadOnlyBooleanWrapper(this, "importEnCours", false);
   private final BooleanProperty inclureMode = new SimpleBooleanProperty(this, "inclureMode", true);
 
   private final ReadOnlyIntegerWrapper nombreTotal =
@@ -119,12 +121,14 @@ public class ValidationViewModel {
     return appliquerAction(() -> service.corriger(courant.observation().id(), taxon.code(), null));
   }
 
-  /// `true` si un import est permis : passage ouvert et aucun jeu de résultats déjà chargé. Un seul
-  /// jeu par passage est permis (`identification_results.passage_id` est unique) ; un second import
-  /// violerait la contrainte d'unicité. Le bouton d'import s'y lie (désactivé dès qu'il y a des
-  /// résultats).
+  /// `true` si un import est permis : passage ouvert, sans jeu importé ni import déjà en cours.
   public boolean peutImporter() {
-    return idPassage != null && idResultats == null;
+    return idPassage != null && idResultats == null && !importEnCours.get();
+  }
+
+  /// Marque le début d'un import (fil JavaFX) et bloque tout second lancement concurrent.
+  public void marquerImportEnCours() {
+    importEnCours.set(true);
   }
 
   /// Étape **lourde** de l'import d'un CSV Tadarida (`*-observations.csv` ou `_Vu.csv`, R23) :
@@ -141,13 +145,17 @@ public class ValidationViewModel {
     return service.chargerValidation(idPassage);
   }
 
-  /// Applique, **sur le fil JavaFX**, le résultat d'un import réussi (liste, compteurs, état).
+  /// Applique, **sur le fil JavaFX**, le résultat d'un import réussi (liste, compteurs, état) et
+  /// clôt l'import en cours.
   public void appliquerImport(VueValidation vue) {
+    importEnCours.set(false);
     appliquer(vue);
   }
 
-  /// Restitue, **sur le fil JavaFX**, le message d'erreur d'un import échoué.
+  /// Restitue, **sur le fil JavaFX**, le message d'erreur d'un import échoué et clôt l'import en
+  /// cours (l'observateur peut réessayer).
   public void signalerErreurImport(String erreur) {
+    importEnCours.set(false);
     message.set(erreur);
   }
 
@@ -225,6 +233,7 @@ public class ValidationViewModel {
   private void reinitialiser() {
     idResultats = null;
     resultatsDisponibles.set(false);
+    importEnCours.set(false);
     selection.set(null);
     observations.clear();
     taxons.clear();
@@ -259,6 +268,11 @@ public class ValidationViewModel {
   /// `true` dès qu'un jeu de résultats est chargé (activation du bouton d'export `_Vu`).
   public ReadOnlyBooleanProperty resultatsDisponiblesProperty() {
     return resultatsDisponibles.getReadOnlyProperty();
+  }
+
+  /// `true` pendant qu'un import s'exécute en arrière-plan (désactive le bouton d'import).
+  public ReadOnlyBooleanProperty importEnCoursProperty() {
+    return importEnCours.getReadOnlyProperty();
   }
 
   /// Inclure la colonne `validation_mode` (R24) à l'export `_Vu` (case à cocher, vraie par défaut).

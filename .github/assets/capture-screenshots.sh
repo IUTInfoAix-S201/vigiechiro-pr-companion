@@ -18,6 +18,8 @@
 #   apercu-import-assistant.png     M-Import (assistant « Importer une nuit », cas standard)
 #   apercu-qualification.png        M-Qualification (verification par echantillonnage, cas standard)
 #   apercu-passage.png              M-Passage (ecran pivot d'un passage verifie, cas standard)
+#   apercu-validation-import.png    M-Vision-Tadarida (etat d'entree : avant import, bouton import)
+#   apercu-validation-revue.png     M-Vision-Tadarida (revue : statuts varies + detail selectionne)
 set -euo pipefail
 
 ICI="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -30,6 +32,7 @@ MAINS=(
   "fr.univ_amu.iut.importation.outils.CaptureImport"
   "fr.univ_amu.iut.qualification.outils.CaptureQualification"
   "fr.univ_amu.iut.passage.outils.CapturePassage"
+  "fr.univ_amu.iut.validation.outils.CaptureValidation"
 )
 JAVA_BIN="${JAVA_HOME:+$JAVA_HOME/bin/}java"
 

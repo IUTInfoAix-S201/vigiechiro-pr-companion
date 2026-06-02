@@ -21,6 +21,7 @@ import fr.univ_amu.iut.passage.model.dao.SequenceDao;
 import fr.univ_amu.iut.passage.model.dao.SessionDao;
 import fr.univ_amu.iut.passage.view.NavigationPassage;
 import fr.univ_amu.iut.passage.viewmodel.PassageViewModel;
+import fr.univ_amu.iut.passage.viewmodel.RattachementViewModel;
 
 /// Module Guice de la feature `passage` : fournit ses DAO à partir de la [SourceDeDonnees]
 /// (singleton fourni par `CommunModule`).
@@ -141,5 +142,12 @@ public class PassageModule extends AbstractModule {
   @Provides
   PassageViewModel fournirPassageViewModel(ServicePassage service) {
     return new PassageViewModel(service);
+  }
+
+  /// ViewModel de la modale « Modifier le rattachement » (E2.S8). **Non-singleton** : un VM frais
+  /// par ouverture de modale.
+  @Provides
+  RattachementViewModel fournirRattachementViewModel(ServicePassage service) {
+    return new RattachementViewModel(service);
   }
 }

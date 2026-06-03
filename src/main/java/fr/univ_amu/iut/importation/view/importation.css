@@ -79,6 +79,17 @@
     -fx-text-fill: #2c3e50;
 }
 
+/* Avertissement « mélange » (#33) : informatif (orange), n'empêche pas l'import. */
+.insp-avertissement {
+    -fx-font-size: 13px;
+    -fx-text-fill: #8a6d3b;
+    -fx-background-color: #fcf3e3;
+    -fx-border-color: #e8a838;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-padding: 6 10 6 10;
+}
+
 /* ----- Aperçu du préfixe ----- */
 .apercu-box {
     -fx-background-color: #fef9e7;

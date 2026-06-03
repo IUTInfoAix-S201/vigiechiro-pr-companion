@@ -14,6 +14,7 @@ import fr.univ_amu.iut.importation.model.AnalyseurLogPR;
 import fr.univ_amu.iut.importation.model.EtatNommage;
 import fr.univ_amu.iut.importation.model.InspecteurDossier;
 import fr.univ_amu.iut.importation.model.Progression;
+import fr.univ_amu.iut.importation.model.RapportInspection;
 import fr.univ_amu.iut.importation.model.ResultatImport;
 import fr.univ_amu.iut.importation.model.ServiceImport;
 import fr.univ_amu.iut.sites.model.PointDEcoute;
@@ -304,6 +305,24 @@ class ImportationViewModelTest {
         viewModel.marquerTermine(obtenu);
         assertThat(viewModel.etatProperty().get()).isEqualTo(EtatImport.TERMINE);
         assertThat(viewModel.resultatProperty().get()).isSameAs(attendu);
+    }
+
+    @Test
+    @DisplayName("#33 : inspecter un dossier mélangé (≥2 enregistreurs) lève l'avertissement mélange")
+    void inspecter_detecte_le_melange() {
+        when(serviceImport.inspecter(sd))
+                .thenReturn(new RapportInspection(
+                        sd,
+                        null,
+                        null,
+                        null,
+                        List.of(Path.of("PaRecPR111_20260422_200000.wav"), Path.of("PaRecPR222_20260422_200000.wav")),
+                        EtatNommage.BRUT));
+        viewModel.dossierSourceProperty().set(sd);
+
+        viewModel.inspecter();
+
+        assertThat(viewModel.avertissementMelangeProperty().get()).contains("plusieurs enregistreurs");
     }
 
     @Test

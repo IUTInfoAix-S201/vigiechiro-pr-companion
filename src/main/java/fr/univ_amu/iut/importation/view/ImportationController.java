@@ -55,6 +55,9 @@ public class ImportationController {
     private Label labelNommage;
 
     @FXML
+    private Label labelMelange;
+
+    @FXML
     private ComboBox<Site> comboSites;
 
     @FXML
@@ -135,6 +138,11 @@ public class ImportationController {
                         () -> "État du nommage : "
                                 + libelleNommage(viewModel.etatNommageProperty().get()),
                         viewModel.etatNommageProperty()));
+        // Avertissement « mélange » (#33) : visible seulement s'il y a un message.
+        labelMelange.textProperty().bind(viewModel.avertissementMelangeProperty());
+        var aUnMelange = viewModel.avertissementMelangeProperty().isNotEmpty();
+        labelMelange.visibleProperty().bind(aUnMelange);
+        labelMelange.managedProperty().bind(aUnMelange);
 
         // 3. Rattachement : combos site/point + année/passage + aperçu du préfixe.
         comboSites.setItems(viewModel.sites());

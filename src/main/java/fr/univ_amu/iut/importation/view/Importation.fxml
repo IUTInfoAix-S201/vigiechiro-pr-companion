@@ -50,6 +50,9 @@
     <Label fx:id="labelReleve" styleClass="insp-detail"/>
     <Label fx:id="labelOriginaux" styleClass="insp-detail"/>
     <Label fx:id="labelNommage" styleClass="insp-detail"/>
+    <!-- Avertissement « mélange » (#33), affiché seulement si plusieurs enregistreurs/nuits. -->
+    <Label fx:id="labelMelange" styleClass="insp-avertissement" wrapText="true"
+           visible="false" managed="false"/>
   </VBox>
 
   <!-- 3. Rattachement -->

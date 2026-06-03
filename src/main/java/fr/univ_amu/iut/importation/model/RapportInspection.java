@@ -49,4 +49,11 @@ public record RapportInspection(
     public int nombreOriginaux() {
         return originaux.size();
     }
+
+    /// Détection du cas limite **« mélange »** (#33) : plusieurs enregistreurs et/ou plusieurs nuits,
+    /// dérivée des noms des [#originaux] (`PaRecPR<série>_<date>_…`). Sert d'avertissement non bloquant
+    /// à l'inspection.
+    public AnalyseMelange melange() {
+        return AnalyseMelange.depuis(originaux);
+    }
 }

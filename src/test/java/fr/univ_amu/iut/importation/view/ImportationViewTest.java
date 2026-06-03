@@ -101,4 +101,14 @@ class ImportationViewTest {
 
         assertThat(zoneProgression.isVisible()).isFalse();
     }
+
+    @Test
+    @DisplayName("Les avertissements mélange et incohérence sont masqués avant toute inspection")
+    void avertissements_caches_au_depart(FxRobot robot) {
+        Label labelMelange = robot.lookup("#labelMelange").queryAs(Label.class);
+        Label labelIncoherence = robot.lookup("#labelIncoherence").queryAs(Label.class);
+
+        assertThat(labelMelange.isVisible()).isFalse();
+        assertThat(labelIncoherence.isVisible()).isFalse();
+    }
 }

@@ -53,6 +53,9 @@
     <!-- Avertissement « mélange » (#33), affiché seulement si plusieurs enregistreurs/nuits. -->
     <Label fx:id="labelMelange" styleClass="insp-avertissement" wrapText="true"
            visible="false" managed="false"/>
+    <!-- Avertissement « incohérence » (#33) : journal/relevé en désaccord avec les WAV (série/date). -->
+    <Label fx:id="labelIncoherence" styleClass="insp-incoherence" wrapText="true"
+           visible="false" managed="false"/>
   </VBox>
 
   <!-- 3. Rattachement -->

@@ -56,4 +56,11 @@ public record RapportInspection(
     public AnalyseMelange melange() {
         return AnalyseMelange.depuis(originaux);
     }
+
+    /// Détection du cas limite **« incohérence »** (#33) : l'identité déclarée (journal du capteur et
+    /// nom du relevé climatique) confrontée aux séries/dates portées par les [#originaux]. Sert
+    /// d'avertissement non bloquant à l'inspection.
+    public AnalyseCoherence coherence() {
+        return AnalyseCoherence.depuis(journal, cheminReleveClimatique, originaux);
+    }
 }

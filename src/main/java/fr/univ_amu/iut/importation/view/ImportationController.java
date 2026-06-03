@@ -58,6 +58,9 @@ public class ImportationController {
     private Label labelMelange;
 
     @FXML
+    private Label labelIncoherence;
+
+    @FXML
     private ComboBox<Site> comboSites;
 
     @FXML
@@ -143,6 +146,11 @@ public class ImportationController {
         var aUnMelange = viewModel.avertissementMelangeProperty().isNotEmpty();
         labelMelange.visibleProperty().bind(aUnMelange);
         labelMelange.managedProperty().bind(aUnMelange);
+
+        labelIncoherence.textProperty().bind(viewModel.avertissementIncoherenceProperty());
+        var aUneIncoherence = viewModel.avertissementIncoherenceProperty().isNotEmpty();
+        labelIncoherence.visibleProperty().bind(aUneIncoherence);
+        labelIncoherence.managedProperty().bind(aUneIncoherence);
 
         // 3. Rattachement : combos site/point + année/passage + aperçu du préfixe.
         comboSites.setItems(viewModel.sites());

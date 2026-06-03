@@ -13,6 +13,7 @@ import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.importation.model.AnalyseurLogPR;
 import fr.univ_amu.iut.importation.model.EtatNommage;
 import fr.univ_amu.iut.importation.model.InspecteurDossier;
+import fr.univ_amu.iut.importation.model.JournalParse;
 import fr.univ_amu.iut.importation.model.Progression;
 import fr.univ_amu.iut.importation.model.RapportInspection;
 import fr.univ_amu.iut.importation.model.ResultatImport;
@@ -323,6 +324,38 @@ class ImportationViewModelTest {
         viewModel.inspecter();
 
         assertThat(viewModel.avertissementMelangeProperty().get()).contains("plusieurs enregistreurs");
+    }
+
+    @Test
+    @DisplayName("#33 : inspecter un dossier dont le journal contredit les WAV lève l'avertissement incohérence")
+    void inspecter_detecte_l_incoherence() {
+        JournalParse journal = new JournalParse(
+                "1925492",
+                null,
+                LocalDate.of(2026, 4, 22),
+                null,
+                null,
+                null,
+                null,
+                null,
+                true,
+                null,
+                List.of(),
+                List.of());
+        when(serviceImport.inspecter(sd))
+                .thenReturn(new RapportInspection(
+                        sd,
+                        Path.of("LogPR1925492.txt"),
+                        journal,
+                        null,
+                        List.of(Path.of("PaRecPR1648011_20260422_203000.wav")), // série ≠ journal
+                        EtatNommage.BRUT));
+        viewModel.dossierSourceProperty().set(sd);
+
+        viewModel.inspecter();
+
+        assertThat(viewModel.avertissementIncoherenceProperty().get()).contains("la série déclarée (1925492)");
+        assertThat(viewModel.avertissementMelangeProperty().get()).isEmpty(); // un seul enregistreur côté WAV
     }
 
     @Test

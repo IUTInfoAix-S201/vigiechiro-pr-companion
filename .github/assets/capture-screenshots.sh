@@ -27,6 +27,8 @@
 #   apercu-bibliotheque-sons.png    M-Bibliotheque (peuplee : sons de reference, detail + ecoute, export actif)
 #   apercu-multisite.png            M-Multisite (vue agregee : tableau, filtres, tri, export)
 #   apercu-multisite-vues.png       M-Multisite (modale des vues sauvegardees, une vue selectionnee)
+#   apercu-diagnostic.png           M-Diagnostic (releve present : courbe climat + anomalies + GPS)
+#   apercu-diagnostic-sans-releve.png  M-Diagnostic (releve absent : absence signalee, anomalies seules)
 set -euo pipefail
 
 ICI="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -43,6 +45,7 @@ MAINS=(
   "fr.univ_amu.iut.lot.outils.CaptureLot"
   "fr.univ_amu.iut.bibliotheque.outils.CaptureBibliotheque"
   "fr.univ_amu.iut.multisite.outils.CaptureMultisite"
+  "fr.univ_amu.iut.diagnostic.outils.CaptureDiagnostic"
 )
 JAVA_BIN="${JAVA_HOME:+$JAVA_HOME/bin/}java"
 

@@ -25,6 +25,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
@@ -73,6 +74,11 @@ public class ServiceImport {
     /// référence commerciale du micro : on inscrit donc un libellé explicite (cf. point
     /// d'intégration).
     private static final String MODELE_MICRO_NON_JOURNALISE = "Micro PR (modèle non journalisé)";
+
+    /// Plafond de découpages audio **simultanés** (#12) : les threads virtuels sont bornés au nombre de
+    /// cœurs disponibles, car chaque `transformer` charge un WAV complet en mémoire. Limite le pic
+    /// mémoire (≈ ce nombre de PCM en vol) sans brider le débit CPU. Lu une fois au chargement.
+    private static final int PARALLELISME_DECOUPAGE = Runtime.getRuntime().availableProcessors();
 
     private final InspecteurDossier inspecteur;
     private final CopieProtegee copie;
@@ -195,36 +201,10 @@ public class ServiceImport {
                 ? copie.copierVers(rapport.cheminReleveClimatique(), dossierSession)
                 : null;
 
-        // 2) Renommage R6/R7 sur la copie, puis 3) transformation R10/R11.
+        // 2) Renommage R6/R7 sur la copie, puis 3) transformation R10/R11 (découpée en parallèle, #12).
         List<Path> originauxRenommes = renommeur.renommer(dossierBruts, prefixe);
-
-        // Découpage parallélisé (#12) : chaque transformation est indépendante par fichier. On lance
-        // **un thread virtuel par original** (Java 25, version la plus simple — le bornage mémoire
-        // sera arbitré plus tard, banc de mesure #29 à l'appui). L'ordre d'origine est préservé : on
-        // récupère les Future dans l'ordre de soumission → résultat déterministe (persistance et tests
-        // inchangés). La progression (#33) est émise **sous verrou + compteur** pour rester appelée un
-        // à un (sûre pour tout consommateur) avec des libellés « Transformation k/N » monotones.
-        AtomicInteger transfosFaites = new AtomicInteger(0);
-        Object verrouProgression = new Object();
-        List<TransformationOriginal> transformations;
-        try (ExecutorService executeur = Executors.newVirtualThreadPerTaskExecutor()) {
-            List<Future<TransformationOriginal>> decoupagesEnCours = originauxRenommes.stream()
-                    .map(original -> executeur.submit(() -> {
-                        TransformationOriginal resultat =
-                                transformation.transformer(original, dossierTransformes, prefixe);
-                        synchronized (verrouProgression) {
-                            int faits = transfosFaites.incrementAndGet();
-                            progres.accept(new Progression(
-                                    "Transformation " + faits + "/" + nbOriginaux,
-                                    (double) (nbOriginaux + faits) / totalEtapes));
-                        }
-                        return resultat;
-                    }))
-                    .toList();
-            transformations = decoupagesEnCours.stream()
-                    .map(ServiceImport::resultatDecoupage)
-                    .toList();
-        }
+        List<TransformationOriginal> transformations =
+                decouperEnParallele(originauxRenommes, dossierTransformes, prefixe, nbOriginaux, totalEtapes, progres);
 
         // 4) Construction des entités de l'agrégat.
         Enregistreur enregistreur = new Enregistreur(journal.numeroSerie(), journal.versionModele(), null);
@@ -293,6 +273,50 @@ public class ServiceImport {
                 transformations.size(),
                 nombreSequences,
                 journal.anomalies());
+    }
+
+    /// Découpe (#12) tous les `originaux` **en parallèle** sur des threads virtuels (un par fichier,
+    /// Java 25), la concurrence étant **bornée** à [#PARALLELISME_DECOUPAGE] par un [Semaphore] :
+    /// `transformer` charge tout le PCM en mémoire et écrit sur disque, donc sans plafond une grosse
+    /// nuit (~1572 fichiers) tiendrait trop de WAV en vol → saturation mémoire. Pic mémoire borné ≈
+    /// nbCœurs PCM, sans brider le débit CPU.
+    ///
+    /// L'**ordre d'origine est préservé** (Future récupérés dans l'ordre de soumission) → résultat
+    /// déterministe (persistance et tests inchangés). La progression (#33) est émise **sous verrou +
+    /// compteur** pour rester appelée un à un (sûre pour tout consommateur), libellés « k/N » monotones.
+    private List<TransformationOriginal> decouperEnParallele(
+            List<Path> originaux,
+            Path dossierTransformes,
+            Prefixe prefixe,
+            int nbOriginaux,
+            int totalEtapes,
+            Consumer<Progression> progres) {
+        AtomicInteger transfosFaites = new AtomicInteger(0);
+        Object verrouProgression = new Object();
+        Semaphore creneaux = new Semaphore(PARALLELISME_DECOUPAGE);
+        try (ExecutorService executeur = Executors.newVirtualThreadPerTaskExecutor()) {
+            List<Future<TransformationOriginal>> decoupagesEnCours = originaux.stream()
+                    .map(original -> executeur.submit(() -> {
+                        creneaux.acquire();
+                        try {
+                            TransformationOriginal resultat =
+                                    transformation.transformer(original, dossierTransformes, prefixe);
+                            synchronized (verrouProgression) {
+                                int faits = transfosFaites.incrementAndGet();
+                                progres.accept(new Progression(
+                                        "Transformation " + faits + "/" + nbOriginaux,
+                                        (double) (nbOriginaux + faits) / totalEtapes));
+                            }
+                            return resultat;
+                        } finally {
+                            creneaux.release();
+                        }
+                    }))
+                    .toList();
+            return decoupagesEnCours.stream()
+                    .map(ServiceImport::resultatDecoupage)
+                    .toList();
+        }
     }
 
     /// Récupère le résultat d'un découpage lancé sur un thread virtuel (#12), en **dévoilant** la

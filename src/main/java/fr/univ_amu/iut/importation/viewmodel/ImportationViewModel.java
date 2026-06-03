@@ -76,6 +76,11 @@ public class ImportationViewModel {
     private final ReadOnlyStringWrapper avertissementMelange =
             new ReadOnlyStringWrapper(this, "avertissementMelange", "");
 
+    /// Avertissement « incohérence » (#33) : non vide si l'identité déclarée (journal, relevé) contredit
+    /// les enregistrements (série ou date). Informatif (n'empêche pas l'import).
+    private final ReadOnlyStringWrapper avertissementIncoherence =
+            new ReadOnlyStringWrapper(this, "avertissementIncoherence", "");
+
     /// Étape 3 : rattachement de la nuit (site / point / année / n° de passage).
     private final ObservableList<Site> sites = FXCollections.observableArrayList();
     private final ObjectProperty<Site> siteSelectionne = new SimpleObjectProperty<>(this, "siteSelectionne");
@@ -184,6 +189,11 @@ public class ImportationViewModel {
         return avertissementMelange.getReadOnlyProperty();
     }
 
+    /// Avertissement « incohérence » (#33), vide si l'identité déclarée concorde avec les enregistrements.
+    public ReadOnlyStringProperty avertissementIncoherenceProperty() {
+        return avertissementIncoherence.getReadOnlyProperty();
+    }
+
     /// Liste observable des sites de l'utilisateur, alimentée par [#chargerSites()] (combobox Site).
     public ObservableList<Site> sites() {
         return sites;
@@ -273,6 +283,7 @@ public class ImportationViewModel {
                     .map(journal -> "PR n° " + journal.numeroSerie())
                     .orElse(""));
             avertissementMelange.set(AvertissementMelange.rediger(rapport.melange()));
+            avertissementIncoherence.set(AvertissementIncoherence.rediger(rapport.coherence()));
             messageErreur.set("");
             inspecte.set(true);
             majApercu();
@@ -382,6 +393,7 @@ public class ImportationViewModel {
         etatNommage.set(null);
         resumeJournal.set("");
         avertissementMelange.set("");
+        avertissementIncoherence.set("");
         messageErreur.set("");
         etat.set(EtatImport.PRET);
         resultat.set(null);

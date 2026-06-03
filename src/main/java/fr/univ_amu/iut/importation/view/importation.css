@@ -90,6 +90,17 @@
     -fx-padding: 6 10 6 10;
 }
 
+/* Incohérence (#33) : plus grave que le mélange (rouge), mais toujours non bloquant. */
+.insp-incoherence {
+    -fx-font-size: 13px;
+    -fx-text-fill: #a4413a;
+    -fx-background-color: #fdecea;
+    -fx-border-color: #e74c3c;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-padding: 6 10 6 10;
+}
+
 /* ----- Aperçu du préfixe ----- */
 .apercu-box {
     -fx-background-color: #fef9e7;

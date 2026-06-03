@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<!--
+  M-Lot - préparation et dépôt d'un passage sur Vigie-Chiro (parcours P4, épopée E4).
+  Atteint depuis M-Passage via le contrat socle OuvrirLot. Pur câblage : statut, récapitulatif,
+  dossier à téléverser, alertes de cohérence (R14) et actions préparer/déposer sont liés au
+  LotViewModel par le controller. Le dépôt lui-même est manuel (aucun accès réseau).
+-->
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="fr.univ_amu.iut.lot.view.LotController"
+      stylesheets="@lot.css"
+      styleClass="ecran-lot"
+      spacing="14.0">
+
+  <VBox spacing="2.0">
+    <Label text="📦 Préparer le dépôt" styleClass="titre-page"/>
+    <Label fx:id="lblStatut" styleClass="sous-titre-page"/>
+  </VBox>
+
+  <VBox spacing="4.0" styleClass="panneau-lot">
+    <Label text="📊 Récapitulatif du lot" styleClass="section-titre"/>
+    <Label fx:id="lblRecap" styleClass="section-sous"/>
+    <Label text="Dossier à téléverser manuellement sur Vigie-Chiro (R22) :" styleClass="section-sous"/>
+    <Label fx:id="lblCheminDossier" styleClass="chemin" wrapText="true"/>
+  </VBox>
+
+  <VBox fx:id="zoneAlertes" spacing="4.0">
+    <Label text="⚠ Cohérence à corriger avant préparation (R14)" styleClass="section-titre"/>
+    <ListView fx:id="listeAlertes" prefHeight="120.0"/>
+  </VBox>
+
+  <Separator/>
+  <Label text="🚀 Étapes du dépôt" styleClass="section-titre"/>
+  <Label text="1. Préparer le lot (contrôle de cohérence) · 2. Téléverser le dossier · 3. Marquer déposé."
+         styleClass="section-sous" wrapText="true"/>
+  <HBox spacing="8.0" alignment="CENTER_LEFT">
+    <Button fx:id="btnPreparer" text="📦 Préparer le lot"
+            styleClass="action-primaire" onAction="#preparer"/>
+    <Button fx:id="btnDeposer" text="✅ Marquer déposé"
+            styleClass="action-secondaire" onAction="#deposer"/>
+  </HBox>
+
+  <Label fx:id="lblMessage" styleClass="message-lot" wrapText="true"/>
+</VBox>

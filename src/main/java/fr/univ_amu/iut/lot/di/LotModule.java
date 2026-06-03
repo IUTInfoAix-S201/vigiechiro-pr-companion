@@ -4,8 +4,10 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import fr.univ_amu.iut.commun.model.Horloge;
+import fr.univ_amu.iut.commun.view.OuvrirLot;
 import fr.univ_amu.iut.lot.model.ServiceLot;
 import fr.univ_amu.iut.lot.model.VerificationCoherence;
+import fr.univ_amu.iut.lot.view.NavigationLot;
 import fr.univ_amu.iut.lot.viewmodel.LotViewModel;
 import fr.univ_amu.iut.passage.model.MoteurWorkflowPassage;
 import fr.univ_amu.iut.passage.model.dao.EnregistrementOriginalDao;
@@ -30,6 +32,13 @@ import fr.univ_amu.iut.sites.model.dao.SiteDao;
 /// de l'application), ce qui rend `ServiceLot` résoluble par l'injecteur applicatif. Le câblage
 /// en isolation reste validé par `LotModuleTest` (injecteur local).
 public class LotModule extends AbstractModule {
+
+    /// Fournit le contrat de navigation socle [OuvrirLot] : M-Passage l'injecte pour ouvrir la
+    /// préparation/dépôt sans dépendre de la vue de cette feature (graphe de slices acyclique).
+    @Override
+    protected void configure() {
+        bind(OuvrirLot.class).to(NavigationLot.class);
+    }
 
     @Provides
     @Singleton

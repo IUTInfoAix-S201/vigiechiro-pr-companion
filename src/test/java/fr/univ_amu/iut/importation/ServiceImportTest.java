@@ -18,6 +18,7 @@ import fr.univ_amu.iut.commun.persistence.UniteDeTravail;
 import fr.univ_amu.iut.importation.model.AnalyseurLogPR;
 import fr.univ_amu.iut.importation.model.CopieProtegee;
 import fr.univ_amu.iut.importation.model.InspecteurDossier;
+import fr.univ_amu.iut.importation.model.Progression;
 import fr.univ_amu.iut.importation.model.Renommeur;
 import fr.univ_amu.iut.importation.model.ResultatImport;
 import fr.univ_amu.iut.importation.model.ServiceImport;
@@ -41,6 +42,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -143,6 +145,20 @@ class ServiceImportTest {
         assertThat(sequenceDao.findBySession(idSession)).hasSize(6);
         assertThat(originalDao.findBySession(idSession))
                 .allSatisfy(o -> assertThat(o.frequenceEchantillonnageHz()).isEqualTo(FREQUENCE_WAV));
+    }
+
+    @Test
+    @DisplayName("#33 : le callback de progression couvre copie + transformation, fraction monotone 0→1")
+    void progression_notifiee_pendant_l_import() {
+        List<Progression> points = new ArrayList<>();
+        service.importer(sd, idPoint, prefixe, points::add);
+
+        // 2 originaux → 2 copies puis 2 transformations = 4 points de progression.
+        assertThat(points)
+                .extracting(Progression::libelle)
+                .containsExactly("Copie 1/2", "Copie 2/2", "Transformation 1/2", "Transformation 2/2");
+        assertThat(points).extracting(Progression::fraction).containsExactly(0.25, 0.5, 0.75, 1.0);
+        assertThat(points).extracting(Progression::fraction).isSorted();
     }
 
     @Test

@@ -2,6 +2,7 @@ package fr.univ_amu.iut.importation.view;
 
 import com.google.inject.Inject;
 import fr.univ_amu.iut.importation.model.EtatNommage;
+import fr.univ_amu.iut.importation.model.Progression;
 import fr.univ_amu.iut.importation.model.ResultatImport;
 import fr.univ_amu.iut.importation.viewmodel.EtatImport;
 import fr.univ_amu.iut.importation.viewmodel.ImportationViewModel;
@@ -10,6 +11,7 @@ import fr.univ_amu.iut.sites.model.Site;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
@@ -17,7 +19,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.ProgressIndicator;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
@@ -74,7 +76,13 @@ public class ImportationController {
     private Button boutonImporter;
 
     @FXML
-    private ProgressIndicator indicateurProgression;
+    private VBox zoneProgression;
+
+    @FXML
+    private ProgressBar barreProgression;
+
+    @FXML
+    private Label labelProgression;
 
     @FXML
     private Label labelMessage;
@@ -141,11 +149,13 @@ public class ImportationController {
                 champPassage.textProperty(), viewModel.numeroPassageProperty(), new NumberStringConverter("0"));
         labelApercu.textProperty().bind(viewModel.apercuPrefixeProperty());
 
-        // 4. Action : pendant l'import (EN_COURS), l'indicateur tourne et le formulaire est gelé pour
-        // éviter toute modification du rattachement en cours de traitement.
+        // 4. Action : pendant l'import (EN_COURS), la barre de progression s'affiche (avancement réel
+        // fichier X/N, #33) et le formulaire est gelé pour éviter toute modification en cours.
         var enCours = viewModel.etatProperty().isEqualTo(EtatImport.EN_COURS);
-        indicateurProgression.visibleProperty().bind(enCours);
-        indicateurProgression.managedProperty().bind(enCours);
+        zoneProgression.visibleProperty().bind(enCours);
+        zoneProgression.managedProperty().bind(enCours);
+        barreProgression.progressProperty().bind(viewModel.progressionProperty());
+        labelProgression.textProperty().bind(viewModel.messageProgressionProperty());
         boutonImporter.disableProperty().bind(viewModel.peutImporter().not().or(enCours));
         boutonParcourir.disableProperty().bind(enCours);
         comboSites.disableProperty().bind(enCours);
@@ -182,9 +192,11 @@ public class ImportationController {
         }
         var demande = viewModel.preparerImport();
         viewModel.marquerEnCours();
+        // Progression (#33) : le service notifie hors-thread ; on relaie chaque point au fil JavaFX.
+        Consumer<Progression> progres = p -> Platform.runLater(() -> viewModel.appliquerProgression(p));
         Thread.ofVirtual().name("import-vigiechiro").start(() -> {
             try {
-                ResultatImport resultatImport = viewModel.executerImport(demande);
+                ResultatImport resultatImport = viewModel.executerImport(demande, progres);
                 Platform.runLater(() -> viewModel.marquerTermine(resultatImport));
             } catch (RuntimeException echec) {
                 Platform.runLater(() -> viewModel.marquerEchec(echec.getMessage()));

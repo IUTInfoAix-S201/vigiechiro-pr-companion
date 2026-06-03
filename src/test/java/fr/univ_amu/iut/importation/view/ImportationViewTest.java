@@ -20,7 +20,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.ProgressIndicator;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -95,10 +95,10 @@ class ImportationViewTest {
     }
 
     @Test
-    @DisplayName("L'indicateur de progression est masqué tant qu'aucun import n'est lancé")
-    void indicateur_progression_cache_au_depart(FxRobot robot) {
-        ProgressIndicator indicateur = robot.lookup("#indicateurProgression").queryAs(ProgressIndicator.class);
+    @DisplayName("La zone de progression est masquée tant qu'aucun import n'est lancé")
+    void progression_cachee_au_depart(FxRobot robot) {
+        VBox zoneProgression = robot.lookup("#zoneProgression").queryAs(VBox.class);
 
-        assertThat(indicateur.isVisible()).isFalse();
+        assertThat(zoneProgression.isVisible()).isFalse();
     }
 }

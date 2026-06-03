@@ -22,6 +22,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 /// Service métier de la feature `importation` : orchestre le parcours d'import P2 d'une nuit
 /// d'enregistrement, de la carte SD jusqu'à l'agrégat persisté. Calqué sur le service de référence
@@ -113,9 +114,18 @@ public class ServiceImport {
     /// @throws RegleMetierException si un passage existe déjà pour ce quadruplet (R5), si le journal
     /// LogPR est absent (enregistreur non identifiable), ou si aucun original n'est présent
     public ResultatImport importer(Path dossierSource, Long idPoint, Prefixe prefixe) {
+        return importer(dossierSource, idPoint, prefixe, progression -> {});
+    }
+
+    /// Variante avec **suivi de progression** (story #33) : `progres` est notifié au fil de la copie
+    /// puis de la transformation des originaux (fraction globale 0→1, libellé « Copie X/N » puis
+    /// « Transformation X/N »). Appelé sur le fil d'exécution de l'import — la couche IHM relaie au fil
+    /// JavaFX. Même contrat transactionnel et mêmes règles métier que la variante sans callback.
+    public ResultatImport importer(Path dossierSource, Long idPoint, Prefixe prefixe, Consumer<Progression> progres) {
         Objects.requireNonNull(dossierSource, "dossierSource");
         Objects.requireNonNull(idPoint, "idPoint");
         Objects.requireNonNull(prefixe, "prefixe");
+        Objects.requireNonNull(progres, "progres");
 
         // R5 : on refuse le doublon AVANT de copier/transformer quoi que ce soit.
         if (agregatDao.passageExistePour(idPoint, prefixe.annee(), prefixe.numeroPassage())) {
@@ -141,9 +151,18 @@ public class ServiceImport {
         Path dossierBruts = workspace.dossierBruts(nomSession);
         Path dossierTransformes = workspace.dossierTransformes(nomSession);
 
+        // Progression déterminée (#33) : N copies puis N transformations → 2N étapes au total.
+        int nbOriginaux = rapport.originaux().size();
+        int totalEtapes = nbOriginaux * 2;
+        int faites = 0;
+
         // 1) Copie protégée SD -> workspace (R9). Originaux dans bruts/, journal + relevé à la racine.
+        int indiceCopie = 0;
         for (Path original : rapport.originaux()) {
             copie.copierVers(original, dossierBruts);
+            indiceCopie++;
+            faites++;
+            progres.accept(new Progression("Copie " + indiceCopie + "/" + nbOriginaux, (double) faites / totalEtapes));
         }
         Path cheminJournalCopie = copie.copierVers(rapport.cheminJournal(), dossierSession);
         Path cheminReleveCopie = rapport.aUnReleveClimatique()
@@ -153,8 +172,13 @@ public class ServiceImport {
         // 2) Renommage R6/R7 sur la copie, puis 3) transformation R10/R11.
         List<Path> originauxRenommes = renommeur.renommer(dossierBruts, prefixe);
         List<TransformationOriginal> transformations = new ArrayList<>();
+        int indiceTransfo = 0;
         for (Path original : originauxRenommes) {
             transformations.add(transformation.transformer(original, dossierTransformes, prefixe));
+            indiceTransfo++;
+            faites++;
+            progres.accept(new Progression(
+                    "Transformation " + indiceTransfo + "/" + nbOriginaux, (double) faites / totalEtapes));
         }
 
         // 4) Construction des entités de l'agrégat.

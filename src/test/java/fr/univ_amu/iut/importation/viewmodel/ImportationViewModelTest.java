@@ -13,6 +13,7 @@ import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.importation.model.AnalyseurLogPR;
 import fr.univ_amu.iut.importation.model.EtatNommage;
 import fr.univ_amu.iut.importation.model.InspecteurDossier;
+import fr.univ_amu.iut.importation.model.Progression;
 import fr.univ_amu.iut.importation.model.ResultatImport;
 import fr.univ_amu.iut.importation.model.ServiceImport;
 import fr.univ_amu.iut.sites.model.PointDEcoute;
@@ -241,7 +242,7 @@ class ImportationViewModelTest {
         PointDEcoute point = point(10L, "A1", site.id());
         when(serviceSites.listerPoints(site.id())).thenReturn(List.of(point));
         when(serviceImport.inspecter(sd)).thenReturn(inspecteur.inspecter(sd));
-        when(serviceImport.importer(eq(sd), eq(10L), any(Prefixe.class)))
+        when(serviceImport.importer(eq(sd), eq(10L), any(Prefixe.class), any()))
                 .thenReturn(new ResultatImport(null, null, "1925492", 2, 6, List.of()));
         prepareRattachement(site, point);
 
@@ -259,7 +260,7 @@ class ImportationViewModelTest {
         PointDEcoute point = point(10L, "A1", site.id());
         when(serviceSites.listerPoints(site.id())).thenReturn(List.of(point));
         when(serviceImport.inspecter(sd)).thenReturn(inspecteur.inspecter(sd));
-        when(serviceImport.importer(eq(sd), eq(10L), any(Prefixe.class)))
+        when(serviceImport.importer(eq(sd), eq(10L), any(Prefixe.class), any()))
                 .thenThrow(new RegleMetierException("R5 : un passage existe déjà pour ce point."));
         prepareRattachement(site, point);
 
@@ -288,7 +289,7 @@ class ImportationViewModelTest {
         when(serviceSites.listerPoints(site.id())).thenReturn(List.of(point));
         when(serviceImport.inspecter(sd)).thenReturn(inspecteur.inspecter(sd));
         ResultatImport attendu = new ResultatImport(null, null, "1925492", 2, 6, List.of());
-        when(serviceImport.importer(eq(sd), eq(10L), any(Prefixe.class))).thenReturn(attendu);
+        when(serviceImport.importer(eq(sd), eq(10L), any(Prefixe.class), any())).thenReturn(attendu);
         prepareRattachement(site, point);
 
         viewModel.marquerEnCours();
@@ -303,6 +304,15 @@ class ImportationViewModelTest {
         viewModel.marquerTermine(obtenu);
         assertThat(viewModel.etatProperty().get()).isEqualTo(EtatImport.TERMINE);
         assertThat(viewModel.resultatProperty().get()).isSameAs(attendu);
+    }
+
+    @Test
+    @DisplayName("#33 : appliquerProgression alimente la fraction et le libellé d'étape")
+    void appliquer_progression_alimente_les_proprietes() {
+        viewModel.appliquerProgression(new Progression("Transformation 45/191", 0.62));
+
+        assertThat(viewModel.progressionProperty().get()).isEqualTo(0.62);
+        assertThat(viewModel.messageProgressionProperty().get()).isEqualTo("Transformation 45/191");
     }
 
     private void prepareRattachement(Site site, PointDEcoute point) {

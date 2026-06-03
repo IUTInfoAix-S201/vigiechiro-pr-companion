@@ -3,7 +3,7 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
@@ -85,9 +85,12 @@
   <HBox spacing="14.0" alignment="CENTER_LEFT">
     <Button fx:id="boutonImporter" text="📥 Importer cette nuit" styleClass="bouton-primaire"
             onAction="#importer"/>
-    <ProgressIndicator fx:id="indicateurProgression" prefWidth="26.0" prefHeight="26.0"
-                       visible="false" managed="false"/>
     <Label fx:id="labelMessage" styleClass="message-erreur" wrapText="true" HBox.hgrow="ALWAYS"/>
   </HBox>
+  <!-- Progression déterminée (#33), visible seulement pendant l'import : fichier X/N copié/transformé. -->
+  <VBox fx:id="zoneProgression" spacing="3.0" visible="false" managed="false">
+    <ProgressBar fx:id="barreProgression" maxWidth="Infinity" progress="0.0"/>
+    <Label fx:id="labelProgression" styleClass="insp-detail"/>
+  </VBox>
   <Label fx:id="labelStatut" styleClass="message-succes" wrapText="true"/>
 </VBox>

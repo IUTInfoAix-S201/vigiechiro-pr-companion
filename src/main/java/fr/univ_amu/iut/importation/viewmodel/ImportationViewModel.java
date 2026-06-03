@@ -3,6 +3,7 @@ package fr.univ_amu.iut.importation.viewmodel;
 import fr.univ_amu.iut.commun.model.Horloge;
 import fr.univ_amu.iut.commun.model.Prefixe;
 import fr.univ_amu.iut.importation.model.EtatNommage;
+import fr.univ_amu.iut.importation.model.Progression;
 import fr.univ_amu.iut.importation.model.RapportInspection;
 import fr.univ_amu.iut.importation.model.ResultatImport;
 import fr.univ_amu.iut.importation.model.ServiceImport;
@@ -12,12 +13,15 @@ import fr.univ_amu.iut.sites.model.Site;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
+import javafx.beans.property.ReadOnlyDoubleProperty;
+import javafx.beans.property.ReadOnlyDoubleWrapper;
 import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyIntegerWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -38,8 +42,10 @@ import javafx.collections.ObservableList;
 ///     Vigie-Chiro qui sera appliqué (R6) ;
 ///  4. **lancer l'import** via [ServiceImport#importer], puis exposer le résultat et l'état.
 ///
-/// [#importer()] est **synchrone** : la vue le lancera sur un fil d'arrière-plan pour ne pas
-/// figer l'IHM (progression à venir). Les sites/points de l'utilisateur courant viennent de
+/// [#importer()] est **synchrone** ; la vue lance plutôt l'import sur un fil d'arrière-plan
+/// ([#executerImport(DemandeImport, java.util.function.Consumer)]) pour ne pas figer l'IHM, et relaie
+/// la **progression déterminée** (#33) au fil JavaFX via [#appliquerProgression]. Les sites/points de
+/// l'utilisateur courant viennent de
 /// [ServiceSites] : une dépendance
 /// `importation → sites` sur le `model` d'une autre feature (autorisée par ArchUnit, jamais
 /// sur son `view`/`viewmodel`). Seul `javafx.beans`/`javafx.collections` est importé ici,
@@ -82,6 +88,11 @@ public class ImportationViewModel {
     /// Étape 4 : exécution de l'import (état + résultat), pilotée par [#importer()].
     private final ReadOnlyObjectWrapper<EtatImport> etat = new ReadOnlyObjectWrapper<>(this, "etat", EtatImport.PRET);
     private final ReadOnlyObjectWrapper<ResultatImport> resultat = new ReadOnlyObjectWrapper<>(this, "resultat", null);
+
+    /// Progression déterminée de l'import en cours (#33) : fraction `[0, 1]` pour la barre et libellé
+    /// d'étape (« Transformation 45/191 »). Alimentées par [#appliquerProgression] sur le fil JavaFX.
+    private final ReadOnlyDoubleWrapper progression = new ReadOnlyDoubleWrapper(this, "progression", 0.0);
+    private final ReadOnlyStringWrapper messageProgression = new ReadOnlyStringWrapper(this, "messageProgression", "");
 
     public ImportationViewModel(
             ServiceImport serviceImport, ServiceSites serviceSites, Horloge horloge, String idUtilisateur) {
@@ -217,6 +228,16 @@ public class ImportationViewModel {
         return resultat.getReadOnlyProperty();
     }
 
+    /// Fraction de progression de l'import en cours (`[0, 1]`), pour la barre déterminée (#33).
+    public ReadOnlyDoubleProperty progressionProperty() {
+        return progression.getReadOnlyProperty();
+    }
+
+    /// Libellé d'étape de l'import en cours (« Copie X/N », « Transformation X/N »).
+    public ReadOnlyStringProperty messageProgressionProperty() {
+        return messageProgression.getReadOnlyProperty();
+    }
+
     /// Recharge les sites de l'utilisateur courant (à l'ouverture de l'écran ou après création d'un
     /// site).
     public void chargerSites() {
@@ -271,7 +292,17 @@ public class ImportationViewModel {
     /// lancer l'exécution en arrière-plan.
     public void marquerEnCours() {
         messageErreur.set("");
+        progression.set(0.0);
+        messageProgression.set("Préparation…");
         etat.set(EtatImport.EN_COURS);
+    }
+
+    /// Applique un point de progression de l'import en cours (#33) : met à jour la fraction et le
+    /// libellé d'étape. À appeler sur le fil JavaFX (depuis `Platform.runLater`), car le callback du
+    /// service s'exécute hors-thread.
+    public void appliquerProgression(Progression p) {
+        progression.set(p.fraction());
+        messageProgression.set(p.libelle());
     }
 
     /// Capture (sur le fil JavaFX) les entrées du rattachement courant dans un instantané immuable,
@@ -293,7 +324,14 @@ public class ImportationViewModel {
     /// @return le résultat de l'import
     /// @throws RuntimeException si l'import échoue (refus métier R5, journal manquant…)
     public ResultatImport executerImport(DemandeImport demande) {
-        return serviceImport.importer(demande.dossier(), demande.idPoint(), demande.prefixe());
+        return executerImport(demande, progres -> {});
+    }
+
+    /// Variante avec **suivi de progression** (#33) : `progres` est notifié sur le fil d'exécution de
+    /// l'import ; la vue le relaie au fil JavaFX (via [#appliquerProgression]). **Ne mute aucune
+    /// `Property`** ici : sûr sur un fil d'arrière-plan.
+    public ResultatImport executerImport(DemandeImport demande, Consumer<Progression> progres) {
+        return serviceImport.importer(demande.dossier(), demande.idPoint(), demande.prefixe(), progres);
     }
 
     /// Instantané immuable des entrées d'un import, capturé sur le fil JavaFX par preparerImport.
@@ -335,6 +373,8 @@ public class ImportationViewModel {
         messageErreur.set("");
         etat.set(EtatImport.PRET);
         resultat.set(null);
+        progression.set(0.0);
+        messageProgression.set("");
         majApercu();
     }
 

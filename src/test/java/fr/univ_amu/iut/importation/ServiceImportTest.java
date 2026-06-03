@@ -2,6 +2,7 @@ package fr.univ_amu.iut.importation;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.catchThrowable;
 
 import fr.univ_amu.iut.commun.model.HorlogeFigee;
 import fr.univ_amu.iut.commun.model.Prefixe;
@@ -44,6 +45,8 @@ import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -159,6 +162,31 @@ class ServiceImportTest {
                 .containsExactly("Copie 1/2", "Copie 2/2", "Transformation 1/2", "Transformation 2/2");
         assertThat(points).extracting(Progression::fraction).containsExactly(0.25, 0.5, 0.75, 1.0);
         assertThat(points).extracting(Progression::fraction).isSorted();
+    }
+
+    @Test
+    @DisplayName("#54 : un second import lancé pendant qu'un autre tourne est refusé (garde anti-concurrent)")
+    void second_import_concurrent_refuse() {
+        AtomicReference<Throwable> tentativeConcurrente = new AtomicReference<>();
+        // Le callback de progression s'exécute *à l'intérieur* de l'import (verrou tenu) : on y tente un
+        // second import, qui doit être refusé immédiatement par la garde (avant même la règle R5).
+        Consumer<Progression> pendantImport = progression -> {
+            if (tentativeConcurrente.get() == null) {
+                tentativeConcurrente.set(catchThrowable(() -> service.importer(sd, idPoint, prefixe, p -> {})));
+            }
+        };
+
+        service.importer(sd, idPoint, prefixe, pendantImport);
+
+        assertThat(tentativeConcurrente.get())
+                .isInstanceOf(RegleMetierException.class)
+                .hasMessageContaining("déjà en cours");
+
+        // Le verrou est relâché à la fin (finally) : un import ultérieur n'est plus bloqué par la garde
+        // (ici c'est R5 — doublon du même quadruplet — qui le refuse, preuve que la garde a libéré).
+        assertThatThrownBy(() -> service.importer(sd, idPoint, prefixe))
+                .isInstanceOf(RegleMetierException.class)
+                .hasMessageContaining("R5");
     }
 
     @Test

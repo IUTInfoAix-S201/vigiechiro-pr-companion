@@ -22,6 +22,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 /// Service métier de la feature `importation` : orchestre le parcours d'import P2 d'une nuit
@@ -78,6 +79,11 @@ public class ServiceImport {
     private final Workspace workspace;
     private final Horloge horloge;
 
+    /// Verrou anti-import-concurrent (#54) : le service étant un **singleton** partagé, il refuse un
+    /// second import tant qu'un autre tourne. Filet « pire cas » indépendant de l'IHM (deux
+    /// copies/transformations simultanées corromperaient le workspace).
+    private final AtomicBoolean importEnCours = new AtomicBoolean(false);
+
     public ServiceImport(
             InspecteurDossier inspecteur,
             CopieProtegee copie,
@@ -127,6 +133,22 @@ public class ServiceImport {
         Objects.requireNonNull(prefixe, "prefixe");
         Objects.requireNonNull(progres, "progres");
 
+        // Garde anti-import-concurrent (#54) : un seul import à la fois sur ce service singleton, quelle
+        // que soit l'IHM. On acquiert le verrou avant tout travail et on le relâche dans le finally.
+        if (!importEnCours.compareAndSet(false, true)) {
+            throw new RegleMetierException("Un import est déjà en cours : attendez sa fin avant d'en lancer un autre.");
+        }
+        try {
+            return executerImportProtege(dossierSource, idPoint, prefixe, progres);
+        } finally {
+            importEnCours.set(false);
+        }
+    }
+
+    /// Corps de l'import (inspection, copie protégée R9, renommage R6/R7, transformation R10/R11,
+    /// persistance atomique O7), exécuté **sous le verrou anti-concurrent** posé par [#importer].
+    private ResultatImport executerImportProtege(
+            Path dossierSource, Long idPoint, Prefixe prefixe, Consumer<Progression> progres) {
         // R5 : on refuse le doublon AVANT de copier/transformer quoi que ce soit.
         if (agregatDao.passageExistePour(idPoint, prefixe.annee(), prefixe.numeroPassage())) {
             throw new RegleMetierException("R5 : un passage n°"

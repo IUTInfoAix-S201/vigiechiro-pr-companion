@@ -2,6 +2,7 @@ package fr.univ_amu.iut.importation.viewmodel;
 
 import fr.univ_amu.iut.commun.model.Horloge;
 import fr.univ_amu.iut.commun.model.Prefixe;
+import fr.univ_amu.iut.commun.viewmodel.NavigationViewModel;
 import fr.univ_amu.iut.importation.model.EtatNommage;
 import fr.univ_amu.iut.importation.model.Progression;
 import fr.univ_amu.iut.importation.model.RapportInspection;
@@ -56,6 +57,10 @@ public class ImportationViewModel {
     private final ServiceSites serviceSites;
     private final String idUtilisateur;
 
+    /// Socle de navigation : la feature y pousse le **verrou** (#54) pour interdire de quitter
+    /// l'assistant pendant un import (l'écran porte la seule vue/VM qui reçoit le résultat).
+    private final NavigationViewModel navigation;
+
     /// Étape 1 : dossier source choisi (carte SD ou copie disque), modifiable par la vue (champ +
     /// bouton « Parcourir »).
     private final ObjectProperty<Path> dossierSource = new SimpleObjectProperty<>(this, "dossierSource");
@@ -105,10 +110,15 @@ public class ImportationViewModel {
     private final ReadOnlyStringWrapper messageProgression = new ReadOnlyStringWrapper(this, "messageProgression", "");
 
     public ImportationViewModel(
-            ServiceImport serviceImport, ServiceSites serviceSites, Horloge horloge, String idUtilisateur) {
+            ServiceImport serviceImport,
+            ServiceSites serviceSites,
+            Horloge horloge,
+            String idUtilisateur,
+            NavigationViewModel navigation) {
         this.serviceImport = Objects.requireNonNull(serviceImport, "serviceImport");
         this.serviceSites = Objects.requireNonNull(serviceSites, "serviceSites");
         this.idUtilisateur = Objects.requireNonNull(idUtilisateur, "idUtilisateur");
+        this.navigation = Objects.requireNonNull(navigation, "navigation");
         Objects.requireNonNull(horloge, "horloge");
 
         // Valeur initiale avant d'installer les écouteurs (évite un recalcul d'aperçu prématuré).
@@ -317,6 +327,9 @@ public class ImportationViewModel {
         progression.set(0.0);
         messageProgression.set("Préparation…");
         etat.set(EtatImport.EN_COURS);
+        // Verrou de navigation (#54) : on ne doit pas quitter l'assistant tant que l'import tourne,
+        // sinon son résultat (marquerTermine/marquerEchec) serait perdu en détachant la vue.
+        navigation.setNavigationVerrouillee(true);
     }
 
     /// Applique un point de progression de l'import en cours (#33) : met à jour la fraction et le
@@ -365,6 +378,7 @@ public class ImportationViewModel {
         resultat.set(resultatImport);
         messageErreur.set("");
         etat.set(EtatImport.TERMINE);
+        navigation.setNavigationVerrouillee(false); // l'import est fini : on peut de nouveau naviguer (#54)
     }
 
     /// Applique un échec d'import : efface le résultat, renseigne le message, état `ECHEC`. À
@@ -373,6 +387,7 @@ public class ImportationViewModel {
         resultat.set(null);
         messageErreur.set(message);
         etat.set(EtatImport.ECHEC);
+        navigation.setNavigationVerrouillee(false); // l'import s'est arrêté : on déverrouille (#54)
     }
 
     private void echouer(String message) {

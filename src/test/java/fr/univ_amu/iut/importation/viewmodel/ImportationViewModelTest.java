@@ -10,6 +10,7 @@ import fr.univ_amu.iut.commun.model.HorlogeFigee;
 import fr.univ_amu.iut.commun.model.Prefixe;
 import fr.univ_amu.iut.commun.model.Protocole;
 import fr.univ_amu.iut.commun.model.RegleMetierException;
+import fr.univ_amu.iut.commun.viewmodel.NavigationViewModel;
 import fr.univ_amu.iut.importation.model.AnalyseurLogPR;
 import fr.univ_amu.iut.importation.model.EtatNommage;
 import fr.univ_amu.iut.importation.model.InspecteurDossier;
@@ -63,12 +64,13 @@ class ImportationViewModelTest {
     private ServiceSites serviceSites;
 
     private final InspecteurDossier inspecteur = new InspecteurDossier(new AnalyseurLogPR());
+    private final NavigationViewModel navigation = new NavigationViewModel();
     private ImportationViewModel viewModel;
     private Path sd;
 
     @BeforeEach
     void preparer() throws IOException {
-        viewModel = new ImportationViewModel(serviceImport, serviceSites, new HorlogeFigee(JOUR), ID_USER);
+        viewModel = new ImportationViewModel(serviceImport, serviceSites, new HorlogeFigee(JOUR), ID_USER, navigation);
         sd = Files.createDirectories(racine.resolve("sd"));
         Files.writeString(sd.resolve("LogPR1925492.txt"), LOG, StandardCharsets.UTF_8);
         Files.writeString(sd.resolve("PaRecPR1925492_THLog.csv"), "Date\tHour\n", StandardCharsets.UTF_8);
@@ -365,6 +367,28 @@ class ImportationViewModelTest {
 
         assertThat(viewModel.progressionProperty().get()).isEqualTo(0.62);
         assertThat(viewModel.messageProgressionProperty().get()).isEqualTo("Transformation 45/191");
+    }
+
+    @Test
+    @DisplayName("#54 : marquerEnCours verrouille la navigation, marquerTermine la déverrouille")
+    void en_cours_verrouille_la_navigation_termine_la_libere() {
+        assertThat(navigation.isNavigationVerrouillee()).isFalse();
+
+        viewModel.marquerEnCours();
+        assertThat(navigation.isNavigationVerrouillee()).isTrue();
+
+        viewModel.marquerTermine(new ResultatImport(null, null, "1925492", 1, 5, List.of()));
+        assertThat(navigation.isNavigationVerrouillee()).isFalse();
+    }
+
+    @Test
+    @DisplayName("#54 : un import qui échoue déverrouille aussi la navigation")
+    void echec_libere_la_navigation() {
+        viewModel.marquerEnCours();
+        assertThat(navigation.isNavigationVerrouillee()).isTrue();
+
+        viewModel.marquerEchec("R5 : doublon");
+        assertThat(navigation.isNavigationVerrouillee()).isFalse();
     }
 
     private void prepareRattachement(Site site, PointDEcoute point) {

@@ -10,6 +10,7 @@ import fr.univ_amu.iut.commun.model.Workspace;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
 import fr.univ_amu.iut.commun.persistence.UniteDeTravail;
 import fr.univ_amu.iut.commun.view.ActiviteAccueil;
+import fr.univ_amu.iut.commun.viewmodel.NavigationViewModel;
 import fr.univ_amu.iut.importation.model.AnalyseurLogPR;
 import fr.univ_amu.iut.importation.model.CopieProtegee;
 import fr.univ_amu.iut.importation.model.InspecteurDossier;
@@ -108,7 +109,8 @@ public class ImportationModule extends AbstractModule {
             ServiceImport serviceImport,
             ServiceSites serviceSites,
             Horloge horloge,
-            @Named("idUtilisateurCourant") String idUtilisateur) {
-        return new ImportationViewModel(serviceImport, serviceSites, horloge, idUtilisateur);
+            @Named("idUtilisateurCourant") String idUtilisateur,
+            NavigationViewModel navigation) {
+        return new ImportationViewModel(serviceImport, serviceSites, horloge, idUtilisateur, navigation);
     }
 }

@@ -121,8 +121,7 @@ public final class CaptureMultisite {
         if (vue.lookup("#choixVerdict") instanceof ComboBox<?> choixVerdict) {
             choixVerdict.getSelectionModel().select(2);
         }
-        ApercuFx.enregistrerPng(new Scene(vue, 1100, 620), fichier);
-        System.out.println("Apercu ecrit dans " + fichier.toAbsolutePath());
+        ecrire(new Scene(vue, 1100, 620), fichier);
     }
 
     /// Charge `Multisite.fxml` (le controller auto-charge le tableau en `initialize()`) et le rend.
@@ -130,8 +129,7 @@ public final class CaptureMultisite {
         FXMLLoader loader = new FXMLLoader(MultisiteController.class.getResource("Multisite.fxml"));
         loader.setControllerFactory(injecteur::getInstance);
         Parent vue = loader.load();
-        ApercuFx.enregistrerPng(new Scene(vue, 1100, 620), fichier);
-        System.out.println("Apercu ecrit dans " + fichier.toAbsolutePath());
+        ecrire(new Scene(vue, 1100, 620), fichier);
     }
 
     /// Charge `ModaleVues.fxml`, la branche sur un ViewModel (qui charge les vues seedées),
@@ -147,7 +145,13 @@ public final class CaptureMultisite {
                 && !liste.getItems().isEmpty()) {
             liste.getSelectionModel().select(0);
         }
-        ApercuFx.enregistrerPng(new Scene(vue, 440, 440), fichier);
+        ecrire(new Scene(vue, 440, 440), fichier);
+    }
+
+    /// Rend `scene` hors-écran en PNG et journalise (helper factorisé : évite la répétition du libellé
+    /// de log, ce que PMD `AvoidDuplicateLiterals` interdit au-delà de 3 occurrences).
+    private static void ecrire(Scene scene, Path fichier) {
+        ApercuFx.enregistrerPng(scene, fichier);
         System.out.println("Apercu ecrit dans " + fichier.toAbsolutePath());
     }
 

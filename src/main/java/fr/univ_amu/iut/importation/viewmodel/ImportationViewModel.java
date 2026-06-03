@@ -71,6 +71,11 @@ public class ImportationViewModel {
     private final ReadOnlyStringWrapper resumeJournal = new ReadOnlyStringWrapper(this, "resumeJournal", "");
     private final ReadOnlyStringWrapper messageErreur = new ReadOnlyStringWrapper(this, "messageErreur", "");
 
+    /// Avertissement « mélange » (#33) : non vide si le dossier inspecté semble contenir plusieurs
+    /// enregistreurs et/ou plusieurs nuits. Informatif (n'empêche pas l'import).
+    private final ReadOnlyStringWrapper avertissementMelange =
+            new ReadOnlyStringWrapper(this, "avertissementMelange", "");
+
     /// Étape 3 : rattachement de la nuit (site / point / année / n° de passage).
     private final ObservableList<Site> sites = FXCollections.observableArrayList();
     private final ObjectProperty<Site> siteSelectionne = new SimpleObjectProperty<>(this, "siteSelectionne");
@@ -174,6 +179,11 @@ public class ImportationViewModel {
         return messageErreur.getReadOnlyProperty();
     }
 
+    /// Avertissement « mélange » (#33), vide si le dossier paraît homogène (une nuit, un enregistreur).
+    public ReadOnlyStringProperty avertissementMelangeProperty() {
+        return avertissementMelange.getReadOnlyProperty();
+    }
+
     /// Liste observable des sites de l'utilisateur, alimentée par [#chargerSites()] (combobox Site).
     public ObservableList<Site> sites() {
         return sites;
@@ -262,6 +272,7 @@ public class ImportationViewModel {
             resumeJournal.set(rapport.journalOptionnel()
                     .map(journal -> "PR n° " + journal.numeroSerie())
                     .orElse(""));
+            avertissementMelange.set(AvertissementMelange.rediger(rapport.melange()));
             messageErreur.set("");
             inspecte.set(true);
             majApercu();
@@ -370,6 +381,7 @@ public class ImportationViewModel {
         nombreOriginaux.set(0);
         etatNommage.set(null);
         resumeJournal.set("");
+        avertissementMelange.set("");
         messageErreur.set("");
         etat.set(EtatImport.PRET);
         resultat.set(null);

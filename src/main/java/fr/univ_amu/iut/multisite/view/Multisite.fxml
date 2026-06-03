@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<!--
+  M-Multisite - vue agrégée des passages de tous les sites de l'utilisateur (parcours P5, SHOULD).
+  Atteint depuis la carte « Vue multi-sites » de l'accueil (ActiviteMultisite).
+  Pur câblage : le tableau des passages, les filtres (carré, statut, verdict, année), le tri, le
+  double-clic d'ouverture d'un passage (contrat socle OuvrirPassage) et l'export CSV sont liés au
+  MultisiteViewModel par le controller.
+-->
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="fr.univ_amu.iut.multisite.view.MultisiteController"
+      stylesheets="@multisite.css"
+      styleClass="ecran-multisite"
+      spacing="12.0">
+
+  <VBox spacing="2.0">
+    <Label text="🗂 Vue multi-sites" styleClass="titre-page"/>
+    <Label fx:id="lblResume" styleClass="sous-titre-page"/>
+  </VBox>
+
+  <HBox spacing="8.0" alignment="CENTER_LEFT" styleClass="barre-filtres">
+    <Label text="Carré :" styleClass="section-sous"/>
+    <TextField fx:id="champCarre" promptText="640380" prefWidth="100.0"/>
+    <Label text="Statut :" styleClass="section-sous"/>
+    <ComboBox fx:id="choixStatut"/>
+    <Label text="Verdict :" styleClass="section-sous"/>
+    <ComboBox fx:id="choixVerdict"/>
+    <Label text="Année :" styleClass="section-sous"/>
+    <TextField fx:id="champAnnee" promptText="2026" prefWidth="70.0"/>
+    <Button fx:id="boutonReinitialiser" text="Réinitialiser" onAction="#reinitialiser"/>
+    <Region HBox.hgrow="ALWAYS"/>
+    <Label text="Tri :" styleClass="section-sous"/>
+    <ComboBox fx:id="choixTri"/>
+    <Button fx:id="boutonExporter" text="📤 Exporter…" onAction="#exporter"/>
+  </HBox>
+
+  <TableView fx:id="tableLignes" VBox.vgrow="ALWAYS">
+    <columns>
+      <TableColumn fx:id="colCarre" text="Carré" prefWidth="90.0"/>
+      <TableColumn fx:id="colPoint" text="Point" prefWidth="70.0"/>
+      <TableColumn fx:id="colAnnee" text="Année" prefWidth="70.0"/>
+      <TableColumn fx:id="colNumero" text="N° passage" prefWidth="90.0"/>
+      <TableColumn fx:id="colDate" text="Date" prefWidth="120.0"/>
+      <TableColumn fx:id="colStatut" text="Statut" prefWidth="120.0"/>
+      <TableColumn fx:id="colVerdict" text="Verdict" prefWidth="100.0"/>
+    </columns>
+  </TableView>
+
+  <Label text="Astuce : double-cliquez une ligne pour ouvrir l'écran du passage."
+         styleClass="section-sous"/>
+  <Label fx:id="lblMessage" styleClass="message-erreur" wrapText="true"/>
+</VBox>

@@ -222,6 +222,19 @@ class ServiceImportTest {
     }
 
     @Test
+    @DisplayName("#12 : un original illisible fait échouer l'import (l'échec remonte malgré la parallélisation)")
+    void original_illisible_fait_echouer_l_import() throws IOException {
+        Path corrompu = racine.resolve("sd-corrompu");
+        Files.createDirectories(corrompu);
+        Files.writeString(corrompu.resolve("LogPR1925492.txt"), LOG, StandardCharsets.UTF_8);
+        ecrireWav(corrompu.resolve("PaRecPR1925492_20260422_203922.wav")); // WAV valide
+        Files.writeString(corrompu.resolve("PaRecPR1925492_20260422_204326.wav"), "pas un WAV"); // illisible
+
+        // L'échec d'un découpage doit remonter (fail-fast) au lieu d'être avalé par la parallélisation.
+        assertThatThrownBy(() -> service.importer(corrompu, idPoint, prefixe)).isInstanceOf(RuntimeException.class);
+    }
+
+    @Test
     @DisplayName("Upsert enregistreur + micro depuis le journal, journal et relevé persistés")
     void upsert_materiel_et_annexes() {
         ResultatImport resultat = service.importer(sd, idPoint, prefixe);

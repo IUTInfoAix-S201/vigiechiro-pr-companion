@@ -313,9 +313,18 @@ public class ServiceImport {
                         }
                     }))
                     .toList();
-            return decoupagesEnCours.stream()
-                    .map(ServiceImport::resultatDecoupage)
-                    .toList();
+            try {
+                return decoupagesEnCours.stream()
+                        .map(ServiceImport::resultatDecoupage)
+                        .toList();
+            } catch (RuntimeException echec) {
+                // Fail-fast (#12) : à la première erreur, on annule les découpages restants (ceux en
+                // attente sur le sémaphore s'arrêtent net) au lieu d'attendre toute la nuit avant de
+                // remonter l'échec — comme le faisait l'import séquentiel. Sans cela, la fermeture du
+                // pool patienterait jusqu'à la fin de tous les originaux déjà soumis.
+                decoupagesEnCours.forEach(decoupage -> decoupage.cancel(true));
+                throw echec;
+            }
         }
     }
 

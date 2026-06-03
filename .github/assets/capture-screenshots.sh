@@ -25,6 +25,8 @@
 #   apercu-lot-alertes.png          M-Lot (Verifie incoherent : alertes de coherence R14)
 #   apercu-bibliotheque-vide.png    M-Bibliotheque (etat vide : aucun son de reference, export inactif)
 #   apercu-bibliotheque-sons.png    M-Bibliotheque (peuplee : sons de reference, detail + ecoute, export actif)
+#   apercu-multisite.png            M-Multisite (vue agregee : tableau, filtres, tri, export)
+#   apercu-multisite-vues.png       M-Multisite (modale des vues sauvegardees, une vue selectionnee)
 set -euo pipefail
 
 ICI="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -40,6 +42,7 @@ MAINS=(
   "fr.univ_amu.iut.validation.outils.CaptureValidation"
   "fr.univ_amu.iut.lot.outils.CaptureLot"
   "fr.univ_amu.iut.bibliotheque.outils.CaptureBibliotheque"
+  "fr.univ_amu.iut.multisite.outils.CaptureMultisite"
 )
 JAVA_BIN="${JAVA_HOME:+$JAVA_HOME/bin/}java"
 

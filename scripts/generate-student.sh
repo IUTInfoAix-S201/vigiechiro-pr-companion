@@ -196,10 +196,17 @@ else
     ok "$(nb_lines "$OUT") fichier(s) de tests d'exercice désactivé(s)"
 fi
 
-info "Ajout de @Disabled aux tests hors paquets de référence (${REFERENCE_PACKAGES[*]})..."
-OUT=$(disable_tests_outside_reference "$TMP_DIR" "${REFERENCE_PACKAGES[@]}")
-show_indent "$OUT"
-ok "$(nb_lines "$OUT") fichier(s) de tests non-référence désactivé(s)"
+# Désactivation par paquet : modèle SAÉ (REFERENCE_PACKAGES défini). Un TP de
+# refactoring pur laisse REFERENCE_PACKAGES vide → passe ignorée (ses tests de
+# caractérisation restent actifs). Orthogonale au mode refactoring.
+if [ "${#REFERENCE_PACKAGES[@]}" -gt 0 ]; then
+    info "Ajout de @Disabled aux tests hors paquets de référence (${REFERENCE_PACKAGES[*]})..."
+    OUT=$(disable_tests_outside_reference "$TMP_DIR" "${REFERENCE_PACKAGES[@]}")
+    show_indent "$OUT"
+    ok "$(nb_lines "$OUT") fichier(s) de tests non-référence désactivé(s)"
+else
+    info "Aucun paquet de référence défini : désactivation par paquet ignorée"
+fi
 
 # --- 3. Spotless (supprime imports inutilisés, reformate) ---
 info "Exécution de Spotless (formatage + nettoyage imports)..."

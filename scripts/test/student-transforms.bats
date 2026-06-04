@@ -148,6 +148,22 @@ EOF
     ! grep -q '@Disabled' "$ROOT/src/test/java/fr/univ_amu/iut/sites/T.java"
 }
 
+# --- exercice* épargnés (orthogonalité mode refactoring) -------------------
+@test "disable_tests_outside_reference épargne les tests exercice*/bonus*" {
+    mkdir -p "$ROOT/src/test/java/fr/univ_amu/iut/exercice1"
+    cat > "$ROOT/src/test/java/fr/univ_amu/iut/exercice1/Carac.java" <<'EOF'
+package fr.univ_amu.iut.exercice1;
+import org.junit.jupiter.api.Test;
+class Carac {
+    @Test
+    void caracterisation() {}
+}
+EOF
+    disable_tests_outside_reference "$ROOT" commun sites
+
+    ! grep -q '@Disabled' "$ROOT/src/test/java/fr/univ_amu/iut/exercice1/Carac.java"
+}
+
 # --- idempotence : ré-exécuter ne double pas les @Disabled -----------------
 @test "disable_tests_outside_reference est idempotent" {
     mkdir -p "$ROOT/src/test/java/fr/univ_amu/iut/passage"

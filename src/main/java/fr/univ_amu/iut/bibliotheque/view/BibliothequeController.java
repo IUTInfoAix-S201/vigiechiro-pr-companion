@@ -25,6 +25,11 @@ public class BibliothequeController {
 
     private final BibliothequeViewModel viewModel;
 
+    // TODO (M-Bibliotheque) : déclarez les @FXML (table des sons, colonnes, AudioView, boutons...)
+    //   correspondant aux fx:id de Bibliotheque.fxml, câblez-les au BibliothequeViewModel dans
+    //   « @FXML private void initialize() » (chargement initial via viewModel.charger()), et ajoutez
+    //   le handler @FXML d'export. Patron de référence : un controleur de la feature sites.
+    // --solution--
     @FXML
     private Label lblResume;
 
@@ -52,11 +57,14 @@ public class BibliothequeController {
     @FXML
     private Label lblMessage;
 
+    // --end-solution--
+
     @Inject
     public BibliothequeController(BibliothequeViewModel viewModel) {
         this.viewModel = Objects.requireNonNull(viewModel, "viewModel");
     }
 
+    // --solution--
     @FXML
     private void initialize() {
         colTaxon.setCellValueFactory(
@@ -123,4 +131,5 @@ public class BibliothequeController {
                         ? "Aucun commentaire pour ce son."
                         : "Commentaire : " + commentaire);
     }
+    // --end-solution--
 }

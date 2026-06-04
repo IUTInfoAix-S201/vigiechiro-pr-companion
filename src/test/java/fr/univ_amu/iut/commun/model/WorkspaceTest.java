@@ -40,7 +40,13 @@ class WorkspaceTest {
     void par_defaut() {
         Path racine = Workspace.parDefaut().racine();
         assertThat(racine.isAbsolute()).isTrue();
-        assertThat(racine).endsWith(Path.of("Documents", "VigieChiro-Companion"));
+        // On compare via java.nio.file.Path.endsWith (purement lexical) et non via
+        // AssertJ assertThat(path).endsWith(...), qui canonicalise le chemin reel
+        // (toRealPath) et leve NoSuchFileException quand le dossier n'existe pas encore
+        // sur le disque - typiquement sur un runner CI neuf.
+        assertThat(racine.endsWith(Path.of("Documents", "VigieChiro-Companion")))
+                .as("le workspace par defaut est sous ~/Documents/VigieChiro-Companion")
+                .isTrue();
     }
 
     @Test

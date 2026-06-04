@@ -36,6 +36,11 @@ public class MultisiteController {
     private final OuvrirPassage ouvrirPassage;
     private final NavigationMultisite navigation;
 
+    // TODO (M-Multisite) : déclarez les @FXML (tableau agrégé, filtres carré/statut/verdict/année,
+    //   tri, export, « Vues enregistrées »...) correspondant aux fx:id de Multisite.fxml, câblez-les
+    //   au MultisiteViewModel dans « @FXML private void initialize() » (double-clic ligne -> ouvrirPassage,
+    //   chargement via viewModel.rafraichir()), et ajoutez les handlers @FXML. Référence : feature sites.
+    // --solution--
     @FXML
     private Label lblResume;
 
@@ -87,6 +92,8 @@ public class MultisiteController {
     @FXML
     private Label lblMessage;
 
+    // --end-solution--
+
     @Inject
     public MultisiteController(
             MultisiteViewModel viewModel, OuvrirPassage ouvrirPassage, NavigationMultisite navigation) {
@@ -95,6 +102,7 @@ public class MultisiteController {
         this.navigation = Objects.requireNonNull(navigation, "navigation");
     }
 
+    // --solution--
     @FXML
     private void initialize() {
         configurerColonnes();
@@ -246,4 +254,5 @@ public class MultisiteController {
             case PAR_VERDICT -> "Par verdict";
         };
     }
+    // --end-solution--
 }

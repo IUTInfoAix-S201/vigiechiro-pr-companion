@@ -112,14 +112,20 @@ public final class BancImport {
                 tailleSource / (double) MIO);
         System.out.printf(Locale.ROOT, "  génération nuit : %.2f s%n", genS);
 
-        // Mesure de l'import : chrono total + bornes de phase (copie/transfo) + mémoire crête.
-        AtomicLong tDerniereCopieNs = new AtomicLong(0);
+        // Mesure de l'import : chrono total + bornes de phase + mémoire crête. La progression émet
+        // « Copie X/N » puis « Transformation X/N » : le dernier événement de chaque type borne la fin
+        // de la copie puis de la transformation ; le reliquat jusqu'à la fin est la persistance (O7).
+        AtomicLong finCopieNs = new AtomicLong(0);
+        AtomicLong finTransfoNs = new AtomicLong(0);
         EchantillonneurMemoire memoire = EchantillonneurMemoire.demarrer();
         ServiceImport service = injecteur.getInstance(ServiceImport.class);
         long debut = System.nanoTime();
         Consumer<Progression> sonde = p -> {
+            long maintenant = System.nanoTime();
             if (p.libelle().startsWith("Copie")) {
-                tDerniereCopieNs.set(System.nanoTime());
+                finCopieNs.accumulateAndGet(maintenant, Math::max);
+            } else if (p.libelle().startsWith("Transformation")) {
+                finTransfoNs.accumulateAndGet(maintenant, Math::max);
             }
         };
         ResultatImport resultat = service.importer(sd, idPoint, new Prefixe("640380", 2026, 1, "A1"), sonde);
@@ -127,11 +133,13 @@ public final class BancImport {
         long picMemoire = memoire.arreter();
 
         double totalS = (finNs - debut) / 1e9;
-        double copieS = (tDerniereCopieNs.get() - debut) / 1e9;
-        double transfoS = (finNs - tDerniereCopieNs.get()) / 1e9;
+        double copieS = (finCopieNs.get() - debut) / 1e9;
+        double transfoS = (finTransfoNs.get() - finCopieNs.get()) / 1e9;
+        double persistanceS = (finNs - finTransfoNs.get()) / 1e9;
         System.out.printf(Locale.ROOT, "  temps total     : %.2f s%n", totalS);
-        System.out.printf(Locale.ROOT, "    dont copie    : %.2f s%n", copieS);
-        System.out.printf(Locale.ROOT, "    dont transfo  : %.2f s%n", transfoS);
+        System.out.printf(Locale.ROOT, "    dont copie       : %.2f s%n", copieS);
+        System.out.printf(Locale.ROOT, "    dont transfo (#12): %.2f s%n", transfoS);
+        System.out.printf(Locale.ROOT, "    dont persistance : %.2f s%n", persistanceS);
         System.out.printf(
                 Locale.ROOT,
                 "  débit           : %.1f fichiers/s   %.1f Mo/s%n",

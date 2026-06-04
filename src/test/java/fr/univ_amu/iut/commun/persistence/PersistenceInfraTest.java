@@ -15,6 +15,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.HashSet;
+import java.util.Set;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -24,6 +26,54 @@ class PersistenceInfraTest {
 
     @TempDir
     Path dossier;
+
+    @Test
+    @DisplayName("#28 : V03 crée les index de perf et la sélection des observations passe par l'index (plus de SCAN)")
+    void index_de_performance_crees() {
+        SourceDeDonnees source = new SourceDeDonnees(new Workspace(dossier));
+        new MigrationSchema(source).migrer();
+
+        assertThat(nomsIndex(source))
+                .contains(
+                        "idx_obs_results",
+                        "idx_passage_recorder",
+                        "idx_passage_status",
+                        "idx_original_session",
+                        "idx_seq_original",
+                        "idx_point_site");
+
+        assertThat(planRequete(source, "SELECT * FROM observation WHERE results_id = 1 ORDER BY id"))
+                .as("la sélection des observations (O5) doit utiliser idx_obs_results, plus de SCAN")
+                .contains("USING INDEX idx_obs_results");
+    }
+
+    private static Set<String> nomsIndex(SourceDeDonnees source) {
+        Set<String> noms = new HashSet<>();
+        try (Connection c = source.getConnection();
+                Statement st = c.createStatement();
+                ResultSet rs = st.executeQuery("SELECT name FROM sqlite_master WHERE type = 'index'")) {
+            while (rs.next()) {
+                noms.add(rs.getString(1));
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("liste des index", e);
+        }
+        return noms;
+    }
+
+    private static String planRequete(SourceDeDonnees source, String sql) {
+        StringBuilder plan = new StringBuilder();
+        try (Connection c = source.getConnection();
+                Statement st = c.createStatement();
+                ResultSet rs = st.executeQuery("EXPLAIN QUERY PLAN " + sql)) {
+            while (rs.next()) {
+                plan.append(rs.getString("detail")).append('\n');
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("plan d'exécution", e);
+        }
+        return plan.toString();
+    }
 
     private int compterTaxons(SourceDeDonnees source) {
         try (Connection c = source.getConnection();

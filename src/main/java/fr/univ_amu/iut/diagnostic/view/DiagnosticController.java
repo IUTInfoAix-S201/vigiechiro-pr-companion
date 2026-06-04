@@ -23,10 +23,17 @@ import javafx.scene.control.ListView;
 /// ici (règle ArchUnit `view_sans_jdbc`).
 public class DiagnosticController {
 
+    // TODO (M-Diagnostic) : déclarez les champs @FXML correspondant aux fx:id de Diagnostic.fxml
+    //   (Label, LineChart, ListView...), puis liez-les au DiagnosticViewModel dans une méthode
+    //   « @FXML private void initialize() ». Patron de référence : un controleur de la feature sites.
+    //   Le graphe T°/hygrométrie se reconstruit depuis viewModel.mesures().
+    // --solution--
     private static final DateTimeFormatter MOMENT = DateTimeFormatter.ofPattern("dd/MM HH:mm");
+    // --end-solution--
 
     private final DiagnosticViewModel viewModel;
 
+    // --solution--
     @FXML
     private Label lblEnregistreur;
 
@@ -51,11 +58,14 @@ public class DiagnosticController {
     @FXML
     private Label lblMessage;
 
+    // --end-solution--
+
     @Inject
     public DiagnosticController(DiagnosticViewModel viewModel) {
         this.viewModel = Objects.requireNonNull(viewModel, "viewModel");
     }
 
+    // --solution--
     @FXML
     private void initialize() {
         lblEnregistreur.textProperty().bind(viewModel.enregistreurProperty());
@@ -86,12 +96,15 @@ public class DiagnosticController {
         lblMessage.managedProperty().bind(messagePresent);
     }
 
+    // --end-solution--
+
     /// Ouvre le diagnostic du passage `idPassage`. Appelée par [NavigationDiagnostic] après le
     /// chargement du FXML.
     public void ouvrirSur(Long idPassage) {
         viewModel.ouvrirSur(idPassage);
     }
 
+    // --solution--
     private void majGraphe() {
         XYChart.Series<String, Number> temperature = new XYChart.Series<>();
         temperature.setName("T° (°C)");
@@ -104,4 +117,5 @@ public class DiagnosticController {
         }
         grapheClimat.getData().setAll(List.of(temperature, humidite));
     }
+    // --end-solution--
 }

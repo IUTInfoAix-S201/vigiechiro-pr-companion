@@ -200,17 +200,23 @@ disable_exercise_path_tests() {
     return 0
 }
 
-# --- 2bis. @Disabled des tests HORS paquets de référence ---
+# --- 2bis. @Disabled des tests HORS paquets de référence (modèle SAÉ) ---
 # Tout @Test d'un fichier de test dont le paquet n'est pas l'un des paquets de
-# référence passés en argument (ex. commun, sites) reçoit @Disabled. Couvre
-# aussi e2e, cli, etc. Exécutée inconditionnellement (sans rapport avec le mode
-# refactoring). Le chemin testé est relatif à fr/univ_amu/iut/<paquet>/.
+# référence passés en argument (ex. commun, sites) reçoit @Disabled. Couvre aussi
+# e2e, cli, et les features non construites. Le chemin testé est relatif à
+# fr/univ_amu/iut/<paquet>/.
+#
+# Les tests sous exercice*/bonus* sont TOUJOURS épargnés : ils relèvent du
+# mécanisme TP historique (tests de caractérisation, qui doivent rester actifs en
+# mode refactoring) et sont gérés par disable_exercise_path_tests. Cette passe
+# reste donc orthogonale au mode refactoring.
 disable_tests_outside_reference() {
     local root=$1
     shift
     local refs=("$@") file rel r skip
     while IFS= read -r -d '' file; do
         rel=${file#"$root"/}
+        case "$rel" in */exercice*/*.java | */bonus*/*.java) continue ;; esac
         skip=0
         for r in "${refs[@]}"; do
             case "$rel" in */iut/"$r"/*) skip=1; break ;; esac

@@ -210,9 +210,6 @@ Les outils en jeu :
 - **JaCoCo** : mesure la **couverture** des tests.
 - **CI GitHub Actions** : à chaque push, **3 portails** s'exécutent (build/tests, *quality gate* PMD, génération de la version étudiante). Une PR ne se merge **que** si la CI est verte.
 
-> [!NOTE]
-> **SonarLint** (extension VS Code, installée dans le Codespace) souligne les *smells* en direct dans l'éditeur. En cas de désaccord avec PMD, **PMD fait foi** (c'est la référence officielle du projet, et le portail qualité de la CI).
-
 ---
 
 ## 8. Évaluation

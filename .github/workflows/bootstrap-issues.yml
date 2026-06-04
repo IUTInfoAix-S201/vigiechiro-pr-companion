@@ -45,8 +45,11 @@ jobs:
           set -euo pipefail
           shopt -s nullglob
 
-          # Titres des issues déjà présentes (pour ne pas recréer / ne pas dupliquer).
-          gh issue list --state all --limit 300 --json title --jq '.[].title' > /tmp/titres-existants.txt || true
+          # Titres des issues déjà présentes (pour ne pas recréer / ne pas dupliquer). Si cette
+          # liste échoue (API), on FAIT échouer le job plutôt que de bootstrapper à l'aveugle (sinon
+          # risque de doublons) : une relance récupérera proprement. Sur un dépôt neuf, la liste est
+          # simplement vide (succès).
+          gh issue list --state all --limit 300 --json title --jq '.[].title' > /tmp/titres-existants.txt
 
           crees=0
           sautes=0

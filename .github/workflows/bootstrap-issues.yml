@@ -4,10 +4,10 @@
 #   `vigiechiro-pr-companion-<EQUIPE>`. Cela exclut d'office le dépôt enseignant
 #   (`vigiechiro-pr-companion`, sans suffixe) ET le dépôt template Classroom
 #   (`iutinfoaix-s201-2026-…`, autre préfixe) alimenté par le sync.
-# - Idempotent par CONTRÔLE D'EXISTENCE : si le dépôt a déjà au moins une issue, on ne crée rien.
-#   Donc : le 1er push (population Classroom) crée les tâches ; les pushs suivants ne font rien ;
-#   et `workflow_dispatch` (lancement manuel) ne crée les tâches que si elles manquent encore — pas
-#   de doublon possible.
+# - Idempotent PAR TITRE : on ne crée que les tâches dont le titre n'existe pas encore. Donc :
+#   le 1er push (population Classroom) crée tout ; un push suivant ne fait rien ; et `workflow_dispatch`
+#   (lancement manuel) **complète les tâches manquantes** si un run précédent s'était interrompu en
+#   cours (erreur transitoire, limite anti-abus) — sans jamais créer de doublon.
 #
 # Les tâches sont décrites une par fichier dans `.github/classroom/issues/*.md` (ordre = ordre
 # alphabétique des fichiers, d'où les préfixes numériques ; les extensions `e…` viennent en dernier).
@@ -32,28 +32,30 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Créer une issue par tâche (si le dépôt n'en a pas déjà)
+      - name: Créer les tâches manquantes (idempotent par titre)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           shopt -s nullglob
 
-          # Idempotence : si des issues existent déjà, on ne refait rien.
-          deja=$(gh issue list --state all --limit 1 --json number --jq 'length')
-          if [ "$deja" -gt 0 ]; then
-            echo "Le dépôt a déjà des issues : rien à créer (bootstrap déjà fait)."
-            exit 0
-          fi
+          # Titres des issues déjà présentes (pour ne pas recréer / ne pas dupliquer).
+          gh issue list --state all --limit 300 --json title --jq '.[].title' > /tmp/titres-existants.txt || true
 
-          n=0
+          crees=0
+          sautes=0
           for f in .github/classroom/issues/*.md; do
             title=$(head -n 1 "$f" | sed 's/^#[[:space:]]*//')
+            if grep -Fxq "$title" /tmp/titres-existants.txt; then
+              sautes=$((sautes + 1))
+              echo "  = déjà présent : $title"
+              continue
+            fi
             tail -n +2 "$f" > /tmp/corps-issue.md
             gh issue create --title "$title" --body-file /tmp/corps-issue.md
-            n=$((n + 1))
+            crees=$((crees + 1))
             echo "  + $title"
             # Petite pause : évite la limite secondaire (anti-abus) de GitHub sur ~54 créations.
             sleep 2
           done
-          echo "$n issue(s) créée(s)."
+          echo "$crees issue(s) créée(s), $sautes déjà présente(s)."

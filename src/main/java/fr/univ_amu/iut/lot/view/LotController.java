@@ -22,6 +22,10 @@ public class LotController {
 
     private final LotViewModel viewModel;
 
+    // TODO (M-Lot) : déclarez les champs @FXML correspondant aux fx:id de Lot.fxml (Label, Button,
+    //   ListView, VBox...), liez-les au LotViewModel dans « @FXML private void initialize() », et
+    //   ajoutez les handlers @FXML des boutons (onAction="#preparer"/"#deposer"). Référence : feature sites.
+    // --solution--
     @FXML
     private Label lblStatut;
 
@@ -46,11 +50,14 @@ public class LotController {
     @FXML
     private Label lblMessage;
 
+    // --end-solution--
+
     @Inject
     public LotController(LotViewModel viewModel) {
         this.viewModel = Objects.requireNonNull(viewModel, "viewModel");
     }
 
+    // --solution--
     @FXML
     private void initialize() {
         lblStatut.textProperty().bind(viewModel.statutProperty());
@@ -72,11 +79,14 @@ public class LotController {
         lblMessage.managedProperty().bind(messagePresent);
     }
 
+    // --end-solution--
+
     /// Ouvre l'écran sur le passage `idPassage`. Appelée par [NavigationLot] après le chargement FXML.
     public void ouvrirSur(Long idPassage) {
         viewModel.ouvrirSur(idPassage);
     }
 
+    // --solution--
     @FXML
     private void preparer() {
         viewModel.preparer();
@@ -86,4 +96,5 @@ public class LotController {
     private void deposer() {
         viewModel.deposer();
     }
+    // --end-solution--
 }

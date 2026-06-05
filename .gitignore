@@ -75,6 +75,10 @@ tmp/
 # ApprovalTests : dossier de travail des comparaisons (received/approved temporaires)
 .approval_tests_temp/
 
+# ========== Python (scripts .github) ==========
+__pycache__/
+*.py[cod]
+
 # ========== Logs ==========
 *.log
 logs/

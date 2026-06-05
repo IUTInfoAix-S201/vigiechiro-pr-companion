@@ -6,6 +6,17 @@ arriver. Le détail, tâche par tâche, vit dans les **issues de votre dépôt**
 !!! info "Une SAE de développement d'IHM"
     L'analyse, la conception et le **socle technique** sont fournis (cf. [Analyse et conception](Analyse%20et%20conception/index.md)). Votre travail, c'est l'**interface graphique** (JavaFX / MVVM) de l'application, par-dessus des services et une base de données déjà implémentés et testés.
 
+## Démarrer : récupérer votre dépôt d'équipe
+
+Votre travail se fait dans un **dépôt d'équipe**, distribué via **GitHub Classroom**.
+
+!!! abstract "Accepter le devoir (une seule fois par équipe)"
+    1. Ouvrez le lien : [**Accepter la SAE VigieChiro sur GitHub Classroom**](https://classroom.github.com/a/eMEjP0tl).
+    2. **Créez votre équipe** (si vous êtes le premier) ou **rejoignez** celle déjà créée par un binôme. Une seule équipe par groupe : ne recréez pas une équipe qui existe déjà.
+    3. GitHub crée votre dépôt `vigiechiro-pr-companion-<votre-équipe>` et vous y donne accès.
+
+    Au premier démarrage, le dépôt se remplit tout seul : **toutes les tâches** y arrivent sous forme d'**issues** et un **tableau de projet** (kanban) leur est associé (voir [plus bas](#suivre-votre-avancement-le-tableau-de-projet)).
+
 ## Ce qui est fourni vs ce que vous construisez
 
 Votre dépôt est une application **qui démarre déjà**. Pour vous donner un **modèle complet à imiter**,
@@ -77,6 +88,30 @@ verte). Les conventions (Git Flow, Conventional Commits, revue obligatoire) sont
     régresse pas**, le code **compile** et **Spotless** est content, le **MVVM** est respecté (tests
     ArchUnit verts), et la modification est passée par une **PR relue**. Chaque issue rappelle ses
     critères d'acceptation et sa DoD.
+
+## Suivre votre avancement : le tableau de projet
+
+Votre dépôt est relié à un **tableau de projet GitHub** (onglet *Projects* du dépôt, ou la barre
+latérale de votre équipe). Chaque tâche y est une **carte**, répartie en colonnes :
+
+| Colonne | Signification |
+|---|---|
+| **Backlog** | tâche pas encore commencée |
+| **Ready** | prête à être prise en charge (vous la déplacez ici quand vous décidez de l'attaquer) |
+| **In progress** | en cours : une Pull Request référence l'issue |
+| **In review** | la PR est prête, en attente de revue par un binôme |
+| **Done** | terminée : PR mergée (ou issue fermée) |
+
+!!! tip "Le tableau se met à jour tout seul"
+    Vous n'avez quasiment rien à gérer à la main. Au fil de votre flux Git, les cartes se déplacent
+    automatiquement :
+
+    - vous ouvrez une **PR** qui référence l'issue (`Closes #12`) -> la carte passe en **In progress** ;
+    - vous marquez la PR **prête pour revue** -> elle passe en **In review** ;
+    - la PR est **mergée** -> elle passe en **Done**.
+
+    Le seul geste manuel utile : déplacer une carte de **Backlog** vers **Ready** quand votre équipe
+    planifie ce qu'elle attaque ensuite.
 
 ## Les passes finales (à mener en fin de projet)
 

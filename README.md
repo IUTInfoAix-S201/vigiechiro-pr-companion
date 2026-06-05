@@ -97,7 +97,7 @@ S'ajoutent la feature transverse **`cli`** (import/export en ligne de commande) 
 
 ### 2.4. Le composant `audio-view`
 
-L'écoute (sonogramme + spectrogramme d'un WAV) est fournie par un **composant externe**, `audio-view` (récupéré via JitPack). **Vous le consommez, vous ne le réimplémentez pas.**
+L'écoute (sonogramme + spectrogramme d'un WAV) est fournie par un **composant externe**, `audio-view` (publié sur Maven Central). **Vous le consommez, vous ne le réimplémentez pas.**
 
 ---
 

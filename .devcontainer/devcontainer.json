@@ -23,12 +23,15 @@
         }
     },
     "forwardPorts": [6080, 5901],
-    // onCreateCommand : prébuild Maven test-compile pour que le Java LSP
-    // démarre instantanément sur Codespaces avec prebuilds activés. bash -lc
-    // pour charger SDKMAN. test-compile (et pas dependency:go-offline) pour
-    // que les CodeLens "Run | Debug" et les flèches de tests apparaissent
-    // sans attendre l'indexation à froid.
-    "onCreateCommand": "bash -lc './mvnw -q test-compile || true' && gh repo set-default \"$(git remote get-url origin | sed 's|.*github.com[:/]||' | sed 's|\\.git$||')\" 2>/dev/null || true",
+    // onCreateCommand : pré-télécharge les dépendances (dependency:go-offline)
+    // pour que le LSP Java et le premier build ne soient pas bloqués par le
+    // réseau. bash -lc pour charger SDKMAN. On NE compile PAS au démarrage
+    // (pas de test-compile) : un target/ compilé ici peut devenir périmé après
+    // une régénération de branche ou un pull et faire mentir « Nothing to
+    // compile » (module-info.class obsolète -> erreurs JPMS au javafx:run).
+    // jdt.ls indexe de son côté, donc les CodeLens "Run | Debug" apparaissent
+    // quand même, juste un peu plus tard. Réflexe en cas de doute : ./mvnw clean.
+    "onCreateCommand": "bash -lc './mvnw -q dependency:go-offline || true' && gh repo set-default \"$(git remote get-url origin | sed 's|.*github.com[:/]||' | sed 's|\\.git$||')\" 2>/dev/null || true",
     "customizations": {
         "vscode": {
             "settings": {

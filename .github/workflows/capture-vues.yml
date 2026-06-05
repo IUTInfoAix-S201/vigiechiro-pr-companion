@@ -39,8 +39,8 @@ jobs:
         uses: actions/setup-java@v5
         with:
           java-version: '25'
-          distribution: 'zulu'
-          # JDK Zulu standard : JavaFX 26 vient des dépendances Maven org.openjfx, la Headless
+          distribution: 'temurin'
+          # JDK Temurin standard : JavaFX 26 vient des dépendances Maven org.openjfx, la Headless
           # Platform est 100 % logicielle (pas de runtime natif jdk+fx requis).
           cache: maven
           check-latest: false

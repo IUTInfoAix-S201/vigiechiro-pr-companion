@@ -18,8 +18,8 @@ jobs:
         uses: actions/setup-java@v5
         with:
           java-version: '25'
-          distribution: 'zulu'
-          # JDK Zulu standard (sans JavaFX) : JavaFX 26 vient des dépendances
+          distribution: 'temurin'
+          # JDK Temurin standard (sans JavaFX) : JavaFX 26 vient des dépendances
           # Maven org.openjfx. La Headless Platform (glass.platform=Headless)
           # est 100 % logicielle, donc pas besoin du runtime natif jdk+fx.
           cache: maven

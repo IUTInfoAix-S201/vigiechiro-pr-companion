@@ -79,3 +79,13 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python3 .github/scripts/link-sub-issues.py --apply --repo "$GITHUB_REPOSITORY"
+
+      - name: Affecter les milestones MoSCoW + Passe finale (idempotent)
+        # Crée les milestones (MUST / SHOULD / COULD / Passe finale, avec échéances) et y
+        # rattache les issues selon la priorité du README. Idempotent (re-run = no-op).
+        # continue-on-error : confort, ne doit JAMAIS faire échouer le bootstrap étudiant.
+        # Relance manuelle : python3 .github/scripts/set-milestones.py --apply --repo <owner/repo>.
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 .github/scripts/set-milestones.py --apply --repo "$GITHUB_REPOSITORY"

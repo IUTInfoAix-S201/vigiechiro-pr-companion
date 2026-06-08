@@ -37,15 +37,14 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      # Étapes shell plutôt que docker/login-action + docker/setup-buildx-action :
+      # ces actions JS tournaient sur Node 20 (déprécié au 16/06/2026). Du shell
+      # pur n'a pas de runtime Node, donc plus aucun avertissement de version.
       - name: Connexion à GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      - name: Préparer un builder Buildx (driver docker-container, requis pour --push)
+        run: docker buildx create --name devcontainer-builder --driver docker-container --use
 
       - name: Installer la CLI devcontainer
         run: npm install -g @devcontainers/cli

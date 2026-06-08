@@ -1,5 +1,5 @@
 # Base image for devcontainer with Java/JavaFX support
-FROM mcr.microsoft.com/devcontainers/base:ubuntu
+FROM mcr.microsoft.com/devcontainers/base:ubuntu-24.04
 
 # Install dependencies for JavaFX GUI applications.
 # xvfb fournit un display virtuel pour ./mvnw test si l'utilisateur

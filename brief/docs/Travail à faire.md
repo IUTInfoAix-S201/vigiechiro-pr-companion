@@ -89,6 +89,14 @@ verte). Les conventions (Git Flow, Conventional Commits, revue obligatoire) sont
     ArchUnit verts), et la modification est passée par une **PR relue**. Chaque issue rappelle ses
     critères d'acceptation et sa DoD.
 
+!!! note "🤖 Assistants IA (LLM) : autorisés, mais à documenter"
+    L'usage d'assistants IA (ChatGPT, GitHub Copilot, Claude...) est **autorisé** sur ce projet. En
+    contrepartie, il doit être **scrupuleusement documenté dans le `README` du projet** : indiquez
+    quels outils vous avez utilisés, **pour quoi** (génération de code, explication, débogage, FXML,
+    tests...) et **dans quelle mesure**. Citer ses sources, y compris une IA, relève de l'honnêteté
+    intellectuelle et de la pratique professionnelle. Vous restez **responsables de tout le code que
+    vous livrez** : vous devez le comprendre, savoir l'expliquer en soutenance et le maintenir.
+
 ## Suivre votre avancement : le tableau de projet
 
 Votre dépôt est relié à un **tableau de projet GitHub** (onglet *Projects* du dépôt, ou la barre

@@ -12,6 +12,22 @@ M-Qualification, Diagnostic → M-Diagnostic, Préparer le dépôt → M-Lot, Va
 Une **modale « Modifier le rattachement »** corrige l'année / le n° de passage. On l'atteint en
 double-cliquant un passage (depuis M-Sites ou M-Multisite).
 
+## 👀 Voir à quoi l'écran doit ressembler
+
+Pour **visualiser** l'IHM et suivre votre progression, générez les aperçus :
+
+```bash
+.github/assets/capture-screenshots.sh
+```
+
+Ce script rend tous les écrans en **PNG**, sans ouvrir de fenêtre (rendu hors-écran *Headless*), dans **`.github/assets/`**. Pour cette feature, ouvrez :
+
+- `.github/assets/apercu-passage.png` — pivot, statut Vérifié : préparer le dépôt, validation verrouillée
+- `.github/assets/apercu-passage-depose.png` — pivot, statut Déposé : dépôt fait, validation déverrouillée
+- `.github/assets/apercu-passage-rattachement.png` — modale « Modifier le rattachement » : année + n° de passage
+
+> Au départ ces images montrent le **placeholder** « à construire » ; elles se mettent à jour au fil de votre travail. La galerie est aussi **régénérée à chaque push sur `main`** (workflow `capture-vues.yml`) et consultable directement sur GitHub.
+
 ## Architecture
 
 ```

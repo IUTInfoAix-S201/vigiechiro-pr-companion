@@ -10,6 +10,21 @@
 **verdict différé** (OK / douteux / à jeter, R15) qu'on enregistre. On l'atteint depuis M-Passage
 (« Vérifier »).
 
+## 👀 Voir à quoi l'écran doit ressembler
+
+Pour **visualiser** l'IHM et suivre votre progression, générez les aperçus :
+
+```bash
+.github/assets/capture-screenshots.sh
+```
+
+Ce script rend tous les écrans en **PNG**, sans ouvrir de fenêtre (rendu hors-écran *Headless*), dans **`.github/assets/`**. Pour cette feature, ouvrez :
+
+- `.github/assets/apercu-qualification-initial.png` — état initial : sélection générée, rien d'écouté, sans verdict
+- `.github/assets/apercu-qualification.png` — avancé : séquences écoutées, verdict OK posé
+
+> Au départ ces images montrent le **placeholder** « à construire » ; elles se mettent à jour au fil de votre travail. La galerie est aussi **régénérée à chaque push sur `main`** (workflow `capture-vues.yml`) et consultable directement sur GitHub.
+
 ## Architecture
 
 ```

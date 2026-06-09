@@ -10,6 +10,21 @@ passage : importer un CSV de résultats, parcourir les observations, **valider**
 progression, puis **exporter** un CSV `_Vu` réinjectable (R17). On l'atteint depuis l'onglet
 « Validation Tadarida » de M-Passage (déverrouillé une fois le passage déposé).
 
+## 👀 Voir à quoi l'écran doit ressembler
+
+Pour **visualiser** l'IHM et suivre votre progression, générez les aperçus :
+
+```bash
+.github/assets/capture-screenshots.sh
+```
+
+Ce script rend tous les écrans en **PNG**, sans ouvrir de fenêtre (rendu hors-écran *Headless*), dans **`.github/assets/`**. Pour cette feature, ouvrez :
+
+- `.github/assets/apercu-validation-import.png` — état d'entrée : avant import, bouton import
+- `.github/assets/apercu-validation-revue.png` — revue : statuts variés + détail sélectionné
+
+> Au départ ces images montrent le **placeholder** « à construire » ; elles se mettent à jour au fil de votre travail. La galerie est aussi **régénérée à chaque push sur `main`** (workflow `capture-vues.yml`) et consultable directement sur GitHub.
+
 ## Architecture
 
 ```

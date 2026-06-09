@@ -10,6 +10,23 @@ l'**inspecter** en lecture seule ; (3) **rattacher** la nuit (site / point / ann
 prévisualiser le préfixe ; (4) **lancer l'import** avec une barre de progression. On l'atteint depuis
 la carte « Importer une nuit » de l'accueil.
 
+## 👀 Voir à quoi l'écran doit ressembler
+
+Pour **visualiser** l'IHM et suivre votre progression, générez les aperçus :
+
+```bash
+.github/assets/capture-screenshots.sh
+```
+
+Ce script rend tous les écrans en **PNG**, sans ouvrir de fenêtre (rendu hors-écran *Headless*), dans **`.github/assets/`**. Pour cette feature, ouvrez :
+
+- `.github/assets/apercu-import-assistant.png` — assistant « Importer une nuit », cas standard
+- `.github/assets/apercu-import-en-cours.png` — import en cours : barre de progression, formulaire gelé
+- `.github/assets/apercu-import-melange.png` — cas « mélange » : 2 enregistreurs détectés, avertissement
+- `.github/assets/apercu-import-incoherence.png` — cas « incohérence » : journal/relevé en désaccord avec les WAV
+
+> Au départ ces images montrent le **placeholder** « à construire » ; elles se mettent à jour au fil de votre travail. La galerie est aussi **régénérée à chaque push sur `main`** (workflow `capture-vues.yml`) et consultable directement sur GitHub.
+
 ## Architecture
 
 ```

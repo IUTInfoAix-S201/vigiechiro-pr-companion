@@ -10,6 +10,22 @@ filtrable (carré, statut, verdict, année) et triable, avec **export CSV** et *
 ouvrir un passage. Une **modale « Vues sauvegardées »** permet d'enregistrer/rejouer une combinaison de
 filtres. On l'atteint depuis la carte « Vue multi-sites » de l'accueil.
 
+## 👀 Voir à quoi l'écran doit ressembler
+
+Pour **visualiser** l'IHM et suivre votre progression, générez les aperçus :
+
+```bash
+.github/assets/capture-screenshots.sh
+```
+
+Ce script rend tous les écrans en **PNG**, sans ouvrir de fenêtre (rendu hors-écran *Headless*), dans **`.github/assets/`**. Pour cette feature, ouvrez :
+
+- `.github/assets/apercu-multisite.png` — vue agrégée : tableau complet, filtres, tri, export
+- `.github/assets/apercu-multisite-filtre.png` — tableau filtré par verdict OK : résumé recalculé
+- `.github/assets/apercu-multisite-vues.png` — modale des vues sauvegardées, une vue sélectionnée
+
+> Au départ ces images montrent le **placeholder** « à construire » ; elles se mettent à jour au fil de votre travail. La galerie est aussi **régénérée à chaque push sur `main`** (workflow `capture-vues.yml`) et consultable directement sur GitHub.
+
 ## Architecture
 
 ```

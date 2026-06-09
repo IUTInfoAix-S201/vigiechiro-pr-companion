@@ -3,6 +3,8 @@
 Première sous-tâche de **M-Lot** : le **ViewModel** (statut du lot, récapitulatif, alertes, et les
 deux actions du dépôt).
 
+> 💡 **Un écran complet pour vous inspirer.** L'écran **Passage** vous est fourni en correction (PR « 🧭 Aide : écran Passage ») : c'est un exemple **abouti** de cette même structure MVVM. Ouvrez `passage/viewmodel/PassageViewModel.java` à côté de votre fichier et comparez. Le patron `sites` reste aussi une référence.
+
 ## Fichier à modifier (un seul)
 
 `src/main/java/fr/univ_amu/iut/lot/viewmodel/LotViewModel.java`
@@ -23,6 +25,15 @@ Les propriétés observables et leurs getters sont fournis. Vous écrivez le cor
 3. **`preparer`** / **`deposer`** : déléguez l'action métier au service, rechargez l'état, renvoyez le
    succès ; sans passage ouvert, l'appel est ignoré.
 4. Patron de référence : `SitesViewModel` (feature `sites`). Relancez jusqu'au **vert**.
+
+## Pièges courants
+
+- Le ViewModel **n'importe jamais `javafx.scene`** (ni `Node`, ni contrôle) : uniquement
+  `javafx.beans` / `javafx.collections`. Sinon le test **ArchUnit** passe au rouge.
+- **Gérez le cas d'erreur** sans laisser remonter d'exception : en cas de souci, remplissez la
+  propriété `message` et laissez les autres propriétés dans un état neutre.
+- **Repartez d'un état propre** au début de la méthode d'ouverture : les valeurs d'un précédent
+  affichage ne doivent pas subsister.
 
 ## Critères d'acceptation
 

@@ -3,6 +3,8 @@
 Deuxième sous-tâche de **M-Diagnostic** : la **mise en page** de l'écran. Aujourd'hui le fichier ne
 contient qu'un *placeholder* « à construire » ; vous écrivez la vraie vue.
 
+> 💡 **Un écran complet pour vous inspirer.** L'écran **Passage** vous est fourni en correction (PR « 🧭 Aide : écran Passage ») : c'est un exemple **abouti** de cette même structure MVVM. Ouvrez `passage/view/Passage.fxml` à côté de votre fichier et comparez. Le patron `sites` reste aussi une référence.
+
 ## Fichier à modifier (un seul)
 
 `src/main/java/fr/univ_amu/iut/diagnostic/view/Diagnostic.fxml`
@@ -23,6 +25,32 @@ contient qu'un *placeholder* « à construire » ; vous écrivez la vraie vue.
 3. Gardez `fx:controller="fr.univ_amu.iut.diagnostic.view.DiagnosticController"` sur l'élément racine.
 4. Conseil : vous pouvez prototyper la mise en page avec **SceneBuilder**, mais le rendu final doit
    être ce fichier FXML versionné.
+
+## Les `fx:id` à déclarer (et leur type)
+
+Votre FXML doit déclarer **exactement ces `fx:id`** (mêmes noms et mêmes types que ce qu'attend le controleur) :
+
+| `fx:id` | Type | Rôle à l'écran |
+|---|---|---|
+| `lblEnregistreur` | `Label` | enregistreur de la nuit |
+| `lblResumeClimat` | `Label` | résumé de la série climatique |
+| `lblReleveAbsent` | `Label` | alerte « relevé absent » (R20), affichée/masquée |
+| `grapheClimat` | `LineChart` | courbe T°/hygrométrie (reconstruite quand la liste change) |
+| `listeAnomalies` | `ListView` | anomalies (R19) |
+| `listeEvenements` | `ListView` | évènements du journal |
+| `lblGps` | `Label` | disponibilité GPS |
+| `lblMessage` | `Label` | message d'erreur |
+
+
+## Pièges courants
+
+- L'**élément racine** doit porter le bon `fx:controller` : sans lui, les `@FXML` du controleur ne
+  seront pas injectés.
+- Chaque `fx:id` doit être **exactement** celui du tableau (la casse compte) : un `fx:id` mal
+  orthographié = un `@FXML` qui reste `null` au chargement.
+- Le **type de balise doit correspondre** à la colonne « Type » et la balise doit être **importée**
+  en tête du FXML (`<?import javafx.scene.control.ListView?>`, etc.).
+- Pas de logique dans le FXML : seulement la **structure** (la donnée arrive par le câblage du controleur).
 
 ## Critères d'acceptation
 

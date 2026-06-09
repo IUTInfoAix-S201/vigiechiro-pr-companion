@@ -74,5 +74,5 @@ Pour le diaporama de phase 2, n'importe quel outil convient : Keynote, PowerPoin
 ## Comportement attendu
 
 - **Probité** : tout code emprunté à une source extérieure (Stack Overflow, dépôt public, IA générative) doit être cité explicitement dans le commit qui l'introduit. Le copier-coller silencieux entre équipes est de la fraude et sera traité comme telle.
-- **Assistance IA** : l'usage d'un assistant comme Copilot, ChatGPT ou Claude n'est pas interdit, **à condition** que vous compreniez ce que produit l'outil et que vous puissiez le défendre en soutenance. Les questions individuelles en oral porteront notamment sur ce point.
+- **Assistance IA (LLM)** : l'usage d'un assistant comme Copilot, ChatGPT ou Claude est **autorisé**, **à deux conditions** : (1) le **documenter scrupuleusement dans le `README` du projet** (quels outils, pour quoi, et dans quelle mesure : une section dédiée est prévue à cet effet) ; (2) **comprendre** ce que produit l'outil et **pouvoir le défendre en soutenance** (les questions individuelles en oral porteront notamment sur ce point). Vous restez responsables de **tout** le code que vous livrez.
 - **Communication avec l'équipe pédagogique** : exprimez vos blocages et vos doutes au plus tôt. Mieux vaut signaler une difficulté tôt que rendre un livrable incomplet sans avoir prévenu.

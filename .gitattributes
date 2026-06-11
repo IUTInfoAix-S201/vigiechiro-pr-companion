@@ -7,3 +7,12 @@
 
 # Maven Wrapper : le script Unix doit rester en LF même sur un clone Windows
 mvnw text eol=lf
+
+# Aperçus de captures (binaires) régénérés par la CI sur `main` à chaque push.
+# Ils provoquaient des conflits binaires impossibles à résoudre quand un·e
+# étudiant·e mergeait `main` dans sa branche. `merge=ours` garde TOUJOURS la
+# version courante (le bot régénère la bonne au prochain push sur main) -> plus
+# de conflit. Nécessite le driver `git config merge.ours.driver true`, posé par
+# le devcontainer (onCreateCommand) ; pour un clone local hors devcontainer,
+# lancer cette commande une fois (cf. README, section dépannage).
+.github/assets/apercu-*.png -text merge=ours

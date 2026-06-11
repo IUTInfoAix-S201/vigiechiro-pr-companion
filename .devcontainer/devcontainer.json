@@ -15,7 +15,10 @@
     // compile » (module-info.class obsolète -> erreurs JPMS au javafx:run).
     // jdt.ls indexe de son côté, donc les CodeLens "Run | Debug" apparaissent
     // quand même, juste un peu plus tard. Réflexe en cas de doute : ./mvnw clean.
-    "onCreateCommand": "bash -lc './mvnw -q dependency:go-offline || true' && gh repo set-default \"$(git remote get-url origin | sed 's|.*github.com[:/]||' | sed 's|\\.git$||')\" 2>/dev/null || true",
+    // `git config merge.ours.driver true` active le driver `merge=ours` declare
+    // dans .gitattributes pour les apercus de captures (.github/assets/apercu-*.png) :
+    // evite les conflits binaires impossibles a resoudre quand on merge `main`.
+    "onCreateCommand": "git config merge.ours.driver true; bash -lc './mvnw -q dependency:go-offline || true' && gh repo set-default \"$(git remote get-url origin | sed 's|.*github.com[:/]||' | sed 's|\\.git$||')\" 2>/dev/null || true",
     "customizations": {
         "vscode": {
             "settings": {

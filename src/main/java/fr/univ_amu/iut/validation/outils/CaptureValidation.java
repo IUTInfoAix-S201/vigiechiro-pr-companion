@@ -157,12 +157,20 @@ public final class CaptureValidation {
         // le spectrogramme ET le sonogramme (depuis v1.4.0 il masque la légende et le sonogramme
         // quand il est trop court — on lui donne donc une hauteur suffisante).
         Scene scene = new Scene(vue, 1100, 820);
+        boolean ligneSelectionnee = false;
         if (vue.lookup("#tableObservations") instanceof TableView<?> table
                 && table.getItems().size() > ligne) {
             table.getSelectionModel().select(ligne); // déclenche le chargement audio de la séquence
+            ligneSelectionnee = true;
         }
 
-        if (vue.lookup("#audioView") instanceof AudioView audio) {
+        // On n'attend l'audio QUE si une ligne a effectivement été sélectionnée (un WAV va donc se
+        // charger). Sans ligne (p. ex. feature Validation pas encore implémentée -> table vide),
+        // entrer dans la boucle d'évènements imbriquée pour rien la ferait tourner jusqu'au secours
+        // de 8 s, ce qui déstabilise la Headless Platform JavaFX 26 (ré-entrée du toolkit via
+        // NestedRunnableProcessor) et fait crasher le `new Stage()` suivant. On capture alors
+        // directement l'écran (vide), sans attente ni boucle imbriquée.
+        if (ligneSelectionnee && vue.lookup("#audioView") instanceof AudioView audio) {
             audio.setMinHeight(340);
             audio.setPrefHeight(340);
             attendreChargementAudio(audio);

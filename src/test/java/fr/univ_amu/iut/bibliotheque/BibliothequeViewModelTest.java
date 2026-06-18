@@ -46,6 +46,22 @@ class BibliothequeViewModelTest {
     }
 
     @Test
+    @DisplayName("Une 2e charger() REMPLACE les entrées (setAll) et ne les cumule pas (anti-addAll)")
+    void charger_remplace_les_entrees_sans_cumuler() {
+        when(service.exporterBibliotheque())
+                .thenReturn(new ExportBiblioSons(List.of(entree("NYCNOC", "/ws/n.wav"), entree("PIPPIP", "/ws/p.wav"))))
+                .thenReturn(new ExportBiblioSons(List.of(entree("BARBAR", "/ws/b.wav"))));
+        BibliothequeViewModel vm = new BibliothequeViewModel(service);
+
+        vm.charger(); // [NYCNOC, PIPPIP]
+        vm.charger(); // doit donner [BARBAR] seul, pas [NYCNOC, PIPPIP, BARBAR]
+
+        assertThat(vm.entrees()).hasSize(1).first().isEqualTo(entree("BARBAR", "/ws/b.wav"));
+        assertThat(vm.biblioNonVideProperty().get()).isTrue();
+        assertThat(vm.resumeProperty().get()).contains("1 son");
+    }
+
+    @Test
     @DisplayName("Bibliothèque vide : résumé d'invite et export désactivé")
     void biblio_vide() {
         when(service.exporterBibliotheque()).thenReturn(new ExportBiblioSons(List.of()));

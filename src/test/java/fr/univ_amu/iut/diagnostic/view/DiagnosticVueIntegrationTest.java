@@ -27,6 +27,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.stage.Stage;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.api.FxRobot;
@@ -46,6 +47,7 @@ import org.testfx.framework.junit5.Start;
 /// (`ListChangeListener` → `majGraphe()`), signalement R20 (relevé absent), note GPS et message
 /// d'erreur (visibilités liées). Le [ServiceDiagnostic] est mocké : aucune base de données.
 @ExtendWith(ApplicationExtension.class)
+@Tag("conformite")
 class DiagnosticVueIntegrationTest {
 
     private DiagnosticController controleur;

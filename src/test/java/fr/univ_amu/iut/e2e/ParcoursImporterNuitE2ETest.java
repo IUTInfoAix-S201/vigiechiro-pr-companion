@@ -26,6 +26,7 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 /// **Test E2E du parcours P2 « Importer une nuit d'enregistrement »**, piloté **sans IHM** : on
@@ -48,6 +49,7 @@ import org.junit.jupiter.api.Test;
 /// On vérifie le **résultat métier** à chaque jalon, jusqu'à relire le passage **en base** (la base
 /// est la source de vérité). Un second cas couvre le garde-fou **R5** : réimporter le même quadruplet
 /// `(point, année, n° de passage)` est refusé (l'assistant passe en `ECHEC`, la base reste intacte).
+@Tag("conformite")
 class ParcoursImporterNuitE2ETest {
 
     private static final String ID_USER = "u-e2e-import";

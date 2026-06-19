@@ -90,8 +90,18 @@ jobs:
         # Tests UI en headless via la Headless Platform JavaFX 26
         # (glass.platform=Headless, cf. pom.xml) : aucun display X11 requis,
         # plus besoin de xvfb. Reste BLOQUANT : la CI passe au rouge si un test
-        # echoue (c'est la Definition of Done du sujet).
-        run: ./mvnw -B verify --file pom.xml
+        # de l'equipe echoue (c'est la Definition of Done du sujet). Les tests de
+        # reference tagues @Tag("conformite") sont EXCLUS de ce run bloquant.
+        run: ./mvnw -B verify -DexcludedGroups=conformite --file pom.xml
+
+      - name: Tests de conformité (non bloquants — alimentent le tableau de bord)
+        # Tests de reference (lookup fx:id + E2E parcours + garde d'integrite),
+        # tagues @Tag("conformite"). Re-executes ici SANS JAMAIS rougir la CI
+        # (failure.ignore + continue-on-error) pour produire leurs rapports
+        # surefire ; le ci-summary les remonte en conformite_by_feature.
+        if: always()
+        continue-on-error: true
+        run: ./mvnw -B test -Dgroups=conformite -Dmaven.test.failure.ignore=true --file pom.xml
 
       - name: Vérifier le formatage (Spotless, non bloquant)
         # Renseigne le tableau de bord sans jamais faire échouer la CI.
@@ -123,24 +133,41 @@ jobs:
                       "importation", "qualification", "multisite", "passage"}
           total = failed = errors = skipped = 0
           archunit_ok = None
-          par_feature = {}   # tests passes/total par ecran -> avancement phase 2 du tableau de bord
+          par_feature = {}   # tests de l'equipe par feature (hors conformite) -> phase 2 du tableau de bord
+          conformite = {}    # tests de REFERENCE @Tag("conformite") par feature / "parcours" / "integrite"
+          CONFORMITE = re.compile(r"(VueIntegrationTest|E2ETest|ImportationClicImporterTest|IntegriteTestsLivresTest)$")
           surefire = glob.glob("**/target/surefire-reports/TEST-*.xml", recursive=True)
           for f in surefire:
               try:
                   r = ET.parse(f).getroot()
               except ET.ParseError:
                   continue
+              nom = r.get("name") or ""
               t = fnum(r.get("tests")); fl = fnum(r.get("failures"))
               er = fnum(r.get("errors")); sk = fnum(r.get("skipped"))
+              passes = t - fl - er - sk
+              # Tests de reference (conformite) : signal SEPARE, jamais melange ni
+              # compte dans le total/par_feature de l'equipe.
+              if CONFORMITE.search(nom):
+                  if nom.endswith("E2ETest"):
+                      cle = "parcours"
+                  elif nom.endswith("IntegriteTestsLivresTest"):
+                      cle = "integrite"
+                  else:
+                      mc = re.match(r"fr\.univ_amu\.iut\.([a-z0-9_]+)\.", nom)
+                      cle = mc.group(1) if mc else "?"
+                  cf = conformite.setdefault(cle, {"total": 0, "passed": 0})
+                  cf["total"] += t; cf["passed"] += passes
+                  continue
               total += t; failed += fl; errors += er; skipped += sk
               if "architecture" in f.lower() or "ArchitectureTest" in f:
                   archunit_ok = (fl == 0 and er == 0)
               # feature = 1er segment de package apres fr.univ_amu.iut. dans le nom de la suite
-              m = re.match(r"fr\.univ_amu\.iut\.([a-z0-9_]+)\.", r.get("name") or "")
+              m = re.match(r"fr\.univ_amu\.iut\.([a-z0-9_]+)\.", nom)
               if m and m.group(1) in FEATURES:
                   pf = par_feature.setdefault(m.group(1), {"total": 0, "passed": 0})
                   pf["total"] += t
-                  pf["passed"] += t - fl - er - sk
+                  pf["passed"] += passes
           tests = None
           if surefire:
               tests = {"total": total, "failed": failed, "errors": errors,
@@ -177,6 +204,7 @@ jobs:
               "build_outcome": os.environ.get("BUILD_OUTCOME"),
               "tests": tests,
               "tests_by_feature": par_feature or None,
+              "conformite_by_feature": conformite or None,
               "quality": {"coverage_pct": coverage, "pmd_violations": pmd,
                           "spotless_ok": spot, "archunit_ok": archunit_ok},
           }

@@ -1,0 +1,212 @@
+package fr.univ_amu.iut.e2e;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import com.google.inject.Injector;
+import fr.univ_amu.iut.commun.di.RacineInjecteur;
+import fr.univ_amu.iut.commun.model.Protocole;
+import fr.univ_amu.iut.commun.model.StatutWorkflow;
+import fr.univ_amu.iut.commun.model.Utilisateur;
+import fr.univ_amu.iut.commun.model.dao.UtilisateurDao;
+import fr.univ_amu.iut.commun.persistence.MigrationSchema;
+import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
+import fr.univ_amu.iut.importation.model.EtatNommage;
+import fr.univ_amu.iut.importation.model.ResultatImport;
+import fr.univ_amu.iut.importation.viewmodel.EtatImport;
+import fr.univ_amu.iut.importation.viewmodel.ImportationViewModel;
+import fr.univ_amu.iut.passage.model.dao.PassageDao;
+import fr.univ_amu.iut.sites.model.PointDEcoute;
+import fr.univ_amu.iut.sites.model.ServiceSites;
+import fr.univ_amu.iut.sites.model.Site;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+
+/// **Test E2E du parcours P2 « Importer une nuit d'enregistrement »**, piloté **sans IHM** : on
+/// rejoue les étapes du parcours à travers le **ViewModel réel** de l'assistant M-Import
+/// ([ImportationViewModel]) et les **services réels** (`ServiceImport`, `ServiceSites`) câblés par
+/// l'injecteur applicatif [RacineInjecteur], sur une **base jetable** migrée par [MigrationSchema] et
+/// un **workspace temporaire**. Aucune fenêtre n'est ouverte : on n'instancie ni `Stage`, ni `Scene`,
+/// ni FXML (le pilotage à l'écran de cet assistant, dont le `DirectoryChooser` natif, est couvert par
+/// les tests TestFX de la feature).
+///
+/// Le fil du parcours suit le brief :
+///
+/// 1. **Inspecter** la carte SD en lecture seule (R9) → journal détecté, n° de série extrait, relevé
+///    climatique présent, N originaux, état de nommage `BRUT`.
+/// 2. **Rattacher** la nuit à un site / point / année / n° de passage → le bouton « Importer »
+///    s'active.
+/// 3. **Importer** (copie protégée + renommage R6/R7 + transformation R10/R11 + persistance O7) → un
+///    [fr.univ_amu.iut.passage.model.Passage] est créé au statut [StatutWorkflow#TRANSFORME].
+///
+/// On vérifie le **résultat métier** à chaque jalon, jusqu'à relire le passage **en base** (la base
+/// est la source de vérité). Un second cas couvre le garde-fou **R5** : réimporter le même quadruplet
+/// `(point, année, n° de passage)` est refusé (l'assistant passe en `ECHEC`, la base reste intacte).
+@Tag("conformite")
+class ParcoursImporterNuitE2ETest {
+
+    private static final String ID_USER = "u-e2e-import";
+    private static final String SERIE = "1925492";
+    private static final String CARRE = "640380";
+    private static final String CODE_POINT = "A1";
+    private static final int ANNEE = 2026;
+    private static final int FREQUENCE_WAV = 2000; // Hz, multiple de 10 (R10)
+    private static final int TRAMES = 3000;
+    private static final String LOG = "22/04/26 - 16:02:20 PR1925492 Demarrage Passive Recorder numero de serie"
+            + " 1925492, V1.01, CPU 600000000, T4.1\n";
+
+    private Injector injector;
+    private SourceDeDonnees source;
+    private Site site;
+    private PointDEcoute point;
+    private Path dossierSource;
+
+    @BeforeEach
+    void preparer() throws Exception {
+        Path workspace = Files.createTempDirectory("vc-e2e-import");
+        System.setProperty("vigiechiro.workspace", workspace.toString());
+        injector = RacineInjecteur.creer();
+        source = injector.getInstance(SourceDeDonnees.class);
+        new MigrationSchema(source).migrer();
+
+        // Un seul utilisateur en base → idUtilisateurCourant (singleton) le désigne ; le site qu'on lui
+        // rattache sera donc bien listé par l'assistant d'import. À insérer AVANT de résoudre le
+        // ViewModel (qui mémorise l'utilisateur courant).
+        new UtilisateurDao(source).insert(new Utilisateur(ID_USER, "Testeur E2E"));
+        ServiceSites sites = injector.getInstance(ServiceSites.class);
+        site = sites.creerSite(CARRE, "Étang de la Tuilière", Protocole.STANDARD, null, ID_USER);
+        point = sites.ajouterPoint(site.id(), CODE_POINT, 43.5298, 5.4474, "Près du chêne");
+
+        dossierSource = creerNuitSynthetique(workspace.resolve("sd"));
+    }
+
+    @AfterEach
+    void nettoyer() {
+        System.clearProperty("vigiechiro.workspace");
+    }
+
+    @Test
+    @DisplayName("P2 : inspecter une SD, rattacher la nuit, importer → un passage Transformé en base")
+    void parcours_complet_inspecter_rattacher_importer() {
+        ImportationViewModel vm = injector.getInstance(ImportationViewModel.class);
+
+        // Jalon 1 — Inspection (lecture seule) : le dossier source est photographié sans rien y écrire.
+        vm.dossierSourceProperty().set(dossierSource);
+        vm.inspecter();
+        assertThat(vm.estInspecte()).isTrue();
+        assertThat(vm.aUnJournalProperty().get()).isTrue();
+        assertThat(vm.aUnReleveClimatiqueProperty().get()).isTrue();
+        assertThat(vm.nombreOriginauxProperty().get()).isEqualTo(1);
+        assertThat(vm.etatNommageProperty().get()).isEqualTo(EtatNommage.BRUT);
+        assertThat(vm.resumeJournalProperty().get()).contains(SERIE);
+        // Tant que le rattachement n'est pas complet, l'import reste impossible.
+        assertThat(vm.peutImporter().get()).isFalse();
+
+        // Jalon 2 — Rattachement : le site de l'utilisateur est proposé, on choisit site + point + année
+        // + n° de passage, puis le bouton « Importer » s'active.
+        vm.chargerSites();
+        assertThat(vm.sites()).extracting(Site::id).containsExactly(site.id());
+        vm.siteSelectionneProperty().set(site);
+        assertThat(vm.points()).extracting(PointDEcoute::id).containsExactly(point.id());
+        vm.pointSelectionneProperty().set(point);
+        vm.anneeProperty().set(ANNEE);
+        vm.numeroPassageProperty().set(1);
+        assertThat(vm.peutImporter().get()).isTrue();
+
+        // Jalon 3 — Import : copie protégée + renommage + transformation + persistance atomique.
+        vm.importer();
+        assertThat(vm.etatProperty().get()).isEqualTo(EtatImport.TERMINE);
+
+        ResultatImport resultat = vm.resultatProperty().get();
+        assertThat(resultat).isNotNull();
+        assertThat(resultat.numeroSerieEnregistreur()).isEqualTo(SERIE);
+        assertThat(resultat.nombreOriginaux()).isEqualTo(1);
+        assertThat(resultat.nombreSequences()).isPositive();
+        assertThat(resultat.passage().statutWorkflow()).isEqualTo(StatutWorkflow.TRANSFORME);
+
+        // Jalon final — Vérification métier en base (source de vérité) : le passage persisté est bien
+        // rattaché au point et au statut Transformé (état final d'un import complet).
+        Long idPassage = resultat.passage().id();
+        assertThat(idPassage).isNotNull();
+        var passagePersiste = new PassageDao(source).findById(idPassage).orElseThrow();
+        assertThat(passagePersiste.statutWorkflow()).isEqualTo(StatutWorkflow.TRANSFORME);
+        assertThat(passagePersiste.idPoint()).isEqualTo(point.id());
+        assertThat(passagePersiste.annee()).isEqualTo(ANNEE);
+        assertThat(passagePersiste.numeroPassage()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("P2 : réimporter le même quadruplet (point, année, n° de passage) est refusé (R5)")
+    void reimport_du_meme_quadruplet_est_refuse_R5() {
+        // 1) Premier import : réussi (le quadruplet n'existe pas encore).
+        ImportationViewModel premier = importerNuit(injector.getInstance(ImportationViewModel.class));
+        assertThat(premier.etatProperty().get()).isEqualTo(EtatImport.TERMINE);
+        Long idPassage = premier.resultatProperty().get().passage().id();
+
+        // 2) Second import du MÊME quadruplet via un ViewModel frais (la SD est intacte, R9) : refusé.
+        ImportationViewModel second = importerNuit(injector.getInstance(ImportationViewModel.class));
+        assertThat(second.etatProperty().get()).isEqualTo(EtatImport.ECHEC);
+        assertThat(second.resultatProperty().get()).isNull();
+        assertThat(second.messageErreurProperty().get()).containsIgnoringCase("existe déjà");
+
+        // 3) La base reste intacte : le passage d'origine n'a pas été altéré par la tentative refusée.
+        var passagePersiste = new PassageDao(source).findById(idPassage).orElseThrow();
+        assertThat(passagePersiste.statutWorkflow()).isEqualTo(StatutWorkflow.TRANSFORME);
+    }
+
+    /// Rejoue les étapes 2 à 4 du parcours (inspecter → rattacher au site/point seedés → importer) sur
+    /// le `vm` fourni, avec le quadruplet de référence `(CARRE/CODE_POINT, ANNEE, n° 1)`.
+    private ImportationViewModel importerNuit(ImportationViewModel vm) {
+        vm.dossierSourceProperty().set(dossierSource);
+        vm.inspecter();
+        vm.chargerSites();
+        vm.siteSelectionneProperty().set(site);
+        vm.pointSelectionneProperty().set(point);
+        vm.anneeProperty().set(ANNEE);
+        vm.numeroPassageProperty().set(1);
+        vm.importer();
+        return vm;
+    }
+
+    /// Crée un dossier SD minimal (journal LogPR + relevé climatique THLog + un WAV PCM valide à 2 kHz,
+    /// nom brut non préfixé) que l'inspection puis l'import peuvent traiter.
+    private static Path creerNuitSynthetique(Path sd) throws Exception {
+        Files.createDirectories(sd);
+        Files.writeString(sd.resolve("LogPR" + SERIE + ".txt"), LOG, StandardCharsets.UTF_8);
+        Files.writeString(sd.resolve("PaRecPR" + SERIE + "_THLog.csv"), "Date\tHour\n", StandardCharsets.UTF_8);
+        ecrireWav(sd.resolve("PaRecPR" + SERIE + "_20260422_203922.wav"));
+        return sd;
+    }
+
+    private static void ecrireWav(Path fichier) throws Exception {
+        byte[] pcm = new byte[TRAMES * 2];
+        for (int i = 0; i < TRAMES; i++) {
+            short e = (short) (((i * 41) % 1000) - 500);
+            pcm[2 * i] = (byte) (e & 0xFF);
+            pcm[2 * i + 1] = (byte) ((e >> 8) & 0xFF);
+        }
+        ByteBuffer buf = ByteBuffer.allocate(44 + pcm.length).order(ByteOrder.LITTLE_ENDIAN);
+        buf.put("RIFF".getBytes(StandardCharsets.US_ASCII));
+        buf.putInt(36 + pcm.length);
+        buf.put("WAVE".getBytes(StandardCharsets.US_ASCII));
+        buf.put("fmt ".getBytes(StandardCharsets.US_ASCII));
+        buf.putInt(16);
+        buf.putShort((short) 1);
+        buf.putShort((short) 1);
+        buf.putInt(FREQUENCE_WAV);
+        buf.putInt(FREQUENCE_WAV * 2);
+        buf.putShort((short) 2);
+        buf.putShort((short) 16);
+        buf.put("data".getBytes(StandardCharsets.US_ASCII));
+        buf.putInt(pcm.length);
+        buf.put(pcm);
+        Files.write(fichier, buf.array());
+    }
+}

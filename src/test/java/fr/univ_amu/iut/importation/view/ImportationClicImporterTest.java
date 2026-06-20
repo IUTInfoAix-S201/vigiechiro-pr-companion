@@ -28,6 +28,7 @@ import javafx.scene.control.Label;
 import javafx.stage.Stage;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.api.FxRobot;
@@ -48,6 +49,7 @@ import org.testfx.util.WaitForAsyncUtils;
 /// directement sur un fil d'arrière-plan lèverait « Not on FX application thread »
 /// (avalée par le thread daemon), et l'écran ne bougerait plus.
 @ExtendWith(ApplicationExtension.class)
+@Tag("conformite")
 class ImportationClicImporterTest {
 
     private static final String ID_USER = "u-clic";
@@ -79,14 +81,13 @@ class ImportationClicImporterTest {
         Site etang = service.creerSite("640380", "Étang de la Tuilière", Protocole.STANDARD, null, ID_USER);
         service.ajouterPoint(etang.id(), "A1", 43.5, 5.4, "Chêne");
 
-        // Le ViewModel est non-singleton : on tient la même instance que le
-        // contrôleur chargé (via une fabrique de contrôleur), pour observer son
-        // état d'import.
-        viewModel = injector.getInstance(ImportationViewModel.class);
-        ImportationController controller = new ImportationController(viewModel);
+        // Le contrôleur est créé par Guice (robuste quelle que soit la signature de
+        // son constructeur), puis on récupère SON ViewModel par réflexion (par type,
+        // robuste au nom du champ) pour observer l'état de l'import.
         FXMLLoader loader = new FXMLLoader(ImportationController.class.getResource("Importation.fxml"));
-        loader.setControllerFactory(type -> controller);
+        loader.setControllerFactory(injector::getInstance);
         Parent vue = loader.load();
+        viewModel = extraireViewModel(loader.getController());
         stage.setScene(new Scene(vue, 1100, 760));
         stage.show();
 
@@ -96,6 +97,19 @@ class ImportationClicImporterTest {
     @AfterEach
     void nettoyerWorkspace() {
         System.clearProperty("vigiechiro.workspace");
+    }
+
+    /// Récupère le ViewModel détenu par le contrôleur par réflexion **sur le type**
+    /// (et non le nom du champ) : indépendant de la signature du constructeur et du
+    /// nommage interne du contrôleur.
+    private static ImportationViewModel extraireViewModel(Object controleur) throws IllegalAccessException {
+        for (java.lang.reflect.Field champ : controleur.getClass().getDeclaredFields()) {
+            if (ImportationViewModel.class.isAssignableFrom(champ.getType())) {
+                champ.setAccessible(true);
+                return (ImportationViewModel) champ.get(controleur);
+            }
+        }
+        throw new IllegalStateException("Aucun champ ImportationViewModel dans " + controleur.getClass());
     }
 
     @Test

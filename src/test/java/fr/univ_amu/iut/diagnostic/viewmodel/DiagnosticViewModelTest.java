@@ -73,6 +73,19 @@ class DiagnosticViewModelTest {
     }
 
     @Test
+    @DisplayName("Rouvrir le même passage ne duplique pas les listes (setAll, pas addAll)")
+    void ouvrir_deux_fois_ne_duplique_pas() {
+        when(service.diagnostiquer(ID_PASSAGE)).thenReturn(diagnostic(serie(), 43.5, 5.4));
+
+        viewModel.ouvrirSur(ID_PASSAGE);
+        viewModel.ouvrirSur(ID_PASSAGE); // 2e ouverture : REMPLACE, ne cumule pas
+
+        assertThat(viewModel.mesures()).hasSize(2);
+        assertThat(viewModel.anomalies()).hasSize(1);
+        assertThat(viewModel.evenements()).hasSize(1);
+    }
+
+    @Test
     @DisplayName("Un relevé climatique absent est signalé (R20) et la série reste vide")
     void releve_climatique_absent() {
         when(service.diagnostiquer(ID_PASSAGE)).thenReturn(diagnostic(SerieClimatique.absente(), null, null));

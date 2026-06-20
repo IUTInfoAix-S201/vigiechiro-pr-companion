@@ -32,6 +32,12 @@ open module vigiechiro {
     // Composant audio fourni pour la SAÉ 2.01 (sonogramme / spectrogramme).
     requires fr.nedjar.vigiechiro.audio;
 
+    // Icônes vectorielles FontAwesome 5 via Ikonli (FontIcon), utilisées par l'écran d'accueil du
+    // socle. Le pack `fontawesome5` est requis pour que son IkonProvider soit découvert par le
+    // ServiceLoader d'Ikonli dans le graphe de modules (JPMS).
+    requires org.kordamp.ikonli.javafx;
+    requires org.kordamp.ikonli.fontawesome5;
+
     // Export base package
     exports fr.univ_amu.iut;
 

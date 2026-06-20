@@ -13,8 +13,14 @@ public interface ActiviteAccueil {
     /// Rang d'affichage (ordre croissant : les plus petits en premier).
     int ordre();
 
-    /// Pictogramme (emoji) affiché en tête de carte.
-    String icone();
+    /// Code d'icône [Ikonli](https://kordamp.org/ikonli/) FontAwesome 5 affiché en tête de carte
+    /// (ex. `"fas-map-marked-alt"`). C'est le socle qui en construit un `FontIcon` : la feature
+    /// reste libre de toute dépendance JavaFX/Ikonli (elle ne manipule qu'une chaîne).
+    String iconeLiteral();
+
+    /// Couleur d'accent de la feature en hexadécimal CSS (ex. `"#4a90d9"`). Teinte la pastille
+    /// d'icône, le titre de la carte et le chevron qui apparaît au survol.
+    String couleur();
 
     /// Titre court de l'activité (ex. « Mes sites »).
     String titre();

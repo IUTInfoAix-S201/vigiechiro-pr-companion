@@ -23,8 +23,13 @@ public final class IndicateurObservations implements IndicateurAccueil {
     }
 
     @Override
-    public String icone() {
-        return "🦇";
+    public String iconeLiteral() {
+        return "fas-paw";
+    }
+
+    @Override
+    public String couleur() {
+        return "#f39c12";
     }
 
     @Override

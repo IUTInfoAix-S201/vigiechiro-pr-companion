@@ -23,8 +23,13 @@ public final class IndicateurPassages implements IndicateurAccueil {
     }
 
     @Override
-    public String icone() {
-        return "🌙";
+    public String iconeLiteral() {
+        return "fas-moon";
+    }
+
+    @Override
+    public String couleur() {
+        return "#a29bfe";
     }
 
     @Override

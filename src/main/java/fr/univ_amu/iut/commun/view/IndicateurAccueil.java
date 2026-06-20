@@ -16,8 +16,13 @@ public interface IndicateurAccueil {
     /// Rang d'affichage (ordre croissant : les plus petits en premier).
     int ordre();
 
-    /// Pictogramme (emoji) affiché en tête de la pastille.
-    String icone();
+    /// Code d'icône [Ikonli](https://kordamp.org/ikonli/) FontAwesome 5 de la pastille (ex.
+    /// `"fas-moon"`). Le socle en construit un `FontIcon` coloré ; la feature ne dépend d'aucune
+    /// classe JavaFX/Ikonli.
+    String iconeLiteral();
+
+    /// Couleur d'accent (hex CSS, ex. `"#a29bfe"`) appliquée à l'icône de la pastille.
+    String couleur();
 
     /// Libellé court (ex. « Sites », « Points d'écoute »).
     String libelle();

@@ -125,4 +125,31 @@ class MainViewTest {
                 .extracting(Label::getText)
                 .contains("Sites");
     }
+
+    @Test
+    @DisplayName("L'accueil affiche le hero nocturne et une carte (chip + chevron) par activité")
+    void accueil_affiche_hero_et_cartes(FxRobot robot) {
+        assertThat(robot.lookup(".hero-nocturne").tryQuery()).isPresent();
+
+        int cartes = robot.lookup(".carte-activite").queryAll().size();
+        assertThat(cartes).isPositive();
+        // Chaque carte porte exactement une pastille d'icône et un chevron d'invite.
+        assertThat(robot.lookup(".carte-chip").queryAll()).hasSize(cartes);
+        assertThat(robot.lookup(".carte-chevron").queryAll()).hasSize(cartes);
+    }
+
+    @Test
+    @DisplayName("Tableau de bord : un compteur à zéro est atténué (classe indicateur-vide) (#141)")
+    void compteur_a_zero_est_attenue(FxRobot robot) {
+        robot.interact(() -> {
+            new UtilisateurDao(source).insert(new Utilisateur("u-1", "Testeur"));
+            injector.getInstance(ServiceSites.class)
+                    .creerSite("640380", "Étang de la Tuilière", Protocole.STANDARD, null, "u-1");
+        });
+        robot.interact(() -> navigateur.afficher(new Group(), "sites", "Mes sites de suivi"));
+        robot.interact(navigateur::afficherAccueil);
+
+        // Sites = 1, mais Points / Passages / Observations restent à 0 : ces pastilles sont atténuées.
+        assertThat(robot.lookup(".indicateur-vide").queryAll()).isNotEmpty();
+    }
 }

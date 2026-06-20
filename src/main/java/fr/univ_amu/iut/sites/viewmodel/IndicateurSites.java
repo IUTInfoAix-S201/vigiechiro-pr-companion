@@ -23,8 +23,13 @@ public final class IndicateurSites implements IndicateurAccueil {
     }
 
     @Override
-    public String icone() {
-        return "🗺";
+    public String iconeLiteral() {
+        return "fas-map-marked-alt";
+    }
+
+    @Override
+    public String couleur() {
+        return "#4a90d9";
     }
 
     @Override

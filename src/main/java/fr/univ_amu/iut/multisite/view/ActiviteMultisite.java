@@ -25,8 +25,13 @@ public final class ActiviteMultisite implements ActiviteAccueil {
     }
 
     @Override
-    public String icone() {
-        return "🗂";
+    public String iconeLiteral() {
+        return "fas-layer-group";
+    }
+
+    @Override
+    public String couleur() {
+        return "#e8a838";
     }
 
     @Override

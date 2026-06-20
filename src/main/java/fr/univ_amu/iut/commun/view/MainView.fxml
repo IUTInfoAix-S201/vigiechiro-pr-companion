@@ -6,7 +6,9 @@
 <?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
 
 <!--
   Chrome principal de VigieChiro PR Companion (socle IHM).
@@ -35,17 +37,28 @@
   </top>
 
   <center>
-    <VBox fx:id="zoneAccueil" styleClass="zone-accueil" alignment="CENTER" spacing="20.0">
-      <Label styleClass="titre-accueil" text="Bienvenue dans VigieChiro PR Companion"/>
-      <Label styleClass="sous-titre-accueil" wrapText="true" textAlignment="CENTER"
-             text="Sélectionnez une activité pour traiter une nuit d'enregistrement (Passive Recorder)."/>
-      <!-- Bandeau de compteurs (tableau de bord) peuplé par MainController à partir des
-           IndicateurAccueil des features. Masqué tant qu'aucune donnée n'existe. -->
-      <FlowPane fx:id="bandeauIndicateurs" styleClass="bandeau-indicateurs"
-                alignment="CENTER" hgap="12.0" vgap="12.0"/>
-      <!-- Cartes d'activités peuplées par MainController à partir des ActiviteAccueil des features. -->
-      <FlowPane fx:id="cartesActivites" styleClass="cartes-activites"
-                alignment="CENTER" hgap="16.0" vgap="16.0"/>
+    <VBox fx:id="zoneAccueil" styleClass="zone-accueil" spacing="0.0">
+      <!-- Hero nocturne : bandeau en dégradé bleu nuit (identité « une nuit de capture »), avec
+           titre, invite et tableau de bord de compteurs. Le filigrane décoratif déborde
+           volontairement ; MainController clippe le hero à ses bornes. -->
+      <StackPane fx:id="hero" styleClass="hero-nocturne">
+        <FontIcon iconLiteral="fas-moon" styleClass="hero-filigrane" StackPane.alignment="TOP_RIGHT"/>
+        <VBox styleClass="hero-contenu" alignment="CENTER" spacing="14.0">
+          <Label styleClass="titre-accueil" text="Bienvenue dans VigieChiro PR Companion"/>
+          <Label styleClass="sous-titre-accueil" wrapText="true" textAlignment="CENTER"
+                 text="Sélectionnez une activité pour traiter une nuit d'enregistrement (Passive Recorder)."/>
+          <!-- Bandeau de compteurs (tableau de bord) peuplé par MainController à partir des
+               IndicateurAccueil des features. Masqué tant qu'aucune donnée n'existe. -->
+          <FlowPane fx:id="bandeauIndicateurs" styleClass="bandeau-indicateurs"
+                    alignment="CENTER" hgap="12.0" vgap="12.0"/>
+        </VBox>
+      </StackPane>
+      <!-- Zone des cartes d'activités, peuplées par MainController à partir des ActiviteAccueil
+           des features. -->
+      <VBox styleClass="zone-cartes" alignment="TOP_CENTER" VBox.vgrow="ALWAYS">
+        <FlowPane fx:id="cartesActivites" styleClass="cartes-activites"
+                  alignment="CENTER" hgap="16.0" vgap="16.0"/>
+      </VBox>
     </VBox>
   </center>
 

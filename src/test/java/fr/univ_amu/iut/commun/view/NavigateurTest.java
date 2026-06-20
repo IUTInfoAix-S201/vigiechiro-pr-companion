@@ -57,6 +57,19 @@ class NavigateurTest {
     }
 
     @Test
+    @DisplayName("libelleRetour() indique l'écran précédent (destination du ← Retour)")
+    void libelle_retour_indique_l_ecran_precedent() {
+        Navigateur navigateur = navigateur(new NavigationViewModel(), new Group());
+        assertThat(navigateur.libelleRetour()).isNull(); // à l'accueil
+
+        navigateur.ouvrirRacine(new Group(), "multisite", "Vue multi-sites", null);
+        assertThat(navigateur.libelleRetour()).isEqualTo("Accueil");
+
+        navigateur.empiler(new Group(), "passage", "Détails du passage N° 1", null);
+        assertThat(navigateur.libelleRetour()).isEqualTo("Vue multi-sites");
+    }
+
+    @Test
     @DisplayName("empiler puis revenir préserve l'instance des écrans (état conservé)")
     void empiler_puis_revenir_preserve_les_vues() {
         Navigateur navigateur = navigateur(new NavigationViewModel(), new Group());

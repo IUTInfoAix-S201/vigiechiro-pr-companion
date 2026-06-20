@@ -67,6 +67,15 @@ public class Navigateur {
         return historique.size() > 1;
     }
 
+    /// Libellé de l'écran vers lequel le ← Retour ramène (étape précédente de l'**historique**), pour
+    /// l'afficher sur le bouton (« ← Vue multi-sites ») et lever toute ambiguïté quand le fil d'Ariane
+    /// montre l'emplacement plutôt que la route. `null` à l'accueil (pas de retour).
+    public String libelleRetour() {
+        return historique.size() < 2
+                ? null
+                : historique.get(historique.size() - 2).libelle();
+    }
+
     /// Stratégie de confirmation « quitter malgré une saisie » (injectable pour les tests).
     void setConfirmateurQuitter(ConfirmateurQuitter confirmateur) {
         this.confirmateur = Objects.requireNonNull(confirmateur, "confirmateur");

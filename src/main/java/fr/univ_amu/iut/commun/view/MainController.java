@@ -140,6 +140,12 @@ public class MainController {
         boolean peutRevenir = navigateur.peutRevenir();
         boutonRetour.setVisible(peutRevenir);
         boutonRetour.setManaged(peutRevenir);
+        // Le bouton dit OÙ il ramène (historique) : « ← Vue multi-sites » lève l'ambiguïté quand le
+        // fil d'Ariane montre l'emplacement (« Mes sites › Carré N ») plutôt que la route suivie.
+        if (peutRevenir) {
+            String destination = navigateur.libelleRetour();
+            boutonRetour.setText(destination != null ? "← " + destination : "← Retour");
+        }
 
         filAriane.getChildren().clear();
         var segments = navigateur.filActuel();

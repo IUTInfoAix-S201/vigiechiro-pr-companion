@@ -3,9 +3,11 @@ package fr.univ_amu.iut.validation.di;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
+import com.google.inject.multibindings.Multibinder;
 import fr.univ_amu.iut.commun.model.Horloge;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
 import fr.univ_amu.iut.commun.persistence.UniteDeTravail;
+import fr.univ_amu.iut.commun.view.IndicateurAccueil;
 import fr.univ_amu.iut.commun.view.OuvrirValidation;
 import fr.univ_amu.iut.passage.model.dao.SequenceDao;
 import fr.univ_amu.iut.passage.model.dao.SessionDao;
@@ -17,6 +19,7 @@ import fr.univ_amu.iut.validation.model.dao.ObservationDao;
 import fr.univ_amu.iut.validation.model.dao.ResultatsIdentificationDao;
 import fr.univ_amu.iut.validation.model.dao.TaxonDao;
 import fr.univ_amu.iut.validation.view.NavigationValidation;
+import fr.univ_amu.iut.validation.viewmodel.IndicateurObservations;
 import fr.univ_amu.iut.validation.viewmodel.ValidationViewModel;
 
 /// Module Guice de la feature `validation` : fournit ses DAO, ses moteurs CSV
@@ -39,6 +42,8 @@ public class ValidationModule extends AbstractModule {
     @Override
     protected void configure() {
         bind(OuvrirValidation.class).to(NavigationValidation.class);
+        // Compteur du tableau de bord d'accueil : nombre d'observations.
+        Multibinder.newSetBinder(binder(), IndicateurAccueil.class).addBinding().to(IndicateurObservations.class);
     }
 
     @Provides

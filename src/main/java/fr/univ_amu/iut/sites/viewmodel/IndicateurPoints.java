@@ -2,18 +2,19 @@ package fr.univ_amu.iut.sites.viewmodel;
 
 import com.google.inject.Inject;
 import fr.univ_amu.iut.commun.view.IndicateurAccueil;
-import fr.univ_amu.iut.sites.model.dao.PointDao;
+import fr.univ_amu.iut.sites.model.ServiceSites;
 import java.util.Objects;
 
-/// Compteur d'accueil de la feature `sites` : nombre de points d'écoute. Enregistré dans le
-/// `Multibinder<IndicateurAccueil>` par [fr.univ_amu.iut.sites.di.SitesModule].
+/// Compteur d'accueil de la feature `sites` : nombre de points d'écoute. Passe par le service
+/// métier (couche `viewmodel → service → dao`). Enregistré dans le `Multibinder<IndicateurAccueil>`
+/// par [fr.univ_amu.iut.sites.di.SitesModule].
 public final class IndicateurPoints implements IndicateurAccueil {
 
-    private final PointDao pointDao;
+    private final ServiceSites serviceSites;
 
     @Inject
-    public IndicateurPoints(PointDao pointDao) {
-        this.pointDao = Objects.requireNonNull(pointDao, "pointDao");
+    public IndicateurPoints(ServiceSites serviceSites) {
+        this.serviceSites = Objects.requireNonNull(serviceSites, "serviceSites");
     }
 
     @Override
@@ -33,6 +34,6 @@ public final class IndicateurPoints implements IndicateurAccueil {
 
     @Override
     public long valeur() {
-        return pointDao.compter();
+        return serviceSites.compterPoints();
     }
 }

@@ -92,6 +92,11 @@ public class ServiceValidation {
     // Import (E7.S1)
     // ---------------------------------------------------------------------------------------------
 
+    /// Nombre total d'observations (compteur du tableau de bord d'accueil).
+    public long compterObservations() {
+        return observationDao.compter();
+    }
+
     /// Importe les résultats Tadarida d'un passage : parse le CSV, crée les résultats
     /// d'identification et insère les observations en masse, raccrochées à leurs séquences.
     ///

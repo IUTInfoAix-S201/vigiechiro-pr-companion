@@ -2,19 +2,19 @@ package fr.univ_amu.iut.validation.viewmodel;
 
 import com.google.inject.Inject;
 import fr.univ_amu.iut.commun.view.IndicateurAccueil;
-import fr.univ_amu.iut.validation.model.dao.ObservationDao;
+import fr.univ_amu.iut.validation.model.ServiceValidation;
 import java.util.Objects;
 
 /// Compteur d'accueil de la feature `validation` : nombre d'observations (détections de
-/// chauves-souris). Enregistré dans le `Multibinder<IndicateurAccueil>` par
-/// [fr.univ_amu.iut.validation.di.ValidationModule].
+/// chauves-souris). Passe par le service métier (couche `viewmodel → service → dao`). Enregistré
+/// dans le `Multibinder<IndicateurAccueil>` par [fr.univ_amu.iut.validation.di.ValidationModule].
 public final class IndicateurObservations implements IndicateurAccueil {
 
-    private final ObservationDao observationDao;
+    private final ServiceValidation serviceValidation;
 
     @Inject
-    public IndicateurObservations(ObservationDao observationDao) {
-        this.observationDao = Objects.requireNonNull(observationDao, "observationDao");
+    public IndicateurObservations(ServiceValidation serviceValidation) {
+        this.serviceValidation = Objects.requireNonNull(serviceValidation, "serviceValidation");
     }
 
     @Override
@@ -34,6 +34,6 @@ public final class IndicateurObservations implements IndicateurAccueil {
 
     @Override
     public long valeur() {
-        return observationDao.compter();
+        return serviceValidation.compterObservations();
     }
 }

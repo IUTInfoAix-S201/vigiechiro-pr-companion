@@ -81,6 +81,11 @@ public class ServicePassage {
         this.rattachementDao = Objects.requireNonNull(rattachementDao, "rattachementDao");
     }
 
+    /// Nombre total de passages (compteur du tableau de bord d'accueil).
+    public long compterPassages() {
+        return passageDao.compter();
+    }
+
     /// Projection de lecture pour l'écran **M-Passage** : le passage `idPassage` et les agrégats de
     /// sa session (volumes, durée audible, nombre de séquences). Sans jointure `sites` : le contexte
     /// site (carré, code point) est fourni à la vue par la navigation.

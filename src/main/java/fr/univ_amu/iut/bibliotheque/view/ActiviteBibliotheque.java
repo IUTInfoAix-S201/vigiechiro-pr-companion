@@ -25,8 +25,13 @@ public final class ActiviteBibliotheque implements ActiviteAccueil {
     }
 
     @Override
-    public String icone() {
-        return "🔊";
+    public String iconeLiteral() {
+        return "fas-volume-up";
+    }
+
+    @Override
+    public String couleur() {
+        return "#8e44ad";
     }
 
     @Override

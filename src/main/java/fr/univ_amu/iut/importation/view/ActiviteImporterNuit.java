@@ -24,8 +24,13 @@ public final class ActiviteImporterNuit implements ActiviteAccueil {
     }
 
     @Override
-    public String icone() {
-        return "📥";
+    public String iconeLiteral() {
+        return "fas-file-import";
+    }
+
+    @Override
+    public String couleur() {
+        return "#1e8449";
     }
 
     @Override

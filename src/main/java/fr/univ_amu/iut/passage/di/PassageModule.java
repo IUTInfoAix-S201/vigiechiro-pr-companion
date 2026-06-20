@@ -3,9 +3,11 @@ package fr.univ_amu.iut.passage.di;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
+import com.google.inject.multibindings.Multibinder;
 import fr.univ_amu.iut.commun.model.Horloge;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
 import fr.univ_amu.iut.commun.persistence.UniteDeTravail;
+import fr.univ_amu.iut.commun.view.IndicateurAccueil;
 import fr.univ_amu.iut.commun.view.OuvrirPassage;
 import fr.univ_amu.iut.passage.model.MoteurWorkflowPassage;
 import fr.univ_amu.iut.passage.model.ReprefixeurSession;
@@ -20,6 +22,7 @@ import fr.univ_amu.iut.passage.model.dao.ReleveClimatiqueDao;
 import fr.univ_amu.iut.passage.model.dao.SequenceDao;
 import fr.univ_amu.iut.passage.model.dao.SessionDao;
 import fr.univ_amu.iut.passage.view.NavigationPassage;
+import fr.univ_amu.iut.passage.viewmodel.IndicateurPassages;
 import fr.univ_amu.iut.passage.viewmodel.PassageViewModel;
 import fr.univ_amu.iut.passage.viewmodel.RattachementViewModel;
 
@@ -39,6 +42,8 @@ public class PassageModule extends AbstractModule {
     @Override
     protected void configure() {
         bind(OuvrirPassage.class).to(NavigationPassage.class);
+        // Compteur du tableau de bord d'accueil : nombre de passages.
+        Multibinder.newSetBinder(binder(), IndicateurAccueil.class).addBinding().to(IndicateurPassages.class);
     }
 
     @Provides

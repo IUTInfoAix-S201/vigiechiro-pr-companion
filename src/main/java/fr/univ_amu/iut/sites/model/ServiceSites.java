@@ -140,6 +140,16 @@ public class ServiceSites {
         return pointDao.findBySite(idSite);
     }
 
+    /// Nombre total de sites (compteur du tableau de bord d'accueil).
+    public long compterSites() {
+        return siteDao.compter();
+    }
+
+    /// Nombre total de points d'écoute (compteur du tableau de bord d'accueil).
+    public long compterPoints() {
+        return pointDao.compter();
+    }
+
     /// Supprime un site **si et seulement si** aucun passage n'est rattaché à ses points (règle
     /// dure).
     ///

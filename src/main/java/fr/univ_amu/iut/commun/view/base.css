@@ -1,14 +1,15 @@
 /*
- * base.css — palette sémantique sobre du socle IHM VigieChiro PR Companion.
+ * base.css — palette sémantique et habillage du socle IHM VigieChiro PR Companion.
  *
- * Les couleurs suivent la convention du module : bleu primaire #4a90d9 (identité / barre de
- * navigation), vert accent #1e8449 (validation / actions positives). Définies comme couleurs
- * "looked-up" sur .root, elles sont réutilisables (et surchargeables) par les feuilles de style
- * des features.
+ * Couleurs de la convention du module : bleu primaire #4a90d9 (identité / barre de navigation),
+ * vert accent #1e8449 (validation / actions positives), bleu nuit #1a2a45 pour le hero de
+ * l'accueil (identité « une nuit de capture »). Définies en couleurs "looked-up" sur .root,
+ * elles sont réutilisables (et surchargeables) par les feuilles de style des features.
  */
 .root {
     -couleur-primaire: #4a90d9;
     -couleur-accent: #1e8449;
+    -couleur-nuit: #1a2a45;
     -couleur-fond: #f5f6f8;
     -couleur-texte: #2c3e50;
     -couleur-texte-clair: #ffffff;
@@ -46,45 +47,100 @@
     -fx-underline: true;
 }
 
-/* Zone centrale d'accueil (placeholder échangé par les features). */
+/* Zone centrale d'accueil (placeholder échangé par les features) : hero sombre + cartes claires. */
 .zone-accueil {
-    -fx-padding: 48;
     -fx-background-color: -couleur-fond;
 }
 
+/* Hero nocturne : bannière en dégradé bleu nuit en tête de l'accueil. */
+.hero-nocturne {
+    -fx-background-color: linear-gradient(to bottom right, #4a90d9 0%, #2c5aa0 45%, #1a2a45 100%);
+    -fx-padding: 40 32 36 32;
+}
+
+/* Filigrane décoratif (lune) en bord de bannière, clippé par MainController. Icône vectorielle
+   (Ikonli) plutôt qu'un emoji, pour un rendu fiable y compris en capture headless. */
+.hero-filigrane {
+    -fx-icon-color: rgba(255, 255, 255, 0.12);
+    -fx-icon-size: 160;
+    -fx-translate-x: 18;
+    -fx-translate-y: -14;
+}
+
 .titre-accueil {
-    -fx-font-size: 22px;
+    -fx-font-size: 26px;
     -fx-font-weight: bold;
-    -fx-text-fill: -couleur-primaire;
+    -fx-text-fill: -couleur-texte-clair;
 }
 
 .sous-titre-accueil {
     -fx-font-size: 14px;
-    -fx-text-fill: derive(-couleur-texte, 25%);
+    -fx-text-fill: rgba(255, 255, 255, 0.82);
 }
 
-/* Cartes d'activités de l'accueil (un point d'entrée par feature, cf. ActiviteAccueil). */
+/* Tableau de bord d'accueil : pastilles de compteurs posées sur le hero (verre dépoli sombre). */
+.bandeau-indicateurs {
+    -fx-padding: 6 0 0 0;
+}
+
+.indicateur {
+    -fx-background-color: rgba(255, 255, 255, 0.10);
+    -fx-background-radius: 12;
+    -fx-border-color: rgba(255, 255, 255, 0.18);
+    -fx-border-radius: 12;
+    -fx-border-width: 1;
+    -fx-padding: 10 16 10 16;
+    -fx-spacing: 12;
+    -fx-alignment: center-left;
+}
+
+.indicateur-texte {
+    -fx-spacing: 0;
+}
+
+.indicateur-valeur {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -couleur-texte-clair;
+}
+
+.indicateur-libelle {
+    -fx-font-size: 12px;
+    -fx-text-fill: rgba(255, 255, 255, 0.72);
+}
+
+/* Compteur à zéro : atténué pour que l'œil se porte sur les rubriques renseignées. */
+.indicateur-vide {
+    -fx-opacity: 0.5;
+}
+
+/* Zone des cartes d'activités (sous le hero, sur fond clair). */
+.zone-cartes {
+    -fx-background-color: -couleur-fond;
+    -fx-padding: 32 24 32 24;
+}
+
 .cartes-activites {
-    -fx-padding: 12 0 0 0;
+    -fx-padding: 0;
 }
 
 .carte-activite {
     -fx-background-color: -couleur-texte-clair;
-    -fx-background-radius: 10;
+    -fx-background-radius: 12;
     -fx-border-color: derive(-couleur-fond, -8%);
-    -fx-border-radius: 10;
+    -fx-border-radius: 12;
     -fx-border-width: 1;
-    -fx-padding: 20 24 20 24;
-    -fx-spacing: 6;
-    -fx-min-width: 260;
-    -fx-max-width: 260;
+    -fx-padding: 18 18 14 18;
+    -fx-spacing: 10;
+    -fx-min-width: 200;
+    -fx-max-width: 200;
+    -fx-min-height: 176;
     -fx-cursor: hand;
     -fx-effect: dropshadow(gaussian, rgba(44, 62, 80, 0.08), 8, 0, 0, 2);
 }
 
 .carte-activite:hover {
-    -fx-border-color: -couleur-primaire;
-    -fx-effect: dropshadow(gaussian, rgba(74, 144, 217, 0.28), 12, 0, 0, 3);
+    -fx-effect: dropshadow(gaussian, rgba(44, 62, 80, 0.20), 16, 0, 0, 6);
 }
 
 /* Liseré primaire au focus clavier (carte atteignable au Tab). */
@@ -93,19 +149,39 @@
     -fx-border-width: 2;
 }
 
-.carte-activite-icone {
-    -fx-font-size: 30px;
+/* Pastille ronde d'icône (sa couleur de fond est posée en inline par feature). */
+.carte-chip {
+    -fx-min-width: 46;
+    -fx-min-height: 46;
+    -fx-max-width: 46;
+    -fx-max-height: 46;
+    -fx-background-radius: 23;
+    -fx-alignment: center;
+    -fx-effect: dropshadow(gaussian, rgba(44, 62, 80, 0.18), 6, 0, 0, 2);
 }
 
 .carte-activite-titre {
-    -fx-font-size: 16px;
+    -fx-font-size: 15px;
     -fx-font-weight: bold;
-    -fx-text-fill: -couleur-primaire;
 }
 
 .carte-activite-desc {
-    -fx-font-size: 13px;
-    -fx-text-fill: derive(-couleur-texte, 25%);
+    -fx-font-size: 12.5px;
+    -fx-fill: derive(-couleur-texte, 25%);
+}
+
+/* Pied de carte : chevron d'invite, masqué au repos et révélé au survol / focus. */
+.carte-pied {
+    -fx-alignment: center-right;
+}
+
+.carte-chevron {
+    -fx-opacity: 0;
+}
+
+.carte-activite:hover .carte-chevron,
+.carte-activite:focused .carte-chevron {
+    -fx-opacity: 1;
 }
 
 /* Pied de page : bandeau sombre discret. */

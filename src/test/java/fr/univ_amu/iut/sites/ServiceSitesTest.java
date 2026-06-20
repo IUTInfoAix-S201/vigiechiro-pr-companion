@@ -297,4 +297,18 @@ class ServiceSitesTest {
 
         assertThat(resultat.estConforme()).isTrue();
     }
+
+    @Test
+    @DisplayName("compterSites() et compterPoints() reflètent les insertions (compteurs d'accueil)")
+    void compteurs_du_tableau_de_bord() {
+        assertThat(service.compterSites()).isZero();
+        assertThat(service.compterPoints()).isZero();
+
+        Site etang = service.creerSite("640380", "Étang", Protocole.STANDARD, null, ID_USER);
+        service.creerSite("752204", "ZAC Nord", Protocole.STANDARD, null, ID_USER);
+        service.ajouterPoint(etang.id(), "A1", 43.5, 5.4, "Chêne");
+
+        assertThat(service.compterSites()).isEqualTo(2L);
+        assertThat(service.compterPoints()).isEqualTo(1L);
+    }
 }

@@ -10,11 +10,14 @@ import fr.univ_amu.iut.commun.model.Utilisateur;
 import fr.univ_amu.iut.commun.model.dao.UtilisateurDao;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
 import fr.univ_amu.iut.commun.view.ActiviteAccueil;
+import fr.univ_amu.iut.commun.view.IndicateurAccueil;
 import fr.univ_amu.iut.passage.model.dao.PassageDao;
 import fr.univ_amu.iut.sites.model.ServiceSites;
 import fr.univ_amu.iut.sites.model.dao.PointDao;
 import fr.univ_amu.iut.sites.model.dao.SiteDao;
 import fr.univ_amu.iut.sites.view.ActiviteMesSites;
+import fr.univ_amu.iut.sites.viewmodel.IndicateurPoints;
+import fr.univ_amu.iut.sites.viewmodel.IndicateurSites;
 import fr.univ_amu.iut.sites.viewmodel.PointEditViewModel;
 import fr.univ_amu.iut.sites.viewmodel.SiteDetailViewModel;
 import fr.univ_amu.iut.sites.viewmodel.SitesViewModel;
@@ -40,6 +43,10 @@ public class SitesModule extends AbstractModule {
     @Override
     protected void configure() {
         Multibinder.newSetBinder(binder(), ActiviteAccueil.class).addBinding().to(ActiviteMesSites.class);
+        // Compteurs du tableau de bord d'accueil (sites + points d'écoute).
+        Multibinder<IndicateurAccueil> indicateurs = Multibinder.newSetBinder(binder(), IndicateurAccueil.class);
+        indicateurs.addBinding().to(IndicateurSites.class);
+        indicateurs.addBinding().to(IndicateurPoints.class);
     }
 
     @Provides

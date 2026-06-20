@@ -89,16 +89,22 @@ jobs:
         id: build
         # Tests UI en headless via la Headless Platform JavaFX 26
         # (glass.platform=Headless, cf. pom.xml) : aucun display X11 requis,
-        # plus besoin de xvfb. Reste BLOQUANT : la CI passe au rouge si un test
-        # de l'equipe echoue (c'est la Definition of Done du sujet). Les tests de
-        # reference tagues @Tag("conformite") sont EXCLUS de ce run bloquant.
+        # plus besoin de xvfb. Reste BLOQUANT : la CI passe au rouge si un test de
+        # l'equipe echoue (Definition of Done du sujet) ou si la garde d'integrite
+        # (IntegriteTestsLivresTest, volontairement NON taguee) detecte la
+        # suppression/neutralisation d'un test livre. Les DETECTEURS tagues
+        # @Tag("conformite") sont exclus de ce run -- de leur EXECUTION seulement :
+        # ils restent COMPILES ici (testCompile), donc un changement d'API qui casse
+        # leur compilation fera quand meme echouer ce run (limite assumee ; une vraie
+        # isolation demanderait un source set / module separe).
         run: ./mvnw -B verify -DexcludedGroups=conformite --file pom.xml
 
       - name: Tests de conformité (non bloquants — alimentent le tableau de bord)
-        # Tests de reference (lookup fx:id + E2E parcours + garde d'integrite),
-        # tagues @Tag("conformite"). Re-executes ici SANS JAMAIS rougir la CI
+        # Detecteurs de trous IHM (lookup fx:id + E2E parcours), tagues
+        # @Tag("conformite"). Re-executes ici SANS JAMAIS rougir la CI
         # (failure.ignore + continue-on-error) pour produire leurs rapports
         # surefire ; le ci-summary les remonte en conformite_by_feature.
+        # (La garde d'integrite, elle, est BLOQUANTE : cf. le run ci-dessus.)
         if: always()
         continue-on-error: true
         run: ./mvnw -B test -Dgroups=conformite -Dmaven.test.failure.ignore=true --file pom.xml
@@ -134,8 +140,26 @@ jobs:
           total = failed = errors = skipped = 0
           archunit_ok = None
           par_feature = {}   # tests de l'equipe par feature (hors conformite) -> phase 2 du tableau de bord
-          conformite = {}    # tests de REFERENCE @Tag("conformite") par feature / "parcours" / "integrite"
-          CONFORMITE = re.compile(r"(VueIntegrationTest|E2ETest|ImportationClicImporterTest|IntegriteTestsLivresTest)$")
+          conformite = {}    # tests de REFERENCE @Tag("conformite") par feature / "parcours"
+
+          # Ensemble des classes REELLEMENT taguees @Tag("conformite") : on scanne les sources de
+          # test (source de verite unique, alignee sur -Dgroups/-DexcludedGroups=conformite) plutot
+          # que de deviner par suffixe de nom. Un *E2ETest NON tague reste un test d'EQUIPE bloquant
+          # (il doit donc compter dans le total de l'equipe, pas en conformite).
+          conformite_classes = set()
+          for src in glob.glob("src/test/**/*.java", recursive=True):
+              try:
+                  txt = open(src, encoding="utf-8", errors="ignore").read()
+              except OSError:
+                  continue
+              # Annotation en debut de ligne (apres indentation) : evite les faux positifs des
+              # mentions de @Tag("conformite") dans un commentaire/Javadoc.
+              if not re.search(r'^\s*@Tag\("conformite"\)', txt, re.M):
+                  continue
+              pkg = re.search(r"^\s*package\s+([\w.]+)\s*;", txt, re.M)
+              cls = os.path.splitext(os.path.basename(src))[0]
+              conformite_classes.add(f"{pkg.group(1)}.{cls}" if pkg else cls)
+
           surefire = glob.glob("**/target/surefire-reports/TEST-*.xml", recursive=True)
           for f in surefire:
               try:
@@ -146,13 +170,11 @@ jobs:
               t = fnum(r.get("tests")); fl = fnum(r.get("failures"))
               er = fnum(r.get("errors")); sk = fnum(r.get("skipped"))
               passes = t - fl - er - sk
-              # Tests de reference (conformite) : signal SEPARE, jamais melange ni
-              # compte dans le total/par_feature de l'equipe.
-              if CONFORMITE.search(nom):
+              # Tests de reference (conformite) : signal SEPARE, jamais melange ni compte dans le
+              # total/par_feature de l'equipe. Appartenance decidee par le TAG reel (cf. scan ci-dessus).
+              if nom in conformite_classes:
                   if nom.endswith("E2ETest"):
                       cle = "parcours"
-                  elif nom.endswith("IntegriteTestsLivresTest"):
-                      cle = "integrite"
                   else:
                       mc = re.match(r"fr\.univ_amu\.iut\.([a-z0-9_]+)\.", nom)
                       cle = mc.group(1) if mc else "?"

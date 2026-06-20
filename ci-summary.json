@@ -1,0 +1,94 @@
+{
+  "generated_at": "2026-06-20T15:56:44.705287+00:00",
+  "sha": null,
+  "build_outcome": null,
+  "tests": {
+    "total": 672,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "passed": 672
+  },
+  "tests_by_feature": {
+    "multisite": {
+      "total": 53,
+      "passed": 53
+    },
+    "validation": {
+      "total": 104,
+      "passed": 104
+    },
+    "passage": {
+      "total": 112,
+      "passed": 112
+    },
+    "importation": {
+      "total": 84,
+      "passed": 84
+    },
+    "bibliotheque": {
+      "total": 23,
+      "passed": 23
+    },
+    "qualification": {
+      "total": 73,
+      "passed": 73
+    },
+    "lot": {
+      "total": 27,
+      "passed": 27
+    },
+    "diagnostic": {
+      "total": 25,
+      "passed": 25
+    }
+  },
+  "conformite_by_feature": {
+    "parcours": {
+      "total": 11,
+      "passed": 11
+    },
+    "bibliotheque": {
+      "total": 7,
+      "passed": 7
+    },
+    "lot": {
+      "total": 6,
+      "passed": 6
+    },
+    "passage": {
+      "total": 6,
+      "passed": 6
+    },
+    "importation": {
+      "total": 9,
+      "passed": 9
+    },
+    "qualification": {
+      "total": 7,
+      "passed": 7
+    },
+    "validation": {
+      "total": 6,
+      "passed": 6
+    },
+    "sites": {
+      "total": 7,
+      "passed": 7
+    },
+    "diagnostic": {
+      "total": 7,
+      "passed": 7
+    },
+    "multisite": {
+      "total": 6,
+      "passed": 6
+    }
+  },
+  "quality": {
+    "coverage_pct": 90.9,
+    "pmd_violations": 0,
+    "spotless_ok": null,
+    "archunit_ok": true
+  }
+}

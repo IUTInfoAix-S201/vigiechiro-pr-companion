@@ -8,7 +8,6 @@ import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 /// Garde d'intégrité : vérifie que les tests « détecteurs de trous » livrés avec le sujet sont
@@ -20,7 +19,11 @@ import org.junit.jupiter.api.Test;
 /// réflexion (références par nom de classe, pour compiler même si une classe a été supprimée), fait
 /// **échouer la CI** dans ce cas, de sorte que le tableau de bord le détecte. Retirer cette garde
 /// elle-même reste possible mais visible (son absence est le signal).
-@Tag("conformite")
+///
+/// Volontairement **non** taguée `@Tag("conformite")` : contrairement aux détecteurs de trous —
+/// non bloquants, car un écran encore en stub ne doit pas rougir la CI de l'équipe —, cette garde
+/// anti-triche **doit** faire échouer la CI (run bloquant). Son seul levier est précisément de
+/// rougir : la classer en non bloquant la priverait de toute force (cf. revue PR #166).
 class IntegriteTestsLivresTest {
 
     /// Tests à NE PAS supprimer ni désactiver (ils détectent les écrans/parcours non implémentés).

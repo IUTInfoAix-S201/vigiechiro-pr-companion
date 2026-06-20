@@ -56,6 +56,18 @@ public abstract class DaoGenerique<T, ID> implements Dao<T, ID> {
         executerMaj("DELETE FROM " + table() + " WHERE " + colonneCle() + " = ?", id);
     }
 
+    /// Nombre de lignes de la table (`COUNT(*)`). Efficace : ne matérialise aucune entité
+    /// (utile pour les compteurs du tableau de bord d'accueil sur de gros volumes, cf. import).
+    public long compter() {
+        try (Connection connexion = source.getConnection();
+                PreparedStatement ps = connexion.prepareStatement("SELECT COUNT(*) FROM " + table());
+                ResultSet rs = ps.executeQuery()) {
+            return rs.next() ? rs.getLong(1) : 0L;
+        } catch (SQLException e) {
+            throw new DataAccessException("Échec du comptage : " + table(), e);
+        }
+    }
+
     /// Exécute un `SELECT` et renvoie une entité mappée par ligne.
     protected List<T> query(String sql, RowMapper<T> mapper, Object... parametres) {
         List<T> resultats = new ArrayList<>();

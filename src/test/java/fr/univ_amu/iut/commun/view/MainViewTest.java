@@ -5,9 +5,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.google.inject.Injector;
 import fr.univ_amu.iut.App;
 import fr.univ_amu.iut.commun.di.RacineInjecteur;
+import fr.univ_amu.iut.commun.model.Protocole;
+import fr.univ_amu.iut.commun.model.Utilisateur;
+import fr.univ_amu.iut.commun.model.dao.UtilisateurDao;
 import fr.univ_amu.iut.commun.persistence.MigrationSchema;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
 import fr.univ_amu.iut.commun.viewmodel.NavigationViewModel;
+import fr.univ_amu.iut.sites.model.ServiceSites;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import javafx.fxml.FXMLLoader;
@@ -15,6 +19,8 @@ import javafx.scene.Group;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Hyperlink;
+import javafx.scene.control.Label;
+import javafx.scene.layout.FlowPane;
 import javafx.stage.Stage;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -30,6 +36,8 @@ import org.testfx.framework.junit5.Start;
 @ExtendWith(ApplicationExtension.class)
 class MainViewTest {
 
+    private Injector injector;
+    private SourceDeDonnees source;
     private Navigateur navigateur;
     private NavigationViewModel navigation;
 
@@ -37,8 +45,8 @@ class MainViewTest {
     void start(Stage stage) throws Exception {
         Path workspace = Files.createTempDirectory("vc-main");
         System.setProperty("vigiechiro.workspace", workspace.toString());
-        Injector injector = RacineInjecteur.creer();
-        SourceDeDonnees source = injector.getInstance(SourceDeDonnees.class);
+        injector = RacineInjecteur.creer();
+        source = injector.getInstance(SourceDeDonnees.class);
         new MigrationSchema(source).migrer();
         navigateur = injector.getInstance(Navigateur.class);
         navigation = injector.getInstance(NavigationViewModel.class);
@@ -89,5 +97,32 @@ class MainViewTest {
 
         robot.interact(() -> navigation.setNavigationVerrouillee(false));
         assertThat(lien.isDisabled()).isFalse();
+    }
+
+    @Test
+    @DisplayName("Tableau de bord : le bandeau de compteurs est masqué quand la base est vide (#141)")
+    void bandeau_masque_si_base_vide(FxRobot robot) {
+        FlowPane bandeau = robot.lookup("#bandeauIndicateurs").queryAs(FlowPane.class);
+        assertThat(bandeau.isVisible()).isFalse();
+        assertThat(bandeau.getChildren()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Tableau de bord : le bandeau affiche les compteurs après un retour sur l'accueil (#141)")
+    void bandeau_affiche_compteurs_apres_donnees(FxRobot robot) {
+        robot.interact(() -> {
+            new UtilisateurDao(source).insert(new Utilisateur("u-1", "Testeur"));
+            injector.getInstance(ServiceSites.class)
+                    .creerSite("640380", "Étang de la Tuilière", Protocole.STANDARD, null, "u-1");
+        });
+        // On quitte l'accueil puis on y revient : le retour déclenche le recalcul des compteurs.
+        robot.interact(() -> navigateur.afficher(new Group(), "sites", "Mes sites de suivi"));
+        robot.interact(navigateur::afficherAccueil);
+
+        FlowPane bandeau = robot.lookup("#bandeauIndicateurs").queryAs(FlowPane.class);
+        assertThat(bandeau.isVisible()).isTrue();
+        assertThat(robot.lookup(".indicateur-libelle").queryAllAs(Label.class))
+                .extracting(Label::getText)
+                .contains("Sites");
     }
 }

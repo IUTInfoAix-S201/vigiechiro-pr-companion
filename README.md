@@ -160,6 +160,8 @@ Dans un terminal (**Terminal → New Terminal**) :
 
 Pour **chaque** tâche (issue), le même cycle, qui reproduit le travail en entreprise :
 
+> Vous **maintenez** ce dépôt (équipe pédagogique) ? Le fonctionnement interne (modèle de branches `solution`/`main`, marqueurs, génération de la version étudiante, conventions) est décrit dans [CONTRIBUTING.md](CONTRIBUTING.md).
+
 1. **Créer une branche** depuis `main` :
    ```bash
    git checkout main && git pull
@@ -193,6 +195,8 @@ Pour **chaque** tâche (issue), le même cycle, qui reproduit le travail en entr
 
 Le projet embarque une chaîne qualité **professionnelle** (cœur de R2.03). Tout passe par le **Maven Wrapper** `./mvnw` (aucune installation) :
 
+> Mainteneur·euse ? Le détail de la suite de tests (exécution headless, taxonomie, ce qui bloque la CI) est dans [TESTING.md](TESTING.md).
+
 | Commande | Effet |
 |---|---|
 | `./mvnw javafx:run` | Lance l'application (fenêtre JavaFX) |
@@ -200,7 +204,7 @@ Le projet embarque une chaîne qualité **professionnelle** (cœur de R2.03). To
 | `./mvnw verify` | Tests + couverture + contrôles (build complet) |
 | `./mvnw -Pquality-gate verify` | Build + **PMD bloquant** (le « portail qualité » de la CI) |
 | `./mvnw pmd:check` | Rapport PMD seul (rapide) |
-| `./mvnw spotless:apply` | Formate le code (Google Java Format) |
+| `./mvnw spotless:apply` | Formate le code (Palantir Java Format) |
 
 Les outils en jeu :
 
@@ -293,6 +297,11 @@ scoop bucket add java && scoop install java/zulu25-jdk
 Vérifier : `java -version` doit afficher `openjdk version "25.0.x"`.
 
 </details>
+
+---
+
+Sécurité et données sensibles (signalement, localisations d'espèces protégées) : [SECURITY.md](SECURITY.md).
+Contribuer au dépôt (équipe pédagogique) : [CONTRIBUTING.md](CONTRIBUTING.md) · [TESTING.md](TESTING.md).
 
 ---
 

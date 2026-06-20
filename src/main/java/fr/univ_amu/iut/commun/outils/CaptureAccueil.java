@@ -2,6 +2,8 @@ package fr.univ_amu.iut.commun.outils;
 
 import com.google.inject.Injector;
 import fr.univ_amu.iut.commun.di.RacineInjecteur;
+import fr.univ_amu.iut.commun.persistence.MigrationSchema;
+import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -61,6 +63,14 @@ public final class CaptureAccueil {
         Path sortie = Path.of(System.getProperty("capture.outDir", ".github/assets"));
 
         Injector injecteur = RacineInjecteur.creer();
+
+        // Le rendu de l'accueil interroge les compteurs du tableau de bord (#141) : on migre donc le
+        // schema pour que les tables existent (compteurs a 0 sur une base neuve, bandeau masque).
+        // On ne seme PAS de donnees ici : ce serait coupler le socle a une feature (sites), ce que
+        // l'ArchitectureTest interdit (slices acycliques). L'apercu illustre donc l'accueil « vierge ».
+        SourceDeDonnees source = injecteur.getInstance(SourceDeDonnees.class);
+        new MigrationSchema(source).migrer();
+
         Parent chrome = chargerFxml(injecteur, CHROME);
         ApercuFx.enregistrerPng(new Scene(chrome, 1100, 720), sortie.resolve("apercu-accueil.png"));
 

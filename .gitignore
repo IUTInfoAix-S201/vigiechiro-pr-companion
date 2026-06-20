@@ -82,3 +82,6 @@ __pycache__/
 # ========== Logs ==========
 *.log
 logs/
+
+# Artefact du résumé CI (généré par le workflow, jamais versionné)
+ci-summary.json

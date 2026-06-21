@@ -1,0 +1,68 @@
+# Documentation utilisateur (MkDocs Material).
+#
+# - build : construit le site à chaque push/PR touchant la doc (mkdocs build --strict).
+#   Toujours actif : valide que la doc compile (liens, nav) sans rien publier.
+# - deploy : publie sur GitHub Pages, mais DORMANT tant que la variable de dépôt
+#   ENABLE_PAGES != 'true'. À activer quand le dépôt est public et Pages configuré
+#   (Settings -> Pages -> Source: GitHub Actions, puis variable ENABLE_PAGES=true).
+#   Tant que c'est dormant, aucune étape ne rougit la CI.
+#
+# Note migration : le push se déclenche sur `solution` (branche de travail actuelle)
+# et `main` ; à la consolidation des branches, `main` deviendra la seule branche.
+name: docs
+
+on:
+  push:
+    branches: [solution, main]
+    paths:
+      - "docs/**"
+      - "mkdocs.yml"
+      - ".github/workflows/docs.yml"
+  pull_request:
+    paths:
+      - "docs/**"
+      - "mkdocs.yml"
+      - ".github/workflows/docs.yml"
+  workflow_dispatch: {}
+
+# Permissions minimales par défaut (le job build ne fait que lire le code) ;
+# les droits Pages sont accordés au seul job deploy.
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Installer MkDocs Material
+        run: pip install -r docs/requirements.txt
+      - name: Construire le site (strict)
+        run: mkdocs build --strict
+      - name: Téléverser l'artefact Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    # Dormant tant que ENABLE_PAGES n'est pas 'true' (et jamais sur une PR).
+    if: github.event_name != 'pull_request' && vars.ENABLE_PAGES == 'true'
+    permissions:
+      pages: write
+      id-token: write
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Déployer sur GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

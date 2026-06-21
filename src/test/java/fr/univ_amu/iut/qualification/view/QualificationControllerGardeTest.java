@@ -35,4 +35,41 @@ class QualificationControllerGardeTest {
 
         assertThat(controller.aSaisieNonEnregistree()).isTrue();
     }
+
+    @Test
+    @DisplayName("aSaisieNonEnregistree : se ré-arme si le commentaire est modifié après enregistrement")
+    void garde_se_rearme_si_commentaire_modifie_apres_enregistrement() {
+        QualificationViewModel verdictVm = new QualificationViewModel(service);
+        SelectionEcouteViewModel selectionVm = new SelectionEcouteViewModel(service);
+        QualificationController controller =
+                new QualificationController(verdictVm, selectionVm, (idPassage, contexte) -> {});
+
+        verdictVm.choisirVerdict(Verdict.OK);
+        verdictVm.enregistrer();
+        assertThat(controller.aSaisieNonEnregistree()).isFalse(); // verdict + commentaire enregistrés
+
+        // Le commentaire reste éditable après enregistrement : le modifier recrée un brouillon non
+        // persisté → la garde doit de nouveau protéger la sortie.
+        verdictVm.commentaireProperty().set("Finalement à revoir");
+
+        assertThat(controller.aSaisieNonEnregistree()).isTrue();
+    }
+
+    @Test
+    @DisplayName("aSaisieNonEnregistree : se ré-arme si le verdict est changé après enregistrement")
+    void garde_se_rearme_si_verdict_change_apres_enregistrement() {
+        QualificationViewModel verdictVm = new QualificationViewModel(service);
+        SelectionEcouteViewModel selectionVm = new SelectionEcouteViewModel(service);
+        QualificationController controller =
+                new QualificationController(verdictVm, selectionVm, (idPassage, contexte) -> {});
+
+        verdictVm.choisirVerdict(Verdict.OK);
+        verdictVm.enregistrer();
+        assertThat(controller.aSaisieNonEnregistree()).isFalse();
+
+        // Changer de verdict après enregistrement : le verdict affiché ne correspond plus au persisté.
+        verdictVm.choisirVerdict(Verdict.DOUTEUX);
+
+        assertThat(controller.aSaisieNonEnregistree()).isTrue();
+    }
 }

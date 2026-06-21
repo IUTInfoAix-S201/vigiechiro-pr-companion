@@ -12,6 +12,7 @@ import fr.univ_amu.iut.commun.view.OuvrirSite;
 import fr.univ_amu.iut.commun.view.OuvrirValidation;
 import fr.univ_amu.iut.commun.view.OuvrirVerification;
 import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
+import fr.univ_amu.iut.passage.viewmodel.ActionRecommandee;
 import fr.univ_amu.iut.passage.viewmodel.EtapeWorkflow;
 import fr.univ_amu.iut.passage.viewmodel.PassageViewModel;
 import java.util.List;
@@ -19,6 +20,7 @@ import java.util.Locale;
 import java.util.Objects;
 import javafx.beans.binding.Bindings;
 import javafx.collections.ListChangeListener;
+import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -28,8 +30,11 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 
-/// Controller de l'écran pivot **M-Passage** (`Passage.fxml`) : fil d'Ariane (affichage), bandeau
-/// d'identité, stepper de statut et onglet « Vue d'ensemble » (stats + actions rapides).
+/// Controller de l'écran pivot **M-Passage** (`Passage.fxml`), en « hub à plat » : bandeau d'identité,
+/// stepper de statut, résumé de la nuit (stats) et cartes d'actions « avancer ». Le retour et le fil
+/// d'Ariane sont portés par le chrome (`commun`) ; cet écran ne porte donc plus de fil interne ni
+/// d'onglets-lanceurs. Il fournit toutefois son [#emplacement()] (contrat [EmplacementNavigation]) que
+/// le chrome rend dans le fil.
 ///
 /// Pur câblage (patron CM4) : lie les contrôles aux propriétés du [PassageViewModel]. Les boutons
 /// « Vérifier », « Diagnostic », « Préparer le dépôt » et « Validation Tadarida » ouvrent
@@ -38,6 +43,9 @@ import javafx.scene.layout.HBox;
 /// features `qualification`, `diagnostic`, `lot` ni `validation`). Aucun accès base de données ni
 /// logique métier ici (règle ArchUnit `view_sans_jdbc`).
 public class PassageController implements EmplacementNavigation {
+
+    /// Pseudo-classe CSS portant le liseré « prochaine action recommandée » sur la carte concernée.
+    private static final PseudoClass RECOMMANDEE = PseudoClass.getPseudoClass("recommandee");
 
     private final PassageViewModel viewModel;
     private final OuvrirVerification ouvrirVerification;
@@ -56,9 +64,6 @@ public class PassageController implements EmplacementNavigation {
     // --solution--
     @FXML
     private BorderPane racine;
-
-    @FXML
-    private Label lblFilAriane;
 
     @FXML
     private Label lblTitre;
@@ -100,16 +105,10 @@ public class PassageController implements EmplacementNavigation {
     private Button boutonValidation;
 
     @FXML
-    private Button boutonOuvrirValidation;
-
-    @FXML
     private Button boutonDepot;
 
     @FXML
     private Label lblIndiceAction;
-
-    @FXML
-    private Label lblValidation;
 
     // --end-solution--
 
@@ -135,14 +134,6 @@ public class PassageController implements EmplacementNavigation {
     @FXML
     private void initialize() {
         lblTitre.textProperty().bind(viewModel.titreContexteProperty());
-        lblFilAriane
-                .textProperty()
-                .bind(Bindings.createStringBinding(
-                        () -> {
-                            String titre = viewModel.titreContexteProperty().get();
-                            return titre.isEmpty() ? "" : "‹ Mes sites › " + titre;
-                        },
-                        viewModel.titreContexteProperty()));
         lblPlageHoraire.textProperty().bind(viewModel.plageHoraireProperty());
         lblEnregistreur.textProperty().bind(viewModel.enregistreurProperty());
         lblStatut
@@ -162,7 +153,7 @@ public class PassageController implements EmplacementNavigation {
         lblMessage.visibleProperty().bind(messagePresent);
         lblMessage.managedProperty().bind(messagePresent);
 
-        // Onglet « Vue d'ensemble » : statistiques + actions rapides.
+        // Résumé de la nuit (stats) + cartes d'actions.
         lblVolBruts.textProperty().bind(viewModel.volumeBrutsProperty());
         lblVolTransformes.textProperty().bind(viewModel.volumeTransformesProperty());
         lblDureeAudible.textProperty().bind(viewModel.dureeAudibleProperty());
@@ -172,7 +163,6 @@ public class PassageController implements EmplacementNavigation {
                 .disableProperty()
                 .bind(viewModel.verificationDisponibleProperty().not());
         boutonValidation.disableProperty().bind(viewModel.validationVerrouilleeProperty());
-        boutonOuvrirValidation.disableProperty().bind(viewModel.validationVerrouilleeProperty());
         boutonDepot.disableProperty().bind(viewModel.depotDisponibleProperty().not());
         lblIndiceAction
                 .textProperty()
@@ -182,14 +172,19 @@ public class PassageController implements EmplacementNavigation {
                                 : "🔒 La vérification sera possible une fois la nuit transformée.",
                         viewModel.verificationDisponibleProperty()));
 
-        lblValidation
-                .textProperty()
-                .bind(Bindings.createStringBinding(
-                        () -> viewModel.validationVerrouilleeProperty().get()
-                                ? "🔒 La validation Tadarida sera disponible une fois le passage déposé."
-                                : "✅ Passage déposé : la validation des identifications Tadarida"
-                                        + " (M-Vision-Tadarida) s'ouvrira depuis cet onglet.",
-                        viewModel.validationVerrouilleeProperty()));
+        // Mise en avant de la « prochaine action » : le liseré recommandé se déplace selon le statut
+        // (Vérifier → Préparer le dépôt → Validation Tadarida), au lieu de rester figé sur Vérifier.
+        viewModel.actionRecommandeeProperty().addListener((obs, ancienne, nouvelle) -> majActionRecommandee(nouvelle));
+        majActionRecommandee(viewModel.actionRecommandeeProperty().get());
+    }
+
+    /// Applique le liseré « recommandée » à la seule carte correspondant à la prochaine étape du
+    /// workflow (les autres le perdent). Diagnostic n'est jamais « recommandé » : c'est une action
+    /// transverse, disponible mais hors progression linéaire.
+    private void majActionRecommandee(ActionRecommandee action) {
+        boutonVerifier.pseudoClassStateChanged(RECOMMANDEE, action == ActionRecommandee.VERIFIER);
+        boutonDepot.pseudoClassStateChanged(RECOMMANDEE, action == ActionRecommandee.DEPOSER);
+        boutonValidation.pseudoClassStateChanged(RECOMMANDEE, action == ActionRecommandee.VALIDER);
     }
     // --end-solution--
 

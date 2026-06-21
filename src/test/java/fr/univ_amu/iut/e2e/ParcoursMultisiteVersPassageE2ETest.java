@@ -26,6 +26,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Labeled;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.HBox;
@@ -112,6 +113,42 @@ class ParcoursMultisiteVersPassageE2ETest {
         assertThat(libelles)
                 .contains("Carré 640380")
                 .anySatisfy(t -> assertThat(t).startsWith("Détails du passage"));
+    }
+
+    @Test
+    @DisplayName("Multisite → Passage → enfant : cliquer « Détails du passage » dans le fil rouvre M-Passage")
+    void multisite_enfant_clic_fil_rouvre_le_passage(FxRobot robot) {
+        NavigationViewModel navigation = injector.getInstance(NavigationViewModel.class);
+
+        // 1) Multisite → double-clic → M-Passage (atteint sans passer par le site).
+        robot.interact(() -> injector.getInstance(NavigationMultisite.class).ouvrirAccueil());
+        robot.doubleClickOn(DATE_NUIT);
+        assertThat(navigation.getVueCourante()).isEqualTo("passage");
+
+        // 2) M-Passage → écran enfant (carte « Diagnostic matériel »).
+        robot.interact(robot.lookup("#boutonDiagnostic").queryButton()::fire);
+        assertThat(navigation.getVueCourante()).isEqualTo("diagnostic");
+
+        // 3) Sur l'enfant, le fil situe le passage sous son site (#140) ; « Détails du passage N° 1 »
+        // est un segment ANCÊTRE cliquable (Hyperlink), pas le segment courant.
+        Hyperlink segmentPassage = filSegment(robot, "Détails du passage N° 1");
+
+        // 4) Cliquer ce segment exerce le Runnable du Lieu (OuvrirPassage) et rouvre réellement
+        // M-Passage — y compris depuis un enfant atteint via la vue multi-sites.
+        robot.interact(segmentPassage::fire);
+        assertThat(navigation.getVueCourante()).isEqualTo("passage");
+        assertThat(robot.lookup("#boutonVerifier").tryQuery()).isPresent();
+    }
+
+    /// Segment ancêtre (cliquable) du fil d'Ariane du chrome portant le libellé donné.
+    private static Hyperlink filSegment(FxRobot robot, String libelle) {
+        HBox fil = robot.lookup("#filAriane").queryAs(HBox.class);
+        return fil.getChildren().stream()
+                .filter(Hyperlink.class::isInstance)
+                .map(Hyperlink.class::cast)
+                .filter(segment -> libelle.equals(segment.getText()))
+                .findFirst()
+                .orElseThrow();
     }
 
     private static Path creerNuitSynthetique(Path sd) throws Exception {

@@ -492,23 +492,10 @@ public class ImportationViewModel {
     }
 
     /// Recalcule l'aperçu du préfixe (appliqué à un exemple de nom d'origine) ; vide tant que le
-    /// site ou le point n'est pas choisi.
+    /// site ou le point n'est pas choisi. Le calcul (pur) est délégué à [ApercuPrefixe].
     private void majApercu() {
-        Site site = siteSelectionne.get();
-        PointDEcoute point = pointSelectionne.get();
-        if (site == null || point == null) {
-            apercuPrefixe.set("");
-            return;
-        }
-        Prefixe prefixe = new Prefixe(site.numeroCarre(), annee.get(), numeroPassage.get(), point.code());
-        apercuPrefixe.set(prefixe.nommerOriginal(exempleNomOriginal()));
-    }
-
-    private String exempleNomOriginal() {
-        if (rapport != null && !rapport.originaux().isEmpty()) {
-            return rapport.originaux().get(0).getFileName().toString();
-        }
-        return "PaRec…_AAAAMMJJ_HHMMSS.wav";
+        apercuPrefixe.set(ApercuPrefixe.calculer(
+                siteSelectionne.get(), pointSelectionne.get(), annee.get(), numeroPassage.get(), rapport));
     }
     // --end-solution--
 }

@@ -13,6 +13,8 @@ import fr.univ_amu.iut.commun.model.dao.UtilisateurDao;
 import fr.univ_amu.iut.commun.outils.ApercuFx;
 import fr.univ_amu.iut.commun.persistence.MigrationSchema;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
+import fr.univ_amu.iut.commun.viewmodel.ContextePassage;
+import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
 import fr.univ_amu.iut.diagnostic.di.DiagnosticModule;
 import fr.univ_amu.iut.diagnostic.view.DiagnosticController;
 import fr.univ_amu.iut.passage.di.PassageModule;
@@ -132,7 +134,8 @@ public final class CaptureDiagnostic {
         loader.setControllerFactory(injecteur::getInstance);
         Parent vue = loader.load();
         DiagnosticController controleur = loader.getController();
-        controleur.ouvrirSur(idPassage);
+        // Capture hors-chrome : le fil d'Ariane n'est pas rendu ; le contexte n'a donc pas à être réel.
+        controleur.ouvrirSur(new ContextePassage(idPassage, 1, new ContexteSite("640380", "A1", null)));
         ApercuFx.enregistrerPng(new Scene(vue, 1000, 660), fichier);
         System.out.println("Apercu ecrit dans " + fichier.toAbsolutePath());
     }

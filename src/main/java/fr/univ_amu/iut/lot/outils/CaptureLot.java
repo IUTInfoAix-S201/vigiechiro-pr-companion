@@ -13,6 +13,8 @@ import fr.univ_amu.iut.commun.model.dao.UtilisateurDao;
 import fr.univ_amu.iut.commun.outils.ApercuFx;
 import fr.univ_amu.iut.commun.persistence.MigrationSchema;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
+import fr.univ_amu.iut.commun.viewmodel.ContextePassage;
+import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
 import fr.univ_amu.iut.lot.di.LotModule;
 import fr.univ_amu.iut.lot.model.ServiceLot;
 import fr.univ_amu.iut.lot.view.LotController;
@@ -132,7 +134,8 @@ public final class CaptureLot {
         loader.setControllerFactory(injecteur::getInstance);
         Parent vue = loader.load();
         LotController controleur = loader.getController();
-        controleur.ouvrirSur(idPassage);
+        // Capture hors-chrome : le fil d'Ariane n'est pas rendu ; le contexte n'a donc pas à être réel.
+        controleur.ouvrirSur(new ContextePassage(idPassage, 1, new ContexteSite(NUMERO_CARRE, CODE_POINT, null)));
         ApercuFx.enregistrerPng(new Scene(vue, 980, 600), fichier);
         System.out.println("Apercu ecrit dans " + fichier.toAbsolutePath());
     }

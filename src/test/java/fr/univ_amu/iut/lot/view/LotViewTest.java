@@ -11,6 +11,9 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Provides;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
+import fr.univ_amu.iut.commun.view.NavigationDeTestModule;
+import fr.univ_amu.iut.commun.viewmodel.ContextePassage;
+import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
 import fr.univ_amu.iut.lot.model.EtatLot;
 import fr.univ_amu.iut.lot.model.ServiceLot;
 import fr.univ_amu.iut.lot.viewmodel.LotViewModel;
@@ -41,17 +44,19 @@ class LotViewTest {
         service = mock(ServiceLot.class);
         when(service.consulterLot(anyLong()))
                 .thenReturn(new EtatLot(StatutWorkflow.VERIFIE, "/ws/session-42", 2, 8192L, List.of(), null));
-        Injector injector = Guice.createInjector(new AbstractModule() {
-            @Provides
-            LotViewModel viewModel() {
-                return new LotViewModel(service);
-            }
-        });
+        Injector injector = Guice.createInjector(
+                new AbstractModule() {
+                    @Provides
+                    LotViewModel viewModel() {
+                        return new LotViewModel(service);
+                    }
+                },
+                new NavigationDeTestModule());
         FXMLLoader loader = new FXMLLoader(LotController.class.getResource("Lot.fxml"));
         loader.setControllerFactory(injector::getInstance);
         Parent vue = loader.load();
         LotController controleur = loader.getController();
-        controleur.ouvrirSur(42L);
+        controleur.ouvrirSur(new ContextePassage(42L, 2, new ContexteSite("640380", "A1", "Étang de la Tuilière")));
         stage.setScene(new Scene(vue, 900, 640));
         stage.show();
     }

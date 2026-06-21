@@ -14,6 +14,10 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Provides;
 import fr.univ_amu.iut.commun.model.ModeValidation;
+import fr.univ_amu.iut.commun.view.Lieu;
+import fr.univ_amu.iut.commun.view.NavigationDeTestModule;
+import fr.univ_amu.iut.commun.viewmodel.ContextePassage;
+import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
 import fr.univ_amu.iut.validation.model.ModeRevue;
 import fr.univ_amu.iut.validation.model.Observation;
 import fr.univ_amu.iut.validation.model.ObservationStatut;
@@ -63,6 +67,7 @@ class ValidationVueIntegrationTest {
 
     private ServiceValidation service;
     private ValidationViewModel viewModel;
+    private ValidationController controleur;
 
     /// Construit une observation de test : `id` technique, séquence dérivée (`100 + id`), taxon
     /// Tadarida toujours `PIPPIP`, taxon observateur paramétrable (`null` = non touchée).
@@ -101,19 +106,31 @@ class ValidationVueIntegrationTest {
 
         // VM conservé dans un champ pour pouvoir asserter ses propriétés (liaisons bidirectionnelles).
         viewModel = new ValidationViewModel(service);
-        Injector injector = Guice.createInjector(new AbstractModule() {
-            @Provides
-            ValidationViewModel viewModel() {
-                return viewModel;
-            }
-        });
+        Injector injector = Guice.createInjector(
+                new AbstractModule() {
+                    @Provides
+                    ValidationViewModel viewModel() {
+                        return viewModel;
+                    }
+                },
+                new NavigationDeTestModule());
         FXMLLoader loader = new FXMLLoader(ValidationController.class.getResource("Validation.fxml"));
         loader.setControllerFactory(injector::getInstance);
         Parent vue = loader.load();
-        ValidationController controleur = loader.getController();
-        controleur.ouvrirSur(42L);
+        controleur = loader.getController();
+        controleur.ouvrirSur(new ContextePassage(42L, 2, new ContexteSite("640380", "A1", "Étang de la Tuilière")));
         stage.setScene(new Scene(vue, 1000, 720));
         stage.show();
+    }
+
+    @Test
+    @DisplayName("Emplacement (fil d'Ariane) : Mes sites › Carré N › Détails du passage N° X › Validation Tadarida")
+    void emplacement_reflete_le_passage() {
+        assertThat(controleur.emplacement())
+                .extracting(Lieu::libelle)
+                .containsExactly("Mes sites", "Carré 640380", "Détails du passage N° 2", "Validation Tadarida");
+        assertThat(controleur.emplacement().get(0).estCliquable()).isTrue();
+        assertThat(controleur.emplacement().get(3).estCliquable()).isFalse();
     }
 
     @Test

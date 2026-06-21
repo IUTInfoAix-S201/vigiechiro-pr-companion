@@ -8,6 +8,10 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Provides;
+import fr.univ_amu.iut.commun.view.Lieu;
+import fr.univ_amu.iut.commun.view.NavigationDeTestModule;
+import fr.univ_amu.iut.commun.viewmodel.ContextePassage;
+import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
 import fr.univ_amu.iut.diagnostic.model.AnalyseAnomalies;
 import fr.univ_amu.iut.diagnostic.model.Diagnostic;
 import fr.univ_amu.iut.diagnostic.model.MesureClimatique;
@@ -62,19 +66,36 @@ class DiagnosticVueIntegrationTest {
         // Passage introuvable : le ViewModel neutralise l'erreur dans son message sans lever.
         when(service.diagnostiquer(999L)).thenThrow(new RuntimeException("Passage 999 introuvable"));
 
-        Injector injector = Guice.createInjector(new AbstractModule() {
-            @Provides
-            DiagnosticViewModel viewModel() {
-                return new DiagnosticViewModel(service);
-            }
-        });
+        Injector injector = Guice.createInjector(
+                new AbstractModule() {
+                    @Provides
+                    DiagnosticViewModel viewModel() {
+                        return new DiagnosticViewModel(service);
+                    }
+                },
+                new NavigationDeTestModule());
         FXMLLoader loader = new FXMLLoader(DiagnosticController.class.getResource("Diagnostic.fxml"));
         loader.setControllerFactory(injector::getInstance);
         Parent vue = loader.load();
         controleur = loader.getController();
-        controleur.ouvrirSur(42L);
+        controleur.ouvrirSur(ctx(42L));
         stage.setScene(new Scene(vue, 1000, 760));
         stage.show();
+    }
+
+    private static ContextePassage ctx(long idPassage) {
+        return new ContextePassage(idPassage, 2, new ContexteSite("640380", "A1", "Étang de la Tuilière"));
+    }
+
+    @Test
+    @DisplayName("Emplacement (fil d'Ariane) : Mes sites › Carré N › Détails du passage N° X › Diagnostic matériel")
+    void emplacement_reflete_le_passage() {
+        assertThat(controleur.emplacement())
+                .extracting(Lieu::libelle)
+                .containsExactly("Mes sites", "Carré 640380", "Détails du passage N° 2", "Diagnostic matériel");
+        // Ancêtres cliquables ; écran courant non cliquable.
+        assertThat(controleur.emplacement().get(0).estCliquable()).isTrue();
+        assertThat(controleur.emplacement().get(3).estCliquable()).isFalse();
     }
 
     @Test
@@ -137,7 +158,7 @@ class DiagnosticVueIntegrationTest {
     @DisplayName("Changer pour un passage sans relevé signale R20, vide le graphe et la note GPS")
     void releve_absent_signale_r20_et_vide_le_graphe(FxRobot robot) {
         // Interaction : on rouvre l'écran sur un passage dont le relevé climatique est absent (R20).
-        robot.interact(() -> controleur.ouvrirSur(8L));
+        robot.interact(() -> controleur.ouvrirSur(ctx(8L)));
 
         Label alerteR20 = robot.lookup("#lblReleveAbsent").queryAs(Label.class);
         Label resume = robot.lookup("#lblResumeClimat").queryAs(Label.class);
@@ -158,7 +179,7 @@ class DiagnosticVueIntegrationTest {
     @DisplayName("Un passage introuvable réinitialise l'écran et affiche le message d'erreur")
     void passage_introuvable_reinitialise_l_ecran_et_affiche_le_message(FxRobot robot) {
         // Interaction : le service lève, le ViewModel doit neutraliser l'erreur dans son message.
-        robot.interact(() -> controleur.ouvrirSur(999L));
+        robot.interact(() -> controleur.ouvrirSur(ctx(999L)));
 
         Label message = robot.lookup("#lblMessage").queryAs(Label.class);
         Label enregistreur = robot.lookup("#lblEnregistreur").queryAs(Label.class);

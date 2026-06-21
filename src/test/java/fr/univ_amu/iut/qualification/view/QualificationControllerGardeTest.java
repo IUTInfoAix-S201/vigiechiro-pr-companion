@@ -3,6 +3,7 @@ package fr.univ_amu.iut.qualification.view;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import fr.univ_amu.iut.commun.model.Verdict;
+import fr.univ_amu.iut.commun.view.OuvrirSite;
 import fr.univ_amu.iut.qualification.model.ServiceQualification;
 import fr.univ_amu.iut.qualification.viewmodel.QualificationViewModel;
 import fr.univ_amu.iut.qualification.viewmodel.SelectionEcouteViewModel;
@@ -21,13 +22,25 @@ class QualificationControllerGardeTest {
     @Mock
     private ServiceQualification service;
 
+    /// Contrat [OuvrirSite] no-op : la garde de saisie ne dépend pas de la navigation (on ne clique
+    /// pas le fil d'Ariane), seulement de l'état du verdict.
+    private static OuvrirSite ouvrirSiteNeutre() {
+        return new OuvrirSite() {
+            @Override
+            public void ouvrirListe() {}
+
+            @Override
+            public void ouvrirDetail(String numeroCarre) {}
+        };
+    }
+
     @Test
     @DisplayName("aSaisieNonEnregistree : faux par défaut, vrai dès qu'un verdict brouillon est choisi")
     void garde_reflete_le_verdict_brouillon() {
         QualificationViewModel verdictVm = new QualificationViewModel(service);
         SelectionEcouteViewModel selectionVm = new SelectionEcouteViewModel(service);
         QualificationController controller =
-                new QualificationController(verdictVm, selectionVm, (idPassage, contexte) -> {});
+                new QualificationController(verdictVm, selectionVm, (idPassage, contexte) -> {}, ouvrirSiteNeutre());
 
         assertThat(controller.aSaisieNonEnregistree()).isFalse();
 
@@ -42,7 +55,7 @@ class QualificationControllerGardeTest {
         QualificationViewModel verdictVm = new QualificationViewModel(service);
         SelectionEcouteViewModel selectionVm = new SelectionEcouteViewModel(service);
         QualificationController controller =
-                new QualificationController(verdictVm, selectionVm, (idPassage, contexte) -> {});
+                new QualificationController(verdictVm, selectionVm, (idPassage, contexte) -> {}, ouvrirSiteNeutre());
 
         verdictVm.choisirVerdict(Verdict.OK);
         verdictVm.enregistrer();
@@ -61,7 +74,7 @@ class QualificationControllerGardeTest {
         QualificationViewModel verdictVm = new QualificationViewModel(service);
         SelectionEcouteViewModel selectionVm = new SelectionEcouteViewModel(service);
         QualificationController controller =
-                new QualificationController(verdictVm, selectionVm, (idPassage, contexte) -> {});
+                new QualificationController(verdictVm, selectionVm, (idPassage, contexte) -> {}, ouvrirSiteNeutre());
 
         verdictVm.choisirVerdict(Verdict.OK);
         verdictVm.enregistrer();

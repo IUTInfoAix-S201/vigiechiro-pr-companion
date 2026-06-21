@@ -13,6 +13,9 @@ import fr.univ_amu.iut.commun.model.dao.UtilisateurDao;
 import fr.univ_amu.iut.commun.outils.ApercuFx;
 import fr.univ_amu.iut.commun.persistence.MigrationSchema;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
+import fr.univ_amu.iut.commun.view.OuvrirSite;
+import fr.univ_amu.iut.commun.viewmodel.ContextePassage;
+import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
 import fr.univ_amu.iut.passage.di.PassageModule;
 import fr.univ_amu.iut.passage.model.EnregistrementOriginal;
 import fr.univ_amu.iut.passage.model.Enregistreur;
@@ -67,7 +70,9 @@ public final class CaptureQualification {
     private static final String ID_UTILISATEUR = "demo-enseignant";
     private static final String ENREGISTREUR = "1925492";
     private static final String QUALIF_FXML = "/fr/univ_amu/iut/qualification/view/Qualification.fxml";
-    private static final Prefixe PREFIXE = new Prefixe("640380", 2026, 2, "A1");
+    private static final String NUMERO_CARRE = "640380";
+    private static final String CODE_POINT = "A1";
+    private static final Prefixe PREFIXE = new Prefixe(NUMERO_CARRE, 2026, 2, CODE_POINT);
     private static final int NB_ENREGISTREMENTS = 60;
     private static final int TAILLE_SELECTION = 30;
     private static final int NB_ECOUTEES = 12;
@@ -114,13 +119,15 @@ public final class CaptureQualification {
         SelectionEcouteViewModel selectionVm = injecteur.getInstance(SelectionEcouteViewModel.class);
         FXMLLoader loader = new FXMLLoader(CaptureQualification.class.getResource(QUALIF_FXML));
         loader.setControllerFactory(type -> type == QualificationController.class
-                ? new QualificationController(verdictVm, selectionVm, (id, contexte) -> {})
+                ? new QualificationController(
+                        verdictVm, selectionVm, (id, contexte) -> {}, injecteur.getInstance(OuvrirSite.class))
                 : injecteur.getInstance(type));
         Parent vue = loader.load();
         QualificationController controleur = loader.getController();
 
         Scene scene = new Scene(vue, 1240, 900);
-        controleur.ouvrirSur(idPassage);
+        // Capture hors-chrome : le fil d'Ariane n'est pas rendu ; le contexte n'a donc pas à être réel.
+        controleur.ouvrirSur(new ContextePassage(idPassage, 1, new ContexteSite(NUMERO_CARRE, CODE_POINT, null)));
         selectionVm.tailleProperty().set(TAILLE_SELECTION);
         selectionVm.regenerer();
 
@@ -158,7 +165,7 @@ public final class CaptureQualification {
 
         Site site = siteDao.insert(new Site(
                 null,
-                "640380",
+                NUMERO_CARRE,
                 "Étang de la Tuilière",
                 Protocole.STANDARD,
                 "Aix-en-Provence",

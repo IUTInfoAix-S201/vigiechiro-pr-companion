@@ -7,6 +7,8 @@ import fr.univ_amu.iut.App;
 import fr.univ_amu.iut.commun.di.RacineInjecteur;
 import fr.univ_amu.iut.commun.persistence.MigrationSchema;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
+import fr.univ_amu.iut.commun.viewmodel.ContextePassage;
+import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import javafx.fxml.FXMLLoader;
@@ -41,7 +43,8 @@ class NavigationLotViewTest {
         loader.setControllerFactory(injector::getInstance);
         Parent racine = loader.load();
         stage.setScene(new Scene(racine, 1100, 760));
-        injector.getInstance(NavigationLot.class).ouvrir(999L);
+        injector.getInstance(NavigationLot.class)
+                .ouvrir(new ContextePassage(999L, 1, new ContexteSite("640380", "A1", "Étang de la Tuilière")));
         stage.show();
     }
 

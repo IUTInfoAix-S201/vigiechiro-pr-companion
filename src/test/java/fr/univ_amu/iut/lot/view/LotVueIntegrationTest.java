@@ -12,6 +12,10 @@ import com.google.inject.Injector;
 import com.google.inject.Provides;
 import fr.univ_amu.iut.commun.model.Alerte;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
+import fr.univ_amu.iut.commun.view.Lieu;
+import fr.univ_amu.iut.commun.view.NavigationDeTestModule;
+import fr.univ_amu.iut.commun.viewmodel.ContextePassage;
+import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
 import fr.univ_amu.iut.lot.model.EtatLot;
 import fr.univ_amu.iut.lot.model.ServiceLot;
 import fr.univ_amu.iut.lot.viewmodel.LotViewModel;
@@ -53,6 +57,8 @@ import org.testfx.framework.junit5.Start;
 class LotVueIntegrationTest {
 
     private static final long ID_PASSAGE = 42L;
+    private static final ContextePassage CONTEXTE =
+            new ContextePassage(ID_PASSAGE, 2, new ContexteSite("640380", "A1", "Étang de la Tuilière"));
 
     private ServiceLot service;
     private LotController controleur;
@@ -63,17 +69,19 @@ class LotVueIntegrationTest {
         // État de départ : passage Vérifié, aucune alerte → préparer actif, déposer inactif.
         when(service.consulterLot(anyLong()))
                 .thenReturn(new EtatLot(StatutWorkflow.VERIFIE, "/ws/session-42", 2, 8192L, List.of(), null));
-        Injector injector = Guice.createInjector(new AbstractModule() {
-            @Provides
-            LotViewModel viewModel() {
-                return new LotViewModel(service);
-            }
-        });
+        Injector injector = Guice.createInjector(
+                new AbstractModule() {
+                    @Provides
+                    LotViewModel viewModel() {
+                        return new LotViewModel(service);
+                    }
+                },
+                new NavigationDeTestModule());
         FXMLLoader loader = new FXMLLoader(LotController.class.getResource("Lot.fxml"));
         loader.setControllerFactory(injector::getInstance);
         Parent vue = loader.load();
         controleur = loader.getController();
-        controleur.ouvrirSur(ID_PASSAGE);
+        controleur.ouvrirSur(CONTEXTE);
         stage.setScene(new Scene(vue, 900, 640));
         stage.show();
     }
@@ -82,7 +90,17 @@ class LotVueIntegrationTest {
     /// le fil JavaFX. Les propriétés du ViewModel étant liées aux contrôles, la vue se met à jour.
     private void reouvrirAvec(FxRobot robot, EtatLot etat) {
         when(service.consulterLot(anyLong())).thenReturn(etat);
-        robot.interact(() -> controleur.ouvrirSur(ID_PASSAGE));
+        robot.interact(() -> controleur.ouvrirSur(CONTEXTE));
+    }
+
+    @Test
+    @DisplayName("Emplacement (fil d'Ariane) : Mes sites › Carré N › Détails du passage N° X › Préparer le dépôt")
+    void emplacement_reflete_le_passage() {
+        assertThat(controleur.emplacement())
+                .extracting(Lieu::libelle)
+                .containsExactly("Mes sites", "Carré 640380", "Détails du passage N° 2", "Préparer le dépôt");
+        assertThat(controleur.emplacement().get(0).estCliquable()).isTrue();
+        assertThat(controleur.emplacement().get(3).estCliquable()).isFalse();
     }
 
     @Test

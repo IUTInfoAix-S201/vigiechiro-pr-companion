@@ -14,7 +14,11 @@ import com.google.inject.Provides;
 import fr.nedjar.vigiechiro.audio.AudioView;
 import fr.univ_amu.iut.commun.model.MethodeSelection;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
+import fr.univ_amu.iut.commun.view.Lieu;
 import fr.univ_amu.iut.commun.view.OuvrirPassage;
+import fr.univ_amu.iut.commun.view.OuvrirSite;
+import fr.univ_amu.iut.commun.viewmodel.ContextePassage;
+import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
 import fr.univ_amu.iut.passage.model.SequenceDEcoute;
 import fr.univ_amu.iut.qualification.model.ContexteVerification;
 import fr.univ_amu.iut.qualification.model.PreCheckNuit;
@@ -67,6 +71,8 @@ class QualificationVueIntegrationTest {
     private static final long ID_PASSAGE = 42L;
     private static final long ID_SELECTION = 7L;
 
+    private QualificationController controleur;
+
     @Start
     void start(Stage stage) throws Exception {
         ServiceQualification service = mock(ServiceQualification.class);
@@ -108,14 +114,37 @@ class QualificationVueIntegrationTest {
             OuvrirPassage ouvrirPassage() {
                 return (id, contexte) -> {};
             }
+
+            @Provides
+            OuvrirSite ouvrirSite() {
+                return new OuvrirSite() {
+                    @Override
+                    public void ouvrirListe() {}
+
+                    @Override
+                    public void ouvrirDetail(String numeroCarre) {}
+                };
+            }
         });
         FXMLLoader loader = new FXMLLoader(QualificationController.class.getResource("Qualification.fxml"));
         loader.setControllerFactory(injector::getInstance);
         Parent vue = loader.load();
-        QualificationController controleur = loader.getController();
-        controleur.ouvrirSur(ID_PASSAGE);
+        controleur = loader.getController();
+        controleur.ouvrirSur(
+                new ContextePassage(ID_PASSAGE, 2, new ContexteSite("640380", "A1", "Étang de la Tuilière")));
         stage.setScene(new Scene(vue, 1100, 760));
         stage.show();
+    }
+
+    @Test
+    @DisplayName(
+            "Emplacement (fil d'Ariane) : Mes sites › Carré N › Détails du passage N° X › Vérifier l'enregistrement")
+    void emplacement_reflete_le_passage() {
+        assertThat(controleur.emplacement())
+                .extracting(Lieu::libelle)
+                .containsExactly("Mes sites", "Carré 640380", "Détails du passage N° 2", "Vérifier l'enregistrement");
+        assertThat(controleur.emplacement().get(0).estCliquable()).isTrue();
+        assertThat(controleur.emplacement().get(3).estCliquable()).isFalse();
     }
 
     private static List<SequenceEnSelection> lignes(int n) {

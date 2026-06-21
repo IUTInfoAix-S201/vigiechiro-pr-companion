@@ -44,6 +44,8 @@ jobs:
           python-version: "3.x"
       - name: Installer MkDocs Material
         run: pip install -r docs/requirements.txt
+      - name: Garde-fou captures de doc
+        run: bash .github/assets/check-doc-images.sh
       - name: Construire le site (strict)
         run: mkdocs build --strict
       - name: Téléverser l'artefact Pages

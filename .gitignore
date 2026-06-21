@@ -85,3 +85,7 @@ logs/
 
 # Artefact du résumé CI (généré par le workflow, jamais versionné)
 ci-summary.json
+
+# ========== Documentation (MkDocs) ==========
+# Sortie de build du site, régénérée par mkdocs / la CI
+site/

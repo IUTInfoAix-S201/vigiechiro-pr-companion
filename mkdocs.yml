@@ -1,0 +1,60 @@
+site_name: VigieChiro
+site_description: >-
+  Documentation utilisateur de VigieChiro, l'application d'aide au traitement
+  des nuits de capture acoustique de chauves-souris.
+site_url: https://iutinfoaix-s201.github.io/vigiechiro-pr-companion/
+repo_url: https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion
+repo_name: IUTInfoAix-S201/vigiechiro-pr-companion
+copyright: IUT d'Aix-Marseille - Département Informatique
+docs_dir: docs
+site_dir: site
+
+theme:
+  name: material
+  language: fr
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/weather-night
+        name: Passer au thème sombre
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/weather-sunny
+        name: Passer au thème clair
+  features:
+    - navigation.tracking
+    - navigation.top
+    - navigation.footer
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - toc.follow
+  icon:
+    repo: fontawesome/brands/github
+
+nav:
+  - Accueil: index.md
+  - Prise en main: prise-en-main.md
+  - Parcours métier: parcours/index.md
+  - Référence par écran: ecrans/index.md
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+  - pymdownx.highlight
+  - pymdownx.superfences
+
+# Le dossier docs/benchmarks (note technique de perf) et le fichier des
+# dépendances ne font pas partie du site utilisateur.
+exclude_docs: |
+  benchmarks/
+  requirements.txt

@@ -25,10 +25,10 @@ on:
       - ".github/workflows/docs.yml"
   workflow_dispatch: {}
 
+# Permissions minimales par défaut (le job build ne fait que lire le code) ;
+# les droits Pages sont accordés au seul job deploy.
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: pages
@@ -55,6 +55,9 @@ jobs:
     needs: build
     # Dormant tant que ENABLE_PAGES n'est pas 'true' (et jamais sur une PR).
     if: github.event_name != 'pull_request' && vars.ENABLE_PAGES == 'true'
+    permissions:
+      pages: write
+      id-token: write
     runs-on: ubuntu-latest
     environment:
       name: github-pages

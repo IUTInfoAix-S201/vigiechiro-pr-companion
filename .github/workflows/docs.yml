@@ -40,6 +40,8 @@ on:
   # un déclencheur push mais PAS workflow_run (immunisé au [skip ci]). Sans cela,
   # une capture régénérée serait mergée sans reconstruire le site -> images
   # publiées périmées. (Le nom doit suivre `name:` de capture-vues.yml.)
+  # Corollaire : ne JAMAIS écrire ce marqueur de saut dans un message de commit
+  # qui modifie la doc, sinon la republication par push est sautée elle aussi.
   workflow_run:
     workflows: ["Aperçus des vues (main)"]
     types: [completed]

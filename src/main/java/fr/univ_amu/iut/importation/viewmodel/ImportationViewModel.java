@@ -138,11 +138,21 @@ public class ImportationViewModel {
         siteSelectionne.addListener((obs, ancien, nouveau) -> {
             points.setAll(nouveau == null ? List.of() : serviceSites.listerPoints(nouveau.id()));
             pointSelectionne.set(null);
+            rearmerPreparationSiTerminee();
             majApercu();
         });
-        pointSelectionne.addListener((obs, ancien, nouveau) -> majApercu());
-        annee.addListener((obs, ancien, nouveau) -> majApercu());
-        numeroPassage.addListener((obs, ancien, nouveau) -> majApercu());
+        pointSelectionne.addListener((obs, ancien, nouveau) -> {
+            rearmerPreparationSiTerminee();
+            majApercu();
+        });
+        annee.addListener((obs, ancien, nouveau) -> {
+            rearmerPreparationSiTerminee();
+            majApercu();
+        });
+        numeroPassage.addListener((obs, ancien, nouveau) -> {
+            rearmerPreparationSiTerminee();
+            majApercu();
+        });
         // --end-solution--
 
         peutImporter = Bindings.createBooleanBinding(
@@ -465,6 +475,20 @@ public class ImportationViewModel {
         progression.set(0.0);
         messageProgression.set("");
         majApercu();
+    }
+
+    /// Ré-arme la préparation (`PRET`) dès qu'un champ du rattachement change après un import
+    /// **terminé ou échoué**. Hors `EN_COURS`, le formulaire reste éditable : corriger un n° de passage
+    /// après un échec (ou ajuster le rattachement après un succès) recrée un import préparé non lancé
+    /// que la garde de navigation (#140) doit protéger. On efface au passage le résultat/erreur du
+    /// précédent essai, qui ne décrit plus la préparation courante. (Changer de dossier source repasse,
+    /// lui, par [#reinitialiserInspection()].)
+    private void rearmerPreparationSiTerminee() {
+        if (etat.get() == EtatImport.TERMINE || etat.get() == EtatImport.ECHEC) {
+            resultat.set(null);
+            messageErreur.set("");
+            etat.set(EtatImport.PRET);
+        }
     }
 
     /// Recalcule l'aperçu du préfixe (appliqué à un exemple de nom d'origine) ; vide tant que le

@@ -12,6 +12,8 @@ import fr.univ_amu.iut.commun.model.dao.UtilisateurDao;
 import fr.univ_amu.iut.commun.outils.ApercuFx;
 import fr.univ_amu.iut.commun.persistence.MigrationSchema;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
+import fr.univ_amu.iut.commun.viewmodel.ContextePassage;
+import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
 import fr.univ_amu.iut.passage.di.PassageModule;
 import fr.univ_amu.iut.passage.model.EnregistrementOriginal;
 import fr.univ_amu.iut.passage.model.Enregistreur;
@@ -23,6 +25,7 @@ import fr.univ_amu.iut.passage.model.dao.EnregistreurDao;
 import fr.univ_amu.iut.passage.model.dao.PassageDao;
 import fr.univ_amu.iut.passage.model.dao.SequenceDao;
 import fr.univ_amu.iut.passage.model.dao.SessionDao;
+import fr.univ_amu.iut.sites.di.SitesModule;
 import fr.univ_amu.iut.validation.di.ValidationModule;
 import fr.univ_amu.iut.validation.model.Observation;
 import fr.univ_amu.iut.validation.model.ResultatsIdentification;
@@ -119,7 +122,11 @@ public final class CaptureValidation {
         Path sortie = Path.of(System.getProperty("capture.outDir", ".github/assets"));
 
         Injector injecteur = Guice.createInjector(
-                new CommunModule(), new PersistenceModule(), new PassageModule(), new ValidationModule());
+                new CommunModule(),
+                new PersistenceModule(),
+                new SitesModule(),
+                new PassageModule(),
+                new ValidationModule());
         SourceDeDonnees source = injecteur.getInstance(SourceDeDonnees.class);
         new MigrationSchema(source).migrer();
 
@@ -152,7 +159,9 @@ public final class CaptureValidation {
         FXMLLoader loader = new FXMLLoader(ValidationController.class.getResource("Validation.fxml"));
         loader.setControllerFactory(injecteur::getInstance);
         Parent vue = loader.load();
-        ((ValidationController) loader.getController()).ouvrirSur(idPassage);
+        // Capture hors-chrome : le fil d'Ariane n'est pas rendu ; le contexte n'a donc pas à être réel.
+        ((ValidationController) loader.getController())
+                .ouvrirSur(new ContextePassage(idPassage, 1, new ContexteSite(NUMERO_CARRE, CODE_POINT, null)));
         // Scène plus haute que l'état d'entrée : on laisse à l'AudioView la place d'afficher à la fois
         // le spectrogramme ET le sonogramme (depuis v1.4.0 il masque la légende et le sonogramme
         // quand il est trop court — on lui donne donc une hauteur suffisante).
@@ -229,7 +238,8 @@ public final class CaptureValidation {
         loader.setControllerFactory(injecteur::getInstance);
         Parent vue = loader.load();
         ValidationController controleur = loader.getController();
-        controleur.ouvrirSur(idPassage);
+        // Capture hors-chrome : le fil d'Ariane n'est pas rendu ; le contexte n'a donc pas à être réel.
+        controleur.ouvrirSur(new ContextePassage(idPassage, 1, new ContexteSite(NUMERO_CARRE, CODE_POINT, null)));
 
         if (ligneSelectionnee >= 0
                 && vue.lookup("#tableObservations") instanceof TableView<?> table

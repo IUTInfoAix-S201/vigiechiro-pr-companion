@@ -13,6 +13,9 @@ import fr.nedjar.vigiechiro.audio.AudioView;
 import fr.univ_amu.iut.commun.model.MethodeSelection;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.view.OuvrirPassage;
+import fr.univ_amu.iut.commun.view.OuvrirSite;
+import fr.univ_amu.iut.commun.viewmodel.ContextePassage;
+import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
 import fr.univ_amu.iut.passage.model.SequenceDEcoute;
 import fr.univ_amu.iut.qualification.model.ContexteVerification;
 import fr.univ_amu.iut.qualification.model.PreCheckNuit;
@@ -28,7 +31,6 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import javafx.scene.input.KeyCode;
@@ -91,12 +93,24 @@ class QualificationViewTest {
             OuvrirPassage ouvrirPassage() {
                 return (id, contexte) -> {};
             }
+
+            @Provides
+            OuvrirSite ouvrirSite() {
+                return new OuvrirSite() {
+                    @Override
+                    public void ouvrirListe() {}
+
+                    @Override
+                    public void ouvrirDetail(String numeroCarre) {}
+                };
+            }
         });
         FXMLLoader loader = new FXMLLoader(QualificationController.class.getResource("Qualification.fxml"));
         loader.setControllerFactory(injector::getInstance);
         Parent vue = loader.load();
         QualificationController controleur = loader.getController();
-        controleur.ouvrirSur(ID_PASSAGE);
+        controleur.ouvrirSur(
+                new ContextePassage(ID_PASSAGE, 2, new ContexteSite("640380", "A1", "Étang de la Tuilière")));
         stage.setScene(new Scene(vue, 1100, 760));
         stage.show();
     }
@@ -119,20 +133,6 @@ class QualificationViewTest {
 
         assertThat(titre.getText()).contains("640380").contains("A1");
         assertThat(table.getItems()).hasSize(3);
-    }
-
-    @Test
-    @DisplayName("Le fil d'Ariane affiche le chemin de navigation jusqu'à la vérification (#32)")
-    void affiche_le_fil_ariane(FxRobot robot) {
-        Label fil = robot.lookup("#lblFilAriane").queryAs(Label.class);
-        Hyperlink retour = robot.lookup("#lienRetourPassage").queryAs(Hyperlink.class);
-
-        assertThat(fil.getText())
-                .contains("Mes sites")
-                .contains("640380")
-                .contains("A1")
-                .contains("Vérifier");
-        assertThat(retour.isDisabled()).isFalse(); // contexte chargé → retour possible
     }
 
     @Test

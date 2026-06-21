@@ -259,22 +259,22 @@ class PassageVueIntegrationTest {
 
             @Provides
             OuvrirVerification ouvrirVerification() {
-                return verificationOuverte::set;
+                return passage -> verificationOuverte.set(passage.idPassage());
             }
 
             @Provides
             OuvrirDiagnostic ouvrirDiagnostic() {
-                return diagnosticOuvert::set;
+                return passage -> diagnosticOuvert.set(passage.idPassage());
             }
 
             @Provides
             OuvrirValidation ouvrirValidation() {
-                return validationOuverte::set;
+                return passage -> validationOuverte.set(passage.idPassage());
             }
 
             @Provides
             OuvrirLot ouvrirLot() {
-                return depotOuvert::set;
+                return passage -> depotOuvert.set(passage.idPassage());
             }
 
             @Provides

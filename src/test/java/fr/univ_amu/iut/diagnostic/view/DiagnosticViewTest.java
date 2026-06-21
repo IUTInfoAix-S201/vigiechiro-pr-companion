@@ -9,6 +9,9 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Provides;
+import fr.univ_amu.iut.commun.view.NavigationDeTestModule;
+import fr.univ_amu.iut.commun.viewmodel.ContextePassage;
+import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
 import fr.univ_amu.iut.diagnostic.model.AnalyseAnomalies;
 import fr.univ_amu.iut.diagnostic.model.Diagnostic;
 import fr.univ_amu.iut.diagnostic.model.MesureClimatique;
@@ -54,17 +57,19 @@ class DiagnosticViewTest {
                         43.5,
                         5.4,
                         LocalDateTime.of(2026, 6, 23, 8, 0)));
-        Injector injector = Guice.createInjector(new AbstractModule() {
-            @Provides
-            DiagnosticViewModel viewModel() {
-                return new DiagnosticViewModel(service);
-            }
-        });
+        Injector injector = Guice.createInjector(
+                new AbstractModule() {
+                    @Provides
+                    DiagnosticViewModel viewModel() {
+                        return new DiagnosticViewModel(service);
+                    }
+                },
+                new NavigationDeTestModule());
         FXMLLoader loader = new FXMLLoader(DiagnosticController.class.getResource("Diagnostic.fxml"));
         loader.setControllerFactory(injector::getInstance);
         Parent vue = loader.load();
         DiagnosticController controleur = loader.getController();
-        controleur.ouvrirSur(42L);
+        controleur.ouvrirSur(new ContextePassage(42L, 2, new ContexteSite("640380", "A1", "Étang de la Tuilière")));
         stage.setScene(new Scene(vue, 1000, 760));
         stage.show();
     }

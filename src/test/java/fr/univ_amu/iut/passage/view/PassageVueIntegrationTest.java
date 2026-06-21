@@ -20,9 +20,11 @@ import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
 import fr.univ_amu.iut.passage.model.DetailPassage;
 import fr.univ_amu.iut.passage.model.ServicePassage;
 import fr.univ_amu.iut.passage.viewmodel.PassageViewModel;
-import java.util.List;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.concurrent.atomic.AtomicReference;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -38,17 +40,20 @@ import org.testfx.api.FxRobot;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
 
-/// Tests d'intégration TestFX **complémentaires** de l'écran pivot **M-Passage** (`Passage.fxml`),
-/// centrés sur le **vrai lookup des `fx:id`** et sur des **interactions** (sélection d'onglet, clic
-/// sur les boutons dédiés) — là où un écran réduit à un placeholder échouerait alors qu'il
-/// passerait des tests qui ne liraient que les propriétés du ViewModel.
+/// Test d'intégration TestFX **exhaustif** de l'écran pivot **M-Passage** refondu en « hub à plat »
+/// (`Passage.fxml`), centré sur le **vrai lookup des `fx:id`** : un détecteur de trou par zone (en-tête,
+/// bandeau, stepper, résumé/stats, cartes d'actions). Là où un écran réduit à un placeholder passerait
+/// des tests ne lisant que le ViewModel, ce test échoue si le câblage Vue↔VM manque.
 ///
-/// Couvre des câblages non vérifiés par [PassageViewTest] : fil d'Ariane, bandeau (enregistreur,
-/// plage horaire, verdict), statistiques (volume transformé, durée audible), états précis du
-/// **stepper** (étape courante / franchies) et navigation entre les onglets (« Diagnostic
-/// matériel », « Validation Tadarida ») avec leurs boutons propres. Même harnais que
-/// [PassageViewTest] (chargement du FXML via Guice avec un [ServicePassage] mocké, ouverture sur un
-/// passage + contexte site). Pas de base de données.
+/// Couvre en plus :
+/// - des **garde-fous structurels** de la refonte : plus aucun `TabPane`, ni fil d'Ariane interne
+///   (`#lblFilAriane`), ni onglets-lanceurs (`#boutonOuvrirDiagnostic`/`#boutonOuvrirValidation`/
+///   `#lblValidation`) — le retour et le fil sont désormais portés par le chrome (`commun`) ;
+/// - les **états des cartes d'actions selon le statut** (Importé / Vérifié / Déposé) ;
+/// - le **déclenchement des handlers** vers les contrats socle (idPassage attendu).
+///
+/// Chargement du FXML via Guice avec un [ServicePassage] mocké, ouverture sur un passage + contexte
+/// site. Pas de base de données.
 @ExtendWith(ApplicationExtension.class)
 @Tag("conformite")
 class PassageVueIntegrationTest {
@@ -61,23 +66,166 @@ class PassageVueIntegrationTest {
     private final AtomicReference<Long> depotOuvert = new AtomicReference<>();
 
     @Start
-    void start(Stage stage) throws Exception {
+    void start(Stage stage) {
+        // Fixture affichée : passage VÉRIFIÉ (dépôt possible, validation encore verrouillée).
+        Parent vue = charger(StatutWorkflow.VERIFIE, 2);
+        stage.setScene(new Scene(vue, 1100, 720));
+        stage.show();
+    }
+
+    // ----- Balayage du câblage Vue <-> ViewModel par vrai lookup fx:id (fixture VÉRIFIÉ) -----
+
+    @Test
+    @DisplayName("En-tête : titre lié au VM + boutons rattachement/supprimer présents et actifs")
+    void entete_reflete_le_vm(FxRobot robot) {
+        Label titre = robot.lookup("#lblTitre").queryAs(Label.class);
+
+        assertThat(titre.getText()).contains("640380").contains("A1").contains("N° 2");
+        assertThat(robot.lookup("#boutonRattachement").queryButton().isDisabled())
+                .isFalse();
+        // Passage vérifié (≠ déposé) : la suppression reste possible.
+        assertThat(robot.lookup("#boutonSupprimer").queryButton().isDisabled()).isFalse();
+    }
+
+    @Test
+    @DisplayName("Bandeau d'identité : plage horaire, enregistreur, statut et verdict reflètent le VM")
+    void bandeau_reflete_le_vm(FxRobot robot) {
+        assertThat(robot.lookup("#lblPlageHoraire").queryAs(Label.class).getText())
+                .contains("2026-06-22")
+                .contains("20:25:00")
+                .contains("07:47:00");
+        assertThat(robot.lookup("#lblEnregistreur").queryAs(Label.class).getText())
+                .isEqualTo("PR 1925492");
+        assertThat(robot.lookup("#lblStatut").queryAs(Label.class).getText()).isEqualTo("Vérifié");
+        assertThat(robot.lookup("#lblVerdict").queryAs(Label.class).getText()).isEqualTo("OK");
+    }
+
+    @Test
+    @DisplayName("Stepper : une puce par étape, l'étape courante (Vérifié) et les deux franchies marquées")
+    void stepper_reflete_le_workflow(FxRobot robot) {
+        HBox stepper = robot.lookup("#stepper").queryAs(HBox.class);
+
+        assertThat(stepper.getChildren()).hasSize(5);
+        Label courante = stepper.getChildren().stream()
+                .map(Label.class::cast)
+                .filter(puce -> puce.getStyleClass().contains("etape-courante"))
+                .findFirst()
+                .orElseThrow();
+        assertThat(courante.getText()).isEqualTo("Vérifié");
+        long franchies = stepper.getChildren().stream()
+                .map(Label.class::cast)
+                .filter(puce -> puce.getStyleClass().contains("etape-franchie"))
+                .count();
+        assertThat(franchies).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("Résumé de la nuit : les 4 statistiques reflètent le VM")
+    void stats_refletent_le_vm(FxRobot robot) {
+        assertThat(robot.lookup("#lblVolBruts").queryAs(Label.class).getText()).isEqualTo("4 Ko");
+        assertThat(robot.lookup("#lblVolTransformes").queryAs(Label.class).getText())
+                .isEqualTo("1 Ko");
+        assertThat(robot.lookup("#lblDureeAudible").queryAs(Label.class).getText())
+                .isEqualTo("2 min 30 s");
+        assertThat(robot.lookup("#lblNbSequences").queryAs(Label.class).getText())
+                .isEqualTo("30");
+    }
+
+    @Test
+    @DisplayName("Actions : les 4 cartes et l'indice contextuel sont présents")
+    void cartes_actions_presentes(FxRobot robot) {
+        assertThat(robot.lookup("#boutonVerifier").tryQuery()).isPresent();
+        assertThat(robot.lookup("#boutonDiagnostic").tryQuery()).isPresent();
+        assertThat(robot.lookup("#boutonDepot").tryQuery()).isPresent();
+        assertThat(robot.lookup("#boutonValidation").tryQuery()).isPresent();
+        assertThat(robot.lookup("#lblIndiceAction").tryQuery()).isPresent();
+    }
+
+    // ----- Garde-fous structurels de la refonte « hub à plat » -----
+
+    @Test
+    @DisplayName("Structure : plus de TabPane, ni fil interne, ni onglets-lanceurs (portés par le chrome)")
+    void structure_hub_a_plat(FxRobot robot) {
+        assertThat(robot.lookup((Node noeud) -> noeud instanceof TabPane).queryAll())
+                .as("aucun TabPane : le hub est à plat")
+                .isEmpty();
+        assertThat(robot.lookup("#lblFilAriane").tryQuery())
+                .as("le fil d'Ariane interne a été retiré (chrome)")
+                .isEmpty();
+        assertThat(robot.lookup("#boutonOuvrirDiagnostic").tryQuery()).isEmpty();
+        assertThat(robot.lookup("#boutonOuvrirValidation").tryQuery()).isEmpty();
+        assertThat(robot.lookup("#lblValidation").tryQuery()).isEmpty();
+    }
+
+    // ----- États des cartes d'actions selon le statut -----
+
+    @Test
+    @DisplayName("VÉRIFIÉ : Vérifier/Diagnostic/Dépôt actifs, Validation verrouillée")
+    void etats_actions_verifie(FxRobot robot) {
+        assertThat(robot.lookup("#boutonVerifier").queryButton().isDisabled()).isFalse();
+        assertThat(robot.lookup("#boutonDiagnostic").queryButton().isDisabled()).isFalse();
+        assertThat(robot.lookup("#boutonDepot").queryButton().isDisabled()).isFalse();
+        assertThat(robot.lookup("#boutonValidation").queryButton().isDisabled()).isTrue();
+    }
+
+    @Test
+    @DisplayName(
+            "IMPORTÉ : Vérifier/Dépôt/Validation désactivés (nuit non transformée), Diagnostic actif, indice affiché")
+    void etats_actions_importe(FxRobot robot) {
+        Parent vue = chargerSurFx(robot, StatutWorkflow.IMPORTE, 2);
+
+        assertThat(bouton(vue, "#boutonVerifier").isDisabled()).isTrue();
+        assertThat(bouton(vue, "#boutonDepot").isDisabled()).isTrue();
+        assertThat(bouton(vue, "#boutonValidation").isDisabled()).isTrue();
+        assertThat(bouton(vue, "#boutonDiagnostic").isDisabled()).isFalse();
+        assertThat(((Label) vue.lookup("#lblIndiceAction")).getText()).contains("transformée");
+    }
+
+    @Test
+    @DisplayName("DÉPOSÉ : Dépôt désactivé, Validation déverrouillée et ouvrant M-Vision-Tadarida")
+    void etats_actions_depose(FxRobot robot) {
+        Parent vue = chargerSurFx(robot, StatutWorkflow.DEPOSE, 1);
+
+        assertThat(bouton(vue, "#boutonDepot").isDisabled()).isTrue();
+        assertThat(bouton(vue, "#boutonValidation").isDisabled()).isFalse();
+        assertThat(bouton(vue, "#boutonVerifier").isDisabled()).isFalse();
+
+        robot.interact(((Button) vue.lookup("#boutonValidation"))::fire);
+        assertThat(validationOuverte.get()).isEqualTo(ID_PASSAGE);
+    }
+
+    // ----- Handlers : chaque carte active ouvre le bon écran via le contrat socle -----
+
+    @Test
+    @DisplayName("Handlers : Vérifier/Diagnostic/Dépôt ouvrent le bon écran avec l'idPassage courant")
+    void handlers_ouvrent_les_bons_ecrans(FxRobot robot) {
+        robot.interact(robot.lookup("#boutonVerifier").queryButton()::fire);
+        assertThat(verificationOuverte.get()).isEqualTo(ID_PASSAGE);
+
+        robot.interact(robot.lookup("#boutonDiagnostic").queryButton()::fire);
+        assertThat(diagnosticOuvert.get()).isEqualTo(ID_PASSAGE);
+
+        robot.interact(robot.lookup("#boutonDepot").queryButton()::fire);
+        assertThat(depotOuvert.get()).isEqualTo(ID_PASSAGE);
+    }
+
+    // ----- Aides locales -----
+
+    private Parent chargerSurFx(FxRobot robot, StatutWorkflow statut, int numero) {
+        AtomicReference<Parent> ref = new AtomicReference<>();
+        robot.interact(() -> ref.set(charger(statut, numero)));
+        return ref.get();
+    }
+
+    private static Button bouton(Parent vue, String selecteur) {
+        return (Button) vue.lookup(selecteur);
+    }
+
+    /// Charge `Passage.fxml` via Guice sur un passage du `statut` donné et l'ouvre sur [#ID_PASSAGE].
+    /// À appeler sur le fil JavaFX (chargement FXML).
+    private Parent charger(StatutWorkflow statut, int numero) {
         ServicePassage service = mock(ServicePassage.class);
-        when(service.detailPassage(anyLong()))
-                .thenReturn(new DetailPassage(
-                        2,
-                        2026,
-                        "2026-06-22",
-                        "20:25:00",
-                        "07:47:00",
-                        "1925492",
-                        StatutWorkflow.VERIFIE,
-                        Verdict.OK,
-                        null,
-                        4096L,
-                        1024L,
-                        30,
-                        150.0));
+        when(service.detailPassage(anyLong())).thenReturn(detail(statut, numero));
         Injector injector = Guice.createInjector(new AbstractModule() {
             @Provides
             PassageViewModel viewModel() {
@@ -117,99 +265,30 @@ class PassageVueIntegrationTest {
         });
         FXMLLoader loader = new FXMLLoader(PassageController.class.getResource("Passage.fxml"));
         loader.setControllerFactory(injector::getInstance);
-        Parent vue = loader.load();
-        PassageController controleur = loader.getController();
-        controleur.ouvrirSur(ID_PASSAGE, new ContexteSite("640380", "A1", "Étang de la Tuilière"));
-        stage.setScene(new Scene(vue, 1100, 700));
-        stage.show();
+        try {
+            Parent vue = loader.load();
+            PassageController controleur = loader.getController();
+            controleur.ouvrirSur(ID_PASSAGE, new ContexteSite("640380", "A1", "Étang de la Tuilière"));
+            return vue;
+        } catch (IOException echec) {
+            throw new UncheckedIOException(echec);
+        }
     }
 
-    @Test
-    @DisplayName("Le fil d'Ariane reflète le contexte du passage (préfixe « Mes sites » + identité)")
-    void fil_d_ariane_reflete_le_contexte(FxRobot robot) {
-        Label filAriane = robot.lookup("#lblFilAriane").queryAs(Label.class);
-
-        // Câblage par StringBinding sur titreContexte : un écran stub n'afficherait pas ce préfixe.
-        assertThat(filAriane.getText())
-                .contains("Mes sites")
-                .contains("640380")
-                .contains("A1")
-                .contains("N° 2");
-    }
-
-    @Test
-    @DisplayName("Le bandeau d'identité affiche l'enregistreur, la plage horaire et le verdict")
-    void bandeau_affiche_enregistreur_plage_verdict(FxRobot robot) {
-        Label enregistreur = robot.lookup("#lblEnregistreur").queryAs(Label.class);
-        Label plage = robot.lookup("#lblPlageHoraire").queryAs(Label.class);
-        Label verdict = robot.lookup("#lblVerdict").queryAs(Label.class);
-
-        assertThat(enregistreur.getText()).isEqualTo("PR 1925492");
-        assertThat(plage.getText()).contains("2026-06-22").contains("20:25:00").contains("07:47:00");
-        assertThat(verdict.getText()).isEqualTo("OK"); // Verdict.OK → libellé « OK »
-    }
-
-    @Test
-    @DisplayName("L'onglet « Vue d'ensemble » affiche le volume transformé et la durée audible")
-    void statistiques_volume_transforme_et_duree_audible(FxRobot robot) {
-        Label volTransformes = robot.lookup("#lblVolTransformes").queryAs(Label.class);
-        Label dureeAudible = robot.lookup("#lblDureeAudible").queryAs(Label.class);
-
-        assertThat(volTransformes.getText()).isEqualTo("1 Ko"); // octetsLisibles(1024)
-        assertThat(dureeAudible.getText()).isEqualTo("2 min 30 s"); // dureeLisible(150.0)
-    }
-
-    @Test
-    @DisplayName("Le stepper marque l'étape courante (Vérifié) et les deux étapes franchies")
-    void stepper_marque_l_etape_courante_et_les_franchies(FxRobot robot) {
-        HBox stepper = robot.lookup("#stepper").queryAs(HBox.class);
-        List<Label> puces =
-                stepper.getChildren().stream().map(Label.class::cast).toList();
-
-        // L'étape « courante » porte la classe CSS dérivée de l'EtatEtape et le libellé du statut VM.
-        Label courante = puces.stream()
-                .filter(puce -> puce.getStyleClass().contains("etape-courante"))
-                .findFirst()
-                .orElseThrow();
-        assertThat(courante.getText()).isEqualTo("Vérifié");
-
-        // Importé + Transformé précèdent Vérifié → deux étapes franchies.
-        long franchies = puces.stream()
-                .filter(puce -> puce.getStyleClass().contains("etape-franchie"))
-                .count();
-        assertThat(franchies).isEqualTo(2);
-    }
-
-    @Test
-    @DisplayName("Onglet « Diagnostic matériel » : son bouton dédié ouvre M-Diagnostic du passage")
-    void onglet_diagnostic_le_bouton_dedie_ouvre_le_diagnostic(FxRobot robot) {
-        TabPane onglets = robot.lookup(".onglets").queryAs(TabPane.class);
-
-        // Sélectionner l'onglet attache son contenu au graphe de scène (rendu paresseux), ce qui rend
-        // le bouton dédié interrogeable par son fx:id.
-        robot.interact(() -> onglets.getSelectionModel().select(1));
-
-        Button ouvrirDiagnostic = robot.lookup("#boutonOuvrirDiagnostic").queryAs(Button.class);
-        assertThat(ouvrirDiagnostic.isDisabled()).isFalse();
-
-        robot.interact(ouvrirDiagnostic::fire);
-
-        assertThat(diagnosticOuvert.get()).isEqualTo(ID_PASSAGE);
-    }
-
-    @Test
-    @DisplayName("Onglet « Validation Tadarida » : bouton dédié verrouillé tant que le passage n'est pas déposé")
-    void onglet_validation_le_bouton_dedie_est_verrouille(FxRobot robot) {
-        TabPane onglets = robot.lookup(".onglets").queryAs(TabPane.class);
-
-        robot.interact(() -> onglets.getSelectionModel().select(2));
-
-        Button ouvrirValidation = robot.lookup("#boutonOuvrirValidation").queryAs(Button.class);
-        Label message = robot.lookup("#lblValidation").queryAs(Label.class);
-
-        // Passage VERIFIE (≠ DEPOSE) → validationVerrouillee true : le bouton reste désactivé.
-        assertThat(ouvrirValidation.isDisabled()).isTrue();
-        assertThat(message.getText()).contains("🔒").contains("déposé");
-        assertThat(validationOuverte.get()).isNull(); // aucune ouverture déclenchée
+    private static DetailPassage detail(StatutWorkflow statut, int numero) {
+        return new DetailPassage(
+                numero,
+                2026,
+                "2026-06-22",
+                "20:25:00",
+                "07:47:00",
+                "1925492",
+                statut,
+                Verdict.OK,
+                null,
+                4096L,
+                1024L,
+                30,
+                150.0);
     }
 }

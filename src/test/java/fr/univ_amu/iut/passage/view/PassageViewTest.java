@@ -131,7 +131,7 @@ class PassageViewTest {
     }
 
     @Test
-    @DisplayName("L'onglet « Vue d'ensemble » affiche les statistiques de la nuit")
+    @DisplayName("Le résumé de la nuit affiche les statistiques")
     void affiche_les_statistiques(FxRobot robot) {
         assertThat(robot.lookup("#lblVolBruts").queryAs(Label.class).getText()).isEqualTo("4 Ko");
         assertThat(robot.lookup("#lblNbSequences").queryAs(Label.class).getText())
@@ -172,12 +172,13 @@ class PassageViewTest {
     }
 
     @Test
-    @DisplayName("L'onglet « Validation Tadarida » est verrouillé tant que le passage n'est pas déposé")
+    @DisplayName("La carte « Validation Tadarida » est désactivée tant que le passage n'est pas déposé")
     void validation_verrouillee_tant_que_non_depose(FxRobot robot) {
-        // Le passage de la fixture est « Vérifié » (≠ Déposé) → validation verrouillée.
-        Label validation = robot.lookup("#lblValidation").queryAs(Label.class);
+        // Le passage de la fixture est « Vérifié » (≠ Déposé) → carte de validation verrouillée.
+        Button validation = robot.lookup("#boutonValidation").queryAs(Button.class);
 
-        assertThat(validation.getText()).contains("🔒").contains("déposé");
+        assertThat(validation.isDisabled()).isTrue();
+        assertThat(validationOuverte.get()).isNull(); // rien n'est ouvert
     }
 
     @Test
@@ -194,17 +195,5 @@ class PassageViewTest {
         Button rattachement = robot.lookup("#boutonRattachement").queryAs(Button.class);
 
         assertThat(rattachement.isDisabled()).isFalse();
-    }
-
-    @Test
-    @DisplayName("Les boutons « Validation Tadarida » sont désactivés tant que le passage n'est pas déposé")
-    void boutons_validation_verrouilles(FxRobot robot) {
-        Button boutonValidation = robot.lookup("#boutonValidation").queryAs(Button.class);
-        Button boutonOuvrir = robot.lookup("#boutonOuvrirValidation").queryAs(Button.class);
-
-        // Le passage de test est VERIFIE (pas encore déposé) : la validation reste verrouillée.
-        assertThat(boutonValidation.isDisabled()).isTrue();
-        assertThat(boutonOuvrir.isDisabled()).isTrue();
-        assertThat(validationOuverte.get()).isNull(); // rien n'est ouvert
     }
 }

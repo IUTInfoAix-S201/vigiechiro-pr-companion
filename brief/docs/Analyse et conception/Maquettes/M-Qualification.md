@@ -109,13 +109,17 @@ L'écran est divisé en **2 colonnes** : à gauche, la liste chronologique des s
   <text x="470" y="67" class="navtxt-inactive">⚙ Paramètres</text>
   <text x="1140" y="67" class="navtxt-inactive" text-anchor="end">👤 Local</text>
 
-  <text x="40" y="108" class="breadcrumb">‹ Mes sites</text>
-  <text x="125" y="108" class="breadcrumb-sep">›</text>
-  <text x="140" y="108" class="breadcrumb">Carré 640380</text>
-  <text x="265" y="108" class="breadcrumb-sep">›</text>
-  <text x="280" y="108" class="breadcrumb">Passage 2 / A1</text>
-  <text x="425" y="108" class="breadcrumb-sep">›</text>
-  <text x="440" y="108" class="breadcrumb-curr">Vérifier l'enregistrement</text>
+  <!-- Fil d'Ariane porté par le CHROME (EmplacementNavigation) : emplacement complet du passage,
+       identique quelle que soit la route. Le retour (← écran précédent) est également porté par le chrome. -->
+  <text x="40" y="108" class="breadcrumb">🏠 Accueil</text>
+  <text x="120" y="108" class="breadcrumb-sep">›</text>
+  <text x="134" y="108" class="breadcrumb">Mes sites</text>
+  <text x="210" y="108" class="breadcrumb-sep">›</text>
+  <text x="224" y="108" class="breadcrumb">Carré 640380</text>
+  <text x="320" y="108" class="breadcrumb-sep">›</text>
+  <text x="334" y="108" class="breadcrumb">Détails du passage N° 2</text>
+  <text x="510" y="108" class="breadcrumb-sep">›</text>
+  <text x="524" y="108" class="breadcrumb-curr">Vérifier l'enregistrement</text>
 
   <text x="40" y="148" class="pagetitle">🎧 Vérifier l'enregistrement par échantillonnage</text>
   <text x="40" y="170" class="pagesub">Écoutez quelques séquences réparties sur la nuit pour vous assurer que l'enregistrement est exploitable.</text>
@@ -429,6 +433,7 @@ L'écran est divisé en **2 colonnes** : à gauche, la liste chronologique des s
 
 ### Annotations
 
+- **Fil d'Ariane et retour** : portés par le **chrome** (barre de navigation commune) via le contrat `EmplacementNavigation` ; l'écran ne dessine plus son propre fil ni de lien « retour au passage ». Emplacement affiché : `🏠 Accueil › Mes sites › Carré N › Détails du passage N° X › Vérifier l'enregistrement`, identique quelle que soit la route (depuis M-Sites comme depuis M-Multisite).
 - **Bandeau infos passage** : 5 cellules de rappel (passage, date, séquences totales, verdict actuel, statut).
 - **Colonne gauche - Liste séquences** (identique au design précédent) :
     - Header avec compteur + bouton « ⚙ Personnaliser »

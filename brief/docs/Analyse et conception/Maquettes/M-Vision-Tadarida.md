@@ -127,14 +127,17 @@ L'écran présente la **vue de validation** : liste des observations Tadarida à
   <text x="60" y="110" class="stretch-title">Cible étirée hors MVP strict</text>
   <text x="60" y="125" class="stretch-txt">Cet écran correspond aux épopées E7 (SHOULD) et E8 (COULD). À engager uniquement si la chaîne fil rouge est livrée et stable.</text>
 
-  <!-- Breadcrumb + page header -->
-  <text x="40" y="158" class="breadcrumb">‹ Mes sites</text>
-  <text x="125" y="158" class="breadcrumb-sep">›</text>
-  <text x="140" y="158" class="breadcrumb">Carré 640380</text>
-  <text x="265" y="158" class="breadcrumb-sep">›</text>
-  <text x="280" y="158" class="breadcrumb">Passage 1 / A1</text>
-  <text x="425" y="158" class="breadcrumb-sep">›</text>
-  <text x="440" y="158" class="breadcrumb-curr">Validation Tadarida</text>
+  <!-- Fil d'Ariane porté par le CHROME (EmplacementNavigation) : emplacement complet du passage,
+       identique quelle que soit la route. Le retour (← écran précédent) est également porté par le chrome. -->
+  <text x="40" y="158" class="breadcrumb">🏠 Accueil</text>
+  <text x="120" y="158" class="breadcrumb-sep">›</text>
+  <text x="134" y="158" class="breadcrumb">Mes sites</text>
+  <text x="210" y="158" class="breadcrumb-sep">›</text>
+  <text x="224" y="158" class="breadcrumb">Carré 640380</text>
+  <text x="320" y="158" class="breadcrumb-sep">›</text>
+  <text x="334" y="158" class="breadcrumb">Détails du passage N° 1</text>
+  <text x="510" y="158" class="breadcrumb-sep">›</text>
+  <text x="524" y="158" class="breadcrumb-curr">Validation Tadarida</text>
 
   <text x="40" y="190" class="pagetitle">✅ Validation des résultats Tadarida — Pass 1 / A1 (22/04/2026)</text>
 
@@ -452,6 +455,7 @@ L'écran présente la **vue de validation** : liste des observations Tadarida à
 
 ### Annotations
 
+- **Fil d'Ariane et retour** : portés par le **chrome** (barre de navigation commune) via le contrat `EmplacementNavigation` ; l'écran ne dessine pas son propre fil. Emplacement affiché : `🏠 Accueil › Mes sites › Carré N › Détails du passage N° X › Validation Tadarida`, identique quelle que soit la route.
 - **Bandeau jaune en haut** : signale clairement que c'est une cible étirée hors MVP, avec rappel que c'est à engager **après** que le fil rouge soit livré.
 - **Toggle Mode inventaire / activité** ([E7.S6](../Story%20mapping/E7%20-%20Valider%20les%20résultats%20Tadarida.md#e7s6)) en haut à droite avec le bouton d'export Vu.csv ([E7.S7](../Story%20mapping/E7%20-%20Valider%20les%20résultats%20Tadarida.md#e7s7)).
 - **Barre de filtres** ([E7.S5](../Story%20mapping/E7%20-%20Valider%20les%20résultats%20Tadarida.md#e7s5)) : 5 chips (Taxon, Groupe taxo, Probabilité, Plage horaire, Statut). Les chips actifs (Pippip, ≥0,5, à voir) sont en bleu.

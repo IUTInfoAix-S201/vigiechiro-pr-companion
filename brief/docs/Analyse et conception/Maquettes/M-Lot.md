@@ -71,13 +71,17 @@ Cette vue affiche un **rapport de cohérence** (toutes les vérifications préal
   <text x="470" y="67" class="navtxt-inactive">⚙ Paramètres</text>
   <text x="1140" y="67" class="navtxt-inactive" text-anchor="end">👤 Local</text>
 
-  <text x="40" y="108" class="breadcrumb">‹ Mes sites</text>
-  <text x="125" y="108" class="breadcrumb-sep">›</text>
-  <text x="140" y="108" class="breadcrumb">Carré 640380</text>
-  <text x="265" y="108" class="breadcrumb-sep">›</text>
-  <text x="280" y="108" class="breadcrumb">Passage 2 / A1</text>
-  <text x="425" y="108" class="breadcrumb-sep">›</text>
-  <text x="440" y="108" class="breadcrumb-curr">Préparer le lot</text>
+  <!-- Fil d'Ariane porté par le CHROME (EmplacementNavigation) : emplacement complet du passage,
+       identique quelle que soit la route. Le retour (← écran précédent) est également porté par le chrome. -->
+  <text x="40" y="108" class="breadcrumb">🏠 Accueil</text>
+  <text x="120" y="108" class="breadcrumb-sep">›</text>
+  <text x="134" y="108" class="breadcrumb">Mes sites</text>
+  <text x="210" y="108" class="breadcrumb-sep">›</text>
+  <text x="224" y="108" class="breadcrumb">Carré 640380</text>
+  <text x="320" y="108" class="breadcrumb-sep">›</text>
+  <text x="334" y="108" class="breadcrumb">Détails du passage N° 2</text>
+  <text x="510" y="108" class="breadcrumb-sep">›</text>
+  <text x="524" y="108" class="breadcrumb-curr">Préparer le dépôt</text>
 
   <text x="40" y="148" class="pagetitle">📦 Préparer le lot à déposer sur Vigie-Chiro</text>
   <text x="40" y="170" class="pagesub">Le téléversement est manuel via navigateur. L'application prépare le dossier et trace la date de dépôt.</text>
@@ -168,6 +172,7 @@ Cette vue affiche un **rapport de cohérence** (toutes les vérifications préal
 
 ### Annotations
 
+- **Fil d'Ariane et retour** : portés par le **chrome** (barre de navigation commune) via le contrat `EmplacementNavigation` ; l'écran ne dessine pas son propre fil. Emplacement affiché : `🏠 Accueil › Mes sites › Carré N › Détails du passage N° X › Préparer le dépôt`, identique quelle que soit la route.
 - **Bandeau passage** : 5 cellules de rappel (passage, verdict ✓ OK en vert, statut Vérifié, nombre de séquences, volume total).
 - **Étape 1 - Vérifications** (encart vert) : 3 lignes ✓ couvrant les contrôles E4.S1. Toutes les vérifications passent, donc on peut continuer. Si **au moins une** échoue (✗ rouge), l'encart passe en rouge et le bouton « J'ai déposé » de l'étape 3 est désactivé.
 - **Étape 2 - Récapitulatif du lot** : 4 informations clés (nombre de fichiers, volume, format, chemin sur disque). Le **chemin** est tronqué dans l'affichage mais cliquable pour copier (icône 📋) ou ouvrir dans l'explorateur (bouton primary).

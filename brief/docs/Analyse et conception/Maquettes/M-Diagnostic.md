@@ -94,6 +94,7 @@ L'écran présente, pour le passage courant, un **bilan technique** de la nuit :
 
 ### Annotations
 
+- **Fil d'Ariane et retour** : portés par le **chrome** (barre de navigation commune) via le contrat `EmplacementNavigation` ; l'écran ne dessine pas son propre fil. Emplacement affiché : `🏠 Accueil › Mes sites › Carré N › Détails du passage N° X › Diagnostic matériel`, identique quelle que soit la route.
 - **Titre + référence** (`lblEnregistreur`) : « Diagnostic matériel » et la référence du passage / enregistreur (`PR 1925492`).
 - **Résumé climatique** (`lblResumeClimat`) : une ligne de synthèse (`10 mesures T°/hygrométrie`).
 - **Graphe climatique** (`grapheClimat`) : `LineChart` à **deux séries** (température en orange foncé, hygrométrie en orange clair) sur la durée de la nuit. Axe X temporel (`Heure`), axe Y commun `T° (°C) / Humidité…` (0 à 100). Légende sous le graphe.

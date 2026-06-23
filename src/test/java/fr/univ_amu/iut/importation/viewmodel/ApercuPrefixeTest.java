@@ -38,29 +38,16 @@ class ApercuPrefixeTest {
     }
 
     @Test
-    @DisplayName("#111 : un exemple déjà préfixé concordant est conservé (pas de double préfixe), signalé")
-    void apercu_deja_prefixe_concordant() {
+    @DisplayName("#111 : un exemple déjà préfixé (R6) est rendu tel quel, jamais re-préfixé (pas de Car…-Car…)")
+    void apercu_deja_prefixe_conserve_le_nom() {
         String dejaPrefixe = "Car640380-2026-Pass1-A1-PaRecPR1925492_20260422_203922.wav";
 
-        String apercu = ApercuPrefixe.calculer(SITE, POINT, 2026, 1, dejaPrefixe);
-
-        assertThat(apercu)
-                .as("nom conservé tel quel, jamais re-préfixé")
-                .startsWith(dejaPrefixe)
-                .doesNotContain("Car640380-2026-Pass1-A1-Car")
-                .contains("déjà préfixé");
-    }
-
-    @Test
-    @DisplayName("#111 : un exemple déjà préfixé discordant est conservé mais signalé comme non concordant")
-    void apercu_deja_prefixe_discordant() {
-        String autrePrefixe = "Car999999-2025-Pass3-B2-PaRecPR1925492_20260422_203922.wav";
-
-        String apercu = ApercuPrefixe.calculer(SITE, POINT, 2026, 1, autrePrefixe);
-
-        assertThat(apercu)
-                .startsWith(autrePrefixe)
-                .doesNotContain("Car640380-2026-Pass1-A1-Car") // pas de double préfixe
-                .contains("ne correspond pas");
+        // Concordant comme discordant : l'aperçu conserve le nom (la discordance est signalée ailleurs).
+        assertThat(ApercuPrefixe.calculer(SITE, POINT, 2026, 1, dejaPrefixe))
+                .as("nom conservé, jamais re-préfixé")
+                .isEqualTo(dejaPrefixe);
+        assertThat(ApercuPrefixe.calculer(SITE, POINT, 2026, 1, "Car999999-2025-Pass3-B2-PaRec_x.wav"))
+                .isEqualTo("Car999999-2025-Pass3-B2-PaRec_x.wav")
+                .doesNotContain("Car640380-2026-Pass1-A1-Car");
     }
 }

@@ -12,7 +12,6 @@ import fr.univ_amu.iut.sites.model.PointDEcoute;
 import fr.univ_amu.iut.sites.model.ServiceSites;
 import fr.univ_amu.iut.sites.model.Site;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 import javafx.beans.binding.Bindings;
@@ -29,28 +28,29 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
-import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
-/// ViewModel de l'assistant **M-Import** (« Importer une nuit »).
+/// ViewModel de l'assistant **M-Import** (« Importer une nuit »), en **orchestrateur** (#183).
 ///
-/// Couvre les **étapes 1 à 4** de la maquette :
+/// Couvre les **étapes 1 à 4** de la maquette en coordonnant l'inspection, le rattachement et
+/// l'exécution :
 ///  1. choisir un dossier source ;
 ///  2. l'**inspecter en lecture seule** (R9) via [ServiceImport#inspecter] ;
-///  3. **rattacher** la nuit à un site / point / année / n° de passage et prévisualiser le préfixe
-///     Vigie-Chiro qui sera appliqué (R6) ;
+///  3. **rattacher** la nuit (site / point / année / n° de passage) et prévisualiser le préfixe
+///     Vigie-Chiro (R6) — état délégué au sous-VM [RattachementImportViewModel] ;
 ///  4. **lancer l'import** via [ServiceImport#importer], puis exposer le résultat et l'état.
+///
+/// Cet orchestrateur **compose** le rattachement : `peutImporter` = inspection réussie **et**
+/// rattachement complet ([RattachementImportViewModel#estComplet()]) ; [#preparerImport()] assemble la
+/// demande depuis le dossier (inspection) et le point/préfixe (rattachement). Les méthodes de
+/// rattachement exposées ici (sites, point, année…) **délèguent** au sous-VM (API inchangée pour la
+/// vue).
 ///
 /// [#importer()] est **synchrone** ; la vue lance plutôt l'import sur un fil d'arrière-plan
 /// ([#executerImport(DemandeImport, java.util.function.Consumer)]) pour ne pas figer l'IHM, et relaie
-/// la **progression déterminée** (#33) au fil JavaFX via [#appliquerProgression]. Les sites/points de
-/// l'utilisateur courant viennent de
-/// [ServiceSites] : une dépendance
-/// `importation → sites` sur le `model` d'une autre feature (autorisée par ArchUnit, jamais
-/// sur son `view`/`viewmodel`). Seul `javafx.beans`/`javafx.collections` est importé ici,
-/// jamais `javafx.scene` (règle `viewmodel_sans_javafx_ui`).
+/// la **progression déterminée** (#33) au fil JavaFX via [#appliquerProgression]. Seul `javafx.beans` /
+/// `javafx.collections` est importé ici, jamais `javafx.scene` (règle `viewmodel_sans_javafx_ui`).
 ///
 /// TODO (M-Import) : implémentez les corps des méthodes publiques (chargerSites, inspecter, importer,
 /// preparerImport, executerImport, marquer*) ; les propriétés observables et le binding peutImporter
@@ -58,12 +58,14 @@ import javafx.collections.ObservableList;
 public class ImportationViewModel {
 
     private final ServiceImport serviceImport;
-    private final ServiceSites serviceSites;
-    private final String idUtilisateur;
 
     /// Socle de navigation : la feature y pousse le **verrou** (#54) pour interdire de quitter
     /// l'assistant pendant un import (l'écran porte la seule vue/VM qui reçoit le résultat).
     private final NavigationViewModel navigation;
+
+    /// Étape 3 : sous-VM du **rattachement** (#183) — site / point / année / n° de passage + aperçu.
+    /// L'orchestrateur le compose (peutImporter, preparerImport) et lui fournit le rapport d'inspection.
+    private final RattachementImportViewModel rattachement;
 
     /// Étape 1 : dossier source choisi (carte SD ou copie disque), modifiable par la vue (champ +
     /// bouton « Parcourir »).
@@ -90,19 +92,8 @@ public class ImportationViewModel {
     private final ReadOnlyStringWrapper avertissementIncoherence =
             new ReadOnlyStringWrapper(this, "avertissementIncoherence", "");
 
-    /// Étape 3 : rattachement de la nuit (site / point / année / n° de passage).
-    private final ObservableList<Site> sites = FXCollections.observableArrayList();
-    private final ObjectProperty<Site> siteSelectionne = new SimpleObjectProperty<>(this, "siteSelectionne");
-    private final ObservableList<PointDEcoute> points = FXCollections.observableArrayList();
-    private final ObjectProperty<PointDEcoute> pointSelectionne = new SimpleObjectProperty<>(this, "pointSelectionne");
-    private final IntegerProperty annee = new SimpleIntegerProperty(this, "annee");
-    private final IntegerProperty numeroPassage = new SimpleIntegerProperty(this, "numeroPassage", 1);
-    private final ReadOnlyStringWrapper apercuPrefixe = new ReadOnlyStringWrapper(this, "apercuPrefixe", "");
+    /// Conjonction d'activation du bouton « Importer cette nuit » : composée (inspection + rattachement).
     private final BooleanBinding peutImporter;
-
-    /// Rapport d'inspection courant, conservé pour l'aperçu du préfixe (exemple de nom d'origine) et
-    /// les tranches suivantes (extraction du quadruplet, exécution de l'import).
-    private RapportInspection rapport;
 
     /// Étape 4 : exécution de l'import (état + résultat), pilotée par [#importer()].
     private final ReadOnlyObjectWrapper<EtatImport> etat = new ReadOnlyObjectWrapper<>(this, "etat", EtatImport.PRET);
@@ -120,13 +111,10 @@ public class ImportationViewModel {
             String idUtilisateur,
             NavigationViewModel navigation) {
         this.serviceImport = Objects.requireNonNull(serviceImport, "serviceImport");
-        this.serviceSites = Objects.requireNonNull(serviceSites, "serviceSites");
-        this.idUtilisateur = Objects.requireNonNull(idUtilisateur, "idUtilisateur");
         this.navigation = Objects.requireNonNull(navigation, "navigation");
-        Objects.requireNonNull(horloge, "horloge");
-
-        // Valeur initiale avant d'installer les écouteurs (évite un recalcul d'aperçu prématuré).
-        annee.set(horloge.aujourdhui().getYear());
+        // Sous-VM rattachement (#183) : il valide serviceSites / horloge / idUtilisateur et préremplit
+        // l'année courante.
+        this.rattachement = new RattachementImportViewModel(serviceSites, horloge, idUtilisateur);
 
         // --solution--
         // Changer de dossier source invalide l'inspection précédente : un nouveau dossier doit être
@@ -134,36 +122,21 @@ public class ImportationViewModel {
         // rapport).
         dossierSource.addListener((obs, ancien, nouveau) -> reinitialiserInspection());
 
-        // Changer de site recharge ses points et réinitialise le point sélectionné.
-        siteSelectionne.addListener((obs, ancien, nouveau) -> {
-            points.setAll(nouveau == null ? List.of() : serviceSites.listerPoints(nouveau.id()));
-            pointSelectionne.set(null);
-            rearmerPreparationSiTerminee();
-            majApercu();
-        });
-        pointSelectionne.addListener((obs, ancien, nouveau) -> {
-            rearmerPreparationSiTerminee();
-            majApercu();
-        });
-        annee.addListener((obs, ancien, nouveau) -> {
-            rearmerPreparationSiTerminee();
-            majApercu();
-        });
-        numeroPassage.addListener((obs, ancien, nouveau) -> {
-            rearmerPreparationSiTerminee();
-            majApercu();
-        });
+        // Éditer le rattachement après un import terminé/échoué recrée une préparation non lancée que la
+        // garde de navigation (#140) doit protéger : on ré-arme l'état PRET (cf. rearmerPreparationSiTerminee).
+        rattachement.siteSelectionneProperty().addListener((obs, ancien, nouveau) -> rearmerPreparationSiTerminee());
+        rattachement.pointSelectionneProperty().addListener((obs, ancien, nouveau) -> rearmerPreparationSiTerminee());
+        rattachement.anneeProperty().addListener((obs, ancien, nouveau) -> rearmerPreparationSiTerminee());
+        rattachement.numeroPassageProperty().addListener((obs, ancien, nouveau) -> rearmerPreparationSiTerminee());
         // --end-solution--
 
+        // peutImporter = inspection réussie ET rattachement complet (composition par l'orchestrateur).
         peutImporter = Bindings.createBooleanBinding(
-                () -> inspecte.get()
-                        && siteSelectionne.get() != null
-                        && pointSelectionne.get() != null
-                        && numeroPassage.get() >= 1,
+                () -> inspecte.get() && rattachement.estComplet(),
                 inspecte,
-                siteSelectionne,
-                pointSelectionne,
-                numeroPassage);
+                rattachement.siteSelectionneProperty(),
+                rattachement.pointSelectionneProperty(),
+                rattachement.numeroPassageProperty());
     }
 
     /// Dossier source à inspecter puis importer (lié au champ + bouton « Parcourir » de la vue).
@@ -220,44 +193,43 @@ public class ImportationViewModel {
         return avertissementIncoherence.getReadOnlyProperty();
     }
 
-    /// Liste observable des sites de l'utilisateur, alimentée par [#chargerSites()] (combobox Site).
+    /// Liste observable des sites de l'utilisateur (combobox Site). Déléguée au sous-VM rattachement.
     public ObservableList<Site> sites() {
-        return sites;
+        return rattachement.sites();
     }
 
-    /// Site auquel rattacher la nuit (sélection dans la combobox).
+    /// Site auquel rattacher la nuit (délégué au sous-VM rattachement).
     public ObjectProperty<Site> siteSelectionneProperty() {
-        return siteSelectionne;
+        return rattachement.siteSelectionneProperty();
     }
 
-    /// Points du site sélectionné (recalculée à chaque changement de site).
+    /// Points du site sélectionné (délégué au sous-VM rattachement).
     public ObservableList<PointDEcoute> points() {
-        return points;
+        return rattachement.points();
     }
 
-    /// Point d'écoute auquel rattacher la nuit.
+    /// Point d'écoute auquel rattacher la nuit (délégué au sous-VM rattachement).
     public ObjectProperty<PointDEcoute> pointSelectionneProperty() {
-        return pointSelectionne;
+        return rattachement.pointSelectionneProperty();
     }
 
-    /// Année du passage (préremplie à l'année de l'horloge applicative).
+    /// Année du passage (déléguée au sous-VM rattachement).
     public IntegerProperty anneeProperty() {
-        return annee;
+        return rattachement.anneeProperty();
     }
 
-    /// Numéro de passage dans l'année pour ce point (défaut 1, éditable).
+    /// Numéro de passage dans l'année (délégué au sous-VM rattachement).
     public IntegerProperty numeroPassageProperty() {
-        return numeroPassage;
+        return rattachement.numeroPassageProperty();
     }
 
-    /// Aperçu du nom préfixé appliqué aux fichiers (R6), recalculé dès qu'un champ change ; vide tant
-    /// que le site ou le point n'est pas choisi.
+    /// Aperçu du nom préfixé appliqué aux fichiers (R6), délégué au sous-VM rattachement.
     public ReadOnlyStringProperty apercuPrefixeProperty() {
-        return apercuPrefixe.getReadOnlyProperty();
+        return rattachement.apercuPrefixeProperty();
     }
 
-    /// Conjonction d'activation du bouton « Importer cette nuit » : dossier inspecté + site + point +
-    /// n° de passage valides.
+    /// Conjonction d'activation du bouton « Importer cette nuit » : dossier inspecté + rattachement
+    /// complet (site + point + n° de passage valides).
     public BooleanBinding peutImporter() {
         return peutImporter;
     }
@@ -289,7 +261,7 @@ public class ImportationViewModel {
     public void chargerSites() {
         // TODO (M-Import) : rechargez les sites de l'utilisateur courant (serviceSites.listerSites).
         // --solution--
-        sites.setAll(serviceSites.listerSites(idUtilisateur));
+        rattachement.chargerSites();
         // --end-solution--
     }
 
@@ -299,7 +271,8 @@ public class ImportationViewModel {
     public void inspecter() {
         // TODO (M-Import) : inspectez le dossier source (serviceImport.inspecter), alimentez les
         //   propriétés d'inspection + avertissements (AvertissementMelange/Incoherence.rediger), passez
-        //   inspecte à true et recalculez l'aperçu ; en cas d'erreur, appelez echouer(...).
+        //   inspecte à true et fournissez le rapport au rattachement (definirRapport) ; en cas d'erreur,
+        //   appelez echouer(...).
         // --solution--
         Path dossier = dossierSource.get();
         if (dossier == null) {
@@ -307,7 +280,7 @@ public class ImportationViewModel {
             return;
         }
         try {
-            rapport = serviceImport.inspecter(dossier);
+            RapportInspection rapport = serviceImport.inspecter(dossier);
             aUnJournal.set(rapport.aUnJournal());
             aUnReleveClimatique.set(rapport.aUnReleveClimatique());
             nombreOriginaux.set(rapport.nombreOriginaux());
@@ -319,7 +292,7 @@ public class ImportationViewModel {
             avertissementIncoherence.set(AvertissementIncoherence.rediger(rapport.coherence()));
             messageErreur.set("");
             inspecte.set(true);
-            majApercu();
+            rattachement.definirRapport(rapport);
         } catch (RuntimeException echec) {
             echouer(echec.getMessage());
         }
@@ -381,12 +354,7 @@ public class ImportationViewModel {
         // TODO (M-Import) : capturez le rattachement courant (dossier, point, préfixe) dans un
         //   DemandeImport immuable (à passer à executerImport hors-thread).
         // --solution--
-        Site site = siteSelectionne.get();
-        PointDEcoute point = pointSelectionne.get();
-        return new DemandeImport(
-                dossierSource.get(),
-                point.id(),
-                new Prefixe(site.numeroCarre(), annee.get(), numeroPassage.get(), point.code()));
+        return new DemandeImport(dossierSource.get(), rattachement.idPointSelectionne(), rattachement.prefixeCourant());
         // --end-solution--
         /* --student--
         throw new UnsupportedOperationException("À implémenter (M-Import)");
@@ -460,7 +428,6 @@ public class ImportationViewModel {
     /// import, donc `inspecte` repasse à `false` (et `peutImporter` se désactive). Sans cela, les
     /// propriétés dérivées resteraient sur les valeurs (obsolètes) du dossier précédent.
     private void reinitialiserInspection() {
-        rapport = null;
         inspecte.set(false);
         aUnJournal.set(false);
         aUnReleveClimatique.set(false);
@@ -474,7 +441,7 @@ public class ImportationViewModel {
         resultat.set(null);
         progression.set(0.0);
         messageProgression.set("");
-        majApercu();
+        rattachement.definirRapport(null);
     }
 
     /// Ré-arme la préparation (`PRET`) dès qu'un champ du rattachement change après un import
@@ -489,13 +456,6 @@ public class ImportationViewModel {
             messageErreur.set("");
             etat.set(EtatImport.PRET);
         }
-    }
-
-    /// Recalcule l'aperçu du préfixe (appliqué à un exemple de nom d'origine) ; vide tant que le
-    /// site ou le point n'est pas choisi. Le calcul (pur) est délégué à [ApercuPrefixe].
-    private void majApercu() {
-        apercuPrefixe.set(ApercuPrefixe.calculer(
-                siteSelectionne.get(), pointSelectionne.get(), annee.get(), numeroPassage.get(), rapport));
     }
     // --end-solution--
 }

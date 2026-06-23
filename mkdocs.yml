@@ -53,6 +53,8 @@ nav:
       - Passage: ecrans/passage.md
       - Importation: ecrans/importation.md
       - Qualification: ecrans/qualification.md
+      - Lot: ecrans/lot.md
+      - Validation: ecrans/validation.md
   - Raccourcis clavier: raccourcis-clavier.md
 
 markdown_extensions:

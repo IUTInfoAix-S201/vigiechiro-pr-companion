@@ -11,8 +11,8 @@ référence explique *en détail* ce que chaque écran propose.
 | [Passage](passage.md) | Pivot d'une nuit : statut, navigation, suppression |
 | [Importation](importation.md) | Importer une nuit depuis la carte SD |
 | [Qualification](qualification.md) | Écouter les séquences et poser un verdict de qualité |
-| Lot | Préparer et déposer un lot vérifié |
-| Validation | Relire les observations Tadarida (espèces) |
+| [Lot](lot.md) | Préparer et déposer un lot vérifié |
+| [Validation](validation.md) | Relire les observations Tadarida (espèces) |
 | Multisite | Vue agrégée des passages (tri, filtres, vues sauvegardées) |
 | Diagnostic | Diagnostic d'une nuit (climat, anomalies) |
 | Bibliothèque | Bibliothèque de sons de référence |

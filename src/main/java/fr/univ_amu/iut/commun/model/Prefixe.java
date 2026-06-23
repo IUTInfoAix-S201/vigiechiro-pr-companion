@@ -22,6 +22,18 @@ public record Prefixe(String carre, int annee, int numeroPassage, String codePoi
     /// Tiret du 6 imposé par R6 (U+002D HYPHEN-MINUS).
     public static final char TIRET = '-';
 
+    /// Marqueur de début d'un nom **déjà préfixé** (R6) : un original préfixé commence par `Car<carré>…`,
+    /// par opposition au nom brut de l'enregistreur (`PaRecPR…`).
+    public static final String MARQUEUR_PREFIXE = "Car";
+
+    /// `true` si `nomFichier` porte déjà un préfixe R6 (commence par [#MARQUEUR_PREFIXE]). **Source unique
+    /// de vérité** partagée par l'inspection (état de nommage), le renommage (idempotence : ne jamais
+    /// re-préfixer, donc pas de double préfixe `Car…-Car…`, #111) et l'aperçu (nom conservé si déjà
+    /// préfixé).
+    public static boolean estNomPrefixe(String nomFichier) {
+        return nomFichier.startsWith(MARQUEUR_PREFIXE);
+    }
+
     /// Nom du dossier de session (R22), sans tiret final : `Car040962-2026-Pass1-A1`.
     public String nomDossierSession() {
         return "Car" + carre + TIRET + annee + TIRET + "Pass" + numeroPassage + TIRET + codePoint;

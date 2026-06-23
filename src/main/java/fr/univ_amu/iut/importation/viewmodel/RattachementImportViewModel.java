@@ -22,8 +22,9 @@ import javafx.collections.ObservableList;
 /// Extrait de [ImportationViewModel] (#183) pour le décharger : cet objet ne porte **que** l'état du
 /// rattachement, sans rien savoir de l'inspection ni de l'exécution de l'import. L'orchestrateur
 /// ([ImportationViewModel]) le **compose** : il lit [#estComplet()] pour `peutImporter`, assemble la
-/// demande d'import depuis [#idPointSelectionne()] / [#prefixeCourant()], et lui fournit le rapport
-/// d'inspection courant ([#definirRapport]) qui sert d'exemple de nom pour l'aperçu.
+/// demande d'import depuis [#idPointSelectionne()] / [#prefixeCourant()], et lui fournit (via
+/// [#definirExempleNom]) un **exemple de nom d'origine** servant à l'aperçu — une simple valeur dérivée,
+/// pas le rapport d'inspection, pour ne pas coupler ce sous-VM à l'inspection.
 ///
 /// VM agnostique de l'IHM (règle ArchUnit `viewmodel_sans_javafx_ui`) : seuls `javafx.beans` /
 /// `javafx.collections` sont importés, jamais `javafx.scene`.

@@ -47,24 +47,24 @@ class InspectionImportViewModelTest {
     }
 
     @Test
-    @DisplayName("Sans dossier choisi, inspecter renvoie un message et reste non inspecté")
+    @DisplayName("Sans dossier choisi, inspecter publie son message d'erreur et reste non inspecté")
     void inspecter_sans_dossier() {
-        String erreur = vm.inspecter();
+        vm.inspecter();
 
-        assertThat(erreur).contains("dossier");
+        assertThat(vm.messageErreurProperty().get()).contains("dossier");
         assertThat(vm.estInspecte()).isFalse();
         assertThat(vm.rapport()).isNull();
     }
 
     @Test
-    @DisplayName("Inspecter un dossier valide renvoie null et expose journal, compte et rapport")
+    @DisplayName("Inspecter un dossier valide vide le message et expose journal, compte et rapport")
     void inspecter_succes() {
         when(serviceImport.inspecter(sd)).thenReturn(inspecteur.inspecter(sd));
         vm.dossierSourceProperty().set(sd);
 
-        String erreur = vm.inspecter();
+        vm.inspecter();
 
-        assertThat(erreur).isNull();
+        assertThat(vm.messageErreurProperty().get()).isEmpty();
         assertThat(vm.estInspecte()).isTrue();
         assertThat(vm.aUnJournalProperty().get()).isTrue();
         assertThat(vm.nombreOriginauxProperty().get()).isEqualTo(2);
@@ -73,20 +73,20 @@ class InspectionImportViewModelTest {
     }
 
     @Test
-    @DisplayName("Une inspection qui échoue renvoie le message et remet l'état à zéro")
+    @DisplayName("Une inspection qui échoue publie le message et remet l'état à zéro")
     void inspecter_echec() {
         when(serviceImport.inspecter(sd)).thenThrow(new RuntimeException("Chemin illisible"));
         vm.dossierSourceProperty().set(sd);
 
-        String erreur = vm.inspecter();
+        vm.inspecter();
 
-        assertThat(erreur).isEqualTo("Chemin illisible");
+        assertThat(vm.messageErreurProperty().get()).isEqualTo("Chemin illisible");
         assertThat(vm.estInspecte()).isFalse();
         assertThat(vm.rapport()).isNull();
     }
 
     @Test
-    @DisplayName("reinitialiser remet l'inspection à zéro après un succès")
+    @DisplayName("reinitialiser remet l'inspection (et son message) à zéro après un succès")
     void reinitialiser_remet_a_zero() {
         when(serviceImport.inspecter(sd)).thenReturn(inspecteur.inspecter(sd));
         vm.dossierSourceProperty().set(sd);
@@ -99,5 +99,6 @@ class InspectionImportViewModelTest {
         assertThat(vm.aUnJournalProperty().get()).isFalse();
         assertThat(vm.nombreOriginauxProperty().get()).isZero();
         assertThat(vm.rapport()).isNull();
+        assertThat(vm.messageErreurProperty().get()).isEmpty();
     }
 }

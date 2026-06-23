@@ -20,10 +20,11 @@ import javafx.beans.property.SimpleObjectProperty;
 /// en lecture seule** (R9).
 ///
 /// Extrait de [ImportationViewModel] (#183) : cet objet ne porte **que** l'état d'inspection (dossier,
-/// rapport, présence journal/relevé, compte, nommage, avertissements #33). Il ne connaît ni le
-/// rattachement ni l'exécution. Les **erreurs** ne sont pas stockées ici : [#inspecter()] les
-/// **renvoie**, et l'orchestrateur ([ImportationViewModel]) les présente dans son message unifié. Le
-/// **rapport** réussi est exposé ([#rapport()]) pour alimenter l'aperçu du rattachement.
+/// rapport, présence journal/relevé, compte, nommage, avertissements #33) et **son propre message
+/// d'erreur** d'inspection ([#messageErreurProperty()]) ; l'orchestrateur le compose avec l'erreur
+/// d'exécution dans son message unifié. Il ne connaît ni le rattachement ni l'exécution. Pour l'aperçu
+/// du rattachement, il n'expose pas son rapport mais une **valeur dérivée** : l'exemple de nom
+/// d'origine ([#exempleNomOriginal()]), ce qui évite de coupler le rattachement à l'inspection.
 ///
 /// VM agnostique de l'IHM (règle ArchUnit `viewmodel_sans_javafx_ui`) : seul `javafx.beans` est
 /// importé, jamais `javafx.scene`.
@@ -47,6 +48,10 @@ public class InspectionImportViewModel {
     private final ReadOnlyStringWrapper avertissementIncoherence =
             new ReadOnlyStringWrapper(this, "avertissementIncoherence", "");
 
+    /// Message d'erreur **propre à l'inspection** (dossier non choisi, chemin invalide), vide après une
+    /// inspection réussie. L'orchestrateur le compose avec l'erreur d'exécution dans son message unifié.
+    private final ReadOnlyStringWrapper messageErreur = new ReadOnlyStringWrapper(this, "messageErreur", "");
+
     /// Rapport d'inspection courant, conservé pour l'aperçu du préfixe (exemple de nom d'origine) et
     /// les tranches suivantes. `null` tant qu'aucune inspection n'a réussi.
     private RapportInspection rapport;
@@ -55,15 +60,16 @@ public class InspectionImportViewModel {
         this.serviceImport = Objects.requireNonNull(serviceImport, "serviceImport");
     }
 
-    /// Inspecte le dossier source courant **en lecture seule** (R9). Renvoie `null` en cas de succès
-    /// (propriétés d'inspection mises à jour, [#estInspecte()] vrai, rapport disponible), sinon le
-    /// **message d'erreur** (dossier non choisi ou chemin invalide) après avoir remis l'état
-    /// d'inspection à zéro.
-    public String inspecter() {
+    /// Inspecte le dossier source courant **en lecture seule** (R9). En cas de succès, met à jour les
+    /// propriétés d'inspection ([#estInspecte()] vrai, rapport disponible) et vide [#messageErreurProperty()] ;
+    /// sinon (dossier non choisi ou chemin invalide), remet l'état d'inspection à zéro et publie le
+    /// message d'erreur dans [#messageErreurProperty()].
+    public void inspecter() {
         Path dossier = dossierSource.get();
         if (dossier == null) {
             reinitialiser();
-            return "Choisissez d'abord un dossier source.";
+            messageErreur.set("Choisissez d'abord un dossier source.");
+            return;
         }
         try {
             RapportInspection inspection = serviceImport.inspecter(dossier);
@@ -79,16 +85,17 @@ public class InspectionImportViewModel {
             avertissementMelange.set(AvertissementMelange.rediger(inspection.melange()));
             avertissementIncoherence.set(AvertissementIncoherence.rediger(inspection.coherence()));
             inspecte.set(true);
-            return null;
+            messageErreur.set("");
         } catch (RuntimeException echec) {
             reinitialiser();
-            return echec.getMessage();
+            messageErreur.set(echec.getMessage());
         }
     }
 
-    /// Remet l'état d'inspection à zéro (plus de rapport courant) : appelé au changement de dossier
-    /// source (orchestrateur) et en cas d'échec d'inspection. Les propriétés dérivées repassent à leur
-    /// valeur initiale, donc `inspecte` à `false` (ce qui désactive `peutImporter`).
+    /// Remet l'état d'inspection à zéro (plus de rapport, message d'inspection effacé) : appelé au
+    /// changement de dossier source (orchestrateur) et en cas d'échec d'inspection. Les propriétés
+    /// dérivées repassent à leur valeur initiale, donc `inspecte` à `false` (ce qui désactive
+    /// `peutImporter`).
     public void reinitialiser() {
         rapport = null;
         inspecte.set(false);
@@ -99,6 +106,7 @@ public class InspectionImportViewModel {
         resumeJournal.set("");
         avertissementMelange.set("");
         avertissementIncoherence.set("");
+        messageErreur.set("");
     }
 
     /// Dossier source courant (pour assembler la demande d'import).
@@ -169,5 +177,11 @@ public class InspectionImportViewModel {
     /// Avertissement « incohérence » (#33), vide si l'identité déclarée concorde avec les enregistrements.
     public ReadOnlyStringProperty avertissementIncoherenceProperty() {
         return avertissementIncoherence.getReadOnlyProperty();
+    }
+
+    /// Message d'erreur **propre à l'inspection** (dossier non choisi, chemin invalide), vide après un
+    /// succès. L'orchestrateur le combine avec l'erreur d'exécution dans son message unifié.
+    public ReadOnlyStringProperty messageErreurProperty() {
+        return messageErreur.getReadOnlyProperty();
     }
 }

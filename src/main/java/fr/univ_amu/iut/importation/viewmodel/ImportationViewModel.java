@@ -38,10 +38,11 @@ import javafx.collections.ObservableList;
 ///
 /// L'orchestrateur **compose** les sous-VM : `peutImporter` = inspection réussie **et** rattachement
 /// complet ; [#preparerImport()] assemble la demande depuis le dossier (inspection) et le point/préfixe
-/// (rattachement) ; après une inspection réussie, il fournit le rapport au rattachement pour l'aperçu.
-/// Il conserve **un seul message d'erreur** utilisateur ([#messageErreurProperty()]) : l'inspection
-/// **renvoie** son erreur, l'exécution écrit la sienne. L'API publique exposée à la vue (dossier,
-/// inspection, rattachement…) **délègue** aux sous-VM (vue inchangée).
+/// (rattachement) ; après une inspection réussie, il transmet au rattachement l'exemple de nom
+/// (valeur dérivée de l'inspection) pour l'aperçu. Côté **erreurs**, chaque préoccupation porte la
+/// sienne (inspection : son propre message ; exécution : [#messageExecution]) ; l'orchestrateur les
+/// **recompose** dans un unique message présenté à la vue ([#messageErreurProperty()]). L'API publique
+/// exposée à la vue (dossier, inspection, rattachement…) **délègue** aux sous-VM (vue inchangée).
 ///
 /// [#importer()] est **synchrone** ; la vue lance plutôt l'import sur un fil d'arrière-plan
 /// ([#executerImport(DemandeImport, java.util.function.Consumer)]) pour ne pas figer l'IHM, et relaie
@@ -65,8 +66,13 @@ public class ImportationViewModel {
     /// Étape 3 : sous-VM du **rattachement** (#183) — site / point / année / n° de passage + aperçu.
     private final RattachementImportViewModel rattachement;
 
-    /// Message d'erreur **unifié** présenté à la vue : inspection (renvoyée) ou exécution (échec import).
+    /// Message d'erreur **unifié** présenté à la vue : recomposé depuis l'erreur d'inspection (portée
+    /// par le sous-VM inspection) et l'erreur d'exécution ([#messageExecution]).
     private final ReadOnlyStringWrapper messageErreur = new ReadOnlyStringWrapper(this, "messageErreur", "");
+
+    /// Message d'erreur **propre à l'exécution** (rattachement incomplet, échec d'import). Combiné avec
+    /// l'erreur d'inspection dans [#messageErreur] (le sous-VM inspection porte la sienne).
+    private final ReadOnlyStringWrapper messageExecution = new ReadOnlyStringWrapper(this, "messageExecution", "");
 
     /// Conjonction d'activation du bouton « Importer cette nuit » : composée (inspection + rattachement).
     private final BooleanBinding peutImporter;
@@ -95,7 +101,7 @@ public class ImportationViewModel {
 
         // --solution--
         // Changer de dossier source invalide l'inspection précédente : un nouveau dossier doit être
-        // ré-inspecté (sinon le bouton Importer resterait actif et l'aperçu garderait l'ancien rapport).
+        // ré-inspecté (sinon le bouton Importer resterait actif et l'aperçu garderait l'ancien exemple).
         inspection.dossierSourceProperty().addListener((obs, ancien, nouveau) -> reinitialiserPourNouveauDossier());
 
         // Éditer le rattachement après un import terminé/échoué recrée une préparation non lancée que la
@@ -104,6 +110,10 @@ public class ImportationViewModel {
         rattachement.pointSelectionneProperty().addListener((obs, ancien, nouveau) -> rearmerPreparationSiTerminee());
         rattachement.anneeProperty().addListener((obs, ancien, nouveau) -> rearmerPreparationSiTerminee());
         rattachement.numeroPassageProperty().addListener((obs, ancien, nouveau) -> rearmerPreparationSiTerminee());
+
+        // Message unifié : recomposé dès que l'inspection ou l'exécution change le sien.
+        inspection.messageErreurProperty().addListener((obs, ancien, nouveau) -> rafraichirMessage());
+        messageExecution.addListener((obs, ancien, nouveau) -> rafraichirMessage());
         // --end-solution--
 
         // peutImporter = inspection réussie ET rattachement complet (composition par l'orchestrateur).
@@ -242,22 +252,20 @@ public class ImportationViewModel {
     }
 
     /// Inspecte le dossier source courant **en lecture seule** (R9) via le sous-VM inspection. En cas
-    /// de succès, fournit le rapport au rattachement (aperçu) ; en cas d'erreur, remet l'exécution à
-    /// zéro et publie le message renvoyé.
+    /// de succès, transmet au rattachement l'exemple de nom (aperçu) ; en cas d'erreur (publiée par
+    /// l'inspection), remet l'exécution et l'aperçu à zéro.
     public void inspecter() {
-        // TODO (M-Import) : inspectez le dossier source (inspection.inspecter), fournissez le rapport au
-        //   rattachement (definirRapport) en cas de succès ; en cas d'erreur (message renvoyé), remettez
-        //   l'exécution à zéro et publiez le message.
+        // TODO (M-Import) : inspectez le dossier source (inspection.inspecter) ; en cas de succès
+        //   (inspection.estInspecte), transmettez l'exemple de nom au rattachement (definirExempleNom) ;
+        //   sinon, remettez l'exécution et l'aperçu à zéro (l'inspection a déjà publié son message).
         // --solution--
-        String erreur = inspection.inspecter();
-        if (erreur != null) {
+        inspection.inspecter();
+        if (inspection.estInspecte()) {
+            rattachement.definirExempleNom(inspection.exempleNomOriginal());
+        } else {
             reinitialiserExecution();
             rattachement.definirExempleNom(null);
-            messageErreur.set(erreur);
-            return;
         }
-        messageErreur.set("");
-        rattachement.definirExempleNom(inspection.exempleNomOriginal());
         // --end-solution--
     }
 
@@ -270,7 +278,7 @@ public class ImportationViewModel {
         //   marquerEnCours, exécutez (executerImport) puis marquerTermine / marquerEchec.
         // --solution--
         if (!peutImporter.get()) {
-            messageErreur.set("Complétez le rattachement (dossier inspecté, site, point) avant d'importer.");
+            messageExecution.set("Complétez le rattachement (dossier inspecté, site, point) avant d'importer.");
             return;
         }
         DemandeImport demande = preparerImport();
@@ -288,7 +296,7 @@ public class ImportationViewModel {
     public void marquerEnCours() {
         // TODO (M-Import) : passez l'état à EN_COURS (progression 0, verrou de navigation #54).
         // --solution--
-        messageErreur.set("");
+        messageExecution.set("");
         progression.set(0.0);
         messageProgression.set("Préparation…");
         etat.set(EtatImport.EN_COURS);
@@ -362,7 +370,7 @@ public class ImportationViewModel {
         // TODO (M-Import) : exposez le résultat, passez l'état à TERMINE, déverrouillez la navigation (#54).
         // --solution--
         resultat.set(resultatImport);
-        messageErreur.set("");
+        messageExecution.set("");
         etat.set(EtatImport.TERMINE);
         navigation.setNavigationVerrouillee(false); // l'import est fini : on peut de nouveau naviguer (#54)
         // --end-solution--
@@ -374,30 +382,39 @@ public class ImportationViewModel {
         // TODO (M-Import) : effacez le résultat, publiez le message, passez l'état à ECHEC, déverrouillez (#54).
         // --solution--
         resultat.set(null);
-        messageErreur.set(message);
+        messageExecution.set(message);
         etat.set(EtatImport.ECHEC);
         navigation.setNavigationVerrouillee(false); // l'import s'est arrêté : on déverrouille (#54)
         // --end-solution--
     }
 
     // --solution--
-    /// Remet tout à zéro au **changement de dossier source** : l'inspection (sous-VM), l'exécution,
-    /// l'aperçu (rattachement) et le message. Un nouveau dossier doit être ré-inspecté avant tout
-    /// import (donc `inspecte` repasse à `false` et `peutImporter` se désactive).
+    /// Recompose le message d'erreur **unifié** présenté à la vue : l'erreur d'inspection prime (elle
+    /// précède l'import) ; à défaut, l'erreur d'exécution. Inspection et exécution étant temporellement
+    /// exclusives, au plus l'une est non vide.
+    private void rafraichirMessage() {
+        String erreurInspection = inspection.messageErreurProperty().get();
+        messageErreur.set(erreurInspection.isEmpty() ? messageExecution.get() : erreurInspection);
+    }
+
+    /// Remet tout à zéro au **changement de dossier source** : l'inspection (sous-VM), l'exécution et
+    /// l'aperçu (rattachement). Un nouveau dossier doit être ré-inspecté avant tout import (donc
+    /// `inspecte` repasse à `false` et `peutImporter` se désactive). Le message unifié se vide via
+    /// [#rafraichirMessage()] (inspection + exécution remis à zéro).
     private void reinitialiserPourNouveauDossier() {
         inspection.reinitialiser();
         reinitialiserExecution();
         rattachement.definirExempleNom(null);
-        messageErreur.set("");
     }
 
-    /// Remet l'état d'**exécution** à zéro (PRET, sans résultat ni progression). Partagé par le
-    /// changement de dossier et l'échec d'inspection.
+    /// Remet l'état d'**exécution** à zéro (PRET, sans résultat, progression ni message d'exécution).
+    /// Partagé par le changement de dossier et l'échec d'inspection.
     private void reinitialiserExecution() {
         etat.set(EtatImport.PRET);
         resultat.set(null);
         progression.set(0.0);
         messageProgression.set("");
+        messageExecution.set("");
     }
 
     /// Ré-arme la préparation (`PRET`) dès qu'un champ du rattachement change après un import
@@ -409,7 +426,7 @@ public class ImportationViewModel {
     private void rearmerPreparationSiTerminee() {
         if (etat.get() == EtatImport.TERMINE || etat.get() == EtatImport.ECHEC) {
             resultat.set(null);
-            messageErreur.set("");
+            messageExecution.set("");
             etat.set(EtatImport.PRET);
         }
     }

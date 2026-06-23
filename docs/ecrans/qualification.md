@@ -30,6 +30,7 @@ Au terme du contrôle, vous posez un **verdict global** sur la nuit : **OK**, **
 ## Raccourcis clavier
 
 Cet écran est pensé pour un travail rapide **au clavier**, sans lâcher l'écoute : <kbd>Espace</kbd>
-lance ou met en pause la lecture, <kbd>O</kbd> / <kbd>D</kbd> / <kbd>J</kbd> posent le verdict, et
-<kbd>Entrée</kbd> l'enregistre. La liste complète est sur la page
+lance ou met en pause la lecture, <kbd>O</kbd> / <kbd>D</kbd> / <kbd>J</kbd> posent le verdict,
+<kbd>Entrée</kbd> l'enregistre, et <kbd>↑</kbd> / <kbd>↓</kbd> passent d'une séquence à l'autre
+(quand la liste a le focus). La liste complète est sur la page
 [Raccourcis clavier](../raccourcis-clavier.md).

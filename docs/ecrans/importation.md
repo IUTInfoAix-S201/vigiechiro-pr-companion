@@ -22,10 +22,11 @@ ralenties dix fois.
 
 L'inspection signale les anomalies **avant** l'import, pour éviter d'importer une mauvaise nuit.
 
-Un **mélange d'enregistreurs** (plusieurs séries détectées dans le même dossier) déclenche un
-avertissement, sans bloquer l'import :
+Un **mélange** dans le dossier (plusieurs enregistreurs aux séries différentes, ou plusieurs nuits
+aux dates non consécutives, alors qu'un dossier ne devrait contenir qu'une seule nuit d'un seul
+enregistreur) déclenche un avertissement, sans bloquer l'import :
 
-![Cas « mélange » : un avertissement signale plusieurs séries d'enregistreur dans le dossier.](../assets/captures/apercu-import-melange.png)
+![Cas « mélange » : un avertissement signale que le dossier contient plusieurs enregistreurs ou plusieurs nuits.](../assets/captures/apercu-import-melange.png)
 
 Une **incohérence** entre le journal du capteur et les enregistrements (série ou date qui ne
 correspondent pas) est signalée plus fermement :

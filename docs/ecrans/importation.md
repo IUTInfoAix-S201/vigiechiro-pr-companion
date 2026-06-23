@@ -1,0 +1,43 @@
+# Importation
+
+L'écran **Importation** copie une nuit depuis la carte SD, la renomme et la transforme en séquences
+écoutables. Il prend la forme d'un **assistant en trois temps**.
+
+## L'assistant d'import
+
+![L'assistant d'import : dossier source, inspection, rattachement.](../assets/captures/apercu-import-assistant.png)
+
+1. **Dossier source** : désignez le dossier de la carte SD (ou une copie déjà sur disque).
+2. **Inspection** (lecture seule) : l'application détecte le journal du capteur, le relevé climatique
+   et les enregistrements WAV, et annonce ce qu'elle va renommer. **Aucun fichier de la carte n'est
+   modifié à ce stade.**
+3. **Rattachement** : indiquez le site, le point d'écoute, l'année et le numéro de passage ; un
+   aperçu montre le préfixe qui sera appliqué.
+
+Le bouton **Importer cette nuit** lance la copie (sans toucher aux originaux), le renommage avec le
+préfixe `CarXXXXXX-AAAA-PassN-YY-`, puis la transformation des enregistrements en séquences de 5 s
+ralenties dix fois.
+
+## L'inspection vous alerte
+
+L'inspection signale les anomalies **avant** l'import, pour éviter d'importer une mauvaise nuit.
+
+Un **mélange d'enregistreurs** (plusieurs séries détectées dans le même dossier) déclenche un
+avertissement, sans bloquer l'import :
+
+![Cas « mélange » : un avertissement signale plusieurs séries d'enregistreur dans le dossier.](../assets/captures/apercu-import-melange.png)
+
+Une **incohérence** entre le journal du capteur et les enregistrements (série ou date qui ne
+correspondent pas) est signalée plus fermement :
+
+![Cas « incohérence » : le journal ne correspond pas aux enregistrements (série et date).](../assets/captures/apercu-import-incoherence.png)
+
+Dans les deux cas, l'import reste possible : à vous de vérifier que le dossier correspond bien à une
+seule et même nuit avant de continuer.
+
+## Pendant l'import
+
+Une fois lancé, l'import affiche une **barre de progression** (copie puis transformation) et **gèle
+le formulaire** le temps de l'opération.
+
+![Import en cours : barre de progression, formulaire gelé.](../assets/captures/apercu-import-en-cours.png)

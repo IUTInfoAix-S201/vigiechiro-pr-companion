@@ -5,7 +5,6 @@ import fr.univ_amu.iut.commun.model.Prefixe;
 import fr.univ_amu.iut.commun.viewmodel.NavigationViewModel;
 import fr.univ_amu.iut.importation.model.EtatNommage;
 import fr.univ_amu.iut.importation.model.Progression;
-import fr.univ_amu.iut.importation.model.RapportInspection;
 import fr.univ_amu.iut.importation.model.ResultatImport;
 import fr.univ_amu.iut.importation.model.ServiceImport;
 import fr.univ_amu.iut.sites.model.PointDEcoute;
@@ -19,33 +18,30 @@ import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
-import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.beans.property.ReadOnlyDoubleWrapper;
 import javafx.beans.property.ReadOnlyIntegerProperty;
-import javafx.beans.property.ReadOnlyIntegerWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ObservableList;
 
 /// ViewModel de l'assistant **M-Import** (« Importer une nuit »), en **orchestrateur** (#183).
 ///
-/// Couvre les **étapes 1 à 4** de la maquette en coordonnant l'inspection, le rattachement et
-/// l'exécution :
-///  1. choisir un dossier source ;
-///  2. l'**inspecter en lecture seule** (R9) via [ServiceImport#inspecter] ;
-///  3. **rattacher** la nuit (site / point / année / n° de passage) et prévisualiser le préfixe
-///     Vigie-Chiro (R6) — état délégué au sous-VM [RattachementImportViewModel] ;
-///  4. **lancer l'import** via [ServiceImport#importer], puis exposer le résultat et l'état.
+/// Couvre les **étapes 1 à 4** de la maquette en coordonnant trois préoccupations, chacune déléguée ou
+/// portée ici :
+///  1-2. choix du dossier + **inspection** (R9) → sous-VM [InspectionImportViewModel] ;
+///  3.   **rattachement** (site / point / année / n° de passage) + aperçu (R6) → sous-VM
+///       [RattachementImportViewModel] ;
+///  4.   **exécution** de l'import (état, résultat, progression, verrou #54) → porté ici.
 ///
-/// Cet orchestrateur **compose** le rattachement : `peutImporter` = inspection réussie **et**
-/// rattachement complet ([RattachementImportViewModel#estComplet()]) ; [#preparerImport()] assemble la
-/// demande depuis le dossier (inspection) et le point/préfixe (rattachement). Les méthodes de
-/// rattachement exposées ici (sites, point, année…) **délèguent** au sous-VM (API inchangée pour la
-/// vue).
+/// L'orchestrateur **compose** les sous-VM : `peutImporter` = inspection réussie **et** rattachement
+/// complet ; [#preparerImport()] assemble la demande depuis le dossier (inspection) et le point/préfixe
+/// (rattachement) ; après une inspection réussie, il fournit le rapport au rattachement pour l'aperçu.
+/// Il conserve **un seul message d'erreur** utilisateur ([#messageErreurProperty()]) : l'inspection
+/// **renvoie** son erreur, l'exécution écrit la sienne. L'API publique exposée à la vue (dossier,
+/// inspection, rattachement…) **délègue** aux sous-VM (vue inchangée).
 ///
 /// [#importer()] est **synchrone** ; la vue lance plutôt l'import sur un fil d'arrière-plan
 /// ([#executerImport(DemandeImport, java.util.function.Consumer)]) pour ne pas figer l'IHM, et relaie
@@ -63,34 +59,14 @@ public class ImportationViewModel {
     /// l'assistant pendant un import (l'écran porte la seule vue/VM qui reçoit le résultat).
     private final NavigationViewModel navigation;
 
+    /// Étapes 1-2 : sous-VM d'**inspection** (#183) — dossier source + état d'inspection.
+    private final InspectionImportViewModel inspection;
+
     /// Étape 3 : sous-VM du **rattachement** (#183) — site / point / année / n° de passage + aperçu.
-    /// L'orchestrateur le compose (peutImporter, preparerImport) et lui fournit le rapport d'inspection.
     private final RattachementImportViewModel rattachement;
 
-    /// Étape 1 : dossier source choisi (carte SD ou copie disque), modifiable par la vue (champ +
-    /// bouton « Parcourir »).
-    private final ObjectProperty<Path> dossierSource = new SimpleObjectProperty<>(this, "dossierSource");
-
-    /// Étape 2 : résultat d'inspection, exposé en propriétés dérivées (lecture seule pour la vue).
-    private final ReadOnlyBooleanWrapper inspecte = new ReadOnlyBooleanWrapper(this, "inspecte", false);
-    private final ReadOnlyBooleanWrapper aUnJournal = new ReadOnlyBooleanWrapper(this, "aUnJournal", false);
-    private final ReadOnlyBooleanWrapper aUnReleveClimatique =
-            new ReadOnlyBooleanWrapper(this, "aUnReleveClimatique", false);
-    private final ReadOnlyIntegerWrapper nombreOriginaux = new ReadOnlyIntegerWrapper(this, "nombreOriginaux", 0);
-    private final ReadOnlyObjectWrapper<EtatNommage> etatNommage =
-            new ReadOnlyObjectWrapper<>(this, "etatNommage", null);
-    private final ReadOnlyStringWrapper resumeJournal = new ReadOnlyStringWrapper(this, "resumeJournal", "");
+    /// Message d'erreur **unifié** présenté à la vue : inspection (renvoyée) ou exécution (échec import).
     private final ReadOnlyStringWrapper messageErreur = new ReadOnlyStringWrapper(this, "messageErreur", "");
-
-    /// Avertissement « mélange » (#33) : non vide si le dossier inspecté semble contenir plusieurs
-    /// enregistreurs et/ou plusieurs nuits. Informatif (n'empêche pas l'import).
-    private final ReadOnlyStringWrapper avertissementMelange =
-            new ReadOnlyStringWrapper(this, "avertissementMelange", "");
-
-    /// Avertissement « incohérence » (#33) : non vide si l'identité déclarée (journal, relevé) contredit
-    /// les enregistrements (série ou date). Informatif (n'empêche pas l'import).
-    private final ReadOnlyStringWrapper avertissementIncoherence =
-            new ReadOnlyStringWrapper(this, "avertissementIncoherence", "");
 
     /// Conjonction d'activation du bouton « Importer cette nuit » : composée (inspection + rattachement).
     private final BooleanBinding peutImporter;
@@ -112,15 +88,15 @@ public class ImportationViewModel {
             NavigationViewModel navigation) {
         this.serviceImport = Objects.requireNonNull(serviceImport, "serviceImport");
         this.navigation = Objects.requireNonNull(navigation, "navigation");
+        this.inspection = new InspectionImportViewModel(serviceImport);
         // Sous-VM rattachement (#183) : il valide serviceSites / horloge / idUtilisateur et préremplit
         // l'année courante.
         this.rattachement = new RattachementImportViewModel(serviceSites, horloge, idUtilisateur);
 
         // --solution--
         // Changer de dossier source invalide l'inspection précédente : un nouveau dossier doit être
-        // ré-inspecté (sinon le bouton Importer resterait actif et l'aperçu garderait l'ancien
-        // rapport).
-        dossierSource.addListener((obs, ancien, nouveau) -> reinitialiserInspection());
+        // ré-inspecté (sinon le bouton Importer resterait actif et l'aperçu garderait l'ancien rapport).
+        inspection.dossierSourceProperty().addListener((obs, ancien, nouveau) -> reinitialiserPourNouveauDossier());
 
         // Éditer le rattachement après un import terminé/échoué recrée une préparation non lancée que la
         // garde de navigation (#140) doit protéger : on ré-arme l'état PRET (cf. rearmerPreparationSiTerminee).
@@ -132,65 +108,65 @@ public class ImportationViewModel {
 
         // peutImporter = inspection réussie ET rattachement complet (composition par l'orchestrateur).
         peutImporter = Bindings.createBooleanBinding(
-                () -> inspecte.get() && rattachement.estComplet(),
-                inspecte,
+                () -> inspection.estInspecte() && rattachement.estComplet(),
+                inspection.inspecteProperty(),
                 rattachement.siteSelectionneProperty(),
                 rattachement.pointSelectionneProperty(),
                 rattachement.numeroPassageProperty());
     }
 
-    /// Dossier source à inspecter puis importer (lié au champ + bouton « Parcourir » de la vue).
+    /// Dossier source à inspecter puis importer (délégué au sous-VM inspection).
     public ObjectProperty<Path> dossierSourceProperty() {
-        return dossierSource;
+        return inspection.dossierSourceProperty();
     }
 
-    /// `true` dès qu'une inspection a réussi (pilote l'affichage de la section « Inspection »).
+    /// `true` dès qu'une inspection a réussi (délégué au sous-VM inspection).
     public ReadOnlyBooleanProperty inspecteProperty() {
-        return inspecte.getReadOnlyProperty();
+        return inspection.inspecteProperty();
     }
 
     public boolean estInspecte() {
-        return inspecte.get();
+        return inspection.estInspecte();
     }
 
-    /// `true` si un journal du capteur (LogPR) a été détecté dans le dossier.
+    /// `true` si un journal du capteur (LogPR) a été détecté dans le dossier (délégué à l'inspection).
     public ReadOnlyBooleanProperty aUnJournalProperty() {
-        return aUnJournal.getReadOnlyProperty();
+        return inspection.aUnJournalProperty();
     }
 
-    /// `true` si un relevé climatique (THLog) est présent (R20 : son absence est signalée).
+    /// `true` si un relevé climatique (THLog) est présent (R20) — délégué à l'inspection.
     public ReadOnlyBooleanProperty aUnReleveClimatiqueProperty() {
-        return aUnReleveClimatique.getReadOnlyProperty();
+        return inspection.aUnReleveClimatiqueProperty();
     }
 
-    /// Nombre d'enregistrements originaux (WAV) détectés dans le dossier.
+    /// Nombre d'enregistrements originaux (WAV) détectés (délégué à l'inspection).
     public ReadOnlyIntegerProperty nombreOriginauxProperty() {
-        return nombreOriginaux.getReadOnlyProperty();
+        return inspection.nombreOriginauxProperty();
     }
 
-    /// État du nommage des fichiers (`BRUT`, `PREFIXE`, `VIDE`) : pilotera le scénario de renommage.
+    /// État du nommage des fichiers (`BRUT`, `PREFIXE`, `VIDE`) — délégué à l'inspection.
     public ReadOnlyObjectProperty<EtatNommage> etatNommageProperty() {
-        return etatNommage.getReadOnlyProperty();
+        return inspection.etatNommageProperty();
     }
 
-    /// Résumé lisible du journal détecté (ex. `PR n° 1925492`), vide si aucun journal.
+    /// Résumé lisible du journal détecté (délégué à l'inspection).
     public ReadOnlyStringProperty resumeJournalProperty() {
-        return resumeJournal.getReadOnlyProperty();
+        return inspection.resumeJournalProperty();
     }
 
-    /// Message d'erreur d'inspection (ex. chemin invalide), vide si l'inspection a réussi.
+    /// Message d'erreur **unifié** (inspection ou exécution), vide en fonctionnement nominal.
     public ReadOnlyStringProperty messageErreurProperty() {
         return messageErreur.getReadOnlyProperty();
     }
 
-    /// Avertissement « mélange » (#33), vide si le dossier paraît homogène (une nuit, un enregistreur).
+    /// Avertissement « mélange » (#33) — délégué à l'inspection.
     public ReadOnlyStringProperty avertissementMelangeProperty() {
-        return avertissementMelange.getReadOnlyProperty();
+        return inspection.avertissementMelangeProperty();
     }
 
-    /// Avertissement « incohérence » (#33), vide si l'identité déclarée concorde avec les enregistrements.
+    /// Avertissement « incohérence » (#33) — délégué à l'inspection.
     public ReadOnlyStringProperty avertissementIncoherenceProperty() {
-        return avertissementIncoherence.getReadOnlyProperty();
+        return inspection.avertissementIncoherenceProperty();
     }
 
     /// Liste observable des sites de l'utilisateur (combobox Site). Déléguée au sous-VM rattachement.
@@ -265,37 +241,23 @@ public class ImportationViewModel {
         // --end-solution--
     }
 
-    /// Inspecte le dossier source courant **en lecture seule** (R9) et met à jour les propriétés
-    /// d'inspection. Sur un dossier non choisi ou un chemin invalide, renseigne
-    /// [#messageErreurProperty()] et laisse `inspecte` à `false`.
+    /// Inspecte le dossier source courant **en lecture seule** (R9) via le sous-VM inspection. En cas
+    /// de succès, fournit le rapport au rattachement (aperçu) ; en cas d'erreur, remet l'exécution à
+    /// zéro et publie le message renvoyé.
     public void inspecter() {
-        // TODO (M-Import) : inspectez le dossier source (serviceImport.inspecter), alimentez les
-        //   propriétés d'inspection + avertissements (AvertissementMelange/Incoherence.rediger), passez
-        //   inspecte à true et fournissez le rapport au rattachement (definirRapport) ; en cas d'erreur,
-        //   appelez echouer(...).
+        // TODO (M-Import) : inspectez le dossier source (inspection.inspecter), fournissez le rapport au
+        //   rattachement (definirRapport) en cas de succès ; en cas d'erreur (message renvoyé), remettez
+        //   l'exécution à zéro et publiez le message.
         // --solution--
-        Path dossier = dossierSource.get();
-        if (dossier == null) {
-            echouer("Choisissez d'abord un dossier source.");
+        String erreur = inspection.inspecter();
+        if (erreur != null) {
+            reinitialiserExecution();
+            rattachement.definirRapport(null);
+            messageErreur.set(erreur);
             return;
         }
-        try {
-            RapportInspection rapport = serviceImport.inspecter(dossier);
-            aUnJournal.set(rapport.aUnJournal());
-            aUnReleveClimatique.set(rapport.aUnReleveClimatique());
-            nombreOriginaux.set(rapport.nombreOriginaux());
-            etatNommage.set(rapport.etatNommage());
-            resumeJournal.set(rapport.journalOptionnel()
-                    .map(journal -> "PR n° " + journal.numeroSerie())
-                    .orElse(""));
-            avertissementMelange.set(AvertissementMelange.rediger(rapport.melange()));
-            avertissementIncoherence.set(AvertissementIncoherence.rediger(rapport.coherence()));
-            messageErreur.set("");
-            inspecte.set(true);
-            rattachement.definirRapport(rapport);
-        } catch (RuntimeException echec) {
-            echouer(echec.getMessage());
-        }
+        messageErreur.set("");
+        rattachement.definirRapport(inspection.rapport());
         // --end-solution--
     }
 
@@ -354,7 +316,8 @@ public class ImportationViewModel {
         // TODO (M-Import) : capturez le rattachement courant (dossier, point, préfixe) dans un
         //   DemandeImport immuable (à passer à executerImport hors-thread).
         // --solution--
-        return new DemandeImport(dossierSource.get(), rattachement.idPointSelectionne(), rattachement.prefixeCourant());
+        return new DemandeImport(
+                inspection.dossier(), rattachement.idPointSelectionne(), rattachement.prefixeCourant());
         // --end-solution--
         /* --student--
         throw new UnsupportedOperationException("À implémenter (M-Import)");
@@ -418,30 +381,23 @@ public class ImportationViewModel {
     }
 
     // --solution--
-    private void echouer(String message) {
-        reinitialiserInspection();
-        messageErreur.set(message);
+    /// Remet tout à zéro au **changement de dossier source** : l'inspection (sous-VM), l'exécution,
+    /// l'aperçu (rattachement) et le message. Un nouveau dossier doit être ré-inspecté avant tout
+    /// import (donc `inspecte` repasse à `false` et `peutImporter` se désactive).
+    private void reinitialiserPourNouveauDossier() {
+        inspection.reinitialiser();
+        reinitialiserExecution();
+        rattachement.definirRapport(null);
+        messageErreur.set("");
     }
 
-    /// Remet l'état d'inspection à zéro (plus de rapport courant). Appelé quand l'inspection échoue
-    /// **et** quand le dossier source change : un nouveau dossier doit être ré-inspecté avant tout
-    /// import, donc `inspecte` repasse à `false` (et `peutImporter` se désactive). Sans cela, les
-    /// propriétés dérivées resteraient sur les valeurs (obsolètes) du dossier précédent.
-    private void reinitialiserInspection() {
-        inspecte.set(false);
-        aUnJournal.set(false);
-        aUnReleveClimatique.set(false);
-        nombreOriginaux.set(0);
-        etatNommage.set(null);
-        resumeJournal.set("");
-        avertissementMelange.set("");
-        avertissementIncoherence.set("");
-        messageErreur.set("");
+    /// Remet l'état d'**exécution** à zéro (PRET, sans résultat ni progression). Partagé par le
+    /// changement de dossier et l'échec d'inspection.
+    private void reinitialiserExecution() {
         etat.set(EtatImport.PRET);
         resultat.set(null);
         progression.set(0.0);
         messageProgression.set("");
-        rattachement.definirRapport(null);
     }
 
     /// Ré-arme la préparation (`PRET`) dès qu'un champ du rattachement change après un import
@@ -449,7 +405,7 @@ public class ImportationViewModel {
     /// après un échec (ou ajuster le rattachement après un succès) recrée un import préparé non lancé
     /// que la garde de navigation (#140) doit protéger. On efface au passage le résultat/erreur du
     /// précédent essai, qui ne décrit plus la préparation courante. (Changer de dossier source repasse,
-    /// lui, par [#reinitialiserInspection()].)
+    /// lui, par [#reinitialiserPourNouveauDossier()].)
     private void rearmerPreparationSiTerminee() {
         if (etat.get() == EtatImport.TERMINE || etat.get() == EtatImport.ECHEC) {
             resultat.set(null);

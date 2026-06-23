@@ -2,7 +2,6 @@ package fr.univ_amu.iut.importation.viewmodel;
 
 import fr.univ_amu.iut.commun.model.Horloge;
 import fr.univ_amu.iut.commun.model.Prefixe;
-import fr.univ_amu.iut.importation.model.RapportInspection;
 import fr.univ_amu.iut.sites.model.PointDEcoute;
 import fr.univ_amu.iut.sites.model.ServiceSites;
 import fr.univ_amu.iut.sites.model.Site;
@@ -23,8 +22,9 @@ import javafx.collections.ObservableList;
 /// Extrait de [ImportationViewModel] (#183) pour le décharger : cet objet ne porte **que** l'état du
 /// rattachement, sans rien savoir de l'inspection ni de l'exécution de l'import. L'orchestrateur
 /// ([ImportationViewModel]) le **compose** : il lit [#estComplet()] pour `peutImporter`, assemble la
-/// demande d'import depuis [#idPointSelectionne()] / [#prefixeCourant()], et lui fournit le rapport
-/// d'inspection courant ([#definirRapport]) qui sert d'exemple de nom pour l'aperçu.
+/// demande d'import depuis [#idPointSelectionne()] / [#prefixeCourant()], et lui fournit (via
+/// [#definirExempleNom]) un **exemple de nom d'origine** servant à l'aperçu — une simple valeur dérivée,
+/// pas le rapport d'inspection, pour ne pas coupler ce sous-VM à l'inspection.
 ///
 /// VM agnostique de l'IHM (règle ArchUnit `viewmodel_sans_javafx_ui`) : seuls `javafx.beans` /
 /// `javafx.collections` sont importés, jamais `javafx.scene`.
@@ -41,9 +41,10 @@ public class RattachementImportViewModel {
     private final IntegerProperty numeroPassage = new SimpleIntegerProperty(this, "numeroPassage", 1);
     private final ReadOnlyStringWrapper apercuPrefixe = new ReadOnlyStringWrapper(this, "apercuPrefixe", "");
 
-    /// Rapport d'inspection courant, **fourni par l'orchestrateur** : il sert d'exemple de nom d'origine
-    /// pour l'aperçu du préfixe. `null` tant qu'aucune inspection n'a réussi.
-    private RapportInspection rapport;
+    /// Exemple de nom d'origine **fourni par l'orchestrateur** (dérivé de l'inspection) : sert de
+    /// gabarit pour l'aperçu du préfixe. `null` tant qu'aucune inspection n'a réussi (un gabarit
+    /// générique est alors utilisé). Le rattachement ne dépend ainsi pas du sous-VM d'inspection.
+    private String exempleNomOriginal;
 
     public RattachementImportViewModel(ServiceSites serviceSites, Horloge horloge, String idUtilisateur) {
         this.serviceSites = Objects.requireNonNull(serviceSites, "serviceSites");
@@ -91,10 +92,10 @@ public class RattachementImportViewModel {
                 pointSelectionne.get().code());
     }
 
-    /// Fournit (orchestrateur) le rapport d'inspection courant — exemple de nom pour l'aperçu — ou
+    /// Fournit (orchestrateur) l'exemple de nom d'origine pour l'aperçu — dérivé de l'inspection — ou
     /// `null` pour le réinitialiser ; recalcule l'aperçu en conséquence.
-    public void definirRapport(RapportInspection rapport) {
-        this.rapport = rapport;
+    public void definirExempleNom(String exempleNomOriginal) {
+        this.exempleNomOriginal = exempleNomOriginal;
         majApercu();
     }
 
@@ -136,6 +137,6 @@ public class RattachementImportViewModel {
 
     private void majApercu() {
         apercuPrefixe.set(ApercuPrefixe.calculer(
-                siteSelectionne.get(), pointSelectionne.get(), annee.get(), numeroPassage.get(), rapport));
+                siteSelectionne.get(), pointSelectionne.get(), annee.get(), numeroPassage.get(), exempleNomOriginal));
     }
 }

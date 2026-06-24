@@ -1,0 +1,93 @@
+# Release : version + CHANGELOG (semantic-release) puis installeurs natifs par OS (jpackage).
+#
+# - release : sur push sur `main`, semantic-release analyse les Conventional Commits, calcule la
+#   version, crée le tag vX.Y.Z + la Release GitHub + met à jour CHANGELOG.md (cf. .releaserc.json).
+#   DORMANT tant que la variable de dépôt ENABLE_RELEASE != 'true' : à activer quand le dépôt est
+#   public et que `main` est la branche consolidée (après la migration #169). Tant que c'est dormant,
+#   rien ne tourne (et donc aucune release accidentelle sur le `main` étudiant régénéré).
+# - installers : matrice ubuntu/macos/windows qui construit l'installeur natif (profil -Pinstaller)
+#   pour le tag fraîchement créé et le téléverse sur la Release. C'est ici que le packaging se
+#   valide réellement par OS (le fat-jar embarque les natifs JavaFX de l'OS de build).
+#
+# Anti-récursion : @semantic-release/git committe CHANGELOG.md avec `[skip ci]`, donc le push qui en
+# résulte ne redéclenche pas ce workflow.
+name: release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    # Dormant tant que ENABLE_RELEASE n'est pas 'true' (cf. en-tête).
+    if: vars.ENABLE_RELEASE == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.tag.outputs.value }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0 # semantic-release a besoin de tout l'historique + des tags
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "lts/*"
+      - name: semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx --yes -p semantic-release -p @semantic-release/changelog -p @semantic-release/git semantic-release
+      - name: Récupérer le tag fraîchement créé
+        id: tag
+        run: |
+          git fetch --tags --force
+          NEW_TAG=$(git describe --tags --exact-match HEAD 2>/dev/null || echo "")
+          echo "value=${NEW_TAG}" >> "$GITHUB_OUTPUT"
+          echo "Nouveau tag : ${NEW_TAG:-(aucun)}"
+
+  installers:
+    needs: release
+    # Seulement si semantic-release a réellement publié une version (tag non vide).
+    if: needs.release.outputs.tag != ''
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            type: deb
+          - os: macos-latest
+            type: dmg
+          - os: windows-latest
+            type: msi
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.release.outputs.tag }} # le commit taggué (code + CHANGELOG à jour)
+      - uses: actions/setup-java@v5
+        with:
+          java-version: "25"
+          distribution: "temurin"
+      - name: Construire l'installeur natif (${{ matrix.type }})
+        shell: bash
+        run: |
+          TAG="${{ needs.release.outputs.tag }}"
+          VERSION="${TAG#v}"
+          ./mvnw -B -Pinstaller \
+            -Djpackage.type=${{ matrix.type }} \
+            -Djpackage.appVersion="$VERSION" \
+            -DskipTests -Dpmd.skip=true -Djacoco.skip=true \
+            clean verify
+      - name: Téléverser l'installeur sur la Release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "${{ needs.release.outputs.tag }}" target/dist/* --clobber

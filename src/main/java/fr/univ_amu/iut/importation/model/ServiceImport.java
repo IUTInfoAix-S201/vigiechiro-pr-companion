@@ -229,7 +229,6 @@ public class ServiceImport {
         // Progression déterminée (#33) : N copies puis N transformations → 2N étapes au total.
         int nbOriginaux = rapport.originaux().size();
         int totalEtapes = nbOriginaux * 2;
-        int faites = 0;
 
         // Annulation (#146) : la copie et la transformation se font dans un dossier de session neuf ;
         // une annulation lève AnnulationImportException et on supprime la session partielle. Comme la
@@ -239,17 +238,9 @@ public class ServiceImport {
         Path cheminJournalCopie;
         Path cheminReleveCopie;
         try {
-            // 1) Copie protégée SD -> workspace (R9). Originaux dans bruts/, journal + relevé à la racine.
-            int indiceCopie = 0;
-            for (Path original : rapport.originaux()) {
-                jeton.leverSiAnnule(); // arrêt au plus tôt, entre deux fichiers
-                copie.copierVers(original, dossierBruts);
-                indiceCopie++;
-                faites++;
-                progres.accept(new Progression(
-                        "Copie " + indiceCopie + "/" + nbOriginaux + " · " + original.getFileName(),
-                        (double) faites / totalEtapes));
-            }
+            // 1) Copie protégée SD -> workspace (R9) : originaux dans bruts/ (reprise #231 : copie sautée
+            //    si déjà présent), journal + relevé à la racine de la session.
+            copierOriginaux(rapport.originaux(), dossierBruts, prefixe, totalEtapes, progres, jeton);
             cheminJournalCopie = sansJournal
                     ? JournalDeRepli.ecrireTraceSynthetique(dossierSession)
                     : copie.copierVers(rapport.cheminJournal(), dossierSession);
@@ -347,6 +338,34 @@ public class ServiceImport {
     /// Supprime la **session partielle** (dossier `bruts/`+`transformes/` en cours de constitution)
     /// laissée par un import **annulé** (#146), pour ne pas accumuler des fichiers à moitié copiés.
     /// Best-effort (cf. [ExtracteurZip#supprimerRecursivement]).
+    /// Copie protégée (R9) des originaux vers `dossierBruts`, en émettant la progression « Copie X/N ·
+    /// fichier ». **Reprise (#231)** : un original dont la version renommée est déjà présente a été copié
+    /// par un import interrompu → sa copie est sautée (ce qui évite aussi le conflit de renommage qu'une
+    /// re-copie déclencherait). Vérifie l'annulation entre deux fichiers.
+    private void copierOriginaux(
+            List<Path> originaux,
+            Path dossierBruts,
+            Prefixe prefixe,
+            int totalEtapes,
+            Consumer<Progression> progres,
+            JetonAnnulation jeton) {
+        int nbOriginaux = originaux.size();
+        int indiceCopie = 0;
+        for (Path original : originaux) {
+            jeton.leverSiAnnule(); // arrêt au plus tôt, entre deux fichiers
+            String nomFinal = Renommeur.nomApresRenommage(original.getFileName().toString(), prefixe);
+            boolean dejaCopie = Files.exists(dossierBruts.resolve(nomFinal));
+            if (!dejaCopie) {
+                copie.copierVers(original, dossierBruts);
+            }
+            indiceCopie++;
+            progres.accept(new Progression(
+                    "Copie " + indiceCopie + "/" + nbOriginaux + " · " + original.getFileName()
+                            + (dejaCopie ? " (déjà copié)" : ""),
+                    (double) indiceCopie / totalEtapes));
+        }
+    }
+
     private static void supprimerSessionPartielle(Path dossierSession) {
         ExtracteurZip.supprimerRecursivement(dossierSession);
     }

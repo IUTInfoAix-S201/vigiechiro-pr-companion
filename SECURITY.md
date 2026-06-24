@@ -17,7 +17,7 @@ pas en issue publique** :
 - écrivez en privé à **[sebastien.nedjar@univ-amu.fr](mailto:sebastien.nedjar@univ-amu.fr)** ;
 - décrivez le problème, son impact et, si possible, les étapes pour le reproduire.
 
-Le périmètre supporté est la branche **`main`** (dernière version).
+Le périmètre supporté est la **branche par défaut** du dépôt (dernière version).
 
 ---
 

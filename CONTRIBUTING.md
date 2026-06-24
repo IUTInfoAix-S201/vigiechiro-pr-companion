@@ -93,13 +93,13 @@ git checkout -b feat/<feature>
 ./mvnw verify                      # 0 échec, 0 skip indésirable
 git commit ...                     # le hook formate le code
 
-# 3. Poussez et ouvrez une PR vers main
+# 3. Poussez et ouvrez une PR vers la branche par défaut
 git push -u origin feat/<feature>
-gh pr create --base main --fill
+gh pr create --fill
 ```
 
-- La PR cible **`main`** (la branche par défaut). `@nedseb` est ajouté en reviewer automatiquement
-  ([CODEOWNERS](.github/CODEOWNERS)).
+- La PR cible la **branche par défaut** du dépôt (`gh pr create --fill` la sélectionne
+  automatiquement). `@nedseb` est ajouté en reviewer automatiquement ([CODEOWNERS](.github/CODEOWNERS)).
 - Privilégier des **PR petites et séquentielles** (par exemple : ViewModel + tests, puis vue
   principale, puis vue secondaire) plutôt qu'une feature entière en un seul gros diff.
 - Merger quand la CI est verte.
@@ -113,8 +113,8 @@ Deux workflows se déclenchent à chaque push :
 
 | Workflow | Rôle | Bloquant ? |
 |---|---|---|
-| [`maven.yml`](.github/workflows/maven.yml) | Build + suite de tests headless (`./mvnw verify`). | **Oui** |
-| [`lint.yml`](.github/workflows/lint.yml) | **`-Pquality-gate verify`** : PMD + seuils JaCoCo bloquants, et formatage Spotless. | **Oui** |
+| [`maven.yml`](.github/workflows/maven.yml) | Build + tests headless (`verify -DexcludedGroups=conformite`), puis une passe de conformité **non bloquante** et `spotless:check` (mesure). | **Oui** (tests hors conformité) |
+| [`lint.yml`](.github/workflows/lint.yml) | Cohérence doc, complétude des captures, tests Bats, puis **`-Pquality-gate verify`** (PMD + seuils JaCoCo bloquants). | **Oui** |
 
 Reproduire le portail qualité **en local** :
 

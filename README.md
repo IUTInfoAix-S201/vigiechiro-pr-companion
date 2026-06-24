@@ -6,9 +6,11 @@ Des enregistreurs autonomes (*Passive Recorder*, « PR ») posés sur le terrain
 d'une nuit entière. VigieChiro PR Companion accompagne l'observateur de la **carte SD** jusqu'au
 **dépôt** des données sur la plateforme nationale **Vigie-Chiro**.
 
-> **Télécharger et lancer.** Des **installeurs** prêts à l'emploi (Windows `.msi`, macOS `.dmg`,
-> Linux `.deb`) sont publiés sur la page [Releases](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/releases)
-> (aucune installation de Java requise). Guide d'utilisation : [documentation utilisateur](docs/prise-en-main.md).
+> **Installeurs à venir.** Dès la première version publiée, des **installeurs** prêts à l'emploi
+> (Windows `.msi`, macOS `.dmg`, Linux `.deb`, sans Java à installer) seront disponibles sur la page
+> [Releases](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/releases). En attendant, et
+> pour développer, lancez **depuis les sources** (cf. § 2). Guide d'utilisation :
+> [documentation utilisateur](docs/prise-en-main.md).
 
 ---
 
@@ -29,23 +31,9 @@ fichier) : elle ne s'expose sur aucun port et ne stocke aucun identifiant.
 
 ## 2. Installation et lancement
 
-### Utiliser l'application
-
-Téléchargez l'installeur de votre système sur la page
-[Releases](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/releases) :
-
-| Système | Fichier | Java requis ? |
-|---|---|---|
-| Windows | `.msi` | Non (embarqué) |
-| macOS (Apple Silicon et Intel) | `.dmg` | Non (embarqué) |
-| Linux (Debian/Ubuntu) | `.deb` | Non (embarqué) |
-
-Les installeurs embarquent leur propre *runtime* : rien d'autre à installer. La prise en main pas à
-pas est dans la [documentation utilisateur](docs/prise-en-main.md).
-
 ### Lancer depuis les sources
 
-Pour développer ou exécuter la dernière version du code. Prérequis : un **JDK 25 standard**
+C'est aujourd'hui la façon d'exécuter l'application. Prérequis : un **JDK 25 standard**
 (Temurin / `25.0.2-open`). Tout le reste passe par le **Maven Wrapper** `./mvnw` (aucune installation
 de Maven). JavaFX 26 vient des dépendances Maven.
 
@@ -57,6 +45,20 @@ cd vigiechiro-pr-companion
 ```
 
 `./mvnw verify` doit afficher `BUILD SUCCESS`.
+
+### Installeurs (à venir)
+
+Dès la première version publiée, un installeur par système sera disponible sur la page
+[Releases](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/releases), avec son propre
+*runtime* embarqué (aucun Java à installer) :
+
+| Système | Fichier | Java requis ? |
+|---|---|---|
+| Windows | `.msi` | Non (embarqué) |
+| macOS (Apple Silicon et Intel) | `.dmg` | Non (embarqué) |
+| Linux (Debian/Ubuntu) | `.deb` | Non (embarqué) |
+
+La prise en main pas à pas est dans la [documentation utilisateur](docs/prise-en-main.md).
 
 ---
 

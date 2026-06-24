@@ -19,8 +19,8 @@ import org.junit.jupiter.api.io.TempDir;
 
 /// Tests du [CompacteurDepot] (#110) : scission d'un lot en archives ZIP `<préfixe>-N.zip` sous un
 /// plafond de taille (700 Mo en production, injecté petit ici pour exercer la scission sans écrire des
-/// gigaoctets). Le contenu des fichiers est volontairement **compressible** (octets répétés) pour que
-/// l'archive DEFLATE reste largement sous le plafond.
+/// gigaoctets). Selon le cas, le contenu est **compressible** (octets répétés, pour la répartition) ou
+/// **incompressible** (pseudo-aléatoire, pour vérifier la garantie « archive ≤ plafond » au pire cas).
 class CompacteurDepotTest {
 
     private static final String PREFIXE = "Car640380-2026-Pass1-A1";
@@ -62,6 +62,32 @@ class CompacteurDepotTest {
     }
 
     @Test
+    @DisplayName("#110 : données INCOMPRESSIBLES — chaque archive ZIP réelle reste ≤ plafond (en-têtes + DEFLATE)")
+    void garantit_le_plafond_sur_donnees_incompressibles() throws IOException {
+        // 5 fichiers de 33 300 o, plafond 100 000 o : un découpage naïf (somme des tailles) en mettrait 3
+        // par archive (99 900 o) mais le ZIP réel (données non compressibles + en-têtes) dépasserait alors
+        // le plafond. La majoration du coût doit donc n'en mettre que 2 et garantir l'archive ≤ plafond.
+        Path src = Files.createDirectories(dossier.resolve("src"));
+        List<Path> fichiers = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            fichiers.add(Files.write(src.resolve("alea_" + i + ".wav"), aleatoire(33_300, i)));
+        }
+        long plafond = 100_000;
+
+        List<ArchiveDepot> archives =
+                new CompacteurDepot(plafond).compacter(fichiers, PREFIXE, dossier.resolve("depot"));
+
+        for (ArchiveDepot archive : archives) {
+            assertThat(Files.size(archive.chemin()))
+                    .as("taille réelle de %s", archive.chemin().getFileName())
+                    .isLessThanOrEqualTo(plafond);
+        }
+        assertThat(toutesLesEntrees(archives))
+                .containsExactlyInAnyOrderElementsOf(
+                        fichiers.stream().map(p -> p.getFileName().toString()).toList());
+    }
+
+    @Test
     @DisplayName("#110 : un lot sous le plafond tient dans une seule archive préfixe-1.zip")
     void une_seule_archive_sous_le_plafond() throws IOException {
         Path f1 = Files.write(dossier.resolve("a.wav"), octets(10, (byte) 1));
@@ -91,6 +117,18 @@ class CompacteurDepotTest {
     private static byte[] octets(int taille, byte valeur) {
         byte[] b = new byte[taille];
         Arrays.fill(b, valeur); // compressible : DEFLATE réduit fortement
+        return b;
+    }
+
+    /// Octets **pseudo-aléatoires déterministes** (LCG par graine) : incompressibles, donc DEFLATE
+    /// n'aide pas — on exerce ainsi le pire cas pour la garantie « archive ≤ plafond ».
+    private static byte[] aleatoire(int taille, int graine) {
+        byte[] b = new byte[taille];
+        long etat = graine * 0x9E3779B97F4A7C15L + 1;
+        for (int j = 0; j < taille; j++) {
+            etat = etat * 6364136223846793005L + 1442695040888963407L;
+            b[j] = (byte) (etat >>> 56);
+        }
         return b;
     }
 

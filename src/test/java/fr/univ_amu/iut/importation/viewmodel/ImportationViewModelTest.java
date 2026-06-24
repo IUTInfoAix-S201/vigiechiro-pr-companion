@@ -312,7 +312,7 @@ class ImportationViewModelTest {
         PointDEcoute point = point(10L, "A1", site.id());
         when(serviceSites.listerPoints(site.id())).thenReturn(List.of(point));
         when(serviceImport.inspecter(sd)).thenReturn(inspecteur.inspecter(sd));
-        when(serviceImport.importer(eq(sd), eq(10L), any(Prefixe.class), any()))
+        when(serviceImport.importer(eq(sd), eq(10L), any(Prefixe.class), any(), any()))
                 .thenReturn(new ResultatImport(null, null, "1925492", 2, 6, List.of()));
         prepareRattachement(site, point);
 
@@ -330,7 +330,7 @@ class ImportationViewModelTest {
         PointDEcoute point = point(10L, "A1", site.id());
         when(serviceSites.listerPoints(site.id())).thenReturn(List.of(point));
         when(serviceImport.inspecter(sd)).thenReturn(inspecteur.inspecter(sd));
-        when(serviceImport.importer(eq(sd), eq(10L), any(Prefixe.class), any()))
+        when(serviceImport.importer(eq(sd), eq(10L), any(Prefixe.class), any(), any()))
                 .thenThrow(new RegleMetierException("R5 : un passage existe déjà pour ce point."));
         prepareRattachement(site, point);
 
@@ -359,7 +359,8 @@ class ImportationViewModelTest {
         when(serviceSites.listerPoints(site.id())).thenReturn(List.of(point));
         when(serviceImport.inspecter(sd)).thenReturn(inspecteur.inspecter(sd));
         ResultatImport attendu = new ResultatImport(null, null, "1925492", 2, 6, List.of());
-        when(serviceImport.importer(eq(sd), eq(10L), any(Prefixe.class), any())).thenReturn(attendu);
+        when(serviceImport.importer(eq(sd), eq(10L), any(Prefixe.class), any(), any()))
+                .thenReturn(attendu);
         prepareRattachement(site, point);
 
         viewModel.marquerEnCours();
@@ -517,6 +518,42 @@ class ImportationViewModelTest {
         // Une archive illisible (échec) lève le verrou : on peut de nouveau naviguer.
         viewModel.signalerSourceIllisible("Décompression du zip impossible");
         assertThat(navigation.isNavigationVerrouillee()).isFalse();
+    }
+
+    @Test
+    @DisplayName("#146 : marquerAnnule remet l'état neutre ANNULE, efface la progression et déverrouille")
+    void marquer_annule() {
+        viewModel.marquerExtractionEnCours();
+        assertThat(navigation.isNavigationVerrouillee()).isTrue();
+
+        viewModel.marquerAnnule();
+
+        assertThat(viewModel.etatProperty().get()).isEqualTo(EtatImport.ANNULE);
+        assertThat(viewModel.progressionProperty().get()).isZero();
+        assertThat(viewModel.messageProgressionProperty().get()).isEmpty();
+        assertThat(navigation.isNavigationVerrouillee()).isFalse();
+    }
+
+    @Test
+    @DisplayName("#146 : LibelleProgression ajoute un temps restant estimé (et rien aux bornes)")
+    void eta_temps_restant() {
+        // À 25 % après 10 s écoulées, l'extrapolation linéaire donne ~30 s restantes.
+        assertThat(LibelleProgression.avecTempsRestant("Copie 5/20", 0.25, 10_000_000_000L))
+                .isEqualTo("Copie 5/20 · ~30 s restant");
+        // Aux bornes (0 %, 100 %, temps écoulé nul) : libellé inchangé, pas d'ETA absurde.
+        assertThat(LibelleProgression.avecTempsRestant("Copie 0/20", 0.0, 10_000_000_000L))
+                .isEqualTo("Copie 0/20");
+        assertThat(LibelleProgression.avecTempsRestant("Transformation 20/20", 1.0, 10_000_000_000L))
+                .isEqualTo("Transformation 20/20");
+        assertThat(LibelleProgression.avecTempsRestant("Copie 5/20", 0.25, 0L)).isEqualTo("Copie 5/20");
+    }
+
+    @Test
+    @DisplayName("#146 : formaterDuree en secondes puis minutes")
+    void formater_duree() {
+        assertThat(LibelleProgression.formaterDuree(45)).isEqualTo("~45 s");
+        assertThat(LibelleProgression.formaterDuree(60)).isEqualTo("~1 min");
+        assertThat(LibelleProgression.formaterDuree(90)).isEqualTo("~1 min 30 s");
     }
 
     private void prepareRattachement(Site site, PointDEcoute point) {

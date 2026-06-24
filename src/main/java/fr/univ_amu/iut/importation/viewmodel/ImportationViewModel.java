@@ -4,6 +4,7 @@ import fr.univ_amu.iut.commun.model.Horloge;
 import fr.univ_amu.iut.commun.model.Prefixe;
 import fr.univ_amu.iut.commun.viewmodel.NavigationViewModel;
 import fr.univ_amu.iut.importation.model.ExtracteurZip;
+import fr.univ_amu.iut.importation.model.JetonAnnulation;
 import fr.univ_amu.iut.importation.model.Progression;
 import fr.univ_amu.iut.importation.model.ResultatImport;
 import fr.univ_amu.iut.importation.model.ServiceImport;
@@ -89,6 +90,10 @@ public class ImportationViewModel {
     /// (succès ou échec) ou au changement de source ; `null` quand la source est un dossier déjà
     /// décompressé.
     private Path dossierTemporaireZip;
+
+    /// Horodatage (nanos) du début de l'opération longue en cours (import ou décompression), pour estimer
+    /// le **temps restant** (#146). Posé par marquerEnCours / marquerExtractionEnCours.
+    private long debutOperationNanos;
 
     public ImportationViewModel(
             ServiceImport serviceImport,
@@ -254,6 +259,7 @@ public class ImportationViewModel {
         messageExecution.set("");
         progression.set(0.0);
         messageProgression.set("Préparation…");
+        debutOperationNanos = System.nanoTime();
         etat.set(EtatImport.EN_COURS);
         // Verrou de navigation (#54) : on ne doit pas quitter l'assistant tant que l'import tourne,
         // sinon son résultat (marquerTermine/marquerEchec) serait perdu en détachant la vue.
@@ -269,6 +275,7 @@ public class ImportationViewModel {
         messageExecution.set("");
         progression.set(0.0);
         messageProgression.set("Préparation de la décompression…");
+        debutOperationNanos = System.nanoTime();
         etat.set(EtatImport.EXTRACTION);
         // Verrou de navigation (#54) : on ne doit pas quitter l'assistant pendant la décompression, sinon
         // le fil d'arrière-plan continuerait d'écrire un gros temporaire et posterait des mutations
@@ -283,8 +290,17 @@ public class ImportationViewModel {
         // TODO (M-Import) : mettez à jour la fraction et le libellé de progression (#33).
         // --solution--
         progression.set(p.fraction());
-        messageProgression.set(p.libelle());
+        messageProgression.set(avecTempsRestant(p.libelle(), p.fraction()));
         // --end-solution--
+    }
+
+    /// Complète le libellé de progression par une **estimation du temps restant** (#146, déléguée à
+    /// [LibelleProgression]) déduite du temps écoulé depuis le début de l'opération en cours. Sans début
+    /// posé (marquer*), pas de référence temporelle → pas d'ETA (évite un temps restant aberrant calculé
+    /// depuis l'origine de `System.nanoTime()`).
+    private String avecTempsRestant(String libelle, double fraction) {
+        long ecoule = debutOperationNanos == 0L ? 0L : System.nanoTime() - debutOperationNanos;
+        return LibelleProgression.avecTempsRestant(libelle, fraction, ecoule);
     }
 
     /// Résout la **source d'import** choisie (#139) : si `chemin` est un `.zip`, le décompresse vers un
@@ -303,6 +319,13 @@ public class ImportationViewModel {
     /// hors du fil JavaFX : l'appelant (la vue) le marshale par `Platform.runLater` vers
     /// [#appliquerProgression].
     public Path extraireSiZip(Path chemin, Consumer<Progression> surProgression) {
+        return extraireSiZip(chemin, surProgression, JetonAnnulation.neutre());
+    }
+
+    /// Variante **annulable** de l'extraction (#146) : `jeton` interrompt la décompression entre deux
+    /// fichiers (le temporaire partiel est alors nettoyé par l'extracteur, et `dossierTemporaireZip` reste
+    /// `null` puisque l'affectation n'aboutit pas).
+    public Path extraireSiZip(Path chemin, Consumer<Progression> surProgression, JetonAnnulation jeton) {
         nettoyerTemporaireZip(); // une nouvelle source remplace l'éventuel zip précédent
         if (ExtracteurZip.estZip(chemin)) {
             Path base = serviceImport.racineWorkspace();
@@ -311,7 +334,7 @@ public class ImportationViewModel {
             ExtracteurZip.nettoyerTemporairesResiduels(base);
             // Extraction sous le workspace (disque), pas dans le tmpfs RAM /tmp : une nuit de ~10 Go y
             // saturerait la RAM (ENOSPC). Cf. ExtracteurZip.
-            dossierTemporaireZip = ExtracteurZip.extraireVersDossierTemporaire(chemin, base, surProgression);
+            dossierTemporaireZip = ExtracteurZip.extraireVersDossierTemporaire(chemin, base, surProgression, jeton);
             // Déplie un éventuel dossier racine unique (zip « compresser ce dossier ») pour que
             // l'inspection retrouve journal et WAV ; le temporaire à nettoyer reste dossierTemporaireZip.
             return ExtracteurZip.racineEffective(dossierTemporaireZip);
@@ -365,11 +388,18 @@ public class ImportationViewModel {
     public ResultatImport executerImport(DemandeImport demande, Consumer<Progression> progres) {
         // TODO (M-Import) : exécutez l'import (serviceImport.importer) en relayant la progression.
         // --solution--
-        return serviceImport.importer(demande.dossier(), demande.idPoint(), demande.prefixe(), progres);
+        return executerImport(demande, progres, JetonAnnulation.neutre());
         // --end-solution--
         /* --student--
         throw new UnsupportedOperationException("À implémenter (M-Import)");
         --end-student-- */
+    }
+
+    /// Variante **annulable** (#146) : `jeton` permet d'interrompre l'import en cours. Une annulation
+    /// remonte une [fr.univ_amu.iut.importation.model.AnnulationImportException] (RuntimeException) que la
+    /// vue traite via [#marquerAnnule()]. **Ne mute aucune `Property`** ici : sûr sur un fil d'arrière-plan.
+    public ResultatImport executerImport(DemandeImport demande, Consumer<Progression> progres, JetonAnnulation jeton) {
+        return serviceImport.importer(demande.dossier(), demande.idPoint(), demande.prefixe(), progres, jeton);
     }
 
     /// Instantané immuable des entrées d'un import, capturé sur le fil JavaFX par preparerImport.
@@ -399,6 +429,20 @@ public class ImportationViewModel {
         navigation.setNavigationVerrouillee(false); // l'import s'est arrêté : on déverrouille (#54)
         nettoyerTemporaireZip(); // échec : on nettoie aussi le temporaire du zip (#139)
         // --end-solution--
+    }
+
+    /// Applique une **annulation** (#146) demandée par l'utilisateur (décompression ou import) : état
+    /// neutre `ANNULE`, progression effacée, navigation déverrouillée, temporaire du zip nettoyé. Les
+    /// fichiers partiels sur disque ont déjà été supprimés par la couche modèle (session d'import ou
+    /// dossier d'extraction). À appeler sur le fil JavaFX (depuis `Platform.runLater`).
+    public void marquerAnnule() {
+        resultat.set(null);
+        messageExecution.set("");
+        progression.set(0.0);
+        messageProgression.set("");
+        etat.set(EtatImport.ANNULE);
+        navigation.setNavigationVerrouillee(false);
+        nettoyerTemporaireZip();
     }
 
     // --solution--

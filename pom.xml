@@ -534,6 +534,41 @@
             </build>
         </profile>
 
+        <!-- Profil jpackage-mac : activé automatiquement sur macOS. Sur cette plateforme, jpackage
+             exige un bundle identifier valide (lettres/chiffres/tirets/points, PAS d'underscore) ;
+             le défaut dérivé du package Java `fr.univ_amu.iut` est rejeté (« invalid mac bundle
+             identifier »). On injecte donc l'option mac-package-identifier (valide uniquement sur
+             macOS, d'où l'activation par OS). L'exécution `jpackage` (sans phase ni goals propres)
+             se fusionne avec celle du profil `installer` ; combine.children=append ajoute ces deux
+             arguments à la fin de la liste. Inerte hors profil installer (rien à empaqueter). -->
+        <profile>
+            <id>jpackage-mac</id>
+            <activation>
+                <os>
+                    <family>mac</family>
+                </os>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>jpackage</id>
+                                <configuration>
+                                    <arguments combine.children="append">
+                                        <argument>--mac-package-identifier</argument>
+                                        <argument>fr.univ-amu.vigiechiro</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
         <!-- Profil mutation : PIT (org.pitest). NON exécuté par défaut.
              Lancer explicitement via ./mvnw -Pmutation test (lent). -->
         <profile>

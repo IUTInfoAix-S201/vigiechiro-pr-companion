@@ -20,7 +20,7 @@
             xmlns:fx="http://javafx.com/fxml"
             fx:id="racine"
             fx:controller="fr.univ_amu.iut.passage.view.PassageController"
-            stylesheets="@passage.css"
+            stylesheets="@../../commun/view/palette.css, @passage.css"
             styleClass="ecran-passage">
 
   <top>

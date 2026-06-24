@@ -60,7 +60,7 @@
 }
 
 .etape-courante {
-  -fx-background-color: #4a90d9;
+  -fx-background-color: -couleur-primaire;
   -fx-text-fill: white;
   -fx-font-weight: bold;
 }
@@ -100,7 +100,7 @@
 }
 
 .action-primaire {
-  -fx-background-color: #4a90d9;
+  -fx-background-color: -couleur-primaire;
   -fx-text-fill: white;
   -fx-font-weight: bold;
   -fx-padding: 9 18 9 18;
@@ -162,8 +162,8 @@
 }
 
 .carte-action:hover {
-  -fx-border-color: #4a90d9;
-  -fx-background-color: #f6f9fd;
+  -fx-border-color: -couleur-primaire;
+  -fx-background-color: -couleur-primaire-voile;
 }
 
 .carte-action:disabled {
@@ -174,7 +174,7 @@
 /* Action mise en avant (prochaine étape recommandée) : liseré bleu plus épais. Pseudo-classe
    pilotée par le controller selon le statut → la mise en avant se déplace au fil du workflow. */
 .carte-action:recommandee {
-  -fx-border-color: #4a90d9;
+  -fx-border-color: -couleur-primaire;
   -fx-border-width: 2;
 }
 
@@ -188,7 +188,7 @@
 }
 
 .carte-action:recommandee .carte-action-icone {
-  -fx-icon-color: #4a90d9;
+  -fx-icon-color: -couleur-primaire;
 }
 
 .carte-action-titre {

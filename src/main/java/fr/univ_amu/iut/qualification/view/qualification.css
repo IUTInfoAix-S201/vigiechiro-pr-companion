@@ -30,7 +30,7 @@
 
 .lien-retour {
   -fx-font-size: 12px;
-  -fx-text-fill: #2c6cb0;
+  -fx-text-fill: -couleur-primaire-sombre;
   -fx-border-color: transparent;
   -fx-padding: 0 2 0 0;
 }
@@ -211,7 +211,7 @@
 }
 
 .bouton-primaire {
-  -fx-background-color: #4a90d9;
+  -fx-background-color: -couleur-primaire;
   -fx-text-fill: white;
   -fx-font-weight: bold;
   -fx-padding: 9 18 9 18;

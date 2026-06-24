@@ -125,7 +125,7 @@
 
 /* ----- Boutons ----- */
 .bouton-primaire {
-    -fx-background-color: #4a90d9;
+    -fx-background-color: -couleur-primaire;
     -fx-text-fill: white;
     -fx-font-weight: bold;
     -fx-background-radius: 4;
@@ -134,7 +134,7 @@
 }
 
 .bouton-primaire:hover {
-    -fx-background-color: #2563a3;
+    -fx-background-color: -couleur-primaire-sombre;
 }
 
 .bouton-primaire:disabled {
@@ -167,7 +167,7 @@
 
 /* Glisser-deposer (#139) : retour visuel pendant le survol d'un dossier ou .zip sur l'ecran. */
 .ecran-import.zone-depot-active {
-    -fx-border-color: #4a90d9;
+    -fx-border-color: -couleur-primaire;
     -fx-border-width: 2;
     -fx-border-style: segments(8, 6);
     -fx-border-radius: 8;

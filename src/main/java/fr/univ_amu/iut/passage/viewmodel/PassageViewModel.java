@@ -5,6 +5,7 @@ import fr.univ_amu.iut.commun.model.Verdict;
 import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
 import fr.univ_amu.iut.commun.viewmodel.Formats;
 import fr.univ_amu.iut.passage.model.DetailPassage;
+import fr.univ_amu.iut.passage.model.MeteoPassage;
 import fr.univ_amu.iut.passage.model.ServicePassage;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +18,8 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
@@ -52,6 +55,12 @@ public class PassageViewModel {
     private final ReadOnlyObjectWrapper<ActionRecommandee> actionRecommandee =
             new ReadOnlyObjectWrapper<>(this, "actionRecommandee", ActionRecommandee.AUCUNE);
     private final ReadOnlyStringWrapper message = new ReadOnlyStringWrapper(this, "message", "");
+
+    /// Température en début de nuit (#106) : libellé d'affichage (`8,5 °C` / `—`).
+    private final ReadOnlyStringWrapper temperature = new ReadOnlyStringWrapper(this, "temperature", "—");
+
+    /// Saisie éditable de la température (champ de M-Passage) : nombre ou vide pour effacer.
+    private final StringProperty temperatureSaisie = new SimpleStringProperty(this, "temperatureSaisie", "");
 
     /// Identifiant du passage affiché, mémorisé pour les actions (ex. suppression).
     private Long idPassage;
@@ -93,6 +102,21 @@ public class PassageViewModel {
         // --end-solution--
     }
 
+    /// Enregistre la **température en début de nuit** saisie (#106) : donnée **optionnelle** ; une saisie
+    /// vide l'efface, une saisie non numérique publie un message d'erreur sans rien modifier. Délègue à
+    /// [ServicePassage#definirTemperatureDebutNuit] puis met à jour l'affichage.
+    public void enregistrerTemperature() {
+        try {
+            Double celsius = MeteoPassage.lireSaisie(temperatureSaisie.get());
+            service.definirTemperatureDebutNuit(idPassage, celsius);
+            temperature.set(Formats.temperatureLisible(celsius));
+            temperatureSaisie.set(celsius == null ? "" : MeteoPassage.serialiser(celsius));
+            message.set("");
+        } catch (NumberFormatException invalide) {
+            message.set("Température invalide : saisissez un nombre (°C) ou laissez vide.");
+        }
+    }
+
     // --solution--
     private void appliquer(DetailPassage detail, ContexteSite contexte) {
         titreContexte.set("Carré "
@@ -119,6 +143,11 @@ public class PassageViewModel {
         depotDisponible.set(
                 detail.statut() == StatutWorkflow.VERIFIE || detail.statut() == StatutWorkflow.PRET_A_DEPOSER);
         actionRecommandee.set(prochaineAction(detail.statut()));
+        temperature.set(Formats.temperatureLisible(detail.temperatureDebutNuit()));
+        temperatureSaisie.set(
+                MeteoPassage.serialiser(detail.temperatureDebutNuit()) == null
+                        ? ""
+                        : MeteoPassage.serialiser(detail.temperatureDebutNuit()));
     }
 
     /// Déduit la prochaine action recommandée du statut (progression linéaire du workflow) : la carte
@@ -148,6 +177,8 @@ public class PassageViewModel {
         validationVerrouillee.set(true);
         depotDisponible.set(false);
         actionRecommandee.set(ActionRecommandee.AUCUNE);
+        temperature.set("—");
+        temperatureSaisie.set("");
     }
 
     private static List<EtapeWorkflow> construireEtapes(StatutWorkflow courant) {
@@ -246,5 +277,15 @@ public class PassageViewModel {
     /// Message d'erreur (passage introuvable), vide en fonctionnement nominal.
     public ReadOnlyStringProperty messageProperty() {
         return message.getReadOnlyProperty();
+    }
+
+    /// Température en début de nuit, libellé d'affichage (`8,5 °C` / `—`, #106).
+    public ReadOnlyStringProperty temperatureProperty() {
+        return temperature.getReadOnlyProperty();
+    }
+
+    /// Saisie éditable de la température (liée bidirectionnellement au champ de M-Passage, #106).
+    public StringProperty temperatureSaisieProperty() {
+        return temperatureSaisie;
     }
 }

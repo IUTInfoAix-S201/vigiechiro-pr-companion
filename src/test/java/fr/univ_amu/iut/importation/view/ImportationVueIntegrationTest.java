@@ -129,6 +129,8 @@ class ImportationVueIntegrationTest {
         // ces lookups échoueraient et le test virerait au rouge.
         assertThat(robot.lookup("#champDossier").queryAs(TextField.class)).isNotNull();
         assertThat(robot.lookup("#boutonParcourir").queryAs(Button.class)).isNotNull();
+        assertThat(robot.lookup("#boutonZip").queryAs(Button.class)).isNotNull(); // #139
+        assertThat(robot.lookup("#racineImport").queryAs(VBox.class)).isNotNull(); // #139 (zone de dépôt)
         assertThat(robot.lookup("#sectionInspection").queryAs(VBox.class)).isNotNull();
         assertThat(robot.lookup("#comboSites").queryAs(ComboBox.class)).isNotNull();
         assertThat(robot.lookup("#comboPoints").queryAs(ComboBox.class)).isNotNull();

@@ -3,6 +3,7 @@ package fr.univ_amu.iut.importation.view;
 import com.google.inject.Inject;
 import fr.univ_amu.iut.commun.view.GardeQuitter;
 import fr.univ_amu.iut.importation.model.EtatNommage;
+import fr.univ_amu.iut.importation.model.ExtracteurZip;
 import fr.univ_amu.iut.importation.model.Progression;
 import fr.univ_amu.iut.importation.model.ResultatImport;
 import fr.univ_amu.iut.importation.viewmodel.EtatImport;
@@ -24,9 +25,12 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TextField;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
+import javafx.stage.FileChooser;
 import javafx.util.StringConverter;
 import javafx.util.converter.NumberStringConverter;
 
@@ -38,6 +42,9 @@ import javafx.util.converter.NumberStringConverter;
 /// [ImportationViewModel#inspecter()] ; « Importer » lance le travail lourd hors du fil JavaFX.
 public class ImportationController implements GardeQuitter {
 
+    /// Classe CSS du retour visuel de glisser-déposer (#139), posée sur la racine pendant le survol.
+    private static final String CLASSE_ZONE_DEPOT_ACTIVE = "zone-depot-active";
+
     private final ImportationViewModel viewModel;
 
     // TODO (M-Import) : déclarez les @FXML correspondant aux fx:id de Importation.fxml (champ dossier,
@@ -47,7 +54,13 @@ public class ImportationController implements GardeQuitter {
     //   Patron de référence : feature sites.
     // --solution--
     @FXML
+    private VBox racineImport;
+
+    @FXML
     private TextField champDossier;
+
+    @FXML
+    private Button boutonZip;
 
     @FXML
     private VBox sectionInspection;
@@ -150,6 +163,7 @@ public class ImportationController implements GardeQuitter {
         lierDossierEtInspection(viewModel.inspection());
         lierRattachement(viewModel.rattachement());
         lierAction();
+        installerGlisserDeposer();
         viewModel.chargerSites();
     }
 
@@ -246,6 +260,7 @@ public class ImportationController implements GardeQuitter {
         labelProgression.textProperty().bind(viewModel.messageProgressionProperty());
         boutonImporter.disableProperty().bind(viewModel.peutImporter().not().or(enCours));
         boutonParcourir.disableProperty().bind(enCours);
+        boutonZip.disableProperty().bind(enCours);
         comboSites.disableProperty().bind(enCours);
         comboPoints.disableProperty().bind(enCours);
         champAnnee.disableProperty().bind(enCours);
@@ -265,16 +280,83 @@ public class ImportationController implements GardeQuitter {
                         this::libelleStatut, viewModel.etatProperty(), viewModel.resultatProperty()));
     }
 
-    /// « Parcourir » : ouvre le sélecteur de dossier natif puis lance l'inspection (lecture seule).
+    /// « Parcourir » : ouvre le sélecteur de **dossier** natif puis charge la source.
     @FXML
     private void parcourir() {
         DirectoryChooser selecteur = new DirectoryChooser();
         selecteur.setTitle("Dossier de la nuit (carte SD ou copie sur disque)");
         File dossier = selecteur.showDialog(champDossier.getScene().getWindow());
         if (dossier != null) {
-            viewModel.inspection().dossierSourceProperty().set(dossier.toPath());
-            viewModel.inspecter();
+            chargerSource(dossier.toPath());
         }
+    }
+
+    /// « Choisir un .zip » : ouvre le sélecteur de **fichier** filtré sur `*.zip` puis charge la source
+    /// (l'archive sera décompressée de façon transparente, #139).
+    @FXML
+    private void parcourirZip() {
+        FileChooser selecteur = new FileChooser();
+        selecteur.setTitle("Archive .zip de la nuit");
+        selecteur.getExtensionFilters().add(new FileChooser.ExtensionFilter("Archive ZIP", "*.zip"));
+        File zip = selecteur.showOpenDialog(champDossier.getScene().getWindow());
+        if (zip != null) {
+            chargerSource(zip.toPath());
+        }
+    }
+
+    /// Charge une source d'import (dossier **ou** `.zip`, #139) : la décompression éventuelle du zip se
+    /// fait sur un **virtual thread** (Java 25) pour ne pas figer l'IHM sur une grosse archive ; le
+    /// résultat est ensuite inspecté sur le fil JavaFX. Une archive illisible est signalée à la vue.
+    private void chargerSource(Path chemin) {
+        Thread.ofVirtual().name("source-import-vigiechiro").start(() -> {
+            try {
+                Path dossier = viewModel.extraireSiZip(chemin); // décompression zip hors-thread
+                Platform.runLater(() -> {
+                    viewModel.inspection().dossierSourceProperty().set(dossier);
+                    viewModel.inspecter();
+                });
+            } catch (RuntimeException echec) {
+                Platform.runLater(() -> viewModel.signalerSourceIllisible(echec.getMessage()));
+            }
+        });
+    }
+
+    /// Active le **glisser-déposer** (#139) d'un dossier ou d'un `.zip` sur tout l'écran d'import, avec un
+    /// **retour visuel** pendant le survol (classe CSS `zone-depot-active`). Le dépôt charge la source via
+    /// [#chargerSource]. Ignoré pendant un import en cours (formulaire gelé).
+    private void installerGlisserDeposer() {
+        racineImport.setOnDragOver(evenement -> {
+            if (sourceGlisseeAcceptable(evenement.getDragboard())) {
+                evenement.acceptTransferModes(TransferMode.COPY);
+                if (!racineImport.getStyleClass().contains(CLASSE_ZONE_DEPOT_ACTIVE)) {
+                    racineImport.getStyleClass().add(CLASSE_ZONE_DEPOT_ACTIVE);
+                }
+            }
+            evenement.consume();
+        });
+        racineImport.setOnDragExited(evenement -> {
+            racineImport.getStyleClass().remove(CLASSE_ZONE_DEPOT_ACTIVE);
+            evenement.consume();
+        });
+        racineImport.setOnDragDropped(evenement -> {
+            boolean accepte = sourceGlisseeAcceptable(evenement.getDragboard());
+            if (accepte) {
+                chargerSource(evenement.getDragboard().getFiles().get(0).toPath());
+            }
+            racineImport.getStyleClass().remove(CLASSE_ZONE_DEPOT_ACTIVE);
+            evenement.setDropCompleted(accepte);
+            evenement.consume();
+        });
+    }
+
+    /// Vrai si le glisser porte un **dossier** ou un **.zip** (seules sources d'import acceptables) et
+    /// qu'aucun import n'est en cours (le formulaire est alors gelé).
+    private boolean sourceGlisseeAcceptable(Dragboard dragboard) {
+        if (viewModel.etatProperty().get() == EtatImport.EN_COURS || !dragboard.hasFiles()) {
+            return false;
+        }
+        File premier = dragboard.getFiles().get(0);
+        return premier.isDirectory() || ExtracteurZip.estZip(premier.toPath());
     }
 
     /// « Importer cette nuit » : exécute le travail lourd sur un **virtual thread** (Java 25) pour ne

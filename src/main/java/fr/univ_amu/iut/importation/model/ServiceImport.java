@@ -199,14 +199,16 @@ public class ServiceImport {
         }
 
         RapportInspection rapport = inspecteur.inspecter(dossierSource);
-        JournalParse journal = rapport.journalOptionnel()
-                .orElseThrow(() -> new RegleMetierException("Journal LogPR introuvable dans "
-                        + dossierSource
-                        + " : l'enregistreur ne peut pas être identifié."));
         if (rapport.originaux().isEmpty()) {
             throw new RegleMetierException(
                     "Aucun enregistrement original (.wav) à importer dans " + dossierSource + ".");
         }
+        // Mode dégradé (#107) : un journal LogPR absent ne bloque plus l'import. À défaut, on reconstitue
+        // une identité de repli depuis les noms des WAV (`PaRecPR<série>_<date>_…`) ; l'avertissement
+        // « aucun journal » est porté par l'inspection (non bloquant). Sans journal réel, on n'écrit pas
+        // d'entité `sensor_log` (rien à copier ni à journaliser).
+        boolean sansJournal = rapport.journalOptionnel().isEmpty();
+        JournalParse journal = rapport.journalOptionnel().orElseGet(() -> JournalDeRepli.depuis(rapport.originaux()));
 
         String nomSession = prefixe.nomDossierSession();
         Path dossierSession = workspace.dossierSession(nomSession);
@@ -226,7 +228,7 @@ public class ServiceImport {
             faites++;
             progres.accept(new Progression("Copie " + indiceCopie + "/" + nbOriginaux, (double) faites / totalEtapes));
         }
-        Path cheminJournalCopie = copie.copierVers(rapport.cheminJournal(), dossierSession);
+        Path cheminJournalCopie = sansJournal ? null : copie.copierVers(rapport.cheminJournal(), dossierSession);
         Path cheminReleveCopie = rapport.aUnReleveClimatique()
                 ? copie.copierVers(rapport.cheminReleveClimatique(), dossierSession)
                 : null;
@@ -247,8 +249,10 @@ public class ServiceImport {
                 .sum();
         SessionDEnregistrement session =
                 new SessionDEnregistrement(null, dossierSession.toString(), volumeOriginaux, volumeSequences, null);
-        JournalDuCapteur journalEntite = new JournalDuCapteur(
-                null, cheminJournalCopie.toString(), journal.evenementsJson(), journal.anomaliesJson(), null);
+        JournalDuCapteur journalEntite = sansJournal
+                ? null
+                : new JournalDuCapteur(
+                        null, cheminJournalCopie.toString(), journal.evenementsJson(), journal.anomaliesJson(), null);
         ReleveClimatique releveEntite =
                 cheminReleveCopie == null ? null : new ReleveClimatique(null, cheminReleveCopie.toString(), null, null);
 
@@ -261,7 +265,9 @@ public class ServiceImport {
             }
             ids[0] = agregatDao.insererPassage(cx, passage);
             ids[1] = agregatDao.insererSession(cx, ids[0], session);
-            agregatDao.insererJournal(cx, ids[1], journalEntite);
+            if (journalEntite != null) {
+                agregatDao.insererJournal(cx, ids[1], journalEntite);
+            }
             if (releveEntite != null) {
                 agregatDao.insererReleve(cx, ids[1], releveEntite);
             }

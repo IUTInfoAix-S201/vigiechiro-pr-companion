@@ -342,11 +342,24 @@ class ServiceImportTest {
     }
 
     @Test
-    @DisplayName("Un dossier sans journal LogPR est refusé (enregistreur non identifiable)")
-    void sans_journal_refuse() throws IOException {
-        Files.delete(sd.resolve("LogPR1925492.txt"));
+    @DisplayName("#107 : un dossier sans journal LogPR s'importe en mode dégradé (série déduite des WAV)")
+    void sans_journal_import_degrade() throws IOException {
+        Files.delete(sd.resolve("LogPR" + SERIE + ".txt"));
 
-        assertThatThrownBy(() -> service.importer(sd, idPoint, prefixe)).isInstanceOf(RegleMetierException.class);
+        ResultatImport resultat = service.importer(sd, idPoint, prefixe);
+
+        // L'import aboutit malgré l'absence de journal : l'enregistreur est déduit du nom des WAV
+        // (PaRecPR<série>_…), le passage est créé au statut Transformé.
+        assertThat(resultat.passage().statutWorkflow()).isEqualTo(StatutWorkflow.TRANSFORME);
+        assertThat(resultat.passage().idEnregistreur()).isEqualTo(SERIE);
+        assertThat(resultat.numeroSerieEnregistreur()).isEqualTo(SERIE);
+        assertThat(resultat.passage().dateEnregistrement()).isEqualTo("2026-04-22"); // date issue du nom de WAV
+        // Sans journal réel, aucune entité sensor_log n'est écrite.
+        assertThat(journalDao.trouverParSession(resultat.session().id()))
+                .as("aucun journal n'est journalisé en mode dégradé")
+                .isEmpty();
+        // L'enregistreur déduit est bien committé (clé naturelle = série du nom de fichier).
+        assertThat(enregistreurDao.findById(SERIE)).isPresent();
     }
 
     // --- Helpers (autonomes) ----------------------------------------------------

@@ -120,6 +120,12 @@ public class ServiceImport {
         return inspecteur.inspecter(dossierSource);
     }
 
+    /// Racine du workspace (sur disque) : volume d'accueil d'une éventuelle extraction de zip (#139),
+    /// le même que celui où l'import recopie ensuite les fichiers — donc jamais le *tmpfs* RAM `/tmp`.
+    public Path racineWorkspace() {
+        return workspace.racine();
+    }
+
     /// Importe une nuit d'enregistrement depuis `dossierSource` (carte SD) vers le workspace, pour
     /// le point `idPoint`, selon le [Prefixe] R6 fourni par l'appelant.
     ///

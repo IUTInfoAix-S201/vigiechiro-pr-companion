@@ -21,14 +21,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 /// Service métier de la feature `importation` : orchestre le parcours d'import P2 d'une nuit
@@ -84,7 +77,7 @@ public class ServiceImport {
     private final InspecteurDossier inspecteur;
     private final CopieProtegee copie;
     private final Renommeur renommeur;
-    private final TransformationAudio transformation;
+    private final DecoupageParallele decoupage;
     private final AgregatImportDao agregatDao;
     private final UniteDeTravail uniteDeTravail;
     private final Workspace workspace;
@@ -107,7 +100,7 @@ public class ServiceImport {
         this.inspecteur = Objects.requireNonNull(inspecteur, "inspecteur");
         this.copie = Objects.requireNonNull(copie, "copie");
         this.renommeur = Objects.requireNonNull(renommeur, "renommeur");
-        this.transformation = Objects.requireNonNull(transformation, "transformation");
+        this.decoupage = new DecoupageParallele(transformation, PARALLELISME_DECOUPAGE);
         this.agregatDao = Objects.requireNonNull(agregatDao, "agregatDao");
         this.uniteDeTravail = Objects.requireNonNull(uniteDeTravail, "uniteDeTravail");
         this.workspace = Objects.requireNonNull(workspace, "workspace");
@@ -146,10 +139,20 @@ public class ServiceImport {
     /// « Transformation X/N »). Appelé sur le fil d'exécution de l'import — la couche IHM relaie au fil
     /// JavaFX. Même contrat transactionnel et mêmes règles métier que la variante sans callback.
     public ResultatImport importer(Path dossierSource, Long idPoint, Prefixe prefixe, Consumer<Progression> progres) {
+        return importer(dossierSource, idPoint, prefixe, progres, JetonAnnulation.neutre());
+    }
+
+    /// Variante **annulable** (#146) : `jeton` est vérifié entre chaque fichier copié puis transformé ;
+    /// une annulation lève [AnnulationImportException] et **nettoie la session partielle** sur disque
+    /// (aucun passage n'est persisté tant que la transformation n'est pas finie, persistance atomique O7
+    /// → pas de demi-état en base). Même contrat transactionnel et mêmes règles que les autres variantes.
+    public ResultatImport importer(
+            Path dossierSource, Long idPoint, Prefixe prefixe, Consumer<Progression> progres, JetonAnnulation jeton) {
         Objects.requireNonNull(dossierSource, "dossierSource");
         Objects.requireNonNull(idPoint, "idPoint");
         Objects.requireNonNull(prefixe, "prefixe");
         Objects.requireNonNull(progres, "progres");
+        Objects.requireNonNull(jeton, "jeton");
 
         // Garde anti-import-concurrent (#54) : un seul import à la fois sur ce service singleton, quelle
         // que soit l'IHM. On acquiert le verrou avant tout travail et on le relâche dans le finally.
@@ -157,7 +160,7 @@ public class ServiceImport {
             throw new RegleMetierException("Un import est déjà en cours : attendez sa fin avant d'en lancer un autre.");
         }
         try {
-            return executerImportProtege(dossierSource, idPoint, prefixe, progres);
+            return executerImportProtege(dossierSource, idPoint, prefixe, progres, jeton);
         } finally {
             importEnCours.set(false);
         }
@@ -195,7 +198,7 @@ public class ServiceImport {
     /// Corps de l'import (inspection, copie protégée R9, renommage R6/R7, transformation R10/R11,
     /// persistance atomique O7), exécuté **sous le verrou anti-concurrent** posé par [#importer].
     private ResultatImport executerImportProtege(
-            Path dossierSource, Long idPoint, Prefixe prefixe, Consumer<Progression> progres) {
+            Path dossierSource, Long idPoint, Prefixe prefixe, Consumer<Progression> progres, JetonAnnulation jeton) {
         // R5 : on refuse le doublon AVANT de copier/transformer quoi que ce soit.
         if (agregatDao.passageExistePour(idPoint, prefixe.annee(), prefixe.numeroPassage())) {
             throw new RegleMetierException("R5 : un passage n°"
@@ -228,25 +231,43 @@ public class ServiceImport {
         int totalEtapes = nbOriginaux * 2;
         int faites = 0;
 
-        // 1) Copie protégée SD -> workspace (R9). Originaux dans bruts/, journal + relevé à la racine.
-        int indiceCopie = 0;
-        for (Path original : rapport.originaux()) {
-            copie.copierVers(original, dossierBruts);
-            indiceCopie++;
-            faites++;
-            progres.accept(new Progression("Copie " + indiceCopie + "/" + nbOriginaux, (double) faites / totalEtapes));
-        }
-        Path cheminJournalCopie = sansJournal
-                ? JournalDeRepli.ecrireTraceSynthetique(dossierSession)
-                : copie.copierVers(rapport.cheminJournal(), dossierSession);
-        Path cheminReleveCopie = rapport.aUnReleveClimatique()
-                ? copie.copierVers(rapport.cheminReleveClimatique(), dossierSession)
-                : null;
+        // Annulation (#146) : la copie et la transformation se font dans un dossier de session neuf ;
+        // une annulation lève AnnulationImportException et on supprime la session partielle. Comme la
+        // persistance est atomique en fin de course (O7), aucun passage n'est créé → pas de demi-état.
+        List<Path> originauxRenommes;
+        List<TransformationOriginal> transformations;
+        Path cheminJournalCopie;
+        Path cheminReleveCopie;
+        try {
+            // 1) Copie protégée SD -> workspace (R9). Originaux dans bruts/, journal + relevé à la racine.
+            int indiceCopie = 0;
+            for (Path original : rapport.originaux()) {
+                jeton.leverSiAnnule(); // arrêt au plus tôt, entre deux fichiers
+                copie.copierVers(original, dossierBruts);
+                indiceCopie++;
+                faites++;
+                progres.accept(new Progression(
+                        "Copie " + indiceCopie + "/" + nbOriginaux + " · " + original.getFileName(),
+                        (double) faites / totalEtapes));
+            }
+            cheminJournalCopie = sansJournal
+                    ? JournalDeRepli.ecrireTraceSynthetique(dossierSession)
+                    : copie.copierVers(rapport.cheminJournal(), dossierSession);
+            cheminReleveCopie = rapport.aUnReleveClimatique()
+                    ? copie.copierVers(rapport.cheminReleveClimatique(), dossierSession)
+                    : null;
 
-        // 2) Renommage R6/R7 sur la copie, puis 3) transformation R10/R11 (découpée en parallèle, #12).
-        List<Path> originauxRenommes = renommeur.renommer(dossierBruts, prefixe);
-        List<TransformationOriginal> transformations =
-                decouperEnParallele(originauxRenommes, dossierTransformes, prefixe, nbOriginaux, totalEtapes, progres);
+            // 2) Renommage R6/R7 sur la copie, puis 3) transformation R10/R11 (découpée en parallèle, #12).
+            originauxRenommes = renommeur.renommer(dossierBruts, prefixe);
+            transformations = decoupage.decouper(
+                    originauxRenommes, dossierTransformes, prefixe, nbOriginaux, totalEtapes, progres, jeton);
+            // Re-vérification après la phase de transformation : une annulation pendant la DERNIÈRE
+            // transformation (postérieure à son propre point de contrôle) doit aussi stopper l'import.
+            jeton.leverSiAnnule();
+        } catch (AnnulationImportException annulation) {
+            supprimerSessionPartielle(dossierSession);
+            throw annulation;
+        }
 
         // 4) Construction des entités de l'agrégat.
         Enregistreur enregistreur = new Enregistreur(journal.numeroSerie(), journal.versionModele(), null);
@@ -265,6 +286,10 @@ public class ServiceImport {
                 null, cheminJournalCopie.toString(), journal.evenementsJson(), journal.anomaliesJson(), null);
         ReleveClimatique releveEntite =
                 cheminReleveCopie == null ? null : new ReleveClimatique(null, cheminReleveCopie.toString(), null, null);
+
+        // Dernière fenêtre d'annulation : juste avant le point de non-retour (la persistance). Au-delà,
+        // le passage est créé. Cette vérification nettoie elle-même la session (hors du bloc try/catch).
+        verifierAnnulation(jeton, dossierSession);
 
         // 5) Persistance atomique de l'agrégat (O7 : tout ou rien).
         long[] ids = new long[2]; // [idPassage, idSession]
@@ -319,85 +344,20 @@ public class ServiceImport {
                 journal.anomalies());
     }
 
-    /// Découpe (#12) tous les `originaux` **en parallèle** sur des threads virtuels (un par fichier,
-    /// Java 25), la concurrence étant **bornée** à [#PARALLELISME_DECOUPAGE] par un [Semaphore] :
-    /// `transformer` charge tout le PCM en mémoire et écrit sur disque, donc sans plafond une grosse
-    /// nuit (~1572 fichiers) tiendrait trop de WAV en vol → saturation mémoire. Pic mémoire borné ≈
-    /// nbCœurs PCM, sans brider le débit CPU.
-    ///
-    /// L'**ordre d'origine est préservé** (Future récupérés dans l'ordre de soumission) → résultat
-    /// déterministe (persistance et tests inchangés). La progression (#33) est émise **sous verrou +
-    /// compteur** pour rester appelée un à un (sûre pour tout consommateur), libellés « k/N » monotones.
-    private List<TransformationOriginal> decouperEnParallele(
-            List<Path> originaux,
-            Path dossierTransformes,
-            Prefixe prefixe,
-            int nbOriginaux,
-            int totalEtapes,
-            Consumer<Progression> progres) {
-        AtomicInteger transfosFaites = new AtomicInteger(0);
-        AtomicReference<RuntimeException> echecDecoupage = new AtomicReference<>();
-        Object verrouProgression = new Object();
-        Semaphore creneaux = new Semaphore(PARALLELISME_DECOUPAGE);
-        try (ExecutorService executeur = Executors.newVirtualThreadPerTaskExecutor()) {
-            List<Future<TransformationOriginal>> decoupagesEnCours = originaux.stream()
-                    .map(original -> executeur.submit(() -> {
-                        creneaux.acquire();
-                        try {
-                            // Fail-fast (#12) : si un découpage a déjà échoué (n'importe lequel, quel que
-                            // soit l'ordre), on n'en lance pas un nouveau et on propage l'échec d'origine
-                            // → plus aucun fichier décodé inutilement une fois l'erreur connue.
-                            RuntimeException dejaEchoue = echecDecoupage.get();
-                            if (dejaEchoue != null) {
-                                throw dejaEchoue;
-                            }
-                            TransformationOriginal resultat =
-                                    transformation.transformer(original, dossierTransformes, prefixe);
-                            synchronized (verrouProgression) {
-                                int faits = transfosFaites.incrementAndGet();
-                                progres.accept(new Progression(
-                                        "Transformation " + faits + "/" + nbOriginaux,
-                                        (double) (nbOriginaux + faits) / totalEtapes));
-                            }
-                            return resultat;
-                        } catch (RuntimeException echec) {
-                            echecDecoupage.compareAndSet(null, echec);
-                            throw echec;
-                        } finally {
-                            creneaux.release();
-                        }
-                    }))
-                    .toList();
-            try {
-                return decoupagesEnCours.stream()
-                        .map(ServiceImport::resultatDecoupage)
-                        .toList();
-            } catch (RuntimeException echec) {
-                // Fail-fast (#12) : à la première erreur, on annule les découpages restants (ceux en
-                // attente sur le sémaphore s'arrêtent net) au lieu d'attendre toute la nuit avant de
-                // remonter l'échec — comme le faisait l'import séquentiel. Sans cela, la fermeture du
-                // pool patienterait jusqu'à la fin de tous les originaux déjà soumis.
-                decoupagesEnCours.forEach(decoupage -> decoupage.cancel(true));
-                throw echec;
-            }
-        }
+    /// Supprime la **session partielle** (dossier `bruts/`+`transformes/` en cours de constitution)
+    /// laissée par un import **annulé** (#146), pour ne pas accumuler des fichiers à moitié copiés.
+    /// Best-effort (cf. [ExtracteurZip#supprimerRecursivement]).
+    private static void supprimerSessionPartielle(Path dossierSession) {
+        ExtracteurZip.supprimerRecursivement(dossierSession);
     }
 
-    /// Récupère le résultat d'un découpage lancé sur un thread virtuel (#12), en **dévoilant** la
-    /// cause d'un éventuel échec : une [RuntimeException] (ex. [UncheckedIOException] d'écriture) est
-    /// relancée telle quelle, pour conserver le comportement de l'import séquentiel ; une interruption
-    /// restaure le drapeau du thread avant de remonter l'erreur.
-    private static TransformationOriginal resultatDecoupage(Future<TransformationOriginal> decoupage) {
-        try {
-            return decoupage.get();
-        } catch (InterruptedException interruption) {
-            Thread.currentThread().interrupt();
-            throw new IllegalStateException("Découpage audio interrompu.", interruption);
-        } catch (ExecutionException echec) {
-            if (echec.getCause() instanceof RuntimeException relancable) {
-                throw relancable;
-            }
-            throw new IllegalStateException("Échec du découpage audio.", echec.getCause());
+    /// Vérifie l'annulation **hors du bloc try/catch de nettoyage** (#146) : si annulé, supprime la
+    /// session partielle puis lève [AnnulationImportException]. Utilisé juste avant la persistance, où le
+    /// `catch` couvrant la copie/transformation ne s'applique plus.
+    private static void verifierAnnulation(JetonAnnulation jeton, Path dossierSession) {
+        if (jeton.estAnnule()) {
+            supprimerSessionPartielle(dossierSession);
+            throw new AnnulationImportException();
         }
     }
 

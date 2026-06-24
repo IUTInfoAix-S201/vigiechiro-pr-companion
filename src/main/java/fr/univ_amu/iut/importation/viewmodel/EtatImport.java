@@ -14,5 +14,8 @@ public enum EtatImport {
     /// Import terminé avec succès : le résultat est disponible.
     TERMINE,
     /// Import en échec : un message d'erreur est disponible.
-    ECHEC
+    ECHEC,
+    /// Opération **annulée** par l'utilisateur (#146) : décompression ou import stoppé proprement, sans
+    /// demi-état en base, fichiers partiels nettoyés. État neutre (le formulaire redevient éditable).
+    ANNULE
 }

@@ -68,9 +68,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # macOS est couvert sur les **deux** architectures : `macos-latest` est arm64 (Apple Silicon),
-        # `macos-13` est le runner Intel (x64). Les artefacts sont nommés par architecture (cf. étape de
-        # renommage) pour ne pas s'écraser mutuellement à l'upload.
+        # Trois cibles : Linux (.deb), macOS Apple Silicon (.dmg arm64), Windows (.msi). Les
+        # artefacts sont nommés par architecture (cf. étape de renommage) pour rester explicites.
+        # macOS Intel (`macos-13`) est volontairement écarté : les runners Intel GitHub sont en fin
+        # de vie (migration annoncée de `macos-latest` vers macOS 26 sur Apple Silicon) et un job
+        # Intel en attente de runner bloquerait la publication atomique.
         include:
           - os: ubuntu-latest
             type: deb
@@ -78,9 +80,6 @@ jobs:
           - os: macos-latest
             type: dmg
             arch: arm64
-          - os: macos-13
-            type: dmg
-            arch: x64
           - os: windows-latest
             type: msi
             arch: x64

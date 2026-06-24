@@ -105,10 +105,11 @@ public final class CaptureImport {
         Scene scene = new Scene(vue, 1100, 860);
 
         // État « décompression d'un .zip » (#146) : avant toute inspection, la barre de progression
-        // déterminée « X / N fichiers » s'affiche (le formulaire est gelé). Rend visible l'avancement
-        // pendant la décompression d'une grosse archive (sinon écran figé plusieurs dizaines de secondes).
+        // déterminée « X / N fichiers » s'affiche avec un temps restant estimé et un bouton « Annuler »
+        // (le formulaire est gelé). Le court délai laisse l'ETA s'établir (sinon « ~0 s » à t≈0).
         vm.marquerExtractionEnCours();
-        vm.appliquerProgression(new Progression("Décompression : 1240 / 3692 fichiers…", 0.34));
+        dormir(2500);
+        vm.appliquerProgression(new Progression("Décompression : 740 / 3692 fichiers…", 0.20));
         rendre(scene, sortie.resolve("apercu-import-decompression.png"));
 
         // Poser la source ramène l'état à PRET (réinitialisation pour nouveau dossier) ; on inspecte et on
@@ -128,10 +129,11 @@ public final class CaptureImport {
 
         rendre(scene, sortie.resolve("apercu-import-assistant.png"));
 
-        // État « import en cours » (#33) : barre de progression déterminée à mi-parcours, formulaire
-        // gelé (le rattachement ne peut plus changer pendant le traitement). Même scène, VM piloté.
+        // État « import en cours » (#33/#146) : barre de progression déterminée, temps restant estimé,
+        // bouton « Annuler », formulaire gelé. Phase de copie en début d'import (l'ETA y est parlant).
         vm.marquerEnCours();
-        vm.appliquerProgression(new Progression("Transformation 120/191", 0.66));
+        dormir(2500);
+        vm.appliquerProgression(new Progression("Copie 48/191", 0.126));
         rendre(scene, sortie.resolve("apercu-import-en-cours.png"));
 
         // État « mélange » (#33) : dossier mêlant deux enregistreurs → avertissement à l'inspection
@@ -152,6 +154,16 @@ public final class CaptureImport {
     private static void rendre(Scene scene, Path fichier) {
         ApercuFx.enregistrerPng(scene, fichier);
         System.out.println("Apercu ecrit dans " + fichier.toAbsolutePath());
+    }
+
+    /// Pause (outil de capture uniquement) : laisse s'écouler un peu de temps après le début d'une
+    /// opération pour que l'estimation du temps restant (#146) soit représentative sur l'aperçu.
+    private static void dormir(long millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     /// Dossier d'exemple **mélangé** (chemin déterministe) : journal + relevé de la série 1925492 mais

@@ -1,6 +1,8 @@
 package fr.univ_amu.iut.passage.viewmodel;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -49,7 +51,71 @@ class PassageViewModelTest {
                 4096L,
                 1024L,
                 30,
-                150.0);
+                150.0,
+                null);
+    }
+
+    private static DetailPassage detailAvec(Double temperature) {
+        return new DetailPassage(
+                2,
+                2026,
+                "2026-06-22",
+                "20:25:00",
+                "07:47:00",
+                "1925492",
+                StatutWorkflow.TRANSFORME,
+                Verdict.OK,
+                null,
+                4096L,
+                1024L,
+                30,
+                150.0,
+                temperature);
+    }
+
+    @Test
+    @DisplayName("#106 : ouvrirSur expose la température (affichage formaté + saisie éditable)")
+    void temperature_affichee() {
+        when(service.detailPassage(ID_PASSAGE)).thenReturn(detailAvec(8.5));
+        viewModel.ouvrirSur(ID_PASSAGE, CONTEXTE);
+        assertThat(viewModel.temperatureProperty().get()).isEqualTo("8,5 °C");
+        assertThat(viewModel.temperatureSaisieProperty().get()).isEqualTo("8.5");
+    }
+
+    @Test
+    @DisplayName("#106 : température absente → affichage « — » et saisie vide")
+    void temperature_absente() {
+        when(service.detailPassage(ID_PASSAGE)).thenReturn(detailAvec(null));
+        viewModel.ouvrirSur(ID_PASSAGE, CONTEXTE);
+        assertThat(viewModel.temperatureProperty().get()).isEqualTo("—");
+        assertThat(viewModel.temperatureSaisieProperty().get()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("#106 : enregistrerTemperature valide délègue au service et met à jour l'affichage")
+    void enregistrer_temperature_valide() {
+        when(service.detailPassage(ID_PASSAGE)).thenReturn(detailAvec(null));
+        viewModel.ouvrirSur(ID_PASSAGE, CONTEXTE);
+        viewModel.temperatureSaisieProperty().set("9,0");
+
+        viewModel.enregistrerTemperature();
+
+        verify(service).definirTemperatureDebutNuit(ID_PASSAGE, 9.0);
+        assertThat(viewModel.temperatureProperty().get()).isEqualTo("9,0 °C");
+        assertThat(viewModel.messageProperty().get()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("#106 : une saisie de température invalide publie un message, sans appeler le service")
+    void enregistrer_temperature_invalide() {
+        when(service.detailPassage(ID_PASSAGE)).thenReturn(detailAvec(null));
+        viewModel.ouvrirSur(ID_PASSAGE, CONTEXTE);
+        viewModel.temperatureSaisieProperty().set("froid");
+
+        viewModel.enregistrerTemperature();
+
+        assertThat(viewModel.messageProperty().get()).contains("invalide");
+        verify(service, never()).definirTemperatureDebutNuit(any(), any());
     }
 
     @Test

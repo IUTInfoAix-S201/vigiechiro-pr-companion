@@ -146,6 +146,48 @@ class ServicePassageDetailTest {
     }
 
     @Test
+    @DisplayName("#106 : température de début de nuit optionnelle (null par défaut), définie puis effacée")
+    void temperature_optionnelle() {
+        Passage passage = insererPassage(3, StatutWorkflow.TRANSFORME);
+
+        assertThat(service.detailPassage(passage.id()).temperatureDebutNuit())
+                .as("température non renseignée par défaut")
+                .isNull();
+
+        service.definirTemperatureDebutNuit(passage.id(), 8.5);
+        assertThat(service.detailPassage(passage.id()).temperatureDebutNuit()).isEqualTo(8.5);
+
+        service.definirTemperatureDebutNuit(passage.id(), null); // saisie vide → effacement
+        assertThat(service.detailPassage(passage.id()).temperatureDebutNuit()).isNull();
+    }
+
+    @Test
+    @DisplayName("#106 : definirTemperatureDebutNuit préserve les autres clés météo de weather_data")
+    void temperature_preserve_les_autres_cles() {
+        Passage passage = passageDao.insert(new Passage(
+                null,
+                4,
+                2026,
+                "2026-06-22",
+                "20:25:00",
+                "07:47:00",
+                null,
+                StatutWorkflow.TRANSFORME,
+                null,
+                null,
+                "{\"hygro\":80}", // une autre clé météo déjà présente
+                null,
+                idPoint,
+                SERIE));
+
+        service.definirTemperatureDebutNuit(passage.id(), 8.5);
+
+        String meteo = passageDao.findById(passage.id()).orElseThrow().donneesMeteo();
+        assertThat(meteo).contains("\"hygro\":80").contains("\"tempDebut\":8.5");
+        assertThat(service.detailPassage(passage.id()).temperatureDebutNuit()).isEqualTo(8.5);
+    }
+
+    @Test
     @DisplayName("detailPassage sur un passage introuvable lève une RegleMetierException")
     void detail_passage_introuvable() {
         assertThatThrownBy(() -> service.detailPassage(999L))

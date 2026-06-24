@@ -30,6 +30,7 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 
@@ -113,6 +114,15 @@ public class PassageController implements EmplacementNavigation {
     @FXML
     private Label lblIndiceAction;
 
+    @FXML
+    private Label lblTemperature;
+
+    @FXML
+    private TextField champTemperature;
+
+    @FXML
+    private Button boutonTemperature;
+
     // --end-solution--
 
     @Inject
@@ -161,6 +171,10 @@ public class PassageController implements EmplacementNavigation {
         lblVolTransformes.textProperty().bind(viewModel.volumeTransformesProperty());
         lblDureeAudible.textProperty().bind(viewModel.dureeAudibleProperty());
         lblNbSequences.textProperty().bind(viewModel.nombreSequencesProperty().asString());
+
+        // Météo de début de nuit (#106) : affichage lié au VM, saisie bidirectionnelle.
+        lblTemperature.textProperty().bind(viewModel.temperatureProperty());
+        champTemperature.textProperty().bindBidirectional(viewModel.temperatureSaisieProperty());
 
         boutonVerifier
                 .disableProperty()
@@ -288,6 +302,13 @@ public class PassageController implements EmplacementNavigation {
                 contexte.numeroCarre(),
                 contexte.codePoint(),
                 () -> viewModel.ouvrirSur(idPassage, contexte));
+    }
+
+    /// « Enregistrer » la température de début de nuit (#106) : délègue au VM (saisie vide = effacer ;
+    /// saisie invalide = message d'erreur, sans modification).
+    @FXML
+    private void enregistrerTemperature() {
+        viewModel.enregistrerTemperature();
     }
 
     private void majStepper() {

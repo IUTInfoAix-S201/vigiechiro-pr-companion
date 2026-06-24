@@ -5,10 +5,13 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.importation.model.ExtracteurZip;
+import fr.univ_amu.iut.importation.model.Progression;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import org.junit.jupiter.api.DisplayName;
@@ -55,6 +58,31 @@ class ExtracteurZipTest {
                     .isEqualTo("wav");
             assertThat(extrait).isNotEqualTo(racine); // dossier temporaire distinct, source intacte
             assertThat(zip).exists(); // R9 : l'archive source n'est pas modifiée
+        } finally {
+            ExtracteurZip.supprimerRecursivement(extrait);
+        }
+    }
+
+    @Test
+    @DisplayName("Extraction : la progression est notifiée fichier par fichier jusqu'à 100% (#146)")
+    void extraction_notifie_la_progression() throws IOException {
+        Path zip = racine.resolve("nuit.zip");
+        try (ZipOutputStream zos = new ZipOutputStream(Files.newOutputStream(zip))) {
+            ecrire(zos, "a.txt", "1");
+            ecrire(zos, "sous/b.txt", "2");
+            ecrire(zos, "sous/c.txt", "3");
+        }
+
+        List<Progression> points = new ArrayList<>();
+        Path extrait = ExtracteurZip.extraireVersDossierTemporaire(zip, base, points::add);
+
+        try {
+            // Un point de progression par fichier (les dossiers ne comptent pas), avancement croissant
+            // jusqu'à 1.0 sur le dernier, libellé « X / N ».
+            assertThat(points).hasSize(3);
+            assertThat(points.get(0).libelle()).contains("1 / 3");
+            assertThat(points.get(2).fraction()).isEqualTo(1.0);
+            assertThat(points.get(2).libelle()).contains("3 / 3");
         } finally {
             ExtracteurZip.supprimerRecursivement(extrait);
         }

@@ -113,9 +113,13 @@
             onAction="#importer"/>
     <Label fx:id="labelMessage" styleClass="message-erreur" wrapText="true" HBox.hgrow="ALWAYS"/>
   </HBox>
-  <!-- Progression déterminée (#33), visible seulement pendant l'import : fichier X/N copié/transformé. -->
+  <!-- Progression déterminée (#33/#146), visible pendant la décompression d'un .zip ou l'import :
+       barre « X/N », temps restant estimé, et bouton « Annuler » qui stoppe proprement. -->
   <VBox fx:id="zoneProgression" spacing="3.0" visible="false" managed="false">
-    <ProgressBar fx:id="barreProgression" maxWidth="Infinity" progress="0.0"/>
+    <HBox spacing="10.0" alignment="CENTER_LEFT">
+      <ProgressBar fx:id="barreProgression" maxWidth="Infinity" progress="0.0" HBox.hgrow="ALWAYS"/>
+      <Button fx:id="boutonAnnuler" text="✖ Annuler" styleClass="bouton-secondaire" onAction="#annuler"/>
+    </HBox>
     <Label fx:id="labelProgression" styleClass="insp-detail"/>
   </VBox>
   <Label fx:id="labelStatut" styleClass="message-succes" wrapText="true"/>

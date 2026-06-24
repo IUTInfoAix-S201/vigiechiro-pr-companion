@@ -2,8 +2,10 @@ package fr.univ_amu.iut.importation.view;
 
 import com.google.inject.Inject;
 import fr.univ_amu.iut.commun.view.GardeQuitter;
+import fr.univ_amu.iut.importation.model.AnnulationImportException;
 import fr.univ_amu.iut.importation.model.EtatNommage;
 import fr.univ_amu.iut.importation.model.ExtracteurZip;
+import fr.univ_amu.iut.importation.model.JetonAnnulation;
 import fr.univ_amu.iut.importation.model.Progression;
 import fr.univ_amu.iut.importation.model.ResultatImport;
 import fr.univ_amu.iut.importation.viewmodel.EtatImport;
@@ -134,7 +136,15 @@ public class ImportationController implements GardeQuitter {
     @FXML
     private Label labelStatut;
 
+    @FXML
+    private Button boutonAnnuler;
+
     // --end-solution--
+
+    /// Jeton d'annulation (#146) de l'opération longue **en cours** (décompression ou import), créé au
+    /// lancement et déclenché par le bouton « Annuler ». `null` hors traitement. Accédé uniquement sur le
+    /// fil JavaFX (lancement + clic « Annuler ») ; le travail hors-thread reçoit le jeton en paramètre.
+    private JetonAnnulation jetonCourant;
 
     @Inject
     public ImportationController(ImportationViewModel viewModel) {
@@ -316,17 +326,21 @@ public class ImportationController implements GardeQuitter {
     /// Pour un `.zip`, l'état passe à `EXTRACTION` **avant** de démarrer (la barre de progression apparaît
     /// aussitôt), puis chaque fichier décompressé fait avancer la barre « X / N » (#146).
     private void chargerSource(Path chemin) {
+        JetonAnnulation jeton = JetonAnnulation.neutre();
         if (ExtracteurZip.estZip(chemin)) {
+            jetonCourant = jeton; // permet d'annuler la décompression (#146)
             viewModel.marquerExtractionEnCours(); // fil JavaFX : progression visible dès le clic/dépôt
         }
         Thread.ofVirtual().name("source-import-vigiechiro").start(() -> {
             try {
                 Path dossier = viewModel.extraireSiZip(
-                        chemin, p -> Platform.runLater(() -> viewModel.appliquerProgression(p)));
+                        chemin, p -> Platform.runLater(() -> viewModel.appliquerProgression(p)), jeton);
                 Platform.runLater(() -> {
                     viewModel.inspection().dossierSourceProperty().set(dossier);
                     viewModel.inspecter();
                 });
+            } catch (AnnulationImportException annulation) {
+                Platform.runLater(viewModel::marquerAnnule); // décompression annulée : retour neutre (#146)
             } catch (RuntimeException echec) {
                 Platform.runLater(() -> viewModel.signalerSourceIllisible(echec.getMessage()));
             }
@@ -382,16 +396,29 @@ public class ImportationController implements GardeQuitter {
         }
         var demande = viewModel.preparerImport();
         viewModel.marquerEnCours();
+        JetonAnnulation jeton = new JetonAnnulation();
+        jetonCourant = jeton;
         // Progression (#33) : le service notifie hors-thread ; on relaie chaque point au fil JavaFX.
         Consumer<Progression> progres = p -> Platform.runLater(() -> viewModel.appliquerProgression(p));
         Thread.ofVirtual().name("import-vigiechiro").start(() -> {
             try {
-                ResultatImport resultatImport = viewModel.executerImport(demande, progres);
+                ResultatImport resultatImport = viewModel.executerImport(demande, progres, jeton);
                 Platform.runLater(() -> viewModel.marquerTermine(resultatImport));
+            } catch (AnnulationImportException annulation) {
+                Platform.runLater(viewModel::marquerAnnule); // annulation demandée : arrêt propre (#146)
             } catch (RuntimeException echec) {
                 Platform.runLater(() -> viewModel.marquerEchec(echec.getMessage()));
             }
         });
+    }
+
+    /// « Annuler » : demande l'arrêt de l'opération longue en cours (décompression ou import, #146). Le
+    /// travail hors-thread s'arrête au prochain fichier et nettoie les fichiers partiels.
+    @FXML
+    private void annuler() {
+        if (jetonCourant != null) {
+            jetonCourant.annuler();
+        }
     }
 
     /// « Utiliser ce n° » : adopte le prochain n° de passage libre proposé par le pré-contrôle R5 (#108).
@@ -418,6 +445,9 @@ public class ImportationController implements GardeQuitter {
     }
 
     private String libelleStatut() {
+        if (viewModel.etatProperty().get() == EtatImport.ANNULE) {
+            return "Opération annulée.";
+        }
         if (viewModel.etatProperty().get() != EtatImport.TERMINE) {
             return "";
         }

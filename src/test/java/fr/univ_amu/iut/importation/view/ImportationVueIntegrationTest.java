@@ -141,6 +141,7 @@ class ImportationVueIntegrationTest {
         assertThat(robot.lookup("#labelNuitExistante").queryAs(Label.class)).isNotNull(); // #147
         assertThat(robot.lookup("#boutonImporter").queryAs(Button.class)).isNotNull();
         assertThat(robot.lookup("#zoneProgression").queryAs(VBox.class)).isNotNull();
+        assertThat(robot.lookup("#boutonAnnuler").queryAs(Button.class)).isNotNull(); // #146 (annulation)
         // Pré-contrôle R5 (#108) : la zone d'avertissement de doublon et son bouton « n° libre » existent.
         assertThat(robot.lookup("#zonePassageExistant").queryAs(HBox.class)).isNotNull();
         assertThat(robot.lookup("#labelPassageExistant").queryAs(Label.class)).isNotNull();

@@ -23,6 +23,8 @@ import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -145,6 +147,52 @@ class ParcoursImporterNuitE2ETest {
     }
 
     @Test
+    @DisplayName("P2 : importer une nuit livrée sous forme de .zip → un passage Transformé, temporaire nettoyé (#139)")
+    void parcours_complet_depuis_un_zip() throws Exception {
+        // La nuit n'est pas un dossier mais une archive .zip (cas d'usage #139 : l'étudiant récupère
+        // une nuit zippée). On la place hors du workspace pour bien distinguer source et extraction.
+        Path zip = Files.createTempDirectory("vc-e2e-zip").resolve("nuit.zip");
+        compresser(dossierSource, zip);
+
+        ImportationViewModel vm = injector.getInstance(ImportationViewModel.class);
+
+        // Jalon 0 (spécifique #139) — l'archive est décompressée dans un dossier temporaire dédié, hors
+        // de l'arborescence d'origine ; l'inspection se fait ensuite sur ce dossier extrait.
+        Path extrait = vm.extraireSiZip(zip);
+        assertThat(extrait)
+                .as("l'archive est extraite ailleurs que le .zip lui-même")
+                .isNotEqualTo(zip);
+        assertThat(Files.isDirectory(extrait)).isTrue();
+        assertThat(extrait.resolve("LogPR" + SERIE + ".txt")).exists();
+
+        // Jalons 1 à 3 — parcours nominal sur le dossier extrait.
+        vm.inspection().dossierSourceProperty().set(extrait);
+        vm.inspecter();
+        assertThat(vm.inspection().estInspecte()).isTrue();
+        assertThat(vm.inspection().nombreOriginauxProperty().get()).isEqualTo(1);
+
+        vm.chargerSites();
+        vm.rattachement().siteSelectionneProperty().set(site);
+        vm.rattachement().pointSelectionneProperty().set(point);
+        vm.rattachement().anneeProperty().set(ANNEE);
+        vm.rattachement().numeroPassageProperty().set(1);
+        assertThat(vm.peutImporter().get()).isTrue();
+
+        vm.importer();
+        assertThat(vm.etatProperty().get()).isEqualTo(EtatImport.TERMINE);
+
+        // Jalon final — un passage Transformé existe en base, exactement comme pour un import depuis un
+        // dossier, ET le dossier temporaire d'extraction a été nettoyé une fois l'import terminé (#139).
+        Long idPassage = vm.resultatProperty().get().passage().id();
+        var passagePersiste = new PassageDao(source).findById(idPassage).orElseThrow();
+        assertThat(passagePersiste.statutWorkflow()).isEqualTo(StatutWorkflow.TRANSFORME);
+        assertThat(passagePersiste.idPoint()).isEqualTo(point.id());
+        assertThat(Files.exists(extrait))
+                .as("le dossier temporaire d'extraction est supprimé après l'import")
+                .isFalse();
+    }
+
+    @Test
     @DisplayName("P2 : réimporter le même quadruplet est bloqué en amont (pré-contrôle R5, #108)")
     void reimport_du_meme_quadruplet_est_refuse_R5() {
         // 1) Premier import : réussi (le quadruplet n'existe pas encore).
@@ -203,6 +251,20 @@ class ParcoursImporterNuitE2ETest {
         Files.writeString(sd.resolve("PaRecPR" + SERIE + "_THLog.csv"), "Date\tHour\n", StandardCharsets.UTF_8);
         ecrireWav(sd.resolve("PaRecPR" + SERIE + "_20260422_203922.wav"));
         return sd;
+    }
+
+    /// Compresse récursivement le contenu du dossier `racine` dans l'archive `zip` (entrées en chemins
+    /// relatifs), pour rejouer le cas #139 d'une nuit livrée zippée.
+    private static void compresser(Path racine, Path zip) throws Exception {
+        Files.createDirectories(zip.getParent());
+        try (ZipOutputStream sortie = new ZipOutputStream(Files.newOutputStream(zip));
+                var fichiers = Files.walk(racine)) {
+            for (Path fichier : (Iterable<Path>) fichiers.filter(Files::isRegularFile)::iterator) {
+                sortie.putNextEntry(new ZipEntry(racine.relativize(fichier).toString()));
+                Files.copy(fichier, sortie);
+                sortie.closeEntry();
+            }
+        }
     }
 
     private static void ecrireWav(Path fichier) throws Exception {

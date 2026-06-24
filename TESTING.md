@@ -95,9 +95,10 @@ La source de vérité est [`.github/workflows/maven.yml`](.github/workflows/mave
 | Workflow | Commande | Bloquant ? |
 |---|---|---|
 | Build + tests (`maven.yml`) | `./mvnw -B verify` | **Oui** |
+| Formatage (`lint.yml`) | `./mvnw -B spotless:check` | **Oui** |
 | Portail qualité (`lint.yml`) | `./mvnw -B -Pquality-gate verify` | **Oui** |
 
-`lint.yml` vérifie en plus la **complétude des captures de référence**
+`lint.yml` vérifie aussi la **complétude des captures de référence**
 ([`check-captures.sh`](.github/assets/check-captures.sh)). Une PR doit passer **les deux** workflows.
 
 ---

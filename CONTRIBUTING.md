@@ -114,7 +114,7 @@ Deux workflows se déclenchent à chaque push :
 | Workflow | Rôle | Bloquant ? |
 |---|---|---|
 | [`maven.yml`](.github/workflows/maven.yml) | Build + tests headless (`./mvnw verify`). | **Oui** |
-| [`lint.yml`](.github/workflows/lint.yml) | Complétude des captures + **`-Pquality-gate verify`** (PMD + seuils JaCoCo bloquants). | **Oui** |
+| [`lint.yml`](.github/workflows/lint.yml) | **`spotless:check`** (formatage) + complétude des captures + **`-Pquality-gate verify`** (PMD + seuils JaCoCo bloquants). | **Oui** |
 
 Reproduire le portail qualité **en local** :
 

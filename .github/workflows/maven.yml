@@ -1,9 +1,10 @@
 # Build et tests Maven : sur chaque PR et sur les pushes vers la branche par défaut.
+# `solution` est conservée pendant la transition (avant la consolidation en `main`).
 name: Java CI with Maven
 
 on:
   push:
-    branches: [main]
+    branches: [solution, main]
   pull_request:
   workflow_dispatch: {}
 

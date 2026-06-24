@@ -1,9 +1,10 @@
-# Portail qualité : complétude des captures de référence + PMD/JaCoCo bloquants.
+# Portail qualité : formatage + complétude des captures + PMD/JaCoCo bloquants.
+# `solution` est conservée pendant la transition (avant la consolidation en `main`).
 name: Quality gate
 
 on:
   push:
-    branches: [main]
+    branches: [solution, main]
   pull_request:
   workflow_dispatch:
 
@@ -30,6 +31,11 @@ jobs:
           # org.openjfx. La Headless Platform (glass.platform=Headless) est 100 % logicielle.
           check-latest: false
           cache: maven
+
+      - name: Formatage Spotless (bloquant)
+        # Spotless est opt-in (pas de binding Maven) : on l'exécute explicitement ici pour
+        # qu'un code non formaté fasse échouer la CI, même sans le hook pre-commit local.
+        run: ./mvnw -B spotless:check --file pom.xml
 
       - name: Complétude des captures de référence
         # Chaque vue FXML doit avoir au moins une capture de référence déclarée au manifeste

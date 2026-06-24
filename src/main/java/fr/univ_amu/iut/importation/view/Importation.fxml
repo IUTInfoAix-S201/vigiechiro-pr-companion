@@ -22,6 +22,7 @@
 <!-- @@solution@@ -->
 <VBox xmlns="http://javafx.com/javafx"
       xmlns:fx="http://javafx.com/fxml"
+      fx:id="racineImport"
       fx:controller="fr.univ_amu.iut.importation.view.ImportationController"
       stylesheets="@importation.css"
       styleClass="ecran-import"
@@ -36,13 +37,15 @@
   <!-- 1. Dossier source -->
   <VBox styleClass="section-carte" spacing="6.0">
     <Label text="1. Dossier source" styleClass="section-titre"/>
-    <Label text="Le dossier de votre carte SD ou une copie déjà présente sur disque."
-           styleClass="section-sous"/>
+    <Label text="Le dossier de votre carte SD, une copie sur disque, ou une archive .zip. Vous pouvez aussi glisser-déposer un dossier ou un .zip n'importe où sur cet écran."
+           styleClass="section-sous" wrapText="true"/>
     <HBox spacing="10.0" alignment="CENTER_LEFT">
       <TextField fx:id="champDossier" editable="false" promptText="Aucun dossier sélectionné"
                  styleClass="champ-lecture-seule" HBox.hgrow="ALWAYS"/>
       <Button fx:id="boutonParcourir" text="📂 Parcourir…" styleClass="bouton-secondaire"
               onAction="#parcourir"/>
+      <Button fx:id="boutonZip" text="🗜 Choisir un .zip…" styleClass="bouton-secondaire"
+              onAction="#parcourirZip"/>
     </HBox>
   </VBox>
 

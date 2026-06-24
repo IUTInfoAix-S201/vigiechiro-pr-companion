@@ -164,3 +164,12 @@
     -fx-text-fill: #1e6f3f;
     -fx-font-weight: bold;
 }
+
+/* Glisser-deposer (#139) : retour visuel pendant le survol d'un dossier ou .zip sur l'ecran. */
+.ecran-import.zone-depot-active {
+    -fx-border-color: #4a90d9;
+    -fx-border-width: 2;
+    -fx-border-style: segments(8, 6);
+    -fx-border-radius: 8;
+    -fx-background-color: rgba(74, 144, 217, 0.06);
+}

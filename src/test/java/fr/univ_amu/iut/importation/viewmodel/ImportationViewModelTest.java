@@ -29,6 +29,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -454,6 +456,66 @@ class ImportationViewModelTest {
         assertThat(navigation.isNavigationVerrouillee()).isTrue();
 
         viewModel.marquerEchec("R5 : doublon");
+        assertThat(navigation.isNavigationVerrouillee()).isFalse();
+    }
+
+    @Test
+    @DisplayName("#139 : un dossier est utilisé tel quel ; un .zip est décompressé puis nettoyé après import")
+    void extraire_si_zip_puis_nettoyage() throws IOException {
+        // Un dossier est renvoyé tel quel (pas de décompression).
+        assertThat(viewModel.extraireSiZip(sd)).isEqualTo(sd);
+
+        // Un .zip est décompressé sous le workspace (disque), pas dans le tmpfs /tmp (#139) : on stubbe
+        // la racine workspace que le VM interroge pour y router l'extraction.
+        Path workspace = Files.createDirectories(racine.resolve("workspace"));
+        when(serviceImport.racineWorkspace()).thenReturn(workspace);
+
+        Path zip = racine.resolve("nuit.zip");
+        try (ZipOutputStream zos = new ZipOutputStream(Files.newOutputStream(zip))) {
+            zos.putNextEntry(new ZipEntry("LogPR1925492.txt"));
+            zos.write("journal".getBytes(StandardCharsets.UTF_8));
+            zos.closeEntry();
+        }
+        Path extrait = viewModel.extraireSiZip(zip);
+        assertThat(extrait).isDirectory().isNotEqualTo(zip);
+        assertThat(extrait)
+                .as("extraction sous le workspace disque, pas dans /tmp")
+                .startsWith(workspace);
+        assertThat(extrait.resolve("LogPR1925492.txt")).exists();
+        assertThat(zip).as("R9 : l'archive source n'est pas modifiée").exists();
+
+        // Après import (marquerTermine), le dossier temporaire du zip est supprimé.
+        viewModel.marquerTermine(new ResultatImport(null, null, "1925492", 1, 5, List.of()));
+        assertThat(extrait).doesNotExist();
+    }
+
+    @Test
+    @DisplayName("#146 : marquerExtractionEnCours passe en EXTRACTION et réamorce la progression")
+    void marquer_extraction_en_cours() {
+        viewModel.marquerExtractionEnCours();
+
+        assertThat(viewModel.etatProperty().get()).isEqualTo(EtatImport.EXTRACTION);
+        assertThat(viewModel.progressionProperty().get()).isZero();
+        assertThat(viewModel.messageProgressionProperty().get()).containsIgnoringCase("décompression");
+
+        // L'avancement publié pendant la décompression alimente la même barre que l'import (#33).
+        viewModel.appliquerProgression(new Progression("Décompression : 2 / 4 fichiers…", 0.5));
+        assertThat(viewModel.progressionProperty().get()).isEqualTo(0.5);
+        assertThat(viewModel.messageProgressionProperty().get()).contains("2 / 4");
+    }
+
+    @Test
+    @DisplayName(
+            "#139 : l'extraction verrouille la navigation, l'erreur la déverrouille (pas de sortie pendant la décompression)")
+    void extraction_verrouille_puis_deverrouille_la_navigation() {
+        assertThat(navigation.isNavigationVerrouillee()).isFalse();
+
+        // Pendant la décompression, on ne doit pas pouvoir quitter l'écran (le fil d'arrière-plan continue).
+        viewModel.marquerExtractionEnCours();
+        assertThat(navigation.isNavigationVerrouillee()).isTrue();
+
+        // Une archive illisible (échec) lève le verrou : on peut de nouveau naviguer.
+        viewModel.signalerSourceIllisible("Décompression du zip impossible");
         assertThat(navigation.isNavigationVerrouillee()).isFalse();
     }
 

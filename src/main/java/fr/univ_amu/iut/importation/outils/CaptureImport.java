@@ -102,7 +102,17 @@ public final class CaptureImport {
         loader.setControllerFactory(type ->
                 type == ImportationController.class ? new ImportationController(vm) : injecteur.getInstance(type));
         Parent vue = loader.load();
+        Scene scene = new Scene(vue, 1100, 860);
 
+        // État « décompression d'un .zip » (#146) : avant toute inspection, la barre de progression
+        // déterminée « X / N fichiers » s'affiche (le formulaire est gelé). Rend visible l'avancement
+        // pendant la décompression d'une grosse archive (sinon écran figé plusieurs dizaines de secondes).
+        vm.marquerExtractionEnCours();
+        vm.appliquerProgression(new Progression("Décompression : 1240 / 3692 fichiers…", 0.34));
+        rendre(scene, sortie.resolve("apercu-import-decompression.png"));
+
+        // Poser la source ramène l'état à PRET (réinitialisation pour nouveau dossier) ; on inspecte et on
+        // rattache pour le « cas standard » de la maquette.
         vm.inspection().dossierSourceProperty().set(dossierSd);
         vm.inspecter();
         if (!vm.rattachement().sites().isEmpty()) {
@@ -116,7 +126,6 @@ public final class CaptureImport {
                     .set(vm.rattachement().points().get(0));
         }
 
-        Scene scene = new Scene(vue, 1100, 860);
         rendre(scene, sortie.resolve("apercu-import-assistant.png"));
 
         // État « import en cours » (#33) : barre de progression déterminée à mi-parcours, formulaire

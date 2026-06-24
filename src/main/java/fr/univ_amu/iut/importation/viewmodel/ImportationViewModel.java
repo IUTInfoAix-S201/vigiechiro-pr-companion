@@ -3,6 +3,7 @@ package fr.univ_amu.iut.importation.viewmodel;
 import fr.univ_amu.iut.commun.model.Horloge;
 import fr.univ_amu.iut.commun.model.Prefixe;
 import fr.univ_amu.iut.commun.viewmodel.NavigationViewModel;
+import fr.univ_amu.iut.importation.model.ExtracteurZip;
 import fr.univ_amu.iut.importation.model.Progression;
 import fr.univ_amu.iut.importation.model.ResultatImport;
 import fr.univ_amu.iut.importation.model.ServiceImport;
@@ -83,6 +84,11 @@ public class ImportationViewModel {
     /// signale qu'un n° de passage est déjà pris (bloque [#peutImporter()]) et propose le prochain libre.
     /// Recalculé à chaque changement de point / année / n° de passage du rattachement.
     private final ControleNumeroPassage controleNumeroPassage;
+
+    /// Dossier temporaire d'extraction d'un `.zip` choisi comme source (#139), à supprimer après import
+    /// (succès ou échec) ou au changement de source ; `null` quand la source est un dossier déjà
+    /// décompressé.
+    private Path dossierTemporaireZip;
 
     public ImportationViewModel(
             ServiceImport serviceImport,
@@ -255,6 +261,21 @@ public class ImportationViewModel {
         // --end-solution--
     }
 
+    /// Passe l'état à `EXTRACTION` (#139/#146) : la barre de progression apparaît immédiatement pendant la
+    /// décompression d'un `.zip` choisi comme source, avant l'inspection. À appeler **sur le fil JavaFX**
+    /// juste avant de lancer l'extraction en arrière-plan. L'état revient à `PRET` tout seul quand la
+    /// source extraite est posée (réinitialisation pour nouveau dossier) ou via [#signalerSourceIllisible].
+    public void marquerExtractionEnCours() {
+        messageExecution.set("");
+        progression.set(0.0);
+        messageProgression.set("Préparation de la décompression…");
+        etat.set(EtatImport.EXTRACTION);
+        // Verrou de navigation (#54) : on ne doit pas quitter l'assistant pendant la décompression, sinon
+        // le fil d'arrière-plan continuerait d'écrire un gros temporaire et posterait des mutations
+        // Platform.runLater sur une vue détachée. Déverrouillé par reinitialiserExecution (fin ou erreur).
+        navigation.setNavigationVerrouillee(true);
+    }
+
     /// Applique un point de progression de l'import en cours (#33) : met à jour la fraction et le
     /// libellé d'étape. À appeler sur le fil JavaFX (depuis `Platform.runLater`), car le callback du
     /// service s'exécute hors-thread.
@@ -264,6 +285,47 @@ public class ImportationViewModel {
         progression.set(p.fraction());
         messageProgression.set(p.libelle());
         // --end-solution--
+    }
+
+    /// Résout la **source d'import** choisie (#139) : si `chemin` est un `.zip`, le décompresse vers un
+    /// dossier temporaire (nettoyé après import) et renvoie ce dossier ; sinon renvoie le dossier tel
+    /// quel. **Ne touche aucune `Property`** (IO seul) : à appeler **hors du fil JavaFX** (la vue lance
+    /// l'extraction en arrière-plan pour ne pas figer l'IHM), puis à inspecter sur le fil JavaFX.
+    ///
+    /// @throws RuntimeException si l'archive est illisible ou invalide (zip-slip) ; la vue le signale via
+    /// [#signalerSourceIllisible].
+    public Path extraireSiZip(Path chemin) {
+        return extraireSiZip(chemin, p -> {});
+    }
+
+    /// Variante de [#extraireSiZip(Path)] qui **notifie l'avancement** de la décompression (#146) via
+    /// `surProgression` (un `Progression` « X / N fichiers » par fichier extrait). Le callback est invoqué
+    /// hors du fil JavaFX : l'appelant (la vue) le marshale par `Platform.runLater` vers
+    /// [#appliquerProgression].
+    public Path extraireSiZip(Path chemin, Consumer<Progression> surProgression) {
+        nettoyerTemporaireZip(); // une nouvelle source remplace l'éventuel zip précédent
+        if (ExtracteurZip.estZip(chemin)) {
+            Path base = serviceImport.racineWorkspace();
+            // Filet anti-fuite : balaye les temporaires d'extraction abandonnés par un précédent écran
+            // d'import (le VM est non-singleton, il ne garde pas leur référence) avant d'en créer un neuf.
+            ExtracteurZip.nettoyerTemporairesResiduels(base);
+            // Extraction sous le workspace (disque), pas dans le tmpfs RAM /tmp : une nuit de ~10 Go y
+            // saturerait la RAM (ENOSPC). Cf. ExtracteurZip.
+            dossierTemporaireZip = ExtracteurZip.extraireVersDossierTemporaire(chemin, base, surProgression);
+            // Déplie un éventuel dossier racine unique (zip « compresser ce dossier ») pour que
+            // l'inspection retrouve journal et WAV ; le temporaire à nettoyer reste dossierTemporaireZip.
+            return ExtracteurZip.racineEffective(dossierTemporaireZip);
+        }
+        return chemin;
+    }
+
+    /// Signale (fil JavaFX) qu'une source choisie est illisible (zip invalide…) : remet l'inspection et
+    /// l'exécution à zéro et publie `message` dans le message unifié (#139).
+    public void signalerSourceIllisible(String message) {
+        inspection.reinitialiser();
+        reinitialiserExecution();
+        nettoyerTemporaireZip();
+        messageExecution.set(message);
     }
 
     /// Capture (sur le fil JavaFX) les entrées du rattachement courant dans un instantané immuable,
@@ -322,6 +384,7 @@ public class ImportationViewModel {
         messageExecution.set("");
         etat.set(EtatImport.TERMINE);
         navigation.setNavigationVerrouillee(false); // l'import est fini : on peut de nouveau naviguer (#54)
+        nettoyerTemporaireZip(); // les fichiers ont été copiés (R9) : le temporaire du zip n'est plus utile (#139)
         // --end-solution--
     }
 
@@ -334,6 +397,7 @@ public class ImportationViewModel {
         messageExecution.set(message);
         etat.set(EtatImport.ECHEC);
         navigation.setNavigationVerrouillee(false); // l'import s'est arrêté : on déverrouille (#54)
+        nettoyerTemporaireZip(); // échec : on nettoie aussi le temporaire du zip (#139)
         // --end-solution--
     }
 
@@ -356,6 +420,15 @@ public class ImportationViewModel {
         rattachement.definirOriginaux(List.of());
     }
 
+    /// Supprime le dossier temporaire d'extraction d'un `.zip` (#139) s'il existe, et oublie la référence.
+    /// Appelé après l'import (succès/échec) et au changement de source.
+    private void nettoyerTemporaireZip() {
+        if (dossierTemporaireZip != null) {
+            ExtracteurZip.supprimerRecursivement(dossierTemporaireZip);
+            dossierTemporaireZip = null;
+        }
+    }
+
     /// Remet l'état d'**exécution** à zéro (PRET, sans résultat, progression ni message d'exécution).
     /// Partagé par le changement de dossier et l'échec d'inspection.
     private void reinitialiserExecution() {
@@ -364,6 +437,10 @@ public class ImportationViewModel {
         progression.set(0.0);
         messageProgression.set("");
         messageExecution.set("");
+        // Fin de toute opération longue : on lève le verrou de navigation posé par marquerExtractionEnCours
+        // (#54). Appelé sur le chemin de succès (nouvelle source extraite posée) comme d'erreur
+        // (signalerSourceIllisible). N'est jamais invoqué pendant un import EN_COURS (formulaire gelé).
+        navigation.setNavigationVerrouillee(false);
     }
 
     /// Ré-arme la préparation (`PRET`) dès qu'un champ du rattachement change après un import

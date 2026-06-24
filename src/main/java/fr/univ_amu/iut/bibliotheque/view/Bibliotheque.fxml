@@ -19,7 +19,7 @@
 <VBox xmlns="http://javafx.com/javafx"
       xmlns:fx="http://javafx.com/fxml"
       fx:controller="fr.univ_amu.iut.bibliotheque.view.BibliothequeController"
-      stylesheets="@bibliotheque.css"
+      stylesheets="@../../commun/view/palette.css, @bibliotheque.css"
       styleClass="ecran-bibliotheque"
       spacing="14.0">
 

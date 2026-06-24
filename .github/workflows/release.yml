@@ -44,7 +44,15 @@ jobs:
       - name: semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx --yes -p semantic-release -p @semantic-release/changelog -p @semantic-release/git semantic-release
+        # Versions **figées** (majeure) de la chaîne : un bump majeur de semantic-release ou d'un
+        # plugin ne doit pas changer le comportement de publication sans modification du dépôt.
+        # @semantic-release/github est embarqué par le cœur ; changelog + git sont des plugins externes.
+        run: >-
+          npx --yes
+          -p semantic-release@24
+          -p @semantic-release/changelog@6
+          -p @semantic-release/git@10
+          semantic-release
       - name: Récupérer le tag fraîchement créé
         id: tag
         run: |
@@ -60,13 +68,22 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        # macOS est couvert sur les **deux** architectures : `macos-latest` est arm64 (Apple Silicon),
+        # `macos-13` est le runner Intel (x64). Les artefacts sont nommés par architecture (cf. étape de
+        # renommage) pour ne pas s'écraser mutuellement à l'upload.
         include:
           - os: ubuntu-latest
             type: deb
+            arch: x64
           - os: macos-latest
             type: dmg
+            arch: arm64
+          - os: macos-13
+            type: dmg
+            arch: x64
           - os: windows-latest
             type: msi
+            arch: x64
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v6
@@ -86,8 +103,35 @@ jobs:
             -Djpackage.appVersion="$VERSION" \
             -DskipTests -Dpmd.skip=true -Djacoco.skip=true \
             clean verify
-      - name: Téléverser l'installeur sur la Release
+      - name: Nommer les installeurs par architecture (évite la collision macOS arm64/Intel)
+        shell: bash
+        run: |
+          cd target/dist
+          for f in *; do
+            [ -f "$f" ] || continue
+            ext="${f##*.}"
+            base="${f%.*}"
+            mv -- "$f" "${base}-${{ matrix.arch }}.${ext}"
+          done
+          ls -l
+      - name: Téléverser l'installeur sur la Release (brouillon), avant publication
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh release upload "${{ needs.release.outputs.tag }}" target/dist/* --clobber
+
+  # Publication atomique : la Release est créée en **brouillon** par semantic-release (cf.
+  # .releaserc.json, draftRelease), les installeurs y attachent leurs assets, et CE job ne retire le
+  # brouillon (= rend la Release publique) qu'une fois TOUS les installeurs téléversés avec succès.
+  # `needs: installers` exige le succès de toute la matrice : si un OS échoue, ce job est sauté et la
+  # Release reste un brouillon (pas de release publique aux assets manquants).
+  publish:
+    needs: [release, installers]
+    if: needs.release.outputs.tag != ''
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publier la Release (retirer le brouillon)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: gh release edit "${{ needs.release.outputs.tag }}" --draft=false

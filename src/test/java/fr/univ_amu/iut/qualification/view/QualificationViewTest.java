@@ -167,6 +167,9 @@ class QualificationViewTest {
         TableView<?> table = robot.lookup("#tableSequences").queryAs(TableView.class);
         AudioView audio = robot.lookup("#audioView").queryAs(AudioView.class);
 
+        // La normalisation est activée par la vue pour égaliser le niveau d'écoute (#109).
+        assertThat(audio.isNormalisation()).isTrue();
+
         robot.interact(() -> table.getSelectionModel().select(0));
 
         assertThat(audio.getAudioFile()).isNotNull();

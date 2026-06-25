@@ -78,6 +78,8 @@ class BibliothequeViewTest {
         Label detail = robot.lookup("#lblDetail").queryAs(Label.class);
 
         assertThat(audio.getAudioFile()).isNull();
+        // La normalisation est activée par la vue pour égaliser le niveau d'écoute (#109).
+        assertThat(audio.isNormalisation()).isTrue();
         robot.interact(() -> table.getSelectionModel().select(0));
         assertThat(audio.getAudioFile().toString()).endsWith("n.wav");
         assertThat(detail.getText()).contains("beau cri grave");

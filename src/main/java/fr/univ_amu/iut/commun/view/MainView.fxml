@@ -21,7 +21,7 @@
             xmlns:fx="http://javafx.com/fxml"
             fx:id="racine"
             fx:controller="fr.univ_amu.iut.commun.view.MainController"
-            stylesheets="@base.css"
+            stylesheets="@palette.css, @base.css"
             styleClass="fenetre-principale"
             prefWidth="960.0" prefHeight="640.0">
 

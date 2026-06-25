@@ -1,0 +1,24 @@
+/*
+ * palette.css — tokens de couleur PARTAGÉS de VigieChiro PR Companion.
+ *
+ * Source unique des couleurs "looked-up" du module. Chargée sur TOUTES les scènes (chrome,
+ * écrans, modales, et harnais de capture) via l'attribut `stylesheets` de chaque FXML : ainsi
+ * les tokens se résolvent partout, y compris quand une vue feature est rendue seule (capture
+ * d'écran, fenêtre modale) sans le chrome `base.css`.
+ *
+ * Re-skin : il suffit de changer les valeurs ci-dessous (un seul endroit).
+ *
+ * Convention : primaire (identité / barre de navigation), accent (validation / actions
+ * positives), nuit (hero de l'accueil « une nuit de capture »).
+ */
+.root {
+    -couleur-primaire: #4a90d9;
+    -couleur-primaire-sombre: #2563a3;
+    -couleur-primaire-fond: #cce4f7;
+    -couleur-primaire-voile: #f6f9fd;
+    -couleur-accent: #1e8449;
+    -couleur-nuit: #1a2a45;
+    -couleur-fond: #f5f6f8;
+    -couleur-texte: #2c3e50;
+    -couleur-texte-clair: #ffffff;
+}

@@ -41,7 +41,7 @@
 
 /* ----- Boutons ----- */
 .bouton-primaire {
-    -fx-background-color: #4a90d9;
+    -fx-background-color: -couleur-primaire;
     -fx-text-fill: white;
     -fx-font-weight: bold;
     -fx-background-radius: 4;
@@ -50,11 +50,11 @@
 }
 
 .bouton-primaire:hover {
-    -fx-background-color: #2563a3;
+    -fx-background-color: -couleur-primaire-sombre;
 }
 
 .bouton-primaire-grand {
-    -fx-background-color: #4a90d9;
+    -fx-background-color: -couleur-primaire;
     -fx-text-fill: white;
     -fx-font-size: 15px;
     -fx-font-weight: bold;
@@ -113,13 +113,13 @@
 }
 
 .carte-site:hover {
-    -fx-border-color: #4a90d9;
+    -fx-border-color: -couleur-primaire;
     -fx-background-color: #f6f8fa;
 }
 
 /* Focus clavier : anneau visible pour l'utilisateur qui navigue au Tab (a11y). */
 .carte-site:focused {
-    -fx-border-color: #4a90d9;
+    -fx-border-color: -couleur-primaire;
     -fx-border-width: 2;
     -fx-background-color: #f6f8fa;
 }
@@ -160,7 +160,7 @@
 .carte-stat-nombre {
     -fx-font-size: 18px;
     -fx-font-weight: bold;
-    -fx-text-fill: #4a90d9;
+    -fx-text-fill: -couleur-primaire;
 }
 
 .carte-stat-libelle {
@@ -215,8 +215,8 @@
 }
 
 .badge-statut-depose {
-    -fx-background-color: #cce4f7;
-    -fx-text-fill: #2563a3;
+    -fx-background-color: -couleur-primaire-fond;
+    -fx-text-fill: -couleur-primaire-sombre;
 }
 
 /* ----- Badges de verdict (couleur dérivée du verdict) ----- */
@@ -281,7 +281,7 @@
 
 /* ----- Détail du site ----- */
 .fil-ariane-lien {
-    -fx-text-fill: #4a90d9;
+    -fx-text-fill: -couleur-primaire;
     -fx-font-size: 13px;
 }
 

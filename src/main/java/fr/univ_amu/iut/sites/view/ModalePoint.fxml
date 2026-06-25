@@ -18,7 +18,7 @@
       xmlns:fx="http://javafx.com/fxml"
       fx:id="racine"
       fx:controller="fr.univ_amu.iut.sites.view.ModalePointController"
-      stylesheets="@sites.css"
+      stylesheets="@../../commun/view/palette.css, @sites.css"
       styleClass="modale-point"
       prefWidth="560.0"
       spacing="10.0">

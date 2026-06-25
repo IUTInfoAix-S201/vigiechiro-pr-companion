@@ -1,19 +1,10 @@
 /*
- * base.css — palette sémantique et habillage du socle IHM VigieChiro PR Companion.
+ * base.css — habillage du socle IHM (chrome) de VigieChiro PR Companion.
  *
- * Couleurs de la convention du module : bleu primaire #4a90d9 (identité / barre de navigation),
- * vert accent #1e8449 (validation / actions positives), bleu nuit #1a2a45 pour le hero de
- * l'accueil (identité « une nuit de capture »). Définies en couleurs "looked-up" sur .root,
- * elles sont réutilisables (et surchargeables) par les feuilles de style des features.
+ * Les couleurs "looked-up" du module (-couleur-primaire, -couleur-accent, -couleur-nuit...) sont
+ * définies dans palette.css, chargée sur toutes les scènes. base.css les consomme.
  */
 .root {
-    -couleur-primaire: #4a90d9;
-    -couleur-accent: #1e8449;
-    -couleur-nuit: #1a2a45;
-    -couleur-fond: #f5f6f8;
-    -couleur-texte: #2c3e50;
-    -couleur-texte-clair: #ffffff;
-
     -fx-font-family: "Segoe UI", "Roboto", "Helvetica Neue", sans-serif;
     -fx-background-color: -couleur-fond;
 }
@@ -85,7 +76,7 @@
 
 /* Hero nocturne : bannière en dégradé bleu nuit en tête de l'accueil. */
 .hero-nocturne {
-    -fx-background-color: linear-gradient(to bottom right, #4a90d9 0%, #2c5aa0 45%, #1a2a45 100%);
+    -fx-background-color: linear-gradient(to bottom right, -couleur-primaire 0%, -couleur-primaire-sombre 45%, -couleur-nuit 100%);
     -fx-padding: 40 32 36 32;
 }
 

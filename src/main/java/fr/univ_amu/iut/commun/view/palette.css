@@ -8,16 +8,26 @@
  *
  * Re-skin : il suffit de changer les valeurs ci-dessous (un seul endroit).
  *
- * Convention : primaire (identité / barre de navigation), accent (validation / actions
- * positives), nuit (hero de l'accueil « une nuit de capture »).
+ * Rôles : primaire = indigo (identité / barre de navigation, aligné sur le brief SAE 2.01),
+ * succès = vert (validation / actions positives), nuit = indigo foncé (hero « une nuit de capture »).
+ * Les autres couleurs de statut vivent en littéral dans les feuilles des features : avertissement
+ * = ambre (#b9770e), danger = rouge (#a93226), neutre = gris (#6a737d).
+ *
+ * Note de cohérence brief/app : le thème Material de la documentation déclare `accent: deep orange`,
+ * qui y sert de couleur de lien/surbrillance. L'application ne reprend PAS ce deep orange : sa bande
+ * orange est déjà réservée aux AVERTISSEMENTS (ambre), et le rôle d'accent interactif est tenu par la
+ * primaire indigo. La parité avec le brief porte donc sur la couleur d'identité (indigo) ; la
+ * divergence sur l'« accent » est assumée pour préserver la sémantique des couleurs.
  */
 .root {
-    -couleur-primaire: #4a90d9;
-    -couleur-primaire-sombre: #2563a3;
-    -couleur-primaire-fond: #cce4f7;
-    -couleur-primaire-voile: #f6f9fd;
-    -couleur-accent: #1e8449;
-    -couleur-nuit: #1a2a45;
+    /* Indigo Material, aligné sur le thème du brief (primary: indigo). */
+    -couleur-primaire: #3f51b5;
+    -couleur-primaire-sombre: #303f9f;
+    -couleur-primaire-fond: #c5cae9;
+    -couleur-primaire-voile: #eef0fa;
+    /* Vert succès : couleur sémantique (validation / actions positives). */
+    -couleur-succes: #1e8449;
+    -couleur-nuit: #1a237e;
     -couleur-fond: #f5f6f8;
     -couleur-texte: #2c3e50;
     -couleur-texte-clair: #ffffff;

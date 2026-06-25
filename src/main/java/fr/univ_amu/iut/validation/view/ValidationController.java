@@ -131,6 +131,9 @@ public class ValidationController implements EmplacementNavigation {
         lblProgression.textProperty().bind(viewModel.progressionProperty());
         lblDetail.textProperty().bind(viewModel.detailProperty());
 
+        // Normalisation du niveau à l'écoute (#109) : égalise l'amplitude (gain seulement, fichier
+        // R9 inchangé), les cris ayant des amplitudes très variables. Activée par défaut.
+        audioView.setNormalisation(true);
         // Vue audio (composant fourni, E7.S3) : la source suit l'observation sélectionnée ; le clip
         // est libéré quand la vue quitte la scène (pas de marquage écouté ici, contrairement à R10).
         audioView.audioFileProperty().bind(viewModel.cheminAudioCourantProperty());

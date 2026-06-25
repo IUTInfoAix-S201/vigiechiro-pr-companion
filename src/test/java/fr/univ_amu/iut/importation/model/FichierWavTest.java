@@ -55,11 +55,20 @@ class FichierWavTest {
     @Test
     @DisplayName("#156 : la taille de données inconnue (0xFFFFFFFF) est lue jusqu'à la fin, pas une troncature")
     void taille_inconnue_lue_jusqua_la_fin() throws IOException {
-        byte[] pcm = {9, 8, 7, 6};
+        // PCM piégé : >= 8 octets commençant par un faux en-tête « data » + une taille plausible. Sans
+        // l'arrêt du scan sur taille inconnue, (int) 0xFFFFFFFF = -1 ferait reboucler la lecture sur ce
+        // PCM, relire ce faux « data » comme un vrai chunk et corrompre dataDebut/dataLongueur.
+        byte[] pcm = ByteBuffer.allocate(12)
+                .order(ByteOrder.LITTLE_ENDIAN)
+                .put("data".getBytes(StandardCharsets.US_ASCII))
+                .putInt(4)
+                .put(new byte[] {9, 8, 7, 6})
+                .array();
         Path fichier = ecrire("flux.wav", construire(0xFFFFFFFFL, pcm));
 
         FichierWav lu = FichierWav.lire(fichier);
 
+        // Les 12 octets sont rendus tels quels (aucune relecture du PCM comme de faux chunks RIFF).
         assertThat(lu.donneesPcm()).isEqualTo(pcm);
     }
 

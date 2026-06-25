@@ -77,11 +77,18 @@ record FichierWav(int nombreCanaux, int frequenceEchantillonnageHz, int bitsParE
             } else if ("data".equals(id)) {
                 dataDebut = corps;
                 long disponible = (long) o.length - corps;
+                if (taille == TAILLE_DATA_INCONNUE) {
+                    // Taille inconnue (enregistreur en flux) : les données vont jusqu'à la fin du fichier.
+                    // On arrête ici le balayage des chunks : avancer de (int) 0xFFFFFFFF = -1 (+1 de padding)
+                    // ramènerait `pos` au début du PCM et relirait les données audio comme de faux chunks
+                    // RIFF (corruption de dataDebut/dataLongueur, PCM vide ou « tronqué » à tort).
+                    dataLongueur = (int) disponible;
+                    break;
+                }
                 // Intégrité (#156) : un en-tête qui annonce plus d'octets de données que le fichier n'en
                 // contient = fichier **tronqué/corrompu**. On le refuse au lieu de le lire silencieusement
-                // plus court (ce qui « passerait inaperçu » et fausserait l'analyse). Le placeholder « taille
-                // inconnue » (0xFFFFFFFF), qui signifie « jusqu'à la fin », n'est pas une troncature.
-                if (taille != TAILLE_DATA_INCONNUE && taille > disponible) {
+                // plus court (ce qui « passerait inaperçu » et fausserait l'analyse).
+                if (taille > disponible) {
                     throw new IOException("Fichier WAV tronqué (données annoncées "
                             + taille
                             + " octets, "

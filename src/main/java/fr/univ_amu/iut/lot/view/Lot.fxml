@@ -50,7 +50,7 @@
 
   <Separator/>
   <VBox spacing="4.0" styleClass="panneau-lot">
-    <Label text="🗜 Archives de dépôt Tadarida (≤ 700 Mo)" styleClass="section-titre"/>
+    <Label fx:id="lblTitreArchives" styleClass="section-titre"/>
     <Label text="Découpe les séquences en archives ZIP « préfixe-N.zip » prêtes à téléverser. Écrites dans le sous-dossier « depot/ » de la session."
            styleClass="section-sous" wrapText="true"/>
     <HBox spacing="8.0" alignment="CENTER_LEFT">

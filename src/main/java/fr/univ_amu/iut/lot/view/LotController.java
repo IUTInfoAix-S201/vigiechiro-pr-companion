@@ -56,6 +56,9 @@ public class LotController implements EmplacementNavigation {
     private Button btnDeposer;
 
     @FXML
+    private Label lblTitreArchives;
+
+    @FXML
     private Button btnGenererArchives;
 
     @FXML
@@ -86,7 +89,9 @@ public class LotController implements EmplacementNavigation {
         btnPreparer.disableProperty().bind(viewModel.peutPreparerProperty().not());
         btnDeposer.disableProperty().bind(viewModel.peutDeposerProperty().not());
 
-        // Archives de dépôt (#110) : actives une fois le lot préparé ; la liste reflète les ZIP produits.
+        // Archives de dépôt (#110) : titre = plafond configuré ; bouton actif une fois le lot préparé ;
+        // la liste reflète les ZIP produits.
+        lblTitreArchives.textProperty().bind(viewModel.titreArchivesProperty());
         btnGenererArchives
                 .disableProperty()
                 .bind(viewModel.peutGenererArchivesProperty().not());

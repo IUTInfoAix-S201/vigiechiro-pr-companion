@@ -37,10 +37,15 @@ public class LotViewModel {
     private final ReadOnlyBooleanWrapper peutGenererArchives =
             new ReadOnlyBooleanWrapper(this, "peutGenererArchives", false);
     private final ObservableList<String> archives = FXCollections.observableArrayList();
+    private final ReadOnlyStringWrapper titreArchives = new ReadOnlyStringWrapper(this, "titreArchives", "");
     private final ReadOnlyStringWrapper message = new ReadOnlyStringWrapper(this, "message", "");
 
     public LotViewModel(ServiceLot service) {
         this.service = Objects.requireNonNull(service, "service");
+        // Titre reflétant le **plafond configuré** (#110) : en Mo base 1000 (cohérent avec la contrainte
+        // « 700 Mo » Tadarida), et non Formats.octetsLisibles qui raisonne en base 1024.
+        long plafondMo = service.plafondArchiveOctets() / 1_000_000;
+        titreArchives.set("🗜 Archives de dépôt Tadarida (≤ " + plafondMo + " Mo)");
     }
 
     /// Ouvre l'écran de dépôt du passage `idPassage`. Une erreur (passage introuvable) est restituée
@@ -202,6 +207,11 @@ public class LotViewModel {
     /// Récapitulatifs lisibles des archives ZIP de dépôt produites (#110), vide tant qu'aucune génération.
     public ObservableList<String> archives() {
         return archives;
+    }
+
+    /// Titre de la section archives, intégrant le **plafond configuré** (ex. « …(≤ 700 Mo) », #110).
+    public ReadOnlyStringProperty titreArchivesProperty() {
+        return titreArchives.getReadOnlyProperty();
     }
 
     /// Message d'état ou d'erreur (déposé, alertes, échec d'action), vide en fonctionnement nominal.

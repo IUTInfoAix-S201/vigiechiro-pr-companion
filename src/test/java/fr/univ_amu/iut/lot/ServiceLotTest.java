@@ -16,6 +16,7 @@ import fr.univ_amu.iut.commun.model.dao.UtilisateurDao;
 import fr.univ_amu.iut.commun.persistence.MigrationSchema;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
 import fr.univ_amu.iut.lot.model.ArchiveDepot;
+import fr.univ_amu.iut.lot.model.CompacteurDepot;
 import fr.univ_amu.iut.lot.model.EtatLot;
 import fr.univ_amu.iut.lot.model.Lot;
 import fr.univ_amu.iut.lot.model.ServiceLot;
@@ -93,8 +94,14 @@ class ServiceLotTest {
 
         VerificationCoherence verification = new VerificationCoherence(
                 siteDao, pointDao, sessionDao, originalDao, sequenceDao, journalDao, releveDao);
-        service =
-                new ServiceLot(passageDao, sessionDao, sequenceDao, verification, new MoteurWorkflowPassage(), horloge);
+        service = new ServiceLot(
+                passageDao,
+                sessionDao,
+                sequenceDao,
+                verification,
+                new MoteurWorkflowPassage(),
+                horloge,
+                new CompacteurDepot());
     }
 
     private Passage creerPassage(Verdict verdict) {
@@ -173,10 +180,11 @@ class ServiceLotTest {
     }
 
     @Test
-    @DisplayName("#110 : genererArchivesDepot produit une archive « <préfixe>-1.zip » avec les séquences")
+    @DisplayName("#110 : sur un lot préparé, genererArchivesDepot produit « <préfixe>-1.zip » avec les séquences")
     void generer_archives_depot() throws IOException {
         Passage passage = creerPassage(Verdict.OK);
         creerSessionCoherente(passage.id());
+        service.preparerLot(passage.id()); // → Prêt à déposer (préalable exigé par #110)
         // Le DAO ne stocke que les lignes : on crée les vrais fichiers des 2 séquences dans transformes/.
         Path transformes = Files.createDirectories(
                 dossier.resolve(PREFIXE.nomDossierSession()).resolve("transformes"));
@@ -199,15 +207,14 @@ class ServiceLotTest {
     }
 
     @Test
-    @DisplayName("#110 : genererArchivesDepot refuse un passage sans séquence à déposer")
-    void generer_archives_sans_sequence_refuse() {
-        Passage passage = creerPassage(Verdict.OK);
-        sessionDao.insert(new SessionDEnregistrement(
-                null, dossier.resolve(PREFIXE.nomDossierSession()).toString(), null, null, passage.id()));
+    @DisplayName("#110 : genererArchivesDepot refuse un passage non préparé (statut Vérifié)")
+    void generer_archives_avant_preparation_refuse() {
+        Passage passage = creerPassage(Verdict.OK); // statut Vérifié : lot pas encore préparé
+        creerSessionCoherente(passage.id());
 
         assertThatThrownBy(() -> service.genererArchivesDepot(passage.id()))
                 .isInstanceOf(RegleMetierException.class)
-                .hasMessageContaining("Aucune séquence");
+                .hasMessageContaining("Prêt à déposer");
     }
 
     @Test

@@ -48,9 +48,10 @@ public class ServiceLot {
     private final MoteurWorkflowPassage moteurWorkflow;
     private final Horloge horloge;
 
-    /// Compacteur des archives de dépôt (#110), plafond 700 Mo par défaut. Sans état : instancié ici
-    /// plutôt que reçu par constructeur (les variantes de plafond se testent sur [CompacteurDepot]).
-    private final CompacteurDepot compacteur = new CompacteurDepot();
+    /// Compacteur des archives de dépôt (#110). **Reçu par constructeur** pour que son plafond soit un
+    /// réglage applicatif (alimenté par [fr.univ_amu.iut.lot.di.LotModule] depuis une propriété système),
+    /// pas une valeur codée en dur dans le chemin métier.
+    private final CompacteurDepot compacteur;
 
     public ServiceLot(
             PassageDao passageDao,
@@ -58,13 +59,20 @@ public class ServiceLot {
             SequenceDao sequenceDao,
             VerificationCoherence verification,
             MoteurWorkflowPassage moteurWorkflow,
-            Horloge horloge) {
+            Horloge horloge,
+            CompacteurDepot compacteur) {
         this.passageDao = Objects.requireNonNull(passageDao, "passageDao");
         this.sessionDao = Objects.requireNonNull(sessionDao, "sessionDao");
         this.sequenceDao = Objects.requireNonNull(sequenceDao, "sequenceDao");
         this.verification = Objects.requireNonNull(verification, "verification");
         this.moteurWorkflow = Objects.requireNonNull(moteurWorkflow, "moteurWorkflow");
         this.horloge = Objects.requireNonNull(horloge, "horloge");
+        this.compacteur = Objects.requireNonNull(compacteur, "compacteur");
+    }
+
+    /// Plafond de taille (octets) appliqué à chaque archive de dépôt (#110), pour l'affichage du réglage.
+    public long plafondArchiveOctets() {
+        return compacteur.tailleMaxOctets();
     }
 
     /// Consulte l'état de dépôt d'un passage **sans le transitionner** (lecture pour l'IHM M-Lot) :
@@ -151,7 +159,15 @@ public class ServiceLot {
     /// @throws RegleMetierException si le passage/session est introuvable ou si aucune séquence n'est à déposer
     public List<ArchiveDepot> genererArchivesDepot(Long idPassage) {
         Objects.requireNonNull(idPassage, "idPassage");
-        chargerPassage(idPassage); // existence (message cohérent si absent)
+        Passage passage = chargerPassage(idPassage);
+        // Le lot doit avoir été **préparé** (preparerLot a déjà validé R14 + cohérence et posé le statut).
+        // On n'archive donc que des passages Prêt à déposer ou déjà Déposé : l'API ne court-circuite pas
+        // ces contrôles, même si l'IHM masque déjà le bouton avant cet état.
+        if (passage.statutWorkflow() != StatutWorkflow.PRET_A_DEPOSER
+                && passage.statutWorkflow() != StatutWorkflow.DEPOSE) {
+            throw new RegleMetierException("Les archives de dépôt ne peuvent être générées qu'une fois le lot"
+                    + " préparé (statut « Prêt à déposer ») : préparez d'abord le lot.");
+        }
         SessionDEnregistrement session = sessionDao
                 .trouverParPassage(idPassage)
                 .orElseThrow(() -> new RegleMetierException(

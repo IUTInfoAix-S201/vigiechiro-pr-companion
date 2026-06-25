@@ -169,4 +169,14 @@ class LotViewModelTest {
         assertThat(viewModel.archives()).isEmpty();
         assertThat(viewModel.messageProperty().get()).contains("Aucune séquence");
     }
+
+    @Test
+    @DisplayName("#110 : le titre de la section archives reflète le plafond configuré (réglage applicatif)")
+    void titre_archives_reflete_le_plafond_configure() {
+        when(service.plafondArchiveOctets()).thenReturn(500_000_000L);
+
+        LotViewModel vm = new LotViewModel(service);
+
+        assertThat(vm.titreArchivesProperty().get()).contains("500 Mo");
+    }
 }

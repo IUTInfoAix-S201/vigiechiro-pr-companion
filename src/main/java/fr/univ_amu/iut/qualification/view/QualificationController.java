@@ -231,6 +231,9 @@ public class QualificationController implements GardeQuitter, EmplacementNavigat
                                 selectionVm.sequenceCouranteProperty().get()),
                         selectionVm.sequenceCouranteProperty()));
 
+        // Normalisation du niveau à l'écoute (#109) : les cris ont des amplitudes très variables ;
+        // audio-view égalise le rendu (gain seulement, fichier R9 inchangé). Activée par défaut.
+        audioView.setNormalisation(true);
         // Vue audio (composant fourni) : la source suit la séquence courante ; le marquage écouté (R10)
         // se déclenche au début de la lecture ; le clip est libéré quand la vue quitte la scène.
         audioView.audioFileProperty().bind(selectionVm.cheminSequenceCouranteProperty());

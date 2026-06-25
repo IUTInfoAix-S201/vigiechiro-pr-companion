@@ -79,6 +79,9 @@ public class BibliothequeController {
 
         lblResume.textProperty().bind(viewModel.resumeProperty());
 
+        // Normalisation du niveau à l'écoute (#109, réutilisée par #159) : égalise l'amplitude des
+        // sons de référence (gain seulement, fichier inchangé). Activée par défaut.
+        audioView.setNormalisation(true);
         // Vue audio (composant fourni) : la source suit le son sélectionné ; le clip est libéré quand
         // la vue quitte la scène. AudioView tolère un chemin inexistant (aucune lecture déclenchée).
         audioView.audioFileProperty().bind(viewModel.cheminAudioCourantProperty());

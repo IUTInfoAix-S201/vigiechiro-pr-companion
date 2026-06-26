@@ -115,7 +115,11 @@ public class LotController implements EmplacementNavigation {
         zoneAlertes.managedProperty().bind(alertesPresentes);
 
         btnPreparer.disableProperty().bind(viewModel.peutPreparerProperty().not());
-        btnDeposer.disableProperty().bind(viewModel.peutDeposerProperty().not());
+        // « Marquer déposé » : pas pendant une génération en cours, sinon on marquerait le passage déposé
+        // avant la fin de l'écriture des archives (#259).
+        btnDeposer
+                .disableProperty()
+                .bind(viewModel.peutDeposerProperty().not().or(viewModel.generationEnCoursProperty()));
 
         // Archives de dépôt (#110) : titre = plafond configuré ; bouton actif une fois le lot préparé et
         // hors génération en cours ; la liste reflète les ZIP produits.
@@ -128,8 +132,13 @@ public class LotController implements EmplacementNavigation {
         indicateurGeneration.managedProperty().bind(viewModel.generationEnCoursProperty());
         listeArchives.setItems(viewModel.archives());
 
-        // Étape ③ : ouvrir le dossier depot/ dès qu'une session est chargée (chemin non vide).
-        btnOuvrirDepot.disableProperty().bind(viewModel.cheminDepotProperty().isEmpty());
+        // Étape ③ : « Ouvrir le dossier » seulement quand les archives sont réellement prêtes (#259), pas
+        // dès qu'un chemin existe : les ZIP sont écrits sous leur nom final pendant la génération, ouvrir
+        // (ou téléverser) avant la fin exposerait un fichier partiel. Donc activé après une génération
+        // réussie (liste non vide) et hors génération en cours.
+        btnOuvrirDepot
+                .disableProperty()
+                .bind(Bindings.isEmpty(viewModel.archives()).or(viewModel.generationEnCoursProperty()));
 
         lblMessage.textProperty().bind(viewModel.messageProperty());
         var messagePresent = viewModel.messageProperty().isNotEmpty();

@@ -47,6 +47,6 @@ class ValidateurCarreTest {
     void exiger_valide_leve_si_invalide() {
         assertThatThrownBy(() -> ValidateurCarre.exigerValide("40962"))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("R1");
+                .hasMessageContaining("Numéro de carré invalide");
     }
 }

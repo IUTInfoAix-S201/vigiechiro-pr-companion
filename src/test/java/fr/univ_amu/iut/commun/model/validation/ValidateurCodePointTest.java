@@ -42,6 +42,6 @@ class ValidateurCodePointTest {
     void exiger_valide_leve_si_invalide() {
         assertThatThrownBy(() -> ValidateurCodePoint.exigerValide("a1"))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("R2");
+                .hasMessageContaining("Code de point invalide");
     }
 }

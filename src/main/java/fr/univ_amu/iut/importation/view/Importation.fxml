@@ -27,7 +27,7 @@
   <VBox spacing="2.0">
     <Label text="Importer une nuit d'enregistrement" styleClass="titre-page"/>
     <Label styleClass="sous-titre-page" wrapText="true"
-           text="L'application copie les fichiers de la carte SD sans toucher aux originaux (R9), les renomme et les transforme."/>
+           text="L'application copie les fichiers de la carte SD sans toucher aux originaux, les renomme et les transforme."/>
   </VBox>
 
   <!-- 1. Dossier source -->
@@ -89,7 +89,7 @@
       </VBox>
     </HBox>
     <VBox styleClass="apercu-box" spacing="4.0">
-      <Label text="📝 Aperçu du préfixe appliqué aux fichiers (R6) :" styleClass="apercu-label"/>
+      <Label text="📝 Aperçu du préfixe appliqué aux fichiers :" styleClass="apercu-label"/>
       <Label fx:id="labelApercu" styleClass="apercu-valeur" wrapText="true"/>
     </VBox>
     <!-- Discordance de préfixe (#111) : fichiers déjà préfixés ne correspondant pas au rattachement. -->

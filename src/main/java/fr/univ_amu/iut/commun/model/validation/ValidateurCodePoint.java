@@ -22,7 +22,7 @@ public final class ValidateurCodePoint {
     public static String exigerValide(String code) {
         if (!estValide(code)) {
             throw new IllegalArgumentException(
-                    "Code de point invalide (R2 : une lettre majuscule + un chiffre, ex. A1) : " + code);
+                    "Code de point invalide (une lettre majuscule + un chiffre, ex. A1) : " + code);
         }
         return code;
     }

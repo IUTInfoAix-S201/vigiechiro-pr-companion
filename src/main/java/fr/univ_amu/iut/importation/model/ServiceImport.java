@@ -191,7 +191,7 @@ public class ServiceImport {
             Path dossierSource, Long idPoint, Prefixe prefixe, Consumer<Progression> progres, JetonAnnulation jeton) {
         // R5 : on refuse le doublon AVANT de copier/transformer quoi que ce soit.
         if (agregatDao.passageExistePour(idPoint, prefixe.annee(), prefixe.numeroPassage())) {
-            throw new RegleMetierException("R5 : un passage n°"
+            throw new RegleMetierException("Un passage n°"
                     + prefixe.numeroPassage()
                     + " existe déjà pour ce point en "
                     + prefixe.annee()

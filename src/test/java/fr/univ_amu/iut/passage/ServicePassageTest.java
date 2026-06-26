@@ -138,7 +138,7 @@ class ServicePassageTest {
         assertThatThrownBy(() -> service.creerPassage(
                         idPoint, SERIE, 1, LocalDate.of(2026, 7, 10), "21:30:00", "05:15:00", null, null, null))
                 .isInstanceOf(RegleMetierException.class)
-                .hasMessageContaining("R5");
+                .hasMessageContaining("existe déjà");
         assertThat(passageDao.findByPoint(idPoint)).hasSize(1);
     }
 
@@ -174,7 +174,7 @@ class ServicePassageTest {
         assertThat(resultat.estConforme()).isFalse();
         assertThat(resultat.estBloquant()).as("R3 jamais bloquant").isFalse();
         assertThat(resultat.messages()).hasSize(1);
-        assertThat(resultat.messages().get(0)).contains("R3");
+        assertThat(resultat.messages().get(0)).contains("hors de la fenêtre");
     }
 
     @Test
@@ -213,7 +213,7 @@ class ServicePassageTest {
 
         assertThat(resultat.estConforme()).isFalse();
         assertThat(resultat.estBloquant()).as("R4 jamais bloquant").isFalse();
-        assertThat(resultat.messages().get(0)).contains("R4");
+        assertThat(resultat.messages().get(0)).contains("Moins d'un mois");
     }
 
     @Test

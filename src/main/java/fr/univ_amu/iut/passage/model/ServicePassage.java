@@ -227,7 +227,7 @@ public class ServicePassage {
         if (fenetre.get().contient(date)) {
             return ResultatVerification.ok();
         }
-        return ResultatVerification.de(Alerte.soft("R3 : le passage n°"
+        return ResultatVerification.de(Alerte.soft("Le passage n°"
                 + passage.numeroPassage()
                 + " du "
                 + date
@@ -262,7 +262,7 @@ public class ServicePassage {
             }
             LocalDate dateAutre = LocalDate.parse(autre.dateEnregistrement());
             if (intervalleInferieurAUnMois(dateCourante, dateAutre)) {
-                resultat = resultat.avec(Alerte.soft("R4 : moins d'un mois entre le passage n°"
+                resultat = resultat.avec(Alerte.soft("Moins d'un mois entre le passage n°"
                         + passage.numeroPassage()
                         + " ("
                         + dateCourante
@@ -447,7 +447,7 @@ public class ServicePassage {
         if (passageDao
                 .trouverParPointAnneePassage(idPoint, annee, numeroPassage)
                 .isPresent()) {
-            throw new RegleMetierException("R5 : un passage n°"
+            throw new RegleMetierException("Un passage n°"
                     + numeroPassage
                     + " existe déjà pour ce point en "
                     + annee

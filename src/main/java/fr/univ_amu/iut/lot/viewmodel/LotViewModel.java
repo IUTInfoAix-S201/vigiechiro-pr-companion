@@ -203,7 +203,7 @@ public class LotViewModel {
             return "Passage déposé le " + etat.deposeLe() + ".";
         }
         if (etat.aDesEchecs()) {
-            return "Cohérence (R14) : corrigez les contrôles en échec avant de préparer le lot.";
+            return "Cohérence : corrigez les contrôles en échec avant de préparer le lot.";
         }
         if (etat.statut() == StatutWorkflow.PRET_A_DEPOSER) {
             // Retour explicite de l'étape ① (#251) : ce que « Préparer » a accompli (lot validé + verrouillé).

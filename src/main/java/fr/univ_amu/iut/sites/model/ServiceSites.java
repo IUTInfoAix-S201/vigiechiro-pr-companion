@@ -179,7 +179,7 @@ public class ServiceSites {
     public ResultatVerification rappelsProtocole(Protocole protocole) {
         if (protocole == Protocole.STANDARD) {
             return ResultatVerification.de(
-                    Alerte.soft("Site PointFixeStandard : 2 passages attendus par an (R3) - passage 1 entre le"
+                    Alerte.soft("Site PointFixeStandard : 2 passages attendus par an - passage 1 entre le"
                             + " 15 juin et le 31 juillet, passage 2 entre le 15 août et le 30 septembre."
                             + " Rappel non bloquant."));
         }
@@ -190,7 +190,7 @@ public class ServiceSites {
         boolean dejaPris = siteDao.findByUtilisateur(idUtilisateur).stream()
                 .anyMatch(site -> site.numeroCarre().equals(numeroCarre));
         if (dejaPris) {
-            throw new RegleMetierException("R5 : le carré " + numeroCarre + " est déjà déclaré pour cet utilisateur.");
+            throw new RegleMetierException("Le carré " + numeroCarre + " est déjà déclaré pour cet utilisateur.");
         }
     }
 }

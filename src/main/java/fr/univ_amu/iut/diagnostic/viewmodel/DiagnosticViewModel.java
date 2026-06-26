@@ -62,7 +62,7 @@ public class DiagnosticViewModel {
         resumeClimat.set(
                 diagnostic.climat().present()
                         ? diagnostic.climat().nombreMesures() + " mesures T°/hygrométrie"
-                        : "Relevé climatique absent (R20)");
+                        : "Relevé climatique absent");
         temperature.set(Formats.temperatureLisible(diagnostic.temperatureDebutNuit()));
     }
 

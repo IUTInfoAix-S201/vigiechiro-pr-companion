@@ -351,7 +351,7 @@ public class QualificationController implements GardeQuitter, EmplacementNavigat
 
         Dialog<ButtonType> dialogue = new Dialog<>();
         dialogue.setTitle("Personnaliser la sélection d'écoute");
-        dialogue.setHeaderText("Méthode de constitution et taille de la sélection (R12).");
+        dialogue.setHeaderText("Méthode de constitution et taille de la sélection.");
         dialogue.initOwner(tableSequences.getScene().getWindow());
         ButtonType boutonRegenerer = new ButtonType("↺ Régénérer", ButtonBar.ButtonData.OK_DONE);
         dialogue.getDialogPane().getButtonTypes().addAll(boutonRegenerer, ButtonType.CANCEL);

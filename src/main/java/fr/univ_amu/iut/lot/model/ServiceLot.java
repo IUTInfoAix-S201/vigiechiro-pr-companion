@@ -85,13 +85,12 @@ public class ServiceLot {
     public EtatLot consulterLot(Long idPassage) {
         Objects.requireNonNull(idPassage, "idPassage");
         Passage passage = chargerPassage(idPassage);
-        ResultatVerification coherence = verification.verifier(passage);
+        List<ControleCoherence> controles = verification.controler(passage);
         Optional<SessionDEnregistrement> session = sessionDao.trouverParPassage(idPassage);
         String chemin = session.map(SessionDEnregistrement::cheminRacine).orElse(null);
         int nombre = session.map(s -> sequenceDao.findBySession(s.id()).size()).orElse(0);
         Long volume = session.map(SessionDEnregistrement::volumeSequencesOctets).orElse(null);
-        return new EtatLot(
-                passage.statutWorkflow(), chemin, nombre, volume, coherence.alertesBloquantes(), passage.deposeLe());
+        return new EtatLot(passage.statutWorkflow(), chemin, nombre, volume, controles, passage.deposeLe());
     }
 
     /// Prépare le lot à déposer d'un passage (E4.S1 + E4.S2).

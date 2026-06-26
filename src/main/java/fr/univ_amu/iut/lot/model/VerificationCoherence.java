@@ -17,6 +17,7 @@ import fr.univ_amu.iut.sites.model.PointDEcoute;
 import fr.univ_amu.iut.sites.model.Site;
 import fr.univ_amu.iut.sites.model.dao.PointDao;
 import fr.univ_amu.iut.sites.model.dao.SiteDao;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -75,46 +76,75 @@ public class VerificationCoherence {
     }
 
     /// Vérifie qu'un passage est prêt à déposer et renvoie le cumul d'alertes (vide si tout
-    /// est conforme). `estBloquant()` vaut `true` dès qu'au moins un contrôle dur échoue :
-    /// dans ce cas, l'IHM désactive le bouton de dépôt et [ServiceLot] refuse la préparation.
+    /// est conforme), **dérivé** de la checklist [#controler]. `estBloquant()` vaut `true` dès qu'au
+    /// moins un contrôle échoue : dans ce cas [ServiceLot] refuse la préparation.
     ///
     /// @param passage le passage à contrôler (avec son `id` persisté)
     public ResultatVerification verifier(Passage passage) {
-        Objects.requireNonNull(passage, "passage");
         ResultatVerification resultat = ResultatVerification.ok();
-
-        // R14 : verdict « À jeter » bloquant (restitué pour l'affichage ; refus dur côté ServiceLot).
-        if (passage.verdictVerification() == Verdict.A_JETER) {
-            resultat = resultat.avec(
-                    Alerte.bloquante("R14 : ce passage porte le verdict « À jeter » et ne peut pas être inclus dans un"
-                            + " lot prêt à déposer."));
+        for (ControleCoherence controle : controler(passage)) {
+            if (controle.statut() == StatutControle.ECHEC) {
+                resultat = resultat.avec(Alerte.bloquante(controle.detail()));
+            } else if (controle.statut() == StatutControle.AVERTISSEMENT) {
+                resultat = resultat.avec(Alerte.soft(controle.detail()));
+            }
         }
+        return resultat;
+    }
+
+    /// **Checklist** des contrôles de cohérence du passage (#254), chacun avec son statut (✓ / ✗ / ⚠) et
+    /// un détail — affichée telle quelle à l'étape « Préparer le lot », même quand tout est satisfait.
+    ///
+    /// @param passage le passage à contrôler (avec son `id` persisté)
+    public List<ControleCoherence> controler(Passage passage) {
+        Objects.requireNonNull(passage, "passage");
+        List<ControleCoherence> controles = new ArrayList<>();
+        controles.add(controleVerdict(passage));
 
         Optional<SessionDEnregistrement> sessionOpt = sessionDao.trouverParPassage(passage.id());
         if (sessionOpt.isEmpty()) {
             // Sans session, aucun des contrôles suivants n'est calculable : on s'arrête là.
-            return resultat.avec(
-                    Alerte.bloquante("Aucune session d'enregistrement n'est rattachée à ce passage : importez et"
-                            + " transformez la nuit avant de préparer le lot."));
+            controles.add(new ControleCoherence(
+                    "Session d'enregistrement",
+                    StatutControle.ECHEC,
+                    "Aucune session d'enregistrement n'est rattachée à ce passage : importez et transformez la nuit"
+                            + " avant de préparer le lot."));
+            return controles;
         }
         SessionDEnregistrement session = sessionOpt.get();
         List<EnregistrementOriginal> originaux = originalDao.findBySession(session.id());
         List<SequenceDEcoute> sequences = sequenceDao.findBySession(session.id());
 
-        resultat = verifierTransformation(resultat, originaux, sequences);
-        resultat = verifierPrefixe(resultat, passage, originaux, sequences);
-        resultat = verifierJournalEtReleve(resultat, session);
+        controles.add(controleTransformation(originaux, sequences));
+        controles.add(controlePrefixe(passage, originaux, sequences));
+        controles.add(controleJournal(session));
+        controles.add(controleReleve(session));
+        return controles;
+    }
 
-        return resultat;
+    /// R14 : un passage au verdict « À jeter » ne peut pas rejoindre un lot.
+    private static ControleCoherence controleVerdict(Passage passage) {
+        if (passage.verdictVerification() == Verdict.A_JETER) {
+            return new ControleCoherence(
+                    "Verdict de vérification",
+                    StatutControle.ECHEC,
+                    "R14 : ce passage porte le verdict « À jeter » et ne peut pas être inclus dans un lot prêt à"
+                            + " déposer.");
+        }
+        return new ControleCoherence(
+                "Verdict de vérification", StatutControle.OK, "Le passage n'est pas marqué « À jeter ».");
     }
 
     /// R10 : des séquences existent et chaque original a au moins une séquence dérivée.
-    private ResultatVerification verifierTransformation(
-            ResultatVerification resultat, List<EnregistrementOriginal> originaux, List<SequenceDEcoute> sequences) {
+    private static ControleCoherence controleTransformation(
+            List<EnregistrementOriginal> originaux, List<SequenceDEcoute> sequences) {
+        String libelle = "Transformation des enregistrements";
         if (sequences.isEmpty()) {
-            return resultat.avec(
-                    Alerte.bloquante("Aucune séquence d'écoute : la transformation des enregistrements originaux (R10)"
-                            + " n'a pas été effectuée."));
+            return new ControleCoherence(
+                    libelle,
+                    StatutControle.ECHEC,
+                    "Aucune séquence d'écoute : la transformation des enregistrements originaux (R10) n'a pas été"
+                            + " effectuée.");
         }
         Set<Long> originauxTransformes = sequences.stream()
                 .map(SequenceDEcoute::idEnregistrementOriginal)
@@ -123,24 +153,28 @@ public class VerificationCoherence {
                 .filter(o -> !originauxTransformes.contains(o.id()))
                 .count();
         if (nonTransformes > 0) {
-            return resultat.avec(Alerte.bloquante(nonTransformes
-                    + " enregistrement(s) original(aux) n'ont pas encore été transformé(s) en"
-                    + " séquences d'écoute (R10)."));
+            return new ControleCoherence(
+                    libelle,
+                    StatutControle.ECHEC,
+                    nonTransformes
+                            + " enregistrement(s) original(aux) n'ont pas encore été transformé(s) en séquences"
+                            + " d'écoute (R10).");
         }
-        return resultat;
+        return new ControleCoherence(
+                libelle, StatutControle.OK, "Chaque enregistrement original a ses séquences d'écoute.");
     }
 
     /// R6/R7/R8 : le préfixe attendu est présent sur tous les originaux et toutes les séquences.
-    private ResultatVerification verifierPrefixe(
-            ResultatVerification resultat,
-            Passage passage,
-            List<EnregistrementOriginal> originaux,
-            List<SequenceDEcoute> sequences) {
+    private ControleCoherence controlePrefixe(
+            Passage passage, List<EnregistrementOriginal> originaux, List<SequenceDEcoute> sequences) {
+        String libelle = "Nommage des fichiers";
         Optional<Prefixe> prefixeOpt = prefixeAttendu(passage);
         if (prefixeOpt.isEmpty()) {
-            return resultat.avec(Alerte.bloquante(
-                    "Impossible de calculer le préfixe attendu : le point d'écoute ou le site du passage"
-                            + " est introuvable."));
+            return new ControleCoherence(
+                    libelle,
+                    StatutControle.ECHEC,
+                    "Impossible de calculer le préfixe attendu : le point d'écoute ou le site du passage est"
+                            + " introuvable.");
         }
         String prefixe = prefixeOpt.get().prefixeFichier();
         long nonConformes = sequences.stream()
@@ -152,29 +186,36 @@ public class VerificationCoherence {
                         .filter(nom -> !commencePar(nom, prefixe))
                         .count();
         if (nonConformes > 0) {
-            return resultat.avec(Alerte.bloquante("Préfixe « "
-                    + prefixe
-                    + " » manquant ou non conforme sur "
-                    + nonConformes
-                    + " fichier(s) (R6, R7, R8)."));
+            return new ControleCoherence(
+                    libelle,
+                    StatutControle.ECHEC,
+                    "Préfixe « " + prefixe + " » manquant ou non conforme sur " + nonConformes
+                            + " fichier(s) (R6, R7, R8).");
         }
-        return resultat;
+        return new ControleCoherence(
+                libelle, StatutControle.OK, "Tous les fichiers portent le préfixe « " + prefixe + " ».");
     }
 
-    /// Journal obligatoire (bloquant) ; relevé climatique optionnel (soft, R20).
-    private ResultatVerification verifierJournalEtReleve(
-            ResultatVerification resultat, SessionDEnregistrement session) {
-        ResultatVerification cumul = resultat;
+    /// Journal du capteur obligatoire (bloquant) : un `sensor_log` doit accompagner la session.
+    private ControleCoherence controleJournal(SessionDEnregistrement session) {
         if (journalDao.trouverParSession(session.id()).isEmpty()) {
-            cumul = cumul.avec(Alerte.bloquante(
-                    "Journal du capteur (LogPR<n>.txt) absent : il doit accompagner les séquences" + " déposées."));
+            return new ControleCoherence(
+                    "Journal du capteur",
+                    StatutControle.ECHEC,
+                    "Journal du capteur (LogPR<n>.txt) absent : il doit accompagner les séquences déposées.");
         }
+        return new ControleCoherence("Journal du capteur", StatutControle.OK, "Présent, à déposer avec les séquences.");
+    }
+
+    /// Relevé climatique optionnel (soft, R20) : son absence est signalée sans bloquer.
+    private ControleCoherence controleReleve(SessionDEnregistrement session) {
         if (releveDao.trouverParSession(session.id()).isEmpty()) {
-            cumul = cumul.avec(
-                    Alerte.soft("Relevé climatique absent (R20) : sonde non installée ou défaillante. Le dépôt"
-                            + " reste possible."));
+            return new ControleCoherence(
+                    "Relevé climatique",
+                    StatutControle.AVERTISSEMENT,
+                    "Relevé climatique absent (R20) : sonde non installée ou défaillante. Le dépôt reste possible.");
         }
-        return cumul;
+        return new ControleCoherence("Relevé climatique", StatutControle.OK, "Présent.");
     }
 
     /// Préfixe `Car<carré>-<année>-Pass<n>-<point>-` attendu, calculé depuis le point et le

@@ -4,12 +4,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import fr.univ_amu.iut.commun.model.Alerte;
 import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.lot.model.ArchiveDepot;
+import fr.univ_amu.iut.lot.model.ControleCoherence;
 import fr.univ_amu.iut.lot.model.EtatLot;
 import fr.univ_amu.iut.lot.model.ServiceLot;
+import fr.univ_amu.iut.lot.model.StatutControle;
 import java.nio.file.Path;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,8 +37,13 @@ class LotViewModelTest {
         viewModel = new LotViewModel(service);
     }
 
-    private static EtatLot etat(StatutWorkflow statut, List<Alerte> alertes, String deposeLe) {
-        return new EtatLot(statut, "/ws/session-42", 2, 8192L, alertes, deposeLe);
+    private static EtatLot etat(StatutWorkflow statut, List<ControleCoherence> controles, String deposeLe) {
+        return new EtatLot(statut, "/ws/session-42", 2, 8192L, controles, deposeLe);
+    }
+
+    /// Contrôle de cohérence en échec (bloquant), pour les cas « incohérent ».
+    private static ControleCoherence echec(String detail) {
+        return new ControleCoherence("Contrôle", StatutControle.ECHEC, detail);
     }
 
     @Test
@@ -53,20 +59,22 @@ class LotViewModelTest {
         assertThat(viewModel.peutPreparerProperty().get()).isTrue();
         assertThat(viewModel.peutDeposerProperty().get()).isFalse();
         assertThat(viewModel.deposeProperty().get()).isFalse();
-        assertThat(viewModel.alertes()).isEmpty();
+        assertThat(viewModel.controles()).isEmpty();
         assertThat(viewModel.messageProperty().get()).isEmpty();
     }
 
     @Test
-    @DisplayName("ouvrirSur avec alertes bloquantes : préparation impossible, alertes exposées")
-    void ouvrir_avec_alertes_bloque_preparer() {
+    @DisplayName("ouvrirSur avec un contrôle en échec : préparation impossible, checklist exposée")
+    void ouvrir_avec_controle_echec_bloque_preparer() {
         when(service.consulterLot(ID_PASSAGE))
-                .thenReturn(etat(StatutWorkflow.VERIFIE, List.of(Alerte.bloquante("Transformation incomplète")), null));
+                .thenReturn(etat(StatutWorkflow.VERIFIE, List.of(echec("Transformation incomplète")), null));
 
         viewModel.ouvrirSur(ID_PASSAGE);
 
         assertThat(viewModel.peutPreparerProperty().get()).isFalse();
-        assertThat(viewModel.alertes()).containsExactly("Transformation incomplète");
+        assertThat(viewModel.controles()).hasSize(1);
+        assertThat(viewModel.controles().get(0).estBloquant()).isTrue();
+        assertThat(viewModel.controles().get(0).detail()).isEqualTo("Transformation incomplète");
         assertThat(viewModel.messageProperty().get()).contains("corrigez");
     }
 

@@ -153,7 +153,9 @@ class ServiceLotTest {
         assertThat(etat.cheminDossier()).endsWith(PREFIXE.nomDossierSession());
         assertThat(etat.nombreSequences()).isEqualTo(2);
         assertThat(etat.volumeSequencesOctets()).isEqualTo(8192L);
-        assertThat(etat.alertesBloquantes()).isEmpty();
+        // #254 : passage cohérent → la checklist n'a aucun contrôle en échec (mais elle n'est pas vide).
+        assertThat(etat.aDesEchecs()).isFalse();
+        assertThat(etat.controles()).isNotEmpty().allMatch(c -> !c.estBloquant());
         assertThat(etat.deposeLe()).isNull();
         // Lecture pure : le statut n'a pas bougé.
         assertThat(passageDao.findById(passage.id()).orElseThrow().statutWorkflow())

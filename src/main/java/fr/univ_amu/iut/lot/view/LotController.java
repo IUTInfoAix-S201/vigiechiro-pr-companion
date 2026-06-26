@@ -8,6 +8,8 @@ import fr.univ_amu.iut.commun.view.OuvreurDeLien;
 import fr.univ_amu.iut.commun.view.OuvrirPassage;
 import fr.univ_amu.iut.commun.view.OuvrirSite;
 import fr.univ_amu.iut.commun.viewmodel.ContextePassage;
+import fr.univ_amu.iut.lot.model.ControleCoherence;
+import fr.univ_amu.iut.lot.model.StatutControle;
 import fr.univ_amu.iut.lot.viewmodel.EtapeDepot;
 import fr.univ_amu.iut.lot.viewmodel.LotViewModel;
 import java.nio.file.Path;
@@ -16,7 +18,6 @@ import java.util.Locale;
 import java.util.Objects;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
-import javafx.beans.binding.BooleanBinding;
 import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -59,10 +60,7 @@ public class LotController implements EmplacementNavigation {
     private Label lblCheminDepot;
 
     @FXML
-    private VBox zoneAlertes;
-
-    @FXML
-    private ListView<String> listeAlertes;
+    private VBox checklist;
 
     @FXML
     private Button btnPreparer;
@@ -108,11 +106,9 @@ public class LotController implements EmplacementNavigation {
         viewModel.etapes().addListener((ListChangeListener<EtapeDepot>) changement -> majStepper());
         majStepper();
 
-        listeAlertes.setItems(viewModel.alertes());
-        // La zone d'alertes n'a de sens qu'en présence d'alertes bloquantes (R14).
-        BooleanBinding alertesPresentes = Bindings.isNotEmpty(viewModel.alertes());
-        zoneAlertes.visibleProperty().bind(alertesPresentes);
-        zoneAlertes.managedProperty().bind(alertesPresentes);
+        // Checklist de cohérence (#254), reconstruite à chaque changement (✓ / ✗ / ⚠), comme le stepper.
+        viewModel.controles().addListener((ListChangeListener<ControleCoherence>) changement -> majChecklist());
+        majChecklist();
 
         btnPreparer.disableProperty().bind(viewModel.peutPreparerProperty().not());
         // « Marquer déposé » : pas pendant une génération en cours, sinon on marquerait le passage déposé
@@ -154,6 +150,33 @@ public class LotController implements EmplacementNavigation {
             Label puce = new Label(etape.libelle());
             puce.getStyleClass().addAll("etape", "etape-" + etape.etat().name().toLowerCase(Locale.ROOT));
             stepper.getChildren().add(puce);
+        }
+    }
+
+    /// Reconstruit la **checklist de cohérence** (#254) depuis [LotViewModel#controles()] : une ligne par
+    /// contrôle, préfixée d'une icône ✓ / ✗ / ⚠ et stylée selon son statut. Un contrôle satisfait montre
+    /// son libellé ; un contrôle en échec ou en avertissement montre aussi son détail.
+    private void majChecklist() {
+        checklist.getChildren().clear();
+        for (ControleCoherence controle : viewModel.controles()) {
+            String icone =
+                    switch (controle.statut()) {
+                        case OK -> "✓";
+                        case ECHEC -> "✗";
+                        case AVERTISSEMENT -> "⚠";
+                    };
+            // Satisfait : le libellé court suffit ; en échec/avertissement : le détail est déjà parlant
+            // (et nomme le contrôle), on l'affiche tel quel pour ne pas répéter le libellé.
+            String texte = controle.statut() == StatutControle.OK
+                    ? icone + " " + controle.libelle()
+                    : icone + " " + controle.detail();
+            Label ligne = new Label(texte);
+            ligne.setWrapText(true);
+            ligne.getStyleClass()
+                    .addAll(
+                            "controle-ligne",
+                            "controle-" + controle.statut().name().toLowerCase(Locale.ROOT));
+            checklist.getChildren().add(ligne);
         }
     }
 

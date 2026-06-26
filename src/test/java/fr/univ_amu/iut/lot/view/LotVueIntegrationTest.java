@@ -10,7 +10,6 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Provides;
-import fr.univ_amu.iut.commun.model.Alerte;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.view.Lieu;
 import fr.univ_amu.iut.commun.view.NavigationDeTestModule;
@@ -18,8 +17,10 @@ import fr.univ_amu.iut.commun.view.OuvreurDeLien;
 import fr.univ_amu.iut.commun.viewmodel.ContextePassage;
 import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
 import fr.univ_amu.iut.lot.model.ArchiveDepot;
+import fr.univ_amu.iut.lot.model.ControleCoherence;
 import fr.univ_amu.iut.lot.model.EtatLot;
 import fr.univ_amu.iut.lot.model.ServiceLot;
+import fr.univ_amu.iut.lot.model.StatutControle;
 import fr.univ_amu.iut.lot.viewmodel.LotViewModel;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -29,7 +30,6 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
@@ -121,34 +121,9 @@ class LotVueIntegrationTest {
     }
 
     @Test
-    @DisplayName("Sans alerte : zone d'alertes et message masqués, préparer actif / déposer inactif")
-    void sans_alerte_zone_et_message_masques(FxRobot robot) {
-        Label statut = robot.lookup("#lblStatut").queryAs(Label.class);
-        Label recap = robot.lookup("#lblRecap").queryAs(Label.class);
-        Label chemin = robot.lookup("#lblCheminDepot").queryAs(Label.class);
-        VBox zoneAlertes = robot.lookup("#zoneAlertes").queryAs(VBox.class);
-        ListView<?> listeAlertes = robot.lookup("#listeAlertes").queryAs(ListView.class);
-        Label message = robot.lookup("#lblMessage").queryAs(Label.class);
-        Button preparer = robot.lookup("#btnPreparer").queryAs(Button.class);
-        Button deposer = robot.lookup("#btnDeposer").queryAs(Button.class);
-
-        assertThat(statut.getText()).isEqualTo("Vérifié");
-        assertThat(recap.getText()).isEqualTo("2 séquences · 8 Ko");
-        // #251 : la cible du téléversement est le sous-dossier depot/ (archives ZIP), pas la session.
-        assertThat(chemin.getText()).isEqualTo("/ws/session-42/depot");
-        // R14 : pas d'alerte bloquante → la zone est repliée (ni visible, ni gérée par le layout).
-        assertThat(listeAlertes.getItems()).isEmpty();
-        assertThat(zoneAlertes.isVisible()).isFalse();
-        assertThat(zoneAlertes.isManaged()).isFalse();
-        // Pas de message d'état en fonctionnement nominal.
-        assertThat(message.isVisible()).isFalse();
-        assertThat(preparer.isDisabled()).isFalse();
-        assertThat(deposer.isDisabled()).isTrue();
-    }
-
-    @Test
-    @DisplayName("Alertes bloquantes (R14) : zone visible, alertes listées, préparer désactivé")
-    void alertes_bloquantes_listees_et_preparer_desactive(FxRobot robot) {
+    @DisplayName("#254 : conforme → checklist tout en ✓, message masqué, préparer actif / déposer inactif")
+    void conforme_checklist_tout_ok_et_preparer_actif(FxRobot robot) {
+        // Checklist entièrement satisfaite (la fixture de départ en a une vide ; on re-stube).
         reouvrirAvec(
                 robot,
                 new EtatLot(
@@ -157,21 +132,56 @@ class LotVueIntegrationTest {
                         2,
                         8192L,
                         List.of(
-                                Alerte.bloquante("Transformation incomplète"),
-                                Alerte.bloquante("Préfixe de fichier non conforme")),
+                                ok("Transformation des enregistrements"),
+                                ok("Nommage des fichiers"),
+                                ok("Journal du capteur")),
                         null));
 
-        VBox zoneAlertes = robot.lookup("#zoneAlertes").queryAs(VBox.class);
-        @SuppressWarnings("unchecked")
-        ListView<String> listeAlertes = robot.lookup("#listeAlertes").queryAs(ListView.class);
+        Label statut = robot.lookup("#lblStatut").queryAs(Label.class);
+        Label recap = robot.lookup("#lblRecap").queryAs(Label.class);
+        Label chemin = robot.lookup("#lblCheminDepot").queryAs(Label.class);
+        VBox checklist = robot.lookup("#checklist").queryAs(VBox.class);
+        Label message = robot.lookup("#lblMessage").queryAs(Label.class);
+        Button preparer = robot.lookup("#btnPreparer").queryAs(Button.class);
+        Button deposer = robot.lookup("#btnDeposer").queryAs(Button.class);
+
+        assertThat(statut.getText()).isEqualTo("Vérifié");
+        assertThat(recap.getText()).isEqualTo("2 séquences · 8 Ko");
+        // #251 : la cible du téléversement est le sous-dossier depot/ (archives ZIP), pas la session.
+        assertThat(chemin.getText()).isEqualTo("/ws/session-42/depot");
+        // #254 : la checklist reste affichée même quand tout est satisfait (chaque ligne en ✓).
+        assertThat(textesChecklist(checklist)).hasSize(3).allMatch(t -> t.startsWith("✓"));
+        // Pas de message d'état en fonctionnement nominal.
+        assertThat(message.isVisible()).isFalse();
+        assertThat(preparer.isDisabled()).isFalse();
+        assertThat(deposer.isDisabled()).isTrue();
+    }
+
+    @Test
+    @DisplayName("#254 : un contrôle en échec → checklist montre ✓ et ✗, préparer désactivé")
+    void controle_en_echec_checklist_et_preparer_desactive(FxRobot robot) {
+        reouvrirAvec(
+                robot,
+                new EtatLot(
+                        StatutWorkflow.VERIFIE,
+                        "/ws/session-42",
+                        2,
+                        8192L,
+                        List.of(
+                                ok("Verdict de vérification"),
+                                echec("Transformation des enregistrements", "Transformation incomplète"),
+                                echec("Nommage des fichiers", "Préfixe de fichier non conforme")),
+                        null));
+
+        VBox checklist = robot.lookup("#checklist").queryAs(VBox.class);
         Label message = robot.lookup("#lblMessage").queryAs(Label.class);
         Button preparer = robot.lookup("#btnPreparer").queryAs(Button.class);
 
-        assertThat(zoneAlertes.isVisible()).isTrue();
-        assertThat(zoneAlertes.isManaged()).isTrue();
-        // La liste expose les messages des alertes bloquantes, pas un libellé codé en dur.
-        assertThat(listeAlertes.getItems())
-                .containsExactly("Transformation incomplète", "Préfixe de fichier non conforme");
+        var textes = textesChecklist(checklist);
+        assertThat(textes).hasSize(3);
+        assertThat(textes.get(0)).startsWith("✓").contains("Verdict de vérification");
+        assertThat(textes).anyMatch(t -> t.startsWith("✗") && t.contains("Transformation incomplète"));
+        assertThat(textes).anyMatch(t -> t.startsWith("✗") && t.contains("Préfixe de fichier non conforme"));
         // Tant que la cohérence n'est pas corrigée, la préparation est interdite (R14).
         assertThat(preparer.isDisabled()).isTrue();
         assertThat(message.isVisible()).isTrue();
@@ -326,5 +336,20 @@ class LotVueIntegrationTest {
                 .map(noeud -> ((Label) noeud).getText())
                 .findFirst()
                 .orElse(null);
+    }
+
+    /// Textes des lignes de la checklist de cohérence (#254) rendues par le controller.
+    private static List<String> textesChecklist(VBox checklist) {
+        return checklist.getChildren().stream()
+                .map(noeud -> ((Label) noeud).getText())
+                .toList();
+    }
+
+    private static ControleCoherence ok(String libelle) {
+        return new ControleCoherence(libelle, StatutControle.OK, "Satisfait.");
+    }
+
+    private static ControleCoherence echec(String libelle, String detail) {
+        return new ControleCoherence(libelle, StatutControle.ECHEC, detail);
     }
 }

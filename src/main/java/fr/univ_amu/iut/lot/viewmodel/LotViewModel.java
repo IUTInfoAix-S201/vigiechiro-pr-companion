@@ -1,9 +1,9 @@
 package fr.univ_amu.iut.lot.viewmodel;
 
-import fr.univ_amu.iut.commun.model.Alerte;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.viewmodel.Formats;
 import fr.univ_amu.iut.lot.model.ArchiveDepot;
+import fr.univ_amu.iut.lot.model.ControleCoherence;
 import fr.univ_amu.iut.lot.model.EtatLot;
 import fr.univ_amu.iut.lot.model.ServiceLot;
 import java.util.List;
@@ -36,7 +36,7 @@ public class LotViewModel {
     private final ReadOnlyStringWrapper cheminDepot = new ReadOnlyStringWrapper(this, "cheminDepot", "");
     private final ObservableList<EtapeDepot> etapes = FXCollections.observableArrayList();
     private final ReadOnlyStringWrapper recap = new ReadOnlyStringWrapper(this, "recap", "");
-    private final ObservableList<String> alertes = FXCollections.observableArrayList();
+    private final ObservableList<ControleCoherence> controles = FXCollections.observableArrayList();
     private final ReadOnlyBooleanWrapper peutPreparer = new ReadOnlyBooleanWrapper(this, "peutPreparer", false);
     private final ReadOnlyBooleanWrapper peutDeposer = new ReadOnlyBooleanWrapper(this, "peutDeposer", false);
     private final ReadOnlyBooleanWrapper depose = new ReadOnlyBooleanWrapper(this, "depose", false);
@@ -173,9 +173,8 @@ public class LotViewModel {
         // archives ZIP, et non le dossier de session entier.
         cheminDepot.set(dossier.isEmpty() ? "" : dossier + "/depot");
         recap.set(recapLisible(etat));
-        alertes.setAll(etat.alertesBloquantes().stream().map(Alerte::message).toList());
-        boolean bloque = !etat.alertesBloquantes().isEmpty();
-        peutPreparer.set(etat.statut() == StatutWorkflow.VERIFIE && !bloque);
+        controles.setAll(etat.controles());
+        peutPreparer.set(etat.statut() == StatutWorkflow.VERIFIE && !etat.aDesEchecs());
         peutDeposer.set(etat.statut() == StatutWorkflow.PRET_A_DEPOSER);
         depose.set(etat.statut() == StatutWorkflow.DEPOSE);
         // Les archives de dépôt (#110) se génèrent dès que le lot est prêt (séquences figées) : Prêt à
@@ -203,8 +202,8 @@ public class LotViewModel {
         if (etat.statut() == StatutWorkflow.DEPOSE) {
             return "Passage déposé le " + etat.deposeLe() + ".";
         }
-        if (!etat.alertesBloquantes().isEmpty()) {
-            return "Cohérence (R14) : corrigez les alertes signalées avant de préparer le lot.";
+        if (etat.aDesEchecs()) {
+            return "Cohérence (R14) : corrigez les contrôles en échec avant de préparer le lot.";
         }
         if (etat.statut() == StatutWorkflow.PRET_A_DEPOSER) {
             // Retour explicite de l'étape ① (#251) : ce que « Préparer » a accompli (lot validé + verrouillé).
@@ -221,7 +220,7 @@ public class LotViewModel {
         cheminDepot.set("");
         etapes.clear();
         recap.set("");
-        alertes.clear();
+        controles.clear();
         peutPreparer.set(false);
         peutDeposer.set(false);
         depose.set(false);
@@ -259,9 +258,10 @@ public class LotViewModel {
         return recap.getReadOnlyProperty();
     }
 
-    /// Messages des alertes de cohérence bloquantes (R14), vide si conforme.
-    public ObservableList<String> alertes() {
-        return alertes;
+    /// Checklist des contrôles de cohérence (#254) : ✓ satisfait, ✗ bloquant, ⚠ avertissement. Affichée
+    /// à l'étape « Préparer le lot », même quand tout est satisfait.
+    public ObservableList<ControleCoherence> controles() {
+        return controles;
     }
 
     /// `true` si le lot peut être préparé (passage Vérifié et aucune alerte bloquante).

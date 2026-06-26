@@ -62,6 +62,20 @@
   -fx-padding: 0 0 0 8;
 }
 
+/* Checklist vivante (#254) : couleur par statut du contrôle (✓ / ✗ / ⚠). */
+.controle-ok {
+  -fx-text-fill: #1e8449;
+}
+
+.controle-echec {
+  -fx-text-fill: #a93226;
+  -fx-font-weight: bold;
+}
+
+.controle-avertissement {
+  -fx-text-fill: #b7950b;
+}
+
 /* ---- Stepper du dépôt (#251) : mêmes styles que le stepper de M-Passage ---- */
 .stepper {
   -fx-padding: 4 0 4 0;

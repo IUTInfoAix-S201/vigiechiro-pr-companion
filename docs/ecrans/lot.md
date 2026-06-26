@@ -10,9 +10,11 @@ par un fil d'étapes (l'étape courante est mise en avant) :
 
 ![L'écran Lot : récapitulatif du lot et première étape « Vérifier et préparer le lot ».](../assets/captures/apercu-lot-preparer.png)
 
-Le **récapitulatif** indique le nombre de séquences et le volume. « Vérifier et préparer le lot »
-contrôle d'abord que la nuit est **complète et conforme** (transformation effectuée, fichiers bien
-nommés, journal du capteur présent, relevé climatique), puis **verrouille** la liste des séquences qui
+Le **récapitulatif** indique le nombre de séquences et le volume. Une **checklist de cohérence** montre,
+contrôle par contrôle et **même quand tout est satisfait**, ce qui est vérifié : transformation
+effectuée, fichiers bien nommés, journal du capteur présent, relevé climatique. Chaque ligne est marquée
+**✓** (satisfait), **✗** (à corriger, bloquant) ou **⚠** (avertissement non bloquant, comme un relevé
+climatique absent). « Vérifier et préparer le lot » **verrouille** ensuite la liste des séquences qui
 partiront. Vos fichiers d'origine ne sont pas modifiés. Le passage passe alors au statut « Prêt à
 déposer ».
 
@@ -43,10 +45,11 @@ sur Vigie-Chiro depuis votre navigateur.
 Une fois le téléversement terminé, « Marquer déposé » fait passer le passage au statut « Déposé » (ce
 qui déverrouille ensuite la validation Tadarida) et trace la date du dépôt.
 
-## Alertes de cohérence
+## Checklist de cohérence : ce qui bloque
 
 Si la nuit n'est pas en état d'être déposée (par exemple séquences d'écoute absentes ou journal du
-capteur manquant), l'écran liste des **alertes de cohérence** à corriger **avant** de préparer le
-lot. Les boutons restent grisés tant que ces points ne sont pas résolus.
+capteur manquant), les contrôles concernés passent en **✗** dans la checklist, avec la raison et la
+correction à apporter. Le bouton « Vérifier et préparer le lot » reste grisé tant qu'un contrôle est en
+échec. Un **⚠** (relevé climatique absent) n'empêche pas, lui, de préparer le lot.
 
-![L'état incohérent : des alertes de cohérence bloquent la préparation du lot.](../assets/captures/apercu-lot-alertes.png)
+![L'état incohérent : la checklist montre les contrôles ✓ et ✗ ; la préparation est bloquée.](../assets/captures/apercu-lot-alertes.png)

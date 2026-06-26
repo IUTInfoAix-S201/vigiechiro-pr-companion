@@ -39,6 +39,29 @@ public final class ApercuFx {
         ecrire(image, fichier);
     }
 
+    /// Variante de [#enregistrerPng] pour les scenes dont le contenu se prepare de facon
+    /// **asynchrone** (p. ex. une `AudioView` qui charge un WAV en fond et peint un spectrogramme).
+    ///
+    /// Le [Stage] transitoire est montre **avant** d'executer `preparation`, qui peut attendre la fin
+    /// du chargement via une boucle d'evenements imbriquee. On `snapshot` ensuite la scene **sans
+    /// recreer de Stage** : c'est essentiel car la Headless Platform JavaFX 26 refuse un `new Stage()`
+    /// apres `enterNestedEventLoop` (le toolkit est laisse dans un etat ou son controle de thread
+    /// echoue). En montrant l'unique Stage avant la boucle, on contourne ce defaut. A appeler sur le
+    /// thread JavaFX.
+    public static void capturerApresPreparation(Scene scene, Runnable preparation, Path fichier) {
+        Stage stageTransitoire = new Stage();
+        stageTransitoire.setScene(scene);
+        stageTransitoire.show();
+        scene.getRoot().applyCss();
+        scene.getRoot().layout();
+        preparation.run();
+        scene.getRoot().applyCss();
+        scene.getRoot().layout();
+        WritableImage image = scene.snapshot(null);
+        stageTransitoire.hide();
+        ecrire(image, fichier);
+    }
+
     private static void ecrire(WritableImage image, Path fichier) {
         try {
             Path parent = fichier.getParent();

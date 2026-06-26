@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [1.10.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.9.1...v1.10.0) (2026-06-26)
+
+
+### Features
+
+* **dépôt:** checklist vivante des contrôles de cohérence à l'étape « Préparer » ([#254](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/254)) ([#267](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/267)) ([0c890f8](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/0c890f89bda172cc4e2e52cc255b8438a5634686))
+
 ## [1.9.1](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.9.0...v1.9.1) (2026-06-26)
 
 

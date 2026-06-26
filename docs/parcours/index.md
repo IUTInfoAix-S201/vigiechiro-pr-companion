@@ -4,20 +4,10 @@ Le traitement d'une nuit de capture suit toujours le même fil : de la **carte S
 **dépôt** sur la plateforme Vigie-Chiro, puis, quelques jours plus tard, la **validation des
 espèces** identifiées. Cette page déroule ce parcours étape par étape.
 
-```mermaid
-flowchart LR
-    SD[("💾 Carte SD")] --> IMP["📥 Importer<br/>la nuit"]
-    IMP --> VER["🎧 Vérifier<br/>la qualité"]
-    VER --> DEP["📦 Déposer<br/>le lot"]
-    DEP -. "téléversement<br/>navigateur" .-> VC(["🌐 Vigie-Chiro"])
-    VC -. "24-48 h après :<br/>résultats Tadarida" .-> VAL["✅ Valider<br/>les espèces"]
-    classDef etape fill:#1e8449,stroke:#0e5128,color:#fff;
-    classDef ext fill:#34495e,stroke:#17202a,color:#fff;
-    classDef art fill:#7d6608,stroke:#4d3f00,color:#fff;
-    class IMP,VER,DEP,VAL etape
-    class VC ext
-    class SD art
-```
+<div style="text-align:center; margin:1.2rem 0">
+  <img src="../assets/illustrations/parcours.svg" style="max-width:100%; width:780px"
+       alt="Parcours d'une nuit : Carte SD, puis Importer, Vérifier, Déposer ; dépôt sur Vigie-Chiro qui renvoie les résultats Tadarida 24-48 h après ; puis Valider.">
+</div>
 
 | Étape | Ce que vous faites | Écran |
 |---|---|---|
@@ -36,15 +26,10 @@ prochaine action recommandée).
 
 Le statut progresse ainsi :
 
-```mermaid
-flowchart LR
-    A["Importé"] --> B["Transformé"] --> C["Vérifié"] --> D["Prêt à déposer"] --> E["Déposé"]
-    E -. "déverrouille" .-> F(["Validation<br/>Tadarida"])
-    classDef st fill:#2874a6,stroke:#154360,color:#fff;
-    classDef val fill:#935116,stroke:#5b3009,color:#fff;
-    class A,B,C,D,E st
-    class F val
-```
+<div style="text-align:center; margin:1.2rem 0">
+  <img src="../assets/illustrations/workflow-statut.svg" style="max-width:100%; width:820px"
+       alt="Statut d'un passage : Importé, Transformé, Vérifié, Prêt à déposer, Déposé ; une fois déposé, la Validation Tadarida se déverrouille.">
+</div>
 
 Une fois la nuit **déposée**, la carte « Validation Tadarida » se déverrouille :
 

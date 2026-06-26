@@ -21,7 +21,7 @@
         "/^git\\s+checkout\\b/": true,
         "/^git\\s+add\\b/": true,
         "/^git\\s+commit\\b/": true,
-        "/^git\\s+push\\b/": true,
+        "/^git\\s+push\\b/": false,
         "/^git\\s+pull\\b/": true,
         "/^git\\s+stash\\b/": true,
         "/^gh\\s+pr\\b/": true

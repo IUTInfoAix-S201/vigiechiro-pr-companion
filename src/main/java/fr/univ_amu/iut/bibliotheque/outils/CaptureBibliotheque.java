@@ -2,6 +2,7 @@ package fr.univ_amu.iut.bibliotheque.outils;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import fr.nedjar.vigiechiro.audio.AudioView;
 import fr.univ_amu.iut.bibliotheque.di.BibliothequeModule;
 import fr.univ_amu.iut.bibliotheque.view.BibliothequeController;
 import fr.univ_amu.iut.commun.di.CommunModule;
@@ -12,6 +13,8 @@ import fr.univ_amu.iut.commun.model.Utilisateur;
 import fr.univ_amu.iut.commun.model.Verdict;
 import fr.univ_amu.iut.commun.model.dao.UtilisateurDao;
 import fr.univ_amu.iut.commun.outils.ApercuFx;
+import fr.univ_amu.iut.commun.outils.AttenteAudio;
+import fr.univ_amu.iut.commun.outils.SonDemo;
 import fr.univ_amu.iut.commun.persistence.MigrationSchema;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
 import fr.univ_amu.iut.passage.di.PassageModule;
@@ -57,6 +60,8 @@ import javafx.scene.control.TableView;
 ///   d'invite et bouton d'export désactivé ;
 /// - `apercu-bibliotheque-sons.png` : **état peuplé**, trois sons de référence triés par taxon, la
 ///   première ligne sélectionnée (panneau de détail + écoute via `AudioView`) et l'export actif.
+///   L'`AudioView` y affiche un **spectrogramme** et un **sonogramme** réels, calculés depuis un WAV
+///   de démonstration (cris FM de synthèse, cf. [SonDemo]) écrit pour la séquence écoutée.
 ///
 /// On seede une base SQLite temporaire (utilisateur, site/point en SQL brut, passage `DEPOSE`,
 /// session avec trois séquences). La première capture est rendue **avant** tout marquage référence ;
@@ -64,9 +69,12 @@ import javafx.scene.control.TableView;
 /// seconde. Chaque vue est chargée avec une `controllerFactory` Guice (socle + passage + validation
 /// + bibliotheque) et rendue hors-écran par [ApercuFx].
 ///
-/// **Déterminisme des PNG** : les chemins de séquences (liés à `AudioView`) utilisent une racine
-/// fixe [#RACINE_DEMO], jamais le dossier temporaire aléatoire — sinon chaque exécution salirait les
-/// PNG versionnés (cf. la même précaution dans `CaptureLot`).
+/// **Déterminisme des PNG** : le WAV de démonstration est un signal **de synthèse** (mêmes
+/// échantillons à chaque exécution) et la capture `sons` **attend** la fin du chargement asynchrone
+/// de l'`AudioView` ([AttenteAudio]) avant de rendre — le spectrogramme est donc reproductible. Le
+/// chemin temporaire du WAV n'apparaît nulle part dans le rendu (la table montre le seul nom de
+/// séquence). Cette capture est volontairement **la dernière** : la boucle d'évènements imbriquée de
+/// l'attente déstabiliserait un `new Stage()` ultérieur (cf. [AttenteAudio]).
 ///
 /// Le site et le point (cibles de clé étrangère) sont insérés en SQL brut, sans les DAO de la
 /// feature `sites` : `bibliotheque` ne doit pas en dépendre (cycle ArchUnit `features_sans_cycle`).
@@ -118,40 +126,64 @@ public final class CaptureBibliotheque {
         SourceDeDonnees source = injecteur.getInstance(SourceDeDonnees.class);
         new MigrationSchema(source).migrer();
 
-        Graine graine = seeder(source);
+        Graine graine = seeder(source, workspace);
 
         // 1) État vide : aucune observation n'est encore marquée référence → résumé d'invite.
-        rendre(injecteur, -1, sortie.resolve("apercu-bibliotheque-vide.png"));
+        rendre(injecteur, -1, false, sortie.resolve("apercu-bibliotheque-vide.png"));
 
         // Insère un jeu de résultats + trois observations de référence (taxons et commentaires variés).
         seederReferences(source, graine);
 
-        // 2) État peuplé : table triée par taxon, première ligne sélectionnée → détail + écoute.
-        rendre(injecteur, 0, sortie.resolve("apercu-bibliotheque-sons.png"));
+        // 2) État peuplé : table triée par taxon, première ligne sélectionnée → détail + écoute. On
+        // attend le chargement de l'audio pour capturer un spectrogramme réel. DERNIÈRE capture de
+        // l'outil (l'attente interdit tout `new Stage()` ultérieur, cf. AttenteAudio).
+        rendre(injecteur, 0, true, sortie.resolve("apercu-bibliotheque-sons.png"));
     }
 
     /// Charge `Bibliotheque.fxml` (le controller auto-charge la table en `initialize()`), sélectionne
     /// éventuellement une ligne (`>= 0`) pour peupler le détail et l'écoute, puis rend la scène
-    /// hors-écran en PNG.
-    private static void rendre(Injector injecteur, int ligneSelectionnee, Path fichier) throws IOException {
+    /// hors-écran en PNG. Quand `attendreAudio` est vrai, la scène est construite **avant** la
+    /// sélection (pour que l'`AudioView` soit dans un graphe peignable) et la capture attend la fin du
+    /// chargement asynchrone du WAV ([AttenteAudio]) — à réserver à la dernière capture de l'outil.
+    private static void rendre(Injector injecteur, int ligneSelectionnee, boolean attendreAudio, Path fichier)
+            throws IOException {
         FXMLLoader loader = new FXMLLoader(BibliothequeController.class.getResource("Bibliotheque.fxml"));
         loader.setControllerFactory(injecteur::getInstance);
         Parent vue = loader.load();
+        Scene scene = new Scene(vue, 1000, 620);
 
-        if (ligneSelectionnee >= 0
+        boolean aSelection = ligneSelectionnee >= 0
                 && vue.lookup("#tableEntrees") instanceof TableView<?> table
-                && table.getItems().size() > ligneSelectionnee) {
-            table.getSelectionModel().select(ligneSelectionnee);
-        }
+                && table.getItems().size() > ligneSelectionnee;
 
-        ApercuFx.enregistrerPng(new Scene(vue, 1000, 620), fichier);
+        if (attendreAudio && aSelection && vue.lookup("#audioView") instanceof AudioView audio) {
+            // Stage montré AVANT la sélection et l'attente (boucle imbriquée) ; snapshot ensuite sans
+            // recréer de Stage (cf. ApercuFx#capturerApresPreparation et AttenteAudio).
+            ApercuFx.capturerApresPreparation(
+                    scene,
+                    () -> {
+                        ((TableView<?>) vue.lookup("#tableEntrees"))
+                                .getSelectionModel()
+                                .select(ligneSelectionnee); // déclenche le chargement audio
+                        audio.setMinHeight(340); // place pour spectrogramme + sonogramme
+                        audio.setPrefHeight(340);
+                        AttenteAudio.attendreChargement(audio);
+                    },
+                    fichier);
+        } else {
+            if (aSelection) {
+                ((TableView<?>) vue.lookup("#tableEntrees")).getSelectionModel().select(ligneSelectionnee);
+            }
+            ApercuFx.enregistrerPng(scene, fichier);
+        }
         System.out.println("Apercu ecrit dans " + fichier.toAbsolutePath());
     }
 
-    /// Seede un passage déposé avec sa session et trois séquences (`seqA/B/C_000.wav`) aux chemins
-    /// déterministes. Renvoie l'identifiant du passage et celui des séquences (cibles des
-    /// observations de référence).
-    private static Graine seeder(SourceDeDonnees source) {
+    /// Seede un passage déposé avec sa session et trois séquences (`seqA/B/C_000.wav`). Écrit pour
+    /// chaque séquence un **vrai WAV** de démonstration (cris FM, cf. [SonDemo]) sous le `workspace`
+    /// temporaire, afin que l'`AudioView` affiche un spectrogramme réel sur la séquence écoutée.
+    /// Renvoie l'identifiant du passage et celui des séquences (cibles des observations de référence).
+    private static Graine seeder(SourceDeDonnees source, Path workspace) throws IOException {
         new UtilisateurDao(source).insert(new Utilisateur(ID_UTILISATEUR, "Capitaine Chiro (demo)"));
         PassageDao passageDao = new PassageDao(source);
         SessionDao sessionDao = new SessionDao(source);
@@ -182,6 +214,8 @@ public final class CaptureBibliotheque {
         for (String base : List.of("seqA", "seqB", "seqC")) {
             EnregistrementOriginal original = originalDao.insert(new EnregistrementOriginal(
                     null, base + ".wav", RACINE_DEMO + "/bruts/" + base + ".wav", 5.0, 384000, null, session.id()));
+            Path cheminTransforme = workspace.resolve("transformes").resolve(base + "_000.wav");
+            SonDemo.ecrireCrisDemo(cheminTransforme); // vrai signal → spectrogramme réel dans AudioView
             SequenceDEcoute sequence = sequenceDao.insert(new SequenceDEcoute(
                     null,
                     base + "_000.wav",
@@ -189,7 +223,7 @@ public final class CaptureBibliotheque {
                     0,
                     0.0,
                     5.0,
-                    RACINE_DEMO + "/transformes/" + base + "_000.wav",
+                    cheminTransforme.toString(),
                     false,
                     session.id()));
             idSequences.add(sequence.id());

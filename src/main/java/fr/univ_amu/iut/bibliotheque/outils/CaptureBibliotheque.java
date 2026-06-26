@@ -152,9 +152,9 @@ public final class CaptureBibliotheque {
         Parent vue = loader.load();
         Scene scene = new Scene(vue, 1000, 620);
 
-        boolean aSelection = ligneSelectionnee >= 0
-                && vue.lookup("#tableEntrees") instanceof TableView<?> table
-                && table.getItems().size() > ligneSelectionnee;
+        TableView<?> table = vue.lookup("#tableEntrees") instanceof TableView<?> t ? t : null;
+        boolean aSelection =
+                ligneSelectionnee >= 0 && table != null && table.getItems().size() > ligneSelectionnee;
 
         if (attendreAudio && aSelection && vue.lookup("#audioView") instanceof AudioView audio) {
             // Stage montré AVANT la sélection et l'attente (boucle imbriquée) ; snapshot ensuite sans
@@ -162,9 +162,7 @@ public final class CaptureBibliotheque {
             ApercuFx.capturerApresPreparation(
                     scene,
                     () -> {
-                        ((TableView<?>) vue.lookup("#tableEntrees"))
-                                .getSelectionModel()
-                                .select(ligneSelectionnee); // déclenche le chargement audio
+                        table.getSelectionModel().select(ligneSelectionnee); // déclenche le chargement audio
                         audio.setMinHeight(340); // place pour spectrogramme + sonogramme
                         audio.setPrefHeight(340);
                         AttenteAudio.attendreChargement(audio);
@@ -172,7 +170,7 @@ public final class CaptureBibliotheque {
                     fichier);
         } else {
             if (aSelection) {
-                ((TableView<?>) vue.lookup("#tableEntrees")).getSelectionModel().select(ligneSelectionnee);
+                table.getSelectionModel().select(ligneSelectionnee);
             }
             ApercuFx.enregistrerPng(scene, fichier);
         }

@@ -512,6 +512,33 @@ class ServiceImportTest {
     }
 
     @Test
+    @DisplayName("#214 : ecraserEtImporter supprime le passage existant (cascade) puis réimporte sans doublon")
+    void ecraser_et_reimporter_supprime_en_cascade() {
+        ResultatImport premier = service.importer(sd, idPoint, prefixe);
+        Long idPassageInitial = premier.passage().id();
+        Long idSessionInitiale =
+                sessionDao.trouverParPassage(idPassageInitial).orElseThrow().id();
+        int sequencesInitiales = sequenceDao.findBySession(idSessionInitiale).size();
+        assertThat(sequencesInitiales).isPositive();
+        // Le quadruplet est pris : un import normal serait refusé (R5).
+        assertThat(service.numeroPassageDejaUtilise(idPoint, 2026, 2)).isTrue();
+        assertThat(service.compterSequencesDuPassageExistant(idPoint, 2026, 2)).isEqualTo(sequencesInitiales);
+
+        // Écrasement : supprime le passage n° 2 existant (cascade) puis réimporte la nuit.
+        ResultatImport reimport = service.ecraserEtImporter(sd, idPoint, prefixe, p -> {}, JetonAnnulation.neutre());
+
+        // Un nouveau passage a remplacé l'ancien (id différent), et il n'y a pas de doublon de la nuit.
+        assertThat(reimport.passage().id()).isNotEqualTo(idPassageInitial);
+        assertThat(reimport.passage().statutWorkflow()).isEqualTo(StatutWorkflow.TRANSFORME);
+        assertThat(service.nuitDejaImportee(SERIE, "2026-04-22")).hasSize(1);
+        // Cascade : l'ancien passage, son ancienne session et ses séquences ont bien disparu (pas d'orphelins).
+        assertThat(sessionDao.trouverParPassage(idPassageInitial)).isEmpty();
+        assertThat(sequenceDao.findBySession(idSessionInitiale)).isEmpty();
+        // Le nouveau passage a régénéré le même nombre de séquences.
+        assertThat(service.compterSequencesDuPassageExistant(idPoint, 2026, 2)).isEqualTo(sequencesInitiales);
+    }
+
+    @Test
     @DisplayName("O7 : un échec de persistance annule TOUT (rollback) : aucun enregistreur committé")
     void rollback_si_echec_de_persistance() {
         // point_id inexistant : la persistance échoue sur la contrainte FK du passage, APRÈS l'upsert

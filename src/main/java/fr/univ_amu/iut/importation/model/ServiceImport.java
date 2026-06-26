@@ -144,12 +144,26 @@ public class ServiceImport {
         Objects.requireNonNull(progres, "progres");
         Objects.requireNonNull(jeton, "jeton");
 
-        // Garde anti-import-concurrent (#54) : un seul import à la fois sur ce service singleton, quelle
-        // que soit l'IHM. On acquiert le verrou avant tout travail et on le relâche dans le finally.
+        return sousVerrouImport(dossierSource, idPoint, prefixe, progres, jeton, false);
+    }
+
+    /// Exécute un import **sous le verrou anti-concurrent** (#54) : un seul import à la fois sur ce service
+    /// singleton. Si `ecraser`, supprime d'abord le passage existant au quadruplet (cascade, #214) avant
+    /// d'importer. Partagé par [#importer] et [#ecraserEtImporter].
+    private ResultatImport sousVerrouImport(
+            Path dossierSource,
+            Long idPoint,
+            Prefixe prefixe,
+            Consumer<Progression> progres,
+            JetonAnnulation jeton,
+            boolean ecraser) {
         if (!importEnCours.compareAndSet(false, true)) {
             throw new RegleMetierException("Un import est déjà en cours : attendez sa fin avant d'en lancer un autre.");
         }
         try {
+            if (ecraser) {
+                agregatDao.supprimerPassageAuQuadruplet(idPoint, prefixe.annee(), prefixe.numeroPassage());
+            }
             return executerImportProtege(dossierSource, idPoint, prefixe, progres, jeton);
         } finally {
             importEnCours.set(false);
@@ -183,6 +197,28 @@ public class ServiceImport {
             return List.of();
         }
         return agregatDao.passagesDeLaNuit(numeroSerie, dateNuit);
+    }
+
+    /// Nombre de séquences du passage existant à ce quadruplet `(point, année, n° de passage)`, pour
+    /// rendre tangible ce qu'un **écrasement** supprimerait (#214). Zéro si aucun passage à ce quadruplet
+    /// (l'appelant — `ControleNumeroPassage` — ne sollicite ce compte que pour un quadruplet déjà avéré).
+    public int compterSequencesDuPassageExistant(Long idPoint, int annee, int numeroPassage) {
+        return agregatDao.compterSequencesDuPassage(idPoint, annee, numeroPassage);
+    }
+
+    /// **Écrase** le passage existant à ce quadruplet (suppression **destructive** en cascade : session,
+    /// originaux, séquences, journal, relevé) **puis** importe la nuit — sous le même verrou
+    /// anti-concurrent (#54) que [#importer]. À n'appeler qu'après **double confirmation** côté IHM (#214).
+    ///
+    /// @return le compte rendu de l'import qui suit l'écrasement
+    public ResultatImport ecraserEtImporter(
+            Path dossierSource, Long idPoint, Prefixe prefixe, Consumer<Progression> progres, JetonAnnulation jeton) {
+        Objects.requireNonNull(dossierSource, "dossierSource");
+        Objects.requireNonNull(idPoint, "idPoint");
+        Objects.requireNonNull(prefixe, "prefixe");
+        Objects.requireNonNull(progres, "progres");
+        Objects.requireNonNull(jeton, "jeton");
+        return sousVerrouImport(dossierSource, idPoint, prefixe, progres, jeton, true);
     }
 
     /// Corps de l'import (inspection, copie protégée R9, renommage R6/R7, transformation R10/R11,

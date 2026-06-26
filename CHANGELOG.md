@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [1.12.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.11.0...v1.12.0) (2026-06-26)
+
+
+### Features
+
+* **import:** écraser un passage en doublon, remplacement atomique ([#279](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/279)) ([#278](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/278)) ([9edf532](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/9edf5323aaca0e57528b12ae2ab2fdbf96db1968)), closes [#214](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/214) [#54](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/54) [#214](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/214) [#214](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/214) [#214](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/214) [#214](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/214) [#214](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/214)
+
 # [1.11.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.10.0...v1.11.0) (2026-06-26)
 
 

@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [1.7.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.6.0...v1.7.0) (2026-06-26)
+
+
+### Features
+
+* **dépôt:** clarifier M-Lot — flux ordonné, stepper et étape « Préparer » explicite ([#251](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/251)) ([d92391f](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/d92391fc67099f60387bba6bcd35c319e7009edd)), closes [#lblCheminDossier](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/lblCheminDossier)
+
 # [1.6.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.5.0...v1.6.0) (2026-06-26)
 
 

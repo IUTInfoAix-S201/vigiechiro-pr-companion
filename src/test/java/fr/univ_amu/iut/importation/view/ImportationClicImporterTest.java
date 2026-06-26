@@ -9,6 +9,7 @@ import fr.univ_amu.iut.commun.model.Utilisateur;
 import fr.univ_amu.iut.commun.model.dao.UtilisateurDao;
 import fr.univ_amu.iut.commun.persistence.MigrationSchema;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
+import fr.univ_amu.iut.importation.model.ServiceImport;
 import fr.univ_amu.iut.importation.viewmodel.EtatImport;
 import fr.univ_amu.iut.importation.viewmodel.ImportationViewModel;
 import fr.univ_amu.iut.sites.model.ServiceSites;
@@ -19,6 +20,8 @@ import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -64,6 +67,7 @@ class ImportationClicImporterTest {
 
     private Injector injector;
     private ImportationViewModel viewModel;
+    private ImportationController controleur;
     private Path sd;
 
     @Start
@@ -85,7 +89,8 @@ class ImportationClicImporterTest {
         FXMLLoader loader = new FXMLLoader(ImportationController.class.getResource("Importation.fxml"));
         loader.setControllerFactory(injector::getInstance);
         Parent vue = loader.load();
-        viewModel = extraireViewModel(loader.getController());
+        controleur = (ImportationController) loader.getController();
+        viewModel = extraireViewModel(controleur);
         stage.setScene(new Scene(vue, 1100, 760));
         stage.show();
 
@@ -189,6 +194,82 @@ class ImportationClicImporterTest {
                 .as("le message d'erreur doit être visible (hors zone de progression)")
                 .isTrue();
         assertThat(message.getText()).isNotEmpty();
+    }
+
+    @Test
+    @DisplayName("#214 : « Écraser et réimporter » remplace le passage existant après double confirmation")
+    void ecraser_remplace_apres_double_confirmation(FxRobot robot) {
+        importerUneFois(robot);
+        ServiceImport service = injector.getInstance(ServiceImport.class);
+        assertThat(service.nuitDejaImportee("1925492", "2026-04-22")).hasSize(1);
+
+        rendreNumeroDejaPris(robot); // re-vérifie le n° 1, désormais pris → zone « Écraser » visible
+        Button ecraser = robot.lookup("#boutonEcraser").queryButton();
+        assertThat(ecraser.isDisabled())
+                .as("Écraser actif quand le n° est pris et une nuit inspectée")
+                .isFalse();
+
+        // Double confirmation acceptée.
+        List<String> confirmations = new ArrayList<>();
+        controleur.setConfirmateur(message -> {
+            confirmations.add(message);
+            return true;
+        });
+        robot.interact(ecraser::fire);
+        assertThat(attendreEtat(EtatImport.TERMINE)).isTrue();
+
+        assertThat(confirmations)
+                .as("double confirmation avant l'écrasement destructif")
+                .hasSize(2);
+        assertThat(service.nuitDejaImportee("1925492", "2026-04-22"))
+                .as("la nuit est remplacée, pas dupliquée")
+                .hasSize(1);
+    }
+
+    @Test
+    @DisplayName("#214 : refuser la confirmation n'écrase rien (aucun import lancé)")
+    void refuser_confirmation_n_ecrase_rien(FxRobot robot) {
+        importerUneFois(robot);
+        rendreNumeroDejaPris(robot);
+
+        controleur.setConfirmateur(message -> false); // l'utilisateur annule dès le 1er message
+        robot.interact(robot.lookup("#boutonEcraser").queryButton()::fire);
+        WaitForAsyncUtils.waitForFxEvents();
+
+        // Aucun import (re)lancé : l'état n'est pas EN_COURS, et la nuit reste unique en base.
+        assertThat(viewModel.etatProperty().get()).isNotEqualTo(EtatImport.EN_COURS);
+        assertThat(injector.getInstance(ServiceImport.class).nuitDejaImportee("1925492", "2026-04-22"))
+                .hasSize(1);
+    }
+
+    /// Inspecte la carte SD, rattache au seul site/point, fixe le n° 1, puis importe jusqu'à TERMINE.
+    private void importerUneFois(FxRobot robot) {
+        robot.interact(() -> {
+            viewModel.inspection().dossierSourceProperty().set(sd);
+            viewModel.inspecter();
+            viewModel
+                    .rattachement()
+                    .siteSelectionneProperty()
+                    .set(viewModel.rattachement().sites().get(0));
+            viewModel
+                    .rattachement()
+                    .pointSelectionneProperty()
+                    .set(viewModel.rattachement().points().get(0));
+            viewModel.rattachement().numeroPassageProperty().set(1);
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        robot.interact(robot.lookup("#boutonImporter").queryButton()::fire);
+        assertThat(attendreEtat(EtatImport.TERMINE)).isTrue();
+    }
+
+    /// Force la re-vérification du pré-contrôle R5 sur le n° 1 (toggle), désormais pris après l'import :
+    /// la zone « passage déjà existant » (et son bouton « Écraser ») devient visible.
+    private void rendreNumeroDejaPris(FxRobot robot) {
+        robot.interact(() -> {
+            viewModel.rattachement().numeroPassageProperty().set(2); // libre
+            viewModel.rattachement().numeroPassageProperty().set(1); // repris
+        });
+        WaitForAsyncUtils.waitForFxEvents();
     }
 
     private boolean attendreEtat(EtatImport attendu) {

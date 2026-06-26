@@ -21,10 +21,14 @@ import java.nio.file.Path;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
@@ -113,6 +117,9 @@ public class ImportationController implements GardeQuitter, AuDepartEcran {
     private Button boutonNumeroLibre;
 
     @FXML
+    private Button boutonEcraser;
+
+    @FXML
     private Button boutonParcourir;
 
     @FXML
@@ -147,9 +154,20 @@ public class ImportationController implements GardeQuitter, AuDepartEcran {
     /// fil JavaFX (lancement + clic « Annuler ») ; le travail hors-thread reçoit le jeton en paramètre.
     private JetonAnnulation jetonCourant;
 
+    /// Confirmateur de l'écrasement destructif (#214). Par défaut une boîte de dialogue de confirmation ;
+    /// **injectable** pour les tests (la double confirmation se vérifie alors sans dialogue natif),
+    /// comme le `ConfirmateurQuitter` du Navigateur. Reçoit le message, renvoie `true` si l'utilisateur
+    /// confirme.
+    private Predicate<String> confirmateur = this::confirmerParDialogue;
+
     @Inject
     public ImportationController(ImportationViewModel viewModel) {
         this.viewModel = Objects.requireNonNull(viewModel, "viewModel");
+    }
+
+    /// Remplace le confirmateur d'écrasement (#214), pour les tests (évite la boîte de dialogue native).
+    void setConfirmateur(Predicate<String> confirmateur) {
+        this.confirmateur = Objects.requireNonNull(confirmateur, "confirmateur");
     }
 
     /// Pré-sélectionne le site `idSite` dans le rattachement (raccourci « Importer une nuit » depuis
@@ -301,6 +319,11 @@ public class ImportationController implements GardeQuitter, AuDepartEcran {
         zonePassageExistant.visibleProperty().bind(aUnDoublon);
         zonePassageExistant.managedProperty().bind(aUnDoublon);
         boutonNumeroLibre.disableProperty().bind(traitement);
+        // « Écraser et réimporter » (#214) : possible seulement si une nuit est inspectée (sinon rien à
+        // réimporter) et hors traitement. Visible dans la même zone que l'avertissement de doublon.
+        boutonEcraser
+                .disableProperty()
+                .bind(traitement.or(viewModel.inspection().inspecteProperty().not()));
         labelMessage.textProperty().bind(viewModel.messageErreurProperty());
         labelStatut
                 .textProperty()
@@ -406,6 +429,13 @@ public class ImportationController implements GardeQuitter, AuDepartEcran {
         return premier.isDirectory() || ExtracteurZip.estZip(premier.toPath());
     }
 
+    /// Signature d'une exécution d'import hors-thread : import normal ou écrasement (#214).
+    @FunctionalInterface
+    private interface ExecuteurImport {
+        ResultatImport executer(
+                ImportationViewModel.DemandeImport demande, Consumer<Progression> progres, JetonAnnulation jeton);
+    }
+
     /// « Importer cette nuit » : exécute le travail lourd sur un **virtual thread** (Java 25) pour ne
     /// pas figer le fil JavaFX, puis applique le résultat (succès ou échec) via `Platform.runLater`.
     @FXML
@@ -413,6 +443,37 @@ public class ImportationController implements GardeQuitter, AuDepartEcran {
         if (!viewModel.peutImporter().get()) {
             return;
         }
+        lancerImportHorsThread(viewModel::executerImport);
+    }
+
+    /// « Écraser et réimporter » (#214) : quand le n° de passage choisi est déjà pris, l'utilisateur peut
+    /// **remplacer** le passage existant. Destructif → **double confirmation** (choix puis suppression
+    /// définitive de N séquences) avant de supprimer (cascade) et réimporter hors-thread.
+    @FXML
+    private void ecraserEtReimporter() {
+        // Disponible seulement si le n° choisi est déjà pris (avertissement R5 non vide, #108) et une nuit
+        // est inspectée. L'avertissement sert de signal de doublon, déjà exposé à la vue.
+        if (viewModel.avertissementNumeroPassageProperty().get().isEmpty()
+                || !viewModel.inspection().estInspecte()) {
+            return;
+        }
+        if (!confirmateur.test(
+                "Le n° de passage choisi est déjà utilisé. Écraser le passage existant et le remplacer par cette"
+                        + " nuit ?")) {
+            return;
+        }
+        int sequences = viewModel.controleNumero().compterSequencesAEcraser();
+        if (!confirmateur.test("⚠ Suppression DÉFINITIVE du passage existant et de ses " + sequences
+                + " séquence(s). Action irréversible. Confirmer l'écrasement ?")) {
+            return;
+        }
+        lancerImportHorsThread(viewModel.controleNumero()::ecraserEtImporter);
+    }
+
+    /// Lance `executeur` sur un **virtual thread** (Java 25) pour ne pas figer le fil JavaFX, puis applique
+    /// le résultat (succès / annulation / échec) via `Platform.runLater`. Partagé par l'import normal et
+    /// l'écrasement (#214).
+    private void lancerImportHorsThread(ExecuteurImport executeur) {
         var demande = viewModel.preparerImport();
         viewModel.marquerEnCours();
         JetonAnnulation jeton = new JetonAnnulation();
@@ -421,7 +482,7 @@ public class ImportationController implements GardeQuitter, AuDepartEcran {
         Consumer<Progression> progres = p -> Platform.runLater(() -> viewModel.appliquerProgression(p));
         Thread.ofVirtual().name("import-vigiechiro").start(() -> {
             try {
-                ResultatImport resultatImport = viewModel.executerImport(demande, progres, jeton);
+                ResultatImport resultatImport = executeur.executer(demande, progres, jeton);
                 Platform.runLater(() -> viewModel.marquerTermine(resultatImport));
             } catch (AnnulationImportException annulation) {
                 Platform.runLater(viewModel::marquerAnnule); // annulation demandée : arrêt propre (#146)
@@ -429,6 +490,12 @@ public class ImportationController implements GardeQuitter, AuDepartEcran {
                 Platform.runLater(() -> viewModel.marquerEchec(echec.getMessage()));
             }
         });
+    }
+
+    /// Confirmation par boîte de dialogue native (défaut hors tests) : `true` si l'utilisateur clique OK.
+    private boolean confirmerParDialogue(String message) {
+        Alert alerte = new Alert(AlertType.CONFIRMATION, message, ButtonType.OK, ButtonType.CANCEL);
+        return alerte.showAndWait().filter(ButtonType.OK::equals).isPresent();
     }
 
     /// « Annuler » : demande l'arrêt de l'opération longue en cours (décompression ou import, #146). Le
@@ -443,7 +510,7 @@ public class ImportationController implements GardeQuitter, AuDepartEcran {
     /// « Utiliser ce n° » : adopte le prochain n° de passage libre proposé par le pré-contrôle R5 (#108).
     @FXML
     private void utiliserNumeroLibre() {
-        viewModel.utiliserProchainNumeroLibre();
+        viewModel.controleNumero().utiliserProchainNumeroLibre();
     }
 
     private String libelleSite(Site site) {

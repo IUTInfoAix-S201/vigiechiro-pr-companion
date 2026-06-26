@@ -1,8 +1,13 @@
 package fr.univ_amu.iut.importation.viewmodel;
 
+import fr.univ_amu.iut.importation.model.JetonAnnulation;
+import fr.univ_amu.iut.importation.model.Progression;
+import fr.univ_amu.iut.importation.model.ResultatImport;
 import fr.univ_amu.iut.importation.model.ServiceImport;
+import fr.univ_amu.iut.importation.viewmodel.ImportationViewModel.DemandeImport;
 import fr.univ_amu.iut.sites.model.PointDEcoute;
 import java.util.Objects;
+import java.util.function.Consumer;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
@@ -18,7 +23,7 @@ import javafx.beans.property.ReadOnlyStringWrapper;
 ///
 /// VM agnostique de l'IHM (règle ArchUnit `viewmodel_sans_javafx_ui`) : seul `javafx.beans` est importé,
 /// jamais `javafx.scene`. La lecture passe par le **service** (un VM ne touche jamais le DAO).
-final class ControleNumeroPassage {
+public final class ControleNumeroPassage {
 
     private final ServiceImport serviceImport;
     private final RattachementImportViewModel rattachement;
@@ -68,7 +73,7 @@ final class ControleNumeroPassage {
 
     /// Renseigne le n° de passage du rattachement avec le **prochain n° libre** proposé : corrige un
     /// doublon en un clic. Sans effet si aucun doublon n'est signalé.
-    void utiliserProchainNumeroLibre() {
+    public void utiliserProchainNumeroLibre() {
         if (dejaUtilise.get()) {
             rattachement.numeroPassageProperty().set(prochainNumeroLibre);
         }
@@ -77,6 +82,26 @@ final class ControleNumeroPassage {
     /// `true` si le n° de passage courant est déjà pris (R5).
     boolean estDejaUtilise() {
         return dejaUtilise.get();
+    }
+
+    /// Nombre de séquences du passage existant au quadruplet courant (#214), pour rendre tangible
+    /// l'écrasement dans la confirmation. Zéro si le rattachement est incomplet ou le n° libre.
+    public int compterSequencesAEcraser() {
+        PointDEcoute point = rattachement.pointSelectionneProperty().get();
+        int numero = rattachement.numeroPassageProperty().get();
+        if (point == null || numero < 1 || !dejaUtilise.get()) {
+            return 0;
+        }
+        return serviceImport.compterSequencesDuPassageExistant(
+                point.id(), rattachement.anneeProperty().get(), numero);
+    }
+
+    /// Variante **écrasement** (#214) de l'import : supprime d'abord le passage existant au quadruplet
+    /// choisi (suppression destructive en cascade) **puis** importe la nuit. À n'appeler qu'après double
+    /// confirmation côté IHM. **Ne mute aucune Property** : sûr sur un fil d'arrière-plan.
+    public ResultatImport ecraserEtImporter(
+            DemandeImport demande, Consumer<Progression> progres, JetonAnnulation jeton) {
+        return serviceImport.ecraserEtImporter(demande.dossier(), demande.idPoint(), demande.prefixe(), progres, jeton);
     }
 
     /// Message à présenter quand l'import est bloqué (`peutImporter` faux) : l'avertissement de doublon

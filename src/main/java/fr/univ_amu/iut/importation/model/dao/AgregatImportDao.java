@@ -123,9 +123,50 @@ public class AgregatImportDao {
         return resultats;
     }
 
+    /// Nombre de séquences d'écoute du passage existant à ce quadruplet `(point, année, n° de passage)` :
+    /// affiché dans la confirmation d'écrasement (#214) pour rendre tangible ce qui sera supprimé. Zéro si
+    /// le passage n'existe pas.
+    public int compterSequencesDuPassage(Long idPoint, int annee, int numeroPassage) {
+        String sql = "SELECT COUNT(*) FROM listening_sequence ls"
+                + " JOIN recording_session rs ON rs.id = ls.session_id"
+                + " JOIN passage p ON p.id = rs.passage_id"
+                + " WHERE p.point_id = ? AND p.year = ? AND p.passage_number = ?";
+        try (Connection cx = source.getConnection();
+                PreparedStatement ps = cx.prepareStatement(sql)) {
+            ps.setObject(1, idPoint);
+            ps.setInt(2, annee);
+            ps.setInt(3, numeroPassage);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getInt(1) : 0;
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Échec du comptage des séquences du passage : " + sql, e);
+        }
+    }
+
     // ---------------------------------------------------------------------------
     // Écritures « connection-aware » (à appeler dans UniteDeTravail.executer)
     // ---------------------------------------------------------------------------
+
+    /// **Supprime** le passage existant à ce quadruplet `(point, année, n° de passage)` : opération
+    /// **destructive** de l'écrasement (#214). Grâce à `ON DELETE CASCADE` (PRAGMA `foreign_keys = ON`),
+    /// la suppression efface en cascade la session, les originaux, les séquences, le journal et le relevé.
+    ///
+    /// **Transactionnelle** : exécutée sur la connexion de l'unité de travail, dans la **même transaction**
+    /// que l'insertion du nouveau passage (#214) : le remplacement est tout-ou-rien (jamais l'ancien perdu
+    /// sans le nouveau, jamais un doublon transitoire).
+    ///
+    /// @return `true` si un passage a été supprimé, `false` si aucun n'existait à ce quadruplet
+    public boolean supprimerPassageAuQuadruplet(Connection cx, Long idPoint, int annee, int numeroPassage)
+            throws SQLException {
+        try (PreparedStatement ps =
+                cx.prepareStatement("DELETE FROM passage WHERE point_id = ? AND year = ? AND passage_number = ?")) {
+            ps.setObject(1, idPoint);
+            ps.setInt(2, annee);
+            ps.setInt(3, numeroPassage);
+            return ps.executeUpdate() > 0;
+        }
+    }
 
     /// Upsert de l'enregistreur sur sa clé naturelle `serial_number` (même patron que
     /// `EnregistreurDao`, mais sur la connexion transactionnelle). Rencontré deux fois, ses

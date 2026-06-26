@@ -298,7 +298,7 @@ class ImportationViewModelTest {
         viewModel.rattachement().numeroPassageProperty().set(2);
         assertThat(viewModel.peutImporter().get()).isFalse();
 
-        viewModel.utiliserProchainNumeroLibre();
+        viewModel.controleNumero().utiliserProchainNumeroLibre();
 
         assertThat(viewModel.rattachement().numeroPassageProperty().get()).isEqualTo(3);
         assertThat(viewModel.avertissementNumeroPassageProperty().get())

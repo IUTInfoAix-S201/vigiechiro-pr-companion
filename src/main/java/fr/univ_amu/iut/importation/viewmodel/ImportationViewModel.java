@@ -152,6 +152,13 @@ public class ImportationViewModel {
         return rattachement;
     }
 
+    /// Sous-VM de **contrôle du n° de passage** (pré-contrôle d'unicité R5 #108) : la vue y délègue la
+    /// correction en un clic (`utiliserProchainNumeroLibre`), le compte d'écrasement et l'écrasement
+    /// destructif (#214). L'orchestrateur ne re-expose plus ces opérations une à une (façade allégée).
+    public ControleNumeroPassage controleNumero() {
+        return controleNumeroPassage;
+    }
+
     /// Message d'erreur **unifié** (inspection ou exécution), vide en fonctionnement nominal.
     public ReadOnlyStringProperty messageErreurProperty() {
         return messageErreur.getReadOnlyProperty();
@@ -215,12 +222,6 @@ public class ImportationViewModel {
             reinitialiserExecution();
             rattachement.definirOriginaux(List.of());
         }
-    }
-
-    /// Renseigne le n° de passage avec le **prochain n° libre** proposé par le pré-contrôle R5 (#108) :
-    /// corrige un doublon en un clic (délégué à [ControleNumeroPassage]).
-    public void utiliserProchainNumeroLibre() {
-        controleNumeroPassage.utiliserProchainNumeroLibre();
     }
 
     /// Lance l'import de la nuit **de façon synchrone** (copie protégée R9 + renommage R6/R7 +

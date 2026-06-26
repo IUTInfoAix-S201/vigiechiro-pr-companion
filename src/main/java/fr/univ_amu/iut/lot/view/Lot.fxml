@@ -10,8 +10,12 @@
 <!--
   M-Lot - préparation et dépôt d'un passage sur Vigie-Chiro (parcours P4, épopée E4).
   Atteint depuis M-Passage via le contrat socle OuvrirLot. Pur câblage : statut, récapitulatif,
-  dossier à téléverser, alertes de cohérence (R14) et actions préparer/déposer sont liés au
-  LotViewModel par le controller. Le dépôt lui-même est manuel (aucun accès réseau).
+  stepper du dépôt et les actions (préparer / générer les archives / marquer déposé) sont liés au
+  LotViewModel par le controller.
+
+  Refonte #251 : un seul flux ORDONNÉ rendu lisible par un stepper (cohérent avec M-Passage), au lieu
+  d'un panneau « Archives » flottant après « Marquer déposé ». L'artefact réellement téléversé = les
+  archives ZIP (≤ 700 Mo) écrites dans depot/ ; le dépôt lui-même reste manuel (aucun accès réseau).
 -->
 <VBox xmlns="http://javafx.com/javafx"
       xmlns:fx="http://javafx.com/fxml"
@@ -28,9 +32,10 @@
   <VBox spacing="4.0" styleClass="panneau-lot">
     <Label text="📊 Récapitulatif du lot" styleClass="section-titre"/>
     <Label fx:id="lblRecap" styleClass="section-sous"/>
-    <Label text="Dossier à téléverser manuellement sur Vigie-Chiro (R22) :" styleClass="section-sous"/>
-    <Label fx:id="lblCheminDossier" styleClass="chemin" wrapText="true"/>
   </VBox>
+
+  <!-- Stepper du dépôt (#251) : ① Préparer · ② Générer les archives · ③ Téléverser · ④ Marquer déposé. -->
+  <HBox fx:id="stepper" styleClass="stepper" spacing="8.0"/>
 
   <VBox fx:id="zoneAlertes" spacing="4.0">
     <Label text="⚠ Cohérence à corriger avant préparation (R14)" styleClass="section-titre"/>
@@ -38,26 +43,53 @@
   </VBox>
 
   <Separator/>
-  <Label text="🚀 Étapes du dépôt" styleClass="section-titre"/>
-  <Label text="1. Préparer le lot (contrôle de cohérence) · 2. Téléverser le dossier · 3. Marquer déposé."
-         styleClass="section-sous" wrapText="true"/>
-  <HBox spacing="8.0" alignment="CENTER_LEFT">
-    <Button fx:id="btnPreparer" text="📦 Préparer le lot"
+
+  <!-- Étape 1 - Vérifier et préparer le lot -->
+  <VBox spacing="4.0" styleClass="panneau-lot">
+    <Label text="1. Vérifier et préparer le lot" styleClass="section-titre"/>
+    <Label text="Avant le dépôt, l'application vérifie que la nuit est complète et conforme."
+           styleClass="section-sous" wrapText="true"/>
+    <Label text="Elle verrouille ensuite la liste des séquences qui partiront sur Vigie-Chiro. Vos fichiers d'origine ne sont pas modifiés."
+           styleClass="section-sous" wrapText="true"/>
+    <Label text="Contrôles effectués :" styleClass="controle-intro"/>
+    <Label text="• Transformation complète : chaque enregistrement original a bien ses séquences d'écoute (R10)."
+           styleClass="controle-ligne" wrapText="true"/>
+    <Label text="• Nommage : tous les fichiers portent le préfixe du passage « Car…-Pass…-… » (R6, R7, R8)."
+           styleClass="controle-ligne" wrapText="true"/>
+    <Label text="• Journal du capteur présent (LogPR&lt;n&gt;.txt), à déposer avec les séquences."
+           styleClass="controle-ligne" wrapText="true"/>
+    <Label text="• Relevé climatique présent (recommandé, R20)."
+           styleClass="controle-ligne" wrapText="true"/>
+    <Button fx:id="btnPreparer" text="📦 Vérifier et préparer le lot"
             styleClass="action-primaire" onAction="#preparer"/>
+  </VBox>
+
+  <!-- Étape 2 - Générer les archives ZIP (le payload réellement déposé) -->
+  <VBox spacing="4.0" styleClass="panneau-lot">
+    <Label text="2. Générer les archives de dépôt" styleClass="section-titre"/>
+    <Label fx:id="lblTitreArchives" styleClass="section-sous"/>
+    <Label text="Découpe les séquences en archives ZIP « préfixe-N.zip » prêtes à téléverser, écrites dans le sous-dossier « depot/ » de la session."
+           styleClass="section-sous" wrapText="true"/>
+    <Button fx:id="btnGenererArchives" text="🗜 Générer les archives de dépôt"
+            styleClass="action-secondaire" onAction="#genererArchives"/>
+    <ListView fx:id="listeArchives" prefHeight="100.0"/>
+  </VBox>
+
+  <!-- Étape 3 - Téléverser ces archives (action manuelle, hors application) -->
+  <VBox spacing="4.0" styleClass="panneau-lot">
+    <Label text="3. Téléverser ces archives sur Vigie-Chiro" styleClass="section-titre"/>
+    <Label text="Action manuelle (hors application) : téléversez les archives ZIP ci-dessus sur Vigie-Chiro (R22). Elles se trouvent dans :"
+           styleClass="section-sous" wrapText="true"/>
+    <Label fx:id="lblCheminDepot" styleClass="chemin" wrapText="true"/>
+  </VBox>
+
+  <!-- Étape 4 - Marquer déposé -->
+  <VBox spacing="4.0" styleClass="panneau-lot">
+    <Label text="4. Marquer le passage déposé" styleClass="section-titre"/>
+    <Label text="Une fois le téléversement effectué sur Vigie-Chiro, enregistrez le dépôt."
+           styleClass="section-sous" wrapText="true"/>
     <Button fx:id="btnDeposer" text="✅ Marquer déposé"
             styleClass="action-secondaire" onAction="#deposer"/>
-  </HBox>
-
-  <Separator/>
-  <VBox spacing="4.0" styleClass="panneau-lot">
-    <Label fx:id="lblTitreArchives" styleClass="section-titre"/>
-    <Label text="Découpe les séquences en archives ZIP « préfixe-N.zip » prêtes à téléverser. Écrites dans le sous-dossier « depot/ » de la session."
-           styleClass="section-sous" wrapText="true"/>
-    <HBox spacing="8.0" alignment="CENTER_LEFT">
-      <Button fx:id="btnGenererArchives" text="🗜 Générer les archives de dépôt"
-              styleClass="action-secondaire" onAction="#genererArchives"/>
-    </HBox>
-    <ListView fx:id="listeArchives" prefHeight="100.0"/>
   </VBox>
 
   <Label fx:id="lblMessage" styleClass="message-lot" wrapText="true"/>

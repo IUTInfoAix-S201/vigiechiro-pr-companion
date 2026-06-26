@@ -27,8 +27,17 @@ public class LotViewModel {
     private final ServiceLot service;
     private Long idPassage;
 
+    /// Statut workflow du lot couramment chargé, mémorisé pour recomposer le stepper après une génération
+    /// d'archives (qui ne recharge pas l'état). `null` tant qu'aucun lot n'est ouvert.
+    private StatutWorkflow statutCourant;
+
+    private static final List<String> LIBELLES_ETAPES =
+            List.of("Préparer", "Générer les archives", "Téléverser", "Marquer déposé");
+
     private final ReadOnlyStringWrapper statut = new ReadOnlyStringWrapper(this, "statut", "");
     private final ReadOnlyStringWrapper cheminDossier = new ReadOnlyStringWrapper(this, "cheminDossier", "");
+    private final ReadOnlyStringWrapper cheminDepot = new ReadOnlyStringWrapper(this, "cheminDepot", "");
+    private final ObservableList<EtapeDepot> etapes = FXCollections.observableArrayList();
     private final ReadOnlyStringWrapper recap = new ReadOnlyStringWrapper(this, "recap", "");
     private final ObservableList<String> alertes = FXCollections.observableArrayList();
     private final ReadOnlyBooleanWrapper peutPreparer = new ReadOnlyBooleanWrapper(this, "peutPreparer", false);
@@ -88,6 +97,10 @@ public class LotViewModel {
         try {
             List<ArchiveDepot> produites = service.genererArchivesDepot(idPassage);
             archives.setAll(produites.stream().map(LotViewModel::archiveLisible).toList());
+            // Les archives générées font avancer le stepper de ② « Générer » vers ③ « Téléverser » (#251).
+            if (statutCourant != null) {
+                majEtapes(statutCourant);
+            }
             message.set(produites.size() + " archive(s) de dépôt générée(s) dans le sous-dossier « depot/ ».");
             return true;
         } catch (RuntimeException echec) {
@@ -119,8 +132,13 @@ public class LotViewModel {
     }
 
     private void appliquer(EtatLot etat) {
+        statutCourant = etat.statut();
         statut.set(etat.statut().libelle());
-        cheminDossier.set(etat.cheminDossier() == null ? "" : etat.cheminDossier());
+        String dossier = etat.cheminDossier() == null ? "" : etat.cheminDossier();
+        cheminDossier.set(dossier);
+        // Cible réelle du téléversement (#251) : le sous-dossier « depot/ » de la session, où vivent les
+        // archives ZIP, et non le dossier de session entier.
+        cheminDepot.set(dossier.isEmpty() ? "" : dossier + "/depot");
         recap.set(recapLisible(etat));
         alertes.setAll(etat.alertesBloquantes().stream().map(Alerte::message).toList());
         boolean bloque = !etat.alertesBloquantes().isEmpty();
@@ -131,7 +149,38 @@ public class LotViewModel {
         // déposer ou déjà déposé.
         peutGenererArchives.set(
                 etat.statut() == StatutWorkflow.PRET_A_DEPOSER || etat.statut() == StatutWorkflow.DEPOSE);
+        majEtapes(etat.statut());
         message.set(messageEtat(etat));
+    }
+
+    /// Recompose le stepper du dépôt (#251) selon le statut workflow et la génération d'archives. Le flux
+    /// ordonné est : ① Préparer · ② Générer les archives · ③ Téléverser · ④ Marquer déposé. L'étape
+    /// courante = la prochaine action attendue ; les précédentes sont franchies, les suivantes à venir.
+    private void majEtapes(StatutWorkflow statut) {
+        int courante = etapeCourante(statut);
+        List<EtapeDepot> nouvelles = new java.util.ArrayList<>(LIBELLES_ETAPES.size());
+        for (int i = 0; i < LIBELLES_ETAPES.size(); i++) {
+            int rang = i + 1;
+            EtatEtape etat =
+                    rang < courante ? EtatEtape.FRANCHIE : rang == courante ? EtatEtape.COURANTE : EtatEtape.A_VENIR;
+            nouvelles.add(new EtapeDepot(rang + " · " + LIBELLES_ETAPES.get(i), etat));
+        }
+        etapes.setAll(nouvelles);
+    }
+
+    /// Rang (1..4) de l'étape courante du dépôt, ou 5 quand tout est accompli (passage déposé).
+    /// L'étape ③ « Téléverser » (manuelle, hors app) ne devient courante qu'une fois des archives
+    /// générées dans cette session ; sinon l'observateur en est encore à ② « Générer les archives ».
+    private int etapeCourante(StatutWorkflow statut) {
+        if (statut == StatutWorkflow.DEPOSE) {
+            return 5;
+        }
+        if (statut == StatutWorkflow.PRET_A_DEPOSER) {
+            return archives.isEmpty() ? 2 : 3;
+        }
+        // Vérifié (préparable) ou statut antérieur : l'étape courante reste ① Préparer (une éventuelle
+        // alerte bloquante R14, signalée à part, empêche seulement de la franchir).
+        return 1;
     }
 
     private static String recapLisible(EtatLot etat) {
@@ -146,14 +195,22 @@ public class LotViewModel {
             return "Passage déposé le " + etat.deposeLe() + ".";
         }
         if (!etat.alertesBloquantes().isEmpty()) {
-            return "Cohérence : corrigez les alertes ci-dessous avant de préparer le lot.";
+            return "Cohérence (R14) : corrigez les alertes signalées avant de préparer le lot.";
+        }
+        if (etat.statut() == StatutWorkflow.PRET_A_DEPOSER) {
+            // Retour explicite de l'étape ① (#251) : ce que « Préparer » a accompli (lot validé + verrouillé).
+            return "✓ Lot préparé : " + etat.nombreSequences()
+                    + " séquence(s) validée(s) et verrouillée(s), prêtes à l'archivage.";
         }
         return "";
     }
 
     private void reinitialiser() {
+        statutCourant = null;
         statut.set("");
         cheminDossier.set("");
+        cheminDepot.set("");
+        etapes.clear();
         recap.set("");
         alertes.clear();
         peutPreparer.set(false);
@@ -169,9 +226,22 @@ public class LotViewModel {
         return statut.getReadOnlyProperty();
     }
 
-    /// Chemin du dossier de session à téléverser manuellement (R22), vide si pas de session.
+    /// Chemin du dossier de session (R22), vide si pas de session. Emplacement où vit le sous-dossier
+    /// `depot/` ; ce qu'on téléverse, ce sont les archives ZIP de [#cheminDepotProperty()].
     public ReadOnlyStringProperty cheminDossierProperty() {
         return cheminDossier.getReadOnlyProperty();
+    }
+
+    /// Chemin du sous-dossier `depot/` à téléverser sur Vigie-Chiro (#251) : c'est là que sont écrites
+    /// les archives ZIP de dépôt. Vide tant qu'aucune session n'est chargée.
+    public ReadOnlyStringProperty cheminDepotProperty() {
+        return cheminDepot.getReadOnlyProperty();
+    }
+
+    /// Étapes ordonnées du dépôt pour le stepper (#251) : ① Préparer · ② Générer les archives ·
+    /// ③ Téléverser · ④ Marquer déposé, chacune avec son état d'avancement. Vide si pas de lot ouvert.
+    public ObservableList<EtapeDepot> etapes() {
+        return etapes;
     }
 
     /// Récapitulatif du lot (`N séquences · X Mo`).

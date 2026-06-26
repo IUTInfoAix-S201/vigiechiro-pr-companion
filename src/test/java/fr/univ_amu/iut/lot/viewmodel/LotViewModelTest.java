@@ -83,6 +83,19 @@ class LotViewModelTest {
     }
 
     @Test
+    @DisplayName("#251 : une fois préparé, un message confirme ce que l'étape ① a accompli")
+    void pret_a_deposer_message_confirme_la_preparation() {
+        when(service.consulterLot(ID_PASSAGE)).thenReturn(etat(StatutWorkflow.PRET_A_DEPOSER, List.of(), null));
+
+        viewModel.ouvrirSur(ID_PASSAGE);
+
+        assertThat(viewModel.messageProperty().get())
+                .contains("Lot préparé")
+                .contains("2 séquence")
+                .contains("verrouillée");
+    }
+
+    @Test
     @DisplayName("ouvrirSur (Déposé) : affiche la date de dépôt")
     void ouvrir_depose_affiche_la_date() {
         when(service.consulterLot(ID_PASSAGE)).thenReturn(etat(StatutWorkflow.DEPOSE, List.of(), "2026-06-23T08:00"));
@@ -178,5 +191,67 @@ class LotViewModelTest {
         LotViewModel vm = new LotViewModel(service);
 
         assertThat(vm.titreArchivesProperty().get()).contains("500 Mo");
+    }
+
+    @Test
+    @DisplayName("#251 : le chemin de dépôt pointe le sous-dossier depot/ (pas la session entière)")
+    void chemin_depot_pointe_le_sous_dossier() {
+        when(service.consulterLot(ID_PASSAGE)).thenReturn(etat(StatutWorkflow.VERIFIE, List.of(), null));
+
+        viewModel.ouvrirSur(ID_PASSAGE);
+
+        assertThat(viewModel.cheminDepotProperty().get()).isEqualTo("/ws/session-42/depot");
+    }
+
+    @Test
+    @DisplayName("#251 : le stepper expose 4 étapes ordonnées, l'étape courante suit le statut")
+    void stepper_quatre_etapes_courante_selon_statut() {
+        // Vérifié : étape courante = ① Préparer.
+        when(service.consulterLot(ID_PASSAGE)).thenReturn(etat(StatutWorkflow.VERIFIE, List.of(), null));
+        viewModel.ouvrirSur(ID_PASSAGE);
+        assertThat(viewModel.etapes())
+                .extracting(EtapeDepot::libelle)
+                .containsExactly("1 · Préparer", "2 · Générer les archives", "3 · Téléverser", "4 · Marquer déposé");
+        assertThat(courante(viewModel)).isEqualTo("1 · Préparer");
+
+        // Prêt à déposer, aucune archive générée : étape courante = ② Générer les archives.
+        when(service.consulterLot(ID_PASSAGE)).thenReturn(etat(StatutWorkflow.PRET_A_DEPOSER, List.of(), null));
+        viewModel.ouvrirSur(ID_PASSAGE);
+        assertThat(courante(viewModel)).isEqualTo("2 · Générer les archives");
+    }
+
+    @Test
+    @DisplayName("#251 : générer les archives fait avancer l'étape courante à ③ Téléverser")
+    void generer_archives_avance_l_etape_a_televerser() {
+        when(service.consulterLot(ID_PASSAGE)).thenReturn(etat(StatutWorkflow.PRET_A_DEPOSER, List.of(), null));
+        when(service.genererArchivesDepot(ID_PASSAGE))
+                .thenReturn(List.of(
+                        new ArchiveDepot(Path.of("/ws/session-42/depot/Car040962-2026-Pass1-A1-1.zip"), 1, 2048L, 2)));
+        viewModel.ouvrirSur(ID_PASSAGE);
+        assertThat(courante(viewModel)).isEqualTo("2 · Générer les archives");
+
+        viewModel.genererArchives();
+
+        assertThat(courante(viewModel)).isEqualTo("3 · Téléverser");
+    }
+
+    @Test
+    @DisplayName("#251 : passage déposé → toutes les étapes franchies, aucune courante")
+    void depose_toutes_etapes_franchies() {
+        when(service.consulterLot(ID_PASSAGE)).thenReturn(etat(StatutWorkflow.DEPOSE, List.of(), "2026-06-23T08:00"));
+
+        viewModel.ouvrirSur(ID_PASSAGE);
+
+        assertThat(viewModel.etapes()).allMatch(e -> e.etat() == EtatEtape.FRANCHIE);
+        assertThat(courante(viewModel)).isNull();
+    }
+
+    /// Libellé de l'unique étape « courante » du stepper, ou `null` si aucune (tout franchi).
+    private static String courante(LotViewModel vm) {
+        return vm.etapes().stream()
+                .filter(e -> e.etat() == EtatEtape.COURANTE)
+                .map(EtapeDepot::libelle)
+                .findFirst()
+                .orElse(null);
     }
 }

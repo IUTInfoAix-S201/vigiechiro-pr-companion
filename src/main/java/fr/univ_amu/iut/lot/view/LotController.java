@@ -7,15 +7,19 @@ import fr.univ_amu.iut.commun.view.Lieu;
 import fr.univ_amu.iut.commun.view.OuvrirPassage;
 import fr.univ_amu.iut.commun.view.OuvrirSite;
 import fr.univ_amu.iut.commun.viewmodel.ContextePassage;
+import fr.univ_amu.iut.lot.viewmodel.EtapeDepot;
 import fr.univ_amu.iut.lot.viewmodel.LotViewModel;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
+import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 /// Controller de l'écran **M-Lot** (`Lot.fxml`).
@@ -41,7 +45,10 @@ public class LotController implements EmplacementNavigation {
     private Label lblRecap;
 
     @FXML
-    private Label lblCheminDossier;
+    private HBox stepper;
+
+    @FXML
+    private Label lblCheminDepot;
 
     @FXML
     private VBox zoneAlertes;
@@ -78,7 +85,12 @@ public class LotController implements EmplacementNavigation {
     private void initialize() {
         lblStatut.textProperty().bind(viewModel.statutProperty());
         lblRecap.textProperty().bind(viewModel.recapProperty());
-        lblCheminDossier.textProperty().bind(viewModel.cheminDossierProperty());
+        // Étape ③ : la cible du téléversement est le sous-dossier depot/ (archives ZIP), pas la session.
+        lblCheminDepot.textProperty().bind(viewModel.cheminDepotProperty());
+
+        // Stepper du dépôt (#251), reconstruit à chaque changement d'étapes (mêmes styles que M-Passage).
+        viewModel.etapes().addListener((ListChangeListener<EtapeDepot>) changement -> majStepper());
+        majStepper();
 
         listeAlertes.setItems(viewModel.alertes());
         // La zone d'alertes n'a de sens qu'en présence d'alertes bloquantes (R14).
@@ -101,6 +113,17 @@ public class LotController implements EmplacementNavigation {
         var messagePresent = viewModel.messageProperty().isNotEmpty();
         lblMessage.visibleProperty().bind(messagePresent);
         lblMessage.managedProperty().bind(messagePresent);
+    }
+
+    /// Reconstruit le stepper du dépôt (#251) depuis [LotViewModel#etapes()] : une puce par étape,
+    /// stylée selon son état (franchie / courante / à venir), comme le stepper de M-Passage.
+    private void majStepper() {
+        stepper.getChildren().clear();
+        for (EtapeDepot etape : viewModel.etapes()) {
+            Label puce = new Label(etape.libelle());
+            puce.getStyleClass().addAll("etape", "etape-" + etape.etat().name().toLowerCase(Locale.ROOT));
+            stepper.getChildren().add(puce);
+        }
     }
 
     /// Ouvre l'écran sur le passage `passage`. Appelée par [NavigationLot] après le chargement FXML ;

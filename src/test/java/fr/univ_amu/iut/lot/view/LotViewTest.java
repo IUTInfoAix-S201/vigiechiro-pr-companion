@@ -66,13 +66,13 @@ class LotViewTest {
     void affiche_etat_verifie(FxRobot robot) {
         Label statut = robot.lookup("#lblStatut").queryAs(Label.class);
         Label recap = robot.lookup("#lblRecap").queryAs(Label.class);
-        Label chemin = robot.lookup("#lblCheminDossier").queryAs(Label.class);
+        Label chemin = robot.lookup("#lblCheminDepot").queryAs(Label.class);
         Button preparer = robot.lookup("#btnPreparer").queryAs(Button.class);
         Button deposer = robot.lookup("#btnDeposer").queryAs(Button.class);
 
         assertThat(statut.getText()).isEqualTo("Vérifié");
         assertThat(recap.getText()).isEqualTo("2 séquences · 8 Ko");
-        assertThat(chemin.getText()).isEqualTo("/ws/session-42");
+        assertThat(chemin.getText()).isEqualTo("/ws/session-42/depot");
         assertThat(preparer.isDisabled()).isFalse();
         assertThat(deposer.isDisabled()).isTrue();
     }

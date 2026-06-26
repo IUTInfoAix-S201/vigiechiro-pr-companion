@@ -47,3 +47,45 @@
   -fx-font-size: 12px;
   -fx-text-fill: #6a737d;
 }
+
+/* ---- Étape 1 : contrôles effectués par « Préparer » (#251) ---- */
+.controle-intro {
+  -fx-font-size: 12px;
+  -fx-font-weight: bold;
+  -fx-text-fill: #34495e;
+  -fx-padding: 4 0 0 0;
+}
+
+.controle-ligne {
+  -fx-font-size: 12px;
+  -fx-text-fill: #34495e;
+  -fx-padding: 0 0 0 8;
+}
+
+/* ---- Stepper du dépôt (#251) : mêmes styles que le stepper de M-Passage ---- */
+.stepper {
+  -fx-padding: 4 0 4 0;
+}
+
+.etape {
+  -fx-font-size: 12px;
+  -fx-padding: 5 12 5 12;
+  -fx-background-radius: 14;
+  -fx-border-radius: 14;
+}
+
+.etape-franchie {
+  -fx-background-color: #d5f0de;
+  -fx-text-fill: #0e5128;
+}
+
+.etape-courante {
+  -fx-background-color: -couleur-primaire;
+  -fx-text-fill: white;
+  -fx-font-weight: bold;
+}
+
+.etape-a_venir {
+  -fx-background-color: #eef2f5;
+  -fx-text-fill: #6a737d;
+}

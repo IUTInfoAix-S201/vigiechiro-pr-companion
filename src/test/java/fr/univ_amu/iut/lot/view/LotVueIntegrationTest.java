@@ -26,6 +26,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.junit.jupiter.api.DisplayName;
@@ -80,7 +81,9 @@ class LotVueIntegrationTest {
         Parent vue = loader.load();
         controleur = loader.getController();
         controleur.ouvrirSur(CONTEXTE);
-        stage.setScene(new Scene(vue, 900, 640));
+        // Scène haute : le flux ordonné à 4 étapes (#251) dépasse 640 px ; sans cela le bouton de
+        // l'étape ④ (« Marquer déposé ») serait hors écran et non cliquable par le robot.
+        stage.setScene(new Scene(vue, 980, 980));
         stage.show();
     }
 
@@ -106,7 +109,7 @@ class LotVueIntegrationTest {
     void sans_alerte_zone_et_message_masques(FxRobot robot) {
         Label statut = robot.lookup("#lblStatut").queryAs(Label.class);
         Label recap = robot.lookup("#lblRecap").queryAs(Label.class);
-        Label chemin = robot.lookup("#lblCheminDossier").queryAs(Label.class);
+        Label chemin = robot.lookup("#lblCheminDepot").queryAs(Label.class);
         VBox zoneAlertes = robot.lookup("#zoneAlertes").queryAs(VBox.class);
         ListView<?> listeAlertes = robot.lookup("#listeAlertes").queryAs(ListView.class);
         Label message = robot.lookup("#lblMessage").queryAs(Label.class);
@@ -115,7 +118,8 @@ class LotVueIntegrationTest {
 
         assertThat(statut.getText()).isEqualTo("Vérifié");
         assertThat(recap.getText()).isEqualTo("2 séquences · 8 Ko");
-        assertThat(chemin.getText()).isEqualTo("/ws/session-42");
+        // #251 : la cible du téléversement est le sous-dossier depot/ (archives ZIP), pas la session.
+        assertThat(chemin.getText()).isEqualTo("/ws/session-42/depot");
         // R14 : pas d'alerte bloquante → la zone est repliée (ni visible, ni gérée par le layout).
         assertThat(listeAlertes.getItems()).isEmpty();
         assertThat(zoneAlertes.isVisible()).isFalse();
@@ -210,5 +214,44 @@ class LotVueIntegrationTest {
         assertThat(message.getText()).contains("déposé");
         assertThat(preparer.isDisabled()).isTrue();
         assertThat(deposer.isDisabled()).isTrue();
+    }
+
+    @Test
+    @DisplayName("#251 : stepper ordonné à 4 étapes, l'étape courante suit le statut du dépôt")
+    void stepper_ordonne_quatre_etapes_etape_courante_selon_statut(FxRobot robot) {
+        HBox stepper = robot.lookup("#stepper").queryAs(HBox.class);
+
+        // Vérifié : les 4 étapes sont présentes, dans l'ordre, et l'étape courante est ① Préparer.
+        assertThat(stepper.getChildren()).hasSize(4);
+        assertThat(stepper.getChildren())
+                .extracting(noeud -> ((Label) noeud).getText())
+                .containsExactly("1 · Préparer", "2 · Générer les archives", "3 · Téléverser", "4 · Marquer déposé");
+        assertThat(etapeCourante(stepper)).isEqualTo("1 · Préparer");
+
+        // Prêt à déposer sans archives générées : l'étape courante avance à ② Générer les archives.
+        reouvrirAvec(robot, new EtatLot(StatutWorkflow.PRET_A_DEPOSER, "/ws/session-42", 2, 8192L, List.of(), null));
+        assertThat(etapeCourante(stepper)).isEqualTo("2 · Générer les archives");
+
+        // Déposé : tout est franchi, aucune étape n'est « courante ».
+        reouvrirAvec(robot, new EtatLot(StatutWorkflow.DEPOSE, "/ws/session-42", 2, 8192L, List.of(), "2026-06-18"));
+        assertThat(stepper.getChildren())
+                .allMatch(noeud -> noeud.getStyleClass().contains("etape-franchie"));
+    }
+
+    @Test
+    @DisplayName("#251 : plus de libellé trompeur « Dossier à téléverser » ni de nœud #lblCheminDossier")
+    void plus_de_libelle_dossier_trompeur(FxRobot robot) {
+        // Le nœud du dossier de session entier a été remplacé par #lblCheminDepot (sous-dossier depot/).
+        assertThat(robot.lookup("#lblCheminDossier").tryQuery()).isEmpty();
+        assertThat(robot.lookup("#lblCheminDepot").queryAs(Label.class)).isNotNull();
+    }
+
+    /// Libellé de l'étape stylée « courante » du stepper, ou `null` si aucune (tout franchi).
+    private static String etapeCourante(HBox stepper) {
+        return stepper.getChildren().stream()
+                .filter(noeud -> noeud.getStyleClass().contains("etape-courante"))
+                .map(noeud -> ((Label) noeud).getText())
+                .findFirst()
+                .orElse(null);
     }
 }

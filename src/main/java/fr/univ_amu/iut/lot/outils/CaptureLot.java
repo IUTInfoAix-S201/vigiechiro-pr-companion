@@ -136,7 +136,9 @@ public final class CaptureLot {
         LotController controleur = loader.getController();
         // Capture hors-chrome : le fil d'Ariane n'est pas rendu ; le contexte n'a donc pas à être réel.
         controleur.ouvrirSur(new ContextePassage(idPassage, 1, new ContexteSite(NUMERO_CARRE, CODE_POINT, null)));
-        ApercuFx.enregistrerPng(new Scene(vue, 980, 600), fichier);
+        // Hauteur généreuse : le flux ordonné à 4 étapes (#251) est haut ; à l'écran il défile dans le
+        // chrome, mais la capture hors-chrome doit tout rendre sans écraser la zone d'alertes (R14).
+        ApercuFx.enregistrerPng(new Scene(vue, 980, 880), fichier);
         System.out.println("Apercu ecrit dans " + fichier.toAbsolutePath());
     }
 

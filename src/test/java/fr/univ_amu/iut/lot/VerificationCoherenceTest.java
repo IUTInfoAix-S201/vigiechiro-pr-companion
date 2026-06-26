@@ -12,6 +12,8 @@ import fr.univ_amu.iut.commun.model.Workspace;
 import fr.univ_amu.iut.commun.model.dao.UtilisateurDao;
 import fr.univ_amu.iut.commun.persistence.MigrationSchema;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
+import fr.univ_amu.iut.lot.model.ControleCoherence;
+import fr.univ_amu.iut.lot.model.StatutControle;
 import fr.univ_amu.iut.lot.model.VerificationCoherence;
 import fr.univ_amu.iut.passage.model.EnregistrementOriginal;
 import fr.univ_amu.iut.passage.model.Enregistreur;
@@ -32,6 +34,7 @@ import fr.univ_amu.iut.sites.model.Site;
 import fr.univ_amu.iut.sites.model.dao.PointDao;
 import fr.univ_amu.iut.sites.model.dao.SiteDao;
 import java.nio.file.Path;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -155,6 +158,62 @@ class VerificationCoherenceTest {
 
         assertThat(resultat.estConforme()).isTrue();
         assertThat(resultat.estBloquant()).isFalse();
+    }
+
+    @Test
+    @DisplayName("#254 : controler() rend une checklist tout en ✓ pour un passage cohérent")
+    void controler_passage_coherent_tout_ok() {
+        Passage passage = creerPassage(Verdict.OK);
+        Long idSession = creerSessionCoherente(passage.id());
+        creerReleve(idSession);
+
+        List<ControleCoherence> controles = verification.controler(passage);
+
+        // La checklist reste affichée même quand tout est satisfait : tous les contrôles en OK.
+        assertThat(controles).extracting(ControleCoherence::statut).containsOnly(StatutControle.OK);
+        assertThat(controles)
+                .extracting(ControleCoherence::libelle)
+                .contains("Verdict de vérification", "Journal du capteur");
+        assertThat(controles).noneMatch(ControleCoherence::estBloquant);
+    }
+
+    @Test
+    @DisplayName("#254 : relevé climatique absent → contrôle en ⚠ (avertissement), les autres en ✓")
+    void controler_releve_absent_est_avertissement() {
+        Passage passage = creerPassage(Verdict.OK);
+        creerSessionCoherente(passage.id()); // sans relevé climatique
+
+        List<ControleCoherence> controles = verification.controler(passage);
+
+        ControleCoherence releve = controles.stream()
+                .filter(c -> c.libelle().equals("Relevé climatique"))
+                .findFirst()
+                .orElseThrow();
+        assertThat(releve.statut()).isEqualTo(StatutControle.AVERTISSEMENT);
+        assertThat(releve.estBloquant()).isFalse();
+        // Un avertissement ne bloque pas : aucun contrôle en échec.
+        assertThat(controles).noneMatch(ControleCoherence::estBloquant);
+    }
+
+    @Test
+    @DisplayName("#254 : un contrôle en échec (journal absent) est en ✗, les autres restent dans la liste")
+    void controler_journal_absent_est_echec() {
+        Passage passage = creerPassage(Verdict.OK);
+        Long idSession = creerSession(passage.id());
+        Long idOriginal = creerOriginal(idSession, NOM_ORIGINAL);
+        creerSequence(idSession, idOriginal, PREFIXE.nommerSequence(NOM_ORIGINAL, 0), 0);
+        creerReleve(idSession); // journal volontairement absent
+
+        List<ControleCoherence> controles = verification.controler(passage);
+
+        ControleCoherence journal = controles.stream()
+                .filter(c -> c.libelle().equals("Journal du capteur"))
+                .findFirst()
+                .orElseThrow();
+        assertThat(journal.statut()).isEqualTo(StatutControle.ECHEC);
+        assertThat(journal.estBloquant()).isTrue();
+        // Les autres contrôles restent présents (checklist complète), la transformation est ✓.
+        assertThat(controles).extracting(ControleCoherence::libelle).contains("Transformation des enregistrements");
     }
 
     @Test

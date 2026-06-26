@@ -38,11 +38,6 @@
   <!-- Stepper du dépôt (#251) : ① Préparer · ② Générer les archives · ③ Téléverser · ④ Marquer déposé. -->
   <HBox fx:id="stepper" styleClass="stepper" spacing="8.0"/>
 
-  <VBox fx:id="zoneAlertes" spacing="4.0">
-    <Label text="⚠ Cohérence à corriger avant préparation (R14)" styleClass="section-titre"/>
-    <ListView fx:id="listeAlertes" prefHeight="120.0"/>
-  </VBox>
-
   <Separator/>
 
   <!-- Étape 1 - Vérifier et préparer le lot -->
@@ -52,15 +47,9 @@
            styleClass="section-sous" wrapText="true"/>
     <Label text="Elle verrouille ensuite la liste des séquences qui partiront sur Vigie-Chiro. Vos fichiers d'origine ne sont pas modifiés."
            styleClass="section-sous" wrapText="true"/>
-    <Label text="Contrôles effectués :" styleClass="controle-intro"/>
-    <Label text="• Transformation complète : chaque enregistrement original a bien ses séquences d'écoute (R10)."
-           styleClass="controle-ligne" wrapText="true"/>
-    <Label text="• Nommage : tous les fichiers portent le préfixe du passage « Car…-Pass…-… » (R6, R7, R8)."
-           styleClass="controle-ligne" wrapText="true"/>
-    <Label text="• Journal du capteur présent (LogPR&lt;n&gt;.txt), à déposer avec les séquences."
-           styleClass="controle-ligne" wrapText="true"/>
-    <Label text="• Relevé climatique présent (recommandé, R20)."
-           styleClass="controle-ligne" wrapText="true"/>
+    <Label text="Contrôles de cohérence :" styleClass="controle-intro"/>
+    <!-- Checklist vivante (#254) : une ligne ✓ / ✗ / ⚠ par contrôle, construite par le controller. -->
+    <VBox fx:id="checklist" spacing="3.0"/>
     <Button fx:id="btnPreparer" text="📦 Vérifier et préparer le lot"
             styleClass="action-primaire" onAction="#preparer"/>
   </VBox>

@@ -3,6 +3,7 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.ProgressIndicator?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
@@ -70,8 +71,12 @@
     <Label fx:id="lblTitreArchives" styleClass="section-sous"/>
     <Label text="Découpe les séquences en archives ZIP « préfixe-N.zip » prêtes à téléverser, écrites dans le sous-dossier « depot/ » de la session."
            styleClass="section-sous" wrapText="true"/>
-    <Button fx:id="btnGenererArchives" text="🗜 Générer les archives de dépôt"
-            styleClass="action-secondaire" onAction="#genererArchives"/>
+    <HBox spacing="8.0" alignment="CENTER_LEFT">
+      <Button fx:id="btnGenererArchives" text="🗜 Générer les archives de dépôt"
+              styleClass="action-secondaire" onAction="#genererArchives"/>
+      <ProgressIndicator fx:id="indicateurGeneration" prefWidth="22.0" prefHeight="22.0"
+                         visible="false" managed="false"/>
+    </HBox>
     <ListView fx:id="listeArchives" prefHeight="100.0"/>
   </VBox>
 
@@ -81,6 +86,8 @@
     <Label text="Action manuelle (hors application) : téléversez les archives ZIP ci-dessus sur Vigie-Chiro (R22). Elles se trouvent dans :"
            styleClass="section-sous" wrapText="true"/>
     <Label fx:id="lblCheminDepot" styleClass="chemin" wrapText="true"/>
+    <Button fx:id="btnOuvrirDepot" text="📂 Ouvrir le dossier"
+            styleClass="action-secondaire" onAction="#ouvrirDossierDepot"/>
   </VBox>
 
   <!-- Étape 4 - Marquer déposé -->

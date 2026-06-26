@@ -31,9 +31,6 @@ public class LotViewModel {
     /// d'archives (qui ne recharge pas l'état). `null` tant qu'aucun lot n'est ouvert.
     private StatutWorkflow statutCourant;
 
-    private static final List<String> LIBELLES_ETAPES =
-            List.of("Préparer", "Générer les archives", "Téléverser", "Marquer déposé");
-
     private final ReadOnlyStringWrapper statut = new ReadOnlyStringWrapper(this, "statut", "");
     private final ReadOnlyStringWrapper cheminDossier = new ReadOnlyStringWrapper(this, "cheminDossier", "");
     private final ReadOnlyStringWrapper cheminDepot = new ReadOnlyStringWrapper(this, "cheminDepot", "");
@@ -45,6 +42,11 @@ public class LotViewModel {
     private final ReadOnlyBooleanWrapper depose = new ReadOnlyBooleanWrapper(this, "depose", false);
     private final ReadOnlyBooleanWrapper peutGenererArchives =
             new ReadOnlyBooleanWrapper(this, "peutGenererArchives", false);
+
+    /// Génération des archives en cours (#251) : posée pendant le travail hors fil JavaFX pour afficher
+    /// un état « en cours » et désactiver le bouton (l'opération peut être longue sur une grosse nuit).
+    private final ReadOnlyBooleanWrapper generationEnCours =
+            new ReadOnlyBooleanWrapper(this, "generationEnCours", false);
     private final ObservableList<String> archives = FXCollections.observableArrayList();
     private final ReadOnlyStringWrapper titreArchives = new ReadOnlyStringWrapper(this, "titreArchives", "");
     private final ReadOnlyStringWrapper message = new ReadOnlyStringWrapper(this, "message", "");
@@ -85,28 +87,59 @@ public class LotViewModel {
         return appliquerAction(() -> service.marquerDepose(idPassage));
     }
 
-    /// Génère les **archives ZIP de dépôt** (#110) : séquences scindées en `<préfixe>-N.zip` ≤ 700 Mo
-    /// dans le sous-dossier `depot/` de la session. Publie la liste produite dans [#archives()]. Sans
-    /// passage ouvert, l'appel est ignoré ; une erreur métier est restituée dans [#messageProperty()].
+    /// Génère les **archives ZIP de dépôt** (#110) de façon **synchrone** (tests + CLI) : enchaîne
+    /// [#marquerGenerationEnCours()], [#calculerArchivesDepot()] et [#appliquerGeneration] /
+    /// [#echecGeneration]. La vue préfère le découpage ci-dessous pour exécuter le calcul **hors fil
+    /// JavaFX** (l'opération peut être longue sur une grosse nuit) sans figer l'IHM.
     ///
     /// @return `true` si au moins une archive a été générée
     public boolean genererArchives() {
         if (idPassage == null) {
             return false;
         }
+        marquerGenerationEnCours();
         try {
-            List<ArchiveDepot> produites = service.genererArchivesDepot(idPassage);
-            archives.setAll(produites.stream().map(LotViewModel::archiveLisible).toList());
-            // Les archives générées font avancer le stepper de ② « Générer » vers ③ « Téléverser » (#251).
-            if (statutCourant != null) {
-                majEtapes(statutCourant);
-            }
-            message.set(produites.size() + " archive(s) de dépôt générée(s) dans le sous-dossier « depot/ ».");
+            appliquerGeneration(calculerArchivesDepot());
             return true;
         } catch (RuntimeException echec) {
-            message.set(echec.getMessage());
+            echecGeneration(echec.getMessage());
             return false;
         }
+    }
+
+    /// Passe à l'état « génération en cours » (#251) et l'annonce : **à appeler sur le fil JavaFX**, juste
+    /// avant de lancer [#calculerArchivesDepot()] sur un fil d'arrière-plan.
+    public void marquerGenerationEnCours() {
+        generationEnCours.set(true);
+        message.set("Génération des archives de dépôt en cours…");
+    }
+
+    /// Calcule les archives ZIP de dépôt (appel service, potentiellement **long**). **Aucune** mutation de
+    /// propriété observable ici : sûr à exécuter **hors fil JavaFX**. Le résultat est appliqué ensuite par
+    /// [#appliquerGeneration] (sur le fil JavaFX). Sans passage ouvert, renvoie une liste vide.
+    public List<ArchiveDepot> calculerArchivesDepot() {
+        if (idPassage == null) {
+            return List.of();
+        }
+        return service.genererArchivesDepot(idPassage);
+    }
+
+    /// Applique le résultat d'une génération réussie (#251) : **à appeler sur le fil JavaFX**. Publie la
+    /// liste, fait avancer le stepper de ② « Générer » vers ③ « Téléverser », et lève l'état « en cours ».
+    public void appliquerGeneration(List<ArchiveDepot> produites) {
+        archives.setAll(produites.stream().map(LotViewModel::archiveLisible).toList());
+        if (statutCourant != null) {
+            majEtapes(statutCourant);
+        }
+        message.set(produites.size() + " archive(s) de dépôt générée(s) dans le sous-dossier « depot/ ».");
+        generationEnCours.set(false);
+    }
+
+    /// Restitue l'échec d'une génération (#251) : **à appeler sur le fil JavaFX**. Affiche le message et
+    /// lève l'état « en cours ».
+    public void echecGeneration(String messageErreur) {
+        message.set(messageErreur);
+        generationEnCours.set(false);
     }
 
     private static String archiveLisible(ArchiveDepot archive) {
@@ -153,34 +186,10 @@ public class LotViewModel {
         message.set(messageEtat(etat));
     }
 
-    /// Recompose le stepper du dépôt (#251) selon le statut workflow et la génération d'archives. Le flux
-    /// ordonné est : ① Préparer · ② Générer les archives · ③ Téléverser · ④ Marquer déposé. L'étape
-    /// courante = la prochaine action attendue ; les précédentes sont franchies, les suivantes à venir.
+    /// Recompose le stepper du dépôt (#251) depuis [EtapesDepot], selon le statut et la génération
+    /// d'archives. Appelé à chaque (re)chargement d'état et après une génération.
     private void majEtapes(StatutWorkflow statut) {
-        int courante = etapeCourante(statut);
-        List<EtapeDepot> nouvelles = new java.util.ArrayList<>(LIBELLES_ETAPES.size());
-        for (int i = 0; i < LIBELLES_ETAPES.size(); i++) {
-            int rang = i + 1;
-            EtatEtape etat =
-                    rang < courante ? EtatEtape.FRANCHIE : rang == courante ? EtatEtape.COURANTE : EtatEtape.A_VENIR;
-            nouvelles.add(new EtapeDepot(rang + " · " + LIBELLES_ETAPES.get(i), etat));
-        }
-        etapes.setAll(nouvelles);
-    }
-
-    /// Rang (1..4) de l'étape courante du dépôt, ou 5 quand tout est accompli (passage déposé).
-    /// L'étape ③ « Téléverser » (manuelle, hors app) ne devient courante qu'une fois des archives
-    /// générées dans cette session ; sinon l'observateur en est encore à ② « Générer les archives ».
-    private int etapeCourante(StatutWorkflow statut) {
-        if (statut == StatutWorkflow.DEPOSE) {
-            return 5;
-        }
-        if (statut == StatutWorkflow.PRET_A_DEPOSER) {
-            return archives.isEmpty() ? 2 : 3;
-        }
-        // Vérifié (préparable) ou statut antérieur : l'étape courante reste ① Préparer (une éventuelle
-        // alerte bloquante R14, signalée à part, empêche seulement de la franchir).
-        return 1;
+        etapes.setAll(EtapesDepot.calculer(statut, !archives.isEmpty()));
     }
 
     private static String recapLisible(EtatLot etat) {
@@ -217,6 +226,7 @@ public class LotViewModel {
         peutDeposer.set(false);
         depose.set(false);
         peutGenererArchives.set(false);
+        generationEnCours.set(false);
         archives.clear();
         message.set("");
     }
@@ -272,6 +282,12 @@ public class LotViewModel {
     /// `true` si les archives de dépôt peuvent être générées (lot préparé : Prêt à déposer ou Déposé).
     public ReadOnlyBooleanProperty peutGenererArchivesProperty() {
         return peutGenererArchives.getReadOnlyProperty();
+    }
+
+    /// `true` pendant la génération des archives (#251) : la vue affiche un état « en cours » et
+    /// désactive le bouton (l'opération s'exécute hors fil JavaFX et peut être longue).
+    public ReadOnlyBooleanProperty generationEnCoursProperty() {
+        return generationEnCours.getReadOnlyProperty();
     }
 
     /// Récapitulatifs lisibles des archives ZIP de dépôt produites (#110), vide tant qu'aucune génération.

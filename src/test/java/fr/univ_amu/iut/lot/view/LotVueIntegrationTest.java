@@ -14,11 +14,15 @@ import fr.univ_amu.iut.commun.model.Alerte;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.view.Lieu;
 import fr.univ_amu.iut.commun.view.NavigationDeTestModule;
+import fr.univ_amu.iut.commun.view.OuvreurDeLien;
 import fr.univ_amu.iut.commun.viewmodel.ContextePassage;
 import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
+import fr.univ_amu.iut.lot.model.ArchiveDepot;
 import fr.univ_amu.iut.lot.model.EtatLot;
 import fr.univ_amu.iut.lot.model.ServiceLot;
 import fr.univ_amu.iut.lot.viewmodel.LotViewModel;
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -61,6 +65,10 @@ class LotVueIntegrationTest {
 
     private ServiceLot service;
     private LotController controleur;
+    private LotViewModel viewModel;
+
+    /// Faux ouvreur de lien (#251) : enregistre les URI demandées, sans ouvrir de gestionnaire de fichiers.
+    private final List<String> liensOuverts = new ArrayList<>();
 
     @Start
     void start(Stage stage) throws Exception {
@@ -72,7 +80,15 @@ class LotVueIntegrationTest {
                 new AbstractModule() {
                     @Provides
                     LotViewModel viewModel() {
-                        return new LotViewModel(service);
+                        if (viewModel == null) {
+                            viewModel = new LotViewModel(service);
+                        }
+                        return viewModel;
+                    }
+
+                    @Provides
+                    OuvreurDeLien ouvreurDeLien() {
+                        return liensOuverts::add;
                     }
                 },
                 new NavigationDeTestModule());
@@ -244,6 +260,63 @@ class LotVueIntegrationTest {
         // Le nœud du dossier de session entier a été remplacé par #lblCheminDepot (sous-dossier depot/).
         assertThat(robot.lookup("#lblCheminDossier").tryQuery()).isEmpty();
         assertThat(robot.lookup("#lblCheminDepot").queryAs(Label.class)).isNotNull();
+    }
+
+    @Test
+    @DisplayName("#259 : « Ouvrir le dossier » est désactivé tant que les archives ne sont pas générées")
+    void ouvrir_dossier_desactive_tant_que_pas_genere(FxRobot robot) {
+        Button ouvrir = robot.lookup("#btnOuvrirDepot").queryAs(Button.class);
+        // État initial Vérifié : aucune archive produite → ouvrir un dossier partiel/inexistant est interdit.
+        assertThat(ouvrir.isDisabled()).isTrue();
+
+        // Même au statut Prêt à déposer, tant qu'on n'a pas généré, le bouton reste désactivé.
+        reouvrirAvec(robot, new EtatLot(StatutWorkflow.PRET_A_DEPOSER, "/ws/session-42", 2, 8192L, List.of(), null));
+        assertThat(ouvrir.isDisabled()).isTrue();
+    }
+
+    @Test
+    @DisplayName("#259 : après une génération réussie, « Ouvrir le dossier » s'active et ouvre depot/")
+    void ouvrir_dossier_depot_apres_generation(FxRobot robot) {
+        reouvrirAvec(robot, new EtatLot(StatutWorkflow.PRET_A_DEPOSER, "/ws/session-42", 2, 8192L, List.of(), null));
+        when(service.genererArchivesDepot(anyLong()))
+                .thenReturn(List.of(
+                        new ArchiveDepot(Path.of("/ws/session-42/depot/Car040962-2026-Pass1-A1-1.zip"), 1, 2048L, 2)));
+        robot.interact(() -> viewModel.genererArchives());
+
+        Button ouvrir = robot.lookup("#btnOuvrirDepot").queryAs(Button.class);
+        assertThat(ouvrir.isDisabled()).isFalse();
+        robot.clickOn("#btnOuvrirDepot");
+
+        // L'ouvreur reçoit une URI fichier pointant le sous-dossier depot/ (cible du téléversement).
+        assertThat(liensOuverts).hasSize(1);
+        assertThat(liensOuverts.get(0)).startsWith("file:").contains("/ws/session-42/depot");
+    }
+
+    @Test
+    @DisplayName("#259 : pendant la génération, « Ouvrir le dossier » et « Marquer déposé » sont désactivés")
+    void ouvrir_et_deposer_desactives_pendant_generation(FxRobot robot) {
+        reouvrirAvec(robot, new EtatLot(StatutWorkflow.PRET_A_DEPOSER, "/ws/session-42", 2, 8192L, List.of(), null));
+        Button ouvrir = robot.lookup("#btnOuvrirDepot").queryAs(Button.class);
+        Button deposer = robot.lookup("#btnDeposer").queryAs(Button.class);
+
+        // Génération en cours : on ne doit ni ouvrir un dossier en cours d'écriture, ni marquer déposé.
+        robot.interact(() -> viewModel.marquerGenerationEnCours());
+        assertThat(ouvrir.isDisabled()).isTrue();
+        assertThat(deposer.isDisabled()).isTrue();
+
+        // Fin de génération (ici un échec) : « Marquer déposé » redevient possible (statut Prêt à déposer).
+        robot.interact(() -> viewModel.echecGeneration("Interrompu."));
+        assertThat(deposer.isDisabled()).isFalse();
+    }
+
+    @Test
+    @DisplayName("#251 : l'indicateur de génération est présent mais masqué au repos")
+    void indicateur_generation_present_et_masque_au_repos(FxRobot robot) {
+        var indicateur = robot.lookup("#indicateurGeneration").queryAs(javafx.scene.control.ProgressIndicator.class);
+        assertThat(indicateur).isNotNull();
+        // Aucune génération en cours → l'indicateur n'est ni visible ni géré par le layout.
+        assertThat(indicateur.isVisible()).isFalse();
+        assertThat(indicateur.isManaged()).isFalse();
     }
 
     /// Libellé de l'étape stylée « courante » du stepper, ou `null` si aucune (tout franchi).

@@ -12,6 +12,7 @@ import com.google.inject.Injector;
 import com.google.inject.Provides;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.view.NavigationDeTestModule;
+import fr.univ_amu.iut.commun.view.OuvreurDeLien;
 import fr.univ_amu.iut.commun.viewmodel.ContextePassage;
 import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
 import fr.univ_amu.iut.lot.model.EtatLot;
@@ -49,6 +50,11 @@ class LotViewTest {
                     @Provides
                     LotViewModel viewModel() {
                         return new LotViewModel(service);
+                    }
+
+                    @Provides
+                    OuvreurDeLien ouvreurDeLien() {
+                        return url -> {};
                     }
                 },
                 new NavigationDeTestModule());

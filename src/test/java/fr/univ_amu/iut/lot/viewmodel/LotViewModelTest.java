@@ -167,6 +167,42 @@ class LotViewModelTest {
                 .contains("Car040962-2026-Pass1-A1-1.zip")
                 .contains("2 fichiers");
         assertThat(viewModel.messageProperty().get()).contains("1 archive");
+        assertThat(viewModel.generationEnCoursProperty().get()).isFalse(); // état « en cours » levé en fin
+    }
+
+    @Test
+    @DisplayName("#251 : génération hors-thread — marquer en cours puis appliquer/échec gère l'état")
+    void generation_hors_thread_gere_l_etat_en_cours() {
+        when(service.consulterLot(ID_PASSAGE)).thenReturn(etat(StatutWorkflow.PRET_A_DEPOSER, List.of(), null));
+        var archive = new ArchiveDepot(Path.of("/ws/session-42/depot/Car040962-2026-Pass1-A1-1.zip"), 1, 2048L, 2);
+        when(service.genererArchivesDepot(ID_PASSAGE)).thenReturn(List.of(archive));
+        viewModel.ouvrirSur(ID_PASSAGE);
+
+        // Étape posée sur le fil JavaFX avant le calcul hors-thread.
+        viewModel.marquerGenerationEnCours();
+        assertThat(viewModel.generationEnCoursProperty().get()).isTrue();
+        assertThat(viewModel.messageProperty().get()).contains("en cours");
+
+        // Calcul hors-thread (aucune mutation observable), puis application sur le fil JavaFX.
+        var produites = viewModel.calculerArchivesDepot();
+        viewModel.appliquerGeneration(produites);
+
+        assertThat(viewModel.generationEnCoursProperty().get()).isFalse();
+        assertThat(viewModel.archives()).hasSize(1);
+        assertThat(courante(viewModel)).isEqualTo("3 · Téléverser");
+    }
+
+    @Test
+    @DisplayName("#251 : un échec de génération hors-thread restitue le message et lève l'état en cours")
+    void echec_generation_leve_l_etat_en_cours() {
+        when(service.consulterLot(ID_PASSAGE)).thenReturn(etat(StatutWorkflow.PRET_A_DEPOSER, List.of(), null));
+        viewModel.ouvrirSur(ID_PASSAGE);
+        viewModel.marquerGenerationEnCours();
+
+        viewModel.echecGeneration("Disque plein.");
+
+        assertThat(viewModel.generationEnCoursProperty().get()).isFalse();
+        assertThat(viewModel.messageProperty().get()).isEqualTo("Disque plein.");
     }
 
     @Test

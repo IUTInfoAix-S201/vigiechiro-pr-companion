@@ -4,14 +4,17 @@ import com.google.inject.Inject;
 import fr.univ_amu.iut.commun.view.EmplacementNavigation;
 import fr.univ_amu.iut.commun.view.EmplacementPassage;
 import fr.univ_amu.iut.commun.view.Lieu;
+import fr.univ_amu.iut.commun.view.OuvreurDeLien;
 import fr.univ_amu.iut.commun.view.OuvrirPassage;
 import fr.univ_amu.iut.commun.view.OuvrirSite;
 import fr.univ_amu.iut.commun.viewmodel.ContextePassage;
 import fr.univ_amu.iut.lot.viewmodel.EtapeDepot;
 import fr.univ_amu.iut.lot.viewmodel.LotViewModel;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.collections.ListChangeListener;
@@ -19,6 +22,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
@@ -34,6 +38,10 @@ public class LotController implements EmplacementNavigation {
     private final LotViewModel viewModel;
     private final OuvrirSite ouvrirSite;
     private final OuvrirPassage ouvrirPassage;
+
+    /// Ouvre le sous-dossier `depot/` dans le gestionnaire de fichiers du système (#251) : le dépôt étant
+    /// manuel, on amène l'observateur au bon endroit. Abstrait pour rester testable (faux en tête).
+    private final OuvreurDeLien ouvreurDeLien;
 
     /// Contexte de navigation (passage + site), mémorisé pour reconstruire le fil d'Ariane du chrome.
     private ContextePassage contexte;
@@ -69,16 +77,24 @@ public class LotController implements EmplacementNavigation {
     private Button btnGenererArchives;
 
     @FXML
+    private ProgressIndicator indicateurGeneration;
+
+    @FXML
     private ListView<String> listeArchives;
+
+    @FXML
+    private Button btnOuvrirDepot;
 
     @FXML
     private Label lblMessage;
 
     @Inject
-    public LotController(LotViewModel viewModel, OuvrirSite ouvrirSite, OuvrirPassage ouvrirPassage) {
+    public LotController(
+            LotViewModel viewModel, OuvrirSite ouvrirSite, OuvrirPassage ouvrirPassage, OuvreurDeLien ouvreurDeLien) {
         this.viewModel = Objects.requireNonNull(viewModel, "viewModel");
         this.ouvrirSite = Objects.requireNonNull(ouvrirSite, "ouvrirSite");
         this.ouvrirPassage = Objects.requireNonNull(ouvrirPassage, "ouvrirPassage");
+        this.ouvreurDeLien = Objects.requireNonNull(ouvreurDeLien, "ouvreurDeLien");
     }
 
     @FXML
@@ -101,13 +117,19 @@ public class LotController implements EmplacementNavigation {
         btnPreparer.disableProperty().bind(viewModel.peutPreparerProperty().not());
         btnDeposer.disableProperty().bind(viewModel.peutDeposerProperty().not());
 
-        // Archives de dépôt (#110) : titre = plafond configuré ; bouton actif une fois le lot préparé ;
-        // la liste reflète les ZIP produits.
+        // Archives de dépôt (#110) : titre = plafond configuré ; bouton actif une fois le lot préparé et
+        // hors génération en cours ; la liste reflète les ZIP produits.
         lblTitreArchives.textProperty().bind(viewModel.titreArchivesProperty());
         btnGenererArchives
                 .disableProperty()
-                .bind(viewModel.peutGenererArchivesProperty().not());
+                .bind(viewModel.peutGenererArchivesProperty().not().or(viewModel.generationEnCoursProperty()));
+        // Indicateur d'activité (#251) : visible uniquement pendant la génération hors-thread.
+        indicateurGeneration.visibleProperty().bind(viewModel.generationEnCoursProperty());
+        indicateurGeneration.managedProperty().bind(viewModel.generationEnCoursProperty());
         listeArchives.setItems(viewModel.archives());
+
+        // Étape ③ : ouvrir le dossier depot/ dès qu'une session est chargée (chemin non vide).
+        btnOuvrirDepot.disableProperty().bind(viewModel.cheminDepotProperty().isEmpty());
 
         lblMessage.textProperty().bind(viewModel.messageProperty());
         var messagePresent = viewModel.messageProperty().isNotEmpty();
@@ -150,8 +172,29 @@ public class LotController implements EmplacementNavigation {
         viewModel.deposer();
     }
 
+    /// Lance la génération des archives **hors fil JavaFX** (#251) : l'opération peut être longue sur une
+    /// grosse nuit, on ne fige pas l'IHM. L'état « en cours » est posé sur le fil JavaFX, le calcul tourne
+    /// sur un fil virtuel, puis le résultat (succès ou échec) est appliqué via `Platform.runLater`.
     @FXML
     private void genererArchives() {
-        viewModel.genererArchives();
+        viewModel.marquerGenerationEnCours();
+        Thread.ofVirtual().name("archives-depot-vigiechiro").start(() -> {
+            try {
+                var produites = viewModel.calculerArchivesDepot();
+                Platform.runLater(() -> viewModel.appliquerGeneration(produites));
+            } catch (RuntimeException echec) {
+                Platform.runLater(() -> viewModel.echecGeneration(echec.getMessage()));
+            }
+        });
+    }
+
+    /// Ouvre le sous-dossier `depot/` dans le gestionnaire de fichiers du système (#251), pour aider au
+    /// téléversement manuel (étape ③). Sans chemin, le bouton est désactivé ; l'ouverture ne lève jamais.
+    @FXML
+    private void ouvrirDossierDepot() {
+        String chemin = viewModel.cheminDepotProperty().get();
+        if (chemin != null && !chemin.isBlank()) {
+            ouvreurDeLien.ouvrir(Path.of(chemin).toUri().toString());
+        }
     }
 }

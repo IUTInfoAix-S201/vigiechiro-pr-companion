@@ -14,11 +14,13 @@ import fr.univ_amu.iut.commun.model.Alerte;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.view.Lieu;
 import fr.univ_amu.iut.commun.view.NavigationDeTestModule;
+import fr.univ_amu.iut.commun.view.OuvreurDeLien;
 import fr.univ_amu.iut.commun.viewmodel.ContextePassage;
 import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
 import fr.univ_amu.iut.lot.model.EtatLot;
 import fr.univ_amu.iut.lot.model.ServiceLot;
 import fr.univ_amu.iut.lot.viewmodel.LotViewModel;
+import java.util.ArrayList;
 import java.util.List;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -62,6 +64,9 @@ class LotVueIntegrationTest {
     private ServiceLot service;
     private LotController controleur;
 
+    /// Faux ouvreur de lien (#251) : enregistre les URI demandées, sans ouvrir de gestionnaire de fichiers.
+    private final List<String> liensOuverts = new ArrayList<>();
+
     @Start
     void start(Stage stage) throws Exception {
         service = mock(ServiceLot.class);
@@ -73,6 +78,11 @@ class LotVueIntegrationTest {
                     @Provides
                     LotViewModel viewModel() {
                         return new LotViewModel(service);
+                    }
+
+                    @Provides
+                    OuvreurDeLien ouvreurDeLien() {
+                        return liensOuverts::add;
                     }
                 },
                 new NavigationDeTestModule());
@@ -244,6 +254,29 @@ class LotVueIntegrationTest {
         // Le nœud du dossier de session entier a été remplacé par #lblCheminDepot (sous-dossier depot/).
         assertThat(robot.lookup("#lblCheminDossier").tryQuery()).isEmpty();
         assertThat(robot.lookup("#lblCheminDepot").queryAs(Label.class)).isNotNull();
+    }
+
+    @Test
+    @DisplayName("#251 : « Ouvrir le dossier » ouvre le sous-dossier depot/ via l'ouvreur de lien")
+    void ouvrir_dossier_depot_appelle_l_ouvreur(FxRobot robot) {
+        Button ouvrir = robot.lookup("#btnOuvrirDepot").queryAs(Button.class);
+        assertThat(ouvrir.isDisabled()).isFalse(); // une session est chargée
+
+        robot.clickOn("#btnOuvrirDepot");
+
+        // L'ouvreur reçoit une URI fichier pointant le sous-dossier depot/ (cible du téléversement).
+        assertThat(liensOuverts).hasSize(1);
+        assertThat(liensOuverts.get(0)).startsWith("file:").contains("/ws/session-42/depot");
+    }
+
+    @Test
+    @DisplayName("#251 : l'indicateur de génération est présent mais masqué au repos")
+    void indicateur_generation_present_et_masque_au_repos(FxRobot robot) {
+        var indicateur = robot.lookup("#indicateurGeneration").queryAs(javafx.scene.control.ProgressIndicator.class);
+        assertThat(indicateur).isNotNull();
+        // Aucune génération en cours → l'indicateur n'est ni visible ni géré par le layout.
+        assertThat(indicateur.isVisible()).isFalse();
+        assertThat(indicateur.isManaged()).isFalse();
     }
 
     /// Libellé de l'étape stylée « courante » du stepper, ou `null` si aucune (tout franchi).

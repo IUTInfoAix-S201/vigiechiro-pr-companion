@@ -170,7 +170,7 @@ class DiagnosticVueIntegrationTest {
 
         assertThat(alerteR20.isVisible()).isTrue();
         assertThat(alerteR20.isManaged()).isTrue();
-        assertThat(resume.getText()).isEqualTo("Relevé climatique absent (R20)");
+        assertThat(resume.getText()).isEqualTo("Relevé climatique absent");
         // Le ListChangeListener a reconstruit le graphe : deux séries, mais sans aucun point.
         assertThat(graphe.getData()).hasSize(2);
         assertThat(graphe.getData().get(0).getData()).isEmpty();

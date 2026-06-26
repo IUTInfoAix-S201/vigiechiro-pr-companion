@@ -330,7 +330,7 @@ class ServiceImportTest {
         // (ici c'est R5 — doublon du même quadruplet — qui le refuse, preuve que la garde a libéré).
         assertThatThrownBy(() -> service.importer(sd, idPoint, prefixe))
                 .isInstanceOf(RegleMetierException.class)
-                .hasMessageContaining("R5");
+                .hasMessageContaining("existe déjà");
     }
 
     @Test
@@ -465,7 +465,7 @@ class ServiceImportTest {
 
         assertThatThrownBy(() -> service.importer(sd, idPoint, prefixe))
                 .isInstanceOf(RegleMetierException.class)
-                .hasMessageContaining("R5");
+                .hasMessageContaining("existe déjà");
     }
 
     @Test

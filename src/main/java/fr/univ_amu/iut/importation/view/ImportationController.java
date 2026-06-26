@@ -213,7 +213,7 @@ public class ImportationController implements GardeQuitter {
                 .bind(Bindings.createStringBinding(
                         () -> inspection.aUnReleveClimatiqueProperty().get()
                                 ? "✓ Relevé climatique détecté"
-                                : "⚠ Relevé climatique absent (R20)",
+                                : "⚠ Relevé climatique absent",
                         inspection.aUnReleveClimatiqueProperty()));
         labelOriginaux
                 .textProperty()

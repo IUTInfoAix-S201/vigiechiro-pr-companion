@@ -67,7 +67,7 @@ public class TransformationAudio {
                     + frequenceSource
                     + " Hz non divisible par "
                     + FACTEUR_EXPANSION
-                    + " (R10) : "
+                    + " : "
                     + originalWav.getFileName());
         }
         int frequenceSortie = frequenceSource / FACTEUR_EXPANSION;

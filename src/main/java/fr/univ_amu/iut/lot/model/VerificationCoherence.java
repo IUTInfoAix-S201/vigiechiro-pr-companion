@@ -128,7 +128,7 @@ public class VerificationCoherence {
             return new ControleCoherence(
                     "Verdict de vérification",
                     StatutControle.ECHEC,
-                    "R14 : ce passage porte le verdict « À jeter » et ne peut pas être inclus dans un lot prêt à"
+                    "Ce passage porte le verdict « À jeter » et ne peut pas être inclus dans un lot prêt à"
                             + " déposer.");
         }
         return new ControleCoherence(
@@ -143,7 +143,7 @@ public class VerificationCoherence {
             return new ControleCoherence(
                     libelle,
                     StatutControle.ECHEC,
-                    "Aucune séquence d'écoute : la transformation des enregistrements originaux (R10) n'a pas été"
+                    "Aucune séquence d'écoute : la transformation des enregistrements originaux n'a pas été"
                             + " effectuée.");
         }
         Set<Long> originauxTransformes = sequences.stream()
@@ -158,7 +158,7 @@ public class VerificationCoherence {
                     StatutControle.ECHEC,
                     nonTransformes
                             + " enregistrement(s) original(aux) n'ont pas encore été transformé(s) en séquences"
-                            + " d'écoute (R10).");
+                            + " d'écoute.");
         }
         return new ControleCoherence(
                 libelle, StatutControle.OK, "Chaque enregistrement original a ses séquences d'écoute.");
@@ -189,8 +189,7 @@ public class VerificationCoherence {
             return new ControleCoherence(
                     libelle,
                     StatutControle.ECHEC,
-                    "Préfixe « " + prefixe + " » manquant ou non conforme sur " + nonConformes
-                            + " fichier(s) (R6, R7, R8).");
+                    "Préfixe « " + prefixe + " » manquant ou non conforme sur " + nonConformes + " fichier(s).");
         }
         return new ControleCoherence(
                 libelle, StatutControle.OK, "Tous les fichiers portent le préfixe « " + prefixe + " ».");
@@ -213,7 +212,7 @@ public class VerificationCoherence {
             return new ControleCoherence(
                     "Relevé climatique",
                     StatutControle.AVERTISSEMENT,
-                    "Relevé climatique absent (R20) : sonde non installée ou défaillante. Le dépôt reste possible.");
+                    "Relevé climatique absent : sonde non installée ou défaillante. Le dépôt reste possible.");
         }
         return new ControleCoherence("Relevé climatique", StatutControle.OK, "Présent.");
     }

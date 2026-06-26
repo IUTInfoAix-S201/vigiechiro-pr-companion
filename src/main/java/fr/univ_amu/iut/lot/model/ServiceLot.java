@@ -195,7 +195,7 @@ public class ServiceLot {
 
     private static void exigerNonAJeter(Passage passage) {
         if (passage.verdictVerification() == Verdict.A_JETER) {
-            throw new RegleMetierException("R14 : le passage n°"
+            throw new RegleMetierException("Le passage n°"
                     + passage.numeroPassage()
                     + " ("
                     + passage.annee()

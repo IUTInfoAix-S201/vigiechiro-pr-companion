@@ -170,7 +170,7 @@ public final class CaptureImport {
                 new LigneRapport(
                         "PaRecPR1925492_20260422_211500.wav",
                         StatutImportFichier.REJETE,
-                        "Fréquence source 44100 Hz non divisible par 10 (R10)"),
+                        "Fréquence source 44100 Hz non divisible par 10"),
                 new LigneRapport("notes-terrain.txt", StatutImportFichier.IGNORE, "fichier non pertinent")));
         vm.marquerTermine(new ResultatImport(null, null, "1925492", 1, 3, List.of(), rapport));
         rendre(scene, sortie.resolve("apercu-import-rejets.png"));

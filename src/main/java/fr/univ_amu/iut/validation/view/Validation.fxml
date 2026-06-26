@@ -59,7 +59,7 @@
       <Label text="✍ Revue" styleClass="section-titre"/>
       <Label text="Valider retient la proposition Tadarida ; corriger retient un autre taxon."
              styleClass="section-sous" wrapText="true"/>
-      <Label text="Mode de revue (R18) : en inventaire, valider une espèce propage aux autres détections."
+      <Label text="Mode de revue : en inventaire, valider une espèce propage aux autres détections."
              styleClass="section-sous" wrapText="true"/>
       <ComboBox fx:id="choixMode"/>
       <HBox spacing="8.0" alignment="CENTER_LEFT">
@@ -72,7 +72,7 @@
 
       <Separator/>
       <Label text="📤 Export" styleClass="section-titre"/>
-      <CheckBox fx:id="chkInclureMode" text="Inclure le mode de validation (R24)"/>
+      <CheckBox fx:id="chkInclureMode" text="Inclure le mode de validation"/>
       <HBox spacing="8.0" alignment="CENTER_LEFT">
         <Button fx:id="btnExporter" text="📤 Exporter _Vu…" onAction="#exporter"/>
       </HBox>

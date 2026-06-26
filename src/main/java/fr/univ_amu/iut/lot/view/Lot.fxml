@@ -72,7 +72,7 @@
   <!-- Étape 3 - Téléverser ces archives (action manuelle, hors application) -->
   <VBox spacing="4.0" styleClass="panneau-lot">
     <Label text="3. Téléverser ces archives sur Vigie-Chiro" styleClass="section-titre"/>
-    <Label text="Action manuelle (hors application) : téléversez les archives ZIP ci-dessus sur Vigie-Chiro (R22). Elles se trouvent dans :"
+    <Label text="Action manuelle (hors application) : téléversez les archives ZIP ci-dessus sur Vigie-Chiro. Elles se trouvent dans :"
            styleClass="section-sous" wrapText="true"/>
     <Label fx:id="lblCheminDepot" styleClass="chemin" wrapText="true"/>
     <Button fx:id="btnOuvrirDepot" text="📂 Ouvrir le dossier"

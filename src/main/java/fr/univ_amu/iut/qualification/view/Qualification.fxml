@@ -95,7 +95,7 @@
           <HBox spacing="10.0" alignment="CENTER_LEFT">
             <Label fx:id="lblProgression" styleClass="progression-texte"/>
             <Region HBox.hgrow="ALWAYS"/>
-            <Label text="R13 : aucun seuil d'écoute obligatoire" styleClass="progression-hint"/>
+            <Label text="Aucun seuil d'écoute obligatoire" styleClass="progression-hint"/>
           </HBox>
         </VBox>
 
@@ -137,7 +137,7 @@
                     onAction="#choisirAJeter" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
           </HBox>
           <Label fx:id="lblApercuR14" styleClass="apercu-r14" wrapText="true"
-                 text="⚠ « À jeter » exclura ce passage du prochain lot prêt à déposer (R14)."/>
+                 text="⚠ « À jeter » exclura ce passage du prochain lot prêt à déposer."/>
         </VBox>
 
         <VBox spacing="4.0">

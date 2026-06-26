@@ -26,7 +26,7 @@
   </VBox>
 
   <Label fx:id="lblReleveAbsent" styleClass="alerte-r20" wrapText="true"
-         text="⚠ Relevé climatique absent : la température et l'hygrométrie ne sont pas disponibles pour cette nuit (R20)."/>
+         text="⚠ Relevé climatique absent : la température et l'hygrométrie ne sont pas disponibles pour cette nuit."/>
 
   <Label fx:id="lblResumeClimat" styleClass="section-sous"/>
   <!-- Température en début de nuit (#106) : donnée optionnelle saisie dans M-Passage. -->
@@ -42,7 +42,7 @@
 
   <HBox spacing="14.0" VBox.vgrow="ALWAYS">
     <VBox spacing="4.0" HBox.hgrow="ALWAYS">
-      <Label text="⚠ Anomalies (R19)" styleClass="section-titre"/>
+      <Label text="⚠ Anomalies" styleClass="section-titre"/>
       <ListView fx:id="listeAnomalies" VBox.vgrow="ALWAYS"/>
     </VBox>
     <VBox spacing="4.0" HBox.hgrow="ALWAYS">

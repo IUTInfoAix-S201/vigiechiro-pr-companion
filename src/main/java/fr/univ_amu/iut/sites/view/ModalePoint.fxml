@@ -29,7 +29,7 @@
   <HBox spacing="10.0" alignment="CENTER_LEFT">
     <Label text="Code du point *" styleClass="field-label"/>
     <TextField fx:id="champCode" promptText="A1" prefWidth="110.0"/>
-    <Label text="1 lettre majuscule + 1 chiffre (ex. A1) - règle R2" styleClass="field-hint"/>
+    <Label text="1 lettre majuscule + 1 chiffre (ex. A1)" styleClass="field-hint"/>
   </HBox>
   <Label fx:id="messageErreur" styleClass="message-erreur" wrapText="true"/>
 

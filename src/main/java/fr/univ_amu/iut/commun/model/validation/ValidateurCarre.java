@@ -24,7 +24,7 @@ public final class ValidateurCarre {
     public static String exigerValide(String carre) {
         if (!estValide(carre)) {
             throw new IllegalArgumentException(
-                    "Numéro de carré invalide (R1 : 6 chiffres, zéro de tête obligatoire) : " + carre);
+                    "Numéro de carré invalide (6 chiffres, zéro de tête obligatoire) : " + carre);
         }
         return carre;
     }

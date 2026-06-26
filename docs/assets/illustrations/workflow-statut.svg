@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 132" role="img"
+     aria-label="Statut d'un passage : Importé, Transformé, Vérifié, Prêt à déposer, Déposé ; une fois déposé, la Validation Tadarida se déverrouille.">
+  <defs>
+    <marker id="ah2" markerWidth="8" markerHeight="8" refX="6.5" refY="3" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0,0 L6.5,3 L0,6 Z" fill="#7f8c8d"/>
+    </marker>
+    <style>
+      .lbl { font-family:'Segoe UI',Helvetica,Arial,sans-serif; font-weight:600; font-size:14px; fill:#ffffff; }
+      .edge { stroke:#7f8c8d; stroke-width:2.2; fill:none; marker-end:url(#ah2); }
+      .edged { stroke:#7f8c8d; stroke-width:2.2; fill:none; stroke-dasharray:2 4; marker-end:url(#ah2); }
+      .note { font-family:'Segoe UI',Helvetica,Arial,sans-serif; font-size:10.5px; fill:#7f8c8d; }
+    </style>
+  </defs>
+
+  <line class="edge"  x1="98"  y1="73" x2="134" y2="73"/>
+  <line class="edge"  x1="250" y1="73" x2="286" y2="73"/>
+  <line class="edge"  x1="380" y1="73" x2="416" y2="73"/>
+  <line class="edge"  x1="554" y1="73" x2="590" y2="73"/>
+  <line class="edged" x1="682" y1="73" x2="758" y2="73"/>
+
+  <text class="note" x="720" y="62" text-anchor="middle">déverrouille</text>
+
+  <rect x="10"  y="50" width="86"  height="46" rx="11" fill="#2874a6"/>
+  <text class="lbl" x="53"  y="78" text-anchor="middle">Importé</text>
+
+  <rect x="138" y="50" width="110" height="46" rx="11" fill="#2874a6"/>
+  <text class="lbl" x="193" y="78" text-anchor="middle">Transformé</text>
+
+  <rect x="290" y="50" width="88"  height="46" rx="11" fill="#2874a6"/>
+  <text class="lbl" x="334" y="78" text-anchor="middle">Vérifié</text>
+
+  <rect x="420" y="50" width="132" height="46" rx="11" fill="#2874a6"/>
+  <text class="lbl" x="486" y="78" text-anchor="middle">Prêt à déposer</text>
+
+  <rect x="594" y="50" width="86"  height="46" rx="11" fill="#2874a6"/>
+  <text class="lbl" x="637" y="78" text-anchor="middle">Déposé</text>
+
+  <rect x="760" y="50" width="150" height="46" rx="11" fill="#935116"/>
+  <text class="lbl" x="835" y="78" text-anchor="middle">Validation Tadarida</text>
+</svg>

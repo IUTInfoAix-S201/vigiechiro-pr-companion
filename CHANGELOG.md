@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [1.8.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.7.0...v1.8.0) (2026-06-26)
+
+
+### Features
+
+* **chrome:** barre de défilement centrale quand l'écran dépasse la hauteur ([#256](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/256)) ([074ebb3](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/074ebb3358f3cdddd644bd615fb07de7ed1035d5))
+
 # [1.7.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.6.0...v1.7.0) (2026-06-26)
 
 

@@ -443,10 +443,12 @@ public class ImportationController implements GardeQuitter, AuDepartEcran {
         if (!viewModel.peutImporter().get()) {
             return;
         }
-        // #214/#147 : si cette nuit a déjà été importée (avertissement non vide, possiblement à un autre
-        // point/n°), on demande une confirmation explicite avant de créer un nouveau passage (« importer
-        // quand même »), plutôt que de procéder en silence. L'écrasement d'un passage au quadruplet choisi
-        // reste une action distincte (bouton « Écraser et réimporter », #279).
+        // #214/#147 : si cette nuit a déjà été importée (possiblement à un autre point/n°), on demande une
+        // confirmation explicite avant de créer un nouveau passage (« importer quand même »), plutôt que de
+        // procéder en silence. La détection est **rafraîchie ici** : la base a pu changer depuis
+        // l'inspection (un import précédent vient d'aboutir), sinon réimporter la même nuit sur un n° libre
+        // passerait sans confirmation. L'écrasement d'un passage au quadruplet choisi reste distinct (#279).
+        viewModel.inspection().rafraichirNuitExistante();
         if (!confirmations.confirmerImportNuitDejaImportee(
                 viewModel.inspection().avertissementNuitExistanteProperty().get())) {
             return;

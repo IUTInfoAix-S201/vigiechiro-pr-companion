@@ -248,12 +248,9 @@ class ImportationClicImporterTest {
         importerUneFois(robot); // la nuit est importée une 1re fois (n° 1)
         ServiceImport service = injector.getInstance(ServiceImport.class);
 
-        // Re-inspection : la nuit est désormais en base → l'avertissement #147 se renseigne. On vise un n°
-        // LIBRE (n° 2) pour que l'import soit possible (R5 ok) mais signalé comme nuit déjà importée.
-        preparerSecondPassageSurNumeroLibre(robot);
-        assertThat(viewModel.inspection().avertissementNuitExistanteProperty().get())
-                .as("la nuit déjà importée est signalée")
-                .isNotEmpty();
+        // Scénario réaliste : SANS réinspecter, on vise un n° LIBRE (n° 2). L'avertissement figé à la 1re
+        // inspection est encore vide ; c'est le clic « Importer » qui doit rafraîchir la détection #147.
+        viserNumeroPassageLibre(robot);
 
         // L'utilisateur refuse « importer quand même » : aucun nouveau passage n'est créé.
         List<String> confirmations = new ArrayList<>();
@@ -265,7 +262,7 @@ class ImportationClicImporterTest {
         WaitForAsyncUtils.waitForFxEvents();
 
         assertThat(confirmations)
-                .as("une confirmation explicite est demandée pour une nuit déjà importée")
+                .as("la détection est rafraîchie au clic : la nuit déjà importée déclenche la confirmation")
                 .singleElement(org.assertj.core.api.InstanceOfAssertFactories.STRING)
                 .contains("déjà été importée");
         assertThat(service.nuitDejaImportee("1925492", "2026-04-22"))
@@ -277,7 +274,7 @@ class ImportationClicImporterTest {
     @DisplayName("#214/#147 : confirmer « importer quand même » crée un nouveau passage pour la nuit")
     void nuit_deja_importee_importer_quand_meme(FxRobot robot) {
         importerUneFois(robot);
-        preparerSecondPassageSurNumeroLibre(robot);
+        viserNumeroPassageLibre(robot); // sans réinspection : la garde se rafraîchit au clic
 
         controleur.setConfirmateur(message -> true); // l'utilisateur assume le doublon
         robot.interact(robot.lookup("#boutonImporter").queryButton()::fire);
@@ -288,13 +285,11 @@ class ImportationClicImporterTest {
                 .hasSize(2);
     }
 
-    /// Re-inspecte la même nuit (désormais en base) pour renseigner l'avertissement #147, et vise un n° de
-    /// passage **libre** (n° 2) : l'import redevient possible mais signalé comme nuit déjà importée.
-    private void preparerSecondPassageSurNumeroLibre(FxRobot robot) {
-        robot.interact(() -> {
-            viewModel.inspecter();
-            viewModel.rattachement().numeroPassageProperty().set(2);
-        });
+    /// Vise un n° de passage **libre** (n° 2) **sans réinspecter** : l'import redevient possible (R5 ok) et
+    /// la détection « nuit déjà importée » doit être rafraîchie par le clic « Importer », pas par une
+    /// réinspection artificielle (sinon le test masquerait le bug de l'avertissement figé).
+    private void viserNumeroPassageLibre(FxRobot robot) {
+        robot.interact(() -> viewModel.rattachement().numeroPassageProperty().set(2));
         WaitForAsyncUtils.waitForFxEvents();
     }
 

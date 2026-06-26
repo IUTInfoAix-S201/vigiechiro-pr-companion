@@ -147,6 +147,15 @@ public class InspectionImportViewModel {
         return AvertissementNuitExistante.rediger(serie, date, existants == null ? List.of() : existants);
     }
 
+    /// Recalcule l'avertissement « nuit déjà importée » (#147) depuis la **dernière inspection**, sans
+    /// relire le disque : la base a pu changer entre-temps (un import vient d'aboutir). À appeler **au
+    /// moment de lancer un import** (#214) pour que la détection reflète l'état **courant** de la base, et
+    /// non l'instantané figé à l'inspection (sinon réimporter la même nuit sur un n° libre passerait sans
+    /// confirmation). Sans inspection courante, l'avertissement reste vide.
+    public void rafraichirNuitExistante() {
+        avertissementNuitExistante.set(rapport == null ? "" : detecterNuitExistante(rapport));
+    }
+
     /// Dossier source courant (pour assembler la demande d'import).
     public Path dossier() {
         return dossierSource.get();

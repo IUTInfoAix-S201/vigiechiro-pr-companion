@@ -148,8 +148,10 @@ public class ServiceImport {
     }
 
     /// Exécute un import **sous le verrou anti-concurrent** (#54) : un seul import à la fois sur ce service
-    /// singleton. Si `ecraser`, supprime d'abord le passage existant au quadruplet (cascade, #214) avant
-    /// d'importer. Partagé par [#importer] et [#ecraserEtImporter].
+    /// singleton. En mode `ecraser` (#214), le réimport se fait sous la protection de [RemplacementSession]
+    /// (ancienne session mise de côté, restaurée si l'import échoue) ; la suppression **en base** de
+    /// l'ancien passage est différée dans la transaction d'insertion du nouveau. Partagé par [#importer]
+    /// et [#ecraserEtImporter].
     private ResultatImport sousVerrouImport(
             Path dossierSource,
             Long idPoint,
@@ -162,9 +164,12 @@ public class ServiceImport {
         }
         try {
             if (ecraser) {
-                agregatDao.supprimerPassageAuQuadruplet(idPoint, prefixe.annee(), prefixe.numeroPassage());
+                Path dossierSession = workspace.dossierSession(prefixe.nomDossierSession());
+                return RemplacementSession.autourDe(
+                        dossierSession,
+                        () -> executerImportProtege(dossierSource, idPoint, prefixe, progres, jeton, true));
             }
-            return executerImportProtege(dossierSource, idPoint, prefixe, progres, jeton);
+            return executerImportProtege(dossierSource, idPoint, prefixe, progres, jeton, false);
         } finally {
             importEnCours.set(false);
         }
@@ -224,9 +229,16 @@ public class ServiceImport {
     /// Corps de l'import (inspection, copie protégée R9, renommage R6/R7, transformation R10/R11,
     /// persistance atomique O7), exécuté **sous le verrou anti-concurrent** posé par [#importer].
     private ResultatImport executerImportProtege(
-            Path dossierSource, Long idPoint, Prefixe prefixe, Consumer<Progression> progres, JetonAnnulation jeton) {
-        // R5 : on refuse le doublon AVANT de copier/transformer quoi que ce soit.
-        if (agregatDao.passageExistePour(idPoint, prefixe.annee(), prefixe.numeroPassage())) {
+            Path dossierSource,
+            Long idPoint,
+            Prefixe prefixe,
+            Consumer<Progression> progres,
+            JetonAnnulation jeton,
+            boolean ecraser) {
+        // R5 : on refuse le doublon AVANT de copier/transformer quoi que ce soit. En mode écrasement (#214)
+        // le doublon est au contraire attendu : on ne refuse pas, l'ancien passage sera supprimé dans la
+        // transaction d'insertion du nouveau (remplacement atomique).
+        if (!ecraser && agregatDao.passageExistePour(idPoint, prefixe.annee(), prefixe.numeroPassage())) {
             throw new RegleMetierException("Un passage n°"
                     + prefixe.numeroPassage()
                     + " existe déjà pour ce point en "
@@ -328,6 +340,11 @@ public class ServiceImport {
         // 5) Persistance atomique de l'agrégat (O7 : tout ou rien).
         long[] ids = new long[2]; // [idPassage, idSession]
         uniteDeTravail.executer(cx -> {
+            // Écrasement (#214) : on supprime l'ancien passage au quadruplet DANS la même transaction que
+            // l'insertion du nouveau, donc tout-ou-rien (ON DELETE CASCADE pour session/originaux/séquences).
+            if (ecraser) {
+                agregatDao.supprimerPassageAuQuadruplet(cx, idPoint, prefixe.annee(), prefixe.numeroPassage());
+            }
             agregatDao.upsertEnregistreur(cx, enregistreur);
             if (micro != null) {
                 agregatDao.insererMicroSiAbsent(cx, micro);

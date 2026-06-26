@@ -144,27 +144,29 @@ public class AgregatImportDao {
         }
     }
 
+    // ---------------------------------------------------------------------------
+    // Écritures « connection-aware » (à appeler dans UniteDeTravail.executer)
+    // ---------------------------------------------------------------------------
+
     /// **Supprime** le passage existant à ce quadruplet `(point, année, n° de passage)` : opération
     /// **destructive** de l'écrasement (#214). Grâce à `ON DELETE CASCADE` (PRAGMA `foreign_keys = ON`),
     /// la suppression efface en cascade la session, les originaux, les séquences, le journal et le relevé.
     ///
+    /// **Transactionnelle** : exécutée sur la connexion de l'unité de travail, dans la **même transaction**
+    /// que l'insertion du nouveau passage (#214) : le remplacement est tout-ou-rien (jamais l'ancien perdu
+    /// sans le nouveau, jamais un doublon transitoire).
+    ///
     /// @return `true` si un passage a été supprimé, `false` si aucun n'existait à ce quadruplet
-    public boolean supprimerPassageAuQuadruplet(Long idPoint, int annee, int numeroPassage) {
-        String sql = "DELETE FROM passage WHERE point_id = ? AND year = ? AND passage_number = ?";
-        try (Connection cx = source.getConnection();
-                PreparedStatement ps = cx.prepareStatement(sql)) {
+    public boolean supprimerPassageAuQuadruplet(Connection cx, Long idPoint, int annee, int numeroPassage)
+            throws SQLException {
+        try (PreparedStatement ps =
+                cx.prepareStatement("DELETE FROM passage WHERE point_id = ? AND year = ? AND passage_number = ?")) {
             ps.setObject(1, idPoint);
             ps.setInt(2, annee);
             ps.setInt(3, numeroPassage);
             return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            throw new DataAccessException("Échec de la suppression du passage à écraser : " + sql, e);
         }
     }
-
-    // ---------------------------------------------------------------------------
-    // Écritures « connection-aware » (à appeler dans UniteDeTravail.executer)
-    // ---------------------------------------------------------------------------
 
     /// Upsert de l'enregistreur sur sa clé naturelle `serial_number` (même patron que
     /// `EnregistreurDao`, mais sur la connexion transactionnelle). Rencontré deux fois, ses

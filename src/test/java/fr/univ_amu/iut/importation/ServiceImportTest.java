@@ -539,6 +539,65 @@ class ServiceImportTest {
     }
 
     @Test
+    @DisplayName("#214 : écraser avec une SD réduite n'importe QUE les WAV courants (pas de fichier fantôme)")
+    void ecraser_avec_sd_reduite_ne_resuscite_pas_les_anciens_wav() throws IOException {
+        // 1er import : la SD complète a deux originaux.
+        ResultatImport premier = service.importer(sd, idPoint, prefixe);
+        Long idSessionInitiale = sessionDao
+                .trouverParPassage(premier.passage().id())
+                .orElseThrow()
+                .id();
+        assertThat(originalDao.findBySession(idSessionInitiale)).hasSize(2);
+
+        // Nouvelle SD pour le MÊME quadruplet, mais ne contenant qu'UN des deux WAV (l'autre a disparu).
+        Path sdReduite = racine.resolve("sd-reduite");
+        Files.createDirectories(sdReduite);
+        Files.writeString(sdReduite.resolve("LogPR1925492.txt"), LOG, StandardCharsets.UTF_8);
+        ecrireWav(sdReduite.resolve("PaRecPR1925492_20260422_203922.wav"));
+
+        // Écrasement : le dossier de session déterministe est réutilisé ; sans remise au propre, le WAV
+        // fantôme du 1er import (204326) y traînerait et serait réimporté. On vérifie qu'il n'en est rien.
+        ResultatImport reimport =
+                service.ecraserEtImporter(sdReduite, idPoint, prefixe, p -> {}, JetonAnnulation.neutre());
+
+        Long idSessionReimport = sessionDao
+                .trouverParPassage(reimport.passage().id())
+                .orElseThrow()
+                .id();
+        assertThat(originalDao.findBySession(idSessionReimport))
+                .as("seul le WAV présent sur la nouvelle SD est importé, pas le fantôme de l'ancien import")
+                .hasSize(1);
+    }
+
+    @Test
+    @DisplayName("#214 : un écrasement ANNULÉ ne détruit pas l'ancien passage (remplacement atomique)")
+    void ecraser_annule_preserve_l_ancien_passage() {
+        ResultatImport premier = service.importer(sd, idPoint, prefixe);
+        Long idPassageInitial = premier.passage().id();
+        Long idSessionInitiale =
+                sessionDao.trouverParPassage(idPassageInitial).orElseThrow().id();
+        int sequencesInitiales = sequenceDao.findBySession(idSessionInitiale).size();
+        assertThat(sequencesInitiales).isPositive();
+
+        // Jeton déjà annulé : l'écrasement échoue APRÈS la mise de côté de l'ancienne session, mais AVANT
+        // la suppression en base (différée dans la transaction d'insertion). L'ancien doit survivre intact.
+        JetonAnnulation jeton = new JetonAnnulation();
+        jeton.annuler();
+        assertThatThrownBy(() -> service.ecraserEtImporter(sd, idPoint, prefixe, p -> {}, jeton))
+                .isInstanceOf(AnnulationImportException.class);
+
+        // L'ancien passage, sa session et ses séquences sont préservés (rien perdu).
+        assertThat(service.numeroPassageDejaUtilise(idPoint, 2026, 2)).isTrue();
+        assertThat(sessionDao.trouverParPassage(idPassageInitial)).isPresent();
+        assertThat(sequenceDao.findBySession(idSessionInitiale)).hasSize(sequencesInitiales);
+        // Les fichiers physiques de l'ancienne session sont restaurés (un réimport reste possible).
+        assertThat(racine.resolve("ws").resolve(prefixe.nomDossierSession()))
+                .as("l'ancienne session physique est remise en place après l'annulation")
+                .exists();
+        assertThat(service.compterSequencesDuPassageExistant(idPoint, 2026, 2)).isEqualTo(sequencesInitiales);
+    }
+
+    @Test
     @DisplayName("O7 : un échec de persistance annule TOUT (rollback) : aucun enregistreur committé")
     void rollback_si_echec_de_persistance() {
         // point_id inexistant : la persistance échoue sur la contrainte FK du passage, APRÈS l'upsert

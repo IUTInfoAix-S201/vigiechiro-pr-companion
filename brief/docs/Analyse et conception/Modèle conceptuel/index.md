@@ -12,114 +12,14 @@ L'application *VigieChiro PR Companion* organise les données autour d'un utilis
 
 Une fois les séquences d'écoute produites, l'utilisateur **vérifie l'enregistrement** par échantillonnage (sound check global). S'il est satisfait, il prépare le lot prêt à déposer et téléverse manuellement sur le portail Vigie-Chiro. Le retour de **Tadarida** (résultats d'identification) arrive ensuite, et le passage entre alors en **validation taxonomique** (espèce par espèce).
 
-```mermaid
-classDiagram
-    direction LR
-
-    class Utilisateur {
-      identifiant local
-      nom affiché
-    }
-    class SiteDeSuivi["Site de suivi"] {
-      n° carré
-      nom convivial
-      protocole
-    }
-    class PointDEcoute["Point d'écoute"] {
-      code
-      coordonnées GPS
-      descriptif
-    }
-    class Enregistreur {
-      n° de série
-      modèle / version
-    }
-    class Micro {
-      modèle / référence
-      bande passante
-      sensibilité
-    }
-    class Passage {
-      n° de passage
-      année
-      date d'enregistrement
-      heure début / fin
-      verdict de vérification
-      statut workflow
-    }
-    class SessionDEnregistrement["Session d'enregistrement"] {
-      chemin racine
-      volume total
-    }
-    class EnregistrementOriginal["Enregistrement original"] {
-      nom de fichier
-      durée
-      échantillonnage
-    }
-    class SequenceDEcoute["Séquence d'écoute"] {
-      nom de fichier
-      index
-      durée
-    }
-    class JournalDuCapteur["Journal du capteur"] {
-      chemin
-      évènements parsés
-      anomalies détectées
-    }
-    class ReleveClimatique["Relevé climatique"] {
-      chemin
-      mesures
-    }
-    class SelectionDEcoute["Sélection d'écoute"] {
-      méthode de constitution
-      taille
-    }
-    class ResultatsIdentification["Résultats d'identification"] {
-      chemin
-      format détecté
-      date d'import
-    }
-    class Observation {
-      temps début
-      temps fin
-      taxon Tadarida
-      probabilité Tadarida
-      taxon observateur
-      probabilité observateur
-    }
-    class Taxon {
-      code
-      nom latin
-      nom vernaculaire FR
-    }
-    class GroupeTaxonomique["Groupe taxonomique"] {
-      niveau
-      nom
-    }
-
-    Utilisateur "1" --> "1..*" SiteDeSuivi : possède
-    SiteDeSuivi "1" --> "1..*" PointDEcoute : contient
-    PointDEcoute "1" --> "0..*" Passage : fait l'objet de
-    Enregistreur "1" --> "1..*" Passage : a produit
-    Enregistreur "1" --> "1" Micro : porte
-    Passage "1" --> "1" SessionDEnregistrement : produit
-    SessionDEnregistrement "1" --> "1..*" EnregistrementOriginal : contient
-    SessionDEnregistrement "1" --> "1..*" SequenceDEcoute : contient
-    SessionDEnregistrement "1" --> "1" JournalDuCapteur : référence
-    SessionDEnregistrement "1" --> "0..1" ReleveClimatique : référence
-    EnregistrementOriginal "1" --> "1..*" SequenceDEcoute : découpé en
-    Passage "1" --> "0..1" SelectionDEcoute : à vérifier par
-    SelectionDEcoute "1" --> "1..*" SequenceDEcoute : porte sur
-    Passage "1" --> "0..1" ResultatsIdentification : annoté par
-    ResultatsIdentification "1" --> "1..*" Observation : agrège
-    Observation "0..*" --> "1" SequenceDEcoute : détectée dans
-    Observation "0..*" --> "1" Taxon : classée comme
-    Taxon "1..*" --> "1" GroupeTaxonomique : appartient
-```
+<figure markdown="span">
+  ![Modèle conceptuel de données (MCD Merise) de VigieChiro PR Companion](../../assets/diagrammes/modele-conceptuel.svg){ width="100%" }
+  <figcaption>MCD (méthode Merise) : entités à identifiant souligné, associations porteuses d'un verbe, cardinalités (min,max). Source <a href="../../assets/diagrammes/modele-conceptuel.mcd"><code>modele-conceptuel.mcd</code></a>, rendu avec <a href="https://www.mocodo.net/">Mocodo</a>.</figcaption>
+</figure>
 
 [🖼️ Ouvrir le diagramme dans une vue plein écran ↗](Diagramme%20-%20plein%20écran.md){ .md-button }
 
-Ce diagramme reste **conceptuel** (proche d'un MCD) plutôt qu'un diagramme de classes d'implémentation : pas de visibilité (`+`/`-`), pas de méthodes, pas de types Java. C'est le **vocabulaire métier** et la **topologie des associations** qui comptent. Vous re-spécifierez les classes Java de votre implémentation séparément, en y ajoutant typage, méthodes et héritages selon vos choix d'architecture.
+Ce diagramme est un **MCD** (modèle conceptuel de données, méthode **Merise**) : il fixe le **vocabulaire métier** et la **topologie des associations**, sans préjuger de l'implémentation. Les clés étrangères n'y figurent pas : elles sont *portées par les associations*, et les cardinalités se lisent en **(minimum, maximum)** sur chaque patte. Vous re-spécifierez les classes Java de votre implémentation séparément (typage, méthodes, héritages selon vos choix d'architecture), et sa traduction relationnelle ajoutera les clés primaires et étrangères.
 
 Le diagramme rend visible la **séparation entre deux moments du workflow** : la chaîne `Passage → Session d'enregistrement → Séquence d'écoute → Sélection d'écoute` (avant le dépôt VigieChiro, MUST du MVP), puis la chaîne `Résultats d'identification → Observation → Taxon` (après le retour Tadarida, SHOULD/cible étirable).
 

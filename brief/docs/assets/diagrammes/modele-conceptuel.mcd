@@ -1,0 +1,35 @@
+Utilisateur: identifiant local, nom affiché
+Site de suivi: n° carré, nom convivial, protocole
+Point d'écoute: code, coordonnées GPS, descriptif
+Enregistreur: n° de série, modèle / version
+Micro: réf micro, modèle / référence, bande passante, sensibilité, date de mise en service
+Passage: réf passage, n° de passage, année, date d'enregistrement, heure début / fin, verdict de vérification, statut workflow
+Session d'enregistrement: réf session, chemin racine, volume total
+Enregistrement original: réf original, nom de fichier, durée, échantillonnage
+Séquence d'écoute: réf séquence, nom de fichier, index, durée
+Journal du capteur: réf journal, chemin, évènements parsés, anomalies détectées
+Relevé climatique: réf relevé, chemin, mesures
+Sélection d'écoute: réf sélection, méthode de constitution, taille
+Résultats d'identification: réf résultats, chemin, format détecté, date d'import
+Observation: réf observation, temps début, temps fin, taxon Tadarida, probabilité Tadarida, taxon observateur, probabilité observateur
+Taxon: code, nom latin, nom vernaculaire FR
+Groupe taxonomique: réf groupe, niveau, nom
+
+Posséder, 1N Utilisateur, 11 Site de suivi
+Comporter, 1N Site de suivi, 11 Point d'écoute
+Accueillir, 0N Point d'écoute, 11 Passage
+Utiliser, 1N Enregistreur, 11 Passage
+Porter, 11 Enregistreur, 11 Micro
+Produire, 11 Passage, 11 Session d'enregistrement
+Contenir, 1N Session d'enregistrement, 11 Enregistrement original
+Comprendre, 1N Session d'enregistrement, 11 Séquence d'écoute
+Référencer, 11 Session d'enregistrement, 11 Journal du capteur
+Joindre, 01 Session d'enregistrement, 11 Relevé climatique
+Découper, 1N Enregistrement original, 11 Séquence d'écoute
+Vérifier, 01 Passage, 11 Sélection d'écoute
+Porter sur, 1N Sélection d'écoute, 11 Séquence d'écoute
+Annoter, 01 Passage, 11 Résultats d'identification
+Agréger, 1N Résultats d'identification, 11 Observation
+Détecter, 0N Séquence d'écoute, 11 Observation
+Identifier, 0N Taxon, 11 Observation
+Classer, 1N Groupe taxonomique, 11 Taxon

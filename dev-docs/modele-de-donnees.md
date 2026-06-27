@@ -113,10 +113,12 @@ Merise. Après modification de la source, régénérez le SVG :
 ```bash
 pip install mocodo                       # une fois
 cd dev-docs/assets
-mocodo -i nuit-de-capture.mcd -t arrange:wide=8   # agencement auto + dessin SVG
+mocodo -i nuit-de-capture.mcd -t arrange:wide=8 --colors ocean   # agencement auto + dessin SVG
 ```
 
-`arrange:wide=8` agence les boîtes sur ~8 colonnes (essayez `wide=6`/`7` pour un autre format). Mocodo
+`arrange:wide=8` agence les boîtes sur ~8 colonnes (essayez `wide=6`/`7` pour un autre format) et
+`--colors ocean` applique la palette (cohérente avec le thème indigo du site ; `mocodo --help` liste
+les palettes). Mocodo
 sait aussi dériver le schéma relationnel (`-t mld`/`-t sql`) à partir de la **même** source : c'est
 exactement le passage *conceptuel → physique* décrit sur cette page.
 

@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [1.15.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.14.0...v1.15.0) (2026-06-27)
+
+
+### Features
+
+* **carte:** composant réutilisable CarteSites (carrés + points) ([#152](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/152), PR 1) ([#288](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/288)) ([5f21fc3](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/5f21fc3cd857280c74500ed95d183e1b97a4de2c)), closes [#163](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/163)
+
 # [1.14.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.13.2...v1.14.0) (2026-06-26)
 
 

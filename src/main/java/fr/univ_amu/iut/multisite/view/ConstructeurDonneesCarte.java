@@ -32,8 +32,13 @@ final class ConstructeurDonneesCarte {
     /// Le remplissage du carré reflète sa **densité de passages** (plus foncé = plus de passages), relative
     /// au carré le plus actif du jeu de données.
     static DonneesCarte depuis(List<CarreAgrege> carres) {
-        int maxPassages =
-                carres.stream().mapToInt(CarreAgrege::nombrePassages).max().orElse(0);
+        // Densité normalisée sur les seuls carrés réellement **traçables** (au moins un point géolocalisé) :
+        // un carré très actif mais invisible (sans GPS) ne doit pas pâlir artificiellement ceux qu'on voit.
+        int maxPassages = carres.stream()
+                .filter(ConstructeurDonneesCarte::estTracable)
+                .mapToInt(CarreAgrege::nombrePassages)
+                .max()
+                .orElse(0);
         List<CarreGeo> carresGeo = new ArrayList<>();
         List<PointGeo> tousLesPoints = new ArrayList<>();
         for (CarreAgrege carre : carres) {
@@ -54,6 +59,12 @@ final class ConstructeurDonneesCarte {
                     .ifPresent(emprise -> carresGeo.add(new CarreGeo(carre.numeroCarre(), emprise, remplissage)));
         }
         return new DonneesCarte(carresGeo, tousLesPoints);
+    }
+
+    /// Un carré est **traçable** s'il a au moins un point géolocalisé (donc une emprise dessinable) ; sert
+    /// de base de normalisation de la densité (cf. [#depuis]).
+    private static boolean estTracable(CarreAgrege carre) {
+        return carre.points().stream().anyMatch(PointAgrege::estGeolocalise);
     }
 
     /// Remplissage indigo translucide d'un carré selon sa **densité** : opacité interpolée entre

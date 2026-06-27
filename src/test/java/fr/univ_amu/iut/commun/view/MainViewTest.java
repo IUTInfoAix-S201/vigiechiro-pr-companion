@@ -3,6 +3,8 @@ package fr.univ_amu.iut.commun.view;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.google.inject.Injector;
+import com.google.inject.Key;
+import com.google.inject.name.Names;
 import fr.univ_amu.iut.App;
 import fr.univ_amu.iut.commun.di.RacineInjecteur;
 import fr.univ_amu.iut.commun.model.Protocole;
@@ -22,11 +24,14 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.Labeled;
+import javafx.scene.control.ListView;
+import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -35,6 +40,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.api.FxRobot;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
+import org.testfx.util.WaitForAsyncUtils;
 
 /// Test d'intégration TestFX du chrome (`MainView`) : la barre de navigation (← Retour + fil d'Ariane,
 /// portés par le chrome donc présents sur tous les écrans) reflète l'historique et l'emplacement,
@@ -203,6 +209,67 @@ class MainViewTest {
         // Chaque carte porte exactement une pastille d'icône et un chevron d'invite.
         assertThat(robot.lookup(".carte-chip").queryAll()).hasSize(cartes);
         assertThat(robot.lookup(".carte-chevron").queryAll()).hasSize(cartes);
+    }
+
+    @Test
+    @DisplayName("#144 : Ctrl+F est actif sur le chrome et donne le focus au champ de recherche")
+    void ctrl_f_active_la_recherche(FxRobot robot) {
+        var ctrlF = new KeyCodeCombination(KeyCode.F, KeyCombination.CONTROL_DOWN);
+        Scene scene = robot.lookup("#champRecherche").queryAs(TextField.class).getScene();
+        assertThat(scene.getAccelerators()).containsKey(ctrlF);
+
+        robot.interact(() -> scene.getAccelerators().get(ctrlF).run());
+
+        assertThat(robot.lookup("#champRecherche").queryAs(TextField.class).isFocused())
+                .isTrue();
+    }
+
+    @Test
+    @DisplayName("#144 : saisir un n° de carré liste le site puis Entrée navigue (liste fermée, champ vidé)")
+    void recherche_globale_liste_et_navigue(FxRobot robot) {
+        // L'utilisateur courant (idUtilisateurCourant) est auto-créé au démarrage ; on seede le site
+        // sous SON identité, car la recherche filtre par utilisateur courant.
+        String utilisateur = injector.getInstance(Key.get(String.class, Names.named("idUtilisateurCourant")));
+        robot.interact(() -> injector.getInstance(ServiceSites.class)
+                .creerSite("640380", "Étang de la Tuilière", Protocole.STANDARD, null, utilisateur));
+
+        TextField champ = robot.lookup("#champRecherche").queryAs(TextField.class);
+        VBox panneau = robot.lookup("#panneauResultats").queryAs(VBox.class);
+        @SuppressWarnings("unchecked")
+        ListView<Object> liste =
+                (ListView<Object>) robot.lookup("#listeResultats").queryAs(ListView.class);
+
+        robot.interact(() -> champ.setText("640380"));
+        WaitForAsyncUtils.waitForFxEvents();
+        assertThat(liste.getItems())
+                .as("le site correspondant apparaît dans la liste")
+                .isNotEmpty();
+        assertThat(panneau.isVisible()).as("la liste déroulante est affichée").isTrue();
+
+        robot.interact(() -> {
+            liste.requestFocus();
+            liste.getSelectionModel().select(0);
+        });
+        robot.type(KeyCode.ENTER);
+        WaitForAsyncUtils.waitForFxEvents();
+
+        assertThat(navigation.vueCouranteProperty().get())
+                .as("la sélection a navigué hors de l'accueil")
+                .isNotEqualTo("accueil");
+        assertThat(panneau.isVisible()).as("la liste se ferme après navigation").isFalse();
+        assertThat(champ.getText()).as("le champ est vidé après navigation").isEmpty();
+    }
+
+    @Test
+    @DisplayName("#144 : une recherche sans correspondance n'affiche pas la liste déroulante")
+    void recherche_sans_resultat_garde_la_liste_fermee(FxRobot robot) {
+        TextField champ = robot.lookup("#champRecherche").queryAs(TextField.class);
+        VBox panneau = robot.lookup("#panneauResultats").queryAs(VBox.class);
+
+        robot.interact(() -> champ.setText("zzz-introuvable"));
+        WaitForAsyncUtils.waitForFxEvents();
+
+        assertThat(panneau.isVisible()).isFalse();
     }
 
     @Test

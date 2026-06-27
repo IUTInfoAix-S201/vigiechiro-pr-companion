@@ -5,6 +5,8 @@ import fr.univ_amu.iut.commun.view.carte.CarreGeo;
 import fr.univ_amu.iut.commun.view.carte.DonneesCarte;
 import fr.univ_amu.iut.commun.view.carte.EmpriseAutourDesPoints;
 import fr.univ_amu.iut.commun.view.carte.FournisseurEmpriseCarre;
+import fr.univ_amu.iut.commun.view.carte.FournisseurEmpriseCarreEnChaine;
+import fr.univ_amu.iut.commun.view.carte.FournisseurEmpriseCarreOfficiel;
 import fr.univ_amu.iut.commun.view.carte.PointGeo;
 import fr.univ_amu.iut.multisite.model.CarreAgrege;
 import fr.univ_amu.iut.multisite.model.PointAgrege;
@@ -18,8 +20,11 @@ import javafx.scene.paint.Color;
 /// et **testable sans IHM**.
 final class ConstructeurDonneesCarte {
 
-    /// Fournisseur de repli (emprise autour des points) — le carroyage officiel se branchera ici plus tard.
-    private static final FournisseurEmpriseCarre EMPRISE = new EmpriseAutourDesPoints();
+    /// Emprise des carrés : **carroyage officiel** (carrenat national) d'abord, **repli** autour des points
+    /// ensuite. Un carré du référentiel est calé sur la grille 2 km ; les autres restent ancrés sur leurs
+    /// points géolocalisés (#152/#325).
+    private static final FournisseurEmpriseCarre EMPRISE =
+            new FournisseurEmpriseCarreEnChaine(new FournisseurEmpriseCarreOfficiel(), new EmpriseAutourDesPoints());
 
     /// Opacités min/max du remplissage indigo des carrés selon la **densité** de passages (#152).
     private static final double OPACITE_MIN = 0.12;

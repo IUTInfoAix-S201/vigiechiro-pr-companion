@@ -1,0 +1,105 @@
+# Interface en ligne de commande (CLI)
+
+À côté de l'IHM JavaFX, VigieChiro expose un **point d'entrée sans interface graphique** :
+[`fr.univ_amu.iut.cli.Cli`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/cli/Cli.java).
+Il répond au besoin de **scriptabilité** (parcours A10 : enchaîner des imports/exports sans clics,
+pour les utilisateurs avancés). La CLI **n'a pas de logique propre** : elle orchestre les **services
+métier existants** (`ServiceImport`, `ServiceLot`, `ServiceValidation`, DAO multi-features).
+
+!!! abstract "Principe : réutiliser, pas réimplémenter"
+    La CLI et l'IHM sont **deux façades** sur le même cœur métier. Tout ce que fait la ligne de
+    commande, l'application graphique le fait aussi, *via les mêmes services*. C'est l'intérêt d'avoir
+    isolé le métier des vues (cf. [Architecture](architecture.md)) : on peut lui greffer une seconde
+    surface sans le dupliquer.
+
+## Comment elle s'assemble (injecteur enfant)
+
+La CLI a besoin de **tout le graphe applicatif** (socle + features) **plus** quelques aides de lecture
+qui lui sont propres. Plutôt que de modifier la composition racine, elle crée un **injecteur enfant** :
+
+```java
+RacineInjecteur.creer().createChildInjector(new CliModule());
+```
+
+L'enfant **hérite** de tous les bindings du socle et des features (dont les services et DAO), et y
+**ajoute** les aides CLI sans rien retirer ni remplacer. C'est le patron *injecteur enfant* de Guice,
+détaillé dans [Injection (Guice)](injection.md).
+
+```mermaid
+flowchart LR
+    main["Cli.main()"] --> child
+    subgraph child["Injecteur enfant"]
+        CliModule["CliModule<br/>(RegistrePassages)"]
+    end
+    child -.hérite de.-> root["RacineInjecteur.creer()<br/>socle + features"]
+    child --> svc["ServiceImport · ServiceLot<br/>ServiceValidation · DAO"]
+```
+
+[`CliModule`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/cli/di/CliModule.java)
+n'apporte qu'une chose :
+[`RegistrePassages`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/cli/model/RegistrePassages.java),
+une **lecture transverse** qui croise les DAO de `passage` et `sites` pour reconstituer le contexte
+« carré / point » de chaque passage. La dépendance va `cli → <feature>.model.dao` (jamais vers une
+`view`/`viewmodel`) : c'est l'unique entorse autorisée par la règle ArchUnit assouplie, et `cli` reste
+un **puits** (aucune feature ne dépend de lui), donc le graphe reste acyclique.
+
+## Les sous-commandes
+
+| Commande | Options | Parcours | Service |
+|---|---|---|---|
+| `lister-passages` | — | P5 | `RegistrePassages` (lecture) |
+| `importer` | `--source <dir> --point <id> [--annee N] [--passage N]` | P2 | `ServiceImport` |
+| `exporter-lot` | `--passage <id>` | P4 | `ServiceLot` |
+| `exporter-vu` | `--passage <id> --sortie <fichier>` | P7 | `ServiceValidation` |
+| `aide` (ou `-h`, `--help`, ou aucun argument) | — | — | — |
+
+L'analyse des arguments est faite par un mini-parseur **maison**,
+[`ArgumentsCli`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/cli/model/ArgumentsCli.java)
+(options longues `--clé valeur`), **sans bibliothèque tierce** : c'est un choix délibéré pour ne pas
+toucher au `pom.xml` ni au `module-info`. Une option manquante ou mal typée lève une
+[`ErreurUsage`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/cli/model/ErreurUsage.java).
+
+### Workspace surchargeable
+
+Comme l'IHM, la CLI travaille dans un **workspace** (qui contient la base `vigiechiro.db`). L'option
+globale `--workspace <dir>` est consommée par `main()` **avant** de bâtir l'injecteur (elle positionne
+la propriété système `vigiechiro.workspace`, lue par `CommunModule`). Sans elle, le workspace par
+défaut est `<Documents>/VigieChiro-Companion`.
+
+### Codes de sortie
+
+| Code | Signification |
+|---|---|
+| `0` | succès |
+| `1` | échec d'exécution (règle métier refusée, accès aux données, E/S) |
+| `2` | mauvaise invocation (commande inconnue, argument requis manquant ou mal formé) |
+
+`executer(...)` **ne fait pas** `System.exit` (il *renvoie* le code) : c'est ce qui le rend testable.
+Seul `main()` traduit le code en `System.exit`. La base est **migrée au démarrage** (idempotent) avant
+toute commande, donc une première invocation crée le schéma si besoin.
+
+## Lancer la CLI
+
+Il n'y a pas encore de lanceur empaqueté : on l'exécute via `exec-maven-plugin` (même mécanique que le
+[banc de performance](performance.md)), avec le **JDK 25 standard** (comme la CI) :
+
+```bash
+export JAVA_HOME=~/.sdkman/candidates/java/25.0.2-open
+./mvnw -q -DskipTests compile
+./mvnw -q org.codehaus.mojo:exec-maven-plugin:exec \
+  -Dexec.executable="$JAVA_HOME/bin/java" -Dexec.classpathScope=runtime \
+  -Dexec.args="-cp %classpath fr.univ_amu.iut.cli.Cli --workspace /tmp/vigiechiro-cli lister-passages"
+```
+
+`Cli.main(String[])` existe et reste le point d'entrée naturel pour un futur lanceur natif (jpackage).
+
+## Tests
+
+La CLI est couverte par
+[`CliTest`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/test/java/fr/univ_amu/iut/cli/CliTest.java)
+(dispatch, codes de sortie, aide),
+[`CliImportTest`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/test/java/fr/univ_amu/iut/cli/CliImportTest.java)
+et
+[`CliExportVuTest`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/test/java/fr/univ_amu/iut/cli/CliExportVuTest.java).
+Ils positionnent `vigiechiro.workspace` sur un `@TempDir` et capturent les flux `sortie`/`erreur` :
+aucun JavaFX, donc des tests **rapides et déterministes**.

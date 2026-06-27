@@ -79,8 +79,8 @@ final class CouchePoints extends MapLayer {
     @Override
     protected void layoutLayer() {
         for (Marqueur marqueur : marqueurs) {
-            if (marqueur.deplace) {
-                continue; // marqueur en cours d'édition : on garde sa position écran courante
+            if (marqueur.positionEcranModifiee) {
+                continue; // marqueur déjà déplacé : on garde sa position écran courante
             }
             Point2D position = getMapPoint(marqueur.point.latitude(), marqueur.point.longitude());
             if (position == null) {
@@ -104,9 +104,13 @@ final class CouchePoints extends MapLayer {
         private final PointGeo point;
         private final Group noeud;
 
-        /// Vrai dès que le marqueur a été déplacé : sa position écran fait foi (la mise en page ne le
-        /// repositionne plus depuis l'ancien GPS, jusqu'au prochain `definirPoints`).
-        private boolean deplace;
+        /// Vrai dès que la **position écran** du marqueur a été modifiée (glisser ou clavier) : la mise en
+        /// page ne le repositionne plus depuis l'ancien GPS, jusqu'au prochain `definirPoints`.
+        private boolean positionEcranModifiee;
+
+        /// Vrai pendant un **glisser en cours** seulement (entre press et release) : sépare un vrai
+        /// glisser-déposer d'un simple clic, pour ne pas « valider » un déplacement non demandé (#330).
+        private boolean glisserEnCours;
 
         private Marqueur(PointGeo point) {
             this.point = point;
@@ -120,7 +124,7 @@ final class CouchePoints extends MapLayer {
             Group groupe = new Group(pastille, libelle);
             groupe.setFocusTraversable(true); // navigation clavier (#163)
             groupe.setAccessibleText("Point d'écoute " + point.libelle());
-            groupe.setCursor(Cursor.HAND);
+            groupe.setCursor(editable ? Cursor.OPEN_HAND : Cursor.HAND);
             if (point.infobulle() != null) {
                 // Mini-stats au survol (#152) ; aussi en accessibleHelp pour les lecteurs d'écran (#163).
                 Tooltip.install(groupe, new Tooltip(point.infobulle()));
@@ -131,24 +135,32 @@ final class CouchePoints extends MapLayer {
                     onClic.accept(point);
                 }
             });
+            groupe.setOnMousePressed(evenement -> glisserEnCours = false); // début de geste : pas encore glissé
             groupe.setOnMouseDragged(evenement -> {
                 if (editable) {
+                    glisserEnCours = true;
                     deplacerVers(evenement.getSceneX(), evenement.getSceneY(), false);
                     evenement.consume();
                 }
             });
             groupe.setOnMouseReleased(evenement -> {
-                if (editable && deplace) {
+                // On ne valide un déplacement QUE si un vrai glisser a eu lieu pendant CE geste (#330) :
+                // un simple clic, même après un déplacement précédent, ne déplace plus le point.
+                if (editable && glisserEnCours) {
                     deplacerVers(evenement.getSceneX(), evenement.getSceneY(), true);
                     evenement.consume();
                 }
+                glisserEnCours = false;
             });
             groupe.setOnKeyPressed(evenement -> {
-                if (editable && deltaClavier(evenement.getCode()) != null) {
-                    nudge(deltaClavier(evenement.getCode()));
-                    evenement.consume();
+                if (editable) {
+                    Point2D delta = deltaClavier(evenement.getCode());
+                    if (delta != null) {
+                        nudge(delta);
+                        evenement.consume();
+                    }
                 } else if (evenement.getCode() == KeyCode.ENTER || evenement.getCode() == KeyCode.SPACE) {
-                    onClic.accept(point);
+                    onClic.accept(point); // en édition, le marqueur n'est plus un déclencheur de clic (#330)
                 }
             });
             this.noeud = groupe;
@@ -161,7 +173,7 @@ final class CouchePoints extends MapLayer {
             if (local == null || geo == null) {
                 return;
             }
-            deplace = true;
+            positionEcranModifiee = true;
             noeud.setTranslateX(local.getX());
             noeud.setTranslateY(local.getY());
             if (valider) {
@@ -177,7 +189,7 @@ final class CouchePoints extends MapLayer {
             if (geo == null) {
                 return;
             }
-            deplace = true;
+            positionEcranModifiee = true;
             noeud.setTranslateX(x);
             noeud.setTranslateY(y);
             onDeplace.deplace(point, geo.getLatitude(), geo.getLongitude());

@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.within;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -236,5 +237,58 @@ class CarteSitesTest {
                 .as("hors édition, aucune flèche ne déplace le point")
                 .isNull();
         assertThat(clics).as("hors édition, le clic reste un clic").hasSize(1);
+    }
+
+    @Test
+    void edition_un_clic_apres_deplacement_ne_redeplace_pas(FxRobot robot) {
+        AtomicInteger nbDeplacements = new AtomicInteger();
+        List<PointGeo> clics = new ArrayList<>();
+        PointGeo z1 = new PointGeo("Z1", 43.4031, -1.5708, Color.GREEN);
+        robot.interact(() -> {
+            carte.setEditionActive(true);
+            carte.setOnPointDeplace((point, lat, lon) -> nbDeplacements.incrementAndGet());
+            carte.setOnPointClic(clics::add);
+            carte.setDonnees(new DonneesCarte(List.of(), List.of(z1)));
+            carte.centrerSur(43.4031, -1.5708, 14);
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        Node marqueur =
+                carte.lookupAll(".carte-point-libelle").iterator().next().getParent();
+
+        robot.interact(marqueur::requestFocus);
+        robot.type(KeyCode.RIGHT); // un déplacement clavier
+        WaitForAsyncUtils.waitForFxEvents();
+        assertThat(nbDeplacements.get()).isEqualTo(1);
+
+        robot.clickOn(marqueur); // un simple clic ensuite (press+release sans glisser)
+        WaitForAsyncUtils.waitForFxEvents();
+        assertThat(nbDeplacements.get())
+                .as("un clic, même après un déplacement, ne valide pas un nouveau déplacement (#330)")
+                .isEqualTo(1);
+        assertThat(clics)
+                .as("en édition, le clic n'est pas un déclencheur de navigation (#330)")
+                .isEmpty();
+    }
+
+    @Test
+    void edition_entree_ne_declenche_pas_le_clic(FxRobot robot) {
+        List<PointGeo> clics = new ArrayList<>();
+        PointGeo z1 = new PointGeo("Z1", 43.4031, -1.5708, Color.GREEN);
+        robot.interact(() -> {
+            carte.setEditionActive(true);
+            carte.setOnPointClic(clics::add);
+            carte.setDonnees(new DonneesCarte(List.of(), List.of(z1)));
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        Node marqueur =
+                carte.lookupAll(".carte-point-libelle").iterator().next().getParent();
+
+        robot.interact(marqueur::requestFocus);
+        robot.type(KeyCode.ENTER);
+        WaitForAsyncUtils.waitForFxEvents();
+
+        assertThat(clics)
+                .as("en édition, Entrée ne déclenche pas le clic (#330)")
+                .isEmpty();
     }
 }

@@ -3,6 +3,9 @@ package fr.univ_amu.iut.commun.di;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.google.inject.Injector;
+import fr.univ_amu.iut.commun.model.RechercheGlobale;
+import fr.univ_amu.iut.commun.persistence.MigrationSchema;
+import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
 import fr.univ_amu.iut.importation.model.ServiceImport;
 import fr.univ_amu.iut.lot.model.ServiceLot;
 import fr.univ_amu.iut.multisite.model.dao.SavedViewDao;
@@ -42,6 +45,9 @@ class RacineInjecteurTest {
         System.setProperty("vigiechiro.workspace", workspaceJetable.toString());
 
         Injector injecteur = RacineInjecteur.creer();
+        // La recherche globale résout l'utilisateur courant (lecture/écriture en base) à l'instanciation :
+        // on migre le schéma pour que sa provision complète soit réellement exercée plus bas.
+        new MigrationSchema(injecteur.getInstance(SourceDeDonnees.class)).migrer();
 
         assertThat(injecteur).isNotNull();
         assertThat(injecteur.getInstance(SiteDao.class)).isNotNull();
@@ -57,5 +63,8 @@ class RacineInjecteurTest {
         // sites) et du socle. On vérifie que la racine les résout sans conflit de binding.
         assertThat(injecteur.getInstance(ServiceImport.class)).isNotNull();
         assertThat(injecteur.getInstance(ServiceLot.class)).isNotNull();
+        // Feature recherche (#144) : son contrat socle est bien fourni par RechercheModule (filet de
+        // sécurité si le module disparaissait ou si le binding cassait avant l'arrivée du chrome).
+        assertThat(injecteur.getInstance(RechercheGlobale.class)).isNotNull();
     }
 }

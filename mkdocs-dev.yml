@@ -60,7 +60,9 @@ nav:
   - Modèle de données et domaine: modele-de-donnees.md
   - Injection (Guice): injection.md
   - Ajouter une fonctionnalité: ajouter-une-fonctionnalite.md
+  - Interface en ligne de commande (CLI): cli.md
   - Tests et qualité: tests-et-qualite.md
+  - Performance et benchmarks: performance.md
   - Captures d'écran: captures.md
   - CI/CD et release: ci-cd-release.md
   - Sécurité et données sensibles: securite.md

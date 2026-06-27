@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+## [1.17.1](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.17.0...v1.17.1) (2026-06-27)
+
+
+### Performance Improvements
+
+* **carte:** séparer le rafraîchissement carte du tableau ([#152](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/152), suivi de [#289](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/289)) ([#292](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/292)) ([76e1831](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/76e183151e1295bd7f94df73717351a79f393bc9))
+
 # [1.17.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.16.0...v1.17.0) (2026-06-27)
 
 

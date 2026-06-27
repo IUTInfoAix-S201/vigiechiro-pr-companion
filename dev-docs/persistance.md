@@ -4,6 +4,11 @@ La persistance est **locale** : une base **SQLite** fichier, sans serveur. La co
 [`commun.persistence`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/tree/main/src/main/java/fr/univ_amu/iut/commun/persistence)
 (infra technique) ; le **SQL métier** de chaque entité vit dans les `*/model/dao/` de sa feature.
 
+!!! abstract "Cette page = le *mécanisme*, pas le *modèle*"
+    Pour **quelles données** sont stockées (entités, 19 tables, MCD du brief, correspondance
+    concept → record → table), voir [Modèle de données et domaine](modele-de-donnees.md). Cette
+    page-ci décrit **comment** on y accède : source de données, migrations, DAO, transactions.
+
 !!! warning "Frontière"
     `commun.persistence` et tous les `..model.dao..` **ignorent JavaFX** (tests
     `persistance_sans_javafx` et `view_sans_jdbc`). La couche données est réutilisable et testable

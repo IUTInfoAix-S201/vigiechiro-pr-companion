@@ -70,6 +70,15 @@ cd vigiechiro-pr-companion
 
     TestFX headless, taxonomie, ArchUnit, PMD/Spotless/JaCoCo, et ce qui bloque la CI.
 
+-   :material-database: **[Modèle de données](modele-de-donnees.md)**
+
+    Le MCD Merise (vocabulaire du brief), le schéma physique SQLite, et la correspondance
+    concept → record → table.
+
+-   :material-console: **[Ligne de commande](cli.md)**
+
+    La seconde façade *headless* sur le métier : sous-commandes, injecteur enfant, scriptabilité.
+
 -   :material-source-pull: **Contribuer**
 
     Le flux fork → branche → PR et les conventions de commit :
@@ -82,4 +91,5 @@ cd vigiechiro-pr-companion
     · [TESTING.md](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/TESTING.md)
     · [SECURITY.md](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/SECURITY.md)
     · [note de performance](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/docs/benchmarks/README.md).
-    Ces pages restent la **source canonique** ; cette doc les met en perspective et les approfondit.
+    Ces pages restent la **source canonique** ; cette doc les met en perspective et les approfondit
+    côté dév : [Sécurité et données sensibles](securite.md) · [Performance et benchmarks](performance.md).

@@ -27,7 +27,8 @@ public static Injector creer() {
 
 !!! info "La CLI utilise un injecteur enfant"
     La feature `cli` ne s'installe pas dans la racine : elle crée un **injecteur enfant**
-    (`RacineInjecteur.creer().createChildInjector(new CliModule())`).
+    (`RacineInjecteur.creer().createChildInjector(new CliModule())`). L'enfant hérite de tout le
+    graphe et y ajoute ses aides : voir [Interface en ligne de commande (CLI)](cli.md).
 
 ## Ce que publie un module de feature
 

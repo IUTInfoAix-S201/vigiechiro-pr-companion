@@ -87,6 +87,11 @@ Outils : **JUnit 5 + AssertJ + Mockito** ; **ApprovalTests** pour les sorties ve
 `lint.yml` vérifie aussi la **complétude des captures** (cf. [Captures](captures.md)). Une PR doit
 passer **les deux** workflows (cf. [CI/CD et release](ci-cd-release.md)).
 
+Deux invariants sont en plus **verrouillés** : un test fige le **plan d'exécution** des requêtes O5
+(l'index ne doit pas régresser, cf. [Performance et benchmarks](performance.md)), et les **garde-fous**
+PMD / ArchUnit ne se désactivent **jamais** pour « faire passer » un build (cf.
+[Sécurité et données sensibles](securite.md)).
+
 ## Écrire un nouveau test
 
 - Un test de vue part d'un **injecteur** (réel ou partiel) Guice et d'une **base jetable** (workspace

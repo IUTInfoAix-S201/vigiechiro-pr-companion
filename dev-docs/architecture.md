@@ -31,6 +31,10 @@ src/main/java/fr/univ_amu/iut/
 └── perf/outils/                 ← bancs de mesure de performance
 ```
 
+Les deux dernières entrées sont des **surfaces transverses**, documentées à part :
+[`cli/`](cli.md) (seconde façade *headless* sur le métier) et
+[`perf/outils/`](performance.md) (bancs de mesure des objectifs O3/O5).
+
 ## Les 4 couches d'une fonctionnalité
 
 Chaque feature (ex. `sites/`) suit le même découpage, **du métier vers l'IHM** :
@@ -119,6 +123,10 @@ Le cœur du domaine est l'**agrégat « nuit de capture »** (feature `passage`)
 **workflow à états** :
 
 `IMPORTE → TRANSFORME → VERIFIE → PRET_A_DEPOSER → DEPOSE`
+
+Le détail des entités, des 19 tables et de la correspondance avec le **MCD du brief** est sur
+[Modèle de données et domaine](modele-de-donnees.md) ; le **mécanisme** d'accès (DAO, transactions,
+migrations) sur [Persistance](persistance.md).
 
 ## Injection de dépendances
 

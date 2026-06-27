@@ -68,6 +68,25 @@ class ConstructeurDonneesCarteTest {
     }
 
     @Test
+    @DisplayName("#327 : un carré officiel SANS GPS, mais tracé, compte dans l'échelle de densité")
+    void carre_officiel_sans_gps_participe_a_la_densite() {
+        // 640380 : 80 passages, AUCUN point GPS → tracé via le carroyage officiel (donc visible).
+        CarreAgrege sansGps =
+                new CarreAgrege("640380", "Actif", List.of(new PointAgrege("A1", null, null, 80, null)), 80);
+        // 640381 : 8 passages, géolocalisé.
+        CarreAgrege geo = new CarreAgrege(
+                "640381", "Calme", List.of(new PointAgrege("B1", 43.4040, -1.5470, 8, StatutWorkflow.DEPOSE)), 8);
+
+        DonneesCarte donnees = ConstructeurDonneesCarte.depuis(List.of(sansGps, geo));
+
+        // Le carré sans GPS (le plus actif) doit être le plus foncé, et fixer le maximum de l'échelle.
+        assertThat(opaciteDuCarre(donnees, "640380"))
+                .as("le carré officiel sans GPS participe à la normalisation (max)")
+                .isEqualTo(ConstructeurDonneesCarte.couleurDensite(80, 80).getOpacity())
+                .isGreaterThan(opaciteDuCarre(donnees, "640381"));
+    }
+
+    @Test
     @DisplayName("la couleur de statut est distincte par état et jamais nulle")
     void couleur_par_statut_distincte() {
         assertThat(ConstructeurDonneesCarte.couleurStatut(StatutWorkflow.DEPOSE))

@@ -4,6 +4,7 @@ import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.view.carte.CarreGeo;
 import fr.univ_amu.iut.commun.view.carte.DonneesCarte;
 import fr.univ_amu.iut.commun.view.carte.EmpriseAutourDesPoints;
+import fr.univ_amu.iut.commun.view.carte.EmpriseCarre;
 import fr.univ_amu.iut.commun.view.carte.FournisseurEmpriseCarre;
 import fr.univ_amu.iut.commun.view.carte.FournisseurEmpriseCarreEnChaine;
 import fr.univ_amu.iut.commun.view.carte.FournisseurEmpriseCarreOfficiel;
@@ -36,18 +37,13 @@ final class ConstructeurDonneesCarte {
     private ConstructeurDonneesCarte() {}
 
     /// Construit les données de carte à partir des carrés agrégés : un marqueur par point **géolocalisé**
-    /// (coloré par statut dominant) et un tracé d'emprise par carré ayant au moins un point géolocalisé.
-    /// Le remplissage du carré reflète sa **densité de passages** (plus foncé = plus de passages), relative
-    /// au carré le plus actif du jeu de données.
+    /// (coloré par statut dominant) et un tracé d'emprise par carré **traçable** — soit ancré sur ses
+    /// points, soit calé sur le carroyage officiel (donc tracé même sans GPS). Le remplissage reflète la
+    /// **densité de passages**, normalisée sur **exactement** les carrés tracés.
     static DonneesCarte depuis(List<CarreAgrege> carres) {
-        // Densité normalisée sur les seuls carrés réellement **traçables** (au moins un point géolocalisé) :
-        // un carré très actif mais invisible (sans GPS) ne doit pas pâlir artificiellement ceux qu'on voit.
-        int maxPassages = carres.stream()
-                .filter(ConstructeurDonneesCarte::estTracable)
-                .mapToInt(CarreAgrege::nombrePassages)
-                .max()
-                .orElse(0);
-        List<CarreGeo> carresGeo = new ArrayList<>();
+        // 1re passe : marqueurs + emprise → on retient les carrés RÉELLEMENT tracés (emprise présente).
+        record CarreTrace(CarreAgrege carre, EmpriseCarre emprise, List<PointAgrege> geolocalises) {}
+        List<CarreTrace> traces = new ArrayList<>();
         List<PointGeo> tousLesPoints = new ArrayList<>();
         for (CarreAgrege carre : carres) {
             List<PointGeo> pointsDuCarre = new ArrayList<>();
@@ -65,11 +61,20 @@ final class ConstructeurDonneesCarte {
                     geolocalises.add(point);
                 }
             }
-            Color remplissage = couleurDensite(carre.nombrePassages(), maxPassages);
-            String infobulle = infobulleCarre(carre, geolocalises);
             EMPRISE.emprise(carre.numeroCarre(), pointsDuCarre)
-                    .ifPresent(emprise ->
-                            carresGeo.add(new CarreGeo(carre.numeroCarre(), emprise, remplissage, infobulle)));
+                    .ifPresent(emprise -> traces.add(new CarreTrace(carre, emprise, geolocalises)));
+        }
+        // 2e passe : densité normalisée sur les carrés tracés (un carré officiel sans GPS, donc dessiné,
+        // compte dans l'échelle ; un carré non dessiné ne la fausse pas).
+        int maxPassages = traces.stream()
+                .mapToInt(trace -> trace.carre().nombrePassages())
+                .max()
+                .orElse(0);
+        List<CarreGeo> carresGeo = new ArrayList<>();
+        for (CarreTrace trace : traces) {
+            Color remplissage = couleurDensite(trace.carre().nombrePassages(), maxPassages);
+            String infobulle = infobulleCarre(trace.carre(), trace.geolocalises());
+            carresGeo.add(new CarreGeo(trace.carre().numeroCarre(), trace.emprise(), remplissage, infobulle));
         }
         return new DonneesCarte(carresGeo, tousLesPoints);
     }
@@ -119,12 +124,6 @@ final class ConstructeurDonneesCarte {
     /// Accord en nombre : `quantite(3, "passage")` → `3 passages` ; `quantite(1, "point")` → `1 point`.
     private static String quantite(int nombre, String unite) {
         return nombre + " " + unite + (nombre > 1 ? "s" : "");
-    }
-
-    /// Un carré est **traçable** s'il a au moins un point géolocalisé (donc une emprise dessinable) ; sert
-    /// de base de normalisation de la densité (cf. [#depuis]).
-    private static boolean estTracable(CarreAgrege carre) {
-        return carre.points().stream().anyMatch(PointAgrege::estGeolocalise);
     }
 
     /// Remplissage indigo translucide d'un carré selon sa **densité** : opacité interpolée entre

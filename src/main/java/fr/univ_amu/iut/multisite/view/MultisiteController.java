@@ -5,7 +5,9 @@ import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.model.Verdict;
 import fr.univ_amu.iut.commun.view.OuvrirPassage;
 import fr.univ_amu.iut.commun.view.RafraichirAuRetour;
+import fr.univ_amu.iut.commun.view.carte.CarteSites;
 import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
+import fr.univ_amu.iut.multisite.model.CarreAgrege;
 import fr.univ_amu.iut.multisite.model.LignePassage;
 import fr.univ_amu.iut.multisite.model.TriMultisite;
 import fr.univ_amu.iut.multisite.viewmodel.MultisiteViewModel;
@@ -14,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Objects;
 import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.collections.ListChangeListener;
 import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -24,6 +27,7 @@ import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.input.MouseButton;
+import javafx.scene.layout.StackPane;
 import javafx.stage.FileChooser;
 import javafx.util.StringConverter;
 
@@ -95,6 +99,12 @@ public class MultisiteController implements RafraichirAuRetour {
     @FXML
     private Label lblMessage;
 
+    @FXML
+    private StackPane zoneCarte;
+
+    /// Composant carte réutilisable (#152), rempli à partir de l'agrégat carte du ViewModel.
+    private final CarteSites carte = new CarteSites();
+
     @Inject
     public MultisiteController(
             MultisiteViewModel viewModel, OuvrirPassage ouvrirPassage, NavigationMultisite navigation) {
@@ -144,7 +154,15 @@ public class MultisiteController implements RafraichirAuRetour {
         lblMessage.visibleProperty().bind(messagePresent);
         lblMessage.managedProperty().bind(messagePresent);
 
+        // Carte (#152) : le composant réutilisable affiche sites + points. On le remplit en traduisant
+        // l'agrégat carte (non filtré) en DonneesCarte à chaque mise à jour. La carte ne dépend pas des
+        // filtres/tri du tableau, d'où un rafraîchissement DÉDIÉ (rafraichirCarte), au chargement et au retour.
+        zoneCarte.getChildren().add(carte);
+        viewModel.carresCarte().addListener((ListChangeListener<CarreAgrege>)
+                changement -> carte.setDonnees(ConstructeurDonneesCarte.depuis(viewModel.carresCarte())));
+
         viewModel.rafraichir();
+        viewModel.rafraichirCarte();
     }
 
     /// Rechargé par le [fr.univ_amu.iut.commun.view.Navigateur] quand on **revient** sur l'agrégat
@@ -154,6 +172,7 @@ public class MultisiteController implements RafraichirAuRetour {
     @Override
     public void rafraichirAuRetour() {
         viewModel.rafraichir();
+        viewModel.rafraichirCarte(); // un passage modifié peut changer le statut dominant d'un point (#152)
     }
 
     private void configurerColonnes() {

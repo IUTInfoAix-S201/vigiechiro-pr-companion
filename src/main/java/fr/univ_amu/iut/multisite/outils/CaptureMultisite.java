@@ -120,15 +120,40 @@ public final class CaptureMultisite {
         if (vue.lookup("#choixVerdict") instanceof ComboBox<?> choixVerdict) {
             choixVerdict.getSelectionModel().select(2);
         }
-        ecrire(new Scene(vue, 1100, 620), fichier);
+        // Même fond de carte OSM que la capture principale (la carte n'est pas filtrée).
+        capturerCarte(new Scene(vue, 1100, 620), fichier);
     }
 
-    /// Charge `Multisite.fxml` (le controller auto-charge le tableau en `initialize()`) et le rend.
+    /// Délai d'attente des tuiles OpenStreetMap (#152), en millisecondes, avant la capture principale :
+    /// les tuiles se téléchargent en arrière-plan (réseau) puis se peignent sur le fil JavaFX ; on laisse
+    /// ce temps au fond de carte d'apparaître. **Best-effort** : hors-ligne, la capture reste lisible
+    /// (carrés/points sur fond clair), seul le fond photographique manque.
+    private static final long DELAI_TUILES_MS = 6000;
+
+    /// Charge `Multisite.fxml` (le controller auto-charge le tableau en `initialize()`) et le rend, après
+    /// avoir laissé les tuiles OSM se charger (la carte est l'élément vedette de cette capture).
     private static void rendreEcran(Injector injecteur, Path fichier) throws IOException {
         FXMLLoader loader = new FXMLLoader(MultisiteController.class.getResource("Multisite.fxml"));
         loader.setControllerFactory(injecteur::getInstance);
         Parent vue = loader.load();
-        ecrire(new Scene(vue, 1100, 620), fichier);
+        capturerCarte(new Scene(vue, 1100, 620), fichier);
+    }
+
+    /// Laisse tourner le fil JavaFX (boucle d'évènements imbriquée) le temps que les tuiles arrivées en
+    /// fond soient peintes, puis rend la main. Un minuteur de fond déclenche la sortie de boucle.
+    private static void attendreTuiles() {
+        Object cle = new Object();
+        Thread minuteur = new Thread(() -> {
+            try {
+                Thread.sleep(DELAI_TUILES_MS);
+            } catch (InterruptedException interruption) {
+                Thread.currentThread().interrupt();
+            }
+            Platform.runLater(() -> Platform.exitNestedEventLoop(cle, null));
+        });
+        minuteur.setDaemon(true);
+        minuteur.start();
+        Platform.enterNestedEventLoop(cle);
     }
 
     /// Charge `ModaleVues.fxml`, la branche sur un ViewModel (qui charge les vues seedées),
@@ -147,10 +172,21 @@ public final class CaptureMultisite {
         ecrire(new Scene(vue, 440, 440), fichier);
     }
 
-    /// Rend `scene` hors-écran en PNG et journalise (helper factorisé : évite la répétition du libellé
-    /// de log, ce que PMD `AvoidDuplicateLiterals` interdit au-delà de 3 occurrences).
+    /// Rend `scene` hors-écran en PNG et journalise (helper factorisé).
     private static void ecrire(Scene scene, Path fichier) {
         ApercuFx.enregistrerPng(scene, fichier);
+        journaliser(fichier);
+    }
+
+    /// Rend `scene` **après attente des tuiles OSM** (#152) et journalise — pour les captures à carte.
+    private static void capturerCarte(Scene scene, Path fichier) {
+        ApercuFx.capturerApresPreparation(scene, CaptureMultisite::attendreTuiles, fichier);
+        journaliser(fichier);
+    }
+
+    /// Journalise l'écriture d'une capture (un seul endroit où vit le libellé, cf. PMD
+    /// `AvoidDuplicateLiterals`).
+    private static void journaliser(Path fichier) {
         System.out.println("Apercu ecrit dans " + fichier.toAbsolutePath());
     }
 

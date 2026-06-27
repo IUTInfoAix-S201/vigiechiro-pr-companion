@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import fr.univ_amu.iut.commun.view.Navigateur;
+import fr.univ_amu.iut.commun.view.OuvrirMultisite;
 import fr.univ_amu.iut.multisite.viewmodel.MultisiteViewModel;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -24,7 +25,7 @@ import javafx.stage.Window;
 /// par injection. L'écran n'a pas de paramètre : le controller déclenche lui-même le chargement
 /// des données en `initialize()`.
 @Singleton
-public class NavigationMultisite {
+public class NavigationMultisite implements OuvrirMultisite {
 
     private final Injector injector;
     private final Navigateur navigateur;
@@ -37,11 +38,24 @@ public class NavigationMultisite {
 
     /// Affiche l'écran **M-Multisite** (vue agrégée des passages) dans la zone centrale du chrome.
     public void ouvrirAccueil() {
+        publier();
+    }
+
+    /// Ouvre la vue multi-sites et **focalise** la carte sur le carré `numeroCarre` (« voir sur la carte »).
+    @Override
+    public void ouvrirSurCarre(String numeroCarre) {
+        publier().focaliserSur(numeroCarre);
+    }
+
+    /// Charge `Multisite.fxml`, le publie dans la zone centrale et renvoie son controller.
+    private MultisiteController publier() {
         FXMLLoader loader = new FXMLLoader(NavigationMultisite.class.getResource("Multisite.fxml"));
         loader.setControllerFactory(injector::getInstance);
         try {
             Parent vue = loader.load();
-            navigateur.ouvrirRacine(vue, "multisite", "Vue multi-sites", loader.getController());
+            MultisiteController controleur = loader.getController();
+            navigateur.ouvrirRacine(vue, "multisite", "Vue multi-sites", controleur);
+            return controleur;
         } catch (IOException echec) {
             throw new UncheckedIOException("Chargement FXML impossible : " + loader.getLocation(), echec);
         }

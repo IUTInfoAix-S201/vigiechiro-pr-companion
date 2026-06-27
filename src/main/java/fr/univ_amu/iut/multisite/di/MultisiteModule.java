@@ -8,9 +8,11 @@ import com.google.inject.name.Named;
 import fr.univ_amu.iut.commun.model.Horloge;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
 import fr.univ_amu.iut.commun.view.ActiviteAccueil;
+import fr.univ_amu.iut.commun.view.OuvrirMultisite;
 import fr.univ_amu.iut.multisite.model.ServiceMultisite;
 import fr.univ_amu.iut.multisite.model.dao.SavedViewDao;
 import fr.univ_amu.iut.multisite.view.ActiviteMultisite;
+import fr.univ_amu.iut.multisite.view.NavigationMultisite;
 import fr.univ_amu.iut.multisite.viewmodel.MultisiteViewModel;
 import fr.univ_amu.iut.passage.model.dao.PassageDao;
 import fr.univ_amu.iut.sites.model.dao.PointDao;
@@ -31,6 +33,8 @@ public class MultisiteModule extends AbstractModule {
     @Override
     protected void configure() {
         Multibinder.newSetBinder(binder(), ActiviteAccueil.class).addBinding().to(ActiviteMultisite.class);
+        // Contrat socle « voir sur la carte » : les autres features renvoient vers la carte multi-sites.
+        bind(OuvrirMultisite.class).to(NavigationMultisite.class);
     }
 
     @Provides

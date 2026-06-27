@@ -17,4 +17,18 @@ public interface FournisseurEmpriseCarre {
 
     /// Emprise du carré `numeroCarre`, en s'aidant au besoin de ses points (`pointsDuCarre`), ou vide.
     Optional<EmpriseCarre> emprise(String numeroCarre, List<PointGeo> pointsDuCarre);
+
+    /// Fournisseur **par défaut** partagé : carroyage officiel d'abord, repli autour des points ensuite.
+    /// Instance unique (la grille nationale n'est chargée qu'une fois) à réutiliser par tous les écrans.
+    static FournisseurEmpriseCarre parDefaut() {
+        return Defaut.CHAINE;
+    }
+
+    /// Porteur d'initialisation paresseuse de la chaîne par défaut.
+    final class Defaut {
+        private static final FournisseurEmpriseCarre CHAINE = new FournisseurEmpriseCarreEnChaine(
+                new FournisseurEmpriseCarreOfficiel(), new EmpriseAutourDesPoints());
+
+        private Defaut() {}
+    }
 }

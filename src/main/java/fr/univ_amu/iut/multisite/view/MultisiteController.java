@@ -6,6 +6,7 @@ import fr.univ_amu.iut.commun.model.Verdict;
 import fr.univ_amu.iut.commun.view.OuvrirPassage;
 import fr.univ_amu.iut.commun.view.RafraichirAuRetour;
 import fr.univ_amu.iut.commun.view.carte.CarteSites;
+import fr.univ_amu.iut.commun.view.carte.FournisseurEmpriseCarre;
 import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
 import fr.univ_amu.iut.multisite.model.CarreAgrege;
 import fr.univ_amu.iut.multisite.model.LignePassage;
@@ -14,6 +15,7 @@ import fr.univ_amu.iut.multisite.viewmodel.MultisiteViewModel;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Objects;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.ListChangeListener;
@@ -289,6 +291,16 @@ public class MultisiteController implements RafraichirAuRetour {
     public void rafraichirAuRetour() {
         viewModel.rafraichir();
         viewModel.rafraichirCarte(); // un passage modifié peut changer le statut dominant d'un point (#152)
+    }
+
+    /// Focalise la carte sur un carré (« voir sur la carte » depuis un autre écran) : surbrillance + recentrage
+    /// sur l'emprise officielle du carré. Sans effet si le numéro est vide ou hors carroyage.
+    public void focaliserSur(String numeroCarre) {
+        if (numeroCarre == null || numeroCarre.isBlank()) {
+            return;
+        }
+        carte.surbrillanceCarre(numeroCarre);
+        FournisseurEmpriseCarre.parDefaut().emprise(numeroCarre, List.of()).ifPresent(carte::centrerSurCarre);
     }
 
     private void configurerColonnes() {

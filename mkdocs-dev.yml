@@ -54,6 +54,9 @@ theme:
 nav:
   - Vue d'ensemble: index.md
   - Architecture: architecture.md
+  - Navigation et chrome: navigation.md
+  - Persistance: persistance.md
+  - Injection (Guice): injection.md
   - Ajouter une fonctionnalité: ajouter-une-fonctionnalite.md
   - Tests et qualité: tests-et-qualite.md
 

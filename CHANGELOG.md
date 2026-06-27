@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [1.27.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.26.2...v1.27.0) (2026-06-27)
+
+
+### Features
+
+* **carte:** focaliser + éditer un point — socle géo (PR-1) ([#330](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/330)) ([f47da26](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/f47da26896e9e5213961257a30b2298de6d221a3)), closes [#163](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/163)
+
 ## [1.26.2](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.26.1...v1.26.2) (2026-06-27)
 
 

@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+## [1.26.1](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.26.0...v1.26.1) (2026-06-27)
+
+
+### Bug Fixes
+
+* **qualification:** la colonne détail défile au lieu que l'AudioView déborde ([#329](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/329)) ([e2a6126](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/e2a6126341fa6ae6706e6c8837196d8ea2166a04))
+
 # [1.26.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.25.0...v1.26.0) (2026-06-27)
 
 

@@ -6,8 +6,8 @@ d'autres principes transverses (loi de Déméter, YAGNI, KISS, DRY… détaillé
 [Au-delà de SOLID](#au-dela-de-solid)).
 
 Chaque patron est présenté ainsi : **le problème** qu'il résout, **la solution**, **comment il est
-utilisé ici** (avec un extrait et un lien vers le code), un **diagramme**, et les **principes** qu'il
-sert.
+utilisé ici** (avec, selon les cas, un extrait et un lien vers le code), un **diagramme** quand il
+clarifie la structure ou le flux, et les **principes** qu'il sert.
 
 !!! abstract "Rappel SOLID"
     **S**RP responsabilité unique · **O**CP ouvert/fermé · **L**SP substitution de Liskov ·
@@ -121,8 +121,9 @@ historiques).
 **La solution.** Plutôt que le Singleton « maison » (constructeur privé + champ statique, difficile à
 tester et à substituer), on **délègue l'unicité au conteneur** : `@Singleton` Guice.
 
-**Dans VigieChiro.** `SourceDeDonnees`, `Navigateur` et les `Navigation*` sont `@Singleton` (≈ 20
-bindings) : une seule instance par injecteur, mais **toujours injectée** (donc remplaçable en test).
+**Dans VigieChiro.** `SourceDeDonnees`, `Navigateur`, les `Navigation*` et la **plupart des providers
+de DAO et de services** des features sont `@Singleton` (~70 bindings) : une seule instance par
+injecteur, mais **toujours injectée** (donc remplaçable en test).
 
 **Principes.** Évite l'**état statique global** tout en restant **testable** : l'unicité est une
 décision de **câblage**, pas une contrainte gravée dans la classe.
@@ -183,15 +184,18 @@ ignore FXML / Navigateur).
 
 ## Plugin / Extension (Multibinder)
 
-**Le problème.** L'accueil affiche une carte **par feature**. Si le `MainController` connaissait
-chaque feature, ajouter un écran l'obligerait à **se modifier** à chaque fois.
+**Le problème.** L'accueil affiche une carte pour **certaines** features (et un compteur de tableau de
+bord pour d'autres). Si le `MainController` connaissait chacune, ajouter une contribution l'obligerait
+à **se modifier** à chaque fois.
 
-**La solution.** Le socle déclare un `Set<T>` que **chaque feature alimente** (multibinding Guice),
-sans que le socle connaisse les contributeurs. Il injecte l'ensemble et l'agrège.
+**La solution.** Le socle déclare un `Set<T>` que **les features intéressées alimentent** (multibinding
+Guice), sans que le socle connaisse les contributeurs. Il injecte l'ensemble et l'agrège.
 
-**Dans VigieChiro.** Chaque module fait `Multibinder...addBinding().to(...)` pour publier son
-`ActiviteAccueil` (carte) et son `IndicateurAccueil` (compteur). Le `MainController` injecte le
-`Set<ActiviteAccueil>` complet et bâtit les cartes.
+**Dans VigieChiro.** Une feature qui le souhaite publie une `ActiviteAccueil` (carte) via
+`Multibinder...addBinding().to(...)`, et/ou un `IndicateurAccueil` (compteur). C'est **ciblé** : les
+cartes viennent de `sites`, `importation`, `multisite` et `bibliotheque` ; les compteurs de `sites`,
+`passage` et `validation`. Le `MainController` injecte le `Set<ActiviteAccueil>` complet et bâtit les
+cartes.
 
 ```mermaid
 classDiagram
@@ -202,7 +206,7 @@ classDiagram
         <<interface>>
     }
     MainController o-- ActiviteAccueil : agrège
-    ActiviteAccueil <|.. ActiviteSites
+    ActiviteAccueil <|.. ActiviteMesSites
     ActiviteAccueil <|.. ActiviteImporterNuit
 ```
 

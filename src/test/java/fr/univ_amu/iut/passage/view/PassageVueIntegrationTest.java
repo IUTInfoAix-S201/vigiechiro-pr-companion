@@ -13,6 +13,7 @@ import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.model.Verdict;
 import fr.univ_amu.iut.commun.view.OuvrirDiagnostic;
 import fr.univ_amu.iut.commun.view.OuvrirLot;
+import fr.univ_amu.iut.commun.view.OuvrirMultisite;
 import fr.univ_amu.iut.commun.view.OuvrirSite;
 import fr.univ_amu.iut.commun.view.OuvrirValidation;
 import fr.univ_amu.iut.commun.view.OuvrirVerification;
@@ -273,6 +274,11 @@ class PassageVueIntegrationTest {
             @Provides
             OuvrirLot ouvrirLot() {
                 return passage -> depotOuvert.set(passage.idPassage());
+            }
+
+            @Provides
+            OuvrirMultisite ouvrirMultisite() {
+                return numeroCarre -> {};
             }
 
             @Provides

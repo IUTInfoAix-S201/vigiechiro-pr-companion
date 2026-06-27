@@ -9,6 +9,7 @@ import fr.univ_amu.iut.commun.view.EmplacementPassage;
 import fr.univ_amu.iut.commun.view.Lieu;
 import fr.univ_amu.iut.commun.view.OuvrirDiagnostic;
 import fr.univ_amu.iut.commun.view.OuvrirLot;
+import fr.univ_amu.iut.commun.view.OuvrirMultisite;
 import fr.univ_amu.iut.commun.view.OuvrirSite;
 import fr.univ_amu.iut.commun.view.OuvrirValidation;
 import fr.univ_amu.iut.commun.view.OuvrirVerification;
@@ -59,6 +60,7 @@ public class PassageController implements EmplacementNavigation, RafraichirAuRet
     private final OuvrirLot ouvrirLot;
     private final NavigationPassage navigation;
     private final OuvrirSite ouvrirSite;
+    private final OuvrirMultisite ouvrirMultisite;
     private Long idPassage;
     private ContexteSite contexte;
 
@@ -127,7 +129,8 @@ public class PassageController implements EmplacementNavigation, RafraichirAuRet
             OuvrirValidation ouvrirValidation,
             OuvrirLot ouvrirLot,
             NavigationPassage navigation,
-            OuvrirSite ouvrirSite) {
+            OuvrirSite ouvrirSite,
+            OuvrirMultisite ouvrirMultisite) {
         this.viewModel = Objects.requireNonNull(viewModel, "viewModel");
         this.ouvrirVerification = Objects.requireNonNull(ouvrirVerification, "ouvrirVerification");
         this.ouvrirDiagnostic = Objects.requireNonNull(ouvrirDiagnostic, "ouvrirDiagnostic");
@@ -135,6 +138,7 @@ public class PassageController implements EmplacementNavigation, RafraichirAuRet
         this.ouvrirLot = Objects.requireNonNull(ouvrirLot, "ouvrirLot");
         this.navigation = Objects.requireNonNull(navigation, "navigation");
         this.ouvrirSite = Objects.requireNonNull(ouvrirSite, "ouvrirSite");
+        this.ouvrirMultisite = Objects.requireNonNull(ouvrirMultisite, "ouvrirMultisite");
     }
 
     @FXML
@@ -304,6 +308,14 @@ public class PassageController implements EmplacementNavigation, RafraichirAuRet
                 contexte.numeroCarre(),
                 contexte.codePoint(),
                 () -> viewModel.ouvrirSur(idPassage, contexte));
+    }
+
+    /// « Voir sur la carte » : ouvre la vue multi-sites centrée/surlignée sur le carré de ce passage.
+    @FXML
+    private void voirSurCarte() {
+        if (contexte != null) {
+            ouvrirMultisite.ouvrirSurCarre(contexte.numeroCarre());
+        }
     }
 
     /// « Enregistrer » la température de début de nuit (#106) : délègue au VM (saisie vide = effacer ;

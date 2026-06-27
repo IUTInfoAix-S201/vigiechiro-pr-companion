@@ -13,6 +13,7 @@ import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.model.Verdict;
 import fr.univ_amu.iut.commun.view.OuvrirDiagnostic;
 import fr.univ_amu.iut.commun.view.OuvrirLot;
+import fr.univ_amu.iut.commun.view.OuvrirMultisite;
 import fr.univ_amu.iut.commun.view.OuvrirSite;
 import fr.univ_amu.iut.commun.view.OuvrirValidation;
 import fr.univ_amu.iut.commun.view.OuvrirVerification;
@@ -47,6 +48,7 @@ class PassageViewTest {
     private final AtomicReference<Long> diagnosticOuvert = new AtomicReference<>();
     private final AtomicReference<Long> validationOuverte = new AtomicReference<>();
     private final AtomicReference<Long> depotOuvert = new AtomicReference<>();
+    private final AtomicReference<String> carteFocalisee = new AtomicReference<>();
 
     @Start
     void start(Stage stage) throws Exception {
@@ -91,6 +93,11 @@ class PassageViewTest {
             @Provides
             OuvrirLot ouvrirLot() {
                 return passage -> depotOuvert.set(passage.idPassage());
+            }
+
+            @Provides
+            OuvrirMultisite ouvrirMultisite() {
+                return carteFocalisee::set;
             }
 
             @Provides
@@ -207,5 +214,17 @@ class PassageViewTest {
             Button bouton = robot.lookup(id).queryAs(Button.class);
             assertThat(bouton.getAccessibleText()).as("nom accessible de " + id).isNotBlank();
         }
+    }
+
+    @Test
+    @DisplayName("#152 : « Voir sur la carte » focalise la vue multi-sites sur le carré du passage")
+    void voir_sur_la_carte_focalise_le_carre(FxRobot robot) {
+        Button voir = robot.lookup("#boutonVoirCarte").queryAs(Button.class);
+
+        robot.interact(voir::fire);
+
+        assertThat(carteFocalisee.get())
+                .as("ouvre le multi-sites centré sur le carré du contexte (640380)")
+                .isEqualTo("640380");
     }
 }

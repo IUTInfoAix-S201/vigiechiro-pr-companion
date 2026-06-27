@@ -5,6 +5,7 @@ import fr.univ_amu.iut.commun.model.Protocole;
 import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.commun.view.OuvreurDeLien;
 import fr.univ_amu.iut.commun.view.OuvrirImportation;
+import fr.univ_amu.iut.commun.view.OuvrirMultisite;
 import fr.univ_amu.iut.commun.view.OuvrirPassage;
 import fr.univ_amu.iut.commun.view.RafraichirAuRetour;
 import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
@@ -66,6 +67,7 @@ public class SiteDetailController implements RafraichirAuRetour {
     private final OuvrirPassage ouvrirPassage;
     private final OuvrirImportation ouvrirImportation;
     private final OuvreurDeLien ouvreurDeLien;
+    private final OuvrirMultisite ouvrirMultisite;
 
     @FXML
     private Label titre;
@@ -133,12 +135,14 @@ public class SiteDetailController implements RafraichirAuRetour {
             NavigationSites navigation,
             OuvrirPassage ouvrirPassage,
             OuvrirImportation ouvrirImportation,
-            OuvreurDeLien ouvreurDeLien) {
+            OuvreurDeLien ouvreurDeLien,
+            OuvrirMultisite ouvrirMultisite) {
         this.viewModel = Objects.requireNonNull(viewModel, "viewModel");
         this.navigation = Objects.requireNonNull(navigation, "navigation");
         this.ouvrirPassage = Objects.requireNonNull(ouvrirPassage, "ouvrirPassage");
         this.ouvrirImportation = Objects.requireNonNull(ouvrirImportation, "ouvrirImportation");
         this.ouvreurDeLien = Objects.requireNonNull(ouvreurDeLien, "ouvreurDeLien");
+        this.ouvrirMultisite = Objects.requireNonNull(ouvrirMultisite, "ouvrirMultisite");
     }
 
     /// Charge le site à afficher (appelée par [NavigationSites] juste après le chargement FXML).
@@ -214,6 +218,15 @@ public class SiteDetailController implements RafraichirAuRetour {
     @FXML
     private void importerNuit() {
         ouvrirImportation.ouvrirPourSite(viewModel.siteCourant().id());
+    }
+
+    /// « Voir sur la carte » : ouvre la vue multi-sites centrée et surlignée sur le carré de ce site.
+    @FXML
+    private void voirSurCarte() {
+        Site site = viewModel.siteCourant();
+        if (site != null) {
+            ouvrirMultisite.ouvrirSurCarre(site.numeroCarre());
+        }
     }
 
     /// Ouvre la boîte d'édition pré-remplie ; à la validation, applique la modification via le

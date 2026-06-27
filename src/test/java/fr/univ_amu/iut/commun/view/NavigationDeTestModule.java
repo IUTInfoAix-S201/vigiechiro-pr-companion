@@ -27,4 +27,9 @@ public final class NavigationDeTestModule extends AbstractModule {
     OuvrirPassage ouvrirPassage() {
         return (idPassage, contexte) -> {};
     }
+
+    @Provides
+    OuvrirMultisite ouvrirMultisite() {
+        return numeroCarre -> {};
+    }
 }

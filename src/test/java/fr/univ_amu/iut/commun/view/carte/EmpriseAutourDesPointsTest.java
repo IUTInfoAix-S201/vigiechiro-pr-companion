@@ -35,6 +35,22 @@ class EmpriseAutourDesPointsTest {
     }
 
     @Test
+    @DisplayName("#152 (P3) : l'emprise contient TOUS les points, même répartis de façon asymétrique")
+    void emprise_contient_les_points_asymetriques() {
+        // Deux points groupés + un excentré (étalement ~1,9 km) : un carré 2 km centré sur la MOYENNE
+        // exclurait l'excentré. Centré sur la boîte englobante, l'emprise doit tous les contenir.
+        List<PointGeo> points = List.of(point(43.300, -0.360), point(43.300, -0.360), point(43.317, -0.345));
+
+        EmpriseCarre emprise = fournisseur.emprise("640380", points).orElseThrow();
+
+        for (PointGeo p : points) {
+            assertThat(emprise.contient(p.latitude(), p.longitude()))
+                    .as("le point (%s, %s) doit être dans l'emprise", p.latitude(), p.longitude())
+                    .isTrue();
+        }
+    }
+
+    @Test
     @DisplayName("sans point géolocalisé (liste vide ou GPS manquant), pas d'emprise")
     void sans_point_geolocalise_vide() {
         assertThat(fournisseur.emprise("640380", List.of())).isEmpty();

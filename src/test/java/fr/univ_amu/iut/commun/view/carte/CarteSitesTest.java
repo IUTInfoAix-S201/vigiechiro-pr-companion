@@ -61,6 +61,19 @@ class CarteSitesTest {
     }
 
     @Test
+    void point_sans_gps_non_place(FxRobot robot) {
+        List<PointGeo> points = List.of(
+                new PointGeo("Z1", 43.300, -0.360, Color.GREEN),
+                new PointGeo("SansGPS", Double.NaN, Double.NaN, Color.GRAY));
+        robot.interact(() -> carte.setDonnees(new DonneesCarte(List.of(), points)));
+        WaitForAsyncUtils.waitForFxEvents();
+
+        assertThat(carte.lookupAll(".carte-point-libelle"))
+                .as("un point au GPS manquant (NaN) n'est pas placé sur la carte (#152 P2)")
+                .hasSize(1);
+    }
+
+    @Test
     void clic_point_declenche_le_callback(FxRobot robot) {
         List<PointGeo> cliques = new ArrayList<>();
         robot.interact(() -> {

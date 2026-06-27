@@ -29,6 +29,11 @@ final class CouchePoints extends MapLayer {
         getChildren().clear();
         marqueurs.clear();
         for (PointGeo point : points) {
+            // Un point sans coordonnées exploitables (GPS manquant → NaN) n'est PAS placé sur la carte :
+            // aucun marqueur n'est créé (donc rien de visible/focusable/cliquable), conformément au contrat.
+            if (!Double.isFinite(point.latitude()) || !Double.isFinite(point.longitude())) {
+                continue;
+            }
             Marqueur marqueur = new Marqueur(point);
             marqueurs.add(marqueur);
             getChildren().add(marqueur.noeud);

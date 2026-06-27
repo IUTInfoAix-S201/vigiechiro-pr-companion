@@ -10,20 +10,21 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.zip.GZIPInputStream;
 
 /// Fournisseur d'emprise **officiel** (#325) : cale le carré sur le **carroyage national Vigie-Chiro**
 /// (« carrenat »). Le numéro (NUMNAT = département + identifiant local) n'encode pas de coordonnées :
 /// on lit le **centroïde WGS84** de la maille dans un référentiel embarqué (`carrenat.csv`), puis on en
 /// déduit l'emprise du carré **2 km** centrée dessus.
 ///
-/// Le référentiel est un sous-ensemble (carrés des exemples) issu de
-/// `cesco-lab/Vigie-Chiro_scripts inputs/CountryGrids/carrenatFR.csv` (EPSG:27572 Lambert II étendu),
-/// converti en WGS84. Pour couvrir d'autres carrés, ajouter leurs lignes au CSV. Un numéro absent du
-/// référentiel renvoie `Optional.empty()` : la chaîne ([FournisseurEmpriseCarreEnChaine]) bascule alors
-/// sur le repli [EmpriseAutourDesPoints].
+/// Le référentiel embarqué (`carrenat.csv.gz`, gzip) couvre **toute la France métropolitaine**
+/// (≈ 137 000 mailles), issu de `cesco-lab/Vigie-Chiro_scripts inputs/CountryGrids/carrenatFR.csv`
+/// (EPSG:27572 Lambert II étendu) converti en WGS84. Un numéro absent (hors métropole, ou numéro
+/// inconnu) renvoie `Optional.empty()` : la chaîne ([FournisseurEmpriseCarreEnChaine]) bascule alors sur
+/// le repli [EmpriseAutourDesPoints].
 public final class FournisseurEmpriseCarreOfficiel implements FournisseurEmpriseCarre {
 
-    private static final String RESSOURCE = "carrenat.csv";
+    private static final String RESSOURCE = "carrenat.csv.gz";
 
     /// Demi-côté du carré Vigie-Chiro (2 km de côté) et conversion km → degrés (cf. [EmpriseAutourDesPoints]).
     private static final double DEMI_COTE_KM = 1.0;
@@ -62,7 +63,8 @@ public final class FournisseurEmpriseCarreOfficiel implements FournisseurEmprise
             if (flux == null) {
                 return centroides; // pas de référentiel embarqué → tout passe au repli
             }
-            try (BufferedReader lecteur = new BufferedReader(new InputStreamReader(flux, StandardCharsets.UTF_8))) {
+            try (BufferedReader lecteur =
+                    new BufferedReader(new InputStreamReader(new GZIPInputStream(flux), StandardCharsets.UTF_8))) {
                 String ligne;
                 while ((ligne = lecteur.readLine()) != null) {
                     ligne = ligne.strip();

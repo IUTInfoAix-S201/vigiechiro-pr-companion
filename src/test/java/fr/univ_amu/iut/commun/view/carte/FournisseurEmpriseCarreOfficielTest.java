@@ -38,7 +38,18 @@ class FournisseurEmpriseCarreOfficielTest {
     @DisplayName("un carré absent du référentiel renvoie vide")
     void carre_inconnu_renvoie_vide() {
         assertThat(officiel.emprise("999999", List.of())).isEmpty();
-        assertThat(officiel.taille()).isPositive();
+    }
+
+    @Test
+    @DisplayName("le référentiel couvre toute la France métropolitaine (≈ 137 000 mailles)")
+    void couverture_nationale() {
+        assertThat(officiel.taille())
+                .as("toute la grille carrenat métropole est embarquée")
+                .isGreaterThan(100_000);
+        // Un carré quelconque hors jeu d'exemples (ici Paris, 750002) est résolu près de la capitale.
+        EmpriseCarre paris = officiel.emprise("750002", List.of()).orElseThrow();
+        assertThat(paris.latCentre()).isCloseTo(48.85, within(0.1));
+        assertThat(paris.lonCentre()).isCloseTo(2.30, within(0.1));
     }
 
     @Test

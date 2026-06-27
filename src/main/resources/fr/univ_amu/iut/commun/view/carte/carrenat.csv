@@ -1,9 +1,0 @@
-# Carroyage national Vigie-Chiro (carrenat) - centroides WGS84 des mailles 2 km.
-# Source: cesco-lab/Vigie-Chiro_scripts inputs/CountryGrids/carrenatFR.csv (EPSG:27572 Lambert II etendu),
-# converti en WGS84 (EPSG:4326). numero = NUMNAT (departement 2 chiffres + identifiant local).
-# Sous-ensemble des carres utilises par les exemples ; ajouter des lignes pour d'autres carres.
-numero;lat;lon
-640380;43.403072;-1.570834
-640381;43.403962;-1.546215
-640382;43.404847;-1.521594
-130010;43.896269;4.762435

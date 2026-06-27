@@ -58,4 +58,41 @@ class ConstructeurDonneesCarteTest {
                 .as("aucun passage → couleur neutre, pas null")
                 .isNotNull();
     }
+
+    @Test
+    @DisplayName("la densité fonce le remplissage : plus de passages → plus opaque, borné au carré le plus actif")
+    void couleur_densite_croit_avec_les_passages() {
+        // Un carré peu actif est plus transparent qu'un carré actif (même max de référence).
+        assertThat(ConstructeurDonneesCarte.couleurDensite(1, 10).getOpacity())
+                .as("peu de passages → faible opacité")
+                .isLessThan(ConstructeurDonneesCarte.couleurDensite(8, 10).getOpacity());
+        // Le carré le plus actif atteint l'opacité maximale ; aucun passage nulle part → opacité minimale.
+        assertThat(ConstructeurDonneesCarte.couleurDensite(10, 10).getOpacity())
+                .isGreaterThan(ConstructeurDonneesCarte.couleurDensite(0, 0).getOpacity());
+    }
+
+    @Test
+    @DisplayName("entre deux carrés, le plus fréquenté est tracé plus foncé (densité relative)")
+    void emprise_du_carre_le_plus_actif_est_plus_opaque() {
+        CarreAgrege calme = new CarreAgrege(
+                "640380", "Calme", List.of(new PointAgrege("A1", 43.30, -0.36, 1, StatutWorkflow.IMPORTE)), 1);
+        CarreAgrege actif = new CarreAgrege(
+                "640381", "Actif", List.of(new PointAgrege("B1", 43.50, -0.20, 9, StatutWorkflow.DEPOSE)), 9);
+
+        DonneesCarte donnees = ConstructeurDonneesCarte.depuis(List.of(calme, actif));
+
+        double opaciteCalme = opaciteDuCarre(donnees, "640380");
+        double opaciteActif = opaciteDuCarre(donnees, "640381");
+        assertThat(opaciteActif)
+                .as("le carré le plus fréquenté est tracé plus foncé")
+                .isGreaterThan(opaciteCalme);
+    }
+
+    private static double opaciteDuCarre(DonneesCarte donnees, String numeroCarre) {
+        return donnees.carres().stream()
+                .filter(c -> c.numeroCarre().equals(numeroCarre))
+                .map(c -> c.remplissage().getOpacity())
+                .findFirst()
+                .orElseThrow();
+    }
 }

@@ -73,8 +73,6 @@ public class MultisiteViewModel {
     /// l'écran ; ensuite déclenché automatiquement par tout changement de filtre ou de tri.
     public void rafraichir() {
         lignes.setAll(service.listerPassages(idUtilisateur, filtresCourants(), tri.get()));
-        // Carte (#152) : vue d'ensemble non filtrée des carrés/points (indépendante des filtres du tableau).
-        carresCarte.setAll(service.agregerPourCarte(idUtilisateur));
         nonVide.set(!lignes.isEmpty());
         resume.set(lignes.size() + " passage(s) affiché(s).");
         message.set("");
@@ -84,6 +82,15 @@ public class MultisiteViewModel {
         if (!chargementGroupe) {
             rafraichir();
         }
+    }
+
+    /// (Re)charge l'agrégat des carrés pour la **carte** (#152), vue d'ensemble **non filtrée**.
+    /// **Séparé** de [#rafraichir()] : la carte ne dépend ni des filtres ni du tri du tableau, donc on ne
+    /// la recalcule pas à chaque changement de filtre/tri (coût inutile), mais seulement aux moments où les
+    /// données changent (ouverture de l'écran, retour après modification d'un passage), à la charge de la
+    /// vue (controller).
+    public void rafraichirCarte() {
+        carresCarte.setAll(service.agregerPourCarte(idUtilisateur));
     }
 
     private FiltresMultisite filtresCourants() {

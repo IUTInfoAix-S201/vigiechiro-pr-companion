@@ -5,7 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -39,12 +39,6 @@ class MultisiteViewModelTest {
     @Mock
     private ServiceMultisite service;
 
-    @org.junit.jupiter.api.BeforeEach
-    void stubCarteParDefaut() {
-        // rafraichir() agrège aussi pour la carte (#152) ; stub lenient pour les tests qui n'y touchent pas.
-        lenient().when(service.agregerPourCarte(any())).thenReturn(List.of());
-    }
-
     private static LignePassage ligne(String carre, String point, int annee, int numero) {
         return new LignePassage(
                 (long) numero, carre, point, annee, numero, "2026-06-2" + numero, StatutWorkflow.DEPOSE, Verdict.OK);
@@ -65,15 +59,26 @@ class MultisiteViewModelTest {
     }
 
     @Test
-    @DisplayName("#152 : rafraichir alimente aussi l'agrégat des carrés pour la carte")
-    void rafraichir_alimente_la_carte() {
-        when(service.listerPassages(eq(ID), any(), any())).thenReturn(List.of());
+    @DisplayName("#152 : rafraichirCarte alimente l'agrégat des carrés (séparé du tableau)")
+    void rafraichirCarte_alimente_la_carte() {
         when(service.agregerPourCarte(ID)).thenReturn(List.of(new CarreAgrege("640380", "Étang", List.of(), 0)));
         MultisiteViewModel vm = new MultisiteViewModel(service, ID);
 
-        vm.rafraichir();
+        vm.rafraichirCarte();
 
         assertThat(vm.carresCarte()).extracting(CarreAgrege::numeroCarre).containsExactly("640380");
+    }
+
+    @Test
+    @DisplayName("#152 : rafraichir (filtres/tri) ne recalcule PAS l'agrégat carte (coût évité)")
+    void rafraichir_ne_touche_pas_la_carte() {
+        when(service.listerPassages(eq(ID), any(), any())).thenReturn(List.of());
+        MultisiteViewModel vm = new MultisiteViewModel(service, ID);
+
+        vm.rafraichir();
+        vm.filtreStatutProperty().set(StatutWorkflow.DEPOSE); // re-déclenche rafraichir
+
+        verify(service, never()).agregerPourCarte(any());
     }
 
     @Test

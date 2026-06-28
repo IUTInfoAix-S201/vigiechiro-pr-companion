@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [1.46.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.45.0...v1.46.0) (2026-06-28)
+
+
+### Features
+
+* **sites:** lien « placer sur la carte » pour les points sans GPS ([#380](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/380)) ([bc43439](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/bc434391fb5e9179a498acc4f0b9c98bb9e6704f))
+
 # [1.45.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.44.0...v1.45.0) (2026-06-28)
 
 

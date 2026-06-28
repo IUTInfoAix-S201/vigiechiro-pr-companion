@@ -106,6 +106,16 @@ class MainViewTest {
     }
 
     @Test
+    @DisplayName("L'accueil regroupe les cartes en deux sections de prismes (Collecte / Biodiversité)")
+    void accueil_regroupe_en_deux_prismes(FxRobot robot) {
+        FlowPane sections = robot.lookup("#cartesActivites").queryAs(FlowPane.class);
+        assertThat(sections.getChildren()).as("une section par prisme").hasSize(2);
+        assertThat(robot.lookup(".section-prisme-titre").queryAll())
+                .extracting(noeud -> ((Label) noeud).getText())
+                .containsExactlyInAnyOrder("Collecte & passages", "Espèces & biodiversité");
+    }
+
+    @Test
     @DisplayName("Le fil d'Ariane reflète le parcours ; cliquer un ancêtre y ramène")
     void fil_ariane_reflete_le_parcours(FxRobot robot) {
         robot.interact(() -> {

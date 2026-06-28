@@ -5,7 +5,10 @@ import fr.univ_amu.iut.commun.model.RechercheGlobale;
 import fr.univ_amu.iut.commun.model.ResultatRecherche;
 import fr.univ_amu.iut.commun.viewmodel.NavigationViewModel;
 import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javafx.animation.FadeTransition;
 import javafx.animation.TranslateTransition;
 import javafx.collections.ListChangeListener;
@@ -73,6 +76,8 @@ public class MainController {
     @FXML
     private FlowPane bandeauIndicateurs;
 
+    /// Conteneur des **sections de prismes** : une section (en-tête + grille de cartes) par [Prisme].
+    /// `FlowPane` pour poser les sections **côte à côte** quand la largeur le permet, **empilées** sinon.
     @FXML
     private FlowPane cartesActivites;
 
@@ -245,13 +250,47 @@ public class MainController {
         }
     }
 
-    /// Bâtit une carte cliquable par activité (triées par `ordre()`). Les cartes sont créées en code
-    /// car leur nombre dépend des features installées (point d'extension `Set<ActiviteAccueil>`).
+    /// Bâtit l'accueil en **deux sections de prismes** (« Collecte & passages » / « Espèces &
+    /// biodiversité »), dans l'ordre de l'énum [Prisme]. Chaque section porte un en-tête puis les cartes
+    /// de son prisme, triées par `ordre()`. Cartes et sections sont créées en code car elles dépendent
+    /// des features installées (point d'extension `Set<ActiviteAccueil>`). Un prisme sans aucune activité
+    /// n'affiche pas de section.
     private void peuplerCartes() {
-        activites.stream()
+        Map<Prisme, List<ActiviteAccueil>> parPrisme =
+                activites.stream().collect(Collectors.groupingBy(ActiviteAccueil::prisme));
+        for (Prisme prisme : Prisme.values()) {
+            List<ActiviteAccueil> duPrisme = parPrisme.get(prisme);
+            if (duPrisme != null && !duPrisme.isEmpty()) {
+                cartesActivites.getChildren().add(construireSection(prisme, duPrisme));
+            }
+        }
+    }
+
+    /// Construit une section d'accueil : un en-tête (icône + intitulé du prisme) au-dessus d'une grille
+    /// (`FlowPane`) des cartes du prisme, triées par `ordre()`.
+    private Node construireSection(Prisme prisme, List<ActiviteAccueil> activitesDuPrisme) {
+        FontIcon icone = new FontIcon(prisme.iconeLiteral());
+        icone.getStyleClass().add("section-prisme-icone");
+        Label libelle = new Label(prisme.libelle());
+        libelle.getStyleClass().add("section-prisme-titre");
+        HBox entete = new HBox(icone, libelle);
+        entete.getStyleClass().add("section-prisme-entete");
+
+        FlowPane cartes = new FlowPane();
+        cartes.getStyleClass().add("cartes-activites");
+        cartes.setHgap(16.0);
+        cartes.setVgap(16.0);
+        // Largeur de repli = deux cartes (2 × 200 + l'écart) : chaque section reste compacte (≈ 2 colonnes)
+        // pour que les deux prismes tiennent côte à côte tant que la fenêtre est assez large.
+        cartes.setPrefWrapLength(416.0);
+        activitesDuPrisme.stream()
                 .sorted(Comparator.comparingInt(ActiviteAccueil::ordre))
                 .map(this::construireCarte)
-                .forEach(cartesActivites.getChildren()::add);
+                .forEach(cartes.getChildren()::add);
+
+        VBox section = new VBox(entete, cartes);
+        section.getStyleClass().add("section-prisme");
+        return section;
     }
 
     /// Bâtit le bandeau de compteurs (tableau de bord) à partir des [IndicateurAccueil] des

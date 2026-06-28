@@ -146,6 +146,33 @@
     -fx-padding: 0;
 }
 
+/* Accueil à deux prismes : sections côte à côte si la largeur le permet (FlowPane), empilées sinon. */
+.sections-prismes {
+    -fx-max-width: 920;
+}
+
+.section-prisme {
+    -fx-spacing: 12;
+    -fx-min-width: 432;
+}
+
+.section-prisme-entete {
+    -fx-alignment: center-left;
+    -fx-spacing: 10;
+    -fx-padding: 0 0 0 2;
+}
+
+.section-prisme-icone {
+    -fx-icon-size: 18;
+    -fx-icon-color: -couleur-primaire;
+}
+
+.section-prisme-titre {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -couleur-texte;
+}
+
 .carte-activite {
     -fx-background-color: -couleur-texte-clair;
     -fx-background-radius: 12;

@@ -55,18 +55,18 @@
           <VBox styleClass="hero-contenu" alignment="CENTER" spacing="14.0">
             <Label styleClass="titre-accueil" text="Bienvenue dans VigieChiro PR Companion"/>
             <Label styleClass="sous-titre-accueil" wrapText="true" textAlignment="CENTER"
-                   text="Sélectionnez une activité pour traiter une nuit d'enregistrement (Passive Recorder)."/>
+                   text="Deux entrées : collecter vos nuits d'enregistrement (sites &amp; passages) et exploiter vos espèces observées (biodiversité)."/>
             <!-- Bandeau de compteurs (tableau de bord) peuplé par MainController à partir des
                  IndicateurAccueil des features. Masqué tant qu'aucune donnée n'existe. -->
             <FlowPane fx:id="bandeauIndicateurs" styleClass="bandeau-indicateurs"
                       alignment="CENTER" hgap="12.0" vgap="12.0"/>
           </VBox>
         </StackPane>
-        <!-- Zone des cartes d'activités, peuplées par MainController à partir des ActiviteAccueil
-             des features. -->
+        <!-- Zone des cartes d'activités : MainController y bâtit une section par prisme (en-tête +
+             grille de cartes) à partir des ActiviteAccueil des features. -->
         <VBox styleClass="zone-cartes" alignment="TOP_CENTER" VBox.vgrow="ALWAYS">
-          <FlowPane fx:id="cartesActivites" styleClass="cartes-activites"
-                    alignment="CENTER" hgap="16.0" vgap="16.0"/>
+          <FlowPane fx:id="cartesActivites" styleClass="sections-prismes"
+                    alignment="TOP_CENTER" hgap="32.0" vgap="24.0"/>
         </VBox>
       </VBox>
     </center>

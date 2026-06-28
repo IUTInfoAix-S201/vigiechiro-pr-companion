@@ -8,6 +8,7 @@ import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
 import fr.univ_amu.iut.validation.model.CarreEspeces;
 import fr.univ_amu.iut.validation.model.EspeceAgregee;
 import fr.univ_amu.iut.validation.model.EspeceObservee;
+import fr.univ_amu.iut.validation.model.LigneObservationAudio;
 import fr.univ_amu.iut.validation.model.Observation;
 import fr.univ_amu.iut.validation.model.ObservationEspece;
 import fr.univ_amu.iut.validation.model.StatutObservation;
@@ -15,6 +16,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.List;
 
 /// DAO de l'entité [Observation] (table `observation`, clé auto-incrémentée).
@@ -32,8 +34,17 @@ import java.util.List;
 /// - la requête métier [#findByResults(Long)] (toutes les observations d'un jeu de résultats).
 public class ObservationDao extends DaoGenerique<Observation, Long> {
 
-    /// Nom de colonne projetée du carré (alias `carre`), partagé par les mappers transverses.
+    /// Noms de colonnes projetées et fragments SQL partagés par les mappers/CTE transverses
+    /// (factorisés pour éviter la duplication de littéraux entre projections analyse et audio).
     private static final String COL_CARRE = "carre";
+
+    private static final String COL_PROB_TADARIDA = "prob_tadarida";
+    private static final String COL_PROB_OBSERVER = "prob_observer";
+    private static final String COL_PASSAGE_ID = "passage_id";
+    private static final String COL_DATE_ENR = "date_enr";
+    private static final String COL_NOM_SITE = "nom_site";
+    private static final String DEBUT_CTE = "WITH obs AS (";
+    private static final String ALIAS_STATUT = " AS statut,";
 
     private static final String SQL_INSERT = "INSERT INTO observation"
             + " (sequence_id, start_time_s, end_time_s, median_freq_hz, taxon_tadarida,"
@@ -48,10 +59,10 @@ public class ObservationDao extends DaoGenerique<Observation, Long> {
             (Double) rs.getObject("end_time_s"),
             entierNullable(rs, "median_freq_hz"),
             rs.getString("taxon_tadarida"),
-            (Double) rs.getObject("prob_tadarida"),
+            (Double) rs.getObject(COL_PROB_TADARIDA),
             rs.getString("taxon_other_tadarida"),
             rs.getString("taxon_observer"),
-            (Double) rs.getObject("prob_observer"),
+            (Double) rs.getObject(COL_PROB_OBSERVER),
             rs.getString("user_comment"),
             rs.getInt("is_reference") != 0,
             ModeValidation.parLibelle(rs.getString("validation_mode")),
@@ -122,12 +133,12 @@ public class ObservationDao extends DaoGenerique<Observation, Long> {
             rs.getString("code"),
             rs.getString("latin"),
             rs.getString("vern"),
-            rs.getLong("passage_id"),
+            rs.getLong(COL_PASSAGE_ID),
             rs.getString(COL_CARRE),
             rs.getString("point"),
             rs.getInt("annee"),
             rs.getInt("num"),
-            rs.getString("date_enr"));
+            rs.getString(COL_DATE_ENR));
 
     /// **Inventaire par espèce** (#analyse) : agrège les observations de l'utilisateur par espèce
     /// (`COALESCE(observateur, tadarida)`, pseudo-taxons exclus), filtrées par `statut` (`null` = tous).
@@ -180,9 +191,9 @@ public class ObservationDao extends DaoGenerique<Observation, Long> {
 
     /// CTE commune : une ligne **par observation** de l'utilisateur, avec l'espèce retenue, le statut
     /// dérivé et le contexte (passage/carré/point/année). Les pseudo-taxons bruit/oiseau sont exclus.
-    private static final String CTE_OBSERVATIONS = "WITH obs AS ("
+    private static final String CTE_OBSERVATIONS = DEBUT_CTE
             + " SELECT COALESCE(o.taxon_observer, o.taxon_tadarida) AS taxon_code,"
-            + CASE_STATUT + " AS statut,"
+            + CASE_STATUT + ALIAS_STATUT
             + " p.id AS passage_id, p.year AS annee, ms.square_number AS carre,"
             + " ms.friendly_name AS nom_site, lp.id AS point_id"
             + DE_OBSERVATION_AU_SITE
@@ -224,7 +235,7 @@ public class ObservationDao extends DaoGenerique<Observation, Long> {
 
     private static final RowMapper<CarreEspeces> MAPPER_CARRE_ESPECES = rs -> new CarreEspeces(
             rs.getString(COL_CARRE),
-            rs.getString("nom_site"),
+            rs.getString(COL_NOM_SITE),
             rs.getInt("richesse"),
             rs.getInt("nb_obs"),
             rs.getInt("annee_min"),
@@ -232,10 +243,10 @@ public class ObservationDao extends DaoGenerique<Observation, Long> {
 
     /// CTE de **détail** : une ligne par observation (clé, séquence, contexte passage/carré/point, les deux
     /// taxons et probabilités, statut dérivé), pour le panneau « observations d'une espèce » (#analyse).
-    private static final String CTE_DETAIL = "WITH obs AS ("
+    private static final String CTE_DETAIL = DEBUT_CTE
             + " SELECT o.id AS id, o.sequence_id AS seq,"
             + " COALESCE(o.taxon_observer, o.taxon_tadarida) AS taxon_code,"
-            + CASE_STATUT + " AS statut,"
+            + CASE_STATUT + ALIAS_STATUT
             + " p.id AS passage_id, p.passage_number AS num_passage, p.year AS annee,"
             + " p.recording_date AS date_enr, ms.square_number AS carre, ms.friendly_name AS nom_site,"
             + " lp.code AS point_code, o.taxon_tadarida AS tadarida, o.prob_tadarida AS prob_tadarida,"
@@ -252,18 +263,94 @@ public class ObservationDao extends DaoGenerique<Observation, Long> {
     private static final RowMapper<ObservationEspece> MAPPER_OBSERVATION_ESPECE = rs -> new ObservationEspece(
             rs.getLong("id"),
             rs.getLong("seq"),
-            rs.getLong("passage_id"),
+            rs.getLong(COL_PASSAGE_ID),
             rs.getInt("num_passage"),
             rs.getInt("annee"),
-            rs.getString("date_enr"),
+            rs.getString(COL_DATE_ENR),
             rs.getString(COL_CARRE),
             rs.getString("point_code"),
-            rs.getString("nom_site"),
+            rs.getString(COL_NOM_SITE),
             rs.getString("tadarida"),
-            (Double) rs.getObject("prob_tadarida"),
+            (Double) rs.getObject(COL_PROB_TADARIDA),
             rs.getString("observer"),
-            (Double) rs.getObject("prob_observer"),
+            (Double) rs.getObject(COL_PROB_OBSERVER),
             StatutObservation.valueOf(rs.getString("statut")));
+
+    // --- Projection unifiée pour la vue audio (#audio) : observations + contexte passage + champs
+    // d'archivage (reference/commentaire/fréquence). Pas d'exclusion de pseudo-taxons : la validation
+    // revoit toutes les séquences. Une CTE commune, quatre sélections selon la source. ---
+
+    /// CTE commune : une ligne par observation avec son contexte passage/carré/point, ses deux taxons +
+    /// probabilités, son statut dérivé, et ses champs d'archivage.
+    private static final String CTE_AUDIO = DEBUT_CTE
+            + " SELECT o.id AS id, o.sequence_id AS seq,"
+            + " COALESCE(o.taxon_observer, o.taxon_tadarida) AS taxon_code,"
+            + CASE_STATUT + ALIAS_STATUT
+            + " p.id AS passage_id, p.passage_number AS num_passage, p.recording_date AS date_enr,"
+            + " ms.square_number AS carre, ms.friendly_name AS nom_site, lp.code AS point_code,"
+            + " ms.user_id AS user_id, o.taxon_tadarida AS tadarida, o.prob_tadarida AS prob_tadarida,"
+            + " o.taxon_observer AS observer, o.prob_observer AS prob_observer,"
+            + " o.is_reference AS is_reference, o.user_comment AS commentaire, o.median_freq_hz AS frequence"
+            + DE_OBSERVATION_AU_SITE
+            + ")";
+
+    private static final String SELECT_AUDIO = CTE_AUDIO + " SELECT * FROM obs WHERE obs.";
+    private static final String ORDRE_AUDIO = " ORDER BY obs.date_enr, obs.point_code, obs.id";
+
+    private static final RowMapper<LigneObservationAudio> MAPPER_LIGNE_AUDIO = rs -> new LigneObservationAudio(
+            rs.getLong("id"),
+            rs.getLong("seq"),
+            rs.getLong(COL_PASSAGE_ID),
+            rs.getInt("num_passage"),
+            rs.getString(COL_DATE_ENR),
+            rs.getString(COL_CARRE),
+            rs.getString("point_code"),
+            rs.getString(COL_NOM_SITE),
+            rs.getString("tadarida"),
+            (Double) rs.getObject(COL_PROB_TADARIDA),
+            rs.getString("observer"),
+            (Double) rs.getObject(COL_PROB_OBSERVER),
+            StatutObservation.valueOf(rs.getString("statut")),
+            rs.getInt("is_reference") != 0,
+            rs.getString("commentaire"),
+            entierNullable(rs, "frequence"));
+
+    /// Source **Passage** : toutes les observations d'un passage (pseudo-taxons compris : on revoit tout).
+    public List<LigneObservationAudio> lignesAudioDuPassage(Long idPassage) {
+        return projeter(SELECT_AUDIO + "passage_id = ?" + ORDRE_AUDIO, MAPPER_LIGNE_AUDIO, idPassage);
+    }
+
+    /// Source **Lot de passages** : observations à travers plusieurs passages (lot filtré du multisite).
+    public List<LigneObservationAudio> lignesAudioDesPassages(List<Long> idPassages) {
+        if (idPassages.isEmpty()) {
+            return List.of();
+        }
+        String placeholders = String.join(", ", Collections.nCopies(idPassages.size(), "?"));
+        return projeter(
+                SELECT_AUDIO + "passage_id IN (" + placeholders + ")" + ORDRE_AUDIO,
+                MAPPER_LIGNE_AUDIO,
+                idPassages.toArray());
+    }
+
+    /// Source **Espèce** : observations d'une espèce à travers les passages de l'utilisateur, filtrées par
+    /// `statut` (`null` = tous).
+    public List<LigneObservationAudio> lignesAudioDeLEspece(
+            String idUtilisateur, String codeEspece, StatutObservation statut) {
+        String filtre = statut == null ? null : statut.name();
+        return projeter(
+                SELECT_AUDIO + "user_id = ? AND obs.taxon_code = ? AND (? IS NULL OR obs.statut = ?)" + ORDRE_AUDIO,
+                MAPPER_LIGNE_AUDIO,
+                idUtilisateur,
+                codeEspece,
+                filtre,
+                filtre);
+    }
+
+    /// Source **Références** : observations marquées `is_reference` de l'utilisateur (corpus de référence).
+    public List<LigneObservationAudio> lignesAudioReferences(String idUtilisateur) {
+        return projeter(
+                SELECT_AUDIO + "user_id = ? AND obs.is_reference = 1" + ORDRE_AUDIO, MAPPER_LIGNE_AUDIO, idUtilisateur);
+    }
 
     @Override
     public Observation insert(Observation observation) {

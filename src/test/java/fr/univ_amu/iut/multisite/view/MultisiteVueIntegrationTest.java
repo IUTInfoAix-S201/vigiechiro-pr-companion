@@ -64,6 +64,7 @@ class MultisiteVueIntegrationTest {
 
     private ServiceMultisite service;
     private NavigationMultisite navigation;
+    private MultisiteController controleur;
 
     private static LignePassage ligne(long id, String carre, String point, int annee, int numero, String date) {
         return new LignePassage(id, carre, point, annee, numero, date, StatutWorkflow.DEPOSE, Verdict.OK);
@@ -100,6 +101,7 @@ class MultisiteVueIntegrationTest {
         FXMLLoader loader = new FXMLLoader(MultisiteController.class.getResource("Multisite.fxml"));
         loader.setControllerFactory(injector::getInstance);
         Parent vue = loader.load();
+        controleur = loader.getController();
         stage.setScene(new Scene(vue, 1100, 680));
         stage.show();
     }
@@ -228,6 +230,20 @@ class MultisiteVueIntegrationTest {
         assertThat(replierCarte.isDisable())
                 .as("on ne peut pas replier aussi la carte (dernier panneau)")
                 .isTrue();
+    }
+
+    @Test
+    @DisplayName("#338 : « Voir sur la carte » (focaliserSur) replie le tableau pour dégager la carte")
+    void focaliser_replie_le_tableau(FxRobot robot) {
+        SplitPane split = robot.lookup("#splitCarteTableau").queryAs(SplitPane.class);
+        Node panneauTableau = robot.lookup("#panneauTableau").query();
+        assertThat(split.getItems()).as("carte + tableau visibles au départ").contains(panneauTableau);
+
+        robot.interact(() -> controleur.focaliserSur("640380"));
+
+        assertThat(split.getItems())
+                .as("après « Voir sur la carte », le tableau est replié : la carte occupe tout")
+                .doesNotContain(panneauTableau);
     }
 
     @Test

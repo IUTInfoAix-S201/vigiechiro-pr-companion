@@ -56,6 +56,10 @@ public class AnalyseViewModel {
     private final ObservableList<ObservationEspece> observations = FXCollections.observableArrayList();
     private final ReadOnlyStringWrapper detailTitre = new ReadOnlyStringWrapper(this, "detailTitre", "");
 
+    /// **Numéros de carré** où l'espèce sélectionnée est présente (distincts), pour la **surbrillance** de
+    /// la carte de répartition. Vide tant qu'aucune espèce n'est sélectionnée.
+    private final ObservableList<String> carresEspeceSelectionnee = FXCollections.observableArrayList();
+
     public AnalyseViewModel(ServiceAnalyse service, String idUtilisateur) {
         this.service = Objects.requireNonNull(service, "service");
         this.idUtilisateur = Objects.requireNonNull(idUtilisateur, "idUtilisateur");
@@ -86,12 +90,18 @@ public class AnalyseViewModel {
     public void selectionnerEspece(EspeceAgregee espece) {
         if (espece == null || regroupement.get() == Regroupement.PAR_CARRE) {
             observations.clear();
+            carresEspeceSelectionnee.clear();
             detailTitre.set("");
             return;
         }
         List<ObservationEspece> detail =
                 service.observationsDeLEspece(idUtilisateur, espece.code(), filtreStatut.get());
         observations.setAll(detail);
+        carresEspeceSelectionnee.setAll(detail.stream()
+                .map(ObservationEspece::numeroCarre)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList());
         detailTitre.set(libelleEspece(espece) + SEPARATEUR + quantite(detail.size(), "observation"));
     }
 
@@ -193,6 +203,12 @@ public class AnalyseViewModel {
     /// Observations de l'espèce sélectionnée, à travers les passages (panneau détail).
     public ObservableList<ObservationEspece> observations() {
         return observations;
+    }
+
+    /// Numéros de carré (distincts) où l'espèce sélectionnée est présente, pour la surbrillance de la carte
+    /// de répartition. Vide si aucune espèce n'est sélectionnée.
+    public ObservableList<String> carresEspeceSelectionnee() {
+        return carresEspeceSelectionnee;
     }
 
     public ReadOnlyStringProperty detailTitreProperty() {

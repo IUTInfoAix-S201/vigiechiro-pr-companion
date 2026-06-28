@@ -212,23 +212,47 @@ class ConstructeurDonneesCarteTest {
     }
 
     @Test
-    @DisplayName("info-bulle d'un carré : nom + numéro, total de passages, nombre de points, répartition statuts")
+    @DisplayName("info-bulle d'un carré : nom + numéro, passages, points GPS vs à localiser, répartition statuts")
     void infobulle_carre_resume_les_stats() {
         CarreAgrege carre = new CarreAgrege(
                 "640380",
                 "Étang",
                 List.of(
                         new PointAgrege("A1", 43.4010, -1.5740, 2, StatutWorkflow.VERIFIE),
-                        new PointAgrege("B2", null, null, 1, StatutWorkflow.IMPORTE)), // sans GPS, exclu du compte
+                        new PointAgrege("B2", null, null, 1, StatutWorkflow.IMPORTE)), // sans GPS → au centre
+                3);
+
+        DonneesCarte donnees = ConstructeurDonneesCarte.depuis(List.of(carre));
+
+        // Le décompte distingue le point géolocalisé du point sans GPS (affiché au centre), au lieu de
+        // l'ignorer (#153 : cohérent avec les marqueurs réellement visibles).
+        assertThat(donnees.carres().get(0).infobulle())
+                .contains("Étang (640380)")
+                .contains("3 passages")
+                .contains("1 point GPS")
+                .contains("1 à localiser")
+                .contains(StatutWorkflow.VERIFIE.libelle() + " ×1") // A1 géolocalisé
+                .contains(StatutWorkflow.IMPORTE.libelle() + " ×1"); // B2 sans GPS, désormais compté
+    }
+
+    @Test
+    @DisplayName("#153 : info-bulle cohérente quand TOUS les points d'un carré sont sans GPS (pas « 0 point »)")
+    void infobulle_carre_tous_points_sans_gps() {
+        CarreAgrege carre = new CarreAgrege(
+                "640380",
+                "Étang",
+                List.of(
+                        new PointAgrege("A1", null, null, 1, StatutWorkflow.IMPORTE),
+                        new PointAgrege("B2", null, null, 2, StatutWorkflow.IMPORTE)),
                 3);
 
         DonneesCarte donnees = ConstructeurDonneesCarte.depuis(List.of(carre));
 
         assertThat(donnees.carres().get(0).infobulle())
-                .contains("Étang (640380)")
-                .contains("3 passages")
-                .contains("1 point") // un seul point géolocalisé
-                .contains(StatutWorkflow.VERIFIE.libelle() + " ×1");
+                .as("ne dit pas « 0 point » alors que 2 marqueurs approximatifs sont visibles")
+                .doesNotContain("0 point")
+                .contains("2 points à localiser (sans GPS)")
+                .contains(StatutWorkflow.IMPORTE.libelle() + " ×2");
     }
 
     @Test

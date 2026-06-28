@@ -30,6 +30,9 @@ final class ConstructeurDonneesCarte {
     /// Séparateur de lignes des info-bulles (mini-stats au survol).
     private static final String SAUT = "\n";
 
+    /// Unité « point » pour les accords en nombre des décomptes ([#quantite]).
+    private static final String UNITE_POINT = "point";
+
     private ConstructeurDonneesCarte() {}
 
     /// Fraction du demi-côté du carré servant de rayon à l'éventail des points **sans GPS** (placés au
@@ -43,7 +46,8 @@ final class ConstructeurDonneesCarte {
     /// passages**, normalisée sur **exactement** les carrés tracés.
     static DonneesCarte depuis(List<CarreAgrege> carres) {
         // 1re passe : marqueurs + emprise → on retient les carrés RÉELLEMENT tracés (emprise présente).
-        record CarreTrace(CarreAgrege carre, EmpriseCarre emprise, List<PointAgrege> geolocalises) {}
+        record CarreTrace(
+                CarreAgrege carre, EmpriseCarre emprise, List<PointAgrege> geolocalises, List<PointAgrege> sansGps) {}
         List<CarreTrace> traces = new ArrayList<>();
         List<PointGeo> tousLesPoints = new ArrayList<>();
         for (CarreAgrege carre : carres) {
@@ -63,7 +67,7 @@ final class ConstructeurDonneesCarte {
             // (emprise présente) : carré officiel, ou repli autour des points géolocalisés. Sans emprise
             // (carré inconnu et aucun point géolocalisé), on ne peut pas le situer → il reste hors carte.
             EMPRISE.emprise(carre.numeroCarre(), pointsDuCarre).ifPresent(emprise -> {
-                traces.add(new CarreTrace(carre, emprise, geolocalises));
+                traces.add(new CarreTrace(carre, emprise, geolocalises, sansGps));
                 tousLesPoints.addAll(marqueursApproches(carre, emprise, sansGps));
             });
         }
@@ -76,7 +80,7 @@ final class ConstructeurDonneesCarte {
         List<CarreGeo> carresGeo = new ArrayList<>();
         for (CarreTrace trace : traces) {
             Color remplissage = couleurDensite(trace.carre().nombrePassages(), maxPassages);
-            String infobulle = infobulleCarre(trace.carre(), trace.geolocalises());
+            String infobulle = infobulleCarre(trace.carre(), trace.geolocalises(), trace.sansGps());
             carresGeo.add(new CarreGeo(trace.carre().numeroCarre(), trace.emprise(), remplissage, infobulle));
         }
         return new DonneesCarte(carresGeo, tousLesPoints);
@@ -129,20 +133,40 @@ final class ConstructeurDonneesCarte {
         return resultat;
     }
 
-    /// Mini-stats d'un **carré** au survol : nom (et numéro), total de passages, nombre de points
-    /// géolocalisés, et répartition des statuts dominants. Lignes jointes par [#SAUT].
-    private static String infobulleCarre(CarreAgrege carre, List<PointAgrege> geolocalises) {
+    /// Mini-stats d'un **carré** au survol : nom (et numéro), total de passages, décompte des points
+    /// **affichés** (géolocalisés + sans GPS, ces derniers placés au centre — #153), et répartition des
+    /// statuts dominants sur **tous** les points affichés (cohérente avec les marqueurs). Lignes jointes
+    /// par [#SAUT].
+    private static String infobulleCarre(CarreAgrege carre, List<PointAgrege> geolocalises, List<PointAgrege> sansGps) {
         String entete = carre.nomConvivial() != null && !carre.nomConvivial().isBlank()
                 ? carre.nomConvivial() + " (" + carre.numeroCarre() + ")"
                 : "Carré " + carre.numeroCarre();
+        List<PointAgrege> affiches = new ArrayList<>(geolocalises);
+        affiches.addAll(sansGps);
         List<String> lignes = new ArrayList<>();
         lignes.add(entete);
-        lignes.add(quantite(carre.nombrePassages(), "passage") + " · " + quantite(geolocalises.size(), "point"));
-        String repartition = repartitionStatuts(geolocalises);
+        lignes.add(quantite(carre.nombrePassages(), "passage") + " · " + resumePoints(geolocalises, sansGps));
+        String repartition = repartitionStatuts(affiches);
         if (!repartition.isEmpty()) {
             lignes.add(repartition);
         }
         return String.join(SAUT, lignes);
+    }
+
+    /// Décompte des points **affichés** sur le carré, en distinguant ceux qui ont un GPS de ceux placés au
+    /// centre faute de coordonnées : `2 points` (tous GPS), `3 points à localiser (sans GPS)` (aucun GPS),
+    /// `2 points GPS · 1 à localiser` (mixte). Évite l'incohérence « 0 point » alors que des marqueurs sont
+    /// visibles (#153).
+    private static String resumePoints(List<PointAgrege> geolocalises, List<PointAgrege> sansGps) {
+        int avecGps = geolocalises.size();
+        int aLocaliser = sansGps.size();
+        if (aLocaliser == 0) {
+            return quantite(avecGps, UNITE_POINT);
+        }
+        if (avecGps == 0) {
+            return quantite(aLocaliser, UNITE_POINT) + " à localiser (sans GPS)";
+        }
+        return quantite(avecGps, UNITE_POINT) + " GPS · " + aLocaliser + " à localiser";
     }
 
     /// Mini-stats d'un **point** au survol : son libellé, son total de passages et son statut dominant.

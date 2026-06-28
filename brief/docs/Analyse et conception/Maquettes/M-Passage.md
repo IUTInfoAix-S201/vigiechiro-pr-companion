@@ -2,8 +2,7 @@
 
 > **Type** : vue de détail (atteinte par clic sur une ligne de passage dans [M-Site-detail](M-Site-detail.md) ou [M-MultiSite](M-MultiSite.md)).
 > **Persona principal** : tous. C'est l'écran pivot qui agrège les fonctionnalités liées à une nuit d'enregistrement spécifique.
-> **Parcours couverts** : transverse — sert de point d'entrée pour [P3](../Parcours%20utilisateurs/P3%20-%20Vérifier%20l%27enregistrement%20par%20échantillonnage.md), [P4](../Parcours%20utilisateurs/P4%20-%20Préparer%20un%20lot%20prêt%20à%20déposer.md), [P6](../Parcours%20utilisateurs/P6%20-%20Diagnostiquer%20le%20matériel.md), [P7](../Parcours%20utilisateurs/P7%20-%20Valider%20les%20résultats%20Tadarida.md).
-> **Stories couvertes** : [E0.S3 - Persister passages avec statut](../Story%20mapping/E0%20-%20Fondations%20de%20persistance.md#e0s3), [E4.S4 - Stepper de statut + chronologie](../Story%20mapping/E4%20-%20Préparer%20et%20tracer%20le%20dépôt%20VigieChiro.md#e4s4), [E2.S8 - Modifier le rattachement](../Story%20mapping/E2%20-%20Importer%20et%20transformer%20une%20nuit.md#e2s8), [E6.S1 / E6.S2 / E6.S3 - Diagnostic](../Story%20mapping/E6%20-%20Diagnostiquer%20le%20matériel.md).
+> **Parcours couverts** : transverse - point d'entrée vers [P3](../Parcours%20utilisateurs/P3%20-%20Vérifier%20l%27enregistrement%20par%20échantillonnage.md), [P4](../Parcours%20utilisateurs/P4%20-%20Préparer%20un%20lot%20prêt%20à%20déposer.md), [P6](../Parcours%20utilisateurs/P6%20-%20Diagnostiquer%20le%20matériel.md), [P7](../Parcours%20utilisateurs/P7%20-%20Valider%20les%20résultats%20Tadarida.md).
 
 C'est l'**écran pivot** d'un passage, présenté comme un **hub à plat** (une seule page, sans onglets). Il agrège, de haut en bas : l'en-tête (titre identifiant + actions sur le passage), un **bandeau d'identité** (date/plage, enregistreur, statut, verdict), le **stepper de statut workflow**, un **résumé de la nuit** (statistiques) et un jeu de **cartes d'actions « avancer »** vers les écrans spécialisés : [M-Qualification](M-Qualification.md) (vérifier), [M-Diagnostic](M-Diagnostic.md) (diagnostiquer), [M-Lot](M-Lot.md) (préparer le dépôt) et [M-Vision-Tadarida](M-Vision-Tadarida.md) (valider, verrouillée tant que le passage n'est pas déposé).
 
@@ -15,14 +14,14 @@ C'est l'**écran pivot** d'un passage, présenté comme un **hub à plat** (une 
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 770" role="img" aria-label="Maquette M-Passage - hub à plat" style="max-width: 100%; height: auto; border: 1px solid #d0d7de; border-radius: 6px; background: #fafbfc;">
   <style>
     .frame { fill: #ffffff; stroke: #2c3e50; stroke-width: 1.5; }
-    .titlebar { fill: #2c3e50; }
-    .titletxt { fill: #ffffff; font: 600 14px sans-serif; }
-    .chrome { fill: #4a90d9; }
-    .backbtn { fill: rgba(255,255,255,.18); stroke: rgba(255,255,255,.5); stroke-width: 1; }
-    .backtxt { fill: #ffffff; font: 600 13px sans-serif; }
-    .crumb { fill: #ffffff; font: 13px sans-serif; }
-    .crumb-sep { fill: rgba(255,255,255,.6); font: 13px sans-serif; }
-    .crumb-curr { fill: #eaf2fb; font: 700 13px sans-serif; }
+    .chrome { fill: #3f51b5; }
+    .chrometxt { fill: #ffffff; font: 600 14px sans-serif; }
+    .backbtn { fill: #5566c4; stroke: #c5cae9; stroke-width: 1; }
+    .backtxt { fill: #ffffff; font: 600 12px sans-serif; }
+    .crumb { fill: #c5cae9; font: 13px sans-serif; }
+    .crumb-curr { fill: #ffffff; font: 700 13px sans-serif; }
+    .search { fill: #ffffff; stroke: #c5cae9; stroke-width: 1; }
+    .search-txt { fill: #9aa0b3; font: 13px sans-serif; }
     .pagetitle { font: 700 24px sans-serif; fill: #2c3e50; }
     .btn-secondary { fill: #ffffff; stroke: #2c3e50; stroke-width: 1; }
     .btn-danger { fill: #ffffff; stroke: #a93226; stroke-width: 1; }
@@ -58,22 +57,16 @@ C'est l'**écran pivot** d'un passage, présenté comme un **hub à plat** (une 
   </style>
 
   <rect x="10" y="10" width="1180" height="750" rx="4" class="frame"/>
-  <rect x="10" y="10" width="1180" height="32" rx="4" class="titlebar"/>
-  <rect x="10" y="26" width="1180" height="16" class="titlebar"/>
-  <text x="28" y="31" class="titletxt">🦇 VigieChiro PR Companion</text>
-  <text x="1140" y="31" class="titletxt" text-anchor="end">— ☐ ☓</text>
-
-  <!-- Barre du CHROME : ← Retour (historique) + fil d'Ariane honnête (emplacement, cliquable) -->
-  <rect x="10" y="42" width="1180" height="44" class="chrome"/>
-  <rect x="28" y="53" width="118" height="24" rx="5" class="backbtn"/>
-  <text x="87" y="69" class="backtxt" text-anchor="middle">← Mes sites</text>
-  <text x="166" y="69" class="crumb">🏠 Accueil</text>
-  <text x="250" y="69" class="crumb-sep">›</text>
-  <text x="264" y="69" class="crumb">Mes sites</text>
-  <text x="340" y="69" class="crumb-sep">›</text>
-  <text x="354" y="69" class="crumb">Carré 640380</text>
-  <text x="470" y="69" class="crumb-sep">›</text>
-  <text x="484" y="69" class="crumb-curr">Détails du passage N° 2</text>
+  <!-- Bandeau du chrome : titre + ← Retour (historique) + fil d'Ariane (emplacement) + recherche -->
+  <rect x="10" y="10" width="1180" height="44" rx="4" class="chrome"/>
+  <rect x="10" y="26" width="1180" height="28" class="chrome"/>
+  <text x="28" y="38" class="chrometxt">VigieChiro PR Companion</text>
+  <rect x="226" y="22" width="96" height="22" rx="5" class="backbtn"/>
+  <text x="274" y="38" class="backtxt" text-anchor="middle">← Mes sites</text>
+  <text x="338" y="38" class="crumb">Accueil  ›  Mes sites  ›  Carré 640380  ›  </text>
+  <text x="650" y="38" class="crumb-curr">Passage N° 2</text>
+  <rect x="940" y="22" width="220" height="22" rx="11" class="search"/>
+  <text x="956" y="38" class="search-txt">🔍  Rechercher (Ctrl+F)</text>
 
   <!-- Titre + actions de tête -->
   <text x="40" y="124" class="pagetitle">Carré 640380 / A1 / N° 2 (2026)</text>
@@ -141,22 +134,22 @@ C'est l'**écran pivot** d'un passage, présenté comme un **hub à plat** (une 
 | Élément | Action |
 |---|---|
 | **← Retour** (chrome) | Revient à l'écran précédent réel (historique), sans repasser par l'accueil |
-| **Fil d'Ariane** (chrome) | Remonte à un ancêtre (Accueil, Mes sites, Carré N) — emplacement cliquable |
-| Bouton **✏ Modifier rattachement** | Modale d'édition année/n° de passage avec re-renommage des fichiers ([E2.S8](../Story%20mapping/E2%20-%20Importer%20et%20transformer%20une%20nuit.md#e2s8)) |
+| **Fil d'Ariane** (chrome) | Remonte à un ancêtre (Accueil, Mes sites, Carré N) - emplacement cliquable |
+| Bouton **✏ Modifier rattachement** | Modale d'édition année / n° de passage, avec re-renommage des fichiers |
 | Bouton **🗑 Supprimer** | Confirmation forte (suppression de la nuit et des fichiers) ; refusée si le passage est déposé |
 | Carte **🎧 Vérifier l'enregistrement** | Ouvre [M-Qualification](M-Qualification.md) (active dès que la nuit est transformée) |
 | Carte **🛠 Diagnostic matériel** | Ouvre [M-Diagnostic](M-Diagnostic.md) (toujours disponible : relevé climatique + journal) |
 | Carte **📦 Préparer le dépôt** | Ouvre [M-Lot](M-Lot.md) (active en phase de dépôt : `Vérifié` ou `Prêt à déposer`) |
-| Carte **✅ Validation Tadarida** | Ouvre [M-Vision-Tadarida](M-Vision-Tadarida.md) — **verrouillée** tant que le passage n'est pas `Déposé` |
+| Carte **✅ Validation Tadarida** | Ouvre [M-Vision-Tadarida](M-Vision-Tadarida.md) - **verrouillée** tant que le passage n'est pas `Déposé` |
 
-> **Diagnostic matériel** : son contenu (graphes T°/hygrométrie, batterie, évènements anormaux du `LogPR`, cohérence des horaires astronomiques) n'est plus un onglet de M-Passage mais un **écran plein à part entière** — voir [M-Diagnostic](M-Diagnostic.md), ouvert depuis la carte « Diagnostic matériel ».
+> **Diagnostic matériel** : son contenu (graphes T° / hygrométrie, batterie, évènements anormaux du `LogPR`) n'est pas un onglet de M-Passage mais un **écran à part entière** - voir [M-Diagnostic](M-Diagnostic.md), ouvert depuis la carte « Diagnostic matériel ».
 
 ## Notes pour l'implémentation
 
 - **Hub à plat** : une seule page (`BorderPane` → `top` en-tête/bandeau/stepper, `center` résumé + cartes), sans `TabPane`. Le retrait des onglets supprime la redondance « onglet-lanceur ↔ carte d'action » : chaque facette du passage (vérification, diagnostic, dépôt, validation) est un **écran spécialisé** ouvert par une carte via un contrat socle (`Ouvrir*`), avec retour assuré par le chrome.
 - **Navigation portée par le chrome** : M-Passage implémente le contrat `EmplacementNavigation` pour déclarer son chemin (`Mes sites › Carré N › Détails du passage N° X`) ; le chrome en dérive le fil d'Ariane et conserve l'historique pour le bouton Retour. Aucun fil ni retour interne à l'écran.
-- **Stepper de statut** : 5 étapes, statut courant calculé depuis l'attribut workflow du passage ([E0.S3](../Story%20mapping/E0%20-%20Fondations%20de%20persistance.md#e0s3)).
+- **Stepper de statut** : 5 étapes, statut courant calculé depuis l'attribut workflow du passage.
 - **États des cartes** : `Vérifier` activée dès `Transformé` ; `Préparer le dépôt` activée à `Vérifié`/`Prêt à déposer` ; `Validation Tadarida` verrouillée tant que ≠ `Déposé`. Les états sont liés aux propriétés du ViewModel (`verificationDisponible`, `depotDisponible`, `validationVerrouillee`).
 - **Mise en avant dynamique** : la carte de la prochaine étape porte une pseudo-classe CSS `recommandee` (liseré bleu), pilotée par `actionRecommandee` (dérivée du statut). La mise en avant se déplace donc avec l'avancement, au lieu de rester figée sur la première action.
 - **Icônes** : `FontIcon` (Ikonli FontAwesome5) pour un rendu net, y compris en capture headless.
-- **Action « Modifier rattachement »** : implémente [E2.S8](../Story%20mapping/E2%20-%20Importer%20et%20transformer%20une%20nuit.md#e2s8) — re-renomme tous les fichiers du passage. Confirmation forte obligatoire.
+- **Action « Modifier rattachement »** : re-renomme tous les fichiers du passage (R6/R7). Confirmation forte obligatoire.

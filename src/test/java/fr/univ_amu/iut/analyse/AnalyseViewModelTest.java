@@ -45,6 +45,10 @@ class AnalyseViewModelTest {
     }
 
     private static ObservationEspece observation(long idPassage) {
+        return observation(idPassage, "640380");
+    }
+
+    private static ObservationEspece observation(long idPassage, String carre) {
         return new ObservationEspece(
                 idPassage,
                 idPassage,
@@ -52,7 +56,7 @@ class AnalyseViewModelTest {
                 1,
                 2026,
                 "2026-06-20",
-                "640380",
+                carre,
                 "A1",
                 "Étang",
                 "Pippip",
@@ -177,6 +181,24 @@ class AnalyseViewModelTest {
 
         assertThat(vm.observations()).isEmpty();
         assertThat(vm.detailTitreProperty().get()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Sélectionner une espèce expose ses carrés distincts (carte) ; null les vide")
+    void selectionner_espece_expose_les_carres_distincts() {
+        when(service.inventaireParEspece(eq(ID), isNull())).thenReturn(List.of(espece("Pippip", 3)));
+        // Présente dans 640380 (deux passages) et 640381 → deux carrés distincts.
+        when(service.observationsDeLEspece(eq(ID), eq("Pippip"), isNull()))
+                .thenReturn(
+                        List.of(observation(10L, "640380"), observation(11L, "640380"), observation(12L, "640381")));
+        AnalyseViewModel vm = new AnalyseViewModel(service, ID);
+        vm.rafraichir();
+
+        vm.selectionnerEspece(espece("Pippip", 3));
+        assertThat(vm.carresEspeceSelectionnee()).containsExactly("640380", "640381");
+
+        vm.selectionnerEspece(null);
+        assertThat(vm.carresEspeceSelectionnee()).isEmpty();
     }
 
     @Test

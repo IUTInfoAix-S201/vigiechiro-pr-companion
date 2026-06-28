@@ -13,8 +13,11 @@ import fr.univ_amu.iut.validation.model.EspeceAgregee;
 import fr.univ_amu.iut.validation.model.ObservationEspece;
 import fr.univ_amu.iut.validation.model.StatutObservation;
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
+import javafx.beans.InvalidationListener;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
@@ -53,6 +56,10 @@ public class AnalyseController implements RafraichirAuRetour {
     /// État de la bascule Tableau ⇄ Carte (vue, pas de domaine) ; la carte elle-même est gérée par
     /// [CarteRepartition].
     private final BooleanProperty carteAffichee = new SimpleBooleanProperty(this, "carteAffichee", false);
+
+    /// Richesse (nombre d'espèces distinctes) par numéro de carré, tenue à jour depuis l'inventaire par
+    /// carré, pour afficher la richesse du carré de chaque observation du détail (lien avec la carte).
+    private final Map<String, Integer> richesseParCarre = new HashMap<>();
 
     @FXML
     private StackPane zoneCarte;
@@ -151,6 +158,9 @@ public class AnalyseController implements RafraichirAuRetour {
     private TableColumn<ObservationEspece, String> colObsCarre;
 
     @FXML
+    private TableColumn<ObservationEspece, String> colObsRichesse;
+
+    @FXML
     private TableColumn<ObservationEspece, String> colObsPoint;
 
     @FXML
@@ -217,7 +227,21 @@ public class AnalyseController implements RafraichirAuRetour {
 
         configurerDetail();
 
+        // La colonne « Espèces du carré » du détail lit la richesse depuis l'inventaire par carré : on la
+        // tient à jour quand cet inventaire change (chargement, filtre statut).
+        viewModel.carresCarte().addListener((InvalidationListener) observable -> majRichesseParCarre());
+
         viewModel.rafraichir();
+    }
+
+    /// Reconstruit la table de correspondance carré → richesse (nb d'espèces distinctes) depuis l'inventaire
+    /// par carré, et rafraîchit le détail pour que sa colonne « Espèces du carré » se mette à jour.
+    private void majRichesseParCarre() {
+        richesseParCarre.clear();
+        for (CarreEspeces carre : viewModel.carresCarte()) {
+            richesseParCarre.put(carre.numeroCarre(), carre.richesse());
+        }
+        tableObservations.refresh();
     }
 
     /// Câble le panneau **détail** (maître-détail) : la sélection d'une espèce dans l'inventaire charge ses
@@ -361,6 +385,8 @@ public class AnalyseController implements RafraichirAuRetour {
         // Colonnes du détail (observations de l'espèce sélectionnée).
         colObsPassage.setCellValueFactory(c -> texte(libellePassage(c.getValue())));
         colObsCarre.setCellValueFactory(c -> texte(c.getValue().numeroCarre()));
+        colObsRichesse.setCellValueFactory(
+                c -> texte(richesseDuCarre(c.getValue().numeroCarre())));
         colObsPoint.setCellValueFactory(c -> texte(c.getValue().codePoint()));
         colObsTadarida.setCellValueFactory(c ->
                 texte(taxonEtProb(c.getValue().taxonTadarida(), c.getValue().probTadarida())));
@@ -370,6 +396,12 @@ public class AnalyseController implements RafraichirAuRetour {
     }
 
     /// Libellé du passage d'une observation : date d'enregistrement et n° de passage (`2026-06-22 · n°2`).
+    /// Richesse (nb d'espèces distinctes) du carré `numeroCarre`, ou `—` si inconnue de l'inventaire.
+    private String richesseDuCarre(String numeroCarre) {
+        Integer richesse = richesseParCarre.get(numeroCarre);
+        return richesse == null ? "—" : richesse.toString();
+    }
+
     private static String libellePassage(ObservationEspece observation) {
         return observation.dateEnregistrement() + " · n°" + observation.numeroPassage();
     }

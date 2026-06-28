@@ -90,9 +90,11 @@ final class CarteRepartition {
         carte.setDonnees(ConstructeurDonneesCarteEspeces.depuis(carres, surbrilles), recadrer);
     }
 
-    /// Légende minimale : un dégradé « richesse faible → élevée », superposé à la carte.
+    /// Légende minimale : un dégradé « peu → beaucoup » d'espèces par carré, superposé à la carte.
+    /// L'intitulé reprend exactement le nom de la colonne du tableau (« Espèces du carré ») pour que carte
+    /// et tableau parlent le même langage.
     private Node construireLegende() {
-        Label titre = new Label("Richesse");
+        Label titre = new Label("Espèces du carré");
         titre.getStyleClass().add("carte-legende-titre");
         Rectangle degrade = new Rectangle(90, 10);
         degrade.setArcWidth(4);
@@ -106,11 +108,11 @@ final class CarteRepartition {
                 CycleMethod.NO_CYCLE,
                 new Stop(0, Color.web("#1e8449", 0.15)),
                 new Stop(1, Color.web("#1e8449", 0.60))));
-        Label faible = new Label("faible");
-        Label eleve = new Label("élevée");
-        faible.getStyleClass().add("carte-legende-borne");
-        eleve.getStyleClass().add("carte-legende-borne");
-        HBox echelle = new HBox(6, faible, degrade, eleve);
+        Label peu = new Label("peu");
+        Label beaucoup = new Label("beaucoup");
+        peu.getStyleClass().add("carte-legende-borne");
+        beaucoup.getStyleClass().add("carte-legende-borne");
+        HBox echelle = new HBox(6, peu, degrade, beaucoup);
         echelle.setAlignment(Pos.CENTER_LEFT);
         VBox boite = new VBox(4, titre, echelle);
         boite.getStyleClass().add("carte-legende");

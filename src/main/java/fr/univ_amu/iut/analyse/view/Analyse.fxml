@@ -83,6 +83,7 @@
           <columns>
             <TableColumn fx:id="colObsPassage" text="Passage" prefWidth="160.0"/>
             <TableColumn fx:id="colObsCarre" text="Carré" prefWidth="90.0"/>
+            <TableColumn fx:id="colObsRichesse" text="Espèces du carré" prefWidth="115.0"/>
             <TableColumn fx:id="colObsPoint" text="Point" prefWidth="70.0"/>
             <TableColumn fx:id="colObsTadarida" text="Proposition Tadarida" prefWidth="180.0"/>
             <TableColumn fx:id="colObsObservateur" text="Votre taxon" prefWidth="150.0"/>

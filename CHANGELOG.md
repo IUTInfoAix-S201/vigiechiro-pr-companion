@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [1.49.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.48.0...v1.49.0) (2026-06-28)
+
+
+### Features
+
+* **analyse:** écouter / valider une détection depuis « Espèces & observations » ([#388](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/388)) ([0b8abca](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/0b8abca93a6df9c98af8decd14c70cc005242ce5))
+
 # [1.48.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.47.0...v1.48.0) (2026-06-28)
 
 

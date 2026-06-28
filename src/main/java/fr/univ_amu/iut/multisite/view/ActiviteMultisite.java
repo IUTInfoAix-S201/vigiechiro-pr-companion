@@ -4,7 +4,7 @@ import com.google.inject.Inject;
 import fr.univ_amu.iut.commun.view.ActiviteAccueil;
 import java.util.Objects;
 
-/// Carte d'accueil de la feature `multisite` : ouvre l'écran « Vue multi-sites ».
+/// Carte d'accueil de la feature `multisite` : ouvre l'écran « Carte & passages ».
 ///
 /// Implémente le contrat du socle [ActiviteAccueil] et délègue l'ouverture à
 /// [NavigationMultisite] (même feature). Enregistrée dans le `Multibinder<ActiviteAccueil>` par
@@ -36,12 +36,12 @@ public final class ActiviteMultisite implements ActiviteAccueil {
 
     @Override
     public String titre() {
-        return "Vue multi-sites";
+        return "Carte & passages";
     }
 
     @Override
     public String description() {
-        return "Tous vos passages : filtres, tri et export.";
+        return "La carte de vos sites et le tableau de tous les passages : filtres, tri et export.";
     }
 
     @Override

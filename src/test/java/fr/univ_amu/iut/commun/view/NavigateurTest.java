@@ -50,7 +50,7 @@ class NavigateurTest {
         Navigateur navigateur = navigateur(navigation, new Group());
 
         navigateur.empiler(new Group(), "site-detail", "Carré 1", null);
-        navigateur.ouvrirRacine(new Group(), "multisite", "Vue multi-sites", null);
+        navigateur.ouvrirRacine(new Group(), "multisite", "Carte & passages", null);
 
         assertThat(navigateur.historique()).extracting(EtapeNavigation::id).containsExactly("accueil", "multisite");
         assertThat(navigation.vueCouranteProperty().get()).isEqualTo("multisite");
@@ -62,11 +62,11 @@ class NavigateurTest {
         Navigateur navigateur = navigateur(new NavigationViewModel(), new Group());
         assertThat(navigateur.libelleRetour()).isNull(); // à l'accueil
 
-        navigateur.ouvrirRacine(new Group(), "multisite", "Vue multi-sites", null);
+        navigateur.ouvrirRacine(new Group(), "multisite", "Carte & passages", null);
         assertThat(navigateur.libelleRetour()).isEqualTo("Accueil");
 
         navigateur.empiler(new Group(), "passage", "Détails du passage N° 1", null);
-        assertThat(navigateur.libelleRetour()).isEqualTo("Vue multi-sites");
+        assertThat(navigateur.libelleRetour()).isEqualTo("Carte & passages");
     }
 
     @Test

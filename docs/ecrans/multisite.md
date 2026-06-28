@@ -1,13 +1,13 @@
-# Multisite
+# Carte & passages
 
-La **Vue multi-sites** rassemble **tous vos passages**, tous sites confondus. Elle combine une
+La vue **Carte & passages** rassemble **tous vos passages**, tous sites confondus. Elle combine une
 **carte** (à gauche) et un **tableau** (à droite) : la carte situe vos sites et points dans l'espace,
 le tableau les liste pour les trier, filtrer et exporter. C'est l'écran adapté quand on suit plusieurs
 sites et qu'on veut une vision d'ensemble.
 
 ## La carte et le tableau
 
-![La vue multi-sites : carte des sites/points à gauche, tableau des passages à droite.](../assets/captures/apercu-multisite.png)
+![La vue Carte & passages : carte des sites/points à gauche, tableau des passages à droite.](../assets/captures/apercu-multisite.png)
 
 À **gauche**, la **carte** affiche chaque **carré** (maille 2 km du carroyage national Vigie-Chiro) et
 ses **points d'écoute** sous forme de marqueurs **colorés selon le statut** du dernier passage (gris = importé,
@@ -42,7 +42,7 @@ colonne (Année et N° de passage se trient numériquement), en plus du sélecte
 
 Quand un filtre est actif, le tableau et le résumé se recalculent en conséquence :
 
-![La vue multi-sites filtrée (ici par verdict) : le résumé est recalculé.](../assets/captures/apercu-multisite-filtre.png)
+![La vue Carte & passages filtrée (ici par verdict) : le résumé est recalculé.](../assets/captures/apercu-multisite-filtre.png)
 
 ## Vues sauvegardées
 

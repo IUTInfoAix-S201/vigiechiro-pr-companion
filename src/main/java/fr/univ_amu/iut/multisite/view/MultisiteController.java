@@ -294,13 +294,20 @@ public class MultisiteController implements RafraichirAuRetour {
     }
 
     /// Focalise la carte sur un carré (« voir sur la carte » depuis un autre écran) : surbrillance + recentrage
-    /// sur l'emprise officielle du carré. Sans effet si le numéro est vide ou hors carroyage.
+    /// sur l'emprise officielle du carré, **et repli du tableau** pour dégager la carte (#338). Sans effet
+    /// si le numéro est vide ou hors carroyage.
     public void focaliserSur(String numeroCarre) {
         if (numeroCarre == null || numeroCarre.isBlank()) {
             return;
         }
         carte.surbrillanceCarre(numeroCarre);
         FournisseurEmpriseCarre.parDefaut().emprise(numeroCarre, List.of()).ifPresent(carte::centrerSurCarre);
+        // #338 : on arrive par « Voir sur la carte » → la carte est le but du clic. On replie le tableau
+        // pour lui donner toute la largeur ; l'utilisateur le rouvre au besoin via la poignée « Tableau ◀ ».
+        if (estVisible(panneauTableau)) {
+            replier(panneauTableau);
+            majPoignees();
+        }
     }
 
     private void configurerColonnes() {

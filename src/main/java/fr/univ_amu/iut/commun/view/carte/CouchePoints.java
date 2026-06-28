@@ -114,16 +114,27 @@ final class CouchePoints extends MapLayer {
 
         private Marqueur(PointGeo point) {
             this.point = point;
-            Circle pastille = new Circle(6, point.couleur());
-            pastille.setStroke(Color.WHITE);
-            pastille.setStrokeWidth(1.5);
+            Circle pastille = new Circle(6);
+            if (point.approximatif()) {
+                // Position approchée (centre du carré, faute de GPS) : anneau creux pointillé coloré, pour
+                // qu'on ne la confonde pas avec un point réellement géolocalisé (#163 : forme, pas que couleur).
+                pastille.setFill(Color.TRANSPARENT);
+                pastille.setStroke(point.couleur());
+                pastille.setStrokeWidth(2.0);
+                pastille.getStrokeDashArray().addAll(3.0, 3.0);
+            } else {
+                pastille.setFill(point.couleur());
+                pastille.setStroke(Color.WHITE);
+                pastille.setStrokeWidth(1.5);
+            }
             Label libelle = new Label(point.libelle());
             libelle.getStyleClass().add("carte-point-libelle");
             libelle.setTranslateX(9);
             libelle.setTranslateY(-8);
             Group groupe = new Group(pastille, libelle);
             groupe.setFocusTraversable(true); // navigation clavier (#163)
-            groupe.setAccessibleText("Point d'écoute " + point.libelle());
+            groupe.setAccessibleText("Point d'écoute " + point.libelle()
+                    + (point.approximatif() ? " (position approximative, centre du carré)" : ""));
             groupe.setCursor(editable ? Cursor.OPEN_HAND : Cursor.HAND);
             if (point.infobulle() != null) {
                 // Mini-stats au survol (#152) ; aussi en accessibleHelp pour les lecteurs d'écran (#163).

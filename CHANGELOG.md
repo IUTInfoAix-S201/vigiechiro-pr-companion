@@ -2,6 +2,14 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [1.34.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.33.0...v1.34.0) (2026-06-28)
+
+
+### Features
+
+* éditer les positions des points sur la carte multi-sites ([#154](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/154)) ([#353](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/353)) ([d9b59da](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/d9b59da3a4aafbb314e3881737cce895bec22315))
+* **multisite:** renomme la vue en « Carte & passages » ([#342](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/342)) ([#354](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/354)) ([ea48f92](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/ea48f923f2e4b7d952f7444792d914ed96e36707)), closes [#152](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/152)
+
 # [1.33.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.32.0...v1.33.0) (2026-06-28)
 
 

@@ -140,8 +140,10 @@ nav:
           - P5 - Naviguer multi-sites: Analyse et conception/Parcours utilisateurs/P5 - Naviguer dans plusieurs sites et passages.md
           - P6 - Diagnostiquer le matériel: Analyse et conception/Parcours utilisateurs/P6 - Diagnostiquer le matériel.md
           - P7 - Valider les résultats Tadarida: Analyse et conception/Parcours utilisateurs/P7 - Valider les résultats Tadarida.md
+          - P8 - Rechercher globalement: Analyse et conception/Parcours utilisateurs/P8 - Rechercher globalement.md
           - P9 - Regrouper les nuits par point: Analyse et conception/Parcours utilisateurs/P9 - Regrouper les nuits successives par point.md
           - P10 - Exporter sons de référence: Analyse et conception/Parcours utilisateurs/P10 - Exporter une bibliothèque de sons de référence.md
+          - P11 - Inventaire des espèces: Analyse et conception/Parcours utilisateurs/P11 - Inventaire des espèces détectées.md
           - Topologie plein écran: Analyse et conception/Parcours utilisateurs/Topologie - plein écran.md
       - Story mapping:
           - Vue d'ensemble: Analyse et conception/Story mapping/index.md

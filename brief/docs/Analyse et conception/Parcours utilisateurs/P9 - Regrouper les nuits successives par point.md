@@ -1,8 +1,8 @@
 # P9 - Regrouper les nuits successives par point 🔁
 
-[← Retour au hub des parcours](index.md) · **Section C — Cibles étirées** · ⚪ COULD (à arbitrer, voir note interne)
+[← Retour au hub des parcours](index.md) · **Section C - Après le dépôt & exploitation**
 
-> **Persona principal** : Karim / Samuel. **MoSCoW** : COULD (à arbitrer - voir note de complexité). **Objectifs qualité visés** : [O5 Capacité d'affichage](../../Objectifs%20qualités/Objectifs%20qualités/O5.md), confort de productivité.
+> **Persona principal** : Karim / Samuel. **Objectifs qualité visés** : [O5 Capacité d'affichage](../../Objectifs%20qualités/Objectifs%20qualités/O5.md), confort de productivité.
 
 Samuel a déployé un enregistreur sur le même point pendant **4 nuits successives** dans le cadre d'un passage Vigie-Chiro. Il vient de récupérer les résultats Tadarida pour les 4 nuits et entame la validation taxonomique (parcours [P7](P7%20-%20Valider%20les%20résultats%20Tadarida.md)). Il sait qu'une espèce détectée et validée sur la nuit 1 sera très probablement aussi présente sur les nuits 2, 3 et 4 - il veut **gagner du temps** en regroupant les nuits.
 
@@ -16,6 +16,6 @@ Samuel a déployé un enregistreur sur le même point pendant **4 nuits successi
     - en mode inventaire, valider une espèce sur la 1re nuit la marque comme présente sur le site, les autres détections (mêmes nuits ou nuits suivantes du regroupement) sont ignorées
     - en mode activité, le regroupement est plus formellement « rouler par espèce » : on valide chaque détection mais le tri par espèce permet d'enchaîner rapidement
 
-## Note de complexité
+## Productivité
 
-Samuel le considérait comme « utile mais peut-être trop complexe ». Il **conditionne la productivité** des utilisateurs avec beaucoup de passages (Karim et Samuel) mais reste hors du périmètre MVP strict de la SAE. À promouvoir en SHOULD voire MUST si la vélocité étudiante le permet **et** si la validation Tadarida ([P7](P7%20-%20Valider%20les%20résultats%20Tadarida.md)) est déjà solidement en place.
+Ce parcours **conditionne la productivité** des utilisateurs qui traitent beaucoup de passages (Karim, Samuel) : regrouper les nuits successives d'un même point évite de re-valider espèce par espèce sur chaque nuit. Il prolonge la validation Tadarida ([P7](P7%20-%20Valider%20les%20résultats%20Tadarida.md)) - d'autant plus utile que celle-ci est déjà bien avancée.

@@ -1,8 +1,8 @@
 # P5 - Naviguer dans plusieurs sites et passages 🗂
 
-[← Retour au hub des parcours](index.md) · **Section B — Approfondissements** · 🟠 SHOULD (MUST pour Karim/Samuel)
+[← Retour au hub des parcours](index.md) · **Section B - Chaîne de production**
 
-> **Persona principal** : Karim / Samuel. **MoSCoW** : SHOULD (devient MUST dès qu'on dépasse 3-4 sites - cas par défaut chez Karim et Samuel). **Objectifs qualité visés** : [O5 Capacité d'affichage](../../Objectifs%20qualités/Objectifs%20qualités/O5.md), [O6 Modularité](../../Objectifs%20qualités/Objectifs%20qualités/O6.md).
+> **Persona principal** : Karim / Samuel. **Objectifs qualité visés** : [O5 Capacité d'affichage](../../Objectifs%20qualités/Objectifs%20qualités/O5.md), [O6 Modularité](../../Objectifs%20qualités/Objectifs%20qualités/O6.md).
 
 Karim revient d'une semaine de chantier sur 3 carrés différents avec 5 enregistreurs déployés en parallèle. Il a 8 nouvelles nuits à traiter. Il a besoin de **se repérer rapidement** dans son volume sans perdre une nuit dans une autre.
 

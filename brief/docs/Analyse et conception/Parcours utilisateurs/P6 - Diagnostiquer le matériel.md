@@ -1,8 +1,8 @@
 # P6 - Diagnostiquer le matériel 🩺
 
-[← Retour au hub des parcours](index.md) · **Section B — Approfondissements** · 🟠 SHOULD
+[← Retour au hub des parcours](index.md) · **Section B - Chaîne de production**
 
-> **Persona principal** : Karim / Samuel. **MoSCoW** : SHOULD. **Objectifs qualité visés** : aucun direct, mais c'est un usage fréquent en exploitation pro.
+> **Persona principal** : Karim / Samuel. **Objectifs qualité visés** : aucun direct, mais c'est un usage fréquent en exploitation pro.
 
 Karim soupçonne qu'un de ses enregistreurs a un problème (batterie qui faiblit, sonde climatique qui dérive, mises en veille intempestives). Il veut consulter les indicateurs techniques d'une nuit pour décider s'il faut remettre le matériel en service ou le réviser.
 

@@ -1,8 +1,8 @@
 # P10 - Exporter une bibliothèque de sons de référence 🎼
 
-[← Retour au hub des parcours](index.md) · **Section C — Cibles étirées** · ⚪ COULD
+[← Retour au hub des parcours](index.md) · **Section C - Après le dépôt & exploitation**
 
-> **Persona principal** : Samuel. **MoSCoW** : COULD. **Objectifs qualité visés** : aucun direct - c'est une fonctionnalité bonus.
+> **Persona principal** : Samuel. **Objectifs qualité visés** : aucun direct - c'est une fonctionnalité bonus.
 
 Samuel a validé plusieurs centaines d'observations sur la saison. Il veut **constituer une petite bibliothèque de sons de référence** par espèce (les meilleurs exemples qu'il a entendus) pour la transmettre à un débutant qu'il forme, ou pour son propre usage pédagogique.
 

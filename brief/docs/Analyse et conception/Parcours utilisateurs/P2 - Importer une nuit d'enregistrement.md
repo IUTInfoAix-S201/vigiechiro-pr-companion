@@ -1,8 +1,8 @@
 # P2 - Importer une nuit d'enregistrement 📥
 
-[← Retour au hub des parcours](index.md) · **Section B — Approfondissements** · ✅ MUST
+[← Retour au hub des parcours](index.md) · **Section B - Chaîne de production**
 
-> **Persona principal** : Marie / Karim / Samuel. **MoSCoW** : MUST. **Objectifs qualité visés** : [O3 Tenue dans la durée](../../Objectifs%20qualités/Objectifs%20qualités/O3.md) (jusqu'à 40 Go), [O7 Intégrité](../../Objectifs%20qualités/Objectifs%20qualités/O7.md), [O8 Confidentialité](../../Objectifs%20qualités/Objectifs%20qualités/O8.md).
+> **Persona principal** : Marie / Karim / Samuel. **Objectifs qualité visés** : [O3 Tenue dans la durée](../../Objectifs%20qualités/Objectifs%20qualités/O3.md) (jusqu'à 40 Go), [O7 Intégrité](../../Objectifs%20qualités/Objectifs%20qualités/O7.md), [O8 Confidentialité](../../Objectifs%20qualités/Objectifs%20qualités/O8.md).
 
 Marie vient de récupérer la carte SD de son enregistreur après une nuit d'enregistrement. Elle veut importer cette nuit dans l'application. Le PR a déposé sur la SD un journal du capteur (`LogPR<n>.txt`), un relevé climatique (`PaRecPR<sn>_THLog.csv`) et plusieurs centaines de fichiers d'enregistrement.
 

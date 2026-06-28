@@ -1,8 +1,8 @@
 # P1 - Déclarer un site de suivi 🌐
 
-[← Retour au hub des parcours](index.md) · **Section B — Approfondissements** · ✅ MUST
+[← Retour au hub des parcours](index.md) · **Section B - Chaîne de production**
 
-> **Persona principal** : Marie. **MoSCoW** : MUST. **Objectifs qualité visés** : [O2 Facilité d'apprentissage](../../Objectifs%20qualités/Objectifs%20qualités/O2.md), [SC1 Onboarding](../../Objectifs%20qualités/Scénario/SC1.md).
+> **Persona principal** : Marie. **Objectifs qualité visés** : [O2 Facilité d'apprentissage](../../Objectifs%20qualités/Objectifs%20qualités/O2.md), [SC1 Onboarding](../../Objectifs%20qualités/Scénario/SC1.md).
 
 Marie a créé son site sur le portail web Vigie-Chiro (<https://vigiechiro.herokuapp.com/>) et a noté son **n° de carré** (6 chiffres) ainsi que les **codes des points** (lettre + chiffre, ex. `A1`, `Z4`). Elle ouvre l'application pour la première fois et veut déclarer son dans l'application site afin de pouvoir importer ses nuits ensuite.
 
@@ -10,7 +10,7 @@ Marie a créé son site sur le portail web Vigie-Chiro (<https://vigiechiro.hero
 2. Elle clique. Un formulaire s'ouvre avec :
     - **N° de carré** (6 chiffres, validé à la saisie : doit faire exactement 6 chiffres, l'application avertit si elle oublie le leading zero pour les départements 1-9)
     - **Nom convivial** (optionnel, pour reconnaître le site facilement, ex. « Étang de la Tuilière »)
-    - **Protocole** : menu déroulant à deux valeurs — `PointFixeStandard` (par défaut : protocole VigieChiro à la lettre, déclenche les alertes [R3](../Modèle%20conceptuel/Règles%20métier.md#r3) / [R4](../Modèle%20conceptuel/Règles%20métier.md#r4) en cas de passage hors fenêtre) ou `PointFixeRecherche` (cas Samuel : dates et fréquences libres, R3 / R4 muettes)
+    - **Protocole** : menu déroulant à deux valeurs - `PointFixeStandard` (par défaut : protocole VigieChiro à la lettre, déclenche les alertes [R3](../Modèle%20conceptuel/Règles%20métier.md#r3) / [R4](../Modèle%20conceptuel/Règles%20métier.md#r4) en cas de passage hors fenêtre) ou `PointFixeRecherche` (cas Samuel : dates et fréquences libres, R3 / R4 muettes)
     - **Liste des points** : Marie ajoute autant de codes que nécessaire (ex. `A1`, `B2`). Pour chaque point, elle peut ajouter des coordonnées GPS et un descriptif (tous optionnels).
 3. Marie valide. Le site est enregistré localement. L'écran d'accueil bascule vers la **vue des sites** avec son site fraîchement créé.
 4. Elle peut désormais cliquer sur « Importer une nuit » et le formulaire suivant lui propose de choisir le site et le point concernés (parcours [P2 - Importer une nuit d'enregistrement](P2%20-%20Importer%20une%20nuit%20d%27enregistrement.md)).

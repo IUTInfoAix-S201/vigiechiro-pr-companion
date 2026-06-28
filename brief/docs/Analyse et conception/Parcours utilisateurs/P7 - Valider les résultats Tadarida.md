@@ -1,8 +1,8 @@
 # P7 - Valider les résultats Tadarida ✅
 
-[← Retour au hub des parcours](index.md) · **Section C — Cibles étirées** · 🟠 SHOULD (cible étirable - filet de sécurité MUST si la SAE déborde)
+[← Retour au hub des parcours](index.md) · **Section C - Après le dépôt & exploitation**
 
-> **Persona principal** : Marie / Samuel. **MoSCoW** : SHOULD (cible étirable - filet de sécurité MUST si la SAE déborde). **Objectifs qualité visés** : [O4 Exactitude lecture audio](../../Objectifs%20qualités/Objectifs%20qualités/O4.md), [O7 Intégrité](../../Objectifs%20qualités/Objectifs%20qualités/O7.md).
+> **Persona principal** : Marie / Samuel. **Objectifs qualité visés** : [O4 Exactitude lecture audio](../../Objectifs%20qualités/Objectifs%20qualités/O4.md), [O7 Intégrité](../../Objectifs%20qualités/Objectifs%20qualités/O7.md).
 
 24-48 h après le dépôt sur Vigie-Chiro (parcours [P4](P4%20-%20Préparer%20un%20lot%20prêt%20à%20déposer.md)), Tadarida a analysé les séquences d'écoute et restitué un fichier de **résultats d'identification** (CSV listant les espèces détectées dans chaque séquence, avec leur probabilité). Marie veut **passer en revue ces résultats** pour valider ou corriger les classifications avant que les données ne soient consolidées dans la base nationale.
 

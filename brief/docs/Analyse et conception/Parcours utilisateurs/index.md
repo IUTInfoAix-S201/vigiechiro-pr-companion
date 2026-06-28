@@ -1,10 +1,11 @@
 # Parcours utilisateurs
 
-Cette section présente les **parcours principaux** de l'application, organisés en trois groupes. Chaque parcours a sa propre fiche dans la sidebar - utilisez ce hub comme point d'entrée et table des matières.
+Cette section présente les **parcours d'usage** de l'application, organisés en trois groupes. Chaque parcours a sa propre fiche dans la sidebar - utilisez ce hub comme point d'entrée et table des matières. **Tous ces parcours sont supportés par l'application livrée.**
 
-- **Section A — Fil rouge** : un seul parcours, **P0**, qui raconte l'usage cible de bout-en-bout vu par Marie. C'est le **scénario démo** que vous présenterez en soutenance.
-- **Section B — Approfondissements** : les six parcours **P1 à P6** qui détaillent ou enrichissent le fil rouge. P1 à P4 composent la chaîne minimale livrable (MUST). P5 et P6 absorbent la montée en charge multi-site et le diagnostic matériel.
-- **Section C — Cibles étirées** : les trois parcours **P7, P9 et P10** qui dépassent le périmètre MVP strict. P7 (validation Tadarida) est le **filet de sécurité MUST** si la SAE déborde du périmètre fil rouge. P9 et P10 sont des idées remontées par Samuel à arbitrer.
+- **Section A - Fil rouge** : un seul parcours, **P0**, qui raconte l'usage de bout-en-bout vu par Marie, de la carte SD au dépôt.
+- **Section B - Chaîne de production** : les parcours **P1 à P6** qui composent et enrichissent le fil rouge - déclaration de site, import, vérification, préparation du lot, navigation multi-sites et diagnostic matériel.
+- **Section C - Après le dépôt & exploitation** : **P7** (validation des résultats Tadarida) et son prolongement **biodiversité** - regroupement (**P9**), bibliothèque de sons (**P10**) et inventaire des espèces (**P11**).
+- **Transverse** : **P8** (recherche globale) est accessible depuis **n'importe quel écran**.
 
 Tous les parcours reposent sur le vocabulaire posé dans le [Modèle conceptuel](../Modèle%20conceptuel/index.md).
 
@@ -26,29 +27,32 @@ flowchart LR
 
     P7 --> P9[🔁 P9 - Regrouper<br/>les nuits par point]
     P7 --> P10[🎼 P10 - Exporter<br/>sons de référence]
+    P7 --> P11[🪶 P11 - Inventaire<br/>des espèces]
 
-    classDef must fill:#1e8449,stroke:#0e5128,color:#fff,stroke-width:2px
-    classDef should fill:#b9770e,stroke:#7e5109,color:#fff,stroke-width:2px
-    classDef could fill:#5d6d7e,stroke:#283747,color:#fff,stroke-width:2px
-    class P1,P2,P3,P4 must
-    class P5,P6,P7 should
-    class P9,P10 could
+    P8[🔍 P8 - Recherche globale<br/>depuis tout écran]
+
+    classDef livre fill:#1e8449,stroke:#0e5128,color:#fff,stroke-width:2px
+    classDef transverse fill:#3f51b5,stroke:#283593,color:#fff,stroke-width:2px
+    class P1,P2,P3,P4,P5,P6,P7,P9,P10,P11 livre
+    class P8 transverse
 ```
 
-Le fil rouge **P0** est la concaténation P1 → P2 → P3 → P4 (les nœuds verts).
+Le fil rouge **P0** est la concaténation P1 → P2 → P3 → P4. Tous les nœuds verts sont des parcours **livrés** ; **P8** (bleu) est la recherche **transverse**, atteignable depuis tout écran.
 
-| Section | Parcours | Persona principal | Statut |
+| Section | Parcours | Persona principal | Rôle |
 |---|---|---|---|
-| **A. Fil rouge** | [P0 - Première nuit de Marie](P0%20-%20Première%20nuit%20de%20Marie.md) | Marie | ⭐ scénario démo |
-| **B. Approfondissements** | [P1 - Déclarer un site de suivi](P1%20-%20Déclarer%20un%20site%20de%20suivi.md) | Marie | ✅ MUST |
-| | [P2 - Importer une nuit d'enregistrement](P2%20-%20Importer%20une%20nuit%20d%27enregistrement.md) | tous | ✅ MUST |
-| | [P3 - Vérifier l'enregistrement par échantillonnage](P3%20-%20Vérifier%20l%27enregistrement%20par%20échantillonnage.md) | tous | ✅ MUST |
-| | [P4 - Préparer un lot prêt à déposer](P4%20-%20Préparer%20un%20lot%20prêt%20à%20déposer.md) | tous | ✅ MUST |
-| | [P5 - Naviguer dans plusieurs sites et passages](P5%20-%20Naviguer%20dans%20plusieurs%20sites%20et%20passages.md) | Karim / Samuel | 🟠 SHOULD (MUST pour Karim/Samuel) |
-| | [P6 - Diagnostiquer le matériel](P6%20-%20Diagnostiquer%20le%20matériel.md) | Karim / Samuel | 🟠 SHOULD |
-| **C. Cibles étirées** | [P7 - Valider les résultats Tadarida](P7%20-%20Valider%20les%20résultats%20Tadarida.md) | Marie / Samuel | 🟠 SHOULD (cible étirable) |
-| | [P9 - Regrouper les nuits successives par point](P9%20-%20Regrouper%20les%20nuits%20successives%20par%20point.md) | Karim / Samuel | ⚪ COULD (à arbitrer, voir note interne) |
-| | [P10 - Exporter une bibliothèque de sons de référence](P10%20-%20Exporter%20une%20bibliothèque%20de%20sons%20de%20référence.md) | Samuel | ⚪ COULD |
+| **A. Fil rouge** | [P0 - Première nuit de Marie](P0%20-%20Première%20nuit%20de%20Marie.md) | Marie | scénario de bout en bout |
+| **B. Chaîne de production** | [P1 - Déclarer un site de suivi](P1%20-%20Déclarer%20un%20site%20de%20suivi.md) | Marie | gérer ses sites et points |
+| | [P2 - Importer une nuit d'enregistrement](P2%20-%20Importer%20une%20nuit%20d%27enregistrement.md) | tous | copier, renommer, transformer |
+| | [P3 - Vérifier l'enregistrement par échantillonnage](P3%20-%20Vérifier%20l%27enregistrement%20par%20échantillonnage.md) | tous | sound check + verdict |
+| | [P4 - Préparer un lot prêt à déposer](P4%20-%20Préparer%20un%20lot%20prêt%20à%20déposer.md) | tous | cohérence + dépôt manuel |
+| | [P5 - Naviguer dans plusieurs sites et passages](P5%20-%20Naviguer%20dans%20plusieurs%20sites%20et%20passages.md) | Karim / Samuel | vue agrégée (carte + tableau) |
+| | [P6 - Diagnostiquer le matériel](P6%20-%20Diagnostiquer%20le%20matériel.md) | Karim / Samuel | climat, anomalies du capteur |
+| **C. Après le dépôt & exploitation** | [P7 - Valider les résultats Tadarida](P7%20-%20Valider%20les%20résultats%20Tadarida.md) | Marie / Samuel | revue des observations |
+| | [P9 - Regrouper les nuits successives par point](P9%20-%20Regrouper%20les%20nuits%20successives%20par%20point.md) | Karim / Samuel | validation conjointe |
+| | [P10 - Exporter une bibliothèque de sons de référence](P10%20-%20Exporter%20une%20bibliothèque%20de%20sons%20de%20référence.md) | Samuel | sons de référence par espèce |
+| | [P11 - Inventaire des espèces détectées](P11%20-%20Inventaire%20des%20espèces%20détectées.md) | Karim / Samuel | « Espèces & observations » (par espèce / par carré) |
+| **Transverse** | [P8 - Rechercher globalement](P8%20-%20Rechercher%20globalement.md) | tous | sauter à un site, un point, un passage |
 
 ## Couverture par persona
 
@@ -64,5 +68,7 @@ Le fil rouge **P0** est la concaténation P1 → P2 → P3 → P4 (les nœuds ve
 | [P7 - Validation Tadarida](P7%20-%20Valider%20les%20résultats%20Tadarida.md) | ✅ ⭐ | ✓ | ✅ ⭐ |
 | [P9 - Regroupement nuits](P9%20-%20Regrouper%20les%20nuits%20successives%20par%20point.md) | (rare) | ✅ | ✅ ⭐ |
 | [P10 - Sons de référence](P10%20-%20Exporter%20une%20bibliothèque%20de%20sons%20de%20référence.md) | (non) | (non) | ✅ |
+| [P11 - Inventaire des espèces](P11%20-%20Inventaire%20des%20espèces%20détectées.md) | ✓ | ✅ | ✅ ⭐ |
+| [P8 - Recherche globale (transverse)](P8%20-%20Rechercher%20globalement.md) | ✅ | ✅ ⭐ | ✅ ⭐ |
 
 ⭐ = parcours central pour la persona, ✅ = parcours fréquent, ✓ = parcours occasionnel.

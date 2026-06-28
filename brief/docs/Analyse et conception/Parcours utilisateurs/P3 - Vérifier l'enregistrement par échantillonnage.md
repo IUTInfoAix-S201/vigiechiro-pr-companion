@@ -1,8 +1,8 @@
 # P3 - Vérifier l'enregistrement par échantillonnage 🎧
 
-[← Retour au hub des parcours](index.md) · **Section B — Approfondissements** · ✅ MUST
+[← Retour au hub des parcours](index.md) · **Section B - Chaîne de production**
 
-> **Persona principal** : Marie / Karim / Samuel. **MoSCoW** : MUST. **Objectifs qualité visés** : [O4 Exactitude lecture audio](../../Objectifs%20qualités/Objectifs%20qualités/O4.md), [O7 Intégrité](../../Objectifs%20qualités/Objectifs%20qualités/O7.md).
+> **Persona principal** : Marie / Karim / Samuel. **Objectifs qualité visés** : [O4 Exactitude lecture audio](../../Objectifs%20qualités/Objectifs%20qualités/O4.md), [O7 Intégrité](../../Objectifs%20qualités/Objectifs%20qualités/O7.md).
 
 Marie vient d'importer une nuit (parcours [P2](P2%20-%20Importer%20une%20nuit%20d%27enregistrement.md)). Avant de la déposer sur Vigie-Chiro, elle veut **s'assurer que la nuit s'est bien passée et que la qualité audio est exploitable**. La vérification se fait en **deux temps complémentaires** :
 
@@ -15,7 +15,7 @@ C'est un **sound check global**, distinct de la validation taxonomique espèce p
 
 Marie ouvre la vue détail du passage qui vient d'être importé. Un encart **« État de la nuit »** affiche trois indicateurs sous forme de feux (🟢 OK / 🟠 suspect / 🔴 anomalie) :
 
-1. **Couverture horaire** : la plage `premier WAV → dernier WAV` couvre-t-elle bien la plage théorique `coucher de soleil - 30 min → lever de soleil + 30 min` ([R3](../Modèle%20conceptuel/Règles%20métier.md#r3)) ? La plage astronomique est calculée à partir des coordonnées GPS du point (si renseignées en [C3](../Modèle%20conceptuel/C3%20-%20Point%20d%27écoute.md)) et de la date. Une tolérance est appliquée car le PR peut démarrer en retard si le site est bruyant ou se mettre en veille avant la fin si la batterie faiblit — l'indicateur passe à 🟠 quand l'écart dépasse 30 min d'un côté, à 🔴 si une moitié de nuit complète manque.
+1. **Couverture horaire** : la plage `premier WAV → dernier WAV` couvre-t-elle bien la plage théorique `coucher de soleil - 30 min → lever de soleil + 30 min` ([R3](../Modèle%20conceptuel/Règles%20métier.md#r3)) ? La plage astronomique est calculée à partir des coordonnées GPS du point (si renseignées en [C3](../Modèle%20conceptuel/C3%20-%20Point%20d%27écoute.md)) et de la date. Une tolérance est appliquée car le PR peut démarrer en retard si le site est bruyant ou se mettre en veille avant la fin si la batterie faiblit - l'indicateur passe à 🟠 quand l'écart dépasse 30 min d'un côté, à 🔴 si une moitié de nuit complète manque.
 2. **Nombre de fichiers** : le nombre d'enregistrements originaux est-il dans la fourchette attendue (typiquement quelques centaines à quelques milliers) ? Indicateur 🟠 si < 50 (nuit anormalement creuse, à recouper avec la météo du site), 🔴 si 0.
 3. **Cohérence du renommage** : tous les WAV portent-ils bien le préfixe `CarXXXXXX-AAAA-PassN-YY-` attendu ([R6](../Modèle%20conceptuel/Règles%20métier.md#r6)), avec le bon numéro de carré, la bonne année, le bon n° de passage et le bon point ? Indicateur 🔴 dès qu'un fichier diverge.
 
@@ -27,10 +27,10 @@ Si Marie souhaite confirmer auditivement l'absence de problème acoustique (satu
 
 1. L'application constitue automatiquement une **sélection d'écoute** : 10 à 30 séquences d'écoute réparties uniformément sur la nuit (méthode `RéparTemporel` par défaut, [R12](../Modèle%20conceptuel/Règles%20métier.md#r12)).
 2. La sélection s'affiche sous forme de liste chronologique. Pour chaque séquence : horodatage, durée, fréquence dominante (indicative), bouton ▶ pour écouter.
-3. Marie écoute quelques séquences à des moments différents de la nuit. Comme les séquences sont **déjà ralenties ×10 sur disque** ([R10](../Modèle%20conceptuel/Règles%20métier.md#r10)), la lecture se fait à vitesse normale, sans transformation à la volée — l'audio est immédiatement audible pour l'oreille humaine.
+3. Marie écoute quelques séquences à des moments différents de la nuit. Comme les séquences sont **déjà ralenties ×10 sur disque** ([R10](../Modèle%20conceptuel/Règles%20métier.md#r10)), la lecture se fait à vitesse normale, sans transformation à la volée - l'audio est immédiatement audible pour l'oreille humaine.
 4. Marie peut compléter sa sélection si elle en ressent le besoin (changer la méthode pour `Aléatoire`, augmenter la taille à 50 séquences, ou ajouter manuellement une séquence à un moment précis).
 
-> 💡 **Quand utiliser le sound check ?** Marie, débutante, s'en sert systématiquement par sécurité. Samuel, par expérience, sait que la majorité des fichiers sont du bruit et préfère envoyer directement à Tadarida sans écouter — il attend le tableur de résultats pour cibler son écoute sur les fichiers d'intérêt. Karim navigue entre les deux selon le chantier.
+> 💡 **Quand utiliser le sound check ?** Marie, débutante, s'en sert systématiquement par sécurité. Samuel, par expérience, sait que la majorité des fichiers sont du bruit et préfère envoyer directement à Tadarida sans écouter - il attend le tableur de résultats pour cibler son écoute sur les fichiers d'intérêt. Karim navigue entre les deux selon le chantier.
 
 ## Étape 3 - Verdict global
 
@@ -44,5 +44,5 @@ Le passage passe au statut `Vérifié` et le verdict est mémorisé. Marie peut 
 - [R6](../Modèle%20conceptuel/Règles%20métier.md#r6) : préfixe `CarXXXXXX-AAAA-PassN-YY-` (tirets du 6), source du check de cohérence du renommage.
 - [R10](../Modèle%20conceptuel/Règles%20métier.md#r10) : séquences d'écoute ralenties ×10 sur disque, lecture sans transformation à la volée.
 - [R12](../Modèle%20conceptuel/Règles%20métier.md#r12) : sélection d'écoute constituée automatiquement (méthode `RéparTemporel` par défaut).
-- [R13](../Modèle%20conceptuel/Règles%20métier.md#r13) : l'utilisateur reste responsable — aucun seuil minimum d'écoute imposé.
+- [R13](../Modèle%20conceptuel/Règles%20métier.md#r13) : l'utilisateur reste responsable - aucun seuil minimum d'écoute imposé.
 - [R14](../Modèle%20conceptuel/Règles%20métier.md#r14) : un passage avec verdict `À jeter` ne peut pas être inclus dans un lot prêt à déposer (alerte bloquante au moment du parcours [P4](P4%20-%20Préparer%20un%20lot%20prêt%20à%20déposer.md)).

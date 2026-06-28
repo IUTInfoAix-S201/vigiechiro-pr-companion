@@ -1,8 +1,8 @@
 # P4 - Préparer un lot prêt à déposer 📦
 
-[← Retour au hub des parcours](index.md) · **Section B — Approfondissements** · ✅ MUST
+[← Retour au hub des parcours](index.md) · **Section B - Chaîne de production**
 
-> **Persona principal** : Marie / Karim / Samuel. **MoSCoW** : MUST. **Objectifs qualité visés** : [O7 Intégrité](../../Objectifs%20qualités/Objectifs%20qualités/O7.md), [O8 Confidentialité](../../Objectifs%20qualités/Objectifs%20qualités/O8.md).
+> **Persona principal** : Marie / Karim / Samuel. **Objectifs qualité visés** : [O7 Intégrité](../../Objectifs%20qualités/Objectifs%20qualités/O7.md), [O8 Confidentialité](../../Objectifs%20qualités/Objectifs%20qualités/O8.md).
 
 Marie a importé et vérifié une nuit (parcours [P2](P2%20-%20Importer%20une%20nuit%20d%27enregistrement.md) et [P3](P3%20-%20Vérifier%20l%27enregistrement%20par%20échantillonnage.md)). Elle veut maintenant **préparer un lot exploitable directement sur le portail Vigie-Chiro** et l'y téléverser manuellement.
 

@@ -1,8 +1,11 @@
 # Consignes générales
 
+!!! note "Genèse pédagogique — au passé"
+    Cette page documente les **consignes** données aux équipes de la SAE 2.01, conservées **pour mémoire**.
+
 ## Travail en équipe et organisation
 
-Vous travaillerez en équipe constituée par l'équipe pédagogique au début de la SAE. Chaque membre de l'équipe doit contribuer **techniquement** au projet : pas de répartition « celui qui code, celui qui rédige, celui qui présente ». Le développement, l'analyse et la rédaction sont des tâches partagées et tournantes.
+Les équipes étaient constituées par l'équipe pédagogique au début de la SAE. Chaque membre devait contribuer **techniquement** au projet : pas de répartition « celui qui code, celui qui rédige, celui qui présente ». Le développement, l'analyse et la rédaction étaient des tâches partagées et tournantes.
 
 ## Repo GitHub Classroom
 

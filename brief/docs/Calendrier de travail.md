@@ -1,5 +1,8 @@
 # Calendrier de travail
 
+!!! note "Genèse pédagogique — au passé"
+    Cette page documente le **calendrier** de la SAE 2.01 (mai-juin 2026), conservé **pour mémoire**.
+
 ## Calendrier 2026 confirmé
 
 | Jalon | Date | Détail |

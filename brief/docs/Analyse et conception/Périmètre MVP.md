@@ -1,8 +1,14 @@
 # Périmètre MVP
 
-Le périmètre du **produit minimum viable** est l'arbitrage qui transforme les **50 stories** du [Story mapping](Story%20mapping/index.md) (≈ 130 ★) en un livrable réaliste pour le **calendrier de la SAE** : ~13 jours ouvrés de développement exclusif (cf. [Calendrier de travail](../Calendrier%20de%20travail.md)).
+!!! note "Genèse pédagogique — au passé"
+    Cette page documente l'**arbitrage de périmètre prévu** au cadrage de la SAE 2.01. Elle est
+    conservée **pour mémoire** : l'application livrée a en pratique dépassé ce périmètre (toutes les
+    épopées ont été couvertes). Les fonctionnalités réelles sont décrites, au présent, dans les
+    [Parcours utilisateurs](Parcours%20utilisateurs/index.md) et les [Maquettes](Maquettes/index.md).
 
-L'arbitrage est fait selon la méthode [MoSCoW](https://fr.wikipedia.org/wiki/M%C3%A9thode_MoSCoW) :
+Le périmètre du **produit minimum viable** était l'arbitrage transformant les **50 stories** du [Story mapping](Story%20mapping/index.md) (≈ 130 ★) en un livrable réaliste pour le **calendrier de la SAE** : ~13 jours ouvrés de développement exclusif (cf. [Calendrier de travail](../Calendrier%20de%20travail.md)).
+
+L'arbitrage suivait la méthode [MoSCoW](https://fr.wikipedia.org/wiki/M%C3%A9thode_MoSCoW) :
 
 | Niveau | Sens | Conséquence |
 |---|---|---|

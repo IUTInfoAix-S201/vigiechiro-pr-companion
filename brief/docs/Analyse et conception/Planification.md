@@ -1,8 +1,12 @@
 # Planification
 
-Le développement est découpé en **2 sprints** alignés sur la stratégie définie dans le [périmètre MVP](Périmètre%20MVP.md), avec en amont une **fenêtre d'amorçage** où la SAE coexiste avec d'autres modules.
+!!! note "Genèse pédagogique — au passé"
+    Cette page documente le **planning prévisionnel** de la SAE 2.01, conservé **pour mémoire**. Le
+    déroulé réel a pu s'en écarter selon la vélocité des équipes.
 
-> ⚠️ Cette planification est **prospective**. Vous la révisez en équipe au démarrage de chaque sprint en fonction de votre vélocité réelle et des aléas. Le Gantt n'est pas une promesse de livraison à la journée près — c'est un cadre pour piloter votre progression et détecter les dérives.
+Le développement était découpé en **2 sprints** alignés sur la stratégie du [périmètre MVP](Périmètre%20MVP.md), avec en amont une **fenêtre d'amorçage** où la SAE coexistait avec d'autres modules.
+
+> ⚠️ Cette planification était **prospective** : un cadre pour piloter la progression et détecter les dérives, révisé en équipe au démarrage de chaque sprint selon la vélocité réelle, et non une promesse de livraison à la journée près.
 
 ## Vue d'ensemble
 

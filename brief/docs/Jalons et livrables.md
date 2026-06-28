@@ -1,15 +1,18 @@
 # Jalons et livrables
 
+!!! note "Genèse pédagogique — au passé"
+    Cette page documente les **jalons et livrables** attendus de la SAE 2.01, conservés **pour mémoire**.
+
 ## Phases
 
-La SAE 2.01 est une **SAE de développement**. La phase d'analyse et de conception qui précède habituellement le développement est **prise en charge par l'équipe pédagogique** et fournie aux groupes étudiants en début de SAE sous la forme du dossier [`Analyse et conception/`](Analyse%20et%20conception/index.md). Vous travaillez à partir de ce dossier comme s'il vous avait été remis par un client à l'issue d'une phase d'expression du besoin déjà menée.
+La SAE 2.01 était une **SAE de développement**. La phase d'analyse et de conception qui précède habituellement le développement avait été **prise en charge par l'équipe pédagogique** et fournie aux groupes en début de SAE sous la forme du dossier [`Analyse et conception/`](Analyse%20et%20conception/index.md). Les équipes travaillaient à partir de ce dossier comme s'il leur avait été remis par un client à l'issue d'une phase d'expression du besoin déjà menée.
 
-Le projet est ainsi organisé en **2 phases** :
+Le projet était organisé en **2 phases** :
 
 - **Phase 1** : Développement et validation
 - **Phase 2** : Mise en service et soutenance finale
 
-À la fin de chaque phase, les groupes d'étudiants devront produire un ensemble de livrables qui seront évalués par l'équipe pédagogique. Ces livraisons marquent les jalons du projet.
+À la fin de chaque phase, les groupes devaient produire un ensemble de livrables évalués par l'équipe pédagogique. Ces livraisons marquaient les jalons du projet.
 
 La SAE 2.01 est commune aux modules R2.02 et R2.03, tous deux assurés par le même enseignant. L'évaluation se répartit ainsi :
 

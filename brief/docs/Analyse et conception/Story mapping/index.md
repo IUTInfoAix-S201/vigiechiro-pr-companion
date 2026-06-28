@@ -1,11 +1,21 @@
 # Story mapping
 
-Le travail des [parcours utilisateurs](../Parcours%20utilisateurs/index.md) est décomposé en **9 épopées**, chacune contenant **2 à 8 stories** [INVEST](https://fr.wikipedia.org/wiki/INVEST_(g%C3%A9nie_logiciel)) (Independent, Negotiable, Valuable, Estimable, Small, Testable).
+!!! note "Genèse pédagogique — au passé"
+    Cette page documente le **découpage prévu** lors du cadrage de la SAE 2.01 (épopées, stories,
+    estimations, arbitrage MoSCoW). Elle est conservée **pour mémoire**. L'application a finalement été
+    menée **au-delà de ce périmètre** : toutes les épopées E1 à E8 ont été livrées (et complétées par
+    des écrans non prévus, comme la recherche globale et l'inventaire « Espèces & observations »). Les
+    écrans réels sont décrits, au présent, dans les [Maquettes](../Maquettes/index.md) et les
+    [Parcours utilisateurs](../Parcours%20utilisateurs/index.md).
 
-Chaque story est :
+Le travail des [parcours utilisateurs](../Parcours%20utilisateurs/index.md) avait été décomposé en
+**9 épopées**, chacune contenant **2 à 8 stories** [INVEST](https://fr.wikipedia.org/wiki/INVEST_(g%C3%A9nie_logiciel))
+(Independent, Negotiable, Valuable, Estimable, Small, Testable).
+
+Chaque story était :
 
 - identifiée par un code (`E1.S2` = épopée 1, story 2),
-- rattachée à un ou plusieurs parcours (et à des **maquettes cibles** qui seront produites à l'étape Maquettes),
+- rattachée à un ou plusieurs parcours (et à des **maquettes cibles**),
 - assortie de **critères d'acceptation** explicites,
 - **estimée en complexité** sur une échelle d'étoiles (voir ci-dessous),
 - **rattachée à un niveau MoSCoW** (MUST / SHOULD / COULD).

@@ -1,10 +1,15 @@
-# Travail à faire
+# Travail à faire (genèse pédagogique)
 
-Cette page donne la **vue d'ensemble** de ce que vous avez à produire et de la **méthode** pour y
-arriver. Le détail, tâche par tâche, vit dans les **issues de votre dépôt** (voir plus bas).
+!!! note "Genèse pédagogique — au passé"
+    Cette page documente la **méthode de travail** prévue pour la SAE 2.01 (organisation des équipes,
+    écrans à construire, workflow Git). Elle est conservée **pour mémoire** ; elle décrit le **point de
+    départ** remis aux équipes, pas l'application finie.
+
+Cette page donnait la **vue d'ensemble** de ce que les équipes avaient à produire et de la **méthode**
+pour y arriver. Le détail, tâche par tâche, vivait dans les **issues du dépôt d'équipe** (voir plus bas).
 
 !!! info "Une SAE de développement d'IHM"
-    L'analyse, la conception et le **socle technique** sont fournis (cf. [Analyse et conception](Analyse%20et%20conception/index.md)). Votre travail, c'est l'**interface graphique** (JavaFX / MVVM) de l'application, par-dessus des services et une base de données déjà implémentés et testés.
+    L'analyse, la conception et le **socle technique** étaient fournis (cf. [Analyse et conception](Analyse%20et%20conception/index.md)). Le travail des équipes portait sur l'**interface graphique** (JavaFX / MVVM), par-dessus des services et une base de données déjà implémentés et testés.
 
 ## Démarrer : récupérer votre dépôt d'équipe
 

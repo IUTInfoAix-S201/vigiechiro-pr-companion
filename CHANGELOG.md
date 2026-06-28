@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [1.41.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.40.0...v1.41.0) (2026-06-28)
+
+
+### Features
+
+* **analyse:** écran « Espèces & observations » (inventaire pivot espèce/carré) ([#367](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/367)) ([91c6026](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/91c602639ff51b39ab61a93ee49554674e7d714c)), closes [#365](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/365) [#86](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/86) [#fafbfc](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/fafbfc)
+
 # [1.40.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.39.0...v1.40.0) (2026-06-28)
 
 

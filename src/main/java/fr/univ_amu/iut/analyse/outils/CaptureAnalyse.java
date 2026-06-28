@@ -119,22 +119,20 @@ public final class CaptureAnalyse {
     /// hors-ligne, la capture reste lisible (carrés colorés sur fond clair, seul le fond manque).
     private static final long DELAI_TUILES_MS = 6000;
 
-    /// Rend l'écran en mode **carte de répartition** : active la bascule « 🗺️ Carte », laisse les tuiles
-    /// OSM se charger, puis capture (la choroplèthe de richesse + sa légende).
+    /// Rend l'écran en mode **carte de répartition**. La bascule « 🗺️ Carte » est activée **avant**
+    /// l'affichage de la scène (le bouton est directement atteignable, hors `SplitPane`), pour que la
+    /// `MapView` soit **visible et dimensionnée dès le premier affichage** : son moteur de tuiles ne
+    /// démarre sinon pas (carte hidden → fond vide). Comme `multisite`, on laisse ensuite les tuiles OSM
+    /// se peindre avant la capture (choroplèthe de richesse + légende, par-dessus le fond).
     private static void rendreCarte(Injector injecteur, Path fichier) throws IOException {
         FXMLLoader loader = new FXMLLoader(AnalyseController.class.getResource("Analyse.fxml"));
         loader.setControllerFactory(injecteur::getInstance);
         Parent vue = loader.load();
+        if (vue.lookup("#boutonCarte") instanceof Button bascule) {
+            bascule.fire();
+        }
         Scene scene = new Scene(vue, 1080, 640);
-        ApercuFx.capturerApresPreparation(
-                scene,
-                () -> {
-                    if (vue.lookup("#boutonCarte") instanceof Button bascule) {
-                        bascule.fire();
-                    }
-                    attendreTuiles();
-                },
-                fichier);
+        ApercuFx.capturerApresPreparation(scene, CaptureAnalyse::attendreTuiles, fichier);
     }
 
     /// Laisse tourner le fil JavaFX (boucle d'évènements imbriquée) le temps que les tuiles OSM arrivées en

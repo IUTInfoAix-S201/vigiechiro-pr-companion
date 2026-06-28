@@ -4,6 +4,7 @@ import fr.univ_amu.iut.commun.view.carte.CarteSites;
 import fr.univ_amu.iut.validation.model.CarreEspeces;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -68,6 +69,11 @@ final class CarteRepartition {
         affichee.addListener((obs, ancien, visible) -> {
             if (Boolean.TRUE.equals(visible)) {
                 rafraichir(true);
+                // La zone carte vient de passer `managed` : son layout (et donc le démarrage du moteur de
+                // tuiles de la MapView) n'a lieu qu'au pulse suivant. On redemande alors un recadrage pour
+                // que le fond de carte se charge sur la bonne emprise (sans ce second passage, la carte
+                // resterait sans tuiles jusqu'à la première interaction).
+                Platform.runLater(carte::recadrer);
             }
         });
         carres.addListener((ListChangeListener<CarreEspeces>) changement -> rafraichir(false));

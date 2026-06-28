@@ -104,6 +104,12 @@ public class ServiceValidation {
         return observationDao.especesObserveesParUtilisateur(idUtilisateur);
     }
 
+    /// Observations **marquées référence** de l'utilisateur (#audio) : la **source « Références »** de la
+    /// vue audio unifiée (corpus de sons de référence, ex-bibliothèque). Façade sur [ObservationDao].
+    public List<Observation> references(String idUtilisateur) {
+        return observationDao.referencesDeLUtilisateur(idUtilisateur);
+    }
+
     /// Importe les résultats Tadarida d'un passage : parse le CSV, crée les résultats
     /// d'identification et insère les observations en masse, raccrochées à leurs séquences.
     ///
@@ -212,6 +218,34 @@ public class ServiceValidation {
             throw new RegleMetierException("Taxon observateur inconnu : « " + codeTaxonObservateur + GUILLEMET_FERMANT);
         }
         return majObservateur(observation, codeTaxonObservateur, probObservateur, ModeValidation.MANUEL);
+    }
+
+    /// **Marque ou retire** une observation du corpus de **référence** (`is_reference`, P10/#audio) :
+    /// archivage transverse depuis n'importe quelle source de la vue audio. N'altère ni le taxon ni le
+    /// statut de revue (orthogonal à valider/corriger).
+    ///
+    /// @param reference `true` pour marquer comme référence, `false` pour la retirer
+    /// @return l'observation relue, à jour
+    /// @throws RegleMetierException si l'observation est introuvable
+    public Observation marquerReference(Long idObservation, boolean reference) {
+        Observation o = chargerObservation(idObservation);
+        Observation mise = new Observation(
+                o.id(),
+                o.idSequence(),
+                o.debutS(),
+                o.finS(),
+                o.frequenceMedianeHz(),
+                o.taxonTadarida(),
+                o.probTadarida(),
+                o.taxonAutreTadarida(),
+                o.taxonObservateur(),
+                o.probObservateur(),
+                o.commentaire(),
+                reference,
+                o.modeValidation(),
+                o.idResultats());
+        observationDao.update(mise);
+        return mise;
     }
 
     /// Valide une observation selon le [ModeRevue] (R18, R24).

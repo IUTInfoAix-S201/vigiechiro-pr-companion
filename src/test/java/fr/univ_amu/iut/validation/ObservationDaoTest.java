@@ -407,6 +407,18 @@ class ObservationDaoTest {
     }
 
     @Test
+    @DisplayName("#audio : referencesDeLUtilisateur ne renvoie que les is_reference de l'utilisateur")
+    void references_de_l_utilisateur() {
+        dao.insert(observationComplete()); // is_reference = true
+        dao.insert(observation("Nyclei", null)); // is_reference = false
+
+        assertThat(dao.referencesDeLUtilisateur("u-1"))
+                .singleElement()
+                .satisfies(observation -> assertThat(observation.reference()).isTrue());
+        assertThat(dao.referencesDeLUtilisateur("autre")).isEmpty();
+    }
+
+    @Test
     @DisplayName("#analyse : observationsDeLEspece liste les observations d'une espèce à travers les passages")
     void observations_d_une_espece_a_travers_les_passages() throws SQLException {
         // Passage 1 (seedé) : Pippip validée + Nyclei non touchée (autre espèce, ne doit pas remonter).

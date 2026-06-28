@@ -25,8 +25,11 @@ est foncé (échelle relative au carré le plus actif). **Au survol** d'un carr�
 localiser**, répartition des statuts ; statut dominant pour un point) ; ces stats sont aussi lues par
 les lecteurs d'écran. Une **légende**
 superposée en bas à gauche
-rappelle le code couleur des statuts et l'échelle de densité ; un chevron la **replie** pour dégager
-la carte. Le fond de carte OpenStreetMap apparaît quand une connexion est disponible. La carte montre
+rappelle le code couleur des statuts et l'échelle de densité ; elle s'ouvre **repliée par défaut**
+(réduite à son seul titre, pour ne pas masquer les points) et un **chevron** la déplie au besoin. Un
+bouton **⤢** en haut à droite **recadre** la carte sur l'ensemble des carrés et points affichés
+(pratique après un zoom ou un déplacement manuel). Le fond de carte OpenStreetMap apparaît quand une
+connexion est disponible. La carte montre
 **tous** les sites (vue d'ensemble) : elle n'est pas restreinte par les filtres du tableau.
 
 Deux poignées **◀ / ▶** posées au sommet du séparateur **replient entièrement** un panneau pour donner
@@ -46,16 +49,20 @@ Quand un filtre est actif, le tableau et le résumé se recalculent en conséque
 
 ## Éditer les positions des points
 
-Le bouton **« ✎ Éditer les positions »** (barre du haut) fait passer la carte en **mode édition** : on
-peut alors **glisser un marqueur** pour corriger le GPS d'un point. Le marqueur **reste dans son
-carré** (il s'arrête au bord de la maille 2 km) ; un point **sans GPS**, affiché au centre de son carré,
-se **place** en le faisant glisser à l'endroit voulu. Déplacer un point ne touche **que** ses
-coordonnées : son code, son descriptif et ses passages sont conservés.
+Le bouton **« ✎ »** superposé **en haut à gauche de la carte** fait passer celle-ci en **mode édition**
+(la pince devient **ambrée** quand le mode est actif) : on peut alors **glisser un marqueur** pour
+corriger le GPS d'un point. Le marqueur **reste dans son carré** (il s'arrête au bord de la maille
+2 km) ; un point **sans GPS**, affiché au centre de son carré, se **place** en le faisant glisser à
+l'endroit voulu. Déplacer un point ne touche **que** ses coordonnées : son code, son descriptif et ses
+passages sont conservés.
 
-Les déplacements ne sont **pas enregistrés au fil de l'eau** : ils s'accumulent jusqu'au clic sur
-**« 💾 Enregistrer les positions »** (inactif tant qu'aucun point n'a bougé). Si vous **quittez le mode
-édition** alors que des déplacements ne sont pas enregistrés, une fenêtre vous propose de les
-**Enregistrer**, de les **Abandonner**, ou d'**Annuler** (pour rester en édition).
+![Le mode édition des positions : la pince « ✎ » est active (ambré) et un bouton « 💾 » d'enregistrement apparaît sous elle, sur la carte.](../assets/captures/apercu-multisite-edition.png)
+
+Les déplacements ne sont **pas enregistrés au fil de l'eau** : ils s'accumulent jusqu'au clic sur le
+bouton **« 💾 »** qui apparaît alors **sur la carte, sous la pince** (inactif tant qu'aucun point n'a
+bougé). Si vous **quittez le mode édition** alors que des déplacements ne sont pas enregistrés, une
+fenêtre vous propose de les **Enregistrer**, de les **Abandonner**, ou d'**Annuler** (pour rester en
+édition).
 
 ## Vues sauvegardées
 

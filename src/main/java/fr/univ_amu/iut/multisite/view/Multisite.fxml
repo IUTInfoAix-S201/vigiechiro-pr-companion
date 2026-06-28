@@ -52,10 +52,8 @@
     <FlowPane hgap="8.0" vgap="6.0" alignment="CENTER_LEFT">
       <Button fx:id="boutonGererVues" text="⭐ Vues…" onAction="#gererVues"/>
       <Button fx:id="boutonExporter" text="📤 Exporter…" onAction="#exporter"/>
-      <!-- Édition des positions (#154) : le toggle « ✎ » est désormais superposé à la CARTE (créé par
-           MultisiteController, icône seule). « Enregistrer » reste ici mais n'apparaît qu'en mode édition,
-           pour persister les déplacements en attente (inactif tant qu'aucun point n'a bougé). -->
-      <Button fx:id="boutonEnregistrerPositions" text="💾 Enregistrer les positions" onAction="#enregistrerPositions"/>
+      <!-- Édition des positions (#154) : les deux contrôles (« ✎ » toggle et « 💾 » enregistrer) sont
+           désormais superposés à la CARTE (créés par MultisiteController, icônes seules). -->
       <Separator orientation="VERTICAL"/>
       <!-- Repli carte/tableau (#328) : libellé et état gérés par MultisiteController#majPoignees. -->
       <Button fx:id="boutonReplierCarte" onAction="#basculerCarte"/>

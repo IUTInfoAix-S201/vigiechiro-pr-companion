@@ -24,6 +24,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBase;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
@@ -122,10 +123,10 @@ public class MultisiteController implements RafraichirAuRetour {
     @FXML
     private Button boutonReplierTableau;
 
-    /// Toggle « ✎ Éditer les positions » : créé en code et superposé à la carte (#154 → overlay).
+    /// Toggle « ✎ » et bouton « 💾 » d'édition des positions : créés en code et superposés à la carte
+    /// (#154 → overlay). « 💾 » n'est visible qu'en mode édition (géré par [EditionPositionsCarte]).
     private ToggleButton boutonEditerPositions;
 
-    @FXML
     private Button boutonEnregistrerPositions;
 
     /// Composant carte réutilisable (#152), rempli à partir de l'agrégat carte du ViewModel.
@@ -199,36 +200,10 @@ public class MultisiteController implements RafraichirAuRetour {
         // l'agrégat carte (non filtré) en DonneesCarte à chaque mise à jour. La carte ne dépend pas des
         // filtres/tri du tableau, d'où un rafraîchissement DÉDIÉ (rafraichirCarte), au chargement et au retour.
         zoneCarte.getChildren().add(carte);
-        // Légende superposée en bas à gauche (#152) : code couleur des statuts + échelle de densité.
-        Node legende = LegendeCarte.creer();
-        StackPane.setAlignment(legende, Pos.BOTTOM_LEFT);
-        StackPane.setMargin(legende, new Insets(8));
-        zoneCarte.getChildren().add(legende);
-        // Bouton « recadrer » superposé en haut à droite (#339) : recentre/zoome la carte sur tous les
-        // carrés/points affichés (utile après un zoom ou un déplacement manuel).
-        Button recadrer = new Button("⤢");
-        recadrer.getStyleClass().add("bouton-recadrer");
-        recadrer.setAccessibleText("Recadrer la carte sur les éléments visibles");
-        recadrer.setTooltip(new Tooltip("Recadrer sur les éléments visibles"));
-        recadrer.setOnAction(evenement -> carte.recadrer());
-        StackPane.setAlignment(recadrer, Pos.TOP_RIGHT);
-        StackPane.setMargin(recadrer, new Insets(8));
-        zoneCarte.getChildren().add(recadrer);
+        // Overlays superposés à la carte (légende, « recadrer », contrôles d'édition) : extraits pour
+        // garder initialize() concis.
+        installerOverlaysCarte();
         viewModel.carresCarte().addListener((ListChangeListener<CarreAgrege>) changement -> rafraichirTracesCarte());
-
-        // Toggle « ✎ Éditer les positions » superposé en haut à gauche de la carte (#154 → overlay) :
-        // icône seule, plus lisible et à portée de la carte qu'un bouton texte dans la barre. L'id est
-        // conservé pour les tests/CSS ; l'action et la visibilité de « Enregistrer » sont gérées par
-        // EditionPositionsCarte.
-        boutonEditerPositions = new ToggleButton("✎");
-        boutonEditerPositions.setId("boutonEditerPositions");
-        boutonEditerPositions.getStyleClass().add("bouton-editer-positions");
-        boutonEditerPositions.setAccessibleText("Éditer les positions des points");
-        boutonEditerPositions.setTooltip(new Tooltip("Éditer les positions des points"));
-        boutonEditerPositions.setOnAction(evenement -> basculerEdition());
-        StackPane.setAlignment(boutonEditerPositions, Pos.TOP_LEFT);
-        StackPane.setMargin(boutonEditerPositions, new Insets(8));
-        zoneCarte.getChildren().add(boutonEditerPositions);
 
         // Édition des positions (#154) : déléguée à EditionPositionsCarte (clamp au carré, file en attente,
         // alerte de sortie). Le controller ne fait que la brancher et relayer les actions.
@@ -249,6 +224,47 @@ public class MultisiteController implements RafraichirAuRetour {
 
         viewModel.rafraichir();
         viewModel.rafraichirCarte();
+    }
+
+    /// Superpose à la carte ses contrôles : la **légende** (bas-gauche, #152), le bouton **« ⤢ recadrer »**
+    /// (haut-droite, #339) et les **contrôles d'édition des positions** (haut-gauche, #154) — le toggle
+    /// « ✎ » (toujours visible) et « 💾 » (visible en mode édition seulement, géré par
+    /// [EditionPositionsCarte]). Icônes seules, à portée de la carte qu'ils pilotent ; les `id` sont
+    /// conservés pour les tests/CSS.
+    private void installerOverlaysCarte() {
+        Node legende = LegendeCarte.creer();
+        StackPane.setAlignment(legende, Pos.BOTTOM_LEFT);
+        StackPane.setMargin(legende, new Insets(8));
+        zoneCarte.getChildren().add(legende);
+
+        Button recadrer = new Button("⤢");
+        styleOverlay(recadrer, "bouton-recadrer", "Recadrer la carte sur les éléments visibles");
+        recadrer.setOnAction(evenement -> carte.recadrer());
+        StackPane.setAlignment(recadrer, Pos.TOP_RIGHT);
+        StackPane.setMargin(recadrer, new Insets(8));
+        zoneCarte.getChildren().add(recadrer);
+
+        boutonEditerPositions = new ToggleButton("✎");
+        boutonEditerPositions.setId("boutonEditerPositions");
+        styleOverlay(boutonEditerPositions, "bouton-editer-positions", "Éditer les positions des points");
+        boutonEditerPositions.setOnAction(evenement -> basculerEdition());
+        boutonEnregistrerPositions = new Button("💾");
+        boutonEnregistrerPositions.setId("boutonEnregistrerPositions");
+        styleOverlay(boutonEnregistrerPositions, "bouton-editer-positions", "Enregistrer les positions déplacées");
+        boutonEnregistrerPositions.setOnAction(evenement -> enregistrerPositions());
+        VBox controlesEdition = new VBox(6, boutonEditerPositions, boutonEnregistrerPositions);
+        controlesEdition.setPickOnBounds(false);
+        StackPane.setAlignment(controlesEdition, Pos.TOP_LEFT);
+        StackPane.setMargin(controlesEdition, new Insets(8));
+        zoneCarte.getChildren().add(controlesEdition);
+    }
+
+    /// Applique le look d'un bouton superposé à la carte : classe de style, texte accessible (#163) et
+    /// info-bulle (même libellé). Factorisé pour les trois contrôles overlay.
+    private static void styleOverlay(ButtonBase bouton, String classe, String description) {
+        bouton.getStyleClass().add(classe);
+        bouton.setAccessibleText(description);
+        bouton.setTooltip(new Tooltip(description));
     }
 
     /// Replie (ou rouvre) la **carte** : le tableau prend alors toute la largeur. On ne peut pas replier
@@ -367,8 +383,7 @@ public class MultisiteController implements RafraichirAuRetour {
         edition.basculer();
     }
 
-    /// Bouton « 💾 Enregistrer les positions » (délégué à [EditionPositionsCarte]).
-    @FXML
+    /// Bouton « 💾 » Enregistrer les positions (overlay de la carte, délégué à [EditionPositionsCarte]).
     private void enregistrerPositions() {
         edition.enregistrer();
     }

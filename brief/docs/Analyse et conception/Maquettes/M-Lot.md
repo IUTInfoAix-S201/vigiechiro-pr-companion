@@ -3,24 +3,21 @@
 > **Type** : vue plein écran (atteinte par clic « Préparer le lot à déposer » depuis [M-Passage](M-Passage.md) ou depuis un raccourci dans [M-Qualification](M-Qualification.md) après saisie du verdict).
 > **Persona principal** : tous. C'est l'**étape finale** de la chaîne fil rouge : la nuit est vérifiée, on prépare son téléversement sur Vigie-Chiro.
 > **Parcours couverts** : [P4 - Préparer un lot prêt à déposer](../Parcours%20utilisateurs/P4%20-%20Préparer%20un%20lot%20prêt%20à%20déposer.md).
-> **Stories couvertes** : [E4.S1 - Vérifier la cohérence](../Story%20mapping/E4%20-%20Préparer%20et%20tracer%20le%20dépôt%20VigieChiro.md#e4s1), [E4.S2 - Récapitulatif + ouvrir dossier](../Story%20mapping/E4%20-%20Préparer%20et%20tracer%20le%20dépôt%20VigieChiro.md#e4s2), [E4.S3 - Marquer comme déposé](../Story%20mapping/E4%20-%20Préparer%20et%20tracer%20le%20dépôt%20VigieChiro.md#e4s3).
 
 Cette vue affiche un **rapport de cohérence** (toutes les vérifications préalables passent ✓ ou échouent ✗), puis le **récapitulatif du lot** prêt à téléverser (chemin sur disque, volume, lien direct pour ouvrir le dossier dans l'explorateur), et enfin la **section de téléversement manuel** avec lien vers le portail Vigie-Chiro et bouton de confirmation « J'ai déposé le lot ». L'application **ne dialogue jamais** avec Vigie-Chiro : le téléversement reste manuel via navigateur.
 
 ## Wireframe principal - vérifications passent, lot prêt à déposer
 
 <div markdown="0">
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-label="Maquette M-Lot - Préparation du lot à déposer" style="max-width: 100%; height: auto; border: 1px solid #d0d7de; border-radius: 6px; background: #fafbfc;">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 820" role="img" aria-label="Maquette M-Lot - Préparation du lot à déposer" style="max-width: 100%; height: auto; border: 1px solid #d0d7de; border-radius: 6px; background: #fafbfc;">
   <style>
     .frame { fill: #ffffff; stroke: #2c3e50; stroke-width: 1.5; }
-    .titlebar { fill: #2c3e50; }
-    .titletxt { fill: #ffffff; font: 600 14px sans-serif; }
-    .topnav { fill: #34495e; }
-    .navtxt-active { fill: #ffffff; font: 600 13px sans-serif; }
-    .navtxt-inactive { fill: #bdc3c7; font: 400 13px sans-serif; }
-    .breadcrumb { font: 13px sans-serif; fill: #4a90d9; }
-    .breadcrumb-sep { font: 13px sans-serif; fill: #6a737d; }
-    .breadcrumb-curr { font: 13px sans-serif; fill: #2c3e50; }
+    .chrome { fill: #3f51b5; }
+    .chrometxt { fill: #ffffff; font: 600 14px sans-serif; }
+    .search { fill: #ffffff; stroke: #c5cae9; stroke-width: 1; }
+    .search-txt { fill: #9aa0b3; font: 13px sans-serif; }
+    .breadcrumb { font: 13px sans-serif; fill: #c5cae9; }
+    .breadcrumb-curr { font: 700 13px sans-serif; fill: #ffffff; }
     .pagetitle { font: 700 22px sans-serif; fill: #2c3e50; }
     .pagesub { font: 13px sans-serif; fill: #6a737d; }
     .info-bar { fill: #f6f8fa; stroke: #d0d7de; stroke-width: 1; }
@@ -58,30 +55,15 @@ Cette vue affiche un **rapport de cohérence** (toutes les vérifications préal
     .footer-txt { font: 11px sans-serif; fill: #6a737d; }
   </style>
 
-  <rect x="10" y="10" width="1180" height="780" rx="4" class="frame"/>
-  <rect x="10" y="10" width="1180" height="32" rx="4" class="titlebar"/>
-  <rect x="10" y="26" width="1180" height="16" class="titlebar"/>
-  <text x="28" y="31" class="titletxt">🦇 VigieChiro PR Companion</text>
-  <text x="1140" y="31" class="titletxt" text-anchor="end">— ☐ ☓</text>
-
-  <rect x="10" y="42" width="1180" height="40" class="topnav"/>
-  <text x="40" y="67" class="navtxt-inactive">🏠 Mes sites</text>
-  <text x="170" y="67" class="navtxt-inactive">📥 Importer une nuit</text>
-  <text x="330" y="67" class="navtxt-inactive">📊 Vue tabulaire</text>
-  <text x="470" y="67" class="navtxt-inactive">⚙ Paramètres</text>
-  <text x="1140" y="67" class="navtxt-inactive" text-anchor="end">👤 Local</text>
-
-  <!-- Fil d'Ariane porté par le CHROME (EmplacementNavigation) : emplacement complet du passage,
-       identique quelle que soit la route. Le retour (← écran précédent) est également porté par le chrome. -->
-  <text x="40" y="108" class="breadcrumb">🏠 Accueil</text>
-  <text x="120" y="108" class="breadcrumb-sep">›</text>
-  <text x="134" y="108" class="breadcrumb">Mes sites</text>
-  <text x="210" y="108" class="breadcrumb-sep">›</text>
-  <text x="224" y="108" class="breadcrumb">Carré 640380</text>
-  <text x="320" y="108" class="breadcrumb-sep">›</text>
-  <text x="334" y="108" class="breadcrumb">Détails du passage N° 2</text>
-  <text x="510" y="108" class="breadcrumb-sep">›</text>
-  <text x="524" y="108" class="breadcrumb-curr">Préparer le dépôt</text>
+  <rect x="10" y="10" width="1180" height="800" rx="4" class="frame"/>
+  <!-- Bandeau du chrome : titre + fil d'Ariane (emplacement complet du passage) + recherche -->
+  <rect x="10" y="10" width="1180" height="44" rx="4" class="chrome"/>
+  <rect x="10" y="26" width="1180" height="28" class="chrome"/>
+  <text x="28" y="38" class="chrometxt">VigieChiro PR Companion</text>
+  <text x="210" y="38" class="breadcrumb">Accueil  ›  Mes sites  ›  Carré 640380  ›  Passage N° 2  ›  </text>
+  <text x="642" y="38" class="breadcrumb-curr">Préparer le dépôt</text>
+  <rect x="940" y="22" width="220" height="22" rx="11" class="search"/>
+  <text x="956" y="38" class="search-txt">🔍  Rechercher (Ctrl+F)</text>
 
   <text x="40" y="148" class="pagetitle">📦 Préparer le lot à déposer sur Vigie-Chiro</text>
   <text x="40" y="170" class="pagesub">Le téléversement est manuel via navigateur. L'application prépare le dossier et trace la date de dépôt.</text>
@@ -89,7 +71,7 @@ Cette vue affiche un **rapport de cohérence** (toutes les vérifications préal
   <!-- Bandeau passage -->
   <rect x="40" y="195" width="1120" height="50" rx="4" class="info-bar"/>
   <text x="60" y="216" class="info-label">PASSAGE</text>
-  <text x="60" y="234" class="info-value">Carré 640380 / A1 / N° 2 (2026) — 22/06/2026</text>
+  <text x="60" y="234" class="info-value">Carré 640380 / A1 / N° 2 (2026) - 22/06/2026</text>
   <text x="430" y="216" class="info-label">VERDICT</text>
   <text x="430" y="234" class="info-value" fill="#1e6f3f">✓ OK</text>
   <text x="540" y="216" class="info-label">STATUT</text>
@@ -103,7 +85,7 @@ Cette vue affiche un **rapport de cohérence** (toutes les vérifications préal
   <circle cx="62" cy="290" r="16" class="step-num"/>
   <text x="62" y="295" class="step-num-txt" text-anchor="middle">1</text>
   <text x="92" y="287" class="section-title">Vérifications de cohérence</text>
-  <text x="92" y="304" class="section-sub">Contrôles automatiques avant préparation du lot (E4.S1).</text>
+  <text x="92" y="304" class="section-sub">Contrôles automatiques avant préparation du lot (R31).</text>
 
   <rect x="40" y="320" width="1120" height="135" rx="4" class="check-card-success"/>
 
@@ -123,7 +105,7 @@ Cette vue affiche un **rapport de cohérence** (toutes les vérifications préal
   <circle cx="62" cy="495" r="16" class="step-num"/>
   <text x="62" y="500" class="step-num-txt" text-anchor="middle">2</text>
   <text x="92" y="492" class="section-title">Récapitulatif du lot</text>
-  <text x="92" y="509" class="section-sub">Tout ce qui sera téléversé sur Vigie-Chiro (E4.S2).</text>
+  <text x="92" y="509" class="section-sub">Tout ce qui sera téléversé sur Vigie-Chiro.</text>
 
   <rect x="40" y="525" width="1120" height="115" rx="4" class="lot-card"/>
 
@@ -141,32 +123,31 @@ Cette vue affiche un **rapport de cohérence** (toutes les vérifications préal
   <text x="540" y="605" class="lot-detail">conforme protocole Vigie-Chiro</text>
 
   <!-- Chemin du dossier + bouton ouvrir -->
-  <text x="780" y="553" class="lot-label">EMPLACEMENT SUR DISQUE</text>
-  <rect x="780" y="563" width="290" height="32" rx="3" class="path-display"/>
-  <text x="790" y="585" class="path-mono">~/VigieChiroCompanion/data/...</text>
-  <rect x="1080" y="563" width="65" height="32" rx="3" class="btn-secondary"/>
-  <text x="1112" y="585" class="btn-txt-dark" text-anchor="middle" font-size="14">📋</text>
-  <text x="780" y="615" class="lot-detail">→ Car640380-2026-Pass2-A1/</text>
+  <text x="760" y="553" class="lot-label">EMPLACEMENT SUR DISQUE</text>
+  <rect x="760" y="563" width="320" height="32" rx="3" class="path-display"/>
+  <text x="772" y="585" class="path-mono">&lt;Documents&gt;/VigieChiro-Companion/</text>
+  <rect x="1090" y="563" width="60" height="32" rx="3" class="btn-secondary"/>
+  <text x="1120" y="585" class="btn-txt-dark" text-anchor="middle" font-size="14">📋</text>
+  <text x="760" y="615" class="lot-detail">→ Car640380-2026-Pass2-A1/</text>
 
-  <rect x="40" y="650" width="240" height="34" rx="4" class="btn-primary"/>
-  <text x="160" y="671" class="btn-txt" text-anchor="middle">📂 Ouvrir le dossier dans l'explorateur</text>
+  <rect x="40" y="650" width="300" height="34" rx="4" class="btn-primary"/>
+  <text x="190" y="671" class="btn-txt" text-anchor="middle">📂 Ouvrir le dossier dans l'explorateur</text>
 
   <!-- ============ Étape 3 : Téléversement et confirmation ============ -->
   <circle cx="62" cy="715" r="16" class="step-num"/>
   <text x="62" y="720" class="step-num-txt" text-anchor="middle">3</text>
   <text x="92" y="712" class="section-title">Téléverser sur Vigie-Chiro, puis confirmer</text>
 
-  <!-- 3 lignes côte à côte -->
-  <rect x="40" y="730" width="1120" height="35" rx="4" class="upload-warn-box"/>
-  <text x="60" y="753" class="upload-warn-txt">⚠ L'application ne dialogue pas avec Vigie-Chiro. Sélectionnez les fichiers dans l'explorateur ouvert ci-dessus et téléversez-les manuellement sur</text>
-  <text x="60" y="753" class="btn-txt-link" dx="900">vigiechiro.herokuapp.com 🔗</text>
+  <rect x="40" y="730" width="880" height="48" rx="4" class="upload-warn-box"/>
+  <text x="58" y="750" class="upload-warn-txt">⚠ L'application ne dialogue pas avec Vigie-Chiro : sélectionnez les fichiers dans l'explorateur</text>
+  <text x="58" y="768" class="upload-warn-txt">ouvert ci-dessus et téléversez-les manuellement sur <tspan class="btn-txt-link">vigiechiro.herokuapp.com 🔗</tspan></text>
 
-  <rect x="940" y="710" width="220" height="40" rx="4" class="btn-primary-big"/>
-  <text x="1050" y="735" class="btn-txt-big" text-anchor="middle">✓ J'ai déposé le lot</text>
+  <rect x="940" y="734" width="220" height="40" rx="4" class="btn-primary-big"/>
+  <text x="1050" y="759" class="btn-txt-big" text-anchor="middle">✓ J'ai déposé le lot</text>
 
   <!-- Footer -->
-  <rect x="10" y="770" width="1180" height="20" class="footer"/>
-  <text x="40" y="785" class="footer-txt">Statut actuel : Vérifié (verdict OK) · prêt à passer au statut Déposé après confirmation</text>
+  <rect x="10" y="790" width="1180" height="20" class="footer"/>
+  <text x="40" y="805" class="footer-txt">Statut actuel : Vérifié (verdict OK) · prêt à passer au statut Déposé après confirmation</text>
 </svg>
 </div>
 
@@ -174,11 +155,11 @@ Cette vue affiche un **rapport de cohérence** (toutes les vérifications préal
 
 - **Fil d'Ariane et retour** : portés par le **chrome** (barre de navigation commune) via le contrat `EmplacementNavigation` ; l'écran ne dessine pas son propre fil. Emplacement affiché : `🏠 Accueil › Mes sites › Carré N › Détails du passage N° X › Préparer le dépôt`, identique quelle que soit la route.
 - **Bandeau passage** : 5 cellules de rappel (passage, verdict ✓ OK en vert, statut Vérifié, nombre de séquences, volume total).
-- **Étape 1 - Vérifications** (encart vert) : 3 lignes ✓ couvrant les contrôles E4.S1. Toutes les vérifications passent, donc on peut continuer. Si **au moins une** échoue (✗ rouge), l'encart passe en rouge et le bouton « J'ai déposé » de l'étape 3 est désactivé.
+- **Étape 1 - Vérifications** (encart vert) : 3 lignes ✓ couvrant les contrôles de cohérence (R31). Toutes les vérifications passent, donc on peut continuer. Si **au moins une** échoue (✗ rouge), l'encart passe en rouge et le bouton « J'ai déposé » de l'étape 3 est désactivé.
 - **Étape 2 - Récapitulatif du lot** : 4 informations clés (nombre de fichiers, volume, format, chemin sur disque). Le **chemin** est tronqué dans l'affichage mais cliquable pour copier (icône 📋) ou ouvrir dans l'explorateur (bouton primary).
 - **Étape 3 - Téléversement** :
     - Bandeau jaune d'avertissement explicite que l'application **ne dialogue pas** avec Vigie-Chiro, avec lien direct vers le portail (s'ouvre dans le navigateur par défaut)
-    - Bouton **vert primary `✓ J'ai déposé le lot`** à droite : action de confirmation finale, déclenche [E4.S3](../Story%20mapping/E4%20-%20Préparer%20et%20tracer%20le%20dépôt%20VigieChiro.md#e4s3).
+    - Bouton **vert primary `✓ J'ai déposé le lot`** à droite : action de confirmation finale : marque le passage **Déposé**.
 
 ### Interactions clés
 
@@ -284,7 +265,7 @@ Si le verdict du passage est `À jeter` (R14) ou si une vérification de cohére
   <!-- Bandeau passage avec verdict À jeter -->
   <rect x="40" y="30" width="1120" height="50" rx="4" class="info-bar-warn"/>
   <text x="60" y="51" class="info-label">PASSAGE</text>
-  <text x="60" y="69" class="info-value">Carré 640380 / A1 / N° 2 (2026) — 22/06/2026</text>
+  <text x="60" y="69" class="info-value">Carré 640380 / A1 / N° 2 (2026) - 22/06/2026</text>
   <text x="430" y="51" class="info-label">VERDICT</text>
   <text x="430" y="69" class="info-value-warn">❌ À jeter</text>
   <text x="540" y="51" class="info-label">STATUT</text>
@@ -321,7 +302,7 @@ Si le verdict du passage est `À jeter` (R14) ou si une vérification de cohére
 
 - **Bandeau rouge** en haut signale immédiatement le verdict bloquant.
 - **3 lignes** dans l'encart rouge : la première est l'échec ❌ (raison du blocage), les suivantes sont ✓ pour montrer que les autres vérifications passent.
-- **Le bouton « ✓ J'ai déposé le lot »** est **désactivé** (gris) — l'utilisateur ne peut pas franchir l'étape même en force.
+- **Le bouton « ✓ J'ai déposé le lot »** est **désactivé** (gris) - l'utilisateur ne peut pas franchir l'étape même en force.
 - **Bouton secondary « 🎧 Modifier le verdict »** : redirige vers [M-Qualification](M-Qualification.md) pour permettre à l'utilisateur de revoir sa décision s'il le souhaite (par exemple si le « À jeter » était précipité).
 
 ## Notes pour l'implémentation

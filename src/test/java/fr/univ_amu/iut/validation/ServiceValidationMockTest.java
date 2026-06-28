@@ -145,6 +145,20 @@ class ServiceValidationMockTest {
     }
 
     @Test
+    @DisplayName("marquerReference : pose/retire is_reference sans toucher au taxon ni au mode, une écriture")
+    void marquer_reference() {
+        when(observationDao.findById(1L)).thenReturn(Optional.of(observation("Pippip", "Nyclei", 0.9)));
+
+        Observation marquee = service().marquerReference(1L, true);
+
+        assertThat(marquee.reference()).isTrue();
+        assertThat(marquee.taxonObservateur()).isEqualTo("Nyclei"); // taxon observateur inchangé
+        assertThat(marquee.taxonTadarida()).isEqualTo("Pippip");
+        assertThat(marquee.modeValidation()).isEqualTo(ModeValidation.NON_VALIDE); // mode inchangé
+        verify(observationDao).update(any(Observation.class));
+    }
+
+    @Test
     @DisplayName("cheminAudio : résout le WAV transformé (R22) de la séquence (E7.S3)")
     void chemin_audio_resout_le_wav() {
         when(sequenceDao.findById(10L))

@@ -214,6 +214,34 @@ public class ServiceValidation {
         return majObservateur(observation, codeTaxonObservateur, probObservateur, ModeValidation.MANUEL);
     }
 
+    /// **Marque ou retire** une observation du corpus de **référence** (`is_reference`, P10/#audio) :
+    /// archivage transverse depuis n'importe quelle source de la vue audio. N'altère ni le taxon ni le
+    /// statut de revue (orthogonal à valider/corriger).
+    ///
+    /// @param reference `true` pour marquer comme référence, `false` pour la retirer
+    /// @return l'observation relue, à jour
+    /// @throws RegleMetierException si l'observation est introuvable
+    public Observation marquerReference(Long idObservation, boolean reference) {
+        Observation o = chargerObservation(idObservation);
+        Observation mise = new Observation(
+                o.id(),
+                o.idSequence(),
+                o.debutS(),
+                o.finS(),
+                o.frequenceMedianeHz(),
+                o.taxonTadarida(),
+                o.probTadarida(),
+                o.taxonAutreTadarida(),
+                o.taxonObservateur(),
+                o.probObservateur(),
+                o.commentaire(),
+                reference,
+                o.modeValidation(),
+                o.idResultats());
+        observationDao.update(mise);
+        return mise;
+    }
+
     /// Valide une observation selon le [ModeRevue] (R18, R24).
     ///
     /// - `ACTIVITE` : valide la seule observation visée (en `manuel`).

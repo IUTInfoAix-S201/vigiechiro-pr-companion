@@ -87,7 +87,7 @@ ouvrir sa page de documentation** (rôle, captures commentées, astuces).
   </tr>
   <tr>
     <td align="center" width="33%"><a href="https://iutinfoaix-s201.github.io/vigiechiro-pr-companion/ecrans/analyse/"><img src=".github/assets/apercu-analyse.png" alt="Espèces & observations"></a><br><b>Espèces &amp; observations</b><br><sub>Inventaire par espèce / par carré</sub></td>
-    <td width="33%"></td>
+    <td align="center" width="33%"><a href="https://iutinfoaix-s201.github.io/vigiechiro-pr-companion/ecrans/recherche/"><img src=".github/assets/apercu-recherche.png" alt="Recherche globale"></a><br><b>Recherche</b><br><sub>Sites, points, passages (Ctrl+F)</sub></td>
     <td width="33%"></td>
   </tr>
 </table>
@@ -164,7 +164,8 @@ src/main/java/fr/univ_amu/iut/
 │   └── outils/                  ·   outils de capture d'écran
 │
 ├── sites/        passage/       importation/   qualification/   lot/
-├── validation/   multisite/     diagnostic/    bibliotheque/    analyse/    ← les 10 fonctionnalités
+├── validation/   multisite/     diagnostic/    bibliotheque/    analyse/
+├── recherche/                                                                ← les 11 fonctionnalités
 │
 ├── cli/                         ← interface en ligne de commande (import/export scriptables)
 └── perf/outils/                 ← bancs de mesure de performance
@@ -198,6 +199,7 @@ son **parcours** au **[brief](https://iutinfoaix-s201.github.io/brief/)** (l'én
 | [`diagnostic`](https://iutinfoaix-s201.github.io/vigiechiro-pr-companion/ecrans/diagnostic/) | [P6](https://iutinfoaix-s201.github.io/brief/Analyse%20et%20conception/Parcours%20utilisateurs/P6%20-%20Diagnostiquer%20le%20mat%C3%A9riel/) | Diagnostic d'une nuit (courbe climat, anomalies) |
 | [`bibliotheque`](https://iutinfoaix-s201.github.io/vigiechiro-pr-companion/ecrans/bibliotheque/) | [P10](https://iutinfoaix-s201.github.io/brief/Analyse%20et%20conception/Parcours%20utilisateurs/P10%20-%20Exporter%20une%20biblioth%C3%A8que%20de%20sons%20de%20r%C3%A9f%C3%A9rence/) | Bibliothèque de sons de référence + export |
 | [`analyse`](https://iutinfoaix-s201.github.io/vigiechiro-pr-companion/ecrans/analyse/) | transverse | Inventaire des espèces détectées (prisme biodiversité), regroupé par espèce ou par carré et filtrable par statut |
+| [`recherche`](https://iutinfoaix-s201.github.io/vigiechiro-pr-companion/ecrans/recherche/) | transverse | Recherche globale du chrome (Ctrl+F) : sauter à un site, un point ou un passage, résultats groupés |
 
 S'ajoutent la fonctionnalité transverse **`cli`** (import/export en ligne de commande) et le paquet
 **`perf/`** (mesures de performance, cf. [`docs/benchmarks/`](docs/benchmarks/README.md)).

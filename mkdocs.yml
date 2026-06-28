@@ -55,6 +55,7 @@ nav:
   - Référence par écran:
       - ecrans/index.md
       - Accueil: ecrans/accueil.md
+      - Recherche: ecrans/recherche.md
       - Sites: ecrans/sites.md
       - Passage: ecrans/passage.md
       - Importation: ecrans/importation.md

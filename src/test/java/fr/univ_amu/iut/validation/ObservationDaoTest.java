@@ -10,6 +10,7 @@ import fr.univ_amu.iut.commun.persistence.MigrationSchema;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
 import fr.univ_amu.iut.validation.model.EspeceAgregee;
 import fr.univ_amu.iut.validation.model.EspeceObservee;
+import fr.univ_amu.iut.validation.model.LigneObservationAudio;
 import fr.univ_amu.iut.validation.model.Observation;
 import fr.univ_amu.iut.validation.model.ObservationEspece;
 import fr.univ_amu.iut.validation.model.StatutObservation;
@@ -416,6 +417,84 @@ class ObservationDaoTest {
                 .singleElement()
                 .satisfies(observation -> assertThat(observation.reference()).isTrue());
         assertThat(dao.referencesDeLUtilisateur("autre")).isEmpty();
+    }
+
+    @Test
+    @DisplayName("#audio : lignesAudioDuPassage porte le contexte, les champs d'archivage et le statut")
+    void lignes_audio_du_passage() {
+        dao.insert(observationComplete()); // Pippip validé, is_reference, commentaire « signal net », 45000 Hz
+        dao.insert(observation("Nyclei", null)); // non touchée
+
+        List<LigneObservationAudio> lignes = dao.lignesAudioDuPassage(idPassage);
+
+        assertThat(lignes).hasSize(2).allSatisfy(ligne -> {
+            assertThat(ligne.idPassage()).isEqualTo(idPassage);
+            assertThat(ligne.numeroCarre()).isEqualTo("640380");
+            assertThat(ligne.codePoint()).isEqualTo("A1");
+        });
+        LigneObservationAudio reference = lignes.stream()
+                .filter(LigneObservationAudio::reference)
+                .findFirst()
+                .orElseThrow();
+        assertThat(reference.statut()).isEqualTo(StatutObservation.VALIDEE);
+        assertThat(reference.commentaire()).isEqualTo("signal net");
+        assertThat(reference.frequenceHz()).isEqualTo(45000);
+    }
+
+    @Test
+    @DisplayName("#audio : lignesAudioReferences ne renvoie que les is_reference de l'utilisateur")
+    void lignes_audio_references() {
+        dao.insert(observationComplete()); // is_reference = true
+        dao.insert(observation("Nyclei", null)); // is_reference = false
+
+        assertThat(dao.lignesAudioReferences("u-1")).singleElement().satisfies(ligne -> {
+            assertThat(ligne.reference()).isTrue();
+            assertThat(ligne.taxonTadarida()).isEqualTo("Pippip");
+        });
+        assertThat(dao.lignesAudioReferences("autre")).isEmpty();
+    }
+
+    @Test
+    @DisplayName("#audio : lignesAudioDesPassages agrège les observations de plusieurs passages")
+    void lignes_audio_des_passages() throws SQLException {
+        dao.insert(observationValidee("Pippip")); // passage 1 (seedé)
+        long[] second = creerSecondPassage();
+        dao.insert(new Observation(
+                null,
+                second[1],
+                null,
+                null,
+                null,
+                "Nyclei",
+                null,
+                null,
+                null,
+                null,
+                null,
+                false,
+                ModeValidation.NON_VALIDE,
+                second[2])); // passage 2
+
+        List<LigneObservationAudio> lignes = dao.lignesAudioDesPassages(List.of(idPassage, second[0]));
+
+        assertThat(lignes)
+                .hasSize(2)
+                .extracting(LigneObservationAudio::idPassage)
+                .containsExactlyInAnyOrder(idPassage, second[0]);
+        assertThat(dao.lignesAudioDesPassages(List.of())).isEmpty();
+    }
+
+    @Test
+    @DisplayName("#audio : lignesAudioDeLEspece filtre par espèce et par statut")
+    void lignes_audio_de_l_espece() {
+        dao.insert(observationValidee("Pippip"));
+        dao.insert(observation("Nyclei", null));
+
+        assertThat(dao.lignesAudioDeLEspece("u-1", "Pippip", null))
+                .singleElement()
+                .satisfies(ligne -> assertThat(ligne.taxonTadarida()).isEqualTo("Pippip"));
+        assertThat(dao.lignesAudioDeLEspece("u-1", "Pippip", StatutObservation.NON_TOUCHEE))
+                .isEmpty();
     }
 
     @Test

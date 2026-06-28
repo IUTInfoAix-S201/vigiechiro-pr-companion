@@ -45,6 +45,13 @@ public final class CaptureAnalyse {
 
     private static final String ID_UTILISATEUR = "demo-analyse";
 
+    /// Codes de taxons (semés par `V02`) utilisés dans les observations de démonstration.
+    private static final String PIPISTRELLE = "Pippip";
+
+    private static final String NOCTULE = "Nyclei";
+
+    private static final String MOLOSSE = "Tadten";
+
     private CaptureAnalyse() {}
 
     public static void main(String[] args) throws InterruptedException {
@@ -144,11 +151,11 @@ public final class CaptureAnalyse {
         }
         ObservationDao observations = injecteur.getInstance(ObservationDao.class);
         observations.insererTout(java.util.List.of(
-                validee("Pippip", idSequence, idResultats),
-                validee("Pippip", idSequence, idResultats),
-                nonTouchee("Nyclei", idSequence, idResultats),
-                nonTouchee("Nyclei", idSequence, idResultats),
-                corrigee("Nyclei", "Tadten", idSequence, idResultats)));
+                validee(PIPISTRELLE, idSequence, idResultats),
+                validee(PIPISTRELLE, idSequence, idResultats),
+                nonTouchee(NOCTULE, idSequence, idResultats),
+                nonTouchee(NOCTULE, idSequence, idResultats),
+                corrigee(NOCTULE, MOLOSSE, idSequence, idResultats)));
     }
 
     private static Observation validee(String code, long idSequence, long idResultats) {

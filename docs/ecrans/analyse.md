@@ -7,6 +7,8 @@ validation), qui produit la donnée nuit par nuit.
 
 On l'ouvre depuis la carte **« Espèces & observations »** de l'accueil.
 
+![L'inventaire par espèce : chaque espèce détectée, son groupe, ses compteurs et sa période.](../assets/captures/apercu-analyse.png)
+
 ## L'inventaire
 
 Une table récapitule vos espèces. Un sélecteur **Regrouper** propose deux angles (le pivot espèce ↔ lieu) :
@@ -15,6 +17,8 @@ Une table récapitule vos espèces. Un sélecteur **Regrouper** propose deux ang
   **passages**, de **carrés** et de **points** où elle apparaît, et sa **période** d'observation.
 - **Par carré** : une ligne par carré, avec sa **richesse spécifique** (nombre d'espèces distinctes) et son
   total de détections — utile pour le rendu Vigie-Chiro.
+
+![L'inventaire par carré : la richesse spécifique (nombre d'espèces) de chaque carré.](../assets/captures/apercu-analyse-carre.png)
 
 L'espèce retenue pour chaque observation est le **taxon validé** par l'observateur s'il existe, sinon la
 **proposition Tadarida** ; les pseudo-taxons « bruit » et « oiseau » sont exclus.

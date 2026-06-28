@@ -68,16 +68,25 @@ final class CarteRepartition {
 
         affichee.addListener((obs, ancien, visible) -> {
             if (Boolean.TRUE.equals(visible)) {
-                rafraichir(true);
-                // La zone carte vient de passer `managed` : son layout (et donc le démarrage du moteur de
-                // tuiles de la MapView) n'a lieu qu'au pulse suivant. On redemande alors un recadrage pour
-                // que le fond de carte se charge sur la bonne emprise (sans ce second passage, la carte
-                // resterait sans tuiles jusqu'à la première interaction).
-                Platform.runLater(carte::recadrer);
+                rendreEtRecadrer();
             }
         });
         carres.addListener((ListChangeListener<CarreEspeces>) changement -> rafraichir(false));
         carresSurbrilles.addListener((ListChangeListener<String>) changement -> rafraichir(false));
+
+        // Installation **paresseuse** : la carte n'est créée/installée qu'au premier passage en mode Carte.
+        // Le listener ci-dessus ayant été ajouté après cette transition, on déclenche ici le rendu initial.
+        if (affichee.get()) {
+            rendreEtRecadrer();
+        }
+    }
+
+    /// Reconstruit la carte puis, **après le layout** (la zone vient de passer `managed`), redemande un
+    /// recadrage : le moteur de tuiles de la MapView ne démarre qu'au pulse suivant, sans quoi le fond de
+    /// carte resterait vide jusqu'à la première interaction.
+    private void rendreEtRecadrer() {
+        rafraichir(true);
+        Platform.runLater(carte::recadrer);
     }
 
     /// (Re)construit les données de la carte ; sans effet si la carte n'est pas affichée. `recadrer` ne

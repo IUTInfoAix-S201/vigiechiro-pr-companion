@@ -54,8 +54,10 @@ public class AnalyseController implements RafraichirAuRetour {
     private final OuvrirValidation ouvrirValidation;
 
     /// État de la bascule Tableau ⇄ Carte (vue, pas de domaine) ; la carte elle-même est gérée par
-    /// [CarteRepartition].
+    /// [CarteRepartition], installée **paresseusement** au premier affichage (`null` tant qu'on reste en
+    /// tableau).
     private final BooleanProperty carteAffichee = new SimpleBooleanProperty(this, "carteAffichee", false);
+    private CarteRepartition carteRepartition;
 
     /// Richesse (nombre d'espèces distinctes) par numéro de carré, tenue à jour depuis l'inventaire par
     /// carré, pour afficher la richesse du carré de chaque observation du détail (lien avec la carte).
@@ -299,11 +301,17 @@ public class AnalyseController implements RafraichirAuRetour {
         }
     }
 
-    /// Câble la **carte de répartition** (déléguée à [CarteRepartition] : composant carte + overlays +
-    /// rafraîchissements selon l'inventaire par carré et la répartition de l'espèce sélectionnée).
+    /// Câble la **carte de répartition** (déléguée à [CarteRepartition]) de façon **paresseuse** : le
+    /// composant carte (et sa dépendance Gluon Maps) n'est créé/installé qu'au **premier** passage en mode
+    /// Carte, pour garder l'écran d'inventaire léger tant qu'on reste en tableau.
     private void configurerCarte() {
-        new CarteRepartition(viewModel.carresCarte(), viewModel.carresEspeceSelectionnee(), carteAffichee)
-                .installerDans(zoneCarte);
+        carteAffichee.addListener((obs, ancien, affichee) -> {
+            if (Boolean.TRUE.equals(affichee) && carteRepartition == null) {
+                carteRepartition = new CarteRepartition(
+                        viewModel.carresCarte(), viewModel.carresEspeceSelectionnee(), carteAffichee);
+                carteRepartition.installerDans(zoneCarte);
+            }
+        });
     }
 
     /// « 🗺️ Carte » / « 📋 Tableau » : bascule l'affichage de la zone maître entre l'inventaire et la carte.

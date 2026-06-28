@@ -50,6 +50,7 @@ cd "$RACINE"
 
 MAINS=(
   "fr.univ_amu.iut.commun.outils.CaptureAccueil"
+  "fr.univ_amu.iut.recherche.outils.CaptureRecherche"
   "fr.univ_amu.iut.sites.outils.CaptureEcrans"
   "fr.univ_amu.iut.importation.outils.CaptureImport"
   "fr.univ_amu.iut.qualification.outils.CaptureQualification"

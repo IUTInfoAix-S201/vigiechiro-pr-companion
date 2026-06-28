@@ -39,6 +39,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ListView;
+import javafx.scene.control.ToggleButton;
 
 /// Outil de capture/mesure, utilisable tel quel.
 ///
@@ -47,6 +48,9 @@ import javafx.scene.control.ListView;
 ///
 /// - `apercu-multisite.png` : la **vue agrégée**, tableau de tous les passages (deux sites, statuts
 ///   et verdicts variés), barre de filtres et de tri, export ;
+/// - `apercu-multisite-filtre.png` : le tableau **filtré** par verdict, résumé recalculé ;
+/// - `apercu-multisite-edition.png` : le **mode édition des positions** (#154) — le toggle « ✎ »
+///   superposé à la carte est actif (ambré), le bouton « Enregistrer les positions » apparaît ;
 /// - `apercu-multisite-vues.png` : la **modale des vues sauvegardées** (deux vues seedées, la
 ///   première sélectionnée → son nom pré-rempli).
 ///
@@ -65,6 +69,7 @@ public final class CaptureMultisite {
 
     private static final String ID_UTILISATEUR = "demo-enseignant";
     private static final String ENREGISTREUR = "1925492";
+    private static final String FXML = "Multisite.fxml";
 
     private CaptureMultisite() {}
 
@@ -107,13 +112,14 @@ public final class CaptureMultisite {
 
         rendreEcran(injecteur, sortie.resolve("apercu-multisite.png"));
         rendreEcranFiltre(injecteur, sortie.resolve("apercu-multisite-filtre.png"));
+        rendreEcranEdition(injecteur, sortie.resolve("apercu-multisite-edition.png"));
         rendreModale(injecteur, sortie.resolve("apercu-multisite-vues.png"));
     }
 
     /// Rend le tableau **filtré** par verdict « OK » (sélection dans le ComboBox de filtre), pour
     /// montrer la restriction du tableau et le résumé recalculé.
     private static void rendreEcranFiltre(Injector injecteur, Path fichier) throws IOException {
-        FXMLLoader loader = new FXMLLoader(MultisiteController.class.getResource("Multisite.fxml"));
+        FXMLLoader loader = new FXMLLoader(MultisiteController.class.getResource(FXML));
         loader.setControllerFactory(injecteur::getInstance);
         Parent vue = loader.load();
         // Items du filtre verdict : [Tous(null), A_VERIFIER, OK, DOUTEUX, A_JETER] → index 2 = OK.
@@ -122,6 +128,29 @@ public final class CaptureMultisite {
         }
         // Même fond de carte OSM que la capture principale (la carte n'est pas filtrée).
         capturerCarte(new Scene(vue, 1100, 620), fichier);
+    }
+
+    /// Rend l'écran en **mode édition des positions** (#154) : on active le toggle « ✎ » superposé à la
+    /// carte (qui passe en ambré) ; le bouton « Enregistrer les positions » apparaît alors dans la barre.
+    /// Illustre la correction des positions de points directement sur la carte.
+    private static void rendreEcranEdition(Injector injecteur, Path fichier) throws IOException {
+        FXMLLoader loader = new FXMLLoader(MultisiteController.class.getResource(FXML));
+        loader.setControllerFactory(injecteur::getInstance);
+        Parent vue = loader.load();
+        Scene scene = new Scene(vue, 1100, 620);
+        // 1) applyCss/layout AVANT pour que `scene.lookup` trouve le toggle (ajouté en code à la carte) ;
+        //    sans cela la recherche par id renvoie null (cache CSS non initialisé).
+        vue.applyCss();
+        vue.layout();
+        // 2) on **fixe** l'état sélectionné (déterministe, sans le timing d'un fire()) : la pince passe en
+        //    ambré (CSS :selected) et « 💾 » devient visible (binding sur l'état du toggle).
+        if (scene.lookup("#boutonEditerPositions") instanceof ToggleButton editer) {
+            editer.setSelected(true);
+        }
+        // 3) re-layout APRÈS pour que « 💾 » (devenu managed) soit pris en compte dans la capture.
+        vue.applyCss();
+        vue.layout();
+        capturerCarte(scene, fichier);
     }
 
     /// Délai d'attente des tuiles OpenStreetMap (#152), en millisecondes, avant la capture principale :
@@ -133,7 +162,7 @@ public final class CaptureMultisite {
     /// Charge `Multisite.fxml` (le controller auto-charge le tableau en `initialize()`) et le rend, après
     /// avoir laissé les tuiles OSM se charger (la carte est l'élément vedette de cette capture).
     private static void rendreEcran(Injector injecteur, Path fichier) throws IOException {
-        FXMLLoader loader = new FXMLLoader(MultisiteController.class.getResource("Multisite.fxml"));
+        FXMLLoader loader = new FXMLLoader(MultisiteController.class.getResource(FXML));
         loader.setControllerFactory(injecteur::getInstance);
         Parent vue = loader.load();
         capturerCarte(new Scene(vue, 1100, 620), fichier);

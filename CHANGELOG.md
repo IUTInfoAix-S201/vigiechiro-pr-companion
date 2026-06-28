@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [1.52.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.51.0...v1.52.0) (2026-06-28)
+
+
+### Features
+
+* **analyse:** carte de répartition (choroplèthe de richesse + répartition d'une espèce) ([#400](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/400)) ([5aaf510](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/5aaf510ecf167ae2dca794eaed91713bcf2a71fd))
+
 # [1.51.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.50.0...v1.51.0) (2026-06-28)
 
 

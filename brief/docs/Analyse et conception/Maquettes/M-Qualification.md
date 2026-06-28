@@ -3,7 +3,6 @@
 > **Type** : vue plein écran (atteinte par clic « Vérifier l'enregistrement » depuis [M-Passage](M-Passage.md)).
 > **Persona principal** : tous. C'est l'étape de **sound check global** que chaque utilisateur fait avant de déposer une nuit.
 > **Parcours couverts** : [P3 - Vérifier l'enregistrement par échantillonnage](../Parcours%20utilisateurs/P3%20-%20Vérifier%20l%27enregistrement%20par%20échantillonnage.md).
-> **Stories couvertes** : [E3.S1 - Générer la sélection](../Story%20mapping/E3%20-%20Vérifier%20la%20qualité%20d%27enregistrement.md#e3s1), [E3.S2 - Liste chronologique](../Story%20mapping/E3%20-%20Vérifier%20la%20qualité%20d%27enregistrement.md#e3s2), [E3.S3 - Lecteur audio](../Story%20mapping/E3%20-%20Vérifier%20la%20qualité%20d%27enregistrement.md#e3s3), [E3.S4 - Marquer écouté + suivi](../Story%20mapping/E3%20-%20Vérifier%20la%20qualité%20d%27enregistrement.md#e3s4), [E3.S5 - Verdict global](../Story%20mapping/E3%20-%20Vérifier%20la%20qualité%20d%27enregistrement.md#e3s5), [E3.S6 - Personnaliser la sélection](../Story%20mapping/E3%20-%20Vérifier%20la%20qualité%20d%27enregistrement.md#e3s6).
 
 L'écran est divisé en **2 colonnes** : à gauche, la liste chronologique des séquences d'écoute échantillonnées (avec leur statut écouté/pas écouté) ; à droite, le panneau de détail avec info de la séquence + visualisation audio + boutons de verdict global + commentaire. L'utilisateur enchaîne typiquement : clic sur une séquence → écoute → coche éventuelle → suivante. Quand assez d'éléments ont été écoutés pour se faire une opinion, il sélectionne son verdict global puis l'enregistre.
 
@@ -15,14 +14,12 @@ L'écran est divisé en **2 colonnes** : à gauche, la liste chronologique des s
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" role="img" aria-label="Maquette M-Qualification - Vérification d'enregistrement par échantillonnage" style="max-width: 100%; height: auto; border: 1px solid #d0d7de; border-radius: 6px; background: #fafbfc;">
   <style>
     .frame { fill: #ffffff; stroke: #2c3e50; stroke-width: 1.5; }
-    .titlebar { fill: #2c3e50; }
-    .titletxt { fill: #ffffff; font: 600 14px sans-serif; }
-    .topnav { fill: #34495e; }
-    .navtxt-active { fill: #ffffff; font: 600 13px sans-serif; }
-    .navtxt-inactive { fill: #bdc3c7; font: 400 13px sans-serif; }
-    .breadcrumb { font: 13px sans-serif; fill: #4a90d9; }
-    .breadcrumb-sep { font: 13px sans-serif; fill: #6a737d; }
-    .breadcrumb-curr { font: 13px sans-serif; fill: #2c3e50; }
+    .chrome { fill: #3f51b5; }
+    .chrometxt { fill: #ffffff; font: 600 14px sans-serif; }
+    .search { fill: #ffffff; stroke: #c5cae9; stroke-width: 1; }
+    .search-txt { fill: #9aa0b3; font: 13px sans-serif; }
+    .breadcrumb { font: 13px sans-serif; fill: #c5cae9; }
+    .breadcrumb-curr { font: 700 13px sans-serif; fill: #ffffff; }
     .pagetitle { font: 700 22px sans-serif; fill: #2c3e50; }
     .pagesub { font: 13px sans-serif; fill: #6a737d; }
     .info-bar { fill: #f6f8fa; stroke: #d0d7de; stroke-width: 1; }
@@ -97,29 +94,14 @@ L'écran est divisé en **2 colonnes** : à gauche, la liste chronologique des s
   </style>
 
   <rect x="10" y="10" width="1180" height="880" rx="4" class="frame"/>
-  <rect x="10" y="10" width="1180" height="32" rx="4" class="titlebar"/>
-  <rect x="10" y="10" width="1180" height="16" class="titlebar"/>
-  <text x="28" y="31" class="titletxt">🦇 VigieChiro PR Companion</text>
-  <text x="1140" y="31" class="titletxt" text-anchor="end">— ☐ ☓</text>
-
-  <rect x="10" y="42" width="1180" height="40" class="topnav"/>
-  <text x="40" y="67" class="navtxt-inactive">🏠 Mes sites</text>
-  <text x="170" y="67" class="navtxt-inactive">📥 Importer une nuit</text>
-  <text x="330" y="67" class="navtxt-inactive">📊 Vue tabulaire</text>
-  <text x="470" y="67" class="navtxt-inactive">⚙ Paramètres</text>
-  <text x="1140" y="67" class="navtxt-inactive" text-anchor="end">👤 Local</text>
-
-  <!-- Fil d'Ariane porté par le CHROME (EmplacementNavigation) : emplacement complet du passage,
-       identique quelle que soit la route. Le retour (← écran précédent) est également porté par le chrome. -->
-  <text x="40" y="108" class="breadcrumb">🏠 Accueil</text>
-  <text x="120" y="108" class="breadcrumb-sep">›</text>
-  <text x="134" y="108" class="breadcrumb">Mes sites</text>
-  <text x="210" y="108" class="breadcrumb-sep">›</text>
-  <text x="224" y="108" class="breadcrumb">Carré 640380</text>
-  <text x="320" y="108" class="breadcrumb-sep">›</text>
-  <text x="334" y="108" class="breadcrumb">Détails du passage N° 2</text>
-  <text x="510" y="108" class="breadcrumb-sep">›</text>
-  <text x="524" y="108" class="breadcrumb-curr">Vérifier l'enregistrement</text>
+  <!-- Bandeau du chrome : titre + fil d'Ariane (emplacement complet du passage) + recherche -->
+  <rect x="10" y="10" width="1180" height="44" rx="4" class="chrome"/>
+  <rect x="10" y="26" width="1180" height="28" class="chrome"/>
+  <text x="28" y="38" class="chrometxt">VigieChiro PR Companion</text>
+  <text x="210" y="38" class="breadcrumb">Accueil  ›  Mes sites  ›  Carré 640380  ›  Passage N° 2  ›  </text>
+  <text x="642" y="38" class="breadcrumb-curr">Vérifier</text>
+  <rect x="940" y="22" width="220" height="22" rx="11" class="search"/>
+  <text x="956" y="38" class="search-txt">🔍  Rechercher (Ctrl+F)</text>
 
   <text x="40" y="148" class="pagetitle">🎧 Vérifier l'enregistrement par échantillonnage</text>
   <text x="40" y="170" class="pagesub">Écoutez quelques séquences réparties sur la nuit pour vous assurer que l'enregistrement est exploitable.</text>
@@ -242,7 +224,7 @@ L'écran est divisé en **2 colonnes** : à gauche, la liste chronologique des s
   <text x="108" y="602" class="cell">08</text>
   <text x="148" y="602" class="cell-mono">23:08:39</text>
   <text x="290" y="602" class="cell">5,0 s</text>
-  <text x="360" y="602" class="cell">— (silence)</text>
+  <text x="360" y="602" class="cell">- (silence)</text>
   <text x="450" y="602" class="cell-mono">…_230839</text>
   <text x="595" y="602" class="cell-not-listened" text-anchor="middle">○</text>
 
@@ -303,7 +285,7 @@ L'écran est divisé en **2 colonnes** : à gauche, la liste chronologique des s
 
   <rect x="680" y="305" width="460" height="60" rx="4" class="seq-info-card"/>
   <text x="700" y="332" class="seq-num">N° 04</text>
-  <text x="780" y="332" class="seq-time">22/06 — 21:34:55</text>
+  <text x="780" y="332" class="seq-time">22/06 - 21:34:55</text>
   <text x="780" y="350" class="seq-meta">Durée 5,0 s · Fréquence dominante 38 kHz</text>
   <text x="1130" y="332" class="seq-stat-large" text-anchor="end">04 / 30</text>
   <text x="1130" y="350" class="seq-meta" text-anchor="end">⚪ non écoutée</text>
@@ -442,12 +424,12 @@ L'écran est divisé en **2 colonnes** : à gauche, la liste chronologique des s
     - Ligne courante (n° 04) en surbrillance bleue
     - Boutons en bas : ajouter manuellement / régénérer
 - **Colonne droite - Panneau de détail** (style harmonisé avec [M-Vision-Tadarida](M-Vision-Tadarida.md)) :
-    - **Section 1 : info séquence** (card claire `.seq-info-card`) — N° de séquence + horodatage + métadonnées + position dans la sélection (04/30), miroir de la « card info taxon » de M-Vision-Tadarida.
-    - **Section 2 : vue audio combinée** (sonogramme + spectrogramme) — **Composant partagé avec [M-Vision-Tadarida](M-Vision-Tadarida.md)**, fourni par l'équipe pédagogique. Le sonogramme (amplitude/temps, fond clair) et le spectrogramme (fréquence/temps, fond sombre) sont **synchronisés** par un cursor rouge vertical unique. Boutons de zoom temps/fréquence accessibles sur le spectrogramme. L'utilisateur peut faire de l'écoute simple (sonogramme) ou analyser plus en détail (spectrogramme) selon ses besoins.
-    - **Section 3 : player audio** (bar sombre comme M-Vision-Tadarida) — Contrôles ⏮ ⏯ ⏭, timecode, volume.
-    - **Section 4 : verdict global** — 3 boutons colorés grand format (`✓ OK` vert / `⚠ Douteux` orange / `❌ À jeter` rouge). Le bouton sélectionné a une bordure plus épaisse (le `OK` ici est sélectionné). **Sélection différée** : ne persiste pas, attend le bouton « Enregistrer le verdict ».
-    - **Section 5 : commentaire** — Champ texte multi-ligne optionnel.
-    - **Bouton « 💾 Enregistrer le verdict »** primary à droite — Action finale qui persiste le verdict + commentaire et passe le passage au statut `Vérifié`.
+    - **Section 1 : info séquence** (card claire `.seq-info-card`) - N° de séquence + horodatage + métadonnées + position dans la sélection (04/30), miroir de la « card info taxon » de M-Vision-Tadarida.
+    - **Section 2 : vue audio combinée** (sonogramme + spectrogramme) - **Composant partagé avec [M-Vision-Tadarida](M-Vision-Tadarida.md)**, fourni par l'équipe pédagogique. Le sonogramme (amplitude/temps, fond clair) et le spectrogramme (fréquence/temps, fond sombre) sont **synchronisés** par un cursor rouge vertical unique. Boutons de zoom temps/fréquence accessibles sur le spectrogramme. L'utilisateur peut faire de l'écoute simple (sonogramme) ou analyser plus en détail (spectrogramme) selon ses besoins.
+    - **Section 3 : player audio** (bar sombre comme M-Vision-Tadarida) - Contrôles ⏮ ⏯ ⏭, timecode, volume.
+    - **Section 4 : verdict global** - 3 boutons colorés grand format (`✓ OK` vert / `⚠ Douteux` orange / `❌ À jeter` rouge). Le bouton sélectionné a une bordure plus épaisse (le `OK` ici est sélectionné). **Sélection différée** : ne persiste pas, attend le bouton « Enregistrer le verdict ».
+    - **Section 5 : commentaire** - Champ texte multi-ligne optionnel.
+    - **Bouton « 💾 Enregistrer le verdict »** primary à droite - Action finale qui persiste le verdict + commentaire et passe le passage au statut `Vérifié`.
 - **Footer** : raccourcis claviers harmonisés avec M-Vision-Tadarida (↑/↓/Espace/O/D/J/⏎).
 
 ### Différences sémantiques avec [M-Vision-Tadarida](M-Vision-Tadarida.md)
@@ -465,7 +447,7 @@ L'écran est divisé en **2 colonnes** : à gauche, la liste chronologique des s
 
 | Élément | Action |
 |---|---|
-| Clic sur ▶ d'une ligne | Joue la séquence dans le player. Marque automatiquement comme « écoutée » (E3.S4) |
+| Clic sur ▶ d'une ligne | Joue la séquence dans le player. Marque automatiquement comme « écoutée » |
 | Clic ailleurs sur la ligne | Sélectionne la séquence et charge dans le player sans démarrer |
 | ↑ / ↓ (clavier) | Navigation entre séquences |
 | Espace (clavier) | Lecture / pause de la séquence courante |
@@ -480,7 +462,7 @@ L'écran est divisé en **2 colonnes** : à gauche, la liste chronologique des s
 
 ## Variante - modale de personnalisation de la sélection
 
-Activée par le bouton **⚙ Personnaliser** dans le header de la liste. Permet de changer la méthode (RéparTemporel ou Aléatoire) et la taille (entre 10 et 100 séquences). Cette variante implémente [E3.S6](../Story%20mapping/E3%20-%20Vérifier%20la%20qualité%20d%27enregistrement.md#e3s6) (SHOULD).
+Activée par le bouton **⚙ Personnaliser** dans l'en-tête de la liste. Permet de changer la méthode (RéparTemporel ou Aléatoire) et la taille (entre 10 et 100 séquences).
 
 <div markdown="0">
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 480" role="img" aria-label="Maquette M-Qualification - Modale personnalisation" style="max-width: 100%; height: auto; border: 1px solid #d0d7de; border-radius: 6px; background: rgba(44,62,80,0.6);">
@@ -570,5 +552,5 @@ Activée par le bouton **⚙ Personnaliser** dans le header de la liste. Permet 
 - **Cohérence visuelle avec [M-Vision-Tadarida](M-Vision-Tadarida.md)** : les deux écrans partagent le même style de panneau de détail (fond clair, sections numérotées, vue audio combinée, boutons d'action colorés en bas). Les étudiants n'implémentent qu'un seul pattern de « lieu d'écoute », réutilisé sur les deux écrans.
 - **Sélection vs persistance du verdict** : le clic sur l'un des 3 boutons (OK / Douteux / À jeter) **sélectionne** mais ne persiste pas. La persistance se fait via le bouton « Enregistrer le verdict » (qui peut aussi être déclenché par ⏎ Entrée). Cette dissociation évite les fausses manipulations et permet de changer d'avis avant de valider.
 - **Synchronisation lecture ↔ progression** : le statut `écouté` doit être marqué dès le début de la lecture (pas à la fin), pour permettre à l'utilisateur de zapper rapidement.
-- **Persistance** : la sélection, son état d'écoute, le verdict et le commentaire doivent tous être persistés en BD ([E0.S4](../Story%20mapping/E0%20-%20Fondations%20de%20persistance.md#e0s4) + [E0.S3](../Story%20mapping/E0%20-%20Fondations%20de%20persistance.md#e0s3)). Au retour sur l'écran, on doit retrouver tout son contexte.
+- **Persistance** : la sélection, son état d'écoute, le verdict et le commentaire sont tous persistés en base. Au retour sur l'écran, on retrouve tout son contexte.
 - **Raccourcis clavier** (O/D/J/⏎/Espace/↑/↓) : à implémenter via `setOnKeyPressed` au niveau de la racine de la vue. Cohérents avec M-Vision-Tadarida (V/C/R/→) pour faciliter le transfert d'apprentissage.

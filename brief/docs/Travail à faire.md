@@ -1,6 +1,6 @@
 # Travail à faire (genèse pédagogique)
 
-!!! note "Genèse pédagogique — au passé"
+!!! note "Genèse pédagogique - au passé"
     Cette page documente la **méthode de travail** prévue pour la SAE 2.01 (organisation des équipes,
     écrans à construire, workflow Git). Elle est conservée **pour mémoire** ; elle décrit le **point de
     départ** remis aux équipes, pas l'application finie.
@@ -141,7 +141,7 @@ Au-delà des écrans, des **issues de vérification / passe finale** verrouillen
 
 - **Parcours de bout en bout (E2E)** : réactiver les tests qui traversent plusieurs écrans.
 - **Objectifs qualité** : formatage (Spotless), *code smells* (PMD), couverture (JaCoCo), architecture
-  (ArchUnit) — voir [Objectifs qualités](Objectifs%20qualités/index.md).
+  (ArchUnit) - voir [Objectifs qualités](Objectifs%20qualités/index.md).
 - **Vérification de l'application** : lancer l'appli et naviguer dans tous les écrans.
 - **Accessibilité / ergonomie** (ISO 25010) : opérabilité clavier, affordance, retours d'action.
 - **Documentation** : doc-comments, README d'équipe, galerie d'aperçus à jour.

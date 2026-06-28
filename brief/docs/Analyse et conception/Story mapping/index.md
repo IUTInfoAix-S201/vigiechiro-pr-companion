@@ -1,6 +1,6 @@
 # Story mapping
 
-!!! note "Genèse pédagogique — au passé"
+!!! note "Genèse pédagogique - au passé"
     Cette page documente le **découpage prévu** lors du cadrage de la SAE 2.01 (épopées, stories,
     estimations, arbitrage MoSCoW). Elle est conservée **pour mémoire**. L'application a finalement été
     menée **au-delà de ce périmètre** : toutes les épopées E1 à E8 ont été livrées (et complétées par

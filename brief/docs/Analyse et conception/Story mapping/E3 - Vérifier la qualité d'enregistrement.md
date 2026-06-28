@@ -19,18 +19,18 @@
 **Critères d'acceptation** :
 
 - [ ] À l'ouverture de la vue détail d'un passage `Importé` ou `Transformé`, un encart **« État de la nuit »** affiche trois indicateurs sous forme de feux (🟢 OK / 🟠 suspect / 🔴 anomalie).
-- [ ] **Indicateur 1 — Couverture horaire** : compare la plage `premier WAV → dernier WAV` (extraite des horodatages des fichiers) à la plage théorique `coucher de soleil - 30 min → lever de soleil + 30 min` ([R3](../Modèle%20conceptuel/Règles%20métier.md#r3)). La plage astronomique est calculée localement à partir des coordonnées GPS du point ([C3](../Modèle%20conceptuel/C3%20-%20Point%20d%27écoute.md)) et de la date de session d'enregistrement. Feu 🟠 si l'écart dépasse 30 min d'un côté, 🔴 si une moitié de nuit complète manque.
-- [ ] **Indicateur 2 — Nombre de fichiers** : feu 🟢 si nombre d'enregistrements originaux ≥ 50, 🟠 si entre 1 et 49 (nuit anormalement creuse), 🔴 si 0.
-- [ ] **Indicateur 3 — Cohérence du renommage** : feu 🟢 si tous les WAV portent le préfixe `Car<carre>-<annee>-Pass<n>-<point>-` attendu ([R6](../Modèle%20conceptuel/Règles%20métier.md#r6)) avec les bons champs ; 🔴 dès qu'un fichier diverge (extra-fichier non préfixé ou incohérence de champ).
+- [ ] **Indicateur 1 - Couverture horaire** : compare la plage `premier WAV → dernier WAV` (extraite des horodatages des fichiers) à la plage théorique `coucher de soleil - 30 min → lever de soleil + 30 min` ([R3](../Modèle%20conceptuel/Règles%20métier.md#r3)). La plage astronomique est calculée localement à partir des coordonnées GPS du point ([C3](../Modèle%20conceptuel/C3%20-%20Point%20d%27écoute.md)) et de la date de session d'enregistrement. Feu 🟠 si l'écart dépasse 30 min d'un côté, 🔴 si une moitié de nuit complète manque.
+- [ ] **Indicateur 2 - Nombre de fichiers** : feu 🟢 si nombre d'enregistrements originaux ≥ 50, 🟠 si entre 1 et 49 (nuit anormalement creuse), 🔴 si 0.
+- [ ] **Indicateur 3 - Cohérence du renommage** : feu 🟢 si tous les WAV portent le préfixe `Car<carre>-<annee>-Pass<n>-<point>-` attendu ([R6](../Modèle%20conceptuel/Règles%20métier.md#r6)) avec les bons champs ; 🔴 dès qu'un fichier diverge (extra-fichier non préfixé ou incohérence de champ).
 - [ ] Chaque indicateur, au survol ou au clic, affiche le détail du calcul (valeurs attendues vs effectives).
 - [ ] Si les coordonnées GPS du point ne sont pas renseignées, l'indicateur de couverture horaire affiche un état neutre `?` avec un message explicite « Renseignez les coordonnées du point pour activer ce check ».
 - [ ] Un lien explicite renvoie vers [P6 - Diagnostiquer le matériel](../Parcours%20utilisateurs/P6%20-%20Diagnostiquer%20le%20matériel.md) pour creuser (courbes T°/H, événements anormaux du journal, comparaison batterie inter-passages).
 - [ ] Test d'intégration : sur un passage de référence, vérifier les trois indicateurs (cas nominal 🟢/🟢/🟢, cas dégradé 🟠 sur couverture, cas critique 🔴 sur renommage).
 
 **Parcours rattaché** : [P3](../Parcours%20utilisateurs/P3%20-%20Vérifier%20l%27enregistrement%20par%20échantillonnage.md), étape 1<br>
-**Maquettes cibles** : [M-Qualification](../Maquettes/M-Qualification.md) (encart « État de la nuit » en haut de la vue de vérification) — *à mettre à jour*<br>
+**Maquettes cibles** : [M-Qualification](../Maquettes/M-Qualification.md) (encart « État de la nuit » en haut de la vue de vérification) - *à mettre à jour*<br>
 **Dépendances** : [E0.S3](E0%20-%20Fondations%20de%20persistance.md#e0s3) (passage en BD), [E2.S6](E2%20-%20Importer%20et%20transformer%20une%20nuit.md#e2s6) (transformation terminée), librairie astronomique pour les horaires (re-use [E6.S3](E6%20-%20Diagnostiquer%20le%20matériel.md#e6s3) si possible)<br>
-**Complexité** : ★★★ (moyen — 3 calculs indépendants, recoupement avec horaires astronomiques, rendu visuel)<br>
+**Complexité** : ★★★ (moyen - 3 calculs indépendants, recoupement avec horaires astronomiques, rendu visuel)<br>
 **MoSCoW** : ✅ MUST
 
 ---
@@ -55,7 +55,7 @@
 **Parcours rattaché** : [P3](../Parcours%20utilisateurs/P3%20-%20Vérifier%20l%27enregistrement%20par%20échantillonnage.md), étape 2<br>
 **Maquettes cibles** : [M-Qualification](../Maquettes/M-Qualification.md) (état initial à l'ouverture de l'onglet)<br>
 **Dépendances** : [E0.S4](E0%20-%20Fondations%20de%20persistance.md#e0s4), [E2.S6](E2%20-%20Importer%20et%20transformer%20une%20nuit.md#e2s6)<br>
-**Complexité** : ★★ (simple — algorithme d'échantillonnage uniforme + persistance)<br>
+**Complexité** : ★★ (simple - algorithme d'échantillonnage uniforme + persistance)<br>
 **MoSCoW** : ✅ MUST
 
 ---
@@ -79,7 +79,7 @@
 **Parcours rattaché** : [P3](../Parcours%20utilisateurs/P3%20-%20Vérifier%20l%27enregistrement%20par%20échantillonnage.md), étape 3<br>
 **Maquettes cibles** : [M-Qualification](../Maquettes/M-Qualification.md) (tableau central de la vue de vérification)<br>
 **Dépendances** : [E3.S1](#e3s1)<br>
-**Complexité** : ★★ (simple — TableView ou ListView JavaFX avec rendu personnalisé par cellule)<br>
+**Complexité** : ★★ (simple - TableView ou ListView JavaFX avec rendu personnalisé par cellule)<br>
 **MoSCoW** : ✅ MUST
 
 ---
@@ -108,7 +108,7 @@
 **Parcours rattaché** : [P3](../Parcours%20utilisateurs/P3%20-%20Vérifier%20l%27enregistrement%20par%20échantillonnage.md), étape 4<br>
 **Maquettes cibles** : [M-Qualification](../Maquettes/M-Qualification.md) (vue audio combinée)<br>
 **Dépendances** : [E3.S2](#e3s2), composant audio fourni par l'équipe pédagogique<br>
-**Complexité** : ★★ (simple — intégration du composant + gestion d'état lecture)<br>
+**Complexité** : ★★ (simple - intégration du composant + gestion d'état lecture)<br>
 **MoSCoW** : ✅ MUST
 
 ---
@@ -132,7 +132,7 @@
 **Parcours rattaché** : [P3](../Parcours%20utilisateurs/P3%20-%20Vérifier%20l%27enregistrement%20par%20échantillonnage.md), étape 4<br>
 **Maquettes cibles** : [M-Qualification](../Maquettes/M-Qualification.md) (compteur d'avancement, indicateur visuel par ligne)<br>
 **Dépendances** : [E0.S4](E0%20-%20Fondations%20de%20persistance.md#e0s4), [E3.S2](#e3s2), [E3.S3](#e3s3)<br>
-**Complexité** : ★ (trivial — booléen persisté + indicateur UI)<br>
+**Complexité** : ★ (trivial - booléen persisté + indicateur UI)<br>
 **MoSCoW** : ✅ MUST
 
 ---
@@ -158,7 +158,7 @@
 **Parcours rattaché** : [P3](../Parcours%20utilisateurs/P3%20-%20Vérifier%20l%27enregistrement%20par%20échantillonnage.md), étape 6 et 7<br>
 **Maquettes cibles** : [M-Qualification](../Maquettes/M-Qualification.md) (zone de saisie du verdict en bas de l'écran)<br>
 **Dépendances** : [E0.S3](E0%20-%20Fondations%20de%20persistance.md#e0s3)<br>
-**Complexité** : ★ (trivial — menu déroulant + champ texte + persistance)<br>
+**Complexité** : ★ (trivial - menu déroulant + champ texte + persistance)<br>
 **MoSCoW** : ✅ MUST
 
 ---
@@ -182,5 +182,5 @@
 **Parcours rattaché** : [P3](../Parcours%20utilisateurs/P3%20-%20Vérifier%20l%27enregistrement%20par%20échantillonnage.md), étape 5<br>
 **Maquettes cibles** : [M-Qualification](../Maquettes/M-Qualification.md) (panneau « Modifier la sélection »)<br>
 **Dépendances** : [E3.S1](#e3s1), [E3.S2](#e3s2)<br>
-**Complexité** : ★★★ (moyen — interface de personnalisation + algorithme aléatoire + ajout manuel par recherche)<br>
+**Complexité** : ★★★ (moyen - interface de personnalisation + algorithme aléatoire + ajout manuel par recherche)<br>
 **MoSCoW** : 🟠 SHOULD (personnalisation est un confort, la sélection automatique par défaut suffit pour le MVP strict)

@@ -37,7 +37,7 @@ flowchart TB
     S1 --> S2
     S2["<b>Étape 2 · Programmer le PR · déployer · récupérer la SD</b><br/>allumage 30 min avant coucher · extinction 30 min après lever<br/>🦇 sur le terrain (hors application)"]
     S2 --> SD
-    SD[("💾 Carte SD pleine — WAV bruts + LogPR + THLog")]
+    SD[("💾 Carte SD pleine - WAV bruts + LogPR + THLog")]
     SD --> S3
     S3["📥 <b>Étape 3 · Importer la nuit</b><br/>copie protégée + renommage <code>CarXXXXXX-AAAA-PassN-YY-</code><br/>transformation ×10 + chunks 5 s"]
     S3 --> S4
@@ -45,7 +45,7 @@ flowchart TB
     S4 --> S5
     S5["📦 <b>Étape 5 · Préparer le lot</b><br/>vérification cohérence · ouverture du dossier"]
     S5 --> Lot
-    Lot[("📦 Lot prêt à déposer — séquences + journal + climat")]
+    Lot[("📦 Lot prêt à déposer - séquences + journal + climat")]
     Lot -.téléversement manuel via navigateur.-> VC
     VC(["🌐 vigiechiro.herokuapp.com"])
 

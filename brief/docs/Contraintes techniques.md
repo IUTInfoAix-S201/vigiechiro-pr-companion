@@ -20,7 +20,7 @@ d'architecture** qui structurent son code.
 
 ## Architecture du code
 
-- **MVVM** (Model – View – ViewModel) : le modèle métier (entités, services, DAO) ignore JavaFX ; le
+- **MVVM** (Model - View - ViewModel) : le modèle métier (entités, services, DAO) ignore JavaFX ; le
   *ViewModel* expose un état observable (`javafx.beans`) sans dépendre de `javafx.scene/fxml/stage` ;
   la *View* (contrôleur + FXML + CSS) se lie aux propriétés du ViewModel et ne parle jamais à la base.
 - **Package par fonctionnalité** : chaque fonctionnalité est un paquet autonome

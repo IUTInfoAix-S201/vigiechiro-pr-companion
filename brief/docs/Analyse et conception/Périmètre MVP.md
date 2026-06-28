@@ -1,6 +1,6 @@
 # Périmètre MVP
 
-!!! note "Genèse pédagogique — au passé"
+!!! note "Genèse pédagogique - au passé"
     Cette page documente l'**arbitrage de périmètre prévu** au cadrage de la SAE 2.01. Elle est
     conservée **pour mémoire** : l'application livrée a en pratique dépassé ce périmètre (toutes les
     épopées ont été couvertes). Les fonctionnalités réelles sont décrites, au présent, dans les
@@ -105,13 +105,13 @@ E4.S4 (stepper de statut et chronologie) est en SHOULD.
 
 À engager **après** que la chaîne MUST critique soit livrée et solide. Par ordre de priorité :
 
-1. **[E7](Story%20mapping/E7%20-%20Valider%20les%20résultats%20Tadarida.md) — Valider les résultats Tadarida** (cible étirable principale). 6 stories SHOULD sur 7 (E7.S6 mode inventaire/activité = COULD), ~17 ★. C'est le **filet de sécurité** : si une équipe a fini le fil rouge en avance, elle attaque E7 pour ouvrir la chaîne de validation Tadarida.
+1. **[E7](Story%20mapping/E7%20-%20Valider%20les%20résultats%20Tadarida.md) - Valider les résultats Tadarida** (cible étirable principale). 6 stories SHOULD sur 7 (E7.S6 mode inventaire/activité = COULD), ~17 ★. C'est le **filet de sécurité** : si une équipe a fini le fil rouge en avance, elle attaque E7 pour ouvrir la chaîne de validation Tadarida.
 
 2. **Stories de robustesse E0** : E0.S6 (reprise d'import interrompu, ★★★★) et E0.S7 (reprise de validation Tadarida en suspens, ★★★). Important pour la fiabilité long terme, mais ne bloquent pas une démo.
 
 3. **Raffinements des épopées MUST** : E1.S5 reste MUST, mais E2.S8 (★★★), E3.S6 (★★★), E4.S4 (★★★) sont à intégrer si le cœur est stable.
 
-4. **[E5](Story%20mapping/E5%20-%20Naviguer%20dans%20le%20volume%20multi-sites.md) - Naviguer multi-sites** stories de base : E5.S1 arborescence (★★★), E5.S2 vue tabulaire (★★★). Indispensables pour Karim/Samuel — devraient être MUST si la SAE était dimensionnée pour leur volume, mais SHOULD pour le MVP étudiant.
+4. **[E5](Story%20mapping/E5%20-%20Naviguer%20dans%20le%20volume%20multi-sites.md) - Naviguer multi-sites** stories de base : E5.S1 arborescence (★★★), E5.S2 vue tabulaire (★★★). Indispensables pour Karim/Samuel - devraient être MUST si la SAE était dimensionnée pour leur volume, mais SHOULD pour le MVP étudiant.
 
 5. **[E6](Story%20mapping/E6%20-%20Diagnostiquer%20le%20matériel.md) - Diagnostic matériel** stories de base : E6.S1 graphes T°/H (★★★), E6.S2 batterie/anomalies (★★★). Utiles dès qu'on traite plusieurs nuits.
 
@@ -150,7 +150,7 @@ Vue exhaustive des 50 stories. Tri par épopée puis par n°.
 | [E0.S3](Story%20mapping/E0%20-%20Fondations%20de%20persistance.md#e0s3) | Persister passages et workflow | ★★★ | ✅ MUST | Sert E2/E3/E4 (MUST). |
 | [E0.S4](Story%20mapping/E0%20-%20Fondations%20de%20persistance.md#e0s4) | Persister sélections d'écoute | ★★ | ✅ MUST | Sert E3 (MUST). |
 | [E0.S5](Story%20mapping/E0%20-%20Fondations%20de%20persistance.md#e0s5) | Persister observations Tadarida | ★★★ | ✅ MUST | Sert E7 (cible étirable principale). |
-| [E0.S6](Story%20mapping/E0%20-%20Fondations%20de%20persistance.md#e0s6) | Reprendre un import interrompu | ★★★★ | 🟠 SHOULD | Robustesse — un import qui crash sans reprise reste corrigible à la main. |
+| [E0.S6](Story%20mapping/E0%20-%20Fondations%20de%20persistance.md#e0s6) | Reprendre un import interrompu | ★★★★ | 🟠 SHOULD | Robustesse - un import qui crash sans reprise reste corrigible à la main. |
 | [E0.S7](Story%20mapping/E0%20-%20Fondations%20de%20persistance.md#e0s7) | Reprendre une validation en suspens | ★★★ | 🟠 SHOULD | Idem, lié à E7. |
 | [E0.S8](Story%20mapping/E0%20-%20Fondations%20de%20persistance.md#e0s8) | Migration de schéma BD | ★★ | ⚪ COULD | Utile en exploitation long terme, pas pour le MVP. |
 | [E1.S1](Story%20mapping/E1%20-%20Gérer%20ses%20sites%20et%20points%20de%20suivi.md#e1s1) | Saisir un site avec n° de carré | ★★ | ✅ MUST | Sans site, rien n'est rattachable. |
@@ -200,15 +200,15 @@ Vue exhaustive des 50 stories. Tri par épopée puis par n°.
 
 | Épopée | Stories | ★ total | ✅ MUST | 🟠 SHOULD | ⚪ COULD |
 |---|--:|--:|--:|--:|--:|
-| E0 — Fondations | 8 | 23 | 5 stories / 14 ★ | 2 / 7 ★ | 1 / 2 ★ |
-| E1 — Sites et points | 5 | 10 | **5 / 10 ★** | 0 | 0 |
-| E2 — Import et transformation | 8 | 24 | 7 / 21 ★ | 1 / 3 ★ | 0 |
-| E3 — Vérification d'enregistrement | 6 | 12 | 5 / 9 ★ | 1 / 3 ★ | 0 |
-| E4 — Lot et dépôt | 4 | 8 | 3 / 5 ★ | 1 / 3 ★ | 0 |
-| E5 — Multi-sites | 5 | 16 | 0 | 2 / 6 ★ | 3 / 10 ★ |
-| E6 — Diagnostic matériel | 5 | 13 | 0 | 2 / 6 ★ | 3 / 7 ★ |
-| E7 — Validation Tadarida | 7 | 19 | 0 | 6 / 17 ★ | 1 / 2 ★ |
-| E8 — Productivité avancée | 2 | 7 | 0 | 0 | 2 / 7 ★ |
+| E0 - Fondations | 8 | 23 | 5 stories / 14 ★ | 2 / 7 ★ | 1 / 2 ★ |
+| E1 - Sites et points | 5 | 10 | **5 / 10 ★** | 0 | 0 |
+| E2 - Import et transformation | 8 | 24 | 7 / 21 ★ | 1 / 3 ★ | 0 |
+| E3 - Vérification d'enregistrement | 6 | 12 | 5 / 9 ★ | 1 / 3 ★ | 0 |
+| E4 - Lot et dépôt | 4 | 8 | 3 / 5 ★ | 1 / 3 ★ | 0 |
+| E5 - Multi-sites | 5 | 16 | 0 | 2 / 6 ★ | 3 / 10 ★ |
+| E6 - Diagnostic matériel | 5 | 13 | 0 | 2 / 6 ★ | 3 / 7 ★ |
+| E7 - Validation Tadarida | 7 | 19 | 0 | 6 / 17 ★ | 1 / 2 ★ |
+| E8 - Productivité avancée | 2 | 7 | 0 | 0 | 2 / 7 ★ |
 | **TOTAL** | **50** | **132** | **25 / 59 ★** | **15 / 45 ★** | **10 / 28 ★** |
 
 **Lecture** : la chaîne MUST mobilise **25 stories** pour **~59 ★**, c'est le périmètre incompressible. Au-dessus, ~45 ★ de SHOULD et ~28 ★ de COULD constituent la matière pour la cible étirée selon la vélocité réelle de l'équipe.

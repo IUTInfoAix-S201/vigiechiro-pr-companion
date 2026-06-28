@@ -1,6 +1,6 @@
 # Jalons et livrables
 
-!!! note "Genèse pédagogique — au passé"
+!!! note "Genèse pédagogique - au passé"
     Cette page documente les **jalons et livrables** attendus de la SAE 2.01, conservés **pour mémoire**.
 
 ## Phases

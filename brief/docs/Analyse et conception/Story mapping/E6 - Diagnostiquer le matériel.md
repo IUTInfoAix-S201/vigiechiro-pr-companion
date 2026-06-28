@@ -28,7 +28,7 @@
 **Parcours rattaché** : [P6](../Parcours%20utilisateurs/P6%20-%20Diagnostiquer%20le%20matériel.md), étape 2 (sous-bloc T°/H)<br>
 **Maquettes cibles** : [M-Passage](../Maquettes/M-Passage.md) (onglet Diagnostic, partie haute)<br>
 **Dépendances** : [E2.S1](E2%20-%20Importer%20et%20transformer%20une%20nuit.md#e2s1), [E2.S4](E2%20-%20Importer%20et%20transformer%20une%20nuit.md#e2s4)<br>
-**Complexité** : ★★★ (moyen — parse CSV + JavaFX LineChart à 2 axes + gestion du cas absent)<br>
+**Complexité** : ★★★ (moyen - parse CSV + JavaFX LineChart à 2 axes + gestion du cas absent)<br>
 **MoSCoW** : 🟠 SHOULD
 
 ---
@@ -57,7 +57,7 @@
 **Parcours rattaché** : [P6](../Parcours%20utilisateurs/P6%20-%20Diagnostiquer%20le%20matériel.md), étape 2 (sous-blocs batterie + évènements)<br>
 **Maquettes cibles** : [M-Passage](../Maquettes/M-Passage.md) (onglet Diagnostic, encart batterie + liste évènements)<br>
 **Dépendances** : [E2.S1](E2%20-%20Importer%20et%20transformer%20une%20nuit.md#e2s1), [E2.S4](E2%20-%20Importer%20et%20transformer%20une%20nuit.md#e2s4)<br>
-**Complexité** : ★★★ (moyen — parser du format texte LogPR + extraction patterns de batterie + classification des évènements)<br>
+**Complexité** : ★★★ (moyen - parser du format texte LogPR + extraction patterns de batterie + classification des évènements)<br>
 **MoSCoW** : 🟠 SHOULD
 
 ---
@@ -80,13 +80,13 @@
     - **plage effective enregistrée** (extraite du journal du capteur : heure de premier déclenchement → heure de mise en veille)
     - écart résumé : ✅ conforme (écart < 5 min), ⚠ écart mineur (5-30 min), ❌ écart majeur (> 30 min)
 - [ ] Si les coordonnées GPS sont absentes, l'encart est masqué avec une note discrète : « Renseignez les coordonnées GPS du point pour activer la vérification astronomique. » + lien direct vers la fiche site.
-- [ ] Le calcul astronomique est fait **localement** par une bibliothèque (ex. `commons-suncalc` ou implémentation maison) — aucun appel réseau.
+- [ ] Le calcul astronomique est fait **localement** par une bibliothèque (ex. `commons-suncalc` ou implémentation maison) - aucun appel réseau.
 - [ ] Tests unitaires : sur une date et une coordonnée connues (ex. Aix-en-Provence, 22 avril 2026), vérifier que le coucher est calculé à ±2 min près de la valeur officielle.
 
 **Parcours rattaché** : [P6](../Parcours%20utilisateurs/P6%20-%20Diagnostiquer%20le%20matériel.md), section « Cohérence horaires (calcul astronomique) »<br>
 **Maquettes cibles** : [M-Passage](../Maquettes/M-Passage.md) (onglet Diagnostic, encart cohérence horaires)<br>
 **Dépendances** : [E1.S3](E1%20-%20Gérer%20ses%20sites%20et%20points%20de%20suivi.md#e1s3), [E2.S1](E2%20-%20Importer%20et%20transformer%20une%20nuit.md#e2s1), [E6.S2](#e6s2)<br>
-**Complexité** : ★★★ (moyen — bibliothèque astronomique + comparaison de plages + gestion conditionnelle de l'encart)<br>
+**Complexité** : ★★★ (moyen - bibliothèque astronomique + comparaison de plages + gestion conditionnelle de l'encart)<br>
 **MoSCoW** : ⚪ COULD (idée Samuel, utile pour audit qualité mais pas critique au MVP)
 
 ---
@@ -111,7 +111,7 @@
 **Parcours rattaché** : [P6](../Parcours%20utilisateurs/P6%20-%20Diagnostiquer%20le%20matériel.md), étape 3<br>
 **Maquettes cibles** : [M-Passage](../Maquettes/M-Passage.md) (variante diagnostic avec mode comparaison)<br>
 **Dépendances** : [E6.S1](#e6s1), [E6.S2](#e6s2)<br>
-**Complexité** : ★★ (simple — composition de 2 vues identiques + toggle de superposition de courbes)<br>
+**Complexité** : ★★ (simple - composition de 2 vues identiques + toggle de superposition de courbes)<br>
 **MoSCoW** : ⚪ COULD (productivité Karim/Samuel ; pas dans le périmètre minimal de diagnostic)
 
 ---
@@ -141,7 +141,7 @@
 **Parcours rattaché** : [P6](../Parcours%20utilisateurs/P6%20-%20Diagnostiquer%20le%20matériel.md), étape 4<br>
 **Maquettes cibles** : [M-Passage](../Maquettes/M-Passage.md) (bouton « Exporter le diagnostic » + modal de choix de format)<br>
 **Dépendances** : [E6.S1](#e6s1), [E6.S2](#e6s2)<br>
-**Complexité** : ★★ (simple — sérialisation CSV + génération PDF basique via bibliothèque type iText ou OpenPDF)<br>
+**Complexité** : ★★ (simple - sérialisation CSV + génération PDF basique via bibliothèque type iText ou OpenPDF)<br>
 **MoSCoW** : ⚪ COULD (export confort, pas critique au MVP)
 
 ---
@@ -154,7 +154,7 @@
 
 **Afin de** repérer immédiatement une nuit potentiellement ratée par mauvais paramétrage du PR, sans attendre de découvrir le problème en aval (au moment d'écouter les sons ou de recevoir le retour Tadarida).
 
-> Origine : suggestion de Samuel — « soit toute la nuit est ratée (mauvais paramétrage du PR, fréquence d'enregistrement, période d'enregistrement, etc., qu'on pourrait détecter en analysant les logs d'ailleurs ?) ».
+> Origine : suggestion de Samuel - « soit toute la nuit est ratée (mauvais paramétrage du PR, fréquence d'enregistrement, période d'enregistrement, etc., qu'on pourrait détecter en analysant les logs d'ailleurs ?) ».
 
 **Critères d'acceptation** :
 
@@ -165,7 +165,7 @@
 - [ ] Test d'intégration : sur un `LogPR` de référence avec paramètres standards → indicateur absent ; sur un `LogPR` avec Fe modifiée → indicateur orange + détail explicite.
 
 **Parcours rattaché** : [P6](../Parcours%20utilisateurs/P6%20-%20Diagnostiquer%20le%20matériel.md) (signal partagé) + [P3](../Parcours%20utilisateurs/P3%20-%20Vérifier%20l%27enregistrement%20par%20échantillonnage.md) (indicateur affiché dans le pré-check)<br>
-**Maquettes cibles** : [M-Passage](../Maquettes/M-Passage.md) + [M-Qualification](../Maquettes/M-Qualification.md) — *à mettre à jour avec un 4e indicateur*<br>
+**Maquettes cibles** : [M-Passage](../Maquettes/M-Passage.md) + [M-Qualification](../Maquettes/M-Qualification.md) - *à mettre à jour avec un 4e indicateur*<br>
 **Dépendances** : [E2.S2](E2%20-%20Importer%20et%20transformer%20une%20nuit.md#e2s2) (parsing du `LogPR`), [E3.S0](E3%20-%20Vérifier%20la%20qualité%20d%27enregistrement.md#e3s0) (encart « État de la nuit » qui accueille le 4e indicateur)<br>
-**Complexité** : ★★ (simple — comparaison de quelques valeurs numériques à un référentiel)<br>
+**Complexité** : ★★ (simple - comparaison de quelques valeurs numériques à un référentiel)<br>
 **MoSCoW** : 🟠 SHOULD (rentabilise rapidement l'investissement parsing du journal déjà fait pour E6.S1/S2)

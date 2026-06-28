@@ -2,7 +2,7 @@
 
 [← Retour au hub story mapping](index.md) · **Parcours principaux** : [P9 - Regrouper les nuits successives par point](../Parcours%20utilisateurs/P9%20-%20Regrouper%20les%20nuits%20successives%20par%20point.md), [P10 - Exporter une bibliothèque de sons de référence](../Parcours%20utilisateurs/P10%20-%20Exporter%20une%20bibliothèque%20de%20sons%20de%20référence.md) · ⚪ COULD (au mieux)
 
-**Portée** : les gains de productivité avancés sur la validation taxonomique — regrouper plusieurs nuits successives du même point pour validation conjointe (P9), constituer une bibliothèque de sons de référence par espèce pour partage pédagogique (P10). Ce sont des **idées remontées par Samuel** (mai 2026) qui multiplient la valeur de la chaîne de validation [E7](E7%20-%20Valider%20les%20résultats%20Tadarida.md) mais qui ne sont pas critiques au MVP.
+**Portée** : les gains de productivité avancés sur la validation taxonomique - regrouper plusieurs nuits successives du même point pour validation conjointe (P9), constituer une bibliothèque de sons de référence par espèce pour partage pédagogique (P10). Ce sont des **idées remontées par Samuel** (mai 2026) qui multiplient la valeur de la chaîne de validation [E7](E7%20-%20Valider%20les%20résultats%20Tadarida.md) mais qui ne sont pas critiques au MVP.
 
 **Position dans le MoSCoW** : E8 reste **COULD au mieux**. À engager **uniquement** si la SAE a déjà :
 
@@ -38,7 +38,7 @@ Sinon, ces stories restent documentées pour une suite éventuelle de l'applicat
 **Parcours rattaché** : [P9](../Parcours%20utilisateurs/P9%20-%20Regrouper%20les%20nuits%20successives%20par%20point.md)<br>
 **Maquettes cibles** : [M-Vision-Tadarida](../Maquettes/M-Vision-Tadarida.md) (variante regroupée), [M-MultiSite](../Maquettes/M-MultiSite.md) (action de regroupement)<br>
 **Dépendances** : [E5.S2](E5%20-%20Naviguer%20dans%20le%20volume%20multi-sites.md#e5s2), [E7.S2](E7%20-%20Valider%20les%20résultats%20Tadarida.md#e7s2), [E7.S4](E7%20-%20Valider%20les%20résultats%20Tadarida.md#e7s4), [E7.S6](E7%20-%20Valider%20les%20résultats%20Tadarida.md#e7s6)<br>
-**Complexité** : ★★★★ (significatif — fusion de plusieurs passages, propagation des validations, export multi-fichiers)<br>
+**Complexité** : ★★★★ (significatif - fusion de plusieurs passages, propagation des validations, export multi-fichiers)<br>
 **MoSCoW** : ⚪ COULD (Samuel lui-même la qualifiait de « utile mais peut-être trop complexe »)
 
 ---
@@ -73,5 +73,5 @@ Sinon, ces stories restent documentées pour une suite éventuelle de l'applicat
 **Parcours rattaché** : [P10](../Parcours%20utilisateurs/P10%20-%20Exporter%20une%20bibliothèque%20de%20sons%20de%20référence.md)<br>
 **Maquettes cibles** : [M-Vision-Tadarida](../Maquettes/M-Vision-Tadarida.md) (bouton « Marquer comme référence »), [M-Lot](../Maquettes/M-Lot.md) (action « Exporter bibliothèque »)<br>
 **Dépendances** : [E0.S5](E0%20-%20Fondations%20de%20persistance.md#e0s5), [E7.S4](E7%20-%20Valider%20les%20résultats%20Tadarida.md#e7s4)<br>
-**Complexité** : ★★★ (moyen — flag persisté + export structuré par espèce + zip optionnel + variante PDF)<br>
+**Complexité** : ★★★ (moyen - flag persisté + export structuré par espèce + zip optionnel + variante PDF)<br>
 **MoSCoW** : ⚪ COULD (fonctionnalité bonus pédagogique, Samuel-only)

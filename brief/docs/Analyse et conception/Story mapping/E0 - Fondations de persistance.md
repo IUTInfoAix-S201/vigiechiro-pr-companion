@@ -25,7 +25,7 @@
 **Parcours rattaché** : aucun (transverse)<br>
 **Maquettes cibles** : aucune<br>
 **Dépendances** : aucune<br>
-**Complexité** : ★★★★ (significative — premier setup, choix d'architecture, impact sur tout le projet)<br>
+**Complexité** : ★★★★ (significative - premier setup, choix d'architecture, impact sur tout le projet)<br>
 **MoSCoW** : ✅ MUST socle
 
 ---
@@ -49,7 +49,7 @@
 **Parcours rattaché** : sert [P1](../Parcours%20utilisateurs/P1%20-%20Déclarer%20un%20site%20de%20suivi.md)<br>
 **Maquettes cibles** : aucune (DAO pur)<br>
 **Dépendances** : [E0.S1](#e0s1)<br>
-**Complexité** : ★★ (simple — CRUD classique sur 2 entités liées)<br>
+**Complexité** : ★★ (simple - CRUD classique sur 2 entités liées)<br>
 **MoSCoW** : ✅ MUST socle
 
 ---
@@ -74,7 +74,7 @@
 **Parcours rattaché** : sert [P2](../Parcours%20utilisateurs/P2%20-%20Importer%20une%20nuit%20d%27enregistrement.md), [P3](../Parcours%20utilisateurs/P3%20-%20Vérifier%20l%27enregistrement%20par%20échantillonnage.md), [P4](../Parcours%20utilisateurs/P4%20-%20Préparer%20un%20lot%20prêt%20à%20déposer.md)<br>
 **Maquettes cibles** : aucune (DAO pur)<br>
 **Dépendances** : [E0.S1](#e0s1), [E0.S2](#e0s2)<br>
-**Complexité** : ★★★ (moyen — relations multiples, gestion des statuts, contraintes d'unicité métier)<br>
+**Complexité** : ★★★ (moyen - relations multiples, gestion des statuts, contraintes d'unicité métier)<br>
 **MoSCoW** : ✅ MUST socle
 
 ---
@@ -98,7 +98,7 @@
 **Parcours rattaché** : sert [P3](../Parcours%20utilisateurs/P3%20-%20Vérifier%20l%27enregistrement%20par%20échantillonnage.md)<br>
 **Maquettes cibles** : aucune (DAO pur)<br>
 **Dépendances** : [E0.S1](#e0s1), [E0.S3](#e0s3)<br>
-**Complexité** : ★★ (simple — CRUD avec relation N..N)<br>
+**Complexité** : ★★ (simple - CRUD avec relation N..N)<br>
 **MoSCoW** : ✅ MUST socle
 
 ---
@@ -122,7 +122,7 @@
 **Parcours rattaché** : sert [P7](../Parcours%20utilisateurs/P7%20-%20Valider%20les%20résultats%20Tadarida.md)<br>
 **Maquettes cibles** : aucune (DAO pur)<br>
 **Dépendances** : [E0.S1](#e0s1), [E0.S3](#e0s3)<br>
-**Complexité** : ★★★ (moyen — volumétrie potentiellement élevée, bulk insert à optimiser)<br>
+**Complexité** : ★★★ (moyen - volumétrie potentiellement élevée, bulk insert à optimiser)<br>
 **MoSCoW** : ✅ MUST socle (si E7 est dans le périmètre) sinon ⚪ COULD
 
 ---
@@ -147,7 +147,7 @@
 **Parcours rattaché** : transverse à [P2](../Parcours%20utilisateurs/P2%20-%20Importer%20une%20nuit%20d%27enregistrement.md)<br>
 **Maquettes cibles** : [M-Import](../Maquettes/M-Import.md) (modale d'import doit afficher la reprise éventuelle)<br>
 **Dépendances** : [E0.S1](#e0s1), [E0.S3](#e0s3), E2 (l'import lui-même)<br>
-**Complexité** : ★★★★ (significatif — logique de reprise complexe, tests d'interruption)<br>
+**Complexité** : ★★★★ (significatif - logique de reprise complexe, tests d'interruption)<br>
 **MoSCoW** : 🟠 SHOULD
 
 ---
@@ -170,7 +170,7 @@
 **Parcours rattaché** : transverse à [P7](../Parcours%20utilisateurs/P7%20-%20Valider%20les%20résultats%20Tadarida.md)<br>
 **Maquettes cibles** : [M-Vision-Tadarida](../Maquettes/M-Vision-Tadarida.md) (la vue de validation doit indiquer si une session est restaurée)<br>
 **Dépendances** : [E0.S1](#e0s1), [E0.S5](#e0s5), E7 (la validation elle-même)<br>
-**Complexité** : ★★★ (moyen — logique de restauration de contexte, mais sur une seule entité)<br>
+**Complexité** : ★★★ (moyen - logique de restauration de contexte, mais sur une seule entité)<br>
 **MoSCoW** : 🟠 SHOULD
 
 ---
@@ -194,5 +194,5 @@
 **Parcours rattaché** : transverse (technique pur)<br>
 **Maquettes cibles** : aucune<br>
 **Dépendances** : [E0.S1](#e0s1)<br>
-**Complexité** : ★★ (simple — mécanisme classique mais à coder proprement)<br>
+**Complexité** : ★★ (simple - mécanisme classique mais à coder proprement)<br>
 **MoSCoW** : ⚪ COULD (utile en exploitation long terme, pas critique pour le MVP soutenance)

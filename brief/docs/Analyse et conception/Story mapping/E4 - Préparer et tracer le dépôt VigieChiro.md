@@ -32,7 +32,7 @@
 **Parcours rattaché** : [P4](../Parcours%20utilisateurs/P4%20-%20Préparer%20un%20lot%20prêt%20à%20déposer.md), étapes 1-2<br>
 **Maquettes cibles** : [M-Lot](../Maquettes/M-Lot.md) (rapport de vérifications avec ✅/❌ par ligne)<br>
 **Dépendances** : [E0.S3](E0%20-%20Fondations%20de%20persistance.md#e0s3), [E2.S5](E2%20-%20Importer%20et%20transformer%20une%20nuit.md#e2s5), [E2.S6](E2%20-%20Importer%20et%20transformer%20une%20nuit.md#e2s6), [E3.S5](E3%20-%20Vérifier%20la%20qualité%20d%27enregistrement.md#e3s5)<br>
-**Complexité** : ★★ (simple — série de vérifications bool + affichage tabulaire + transition de statut)<br>
+**Complexité** : ★★ (simple - série de vérifications bool + affichage tabulaire + transition de statut)<br>
 **MoSCoW** : ✅ MUST
 
 ---
@@ -57,7 +57,7 @@
 **Parcours rattaché** : [P4](../Parcours%20utilisateurs/P4%20-%20Préparer%20un%20lot%20prêt%20à%20déposer.md), étapes 3-4<br>
 **Maquettes cibles** : [M-Lot](../Maquettes/M-Lot.md) (récapitulatif + bouton « Ouvrir le dossier » + lien externe Vigie-Chiro)<br>
 **Dépendances** : [E4.S1](#e4s1)<br>
-**Complexité** : ★★ (simple — affichage + appel `java.awt.Desktop.open(File)` ou équivalent multi-plateforme)<br>
+**Complexité** : ★★ (simple - affichage + appel `java.awt.Desktop.open(File)` ou équivalent multi-plateforme)<br>
 **MoSCoW** : ✅ MUST
 
 ---
@@ -82,7 +82,7 @@
 **Parcours rattaché** : [P4](../Parcours%20utilisateurs/P4%20-%20Préparer%20un%20lot%20prêt%20à%20déposer.md), étape 5<br>
 **Maquettes cibles** : [M-Lot](../Maquettes/M-Lot.md) (bouton « J'ai déposé » + variante état déposé)<br>
 **Dépendances** : [E0.S3](E0%20-%20Fondations%20de%20persistance.md#e0s3), [E4.S1](#e4s1)<br>
-**Complexité** : ★ (trivial — transition de statut + date persistée + libellé conditionnel)<br>
+**Complexité** : ★ (trivial - transition de statut + date persistée + libellé conditionnel)<br>
 **MoSCoW** : ✅ MUST
 
 ---
@@ -104,8 +104,8 @@
 - [ ] Dans la vue tabulaire multi-sites (cf. [E5](index.md)), le statut est une colonne triable et filtrable.
 - [ ] Le statut courant et l'historique sont **persistés** en BD et survivent aux redémarrages.
 
-**Parcours rattaché** : [P4](../Parcours%20utilisateurs/P4%20-%20Préparer%20un%20lot%20prêt%20à%20déposer.md) (transverse — pertinent aussi pour P2, P3 et P5)<br>
+**Parcours rattaché** : [P4](../Parcours%20utilisateurs/P4%20-%20Préparer%20un%20lot%20prêt%20à%20déposer.md) (transverse - pertinent aussi pour P2, P3 et P5)<br>
 **Maquettes cibles** : [M-Passage](../Maquettes/M-Passage.md) (stepper de statut + chronologie), [M-MultiSite](../Maquettes/M-MultiSite.md) (colonne statut filtrable)<br>
 **Dépendances** : [E0.S3](E0%20-%20Fondations%20de%20persistance.md#e0s3)<br>
-**Complexité** : ★★★ (moyen — stepper visuel + historique de transitions + intégration dans la vue tabulaire)<br>
+**Complexité** : ★★★ (moyen - stepper visuel + historique de transitions + intégration dans la vue tabulaire)<br>
 **MoSCoW** : 🟠 SHOULD (le statut brut suffit pour le MVP strict ; la chronologie détaillée et le stepper visuel sont du confort de productivité, indispensables dès qu'on dépasse mono-site)

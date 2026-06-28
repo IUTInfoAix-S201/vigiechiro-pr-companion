@@ -1,6 +1,6 @@
 # Consignes générales
 
-!!! note "Genèse pédagogique — au passé"
+!!! note "Genèse pédagogique - au passé"
     Cette page documente les **consignes** données aux équipes de la SAE 2.01, conservées **pour mémoire**.
 
 ## Travail en équipe et organisation
@@ -16,7 +16,7 @@ Ce dépôt n'est pas un dépôt vide : il embarque un **template d'application J
 - Une **arborescence Maven** prête (`pom.xml` configuré, `mvnw` inclus, dépendances JavaFX 25 / SQLite JDBC / JUnit 5 / TestFX / AssertJ posées) ;
 - Une **application JavaFX qui démarre** (fenêtre principale, intégration FXML, point d'entrée) ;
 - L'**outillage qualité pré-configuré** : Spotless en pre-commit hook (formatage Google Java Format), workflow GitHub Actions CI qui exécute la compilation + les tests à chaque push, configuration `.gitignore` adaptée, README de démarrage ;
-- Certains **composants fonctionnels déjà implémentés** pour vous faire gagner du temps sur les briques techniques lourdes — notamment le **composant de vue audio (sonogramme + spectrogramme avec zoom et cursor synchronisé)** décrit dans les [Contraintes techniques](Contraintes%20techniques.md). Vous l'intégrez et le branchez sur votre logique, vous ne le réimplémentez pas.
+- Certains **composants fonctionnels déjà implémentés** pour vous faire gagner du temps sur les briques techniques lourdes - notamment le **composant de vue audio (sonogramme + spectrogramme avec zoom et cursor synchronisé)** décrit dans les [Contraintes techniques](Contraintes%20techniques.md). Vous l'intégrez et le branchez sur votre logique, vous ne le réimplémentez pas.
 
 Cette base vous fait gagner plusieurs jours par rapport à un démarrage from scratch. Vous pouvez (et devez) la prendre comme acquise et vous concentrer sur la chaîne métier (parcours fil rouge P1 → P4) plutôt que sur le scaffolding.
 

@@ -29,7 +29,7 @@
 2. [Stack technique et architecture](Contraintes%20techniques.md)
 3. [Objectifs qualités](Objectifs%20qualités/index.md)
 4. [Expression du besoin](Expression%20du%20besoin.md)
-5. [**Analyse et conception**](Analyse%20et%20conception/index.md) (modèle conceptuel, personas, parcours, et — au passé — story mapping, périmètre MVP, planification)
+5. [**Analyse et conception**](Analyse%20et%20conception/index.md) (modèle conceptuel, personas, parcours, et - au passé - story mapping, périmètre MVP, planification)
 6. [Genèse pédagogique](Travail%20à%20faire.md) (méthode et organisation de la SAE, conservées pour mémoire)
 7. [Jalons et livrables](Jalons%20et%20livrables.md)
 8. [Calendrier de travail](Calendrier%20de%20travail.md)

@@ -4,13 +4,13 @@ Ce dossier rassemble la **conception** du projet, établie par l'équipe pédago
 
 ## Sommaire
 
-1. [Modèle conceptuel](Modèle%20conceptuel/index.md) — les classes métier, leurs relations, les règles, les glossaires (un fichier par classe dans le sous-dossier) — *produit*
-2. [Personas](Personas/index.md) — les 3 utilisateurs cibles de référence
-3. [Parcours utilisateurs](Parcours%20utilisateurs/index.md) — les trajectoires d'usage de l'application (un fichier par parcours) — *produit*
-4. [Maquettes](Maquettes/index.md) — les écrans de l'application — *produit*
-5. [Story mapping](Story%20mapping/index.md) — les épopées, stories INVEST et critères d'acceptation, avec estimations en étoiles — *genèse (au passé)*
-6. [Périmètre MVP](Périmètre%20MVP.md) — l'arbitrage du sous-ensemble visé en phase 1 — *genèse (au passé)*
-7. [Planification](Planification.md) — le Gantt prévisionnel des sprints — *genèse (au passé)*
+1. [Modèle conceptuel](Modèle%20conceptuel/index.md) - les classes métier, leurs relations, les règles, les glossaires (un fichier par classe dans le sous-dossier) - *produit*
+2. [Personas](Personas/index.md) - les 3 utilisateurs cibles de référence
+3. [Parcours utilisateurs](Parcours%20utilisateurs/index.md) - les trajectoires d'usage de l'application (un fichier par parcours) - *produit*
+4. [Maquettes](Maquettes/index.md) - les écrans de l'application - *produit*
+5. [Story mapping](Story%20mapping/index.md) - les épopées, stories INVEST et critères d'acceptation, avec estimations en étoiles - *genèse (au passé)*
+6. [Périmètre MVP](Périmètre%20MVP.md) - l'arbitrage du sous-ensemble visé en phase 1 - *genèse (au passé)*
+7. [Planification](Planification.md) - le Gantt prévisionnel des sprints - *genèse (au passé)*
 
 ## Comment lire ce dossier
 

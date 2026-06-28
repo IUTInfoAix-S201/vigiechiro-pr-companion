@@ -2,7 +2,7 @@
 
 [← Retour au hub story mapping](index.md) · **Parcours principal** : [P7 - Valider les résultats Tadarida](../Parcours%20utilisateurs/P7%20-%20Valider%20les%20résultats%20Tadarida.md) · 🟠 SHOULD (cible étirable, filet de sécurité MUST si la SAE déborde du périmètre fil rouge)
 
-**Portée** : tout le travail post-Tadarida — récupérer le CSV de résultats automatiques, le passer en revue espèce par espèce, valider ou corriger chaque classification, exporter le fichier consolidé pour Vigie-Chiro. C'est la **cible étirable principale** : si la SAE déborde du périmètre fil rouge, c'est elle qui sert de filet de sécurité.
+**Portée** : tout le travail post-Tadarida - récupérer le CSV de résultats automatiques, le passer en revue espèce par espèce, valider ou corriger chaque classification, exporter le fichier consolidé pour Vigie-Chiro. C'est la **cible étirable principale** : si la SAE déborde du périmètre fil rouge, c'est elle qui sert de filet de sécurité.
 
 Les gains de productivité avancés (regroupement multi-nuits P9, bibliothèque sons de référence P10) sont sortis dans une épopée distincte [E8](E8%20-%20Productivité%20avancée%20Tadarida.md) pour avoir un arbitrage MoSCoW plus net (E7 SHOULD vs E8 COULD).
 
@@ -33,7 +33,7 @@ Les gains de productivité avancés (regroupement multi-nuits P9, bibliothèque 
 **Parcours rattaché** : [P7](../Parcours%20utilisateurs/P7%20-%20Valider%20les%20résultats%20Tadarida.md), étapes 1-3<br>
 **Maquettes cibles** : [M-Vision-Tadarida](../Maquettes/M-Vision-Tadarida.md) (zone d'import + récapitulatif post-import)<br>
 **Dépendances** : [E0.S5](E0%20-%20Fondations%20de%20persistance.md#e0s5), [E2.S6](E2%20-%20Importer%20et%20transformer%20une%20nuit.md#e2s6), [E4.S3](E4%20-%20Préparer%20et%20tracer%20le%20dépôt%20VigieChiro.md#e4s3)<br>
-**Complexité** : ★★ (simple — parsing CSV avec 2 variantes de format, bulk insert via E0.S5, matching de noms)<br>
+**Complexité** : ★★ (simple - parsing CSV avec 2 variantes de format, bulk insert via E0.S5, matching de noms)<br>
 **MoSCoW** : 🟠 SHOULD
 
 ---
@@ -59,7 +59,7 @@ Les gains de productivité avancés (regroupement multi-nuits P9, bibliothèque 
 **Parcours rattaché** : [P7](../Parcours%20utilisateurs/P7%20-%20Valider%20les%20résultats%20Tadarida.md), étapes 3-4<br>
 **Maquettes cibles** : [M-Vision-Tadarida](../Maquettes/M-Vision-Tadarida.md) (layout deux colonnes liste + détail)<br>
 **Dépendances** : [E3.S3](E3%20-%20Vérifier%20la%20qualité%20d%27enregistrement.md#e3s3), [E7.S1](#e7s1)<br>
-**Complexité** : ★★★ (moyen — TableView avec virtualisation + panneau détail synchronisé + raccourcis clavier)<br>
+**Complexité** : ★★★ (moyen - TableView avec virtualisation + panneau détail synchronisé + raccourcis clavier)<br>
 **MoSCoW** : 🟠 SHOULD
 
 ---
@@ -87,7 +87,7 @@ Les gains de productivité avancés (regroupement multi-nuits P9, bibliothèque 
 **Parcours rattaché** : [P7](../Parcours%20utilisateurs/P7%20-%20Valider%20les%20résultats%20Tadarida.md), étape 4<br>
 **Maquettes cibles** : [M-Vision-Tadarida](../Maquettes/M-Vision-Tadarida.md) (section vue audio combinée)<br>
 **Dépendances** : [E2.S6](E2%20-%20Importer%20et%20transformer%20une%20nuit.md#e2s6), [E7.S2](#e7s2), composant audio fourni par l'équipe pédagogique<br>
-**Complexité** : ★★★ (moyen — intégration et synchronisation, calcul FFT/rendu fourni par le composant)<br>
+**Complexité** : ★★★ (moyen - intégration et synchronisation, calcul FFT/rendu fourni par le composant)<br>
 **MoSCoW** : 🟠 SHOULD (Samuel l'a demandé en priorité ; sans elle, la validation reste possible mais se fait à l'oreille seulement, ce qui est moins fiable)
 
 ---
@@ -114,7 +114,7 @@ Les gains de productivité avancés (regroupement multi-nuits P9, bibliothèque 
 **Parcours rattaché** : [P7](../Parcours%20utilisateurs/P7%20-%20Valider%20les%20résultats%20Tadarida.md), étape 5<br>
 **Maquettes cibles** : [M-Vision-Tadarida](../Maquettes/M-Vision-Tadarida.md) (zone d'action + sélecteur de taxon)<br>
 **Dépendances** : [E0.S5](E0%20-%20Fondations%20de%20persistance.md#e0s5), [E7.S2](#e7s2)<br>
-**Complexité** : ★★ (simple — boutons + sélecteur autocomplétion + persistance)<br>
+**Complexité** : ★★ (simple - boutons + sélecteur autocomplétion + persistance)<br>
 **MoSCoW** : 🟠 SHOULD
 
 ---
@@ -140,7 +140,7 @@ Les gains de productivité avancés (regroupement multi-nuits P9, bibliothèque 
 **Parcours rattaché** : [P7](../Parcours%20utilisateurs/P7%20-%20Valider%20les%20résultats%20Tadarida.md), étape 6<br>
 **Maquettes cibles** : [M-Vision-Tadarida](../Maquettes/M-Vision-Tadarida.md) (barre de filtres + chips au-dessus de la liste)<br>
 **Dépendances** : [E0.S5](E0%20-%20Fondations%20de%20persistance.md#e0s5), [E7.S2](#e7s2)<br>
-**Complexité** : ★★★ (moyen — composition de filtres + chips + intégration TableView)<br>
+**Complexité** : ★★★ (moyen - composition de filtres + chips + intégration TableView)<br>
 **MoSCoW** : 🟠 SHOULD (utile dès qu'on a quelques centaines d'observations)
 
 ---
@@ -166,7 +166,7 @@ Les gains de productivité avancés (regroupement multi-nuits P9, bibliothèque 
 **Parcours rattaché** : [P7](../Parcours%20utilisateurs/P7%20-%20Valider%20les%20résultats%20Tadarida.md), Notes importantes - deux modes<br>
 **Maquettes cibles** : [M-Vision-Tadarida](../Maquettes/M-Vision-Tadarida.md) (modal de choix de mode au démarrage + indicateur du mode courant)<br>
 **Dépendances** : [E0.S5](E0%20-%20Fondations%20de%20persistance.md#e0s5), [E7.S4](#e7s4)<br>
-**Complexité** : ★★ (simple — toggle + logique différenciée à la validation + ajustement de l'export)<br>
+**Complexité** : ★★ (simple - toggle + logique différenciée à la validation + ajustement de l'export)<br>
 **MoSCoW** : ⚪ COULD (le mode activité par défaut suffit pour le MVP ; le mode inventaire est un raffinement productivité)
 
 ---
@@ -193,5 +193,5 @@ Les gains de productivité avancés (regroupement multi-nuits P9, bibliothèque 
 **Parcours rattaché** : [P7](../Parcours%20utilisateurs/P7%20-%20Valider%20les%20résultats%20Tadarida.md), étape 8<br>
 **Maquettes cibles** : [M-Vision-Tadarida](../Maquettes/M-Vision-Tadarida.md) (bouton « Exporter Vu.csv » + modal de récapitulatif)<br>
 **Dépendances** : [E0.S5](E0%20-%20Fondations%20de%20persistance.md#e0s5), [E7.S4](#e7s4)<br>
-**Complexité** : ★★ (simple — sérialisation CSV au format défini)<br>
+**Complexité** : ★★ (simple - sérialisation CSV au format défini)<br>
 **MoSCoW** : 🟠 SHOULD

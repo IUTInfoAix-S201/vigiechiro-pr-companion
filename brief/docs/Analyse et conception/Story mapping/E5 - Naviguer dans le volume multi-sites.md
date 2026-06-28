@@ -29,7 +29,7 @@
 **Parcours rattaché** : [P5](../Parcours%20utilisateurs/P5%20-%20Naviguer%20dans%20plusieurs%20sites%20et%20passages.md), étape 1<br>
 **Maquettes cibles** : [M-MultiSite](../Maquettes/M-MultiSite.md) (panneau gauche arborescent), [M-Sites](../Maquettes/M-Sites.md) (vue d'entrée également)<br>
 **Dépendances** : [E0.S2](E0%20-%20Fondations%20de%20persistance.md#e0s2), [E0.S3](E0%20-%20Fondations%20de%20persistance.md#e0s3), [E1.S4](E1%20-%20Gérer%20ses%20sites%20et%20points%20de%20suivi.md#e1s4)<br>
-**Complexité** : ★★★ (moyen — TreeView JavaFX avec rendu personnalisé et agrégation par niveau)<br>
+**Complexité** : ★★★ (moyen - TreeView JavaFX avec rendu personnalisé et agrégation par niveau)<br>
 **MoSCoW** : 🟠 SHOULD (la vue plate de E1.S4 suffit pour le MVP strict mono-site)
 
 ---
@@ -51,14 +51,14 @@
     - colonnes textuelles : input texte avec match partiel (Site, Point)
     - colonnes énumérées : multi-sélection (Statut workflow, Verdict)
     - colonnes dates : sélecteur de plage
-- [ ] Le tableau reste réactif jusqu'à au moins 500 lignes (cf. [O5](../../Objectifs%20qualités/Objectifs%20qualités/O5.md)) — pas de freeze IHM en tri/filtre.
+- [ ] Le tableau reste réactif jusqu'à au moins 500 lignes (cf. [O5](../../Objectifs%20qualités/Objectifs%20qualités/O5.md)) - pas de freeze IHM en tri/filtre.
 - [ ] Le clic sur une ligne ouvre la fiche détail du passage.
 - [ ] L'état des filtres et du tri est mémorisé en session (perdu au redémarrage, contrairement à la sélection d'écoute qui est persistée).
 
 **Parcours rattaché** : [P5](../Parcours%20utilisateurs/P5%20-%20Naviguer%20dans%20plusieurs%20sites%20et%20passages.md), étape 2<br>
 **Maquettes cibles** : [M-MultiSite](../Maquettes/M-MultiSite.md) (panneau principal en mode tableau)<br>
 **Dépendances** : [E0.S3](E0%20-%20Fondations%20de%20persistance.md#e0s3), [E4.S4](E4%20-%20Préparer%20et%20tracer%20le%20dépôt%20VigieChiro.md#e4s4)<br>
-**Complexité** : ★★★ (moyen — TableView JavaFX avec colonnes typées, tri, filtres, virtualisation pour la perf)<br>
+**Complexité** : ★★★ (moyen - TableView JavaFX avec colonnes typées, tri, filtres, virtualisation pour la perf)<br>
 **MoSCoW** : 🟠 SHOULD (devient MUST de fait dès qu'on dépasse 3-4 sites)
 
 ---
@@ -80,12 +80,12 @@
 - [ ] Bouton « Sauvegarder cette vue » : permet de nommer le jeu de filtres et de le retrouver dans un menu de « Vues sauvegardées ».
 - [ ] Les vues sauvegardées sont **persistées** en BD et restent disponibles après redémarrage.
 - [ ] Possibilité de définir une vue comme « vue par défaut à l'ouverture ».
-- [ ] Réactivité acceptable même avec 1 000+ passages (Samuel) — pagination ou virtualisation si nécessaire.
+- [ ] Réactivité acceptable même avec 1 000+ passages (Samuel) - pagination ou virtualisation si nécessaire.
 
 **Parcours rattaché** : [P5](../Parcours%20utilisateurs/P5%20-%20Naviguer%20dans%20plusieurs%20sites%20et%20passages.md), Notes pour Samuel<br>
 **Maquettes cibles** : [M-MultiSite](../Maquettes/M-MultiSite.md) (panneau « Filtres avancés » dépliable + menu vues sauvegardées)<br>
 **Dépendances** : [E0.S3](E0%20-%20Fondations%20de%20persistance.md#e0s3), [E5.S2](#e5s2)<br>
-**Complexité** : ★★★★ (significatif — composition de critères, persistance des vues, optimisation perf grand volume)<br>
+**Complexité** : ★★★★ (significatif - composition de critères, persistance des vues, optimisation perf grand volume)<br>
 **MoSCoW** : ⚪ COULD (vraiment utile uniquement pour Samuel et son volume hors normes)
 
 ---
@@ -111,7 +111,7 @@
 **Parcours rattaché** : [P5](../Parcours%20utilisateurs/P5%20-%20Naviguer%20dans%20plusieurs%20sites%20et%20passages.md), Notes pour Samuel<br>
 **Maquettes cibles** : [M-MultiSite](../Maquettes/M-MultiSite.md) (barre d'actions contextuelle)<br>
 **Dépendances** : [E0.S3](E0%20-%20Fondations%20de%20persistance.md#e0s3), [E5.S2](#e5s2)<br>
-**Complexité** : ★★★ (moyen — sélection multi-row + batch DAO + confirmation forte + journal)<br>
+**Complexité** : ★★★ (moyen - sélection multi-row + batch DAO + confirmation forte + journal)<br>
 **MoSCoW** : ⚪ COULD (Samuel uniquement ; risqué côté UX pour Marie qui pourrait supprimer en masse par erreur)
 
 ---
@@ -136,5 +136,5 @@
 **Parcours rattaché** : [P5](../Parcours%20utilisateurs/P5%20-%20Naviguer%20dans%20plusieurs%20sites%20et%20passages.md), étape 3<br>
 **Maquettes cibles** : [M-Import](../Maquettes/M-Import.md) (variante multi-dossiers), [M-MultiSite](../Maquettes/M-MultiSite.md) (panneau file d'attente)<br>
 **Dépendances** : [E0.S6](E0%20-%20Fondations%20de%20persistance.md#e0s6), [E2.S1](E2%20-%20Importer%20et%20transformer%20une%20nuit.md#e2s1), [E2.S2](E2%20-%20Importer%20et%20transformer%20une%20nuit.md#e2s2), [E2.S4](E2%20-%20Importer%20et%20transformer%20une%20nuit.md#e2s4), [E2.S6](E2%20-%20Importer%20et%20transformer%20une%20nuit.md#e2s6)<br>
-**Complexité** : ★★★ (moyen — composition de l'import existant + file d'attente UI + reprise via E0.S6)<br>
+**Complexité** : ★★★ (moyen - composition de l'import existant + file d'attente UI + reprise via E0.S6)<br>
 **MoSCoW** : ⚪ COULD (un import à la fois suffit fonctionnellement ; commodité pour Karim et Samuel)

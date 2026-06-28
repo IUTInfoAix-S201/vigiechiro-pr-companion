@@ -1,6 +1,6 @@
 # Planification
 
-!!! note "Genèse pédagogique — au passé"
+!!! note "Genèse pédagogique - au passé"
     Cette page documente le **planning prévisionnel** de la SAE 2.01, conservé **pour mémoire**. Le
     déroulé réel a pu s'en écarter selon la vélocité des équipes.
 
@@ -21,7 +21,7 @@ Le Gantt prospectif détaillé est sur la page plein écran (il est trop dense p
 
 ## Détail par phase
 
-### Amorçage — 22/05 → 31/05 (6 jours ouvrés, en parallèle d'autres modules)
+### Amorçage - 22/05 → 31/05 (6 jours ouvrés, en parallèle d'autres modules)
 
 L'amorçage ne demande **pas de développement intensif** : c'est le moment de poser les fondations sans interférer avec les autres cours.
 
@@ -37,7 +37,7 @@ L'amorçage ne demande **pas de développement intensif** : c'est le moment de p
 
 **Sortie attendue à la fin de l'amorçage** : repo opérationnel CI verte sur `main`, full dataset téléchargé, équipe prête à coder le 01/06 au matin.
 
-### Sprint 1 — 01/06 → 09/06 (7 jours ouvrés, dev exclusif)
+### Sprint 1 - 01/06 → 09/06 (7 jours ouvrés, dev exclusif)
 
 **Objectif** : livrer la chaîne fil rouge MUST complète : un utilisateur peut **déclarer un site**, **importer une nuit**, **vérifier l'enregistrement** et **préparer le lot** à déposer.
 
@@ -50,13 +50,13 @@ L'amorçage ne demande **pas de développement intensif** : c'est le moment de p
 | [E2](../Analyse%20et%20conception/Story%20mapping/E2%20-%20Importer%20et%20transformer%20une%20nuit.md) - Import + transformation | S1, S2, S3, S4, S5, S6, S7 | 21 ★ |
 | [E3](../Analyse%20et%20conception/Story%20mapping/E3%20-%20Vérifier%20la%20qualité%20d%27enregistrement.md) - Vérification | S1, S2, S3, S4, S5 | 9 ★ |
 
-**Charge cible Sprint 1** : ~54 ★ MUST. C'est ambitieux — anticipez de devoir simuler certaines parties si la vélocité ne suit pas.
+**Charge cible Sprint 1** : ~54 ★ MUST. C'est ambitieux - anticipez de devoir simuler certaines parties si la vélocité ne suit pas.
 
 **Point de risque principal** : [E2.S6](Story%20mapping/E2%20-%20Importer%20et%20transformer%20une%20nuit.md#e2s6) (transformation ×10 + chunks 5 s, ★★★★★). **À sécuriser dès le premier jour** : sans elle, toute la chaîne fil rouge dérape.
 
 **Démo de fin de Sprint 1** : importer le dossier d'une nuit d'enregistrement, voir les séquences ralenties générées, écouter quelques-unes via la vue échantillonnée, saisir un verdict global. La préparation du lot (E4) reste pour le Sprint 2.
 
-### Sprint 2 — 10/06 → 17/06 (6 jours ouvrés, dev exclusif)
+### Sprint 2 - 10/06 → 17/06 (6 jours ouvrés, dev exclusif)
 
 **Objectif** : **boucler la chaîne fil rouge** ([E4](../Analyse%20et%20conception/Story%20mapping/E4%20-%20Préparer%20et%20tracer%20le%20dépôt%20VigieChiro.md)), saisir des **SHOULD opportunistes** en fonction de la vélocité observée, **stabiliser**, et **préparer la soutenance**.
 
@@ -68,10 +68,10 @@ L'amorçage ne demande **pas de développement intensif** : c'est le moment de p
 
 **SHOULD opportunistes** (à arbitrer en début de sprint en fonction de la vélocité Sprint 1) :
 
-- [E0.S6](../Analyse%20et%20conception/Story%20mapping/E0%20-%20Fondations%20de%20persistance.md#e0s6), [E0.S7](../Analyse%20et%20conception/Story%20mapping/E0%20-%20Fondations%20de%20persistance.md#e0s7) - reprises d'opérations interrompues (★★★★ + ★★★ = 7 ★) — robustesse
-- [E5.S1](../Analyse%20et%20conception/Story%20mapping/E5%20-%20Naviguer%20dans%20le%20volume%20multi-sites.md#e5s1), [E5.S2](../Analyse%20et%20conception/Story%20mapping/E5%20-%20Naviguer%20dans%20le%20volume%20multi-sites.md#e5s2) - vues multi-sites (3 ★ + 3 ★ = 6 ★) — devient MUST de fait pour Karim/Samuel
-- [E6.S1](../Analyse%20et%20conception/Story%20mapping/E6%20-%20Diagnostiquer%20le%20matériel.md#e6s1), [E6.S2](../Analyse%20et%20conception/Story%20mapping/E6%20-%20Diagnostiquer%20le%20matériel.md#e6s2) - diagnostic (3 ★ + 3 ★ = 6 ★) — utile dès qu'on veut visualiser la qualité matérielle
-- [E7.S1](../Analyse%20et%20conception/Story%20mapping/E7%20-%20Valider%20les%20résultats%20Tadarida.md#e7s1) à [E7.S5](../Analyse%20et%20conception/Story%20mapping/E7%20-%20Valider%20les%20résultats%20Tadarida.md#e7s5), [E7.S7](../Analyse%20et%20conception/Story%20mapping/E7%20-%20Valider%20les%20résultats%20Tadarida.md#e7s7) - validation Tadarida (~15 ★) — cible étirable principale
+- [E0.S6](../Analyse%20et%20conception/Story%20mapping/E0%20-%20Fondations%20de%20persistance.md#e0s6), [E0.S7](../Analyse%20et%20conception/Story%20mapping/E0%20-%20Fondations%20de%20persistance.md#e0s7) - reprises d'opérations interrompues (★★★★ + ★★★ = 7 ★) - robustesse
+- [E5.S1](../Analyse%20et%20conception/Story%20mapping/E5%20-%20Naviguer%20dans%20le%20volume%20multi-sites.md#e5s1), [E5.S2](../Analyse%20et%20conception/Story%20mapping/E5%20-%20Naviguer%20dans%20le%20volume%20multi-sites.md#e5s2) - vues multi-sites (3 ★ + 3 ★ = 6 ★) - devient MUST de fait pour Karim/Samuel
+- [E6.S1](../Analyse%20et%20conception/Story%20mapping/E6%20-%20Diagnostiquer%20le%20matériel.md#e6s1), [E6.S2](../Analyse%20et%20conception/Story%20mapping/E6%20-%20Diagnostiquer%20le%20matériel.md#e6s2) - diagnostic (3 ★ + 3 ★ = 6 ★) - utile dès qu'on veut visualiser la qualité matérielle
+- [E7.S1](../Analyse%20et%20conception/Story%20mapping/E7%20-%20Valider%20les%20résultats%20Tadarida.md#e7s1) à [E7.S5](../Analyse%20et%20conception/Story%20mapping/E7%20-%20Valider%20les%20résultats%20Tadarida.md#e7s5), [E7.S7](../Analyse%20et%20conception/Story%20mapping/E7%20-%20Valider%20les%20résultats%20Tadarida.md#e7s7) - validation Tadarida (~15 ★) - cible étirable principale
 
 **Préparation soutenance** (3 derniers jours du sprint, en parallèle des derniers développements) : démo scriptée, diaporama, répétitions.
 

@@ -408,7 +408,7 @@ public class MultisiteController implements RafraichirAuRetour {
     @FXML
     private void exporter() {
         FileChooser selecteur = new FileChooser();
-        selecteur.setTitle("Exporter la vue multi-sites en CSV");
+        selecteur.setTitle("Exporter les passages en CSV");
         selecteur.setInitialFileName("vue-multisite.csv");
         selecteur.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV", "*.csv"));
         File fichier = selecteur.showSaveDialog(boutonExporter.getScene().getWindow());

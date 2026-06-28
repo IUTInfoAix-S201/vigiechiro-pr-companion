@@ -54,7 +54,7 @@ public class NavigationMultisite implements OuvrirMultisite {
         try {
             Parent vue = loader.load();
             MultisiteController controleur = loader.getController();
-            navigateur.ouvrirRacine(vue, "multisite", "Vue multi-sites", controleur);
+            navigateur.ouvrirRacine(vue, "multisite", "Carte & passages", controleur);
             return controleur;
         } catch (IOException echec) {
             throw new UncheckedIOException("Chargement FXML impossible : " + loader.getLocation(), echec);

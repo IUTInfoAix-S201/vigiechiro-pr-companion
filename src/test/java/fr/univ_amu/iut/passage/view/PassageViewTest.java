@@ -217,7 +217,7 @@ class PassageViewTest {
     }
 
     @Test
-    @DisplayName("#152 : « Voir sur la carte » focalise la vue multi-sites sur le carré du passage")
+    @DisplayName("#152 : « Voir sur la carte » focalise la vue « Carte & passages » sur le carré du passage")
     void voir_sur_la_carte_focalise_le_carre(FxRobot robot) {
         Button voir = robot.lookup("#boutonVoirCarte").queryAs(Button.class);
 

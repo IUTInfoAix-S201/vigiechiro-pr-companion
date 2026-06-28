@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [1.30.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.29.0...v1.30.0) (2026-06-28)
+
+
+### Features
+
+* **multisite:** légende de la carte repliée par défaut ([#337](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/337)) ([#344](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/344)) ([ecf12c3](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/ecf12c3b635f4c689c83366353202978a25aea61))
+
 # [1.29.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.28.1...v1.29.0) (2026-06-28)
 
 

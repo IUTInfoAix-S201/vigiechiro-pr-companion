@@ -50,8 +50,9 @@ mini-statistiques (espèces, détections, période).
 ![La carte de répartition : richesse par carré (choroplèthe verte) avec sa légende.](../assets/captures/apercu-analyse-carte.png)
 
 Quand une **espèce est sélectionnée** (mode *Par espèce*), la carte montre sa **répartition** : les carrés
-**où elle est présente** ressortent, les autres sont atténués. On répond ainsi d'un coup d'œil à « **où est
-ma biodiversité la plus riche ?** » et « **où ai-je vu cette espèce ?** ». Le filtre **Statut** recolore la
+**où elle est présente** gardent leur **teinte de richesse** (un vert plus ou moins soutenu selon le nombre
+d'espèces du carré), les autres sont **atténués**. On répond ainsi d'un coup d'œil à « **où est ma
+biodiversité la plus riche ?** » et « **où ai-je vu cette espèce ?** ». Le filtre **Statut** recolore la
 carte ; **« 📋 Tableau »** revient à la liste.
 
 ## Filtrer par niveau de confiance

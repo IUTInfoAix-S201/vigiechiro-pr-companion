@@ -35,10 +35,7 @@ final class ConstructeurDonneesCarteEspeces {
     private static final double OPACITE_MIN = 0.15;
     private static final double OPACITE_MAX = 0.60;
 
-    /// Remplissage d'un carré **où l'espèce sélectionnée est présente** (répartition).
-    private static final Color PRESENT = Color.web(VERT_RICHESSE, 0.75);
-
-    /// Remplissage d'un carré **sans l'espèce sélectionnée** (atténué).
+    /// Remplissage d'un carré **où l'espèce sélectionnée est absente** (atténué, en mode répartition).
     private static final Color ABSENT = Color.web("#7f8c8d", 0.10);
 
     private static final String SEPARATEUR = " · ";
@@ -46,15 +43,20 @@ final class ConstructeurDonneesCarteEspeces {
     private ConstructeurDonneesCarteEspeces() {}
 
     /// Construit les données de carte. `carresSurbrilles` = numéros des carrés de l'espèce sélectionnée
-    /// (vide = mode choroplèthe de richesse).
+    /// (vide = choroplèthe de richesse sur tous les carrés).
+    ///
+    /// En mode **répartition** (une espèce sélectionnée), les carrés **où elle est présente** gardent leur
+    /// **couleur de richesse** (des verts différents selon le nombre d'espèces du carré), seuls les carrés
+    /// **où elle est absente** sont atténués. On voit ainsi *où* l'espèce vit **et** la richesse de ces
+    /// carrés.
     static DonneesCarte depuis(List<CarreEspeces> carres, Set<String> carresSurbrilles) {
         int richesseMax = carres.stream().mapToInt(CarreEspeces::richesse).max().orElse(0);
         boolean repartition = !carresSurbrilles.isEmpty();
         List<CarreGeo> traces = new ArrayList<>();
         for (CarreEspeces carre : carres) {
             EMPRISE.emprise(carre.numeroCarre(), List.of()).ifPresent(emprise -> {
-                Color remplissage = repartition
-                        ? (carresSurbrilles.contains(carre.numeroCarre()) ? PRESENT : ABSENT)
+                Color remplissage = repartition && !carresSurbrilles.contains(carre.numeroCarre())
+                        ? ABSENT
                         : couleurRichesse(carre.richesse(), richesseMax);
                 traces.add(new CarreGeo(carre.numeroCarre(), emprise, remplissage, infobulle(carre)));
             });

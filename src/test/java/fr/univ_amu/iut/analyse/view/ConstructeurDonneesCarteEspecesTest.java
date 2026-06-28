@@ -36,17 +36,28 @@ class ConstructeurDonneesCarteEspecesTest {
     }
 
     @Test
-    @DisplayName("Répartition : un carré présent, absent, ou en mode richesse a trois remplissages distincts")
-    void couleur_distingue_present_absent_et_richesse() {
+    @DisplayName("Répartition : un carré présent garde sa couleur de richesse, l'absent est atténué")
+    void present_garde_la_richesse_absent_attenue() {
         CarreGeo richesse = unique(ConstructeurDonneesCarteEspeces.depuis(List.of(carre("640380", 4)), Set.of()));
         CarreGeo present =
                 unique(ConstructeurDonneesCarteEspeces.depuis(List.of(carre("640380", 4)), Set.of("640380")));
         CarreGeo absent = unique(ConstructeurDonneesCarteEspeces.depuis(List.of(carre("640380", 4)), Set.of("640381")));
 
-        // Mode richesse (aucune espèce sélectionnée) ≠ présent ≠ absent (espèce sélectionnée ailleurs).
-        assertThat(present.remplissage()).isNotEqualTo(absent.remplissage());
-        assertThat(present.remplissage()).isNotEqualTo(richesse.remplissage());
-        assertThat(absent.remplissage()).isNotEqualTo(richesse.remplissage());
+        // Le carré présent conserve exactement sa couleur de richesse ; l'absent est atténué (distinct).
+        assertThat(present.remplissage()).isEqualTo(richesse.remplissage());
+        assertThat(absent.remplissage()).isNotEqualTo(present.remplissage());
+    }
+
+    @Test
+    @DisplayName("Répartition : deux carrés présents de richesse différente ont des couleurs différentes")
+    void carres_presents_de_richesse_differente_se_distinguent() {
+        DonneesCarte donnees = ConstructeurDonneesCarteEspeces.depuis(
+                List.of(carre("640380", 4), carre("640315", 1)), Set.of("640380", "640315"));
+
+        assertThat(donnees.carres()).hasSize(2);
+        assertThat(donnees.carres().get(0).remplissage())
+                .as("le carré le plus riche n'a pas la même teinte que le moins riche")
+                .isNotEqualTo(donnees.carres().get(1).remplissage());
     }
 
     private static CarreGeo unique(DonneesCarte donnees) {

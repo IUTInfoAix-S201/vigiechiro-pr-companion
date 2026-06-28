@@ -71,6 +71,7 @@ class ImportationViewTest {
         Site etang = service.creerSite("640380", "Étang de la Tuilière", Protocole.STANDARD, null, ID_USER);
         service.ajouterPoint(etang.id(), "A1", 43.4010, -1.5740, "Chêne");
         service.ajouterPoint(etang.id(), "B2", 43.4055, -1.5680, "Roselière");
+        service.ajouterPoint(etang.id(), "C3", null, null, "GPS à relever"); // sans GPS (centre du carré)
     }
 
     @AfterEach
@@ -157,6 +158,28 @@ class ImportationViewTest {
         assertThat(pastille(zone, "B2").getFill())
                 .as("les autres points restent gris")
                 .isEqualTo(Color.web("#9aa0a6"));
+    }
+
+    @Test
+    @DisplayName("#154 : un point SANS GPS choisi reste surligné (désempilé, anneau indigo)")
+    void carte_confirmation_point_sans_gps_reste_surligne(FxRobot robot) {
+        @SuppressWarnings("unchecked")
+        ComboBox<Site> comboSites = robot.lookup("#comboSites").queryAs(ComboBox.class);
+        robot.interact(() -> comboSites.getSelectionModel().select(0));
+        WaitForAsyncUtils.waitForFxEvents();
+
+        @SuppressWarnings("unchecked")
+        ComboBox<PointDEcoute> comboPoints = robot.lookup("#comboPoints").queryAs(ComboBox.class);
+        robot.interact(() -> comboPoints.getSelectionModel().select(2)); // C3, le point sans GPS (3e par code)
+        WaitForAsyncUtils.waitForFxEvents();
+
+        // C3 est un marqueur approximatif (anneau pointillé) : sa couleur de sélection est dans le trait.
+        StackPane zone = robot.lookup("#zoneCarteRattachement").queryAs(StackPane.class);
+        Circle c3 = pastille(zone, "C3");
+        assertThat(c3.getStrokeDashArray()).as("rendu approximatif (sans GPS)").isNotEmpty();
+        assertThat(c3.getStroke())
+                .as("le point sans GPS choisi reste surligné (indigo)")
+                .isEqualTo(Color.web("#3f51b5"));
     }
 
     /// Pastille (cercle) du marqueur dont le libellé vaut `code`, dans la carte de confirmation.

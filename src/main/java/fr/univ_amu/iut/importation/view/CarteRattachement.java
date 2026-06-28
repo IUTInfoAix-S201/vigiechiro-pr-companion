@@ -4,6 +4,7 @@ import fr.univ_amu.iut.commun.view.carte.CarreGeo;
 import fr.univ_amu.iut.commun.view.carte.CarteSites;
 import fr.univ_amu.iut.commun.view.carte.DonneesCarte;
 import fr.univ_amu.iut.commun.view.carte.EmpriseCarre;
+import fr.univ_amu.iut.commun.view.carte.EventailCentre;
 import fr.univ_amu.iut.commun.view.carte.FournisseurEmpriseCarre;
 import fr.univ_amu.iut.commun.view.carte.PointGeo;
 import fr.univ_amu.iut.importation.viewmodel.RattachementImportViewModel;
@@ -74,19 +75,38 @@ final class CarteRattachement {
         }
         Optional<EmpriseCarre> emprise = FournisseurEmpriseCarre.parDefaut().emprise(site.numeroCarre(), geolocalises);
         List<PointGeo> marqueurs = new ArrayList<>(geolocalises);
-        // Points sans GPS : placés (approximatifs) au centre du carré, comme ailleurs (#153), s'il est connu.
+        // Points sans GPS : placés (approximatifs) au centre du carré, **désempilés en éventail** (#153/#154)
+        // pour qu'aucun ne se masque — sinon le point choisi pourrait disparaître sous un autre.
         emprise.ifPresent(e -> {
-            for (PointDEcoute point : sansGps) {
-                marqueurs.add(
-                        new PointGeo(point.code(), e.latCentre(), e.lonCentre(), couleur(point, idChoisi), null, true));
+            List<double[]> positions = EventailCentre.positions(e, sansGps.size());
+            for (int i = 0; i < sansGps.size(); i++) {
+                PointDEcoute point = sansGps.get(i);
+                marqueurs.add(new PointGeo(
+                        point.code(), positions.get(i)[0], positions.get(i)[1], couleur(point, idChoisi), null, true));
             }
         });
+        dessinerEnDernier(marqueurs, choisi);
         List<CarreGeo> carres = emprise.map(e -> List.of(new CarreGeo(site.numeroCarre(), e, COULEUR_CARRE)))
                 .orElse(List.of());
         carte.setDonnees(new DonneesCarte(carres, marqueurs), false);
         if (recentrer) {
             emprise.ifPresent(carte::centrerSurCarre);
         }
+    }
+
+    /// Place le marqueur du point `choisi` **en dernier** dans la liste : la couche dessine dans l'ordre,
+    /// donc le point choisi passe **au-dessus** et reste visible même si des marqueurs se chevauchent.
+    private static void dessinerEnDernier(List<PointGeo> marqueurs, PointDEcoute choisi) {
+        if (choisi == null) {
+            return;
+        }
+        marqueurs.stream()
+                .filter(marqueur -> marqueur.libelle().equals(choisi.code()))
+                .findFirst()
+                .ifPresent(selectionne -> {
+                    marqueurs.remove(selectionne);
+                    marqueurs.add(selectionne);
+                });
     }
 
     private static Color couleur(PointDEcoute point, Long idChoisi) {

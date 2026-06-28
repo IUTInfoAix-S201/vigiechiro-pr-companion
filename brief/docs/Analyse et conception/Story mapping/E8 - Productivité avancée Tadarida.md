@@ -1,6 +1,6 @@
 # E8 - 🚀 Productivité avancée Tadarida
 
-[← Retour au hub story mapping](index.md) · **Parcours principaux** : [P9 - Regrouper les nuits successives par point](../Parcours%20utilisateurs/P9%20-%20Regrouper%20les%20nuits%20successives%20par%20point.md), [P10 - Exporter une bibliothèque de sons de référence](../Parcours%20utilisateurs/P10%20-%20Exporter%20une%20bibliothèque%20de%20sons%20de%20référence.md) · ⚪ COULD (au mieux)
+[← Retour au sommaire story mapping](index.md) · **Parcours principaux** : [P9 - Regrouper les nuits successives par point](../Parcours%20utilisateurs/P9%20-%20Regrouper%20les%20nuits%20successives%20par%20point.md), [P10 - Exporter une bibliothèque de sons de référence](../Parcours%20utilisateurs/P10%20-%20Exporter%20une%20bibliothèque%20de%20sons%20de%20référence.md) · ⚪ COULD (au mieux)
 
 **Portée** : les gains de productivité avancés sur la validation taxonomique - regrouper plusieurs nuits successives du même point pour validation conjointe (P9), constituer une bibliothèque de sons de référence par espèce pour partage pédagogique (P10). Ce sont des **idées remontées par Samuel** (mai 2026) qui multiplient la valeur de la chaîne de validation [E7](E7%20-%20Valider%20les%20résultats%20Tadarida.md) mais qui ne sont pas critiques au MVP.
 

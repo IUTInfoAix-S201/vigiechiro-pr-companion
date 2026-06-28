@@ -21,7 +21,7 @@ Une fois les séquences d'écoute produites, l'utilisateur **vérifie l'enregist
 
 Ce diagramme est un **MCD** (modèle conceptuel de données, méthode **Merise**) : il fixe le **vocabulaire métier** et la **topologie des associations**, sans préjuger de l'implémentation. Les clés étrangères n'y figurent pas : elles sont *portées par les associations*, et les cardinalités se lisent en **(minimum, maximum)** sur chaque patte. Vous re-spécifierez les classes Java de votre implémentation séparément (typage, méthodes, héritages selon vos choix d'architecture), et sa traduction relationnelle ajoutera les clés primaires et étrangères.
 
-Le diagramme rend visible la **séparation entre deux moments du workflow** : la chaîne `Passage → Session d'enregistrement → Séquence d'écoute → Sélection d'écoute` (avant le dépôt VigieChiro, MUST du MVP), puis la chaîne `Résultats d'identification → Observation → Taxon` (après le retour Tadarida, SHOULD/cible étirable).
+Le diagramme rend visible la **séparation entre deux moments du cycle** : la chaîne `Passage → Session d'enregistrement → Séquence d'écoute → Sélection d'écoute` (avant le dépôt VigieChiro, MUST du MVP), puis la chaîne `Résultats d'identification → Observation → Taxon` (après le retour Tadarida, SHOULD/cible étirable).
 
 ## Sommaire des fiches
 
@@ -51,6 +51,6 @@ Le modèle conceptuel est éclaté en plusieurs fiches pour rester lisible. Chaq
 ### Autres fiches
 
 - [Cardinalités](Cardinalités.md) - tableau récapitulatif des cardinalités d'association.
-- [Règles métier](Règles%20métier.md) - les 24 règles **R1** à **R24** (validations, conventions, workflow).
+- [Règles métier](Règles%20métier.md) - les 24 règles **R1** à **R24** (validations, conventions, cycle de vie).
 - [Glossaire métier](Glossaire%20métier.md) - vocabulaire utilisateur (site, carré, passage, session d'enregistrement, séquence d'écoute, verdict…).
 - [Glossaire des outils & ressources externes](Glossaire%20outils.md) - Lupas Rename, Kaléidoscope, Tadarida, Chirosurf, vigiechiro.herokuapp.com, etc.

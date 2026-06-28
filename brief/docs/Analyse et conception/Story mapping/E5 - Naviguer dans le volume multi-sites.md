@@ -1,8 +1,8 @@
 # E5 - 🗂 Naviguer dans le volume multi-sites
 
-[← Retour au hub story mapping](index.md) · **Parcours principal** : [P5 - Naviguer dans plusieurs sites et passages](../Parcours%20utilisateurs/P5%20-%20Naviguer%20dans%20plusieurs%20sites%20et%20passages.md) · 🟠 SHOULD (MUST de fait pour Karim et Samuel)
+[← Retour au sommaire story mapping](index.md) · **Parcours principal** : [P5 - Naviguer dans plusieurs sites et passages](../Parcours%20utilisateurs/P5%20-%20Naviguer%20dans%20plusieurs%20sites%20et%20passages.md) · 🟠 SHOULD (MUST de fait pour Karim et Samuel)
 
-**Portée** : permettre à l'utilisateur de **se repérer rapidement** dans un volume de plusieurs sites, points et passages, sans se perdre. C'est l'épopée qui transforme l'application d'un outil mono-site (où la sidebar de [E1.S4](E1%20-%20Gérer%20ses%20sites%20et%20points%20de%20suivi.md#e1s4) suffit) en un outil de production capable de tenir l'échelle de Karim (3 chantiers, 8 nuits par retour terrain) ou Samuel (24 enregistreurs × 40-50 nuits = **plus de 1 000 passages par saison**).
+**Portée** : permettre à l'utilisateur de **se repérer rapidement** dans un volume de plusieurs sites, points et passages, sans se perdre. C'est l'épopée qui transforme l'application d'un outil mono-site (où la barre latérale de [E1.S4](E1%20-%20Gérer%20ses%20sites%20et%20points%20de%20suivi.md#e1s4) suffit) en un outil de production capable de tenir l'échelle de Karim (3 chantiers, 8 nuits par retour terrain) ou Samuel (24 enregistreurs × 40-50 nuits = **plus de 1 000 passages par saison**).
 
 **Persona principal** : Karim et Samuel (Marie reste sur 1 site et n'a pas besoin de la majorité des stories de cette épopée).
 
@@ -20,7 +20,7 @@
 
 - [ ] La vue arborescente présente un nœud racine par site (libellé : `Carré XXXXXX - <nom convivial>`).
 - [ ] Chaque site se déplie en ses points d'écoute (libellé : `<code point> - N passages cette saison`).
-- [ ] Chaque point se déplie en ses passages (libellé : `Passage N (date)` avec badge de statut workflow).
+- [ ] Chaque point se déplie en ses passages (libellé : `Passage N (date)` avec badge de statut d'avancement).
 - [ ] Au niveau site, un méta-libellé indique la **date du dernier passage importé** (« dernier passage il y a 2 jours »).
 - [ ] Au niveau point, on voit le nombre de passages **à vérifier** (statut `Transformé`, sans verdict) en évidence visuelle (badge orange).
 - [ ] Le clic sur un passage ouvre directement sa fiche détail.
@@ -44,12 +44,12 @@
 
 **Critères d'acceptation** :
 
-- [ ] Un toggle permet de basculer entre la vue arborescente ([E5.S1](#e5s1)) et la vue tabulaire.
-- [ ] La vue tabulaire affiche une ligne par passage avec colonnes : Site (n° carré + nom), Point, Année, N° passage, Date de session d'enregistrement, Statut workflow, Verdict, Date de dépôt.
+- [ ] Une bascule permet de basculer entre la vue arborescente ([E5.S1](#e5s1)) et la vue tabulaire.
+- [ ] La vue tabulaire affiche une ligne par passage avec colonnes : Site (n° carré + nom), Point, Année, N° passage, Date de session d'enregistrement, Statut d'avancement, Verdict, Date de dépôt.
 - [ ] Toutes les colonnes sont **triables** (clic sur l'en-tête).
 - [ ] Chaque colonne propose un **filtre rapide** :
     - colonnes textuelles : input texte avec match partiel (Site, Point)
-    - colonnes énumérées : multi-sélection (Statut workflow, Verdict)
+    - colonnes énumérées : multi-sélection (Statut d'avancement, Verdict)
     - colonnes dates : sélecteur de plage
 - [ ] Le tableau reste réactif jusqu'à au moins 500 lignes (cf. [O5](../../Objectifs%20qualités/Objectifs%20qualités/O5.md)) - pas de freeze IHM en tri/filtre.
 - [ ] Le clic sur une ligne ouvre la fiche détail du passage.
@@ -74,7 +74,7 @@
 **Critères d'acceptation** :
 
 - [ ] Un bouton « Filtres avancés » ouvre un panneau de composition de filtres avec une logique ET entre les critères, OU à l'intérieur d'une même catégorie.
-- [ ] Les critères disponibles couvrent : site (multi-select), point (multi-select), année, plage de n° de passage, plage de dates d'enregistrement, plage de dates de dépôt, statut workflow (multi-select), verdict (multi-select), enregistreur (par n° de série).
+- [ ] Les critères disponibles couvrent : site (multi-select), point (multi-select), année, plage de n° de passage, plage de dates d'enregistrement, plage de dates de dépôt, statut d'avancement (multi-select), verdict (multi-select), enregistreur (par n° de série).
 - [ ] Un compteur en bas de panneau indique « N passages correspondent à ces critères ».
 - [ ] Bouton « Appliquer » : la vue tabulaire ([E5.S2](#e5s2)) se rafraîchit avec les résultats filtrés.
 - [ ] Bouton « Sauvegarder cette vue » : permet de nommer le jeu de filtres et de le retrouver dans un menu de « Vues sauvegardées ».
@@ -104,7 +104,7 @@
 - [ ] Une barre d'actions contextuelle apparaît dès qu'au moins 2 passages sont sélectionnés : « Actions sur 5 passages : [Verdict] [Exporter] [Supprimer] ».
 - [ ] Action **Verdict** : applique le même verdict (OK / Douteux / À jeter) à tous les passages sélectionnés, avec confirmation explicite.
 - [ ] Action **Exporter** : produit un récapitulatif CSV (1 ligne par passage avec ses métadonnées) téléchargeable.
-- [ ] Action **Supprimer** : confirmation forte (modal expliquant que les fichiers sur disque seront aussi supprimés), avec saisie de « SUPPRIMER » pour valider. Action irréversible.
+- [ ] Action **Supprimer** : confirmation forte (fenêtre modale expliquant que les fichiers sur disque seront aussi supprimés), avec saisie de « SUPPRIMER » pour valider. Action irréversible.
 - [ ] Toute action de masse est tracée dans un journal d'opérations (pour audit en cas de bug ou de fausse manipulation).
 - [ ] Si l'action échoue partiellement (ex. 3 passages traités, 2 en erreur), un récapitulatif post-action liste les succès et les échecs avec leur raison.
 
@@ -126,7 +126,7 @@
 
 **Critères d'acceptation** :
 
-- [ ] Une action « Importer plusieurs nuits » permet de sélectionner N dossiers source d'un coup (sélection multiple dans le file picker, ou drag-and-drop de N dossiers).
+- [ ] Une action « Importer plusieurs nuits » permet de sélectionner N dossiers source d'un coup (sélection multiple dans le sélecteur de fichiers, ou glisser-déposer de N dossiers).
 - [ ] Pour chaque dossier, l'inspection ([E2.S1](E2%20-%20Importer%20et%20transformer%20une%20nuit.md#e2s1)) et le rattachement ([E2.S2](E2%20-%20Importer%20et%20transformer%20une%20nuit.md#e2s2) ou [E2.S3](E2%20-%20Importer%20et%20transformer%20une%20nuit.md#e2s3)) sont demandés successivement, avant que le traitement effectif (copie + transformation) ne commence.
 - [ ] Une fois tous les rattachements validés, les imports sont **mis en file d'attente** et traités séquentiellement (pas en parallèle pour préserver les perfs).
 - [ ] Un panneau « File d'attente d'import » visible affiche : import en cours (avec progression), imports en attente, imports terminés avec succès, imports en erreur.

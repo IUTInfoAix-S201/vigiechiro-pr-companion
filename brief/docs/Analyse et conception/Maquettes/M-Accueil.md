@@ -4,9 +4,9 @@
 > **Persona principal** : tous ([Marie](../Personas/Marie.md), [Karim](../Personas/Karim.md), [Samuel](../Personas/Samuel.md)).
 > **Parcours couverts** : point d'entrée transverse de tous les parcours.
 
-L'accueil est la **porte d'entrée** de l'application : un **hero nocturne** (identité « une nuit de capture ») avec un **tableau de bord de compteurs**, suivi de deux **sections-prismes** de cartes d'activité. Les deux prismes rendent explicites les deux usages complémentaires : **produire** la donnée (collecte des nuits et des passages) et l'**exploiter** (inventaire des espèces, biodiversité). Chaque carte ouvre une feature ; le **fil d'Ariane** du chrome repart toujours d'`Accueil`.
+L'accueil est la **porte d'entrée** de l'application : un **bandeau nocturne** (identité « une nuit de capture ») avec un **tableau de bord de compteurs**, suivi de deux **sections-prismes** de cartes d'activité. Les deux prismes rendent explicites les deux usages complémentaires : **produire** la donnée (collecte des nuits et des passages) et l'**exploiter** (inventaire des espèces, biodiversité). Chaque carte ouvre une fonctionnalité ; le **fil d'Ariane** du chrome repart toujours d'`Accueil`.
 
-## Wireframe principal - accueil avec données
+## Maquette principale - accueil avec données
 
 <div markdown="0">
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" role="img" aria-label="Maquette M-Accueil - lanceur a deux prismes" style="max-width: 100%; height: auto; border: 1px solid #d0d7de; border-radius: 6px; background: #fafbfc;">
@@ -139,12 +139,12 @@ L'accueil est la **porte d'entrée** de l'application : un **hero nocturne** (id
 
 ### Annotations
 
-- **Hero nocturne** : bandeau en dégradé bleu nuit (identité « une nuit de capture », filigrane lune 🌙) avec le titre de bienvenue et l'invite « deux entrées ». Il porte le **tableau de bord** de compteurs.
+- **Bandeau nocturne** : bandeau en dégradé bleu nuit (identité « une nuit de capture », filigrane lune 🌙) avec le titre de bienvenue et l'invite « deux entrées ». Il porte le **tableau de bord** de compteurs.
 - **Tableau de bord** : quatre compteurs chiffrés (**Sites**, **Points d'écoute**, **Passages**, **Observations**), chacun avec sa pastille d'icône colorée. Les valeurs sont **recalculées à chaque affichage** de l'accueil (elles reflètent l'état de la base après un import ou une déclaration de site). Le bandeau est **masqué tant qu'aucune donnée** n'existe (premier lancement).
 - **Sections-prismes** : les cartes d'activité sont regroupées en deux sections selon leur **prisme** :
   - **🛰️ Collecte & passages** (*produire la donnée*) : **Mes sites** puis **Carte & passages** ;
   - **🍃 Espèces & biodiversité** (*exploiter la donnée*) : **Espèces & observations** puis **Bibliothèque de sons**.
-- **Cartes** : chaque carte affiche une **pastille d'icône**, un **titre** et une **description** courte, teintés par la **couleur d'accent** de la feature ; un **chevron** `›` apparaît au survol et la carte entière est cliquable.
+- **Cartes** : chaque carte affiche une **pastille d'icône**, un **titre** et une **description** courte, teintés par la **couleur d'accent** de la fonctionnalité ; un **chevron** `›` apparaît au survol et la carte entière est cliquable.
 
 ### Interactions clés
 
@@ -159,7 +159,7 @@ L'accueil est la **porte d'entrée** de l'application : un **hero nocturne** (id
 
 ### Notes pour l'implémentation
 
-- **Inversion de dépendance** : le socle (`commun.view`, `MainController`) bâtit l'accueil à partir des `Set<ActiviteAccueil>` et `Set<IndicateurAccueil>` injectés ; chaque feature **publie sa carte et ses compteurs** via un `Multibinder` Guice. Ajouter une activité à l'accueil = une implémentation + une ligne de binding, **sans retoucher le socle** (graphe de slices acyclique, garanti par `ArchitectureTest`).
+- **Inversion de dépendance** : le socle (`commun.view`, `MainController`) bâtit l'accueil à partir des `Set<ActiviteAccueil>` et `Set<IndicateurAccueil>` injectés ; chaque fonctionnalité **publie sa carte et ses compteurs** via un `Multibinder` Guice. Ajouter une activité à l'accueil = une implémentation + une ligne de binding, **sans retoucher le socle** (graphe de slices acyclique, garanti par `ArchitectureTest`).
 - **Prismes** : l'ordre des sections suit l'énumération `Prisme` (Collecte & passages, puis Espèces & biodiversité) ; l'ordre des cartes **dans** un prisme suit le rang `ordre()` déclaré par chaque carte.
-- **Hero** : `StackPane` clippé à ses bornes (le filigrane lune déborde volontairement). Le `FlowPane` des compteurs et celui des sections se réagencent selon la largeur de la fenêtre.
-- **Icônes** : codes [Ikonli](https://kordamp.org/ikonli/) FontAwesome 5 fournis par chaque feature sous forme de **chaîne** (le socle construit le `FontIcon`) ; les emojis du wireframe ne sont qu'un substitut basse fidélité.
+- **Bandeau nocturne** : `StackPane` clippé à ses bornes (le filigrane lune déborde volontairement). Le `FlowPane` des compteurs et celui des sections se réagencent selon la largeur de la fenêtre.
+- **Icônes** : codes [Ikonli](https://kordamp.org/ikonli/) FontAwesome 5 fournis par chaque fonctionnalité sous forme de **chaîne** (le socle construit le `FontIcon`) ; les emojis de la maquette ne sont qu'un substitut basse fidélité.

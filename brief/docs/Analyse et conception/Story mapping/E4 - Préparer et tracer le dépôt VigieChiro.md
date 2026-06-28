@@ -1,6 +1,6 @@
 # E4 - 📦 Préparer et tracer le dépôt VigieChiro
 
-[← Retour au hub story mapping](index.md) · **Parcours principal** : [P4 - Préparer un lot prêt à déposer](../Parcours%20utilisateurs/P4%20-%20Préparer%20un%20lot%20prêt%20à%20déposer.md) · ✅ MUST
+[← Retour au sommaire story mapping](index.md) · **Parcours principal** : [P4 - Préparer un lot prêt à déposer](../Parcours%20utilisateurs/P4%20-%20Préparer%20un%20lot%20prêt%20à%20déposer.md) · ✅ MUST
 
 **Portée** : finaliser le travail post-vérification pour produire un **lot directement déposable sur le portail Vigie-Chiro** et tracer le dépôt. L'application **ne dialogue pas** avec le portail web : le téléversement final est manuel via navigateur. La SAE se contente de préparer les fichiers à un emplacement connu, vérifier leur cohérence, et mémoriser la date de dépôt déclarée par l'utilisateur.
 
@@ -68,7 +68,7 @@
 
 **Je veux** pouvoir confirmer à l'application que j'ai effectivement déposé le lot sur Vigie-Chiro, avec mémorisation de la date de dépôt
 
-**Afin de** clôturer ce passage dans mon workflow et le distinguer des passages encore en attente de dépôt
+**Afin de** clôturer ce passage dans mon suivi et le distinguer des passages encore en attente de dépôt
 
 **Critères d'acceptation** :
 
@@ -87,7 +87,7 @@
 
 ---
 
-## E4.S4 - Visualiser le statut workflow et la chronologie d'un passage { #e4s4 }
+## E4.S4 - Visualiser le statut d'avancement et la chronologie d'un passage { #e4s4 }
 
 **En tant que** [Karim](../Personas/Karim.md) ou [Samuel](../Personas/Samuel.md) (qui jongle entre plusieurs dizaines de passages à différents stades)
 
@@ -97,15 +97,15 @@
 
 **Critères d'acceptation** :
 
-- [ ] La fiche détail d'un passage affiche **clairement** le statut workflow courant (badge coloré).
-- [ ] Un mini-bandeau visuel (type stepper horizontal) montre les **5 statuts du cycle** avec le statut courant mis en évidence et les précédents marqués comme franchis.
+- [ ] La fiche détail d'un passage affiche **clairement** le statut d'avancement courant (badge coloré).
+- [ ] Un mini-bandeau visuel (type indicateur d’étapes horizontal) montre les **5 statuts du cycle** avec le statut courant mis en évidence et les précédents marqués comme franchis.
 - [ ] Pour chaque transition franchie, on voit **la date** de la transition (ex. « Importé le 15/06, Transformé le 15/06, Vérifié le 16/06 avec verdict OK, Déposé le 17/06 »).
 - [ ] Si le passage est bloqué (verdict `À jeter`, vérifications échouées en [E4.S1](#e4s1)), un indicateur explicite signale la raison du blocage.
 - [ ] Dans la vue tabulaire multi-sites (cf. [E5](index.md)), le statut est une colonne triable et filtrable.
 - [ ] Le statut courant et l'historique sont **persistés** en BD et survivent aux redémarrages.
 
 **Parcours rattaché** : [P4](../Parcours%20utilisateurs/P4%20-%20Préparer%20un%20lot%20prêt%20à%20déposer.md) (transverse - pertinent aussi pour P2, P3 et P5)<br>
-**Maquettes cibles** : [M-Passage](../Maquettes/M-Passage.md) (stepper de statut + chronologie), [M-MultiSite](../Maquettes/M-MultiSite.md) (colonne statut filtrable)<br>
+**Maquettes cibles** : [M-Passage](../Maquettes/M-Passage.md) (indicateur d’étapes de statut + chronologie), [M-MultiSite](../Maquettes/M-MultiSite.md) (colonne statut filtrable)<br>
 **Dépendances** : [E0.S3](E0%20-%20Fondations%20de%20persistance.md#e0s3)<br>
-**Complexité** : ★★★ (moyen - stepper visuel + historique de transitions + intégration dans la vue tabulaire)<br>
-**MoSCoW** : 🟠 SHOULD (le statut brut suffit pour le MVP strict ; la chronologie détaillée et le stepper visuel sont du confort de productivité, indispensables dès qu'on dépasse mono-site)
+**Complexité** : ★★★ (moyen - indicateur d’étapes visuel + historique de transitions + intégration dans la vue tabulaire)<br>
+**MoSCoW** : 🟠 SHOULD (le statut brut suffit pour le MVP strict ; la chronologie détaillée et le indicateur d’étapes visuel sont du confort de productivité, indispensables dès qu'on dépasse mono-site)

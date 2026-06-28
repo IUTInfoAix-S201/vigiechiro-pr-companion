@@ -6,7 +6,7 @@
 
 L'écran liste tous les sites de suivi déclarés sous forme de **cartes**, avec pour chacun : le n° de carré, le nom convivial (et la commune), le nombre de points d'écoute, le nombre de passages enregistrés cette saison, et un badge de fraîcheur (date du dernier passage). Un bouton `+ Nouveau site` est toujours visible en haut à droite. Le clic sur une carte ouvre [M-Site-detail](M-Site-detail.md). L'écran est atteint depuis l'accueil ; le **fil d'Ariane** du chrome (`Accueil › Mes sites`) et la **recherche globale** sont posés dans le bandeau.
 
-## Wireframe principal - utilisateur avec plusieurs sites déclarés
+## Maquette principale - utilisateur avec plusieurs sites déclarés
 
 <div markdown="0">
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" role="img" aria-label="Maquette M-Sites - Mes sites de suivi" style="max-width: 100%; height: auto; border: 1px solid #d0d7de; border-radius: 6px; background: #fafbfc;">
@@ -195,7 +195,7 @@ L'écran liste tous les sites de suivi déclarés sous forme de **cartes**, avec
 
 - Le bouton **+ Ajouter mon premier site** est dimensionné plus grand que le bouton normal pour le marquer comme l'**unique action** disponible.
 - Le **rappel pédagogique** dans l'encart jaune est volontaire : Marie (persona débutante) peut ne pas savoir que les sites se créent d'abord sur le portail web. Mieux vaut le dire ici qu'attendre un message d'erreur.
-- Dès le premier site créé, la vue bascule vers le wireframe principal (une carte présente).
+- Dès le premier site créé, la vue bascule vers la maquette principale (une carte présente).
 
 ## Notes pour l'implémentation
 

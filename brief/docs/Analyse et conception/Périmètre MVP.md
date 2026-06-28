@@ -49,7 +49,7 @@ Les fondations BD minimales pour que toutes les autres stories puissent s'appuye
 
 - [E0.S1 - Initialiser le schéma SQLite et les DAO génériques](Story%20mapping/E0%20-%20Fondations%20de%20persistance.md#e0s1) ★★★★
 - [E0.S2 - Persister les sites de suivi et points d'écoute](Story%20mapping/E0%20-%20Fondations%20de%20persistance.md#e0s2) ★★
-- [E0.S3 - Persister les passages avec leurs statuts workflow](Story%20mapping/E0%20-%20Fondations%20de%20persistance.md#e0s3) ★★★
+- [E0.S3 - Persister les passages avec leurs statuts d'avancement](Story%20mapping/E0%20-%20Fondations%20de%20persistance.md#e0s3) ★★★
 - [E0.S4 - Persister les sélections d'écoute et leurs séquences](Story%20mapping/E0%20-%20Fondations%20de%20persistance.md#e0s4) ★★
 - [E0.S5 - Persister les observations Tadarida importées](Story%20mapping/E0%20-%20Fondations%20de%20persistance.md#e0s5) ★★★
 
@@ -99,7 +99,7 @@ La préparation du lot et la traçabilité du dépôt.
 - [E4.S2 - Voir le récapitulatif du lot et ouvrir le dossier](Story%20mapping/E4%20-%20Préparer%20et%20tracer%20le%20dépôt%20VigieChiro.md#e4s2) ★★
 - [E4.S3 - Marquer le passage comme déposé](Story%20mapping/E4%20-%20Préparer%20et%20tracer%20le%20dépôt%20VigieChiro.md#e4s3) ★
 
-E4.S4 (stepper de statut et chronologie) est en SHOULD.
+E4.S4 (indicateur d’étapes de statut et chronologie) est en SHOULD.
 
 ## Cibles étirables (🟠 SHOULD)
 
@@ -147,7 +147,7 @@ Vue exhaustive des 50 stories. Tri par épopée puis par n°.
 |---|---|--:|:--:|---|
 | [E0.S1](Story%20mapping/E0%20-%20Fondations%20de%20persistance.md#e0s1) | Schéma SQLite + DAO génériques | ★★★★ | ✅ MUST | Socle sans lequel rien n'est livrable. |
 | [E0.S2](Story%20mapping/E0%20-%20Fondations%20de%20persistance.md#e0s2) | Persister sites et points | ★★ | ✅ MUST | Sert E1 (MUST). |
-| [E0.S3](Story%20mapping/E0%20-%20Fondations%20de%20persistance.md#e0s3) | Persister passages et workflow | ★★★ | ✅ MUST | Sert E2/E3/E4 (MUST). |
+| [E0.S3](Story%20mapping/E0%20-%20Fondations%20de%20persistance.md#e0s3) | Persister passages et cycle de vie | ★★★ | ✅ MUST | Sert E2/E3/E4 (MUST). |
 | [E0.S4](Story%20mapping/E0%20-%20Fondations%20de%20persistance.md#e0s4) | Persister sélections d'écoute | ★★ | ✅ MUST | Sert E3 (MUST). |
 | [E0.S5](Story%20mapping/E0%20-%20Fondations%20de%20persistance.md#e0s5) | Persister observations Tadarida | ★★★ | ✅ MUST | Sert E7 (cible étirable principale). |
 | [E0.S6](Story%20mapping/E0%20-%20Fondations%20de%20persistance.md#e0s6) | Reprendre un import interrompu | ★★★★ | 🟠 SHOULD | Robustesse - un import qui crash sans reprise reste corrigible à la main. |
@@ -175,7 +175,7 @@ Vue exhaustive des 50 stories. Tri par épopée puis par n°.
 | [E4.S1](Story%20mapping/E4%20-%20Préparer%20et%20tracer%20le%20dépôt%20VigieChiro.md#e4s1) | Vérifier la cohérence avant lot | ★★ | ✅ MUST | Garde-fou avant dépôt. |
 | [E4.S2](Story%20mapping/E4%20-%20Préparer%20et%20tracer%20le%20dépôt%20VigieChiro.md#e4s2) | Récapitulatif + ouvrir dossier | ★★ | ✅ MUST | Sans cette story, l'utilisateur ne sait pas où sont ses fichiers. |
 | [E4.S3](Story%20mapping/E4%20-%20Préparer%20et%20tracer%20le%20dépôt%20VigieChiro.md#e4s3) | Marquer comme déposé | ★ | ✅ MUST | Léger, traçabilité. |
-| [E4.S4](Story%20mapping/E4%20-%20Préparer%20et%20tracer%20le%20dépôt%20VigieChiro.md#e4s4) | Stepper de statut et chronologie | ★★★ | 🟠 SHOULD | Badge brut suffit pour MUST. |
+| [E4.S4](Story%20mapping/E4%20-%20Préparer%20et%20tracer%20le%20dépôt%20VigieChiro.md#e4s4) | Indicateur d’étapes de statut et chronologie | ★★★ | 🟠 SHOULD | Badge brut suffit pour MUST. |
 | [E5.S1](Story%20mapping/E5%20-%20Naviguer%20dans%20le%20volume%20multi-sites.md#e5s1) | Vue arborescente des sites | ★★★ | 🟠 SHOULD | Vue plate de E1.S4 suffit pour le MVP mono-site. |
 | [E5.S2](Story%20mapping/E5%20-%20Naviguer%20dans%20le%20volume%20multi-sites.md#e5s2) | Vue tabulaire des passages | ★★★ | 🟠 SHOULD | Critique pour Karim/Samuel mais hors MVP strict. |
 | [E5.S3](Story%20mapping/E5%20-%20Naviguer%20dans%20le%20volume%20multi-sites.md#e5s3) | Filtres avancés multi-critères | ★★★★ | ⚪ COULD | Sur-mesure Samuel. |

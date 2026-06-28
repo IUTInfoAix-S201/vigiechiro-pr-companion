@@ -6,7 +6,7 @@
 
 C'est l'écran central de la chaîne de production. L'assistant est une **page unique en sections** (dossier source → inspection → rattachement → action), pas un wizard multi-étapes : l'utilisateur garde tout son contexte sous les yeux. Une **carte de rattachement** situe le site et le point choisis sur le carroyage.
 
-## Wireframe principal - cas standard (dossier inspecté, fichiers sans préfixe)
+## Maquette principale - cas standard (dossier inspecté, fichiers sans préfixe)
 
 <div markdown="0">
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1020" role="img" aria-label="Maquette M-Import - Importer une nuit (cas standard)" style="max-width: 100%; height: auto; border: 1px solid #d0d7de; border-radius: 6px; background: #fafbfc;">

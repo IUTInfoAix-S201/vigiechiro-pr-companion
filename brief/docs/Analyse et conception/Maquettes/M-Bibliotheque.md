@@ -8,7 +8,7 @@ L'écran rassemble les **meilleurs exemples sonores par espèce** que l'utilisat
 
 > **Cohérence visuelle** : l'écran réutilise le **composant d'écoute audio** partagé avec [M-Qualification](M-Qualification.md) et [M-Vision-Tadarida](M-Vision-Tadarida.md) (sonogramme + spectrogramme + contrôles de lecture).
 
-## Wireframe principal - 3 sons de référence retenus
+## Maquette principale - 3 sons de référence retenus
 
 <div markdown="0">
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 644" role="img" aria-label="Maquette M-Bibliotheque - bibliotheque de sons de reference" style="max-width: 100%; height: auto; border: 1px solid #d0d7de; border-radius: 6px; background: #f7f9fb;">
@@ -125,7 +125,7 @@ L'écran rassemble les **meilleurs exemples sonores par espèce** que l'utilisat
 - **Titre + compteur** : « Bibliothèque de sons » et le nombre de sons de référence (`3 son(s) de référence.`).
 - **Table « Sons de référence »** (`TableView`) : une ligne par observation marquée référence, colonnes **Espèce retenue** (code taxon : `Nyclei`, `Pippip`, `Rhihip`…), **Séquence source** (fichier `.wav`), **Fréquence**. Tri/sélection standard ; la sélection alimente le panneau de détail.
 - **Détail** : le **commentaire** associé à la séquence retenue (saisi pendant la validation).
-- **Écoute** : le **composant audio partagé** (sonogramme + spectrogramme + contrôles `Lecture` / `Temps +` / `Temps -` / `Fréq. +` / `Fréq. -` + timecode). Permet de réécouter l'exemple sélectionné.
+- **Écoute** : le **composant audio partagé** (sonogramme + spectrogramme + contrôles `Lecture` / `Temps +` / `Temps -` / `Fréq. +` / `Fréq. -` + minutage). Permet de réécouter l'exemple sélectionné.
 - **Export** : libellé explicatif + bouton **« Exporter la bibliothèque… »** qui ouvre un sélecteur de dossier, écrit un **récapitulatif CSV** et **copie les fichiers `.wav`** de référence (organisés par espèce, cf. [P10](../Parcours%20utilisateurs/P10%20-%20Exporter%20une%20bibliothèque%20de%20sons%20de%20référence.md)).
 
 ## Variante - aucun son de référence (état vide)

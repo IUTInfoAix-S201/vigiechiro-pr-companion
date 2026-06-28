@@ -6,7 +6,7 @@
 
 La recherche globale permet de **sauter directement** à un site, un point ou un passage depuis n'importe quel écran. On la déclenche par le champ **« 🔍 Rechercher »** du bandeau (ou **Ctrl+F**) ; la liste de résultats s'ouvre au fil de la frappe, **groupée par type**.
 
-## Wireframe - liste de résultats ouverte
+## Maquette - liste de résultats ouverte
 
 <div markdown="0">
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 560" role="img" aria-label="Maquette M-Recherche - liste de résultats de la recherche globale" style="max-width: 100%; height: auto; border: 1px solid #d0d7de; border-radius: 6px; background: #fafbfc;">

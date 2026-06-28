@@ -1,15 +1,15 @@
 # Maquettes
 
-Cette section regroupe les **wireframes basse fidélité** de l'application *VigieChiro PR Companion*. Chaque maquette est décrite par :
+Cette section regroupe les **maquettes basse fidélité** de l'application *VigieChiro PR Companion*. Chaque maquette est décrite par :
 
-- un **wireframe SVG** présentant le layout final attendu (cadre fenêtre, top nav, contenu, footer) ;
+- une **maquette SVG** présentant l’agencement final attendu (cadre fenêtre, barre de navigation, contenu, pied de page) ;
 - la liste des **composants** affichés et leurs **données** d'exemple ;
 - les **interactions clés** entre éléments ;
 - les **variantes** (état vide, modales, panneaux dépliés, écrans intermédiaires) regroupées dans le même fichier ;
 - les **parcours** et **stories** rattachés ;
 - des **notes d'implémentation** ciblées (composants JavaFX recommandés, points d'attention performance ou UX, raccourcis claviers).
 
-!!! warning "Wireframes basse fidélité, pas spec figée"
+!!! warning "Maquettes basse fidélité, pas spécification figée"
     Ces maquettes posent l'**organisation** des écrans et la **hiérarchie** des informations à afficher. Elles n'imposent pas le style visuel final (couleurs, typographies, icônes, espacements précis) : ce travail vous revient et fait partie de l'évaluation R2.02 / R2.03.
 
     Vous pouvez **proposer une variante** d'un écran si vous identifiez une meilleure organisation : dans ce cas, justifiez le choix dans votre soutenance.
@@ -18,7 +18,7 @@ Cette section regroupe les **wireframes basse fidélité** de l'application *Vig
 
 | # | Écran | Type | Parcours principal | Épopées couvertes |
 |---|---|---|---|---|
-| [M-Accueil](M-Accueil.md) | Lanceur (hero + deux prismes) | Écran d'accueil (point d'entrée) | transverse (tous) | toutes (lanceur) |
+| [M-Accueil](M-Accueil.md) | Lanceur (bandeau nocturne + deux prismes) | Écran d'accueil (point d'entrée) | transverse (tous) | toutes (lanceur) |
 | [M-Sites](M-Sites.md) | Vue de mes sites de suivi | Vue principale | [P1](../Parcours%20utilisateurs/P1%20-%20Déclarer%20un%20site%20de%20suivi.md) | [E1.S1](../Story%20mapping/E1%20-%20Gérer%20ses%20sites%20et%20points%20de%20suivi.md#e1s1), [E1.S4](../Story%20mapping/E1%20-%20Gérer%20ses%20sites%20et%20points%20de%20suivi.md#e1s4) |
 | [M-Site-detail](M-Site-detail.md) | Fiche détail d'un site | Vue secondaire | [P1](../Parcours%20utilisateurs/P1%20-%20Déclarer%20un%20site%20de%20suivi.md) | [E1.S2](../Story%20mapping/E1%20-%20Gérer%20ses%20sites%20et%20points%20de%20suivi.md#e1s2), [E1.S3](../Story%20mapping/E1%20-%20Gérer%20ses%20sites%20et%20points%20de%20suivi.md#e1s3) |
 | [M-Import](M-Import.md) | Assistant d'import d'une nuit | Vue principale | [P2](../Parcours%20utilisateurs/P2%20-%20Importer%20une%20nuit%20d%27enregistrement.md) | [E2.S1](../Story%20mapping/E2%20-%20Importer%20et%20transformer%20une%20nuit.md#e2s1) à [E2.S7](../Story%20mapping/E2%20-%20Importer%20et%20transformer%20une%20nuit.md#e2s7) |
@@ -37,10 +37,10 @@ Cette section regroupe les **wireframes basse fidélité** de l'application *Vig
 Chaque fichier `.md` suit la même structure :
 
 1. **En-tête** avec type, persona principal, parcours et stories couvertes.
-2. **Wireframe principal** : un SVG inline qui représente l'écran cible avec des données d'exemple cohérentes (n° de carré 640380, PR 1925492…).
-3. **Annotations** : explication de chaque zone du wireframe (header, sections numérotées, badges, etc.).
+2. **Maquette principale** : un SVG inline qui représente l'écran cible avec des données d'exemple cohérentes (n° de carré 640380, PR 1925492…).
+3. **Annotations** : explication de chaque zone de la maquette (en-tête, sections numérotées, badges, etc.).
 4. **Interactions clés** : tableau des actions disponibles sur chaque élément cliquable.
-5. **Variantes** (quand pertinent) : wireframes secondaires dans le même fichier : état vide, modales, écrans intermédiaires (ex. progression d'un import), bascule de mode (vue tableau vs arborescence).
+5. **Variantes** (quand pertinent) : maquettes secondaires dans le même fichier : état vide, modales, écrans intermédiaires (ex. progression d'un import), bascule de mode (vue tableau vs arborescence).
 6. **Notes pour l'implémentation** : composants JavaFX recommandés, points de performance, raccourcis claviers, dépendances entre maquettes.
 
 ## Convention de navigation entre écrans
@@ -102,7 +102,7 @@ Toutes les maquettes reprennent le **cadre fenêtre** du chrome (`MainView.fxml`
 - **Sections numérotées** pour les écrans assistant (M-Import, M-Lot) ou **panneau de détail** « liste + détail » (M-Qualification, M-Vision-Tadarida, M-Bibliotheque).
 - **Pied de page** discret (`SAÉ 2.01 · IUT d'Aix-Marseille`).
 
-L'[accueil](M-Accueil.md) ajoute, sous le bandeau, un **hero nocturne** (titre, invite, tableau de bord de compteurs) puis deux **sections-prismes** de cartes d'activité.
+L'[accueil](M-Accueil.md) ajoute, sous le bandeau, un **bandeau nocturne** (titre, invite, tableau de bord de compteurs) puis deux **sections-prismes** de cartes d'activité.
 
 **Palette de couleurs** (cohérente avec le reste du dossier) :
 
@@ -122,9 +122,9 @@ L'[accueil](M-Accueil.md) ajoute, sous le bandeau, un **hero nocturne** (titre, 
 
 ## Cas non maquettés (documentés textuellement)
 
-Certains écrans secondaires ne font pas l'objet d'un wireframe complet mais sont décrits dans les fiches correspondantes :
+Certains écrans secondaires ne font pas l'objet d'une maquette complète mais sont décrits dans les fiches correspondantes :
 
 - **Formulaire de création d'un site** : décrit dans la variante de [M-Site-detail](M-Site-detail.md) et invocable depuis [M-Sites](M-Sites.md).
-- **Modal de re-rattachement d'un passage** : action accessible depuis [M-Passage](M-Passage.md).
+- **Fenêtre modale de re-rattachement d'un passage** : action accessible depuis [M-Passage](M-Passage.md).
 - **Sélecteur de taxon de correction** : autocomplete sur code à 6 lettres. Décrit dans [M-Vision-Tadarida](M-Vision-Tadarida.md).
-- **Modal de confirmation « J'ai déposé »** : avant transition vers le statut Déposé. Décrite dans [M-Lot](M-Lot.md).
+- **Fenêtre modale de confirmation « J'ai déposé »** : avant transition vers le statut Déposé. Décrite dans [M-Lot](M-Lot.md).

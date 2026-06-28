@@ -1,6 +1,6 @@
 # E3 - 🎧 Vérifier la qualité d'enregistrement
 
-[← Retour au hub story mapping](index.md) · **Parcours principal** : [P3 - Vérifier l'enregistrement par échantillonnage](../Parcours%20utilisateurs/P3%20-%20Vérifier%20l%27enregistrement%20par%20échantillonnage.md) · ✅ MUST
+[← Retour au sommaire story mapping](index.md) · **Parcours principal** : [P3 - Vérifier l'enregistrement par échantillonnage](../Parcours%20utilisateurs/P3%20-%20Vérifier%20l%27enregistrement%20par%20échantillonnage.md) · ✅ MUST
 
 **Portée** : permettre à l'utilisateur de **valider qu'une nuit d'enregistrement est exploitable** avant de la déposer sur Vigie-Chiro. La vérification se fait en deux temps complémentaires : (1) un **pré-check synthétique** rapide sans écoute (couverture horaire, nombre de fichiers, cohérence du renommage), pratiqué par défaut par Samuel ; (2) un **sound check par échantillonnage** audio plus long, pratiqué par défaut par Marie. C'est un sound check global, distinct de la validation taxonomique espèce par espèce (qui est l'objet de E7).
 
@@ -74,7 +74,7 @@
 - [ ] Pour chaque séquence on voit : horodatage de session d'enregistrement (heure du fichier source), durée affichée (5 s par défaut, plus court pour la dernière séquence d'un fichier), fréquence dominante indicative (en kHz, calculée à partir du WAV).
 - [ ] Un indicateur visuel distingue les séquences déjà écoutées des séquences pas encore écoutées (cf. [E3.S4](#e3s4)).
 - [ ] Un bouton ▶ par ligne permet de déclencher la lecture d'une séquence (cf. [E3.S3](#e3s3)).
-- [ ] La liste reste lisible même avec 50 lignes (scroll vertical).
+- [ ] La liste reste lisible même avec 50 lignes (défilement vertical).
 
 **Parcours rattaché** : [P3](../Parcours%20utilisateurs/P3%20-%20Vérifier%20l%27enregistrement%20par%20échantillonnage.md), étape 3<br>
 **Maquettes cibles** : [M-Qualification](../Maquettes/M-Qualification.md) (tableau central de la vue de vérification)<br>
@@ -100,10 +100,10 @@
 - [ ] Le panneau de détail ([E3.S2](#e3s2)) affiche le composant audio fourni, alimenté par le chemin de la séquence courante.
 - [ ] Le clic sur le bouton ▶ d'une séquence dans la liste de gauche déclenche la lecture immédiate dans le composant.
 - [ ] Comme les séquences sont **déjà ralenties ×10 sur disque** ([R10](../Modèle%20conceptuel/Règles%20métier.md#r10)), la lecture se fait à vitesse normale (pas de re-échantillonnage à la volée).
-- [ ] Le cursor du composant est synchronisé entre le sonogramme, le spectrogramme et la barre de lecture.
+- [ ] Le curseur du composant est synchronisé entre le sonogramme, le spectrogramme et la barre de lecture.
 - [ ] Une seule séquence joue à la fois : démarrer une nouvelle lecture stoppe la précédente.
 - [ ] La lecture d'une séquence en marque la séquence comme « écoutée » (cf. [E3.S4](#e3s4)).
-- [ ] Si la séquence est introuvable sur disque (fichier supprimé, déplacé), le composant affiche un placeholder explicite.
+- [ ] Si la séquence est introuvable sur disque (fichier supprimé, déplacé), le composant affiche un substitut explicite.
 
 **Parcours rattaché** : [P3](../Parcours%20utilisateurs/P3%20-%20Vérifier%20l%27enregistrement%20par%20échantillonnage.md), étape 4<br>
 **Maquettes cibles** : [M-Qualification](../Maquettes/M-Qualification.md) (vue audio combinée)<br>
@@ -124,7 +124,7 @@
 **Critères d'acceptation** :
 
 - [ ] Chaque lecture d'une séquence (cf. [E3.S3](#e3s3)) marque automatiquement la séquence comme « écoutée » en BD ([E0.S4](E0%20-%20Fondations%20de%20persistance.md#e0s4)).
-- [ ] L'utilisateur peut aussi **manuellement** marquer/démarquer une séquence comme écoutée via une checkbox ou un toggle dans la liste.
+- [ ] L'utilisateur peut aussi **manuellement** marquer/démarquer une séquence comme écoutée via une case à cocher ou une bascule dans la liste.
 - [ ] Un compteur visible affiche `N/M séquences écoutées` (ex. `12/30 séquences écoutées`).
 - [ ] L'état « écouté » est **persisté** : à la réouverture de l'onglet, on retrouve la progression.
 - [ ] L'utilisateur reste libre de saisir son verdict (cf. [E3.S5](#e3s5)) **sans avoir tout écouté** ([R13](../Modèle%20conceptuel/Règles%20métier.md#r13)).

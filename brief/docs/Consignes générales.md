@@ -16,11 +16,11 @@ Ce dépôt n'est pas un dépôt vide : il embarque un **template d'application J
 - Une **arborescence Maven** prête (`pom.xml` configuré, `mvnw` inclus, dépendances JavaFX 25 / SQLite JDBC / JUnit 5 / TestFX / AssertJ posées) ;
 - Une **application JavaFX qui démarre** (fenêtre principale, intégration FXML, point d'entrée) ;
 - L'**outillage qualité pré-configuré** : Spotless en pre-commit hook (formatage Google Java Format), workflow GitHub Actions CI qui exécute la compilation + les tests à chaque push, configuration `.gitignore` adaptée, README de démarrage ;
-- Certains **composants fonctionnels déjà implémentés** pour vous faire gagner du temps sur les briques techniques lourdes - notamment le **composant de vue audio (sonogramme + spectrogramme avec zoom et cursor synchronisé)** décrit dans les [Contraintes techniques](Contraintes%20techniques.md). Vous l'intégrez et le branchez sur votre logique, vous ne le réimplémentez pas.
+- Certains **composants fonctionnels déjà implémentés** pour vous faire gagner du temps sur les briques techniques lourdes - notamment le **composant de vue audio (sonogramme + spectrogramme avec zoom et curseur synchronisé)** décrit dans les [Contraintes techniques](Contraintes%20techniques.md). Vous l'intégrez et le branchez sur votre logique, vous ne le réimplémentez pas.
 
 Cette base vous fait gagner plusieurs jours par rapport à un démarrage from scratch. Vous pouvez (et devez) la prendre comme acquise et vous concentrer sur la chaîne métier (parcours fil rouge P1 → P4) plutôt que sur le scaffolding.
 
-## Conventions Git et workflow
+## Conventions Git et flux de travail
 
 Appliquez le [GitHub Flow](https://docs.github.com/en/get-started/quickstart/github-flow) pour la gestion de vos branches et de vos pull requests :
 
@@ -35,7 +35,7 @@ La **qualité de votre historique** et de vos messages de commit interviendra da
 - Messages en français, axés sur le **pourquoi** plutôt que le **quoi**.
 - Pas de commit fourre-tout du type `WIP`, `update`, `corrections diverses`.
 
-> Le workflow Git/PR/review est pratiqué dans les TP du module R2.02 mais évalué formellement dans le module **R2.03 (AC15.02)**. Soignez-le particulièrement.
+> Le processus Git/PR/review est pratiqué dans les TP du module R2.02 mais évalué formellement dans le module **R2.03 (AC15.02)**. Soignez-le particulièrement.
 
 ## Matériel fourni
 
@@ -67,10 +67,10 @@ Un squelette de code Java vous sera fourni au démarrage de la SAE. Vous devrez 
 
 ## Outils à votre disposition
 
-Pour la conception graphique de l'IHM (à partir des [wireframes basse fidélité](Analyse%20et%20conception/Maquettes/index.md) fournis dans le dossier d'analyse) :
+Pour la conception graphique de l'IHM (à partir des [maquettes basse fidélité](Analyse%20et%20conception/Maquettes/index.md) fournis dans le dossier d'analyse) :
 
 - [SceneBuilder](https://gluonhq.com/products/scene-builder/) - éditeur visuel FXML, recommandé pour JavaFX
-- [Figma](https://www.figma.com/) ou [Excalidraw](https://excalidraw.com/) - retravailler les wireframes si vous proposez une variante
+- [Figma](https://www.figma.com/) ou [Excalidraw](https://excalidraw.com/) - retravailler les maquettes si vous proposez une variante
 
 Pour le diaporama de phase 2, n'importe quel outil convient : Keynote, PowerPoint, Google Slides, [DeckDeckGo](https://deckdeckgo.com/), [Marp](https://marp.app/), Slidev, Reveal.js... Choisissez celui que vous maîtrisez le mieux.
 

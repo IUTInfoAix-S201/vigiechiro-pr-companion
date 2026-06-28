@@ -2,7 +2,7 @@
 
 !!! note "Genèse pédagogique - au passé"
     Cette page documente la **méthode de travail** prévue pour la SAE 2.01 (organisation des équipes,
-    écrans à construire, workflow Git). Elle est conservée **pour mémoire** ; elle décrit le **point de
+    écrans à construire, processus Git). Elle est conservée **pour mémoire** ; elle décrit le **point de
     départ** remis aux équipes, pas l'application finie.
 
 Cette page donnait la **vue d'ensemble** de ce que les équipes avaient à produire et de la **méthode**
@@ -25,7 +25,7 @@ Votre travail se fait dans un **dépôt d'équipe**, distribué via **GitHub Cla
 ## Ce qui est fourni vs ce que vous construisez
 
 Votre dépôt est une application **qui démarre déjà**. Pour vous donner un **modèle complet à imiter**,
-une feature entière est **livrée construite** : la gestion des **sites** (`M-Sites` + détail d'un
+une fonctionnalité entière est **livrée construite** : la gestion des **sites** (`M-Sites` + détail d'un
 site). L'**accueil** (le « chrome » de l'application) aussi. Pour toutes les features, le **modèle**,
 la couche d'accès aux données (**DAO**), les **services** métier et la **navigation** sont fournis.
 
@@ -39,7 +39,7 @@ Pour les **8 autres features**, vous écrivez l'IHM, soit **trois choses par éc
 
 ## Les écrans à construire
 
-| Feature | Écran | Parcours | Priorité |
+| Fonctionnalité | Écran | Parcours | Priorité |
 |---|---|---|---|
 | `sites` | [M-Sites](Analyse%20et%20conception/Maquettes/M-Sites.md) + [détail](Analyse%20et%20conception/Maquettes/M-Site-detail.md) | [P1](Analyse%20et%20conception/Parcours%20utilisateurs/P1%20-%20D%C3%A9clarer%20un%20site%20de%20suivi.md) | ✅ **Fourni** (référence à imiter) |
 | `importation` | [M-Import](Analyse%20et%20conception/Maquettes/M-Import.md) (assistant) | [P2](Analyse%20et%20conception/Parcours%20utilisateurs/P2%20-%20Importer%20une%20nuit%20d%27enregistrement.md) | 🟥 MUST |
@@ -56,7 +56,7 @@ Pour les **8 autres features**, vous écrivez l'IHM, soit **trois choses par éc
 
 ## La méthode : TDD à petits pas, une tâche = un fichier
 
-Chaque feature est livrée avec un **test d'acceptation désactivé** (`@Disabled`). Le test est votre
+Chaque fonctionnalité est livrée avec un **test d'acceptation désactivé** (`@Disabled`). Le test est votre
 **cahier des charges exécutable** :
 
 ```mermaid
@@ -68,7 +68,7 @@ flowchart LR
 ```
 
 Le travail est **découpé en issues, une par fichier** : chaque issue ne demande de modifier **qu'un
-seul fichier**. Vous les faites **dans l'ordre des numéros**. Pour chaque feature, une **issue
+seul fichier**. Vous les faites **dans l'ordre des numéros**. Pour chaque fonctionnalité, une **issue
 chapeau** donne la vue d'ensemble de l'écran, puis les issues « fichier » détaillent chaque étape
 (ViewModel → vue → controleur).
 
@@ -82,11 +82,11 @@ chapeau** donne la vue d'ensemble de l'écran, puis les issues « fichier » dé
 On garde `passage` (l'écran pivot) **pour la fin** : une fois construit, il relie tous les écrans et
 le fil rouge complet passe au vert.
 
-## Le workflow de livraison
+## Le processus de livraison
 
 Une tâche = une **branche** → une **Pull Request** → une **revue** par un binôme → un **merge** (CI
 verte). Les conventions (Git Flow, Conventional Commits, revue obligatoire) sont détaillées dans les
-[Consignes générales](Consignes%20générales.md#conventions-git-et-workflow).
+[Consignes générales](Consignes%20générales.md#conventions-git-et-flux-de-travail).
 
 !!! warning "Définition de « terminé » (Definition of Done)"
     Une tâche n'est **finie** que si : le test d'acceptation concerné est **vert**, la suite **ne

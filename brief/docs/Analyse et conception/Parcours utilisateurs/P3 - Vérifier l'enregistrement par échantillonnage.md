@@ -1,6 +1,6 @@
 # P3 - Vérifier l'enregistrement par échantillonnage 🎧
 
-[← Retour au hub des parcours](index.md) · **Section B - Chaîne de production**
+[← Retour au sommaire des parcours](index.md) · **Section B - Chaîne de production**
 
 > **Persona principal** : Marie / Karim / Samuel. **Objectifs qualité visés** : [O4 Exactitude lecture audio](../../Objectifs%20qualités/Objectifs%20qualités/O4.md), [O7 Intégrité](../../Objectifs%20qualités/Objectifs%20qualités/O7.md).
 

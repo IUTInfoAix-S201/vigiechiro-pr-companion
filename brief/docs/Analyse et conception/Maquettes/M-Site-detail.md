@@ -6,7 +6,7 @@
 
 Cette vue présente **un site et tout ce qui s'y rattache** : sa fiche d'identité (n° de carré, département, protocole, dates), ses points d'écoute (coordonnées GPS optionnelles) et l'historique des passages enregistrés sur ce site. C'est aussi depuis cet écran qu'on **modifie le site** (ajout/retrait de points, mise à jour des coordonnées GPS) et qu'on lance un import.
 
-## Wireframe principal - site avec 3 points et plusieurs passages
+## Maquette principale - site avec 3 points et plusieurs passages
 
 <div markdown="0">
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 820" role="img" aria-label="Maquette M-Site-detail - Détail d'un site de suivi" style="max-width: 100%; height: auto; border: 1px solid #d0d7de; border-radius: 6px; background: #fafbfc;">
@@ -189,7 +189,7 @@ Cette vue présente **un site et tout ce qui s'y rattache** : sa fiche d'identit
 
 - **Bandeau d'infos clés** : la fiche d'identité du site (n° de carré, département déduit des 2 premiers chiffres du carré [R1](../Modèle%20conceptuel/Règles%20métier.md#r1), protocole, date de création, dernière nuit importée, total passages de l'année).
 - **Cartes points d'écoute** : pour A1 et B2 (géolocalisés), le lien vert **« ✓ GPS - voir sur la carte »** ouvre la carte multi-sites centrée sur le point. Pour C3 (sans GPS), le lien ambré **« ⚠ GPS manquant - placer sur la carte »** ouvre la carte sur le carré, **mode édition actif**, pour glisser le point à sa position ([R26](../Modèle%20conceptuel/Règles%20métier.md#r26), [R27](../Modèle%20conceptuel/Règles%20métier.md#r27)). Chaque carte indique le nombre de passages rattachés ; une carte qui en porte ne peut pas être supprimée ([R28](../Modèle%20conceptuel/Règles%20métier.md#r28)).
-- **Tableau passages** : colonnes Date, Point, N° de passage, Statut, Verdict, Enregistreur, Déposé le. Le **statut** suit le workflow `Importé → Transformé → Vérifié → Prêt à déposer → Déposé` (couleur dérivée du statut).
+- **Tableau passages** : colonnes Date, Point, N° de passage, Statut, Verdict, Enregistreur, Déposé le. Le **statut** suit le cycle `Importé → Transformé → Vérifié → Prêt à déposer → Déposé` (couleur dérivée du statut).
 
 ### Interactions clés
 
@@ -328,4 +328,4 @@ Si on tente de supprimer un point qui porte des passages, l'opération est **blo
 
 - La **fiche d'identité** et le **tableau des passages** sont calculés par le service (agrégation par site).
 - Le **tableau** supporte de nombreuses lignes sans pagination (un site très actif sur la saison) ; le tri se fait par en-tête de colonne.
-- Le **statut workflow** affiché est l'attribut persisté ; la couleur du badge en est **dérivée**, pas stockée.
+- Le **statut d'avancement** affiché est l'attribut persisté ; la couleur du badge en est **dérivée**, pas stockée.

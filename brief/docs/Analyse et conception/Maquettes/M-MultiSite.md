@@ -6,7 +6,7 @@
 
 La vue **« Carte & passages »** rassemble **tous les passages**, tous sites confondus. Elle combine une **carte** (à gauche) et un **tableau** (à droite) : la carte situe les sites et points dans l'espace, le tableau les liste pour les **trier**, **filtrer** et **exporter**. C'est l'écran adapté dès qu'on suit plusieurs sites.
 
-## Wireframe principal - carte + tableau
+## Maquette principale - carte + tableau
 
 <div markdown="0">
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" role="img" aria-label="Maquette M-MultiSite - Carte & passages" style="max-width: 100%; height: auto; border: 1px solid #d0d7de; border-radius: 6px; background: #fafbfc;">

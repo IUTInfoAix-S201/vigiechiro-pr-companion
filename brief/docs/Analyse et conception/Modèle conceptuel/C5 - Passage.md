@@ -10,7 +10,7 @@ L'unité métier centrale : une nuit complète d'enregistrement sur un point d'u
 | heure de début | heure | obligatoire | Lue du journal du capteur. |
 | heure de fin | heure | obligatoire | Lue du journal du capteur. |
 | paramètres d'acquisition | structure | extraits du journal du capteur | Fe, FL, FPH, S.R., gain, bande de fréquence, durée enregistrement, seuil SD. Sérialisés tels quels. |
-| statut workflow | énum | `Importé` / `Transformé` / `Vérifié` / `Prêt à déposer` / `Déposé` | Progression de la chaîne pré-VigieChiro. |
+| statut d'avancement | énum | `Importé` / `Transformé` / `Vérifié` / `Prêt à déposer` / `Déposé` | Progression de la chaîne pré-VigieChiro. |
 | verdict de vérification | énum | `À vérifier` / `OK` / `Douteux` / `À jeter` | Saisi par l'utilisateur après écoute de la sélection d'écoute. |
 | commentaire de session | texte | optionnel, ≤ 2000 car. | Météo, intervention humaine, anomalie matérielle, etc. |
 | données météo structurées | structure | optionnelles | T° début/fin nuit, couverture nuageuse, vent. À aligner sur les champs Vigie-Chiro pour faciliter le dépôt. |

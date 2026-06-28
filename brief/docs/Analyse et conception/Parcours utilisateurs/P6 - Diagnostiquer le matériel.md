@@ -1,6 +1,6 @@
 # P6 - Diagnostiquer le matériel 🩺
 
-[← Retour au hub des parcours](index.md) · **Section B - Chaîne de production**
+[← Retour au sommaire des parcours](index.md) · **Section B - Chaîne de production**
 
 > **Persona principal** : Karim / Samuel. **Objectifs qualité visés** : aucun direct, mais c'est un usage fréquent en exploitation pro.
 

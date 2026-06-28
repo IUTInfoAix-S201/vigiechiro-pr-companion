@@ -1,6 +1,6 @@
 # P1 - Déclarer un site de suivi 🌐
 
-[← Retour au hub des parcours](index.md) · **Section B - Chaîne de production**
+[← Retour au sommaire des parcours](index.md) · **Section B - Chaîne de production**
 
 > **Persona principal** : Marie. **Objectifs qualité visés** : [O2 Facilité d'apprentissage](../../Objectifs%20qualités/Objectifs%20qualités/O2.md), [SC1 Onboarding](../../Objectifs%20qualités/Scénario/SC1.md).
 

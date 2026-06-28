@@ -1,6 +1,6 @@
 # E7 - ✅ Valider les résultats Tadarida
 
-[← Retour au hub story mapping](index.md) · **Parcours principal** : [P7 - Valider les résultats Tadarida](../Parcours%20utilisateurs/P7%20-%20Valider%20les%20résultats%20Tadarida.md) · 🟠 SHOULD (cible étirable, filet de sécurité MUST si la SAE déborde du périmètre fil rouge)
+[← Retour au sommaire story mapping](index.md) · **Parcours principal** : [P7 - Valider les résultats Tadarida](../Parcours%20utilisateurs/P7%20-%20Valider%20les%20résultats%20Tadarida.md) · 🟠 SHOULD (cible étirable, filet de sécurité MUST si la SAE déborde du périmètre fil rouge)
 
 **Portée** : tout le travail post-Tadarida - récupérer le CSV de résultats automatiques, le passer en revue espèce par espèce, valider ou corriger chaque classification, exporter le fichier consolidé pour Vigie-Chiro. C'est la **cible étirable principale** : si la SAE déborde du périmètre fil rouge, c'est elle qui sert de filet de sécurité.
 
@@ -73,15 +73,15 @@ Les gains de productivité avancés (regroupement multi-nuits P9, bibliothèque 
 **Afin de** distinguer les caractéristiques discriminantes d'un cri (forme, fréquence dominante, harmoniques) qui complètent l'écoute pour prendre une décision de classification éclairée
 
 !!! info "Composant fourni"
-    Le composant de vue audio (sonogramme + spectrogramme avec zoom) est **fourni par l'équipe pédagogique**. Vous ne réimplémentez pas le calcul FFT ni le rendu graphique du spectrogramme. Cette story se concentre sur l'**intégration** : instancier le composant, le lier au cycle de lecture audio, et synchroniser le cursor avec le player. Ce composant est réutilisé tel quel dans [E3.S3](E3%20-%20Vérifier%20la%20qualité%20d%27enregistrement.md#e3s3) (M-Qualification).
+    Le composant de vue audio (sonogramme + spectrogramme avec zoom) est **fourni par l'équipe pédagogique**. Vous ne réimplémentez pas le calcul FFT ni le rendu graphique du spectrogramme. Cette story se concentre sur l'**intégration** : instancier le composant, le lier au cycle de lecture audio, et synchroniser le curseur avec le lecteur. Ce composant est réutilisé tel quel dans [E3.S3](E3%20-%20Vérifier%20la%20qualité%20d%27enregistrement.md#e3s3) (M-Qualification).
 
 **Critères d'acceptation** :
 
 - [ ] Le panneau de détail ([E7.S2](#e7s2)) affiche le composant audio fourni, alimenté par le chemin de la séquence courante (WAV ralenti ×10, cf. [R10](../Modèle%20conceptuel/Règles%20métier.md#r10)).
-- [ ] Le **cursor de lecture** est synchronisé entre le sonogramme (en haut), le spectrogramme (en bas) et le player audio.
+- [ ] Le **curseur de lecture** est synchronisé entre le sonogramme (en haut), le spectrogramme (en bas) et le lecteur audio.
 - [ ] Les **contrôles de zoom** du spectrogramme (molette ou slider, indépendants pour temps et fréquence) sont accessibles à l'utilisateur. Bouton « Reset zoom » disponible.
 - [ ] Quand l'utilisateur change de séquence, le composant se recharge proprement (pas de fuite mémoire ni de freeze).
-- [ ] Si la séquence est introuvable sur disque, le composant affiche un placeholder explicite plutôt que de planter.
+- [ ] Si la séquence est introuvable sur disque, le composant affiche un substitut explicite plutôt que de planter.
 - [ ] Test d'intégration : navigation séquentielle dans 100 observations vérifie que le composant reste réactif (< 200 ms de bascule).
 
 **Parcours rattaché** : [P7](../Parcours%20utilisateurs/P7%20-%20Valider%20les%20résultats%20Tadarida.md), étape 4<br>
@@ -155,7 +155,7 @@ Les gains de productivité avancés (regroupement multi-nuits P9, bibliothèque 
 
 **Critères d'acceptation** :
 
-- [ ] À l'ouverture de la vue de validation pour un passage, l'application demande le mode (toggle ou modal) :
+- [ ] À l'ouverture de la vue de validation pour un passage, l'application demande le mode (bascule ou fenêtre modale) :
     - **Mode inventaire** : Marie cherche juste à savoir quelles espèces sont présentes. Une fois une espèce validée avec confiance sur une nuit, les autres détections de la même espèce sur la même nuit sont marquées automatiquement comme « secondaires » (statut spécial) et ne demandent pas de validation manuelle.
     - **Mode activité** : Samuel veut quantifier. Toutes les observations doivent être passées en revue.
 - [ ] Le mode choisi est **persisté par passage** : on peut ouvrir un passage en mode inventaire et un autre en mode activité.
@@ -166,7 +166,7 @@ Les gains de productivité avancés (regroupement multi-nuits P9, bibliothèque 
 **Parcours rattaché** : [P7](../Parcours%20utilisateurs/P7%20-%20Valider%20les%20résultats%20Tadarida.md), Notes importantes - deux modes<br>
 **Maquettes cibles** : [M-Vision-Tadarida](../Maquettes/M-Vision-Tadarida.md) (modal de choix de mode au démarrage + indicateur du mode courant)<br>
 **Dépendances** : [E0.S5](E0%20-%20Fondations%20de%20persistance.md#e0s5), [E7.S4](#e7s4)<br>
-**Complexité** : ★★ (simple - toggle + logique différenciée à la validation + ajustement de l'export)<br>
+**Complexité** : ★★ (simple - bascule + logique différenciée à la validation + ajustement de l'export)<br>
 **MoSCoW** : ⚪ COULD (le mode activité par défaut suffit pour le MVP ; le mode inventaire est un raffinement productivité)
 
 ---

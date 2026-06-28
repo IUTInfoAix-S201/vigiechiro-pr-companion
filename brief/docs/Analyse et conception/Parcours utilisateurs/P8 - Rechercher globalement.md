@@ -1,6 +1,6 @@
 # P8 - Rechercher globalement 🔍
 
-[← Retour au hub des parcours](index.md) · **Transverse** · accessible depuis tout écran
+[← Retour au sommaire des parcours](index.md) · **Transverse** · accessible depuis tout écran
 
 > **Persona principal** : tous. **Objectifs qualité servis** : [O2 Facilité d'apprentissage](../../Objectifs%20qualités/Objectifs%20qualités/O2.md) (atteindre n'importe quel élément sans connaître l'arborescence).
 

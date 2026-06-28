@@ -1,6 +1,6 @@
 # P10 - Exporter une bibliothèque de sons de référence 🎼
 
-[← Retour au hub des parcours](index.md) · **Section C - Après le dépôt & exploitation**
+[← Retour au sommaire des parcours](index.md) · **Section C - Après le dépôt & exploitation**
 
 > **Persona principal** : Samuel. **Objectifs qualité visés** : aucun direct - c'est une fonctionnalité bonus.
 

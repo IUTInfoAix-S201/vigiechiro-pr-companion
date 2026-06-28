@@ -6,7 +6,7 @@
 
 L'écran est la porte d'entrée du prisme **biodiversité** : il **exploite transversalement** les observations (toutes nuits confondues) pour répondre à « quelles espèces ai-je détectées, où, quand, combien ? ». Il est en **maître-détail** : un **inventaire** en haut (regroupé par espèce ou par carré), et en bas le **détail des observations** de l'élément sélectionné.
 
-## Wireframe principal - inventaire par espèce + détail
+## Maquette principale - inventaire par espèce + détail
 
 <div markdown="0">
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 760" role="img" aria-label="Maquette M-Analyse - Espèces & observations" style="max-width: 100%; height: auto; border: 1px solid #d0d7de; border-radius: 6px; background: #fafbfc;">

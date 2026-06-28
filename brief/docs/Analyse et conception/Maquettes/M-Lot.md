@@ -6,7 +6,7 @@
 
 Cette vue affiche un **rapport de cohérence** (toutes les vérifications préalables passent ✓ ou échouent ✗), puis le **récapitulatif du lot** prêt à téléverser (chemin sur disque, volume, lien direct pour ouvrir le dossier dans l'explorateur), et enfin la **section de téléversement manuel** avec lien vers le portail Vigie-Chiro et bouton de confirmation « J'ai déposé le lot ». L'application **ne dialogue jamais** avec Vigie-Chiro : le téléversement reste manuel via navigateur.
 
-## Wireframe principal - vérifications passent, lot prêt à déposer
+## Maquette principale - vérifications passent, lot prêt à déposer
 
 <div markdown="0">
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 820" role="img" aria-label="Maquette M-Lot - Préparation du lot à déposer" style="max-width: 100%; height: auto; border: 1px solid #d0d7de; border-radius: 6px; background: #fafbfc;">

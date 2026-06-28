@@ -6,7 +6,7 @@ hide:
 
 # Topologie des parcours - vue plein écran
 
-[← Retour au hub des parcours](index.md)
+[← Retour au sommaire des parcours](index.md)
 
 <style>
   .md-content__inner > .mermaid,
@@ -63,4 +63,4 @@ flowchart LR
 - Une **boucle** P5 → P2 indique que le parcours multi-sites alimente plusieurs imports successifs.
 - Les parcours P9 et P10 sont des **branches optionnelles** qui ne bloquent pas le fil principal.
 
-[← Retour au hub des parcours](index.md)
+[← Retour au sommaire des parcours](index.md)

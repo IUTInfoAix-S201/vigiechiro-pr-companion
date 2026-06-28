@@ -1,6 +1,6 @@
 # P9 - Regrouper les nuits successives par point 🔁
 
-[← Retour au hub des parcours](index.md) · **Section C - Après le dépôt & exploitation**
+[← Retour au sommaire des parcours](index.md) · **Section C - Après le dépôt & exploitation**
 
 > **Persona principal** : Karim / Samuel. **Objectifs qualité visés** : [O5 Capacité d'affichage](../../Objectifs%20qualités/Objectifs%20qualités/O5.md), confort de productivité.
 

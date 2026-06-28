@@ -1,6 +1,6 @@
 # E0 - 🗄️ Fondations de persistance
 
-[← Retour au hub story mapping](index.md) · **Épopée transverse** · ✅ MUST socle (S1-S5) · 🟠 SHOULD (S6-S7) · ⚪ COULD (S8)
+[← Retour au sommaire story mapping](index.md) · **Épopée transverse** · ✅ MUST socle (S1-S5) · 🟠 SHOULD (S6-S7) · ⚪ COULD (S8)
 
 **Portée** : tout le travail base de données (schéma SQLite, DAO, persistance des entités cœur, mécanismes de reprise sur erreur). Cette épopée n'est rattachée à **aucun parcours** spécifique car elle **sert toutes les autres épopées** : sans elle, aucune story métier n'est livrable.
 
@@ -54,19 +54,19 @@
 
 ---
 
-## E0.S3 - Persister les passages avec leurs statuts workflow { #e0s3 }
+## E0.S3 - Persister les passages avec leurs statuts d'avancement { #e0s3 }
 
 **En tant que** développeur
 
 **Je veux** des DAO opérationnels pour l'entité `Passage` et ses statuts
 
-**Afin que** les épopées [E2](index.md) (Import), [E3](index.md) (Vérification) et [E4](index.md) (Lot) puissent suivre l'avancement d'une nuit dans le workflow
+**Afin que** les épopées [E2](index.md) (Import), [E3](index.md) (Vérification) et [E4](index.md) (Lot) puissent suivre l'avancement d'une nuit dans le cycle
 
 **Critères d'acceptation** :
 
 - [ ] `PassageDao` permet de créer un passage rattaché à un point d'écoute, une année, un n° de passage.
 - [ ] L'unicité du quadruplet `(carré, année, n° passage, point)` est garantie au niveau BD (contrainte unique).
-- [ ] Le statut workflow est persisté (`Importé`, `Transformé`, `Vérifié`, `Prêt à déposer`, `Déposé`).
+- [ ] Le statut d'avancement est persisté (`Importé`, `Transformé`, `Vérifié`, `Prêt à déposer`, `Déposé`).
 - [ ] Le verdict de vérification est persisté (`OK`, `Douteux`, `À jeter`, ou null si non vérifié).
 - [ ] L'association `Enregistreur ↔ Site/Point` (mémorisée pour faciliter les imports suivants) est persistée.
 - [ ] Tests d'intégration couvrant la création, la transition de statut et le verdict.
@@ -141,7 +141,7 @@
 - [ ] Au redémarrage de l'application, si un import était en cours, l'utilisateur est notifié et peut choisir de reprendre, abandonner, ou repartir de zéro.
 - [ ] Les fichiers déjà copiés ne sont pas recopiés.
 - [ ] Les fichiers déjà transformés ne sont pas re-transformés.
-- [ ] Le statut workflow du passage reste cohérent (`En cours` jusqu'à complétion, puis `Transformé`).
+- [ ] Le statut d'avancement du passage reste cohérent (`En cours` jusqu'à complétion, puis `Transformé`).
 - [ ] Test d'intégration simulant une interruption à différents moments du pipeline.
 
 **Parcours rattaché** : transverse à [P2](../Parcours%20utilisateurs/P2%20-%20Importer%20une%20nuit%20d%27enregistrement.md)<br>

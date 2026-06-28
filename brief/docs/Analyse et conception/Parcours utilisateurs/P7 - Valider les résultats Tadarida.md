@@ -1,6 +1,6 @@
 # P7 - Valider les résultats Tadarida ✅
 
-[← Retour au hub des parcours](index.md) · **Section C - Après le dépôt & exploitation**
+[← Retour au sommaire des parcours](index.md) · **Section C - Après le dépôt & exploitation**
 
 > **Persona principal** : Marie / Samuel. **Objectifs qualité visés** : [O4 Exactitude lecture audio](../../Objectifs%20qualités/Objectifs%20qualités/O4.md), [O7 Intégrité](../../Objectifs%20qualités/Objectifs%20qualités/O7.md).
 

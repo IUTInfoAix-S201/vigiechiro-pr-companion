@@ -1,6 +1,6 @@
 # Parcours utilisateurs
 
-Cette section présente les **parcours d'usage** de l'application, organisés en trois groupes. Chaque parcours a sa propre fiche dans la sidebar - utilisez ce hub comme point d'entrée et table des matières. **Tous ces parcours sont supportés par l'application livrée.**
+Cette section présente les **parcours d'usage** de l'application, organisés en trois groupes. Chaque parcours a sa propre fiche dans la barre latérale - utilisez ce sommaire comme point d'entrée et table des matières. **Tous ces parcours sont supportés par l'application livrée.**
 
 - **Section A - Fil rouge** : un seul parcours, **P0**, qui raconte l'usage de bout-en-bout vu par Marie, de la carte SD au dépôt.
 - **Section B - Chaîne de production** : les parcours **P1 à P6** qui composent et enrichissent le fil rouge - déclaration de site, import, vérification, préparation du lot, navigation multi-sites et diagnostic matériel.

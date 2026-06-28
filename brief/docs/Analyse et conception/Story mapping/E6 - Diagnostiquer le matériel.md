@@ -1,6 +1,6 @@
 # E6 - 🩺 Diagnostiquer le matériel
 
-[← Retour au hub story mapping](index.md) · **Parcours principal** : [P6 - Diagnostiquer le matériel](../Parcours%20utilisateurs/P6%20-%20Diagnostiquer%20le%20matériel.md) · 🟠 SHOULD
+[← Retour au sommaire story mapping](index.md) · **Parcours principal** : [P6 - Diagnostiquer le matériel](../Parcours%20utilisateurs/P6%20-%20Diagnostiquer%20le%20matériel.md) · 🟠 SHOULD
 
 **Portée** : exploiter le **journal du capteur** (`LogPR<n>.txt`) et le **relevé climatique** (`PaRecPR<sn>_THLog.csv`) capturés pendant la nuit pour donner à l'utilisateur une vue d'ensemble de la santé matérielle de son enregistreur. Comprend également la **vérification astronomique** (idée Samuel, mai 2026) qui compare la plage effective d'enregistrement à la plage théorique calculée d'après les coordonnées GPS du point.
 
@@ -104,14 +104,14 @@
 - [ ] Depuis l'onglet « Diagnostic » d'un passage, un bouton « Comparer avec passage précédent » ouvre un sélecteur listant les autres passages **du même enregistreur** (matching par n° de série), ordonnés du plus récent au plus ancien.
 - [ ] Au choix d'un passage de référence, l'écran bascule en mode comparaison avec deux colonnes : passage courant à gauche, passage de référence à droite.
 - [ ] Les 3 encarts (T°/hygro, batterie, évènements) sont dupliqués côte à côte.
-- [ ] Pour les courbes T°/hygro, possibilité d'**afficher les deux courbes superposées** sur un même graphe (toggle) pour faciliter la lecture de dérive.
+- [ ] Pour les courbes T°/hygro, possibilité d'**afficher les deux courbes superposées** sur un même graphe (bascule) pour faciliter la lecture de dérive.
 - [ ] La comparaison fonctionne aussi entre deux passages de **points différents** si l'utilisateur le souhaite (utile pour comparer deux sites équipés du même type d'enregistreur).
 - [ ] Bouton « Sortir de la comparaison » pour revenir au diagnostic mono-passage.
 
 **Parcours rattaché** : [P6](../Parcours%20utilisateurs/P6%20-%20Diagnostiquer%20le%20matériel.md), étape 3<br>
 **Maquettes cibles** : [M-Passage](../Maquettes/M-Passage.md) (variante diagnostic avec mode comparaison)<br>
 **Dépendances** : [E6.S1](#e6s1), [E6.S2](#e6s2)<br>
-**Complexité** : ★★ (simple - composition de 2 vues identiques + toggle de superposition de courbes)<br>
+**Complexité** : ★★ (simple - composition de 2 vues identiques + bascule de superposition de courbes)<br>
 **MoSCoW** : ⚪ COULD (productivité Karim/Samuel ; pas dans le périmètre minimal de diagnostic)
 
 ---
@@ -139,7 +139,7 @@
 - [ ] Tests d'intégration : export sur un passage représentatif, vérification de la structure du CSV et de l'ouverture du PDF par un lecteur standard.
 
 **Parcours rattaché** : [P6](../Parcours%20utilisateurs/P6%20-%20Diagnostiquer%20le%20matériel.md), étape 4<br>
-**Maquettes cibles** : [M-Passage](../Maquettes/M-Passage.md) (bouton « Exporter le diagnostic » + modal de choix de format)<br>
+**Maquettes cibles** : [M-Passage](../Maquettes/M-Passage.md) (bouton « Exporter le diagnostic » + fenêtre modale de choix de format)<br>
 **Dépendances** : [E6.S1](#e6s1), [E6.S2](#e6s2)<br>
 **Complexité** : ★★ (simple - sérialisation CSV + génération PDF basique via bibliothèque type iText ou OpenPDF)<br>
 **MoSCoW** : ⚪ COULD (export confort, pas critique au MVP)

@@ -8,7 +8,7 @@ L'écran est divisé en **2 colonnes** : à gauche, la liste chronologique des s
 
 > **Pattern visuel partagé avec [M-Vision-Tadarida](M-Vision-Tadarida.md)** : les deux écrans suivent le même squelette « liste + détail » pour offrir une expérience cohérente. La différence porte sur la sémantique (un verdict GLOBAL pour M-Qualification, un verdict PAR observation pour M-Vision-Tadarida) et sur la visualisation (waveform simple ici, spectrogramme avec zoom là-bas).
 
-## Wireframe principal - 12 séquences sur 30 déjà écoutées, lecture en cours
+## Maquette principale - 12 séquences sur 30 déjà écoutées, lecture en cours
 
 <div markdown="0">
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" role="img" aria-label="Maquette M-Qualification - Vérification d'enregistrement par échantillonnage" style="max-width: 100%; height: auto; border: 1px solid #d0d7de; border-radius: 6px; background: #fafbfc;">
@@ -62,13 +62,13 @@ L'écran est divisé en **2 colonnes** : à gauche, la liste chronologique des s
     .waveform-bg-light { fill: #eef2f5; stroke: #6a737d; stroke-width: 1; }
     .waveform-bar-played { fill: #1e8449; }
     .waveform-bar-pending { fill: #4a90d9; }
-    .waveform-cursor { stroke: #e74c3c; stroke-width: 1.5; }
+    .waveform-curseur { stroke: #e74c3c; stroke-width: 1.5; }
     .waveform-axis-txt { font: 9px monospace; fill: #6a737d; }
     /* Spectrogramme sur fond sombre (composant audio partagé avec M-Vision-Tadarida) */
     .specto-bg { fill: #1c2833; stroke: #34495e; stroke-width: 1; }
     .specto-axis { stroke: #6a737d; stroke-width: 1; }
     .specto-axis-txt { font: 9px monospace; fill: #bdc3c7; }
-    .specto-cursor { stroke: #e74c3c; stroke-width: 1.5; }
+    .specto-curseur { stroke: #e74c3c; stroke-width: 1.5; }
     .specto-zoom-btn { fill: rgba(255,255,255,0.1); stroke: #6a737d; stroke-width: 1; }
     .specto-zoom-txt { fill: #ffffff; font: 600 11px sans-serif; }
 
@@ -332,7 +332,7 @@ L'écran est divisé en **2 colonnes** : à gauche, la liste chronologique des s
   <rect x="1095" y="431" width="2" height="8" class="waveform-bar-pending"/>
   <rect x="1115" y="432" width="2" height="6" class="waveform-bar-pending"/>
   <!-- Cursor sonogramme -->
-  <line x1="868" y1="405" x2="868" y2="465" class="waveform-cursor"/>
+  <line x1="868" y1="405" x2="868" y2="465" class="waveform-curseur"/>
 
   <!-- Spectrogramme (fréquence/temps) sur fond sombre -->
   <rect x="680" y="475" width="460" height="130" class="specto-bg"/>
@@ -368,14 +368,14 @@ L'écran est divisé en **2 colonnes** : à gauche, la liste chronologique des s
   <rect x="1058" y="515" width="3" height="50" fill="#e74c3c"/>
   <rect x="1100" y="522" width="3" height="44" fill="#f39c12"/>
   <!-- Cursor spectrogramme (synchronisé avec sonogramme) -->
-  <line x1="868" y1="475" x2="868" y2="605" class="specto-cursor"/>
+  <line x1="868" y1="475" x2="868" y2="605" class="specto-curseur"/>
   <!-- Boutons zoom -->
   <rect x="1090" y="480" width="20" height="20" rx="3" class="specto-zoom-btn"/>
   <text x="1100" y="495" class="specto-zoom-txt" text-anchor="middle">+</text>
   <rect x="1115" y="480" width="20" height="20" rx="3" class="specto-zoom-btn"/>
   <text x="1125" y="495" class="specto-zoom-txt" text-anchor="middle">−</text>
 
-  <!-- Section 3 : player audio bar -->
+  <!-- Section 3 : lecteur audio -->
   <rect x="680" y="615" width="460" height="36" rx="3" class="player-bar"/>
   <text x="695" y="637" class="player-ctrl">⏮ ⏯ ⏭</text>
   <text x="780" y="637" class="player-time">2,1 s / 5,0 s</text>
@@ -418,19 +418,19 @@ L'écran est divisé en **2 colonnes** : à gauche, la liste chronologique des s
 - **Fil d'Ariane et retour** : portés par le **chrome** (barre de navigation commune) via le contrat `EmplacementNavigation` ; l'écran ne dessine plus son propre fil ni de lien « retour au passage ». Emplacement affiché : `🏠 Accueil › Mes sites › Carré N › Détails du passage N° X › Vérifier l'enregistrement`, identique quelle que soit la route (depuis M-Sites comme depuis M-Multisite).
 - **Bandeau infos passage** : 5 cellules de rappel (passage, date, séquences totales, verdict actuel, statut).
 - **Colonne gauche - Liste séquences** (identique au design précédent) :
-    - Header avec compteur + bouton « ⚙ Personnaliser »
+    - En-tête avec compteur + bouton « ⚙ Personnaliser »
     - Barre de progression verte (12/30, 40 %) + rappel R13
     - Tableau 7 colonnes (▶, N°, horodatage, durée, fréquence, fichier, écouté ✓/○)
     - Ligne courante (n° 04) en surbrillance bleue
     - Boutons en bas : ajouter manuellement / régénérer
 - **Colonne droite - Panneau de détail** (style harmonisé avec [M-Vision-Tadarida](M-Vision-Tadarida.md)) :
     - **Section 1 : info séquence** (card claire `.seq-info-card`) - N° de séquence + horodatage + métadonnées + position dans la sélection (04/30), miroir de la « card info taxon » de M-Vision-Tadarida.
-    - **Section 2 : vue audio combinée** (sonogramme + spectrogramme) - **Composant partagé avec [M-Vision-Tadarida](M-Vision-Tadarida.md)**, fourni par l'équipe pédagogique. Le sonogramme (amplitude/temps, fond clair) et le spectrogramme (fréquence/temps, fond sombre) sont **synchronisés** par un cursor rouge vertical unique. Boutons de zoom temps/fréquence accessibles sur le spectrogramme. L'utilisateur peut faire de l'écoute simple (sonogramme) ou analyser plus en détail (spectrogramme) selon ses besoins.
-    - **Section 3 : player audio** (bar sombre comme M-Vision-Tadarida) - Contrôles ⏮ ⏯ ⏭, timecode, volume.
+    - **Section 2 : vue audio combinée** (sonogramme + spectrogramme) - **Composant partagé avec [M-Vision-Tadarida](M-Vision-Tadarida.md)**, fourni par l'équipe pédagogique. Le sonogramme (amplitude/temps, fond clair) et le spectrogramme (fréquence/temps, fond sombre) sont **synchronisés** par un curseur rouge vertical unique. Boutons de zoom temps/fréquence accessibles sur le spectrogramme. L'utilisateur peut faire de l'écoute simple (sonogramme) ou analyser plus en détail (spectrogramme) selon ses besoins.
+    - **Section 3 : lecteur audio** (barre sombre comme M-Vision-Tadarida) - Contrôles ⏮ ⏯ ⏭, minutage, volume.
     - **Section 4 : verdict global** - 3 boutons colorés grand format (`✓ OK` vert / `⚠ Douteux` orange / `❌ À jeter` rouge). Le bouton sélectionné a une bordure plus épaisse (le `OK` ici est sélectionné). **Sélection différée** : ne persiste pas, attend le bouton « Enregistrer le verdict ».
     - **Section 5 : commentaire** - Champ texte multi-ligne optionnel.
     - **Bouton « 💾 Enregistrer le verdict »** primary à droite - Action finale qui persiste le verdict + commentaire et passe le passage au statut `Vérifié`.
-- **Footer** : raccourcis claviers harmonisés avec M-Vision-Tadarida (↑/↓/Espace/O/D/J/⏎).
+- **Pied de page** : raccourcis clavier harmonisés avec M-Vision-Tadarida (↑/↓/Espace/O/D/J/⏎).
 
 ### Différences sémantiques avec [M-Vision-Tadarida](M-Vision-Tadarida.md)
 
@@ -447,8 +447,8 @@ L'écran est divisé en **2 colonnes** : à gauche, la liste chronologique des s
 
 | Élément | Action |
 |---|---|
-| Clic sur ▶ d'une ligne | Joue la séquence dans le player. Marque automatiquement comme « écoutée » |
-| Clic ailleurs sur la ligne | Sélectionne la séquence et charge dans le player sans démarrer |
+| Clic sur ▶ d'une ligne | Joue la séquence dans le lecteur. Marque automatiquement comme « écoutée » |
+| Clic ailleurs sur la ligne | Sélectionne la séquence et charge dans le lecteur sans démarrer |
 | ↑ / ↓ (clavier) | Navigation entre séquences |
 | Espace (clavier) | Lecture / pause de la séquence courante |
 | **O** (clavier) ou clic vert | Sélectionne le verdict OK |
@@ -547,8 +547,8 @@ Activée par le bouton **⚙ Personnaliser** dans l'en-tête de la liste. Permet
 ## Notes pour l'implémentation
 
 - **TableView avec virtualisation** : la liste des séquences peut atteindre 100 lignes (taille max). JavaFX `TableView` gère nativement la virtualisation, à confirmer avec un test sur 100+ lignes.
-- **Composant de vue audio fourni** : le bloc `sonogramme + spectrogramme + cursor synchronisé + boutons zoom` est un **composant JavaFX fourni par l'équipe pédagogique** (cf. Contraintes techniques). Les étudiants ne le réimplémentent pas - ils l'instancient avec un `wav:Path` et reçoivent les évènements de lecture / curseur. Ce composant est partagé avec [M-Vision-Tadarida](M-Vision-Tadarida.md), évitant ainsi la duplication d'un calcul FFT non trivial.
-- **Player audio** : `MediaPlayer` JavaFX avec `Media`. Le composant audio fourni gère les contrôles standards (⏮ ⏯ ⏭) et expose une API simple.
+- **Composant de vue audio fourni** : le bloc `sonogramme + spectrogramme + curseur synchronisé + boutons zoom` est un **composant JavaFX fourni par l'équipe pédagogique** (cf. Contraintes techniques). Les étudiants ne le réimplémentent pas - ils l'instancient avec un `wav:Path` et reçoivent les évènements de lecture / curseur. Ce composant est partagé avec [M-Vision-Tadarida](M-Vision-Tadarida.md), évitant ainsi la duplication d'un calcul FFT non trivial.
+- **Lecteur audio** : `MediaPlayer` JavaFX avec `Media`. Le composant audio fourni gère les contrôles standards (⏮ ⏯ ⏭) et expose une API simple.
 - **Cohérence visuelle avec [M-Vision-Tadarida](M-Vision-Tadarida.md)** : les deux écrans partagent le même style de panneau de détail (fond clair, sections numérotées, vue audio combinée, boutons d'action colorés en bas). Les étudiants n'implémentent qu'un seul pattern de « lieu d'écoute », réutilisé sur les deux écrans.
 - **Sélection vs persistance du verdict** : le clic sur l'un des 3 boutons (OK / Douteux / À jeter) **sélectionne** mais ne persiste pas. La persistance se fait via le bouton « Enregistrer le verdict » (qui peut aussi être déclenché par ⏎ Entrée). Cette dissociation évite les fausses manipulations et permet de changer d'avis avant de valider.
 - **Synchronisation lecture ↔ progression** : le statut `écouté` doit être marqué dès le début de la lecture (pas à la fin), pour permettre à l'utilisateur de zapper rapidement.

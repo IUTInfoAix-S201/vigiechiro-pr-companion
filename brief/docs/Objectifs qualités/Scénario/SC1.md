@@ -9,7 +9,7 @@ L'utilisateur typique est un naturaliste bénévole qui vient de récupérer son
 ## Critères d'acceptation
 
 - L'écran d'accueil indique clairement la première action à réaliser (« Importer une session »).
-- L'import d'un dossier de session se fait par un seul geste (drag-and-drop ou bouton + sélection de dossier).
+- L'import d'un dossier de session se fait par un seul geste (glisser-déposer ou bouton + sélection de dossier).
 - Les libellés de l'IHM utilisent le vocabulaire métier (« session », « observation », « taxon ») et non du jargon technique (« parser le CSV », « charger le buffer audio »).
 - Les actions destructrices sont protégées par confirmation.
 - Une aide contextuelle (info-bulles, lien vers une page d'aide locale) est accessible depuis chaque écran.

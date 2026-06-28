@@ -1,6 +1,6 @@
 # P11 - Inventaire des espèces détectées 🪶
 
-[← Retour au hub des parcours](index.md) · **Section C - Après le dépôt & exploitation**
+[← Retour au sommaire des parcours](index.md) · **Section C - Après le dépôt & exploitation**
 
 > **Personas principaux** : Karim, Samuel. **Prérequis** : des observations Tadarida importées et (idéalement) validées ([P7](P7%20-%20Valider%20les%20résultats%20Tadarida.md)).
 

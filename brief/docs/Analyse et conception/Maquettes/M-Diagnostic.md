@@ -8,7 +8,7 @@ L'écran présente, pour le passage courant, un **bilan technique** de la nuit :
 
 > **Robustesse** : quand le relevé climatique est manquant (sonde absente ou défaillante), la section climat n'est **pas masquée** : un bandeau d'avertissement explicite le signale (R20) et le reste du diagnostic reste exploitable.
 
-## Wireframe principal - passage avec relevé climatique présent
+## Maquette principale - passage avec relevé climatique présent
 
 <div markdown="0">
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 660" role="img" aria-label="Maquette M-Diagnostic - diagnostic materiel d'un passage" style="max-width: 100%; height: auto; border: 1px solid #d0d7de; border-radius: 6px; background: #f7f9fb;">

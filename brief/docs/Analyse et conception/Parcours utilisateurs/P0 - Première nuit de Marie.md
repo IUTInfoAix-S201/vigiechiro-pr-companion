@@ -1,6 +1,6 @@
 # P0 - Première nuit de Marie ⭐
 
-[← Retour au hub des parcours](index.md) · **Section A - Fil rouge**
+[← Retour au sommaire des parcours](index.md) · **Section A - Fil rouge**
 
 > **Persona** : Marie. **Préconditions** : enregistreur reçu, site choisi, première nuit d'enregistrement effectuée.
 

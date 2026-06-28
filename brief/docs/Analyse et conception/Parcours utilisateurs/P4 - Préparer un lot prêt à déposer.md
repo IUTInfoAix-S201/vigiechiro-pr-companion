@@ -1,6 +1,6 @@
 # P4 - Préparer un lot prêt à déposer 📦
 
-[← Retour au hub des parcours](index.md) · **Section B - Chaîne de production**
+[← Retour au sommaire des parcours](index.md) · **Section B - Chaîne de production**
 
 > **Persona principal** : Marie / Karim / Samuel. **Objectifs qualité visés** : [O7 Intégrité](../../Objectifs%20qualités/Objectifs%20qualités/O7.md), [O8 Confidentialité](../../Objectifs%20qualités/Objectifs%20qualités/O8.md).
 

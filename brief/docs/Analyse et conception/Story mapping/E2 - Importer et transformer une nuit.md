@@ -1,6 +1,6 @@
 # E2 - 📥 Importer et transformer une nuit
 
-[← Retour au hub story mapping](index.md) · **Parcours principal** : [P2 - Importer une nuit d'enregistrement](../Parcours%20utilisateurs/P2%20-%20Importer%20une%20nuit%20d%27enregistrement.md) · ✅ MUST
+[← Retour au sommaire story mapping](index.md) · **Parcours principal** : [P2 - Importer une nuit d'enregistrement](../Parcours%20utilisateurs/P2%20-%20Importer%20une%20nuit%20d%27enregistrement.md) · ✅ MUST
 
 **Portée** : remplacer entièrement la chaîne d'outils manuels (LupasRename + Kaléidoscope 4.3.1). Inspecter un dossier source SD, rattacher la nuit à un site/point/passage, copier de manière protégée les fichiers, les renommer selon le préfixe Vigie-Chiro, et produire les séquences d'écoute (expansion ×10 + chunks 5 s). C'est l'**épopée la plus dense** et la plus à risque techniquement (volumétrie 40 Go, traitement audio).
 
@@ -18,7 +18,7 @@
 
 **Critères d'acceptation** :
 
-- [ ] L'utilisateur peut sélectionner un dossier source via un sélecteur ou un drag-and-drop sur la modale d'import.
+- [ ] L'utilisateur peut sélectionner un dossier source via un sélecteur ou un glisser-déposer sur la modale d'import.
 - [ ] L'application **n'écrit rien** sur le dossier source pendant l'inspection ([R9](../Modèle%20conceptuel/Règles%20métier.md#r9)).
 - [ ] L'inspection détecte et signale : journal du capteur (`LogPR<n>.txt`), relevé climatique (`PaRecPR<sn>_THLog.csv`), N enregistrements WAV, taille totale du dossier, plage horaire couverte.
 - [ ] Le **n° de série de l'enregistreur** est extrait du journal du capteur quand celui-ci est présent.

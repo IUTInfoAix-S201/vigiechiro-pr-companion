@@ -1,6 +1,6 @@
 # E1 - 🌐 Gérer ses sites et points de suivi
 
-[← Retour au hub story mapping](index.md) · **Parcours principal** : [P1 - Déclarer un site de suivi](../Parcours%20utilisateurs/P1%20-%20Déclarer%20un%20site%20de%20suivi.md) · ✅ MUST
+[← Retour au sommaire story mapping](index.md) · **Parcours principal** : [P1 - Déclarer un site de suivi](../Parcours%20utilisateurs/P1%20-%20Déclarer%20un%20site%20de%20suivi.md) · ✅ MUST
 
 **Portée** : permettre à l'utilisateur de déclarer ses sites de suivi (créés en amont sur le portail VigieChiro) dans l'application, avec leurs points d'écoute, pour pouvoir y rattacher ensuite les nuits importées. Inclut la création à la volée depuis l'import.
 
@@ -20,7 +20,7 @@
 
 - [ ] Le formulaire valide que le n° de carré fait exactement 6 chiffres ([R1](../Modèle%20conceptuel/Règles%20métier.md#r1) du [modèle conceptuel](../Modèle%20conceptuel/index.md)).
 - [ ] Le formulaire alerte si l'utilisateur saisit 5 chiffres pour les départements 1-9 (leading zero manquant) avec un message explicite (ex. « Pour le département 4, le n° de carré doit commencer par 0 »).
-- [ ] Le nom convivial est facultatif mais recommandé (placeholder « ex. Étang de la Tuilière »).
+- [ ] Le nom convivial est facultatif mais recommandé (texte indicatif « ex. Étang de la Tuilière »).
 - [ ] Le champ **protocole** est un menu déroulant à deux valeurs : `PointFixeStandard` (par défaut, déclenche les alertes [R3](../Modèle%20conceptuel/Règles%20métier.md#r3) / [R4](../Modèle%20conceptuel/Règles%20métier.md#r4) en cas de passage hors fenêtre) et `PointFixeRecherche` (R3 / R4 muettes, pour les campagnes recherche à dates personnalisées). Les autres protocoles VigieChiro (Pédestre, Routier, etc.) ne sont pas supportés au MVP.
 - [ ] Au moins un point d'écoute est exigé pour valider le site.
 - [ ] Le code de point doit faire 1 lettre majuscule + 1 chiffre ([R2](../Modèle%20conceptuel/Règles%20métier.md#r2)), validé à la saisie.

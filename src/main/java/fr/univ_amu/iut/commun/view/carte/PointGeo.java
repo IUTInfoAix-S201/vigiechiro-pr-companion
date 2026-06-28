@@ -37,4 +37,13 @@ public record PointGeo(
     public PointGeo(String libelle, double latitude, double longitude, Color couleur) {
         this(libelle, latitude, longitude, couleur, null, false);
     }
+
+    /// **Nom court** affiché sur la carte, à côté de la pastille : la partie après le dernier « / » du
+    /// [#libelle] (p. ex. `« 640380 / A1 »` → `« A1 »`), ou le libellé entier s'il n'en contient pas.
+    /// Le [#libelle] complet reste la clé d'identification (édition des positions, accessibilité) ; seul
+    /// l'affichage est abrégé pour ne pas surcharger la carte.
+    public String nom() {
+        int separateur = libelle.lastIndexOf(" / ");
+        return separateur < 0 ? libelle : libelle.substring(separateur + 3);
+    }
 }

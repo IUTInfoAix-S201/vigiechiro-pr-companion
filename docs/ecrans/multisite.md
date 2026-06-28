@@ -11,8 +11,11 @@ sites et qu'on veut une vision d'ensemble.
 
 À **gauche**, la **carte** affiche chaque **carré** (maille 2 km du carroyage national Vigie-Chiro) et
 ses **points d'écoute** sous forme de marqueurs **colorés selon le statut** du dernier passage (gris = importé,
-indigo = transformé / vérifié, cyan = prêt à déposer, vert = déposé). Chaque marqueur porte son
-libellé (`carré / point`). Un point **sans coordonnées GPS** est tout de même affiché, **au centre de
+indigo = transformé / vérifié, cyan = prêt à déposer, vert = déposé). Chaque **carré** affiche son
+**numéro** dans son coin, en **petit repère discret** (texte sombre à fin liseré clair) qui reste
+lisible sans s'imposer ; chaque marqueur porte, lui, son **nom de point** abrégé (p. ex. `A1`) en
+**clair**, finement contouré pour bien se détacher du fond de carte. Un point **sans coordonnées GPS**
+est tout de même affiché, **au centre de
 son carré**, sous forme de marqueur **approximatif** : un disque blanc cerné d'un **anneau pointillé**
 (au lieu d'une pastille pleine), pour qu'on le repère sans le confondre avec une position mesurée ; son
 info-bulle le signale (« position approximative, centre du carré »). Si plusieurs points d'un même carré

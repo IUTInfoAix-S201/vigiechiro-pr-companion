@@ -28,6 +28,11 @@ final class CouchePoints extends MapLayer {
     /// Pas de déplacement au clavier, en pixels écran (reconverti en degrés selon le zoom courant).
     private static final double PAS_CLAVIER_PX = 4.0;
 
+    /// Style du libellé de point : texte blanc + **fin halo sombre** pour le détacher du fond de carte
+    /// (OpenStreetMap, carrés indigo…) quelle que soit la teinte sous le texte.
+    private static final String STYLE_LIBELLE = "-fx-text-fill: #a7b8f2; -fx-font-weight: bold; -fx-font-size: 11px;"
+            + " -fx-effect: dropshadow(gaussian, #1b2631, 2, 0.9, 0, 0);";
+
     private final MapView carte;
     private final List<Marqueur> marqueurs = new ArrayList<>();
     private Consumer<PointGeo> onClic = point -> {};
@@ -135,8 +140,11 @@ final class CouchePoints extends MapLayer {
                 pastille.setStroke(Color.WHITE);
                 pastille.setStrokeWidth(1.5);
             }
-            Label libelle = new Label(point.libelle());
+            // Affichage abrégé (nom court « A1 ») pour ne pas surcharger la carte ; le libellé complet reste
+            // la clé (accessibilité, édition des positions). Halo sombre = contour fin qui détache le texte.
+            Label libelle = new Label(point.nom());
             libelle.getStyleClass().add("carte-point-libelle");
+            libelle.setStyle(STYLE_LIBELLE);
             libelle.setTranslateX(9);
             libelle.setTranslateY(-8);
             Group groupe = new Group(pastille, libelle);

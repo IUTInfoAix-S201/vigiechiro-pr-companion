@@ -54,6 +54,10 @@ class CarteSitesTest {
         assertThat(carte.lookupAll(".carte-carre"))
                 .as("un rectangle de carré tracé")
                 .hasSize(1);
+        assertThat(carte.lookupAll(".carte-carre-numero"))
+                .as("le numéro du carré est affiché dans son coin")
+                .extracting(noeud -> ((javafx.scene.control.Label) noeud).getText())
+                .containsExactly("640380");
         var libelles = carte.lookupAll(".carte-point-libelle");
         assertThat(libelles)
                 .as("un libellé visible par point (#163, pas que la couleur)")

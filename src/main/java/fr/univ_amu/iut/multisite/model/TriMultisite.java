@@ -46,4 +46,14 @@ public enum TriMultisite {
     public Comparator<LignePassage> comparateur() {
         return criterePrincipal == null ? REFERENCE : criterePrincipal.thenComparing(REFERENCE);
     }
+
+    /// Libellé français affiché dans la liste de tri (et préfixé « Tri : » dans sa cellule-bouton).
+    public String libelle() {
+        return switch (this) {
+            case PAR_SITE -> "Par site";
+            case PAR_ANNEE -> "Par année";
+            case PAR_STATUT -> "Par statut";
+            case PAR_VERDICT -> "Par verdict";
+        };
+    }
 }

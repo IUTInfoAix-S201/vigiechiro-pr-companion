@@ -21,4 +21,12 @@ public interface OuvrirMultisite {
     default void ouvrirSurPoint(String numeroCarre, double latitude, double longitude) {
         ouvrirSurCarre(numeroCarre);
     }
+
+    /// Ouvre la vue multi-sites **centrée/surlignée sur le carré** `numeroCarre` ET **active directement le
+    /// mode édition** des positions, pour *placer* un point **sans GPS** : il est affiché au centre de son
+    /// carré et n'attend qu'un glisser vers sa vraie position. Par défaut, se rabat sur [#ouvrirSurCarre]
+    /// (contrat fonctionnel, implémentable en lambda côté tests) ; l'implémentation réelle active l'édition.
+    default void ouvrirSurCarrePourPlacer(String numeroCarre) {
+        ouvrirSurCarre(numeroCarre);
+    }
 }

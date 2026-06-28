@@ -291,9 +291,14 @@ public class SiteDetailController implements RafraichirAuRetour {
     private Node construireBadgeGps(CartePoint carte) {
         PointDEcoute point = carte.point();
         if (!carte.gpsPresent()) {
-            Label manquant = new Label("⚠ GPS manquant");
-            manquant.getStyleClass().add("gps-manquant");
-            return manquant;
+            // Sans GPS : le point est affiché au centre de son carré sur LA carte de référence. Le lien y
+            // mène, mode édition activé, pour le glisser à sa vraie position (comme un point géolocalisé).
+            Hyperlink placer = new Hyperlink("⚠ GPS manquant — placer sur la carte");
+            placer.getStyleClass().add("gps-manquant");
+            placer.setOnAction(evenement -> ouvrirMultisite.ouvrirSurCarrePourPlacer(
+                    viewModel.siteCourant().numeroCarre()));
+            placer.setTooltip(new Tooltip("Ouvrir la carte multi-sites pour placer ce point (mode édition)"));
+            return placer;
         }
         Hyperlink lien = new Hyperlink("✓ GPS — voir sur la carte");
         lien.getStyleClass().add("gps-ok");

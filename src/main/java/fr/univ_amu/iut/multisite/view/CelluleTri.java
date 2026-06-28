@@ -12,6 +12,6 @@ final class CelluleTri extends ListCell<TriMultisite> {
     @Override
     protected void updateItem(TriMultisite tri, boolean vide) {
         super.updateItem(tri, vide);
-        setText(vide || tri == null ? null : "Tri : " + MultisiteController.libelleTri(tri));
+        setText(vide || tri == null ? null : "Tri : " + tri.libelle());
     }
 }

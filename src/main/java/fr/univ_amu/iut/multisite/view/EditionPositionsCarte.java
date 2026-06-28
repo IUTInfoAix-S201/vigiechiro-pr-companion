@@ -89,6 +89,14 @@ final class EditionPositionsCarte {
         }
     }
 
+    /// Force l'entrée en **mode édition** (idempotent), p. ex. quand on arrive sur la carte pour *placer*
+    /// un point sans GPS (affiché au centre de son carré) : on sélectionne le toggle et on active
+    /// l'édition de la carte, prêt à glisser le marqueur.
+    void activer() {
+        toggle.setSelected(true);
+        carte.setEditionActive(true);
+    }
+
     /// Bouton « 💾 Enregistrer les positions » : persiste les déplacements en attente (on reste en édition).
     void enregistrer() {
         viewModel.positionsEnAttente().enregistrer();

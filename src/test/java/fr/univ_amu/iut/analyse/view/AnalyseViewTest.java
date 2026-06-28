@@ -33,6 +33,7 @@ import javafx.stage.Stage;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.testfx.api.FxRobot;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
@@ -180,11 +181,15 @@ class AnalyseViewTest {
         robot.interact(() -> especes.getSelectionModel().select(0));
         assertThat(observations.getItems()).hasSize(1);
 
-        // Sélectionner une observation active le bouton, qui ouvre le bon passage.
+        // Sélectionner une observation active le bouton, qui ouvre le bon passage avec son contexte.
         robot.interact(() -> observations.getSelectionModel().select(0));
         assertThat(ouvrir.isDisabled()).isFalse();
         robot.interact(ouvrir::fire);
 
-        verify(ouvrirPassage).ouvrir(eq(42L), any(ContexteSite.class));
+        ArgumentCaptor<ContexteSite> contexte = ArgumentCaptor.forClass(ContexteSite.class);
+        verify(ouvrirPassage).ouvrir(eq(42L), contexte.capture());
+        assertThat(contexte.getValue().numeroCarre()).isEqualTo("640380");
+        assertThat(contexte.getValue().codePoint()).isEqualTo("A1");
+        assertThat(contexte.getValue().nomSite()).isEqualTo("Étang");
     }
 }

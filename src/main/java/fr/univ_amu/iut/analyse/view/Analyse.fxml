@@ -65,8 +65,9 @@
       </TableView>
     </StackPane>
 
-    <!-- Détail : observations de l'espèce sélectionnée, à travers les passages -->
-    <VBox styleClass="analyse-detail" spacing="8.0">
+    <!-- Détail : observations de l'espèce sélectionnée, à travers les passages.
+         Retiré du SplitPane hors regroupement Par espèce (le contrôleur gère l'ajout/retrait). -->
+    <VBox fx:id="panneauDetail" styleClass="analyse-detail" spacing="8.0">
       <HBox alignment="CENTER_LEFT" spacing="10.0">
         <Label fx:id="lblDetailTitre" styleClass="analyse-detail-titre"/>
         <Region HBox.hgrow="ALWAYS"/>

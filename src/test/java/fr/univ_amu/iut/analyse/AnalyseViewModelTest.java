@@ -1,9 +1,11 @@
 package fr.univ_amu.iut.analyse;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -175,5 +177,19 @@ class AnalyseViewModelTest {
 
         assertThat(vm.observations()).isEmpty();
         assertThat(vm.detailTitreProperty().get()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("En regroupement Par carré, sélectionner une espèce ne charge aucun détail")
+    void selectionner_espece_sans_effet_en_par_carre() {
+        when(service.inventaireParCarre(eq(ID), isNull())).thenReturn(List.of(carre("640380", 4, 10)));
+        AnalyseViewModel vm = new AnalyseViewModel(service, ID);
+        vm.regroupementProperty().set(Regroupement.PAR_CARRE);
+
+        vm.selectionnerEspece(espece("Pippip", 2));
+
+        assertThat(vm.observations()).isEmpty();
+        assertThat(vm.detailTitreProperty().get()).isEmpty();
+        verify(service, never()).observationsDeLEspece(any(), any(), any());
     }
 }

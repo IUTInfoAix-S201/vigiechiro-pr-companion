@@ -84,7 +84,7 @@ public class AnalyseViewModel {
     /// (filtrées par le statut courant, cohérent avec l'inventaire). `null` (ou en regroupement Par carré)
     /// vide le panneau. Appelé par la vue quand la ligne sélectionnée de l'inventaire change.
     public void selectionnerEspece(EspeceAgregee espece) {
-        if (espece == null) {
+        if (espece == null || regroupement.get() == Regroupement.PAR_CARRE) {
             observations.clear();
             detailTitre.set("");
             return;

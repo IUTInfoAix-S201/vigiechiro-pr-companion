@@ -20,11 +20,13 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.SplitPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.input.MouseButton;
+import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.util.StringConverter;
 
@@ -103,6 +105,12 @@ public class AnalyseController implements RafraichirAuRetour {
 
     @FXML
     private TableColumn<CarreEspeces, String> colPeriodeCarre;
+
+    @FXML
+    private SplitPane separateur;
+
+    @FXML
+    private VBox panneauDetail;
 
     @FXML
     private Label lblDetailTitre;
@@ -192,6 +200,11 @@ public class AnalyseController implements RafraichirAuRetour {
     private void configurerDetail() {
         tableObservations.setItems(viewModel.observations());
 
+        // Le panneau détail n'a de sens qu'en regroupement Par espèce : on le retire du SplitPane en Par
+        // carré pour rendre toute la hauteur à la table des carrés (plutôt qu'un placeholder inutile).
+        viewModel.regroupementProperty().addListener((obs, ancien, regroupement) -> afficherDetail(regroupement));
+        afficherDetail(viewModel.regroupementProperty().get());
+
         // La ligne sélectionnée de l'inventaire pilote le détail (null en Par carré → détail vidé).
         tableEspeces
                 .getSelectionModel()
@@ -221,6 +234,18 @@ public class AnalyseController implements RafraichirAuRetour {
             });
             return ligne;
         });
+    }
+
+    /// Affiche le panneau détail (et restaure la position du séparateur) en regroupement **Par espèce**,
+    /// le retire du `SplitPane` sinon — la table des carrés récupère alors toute la hauteur.
+    private void afficherDetail(Regroupement regroupement) {
+        boolean parEspece = regroupement == Regroupement.PAR_ESPECE;
+        if (parEspece && !separateur.getItems().contains(panneauDetail)) {
+            separateur.getItems().add(panneauDetail);
+            separateur.setDividerPositions(0.58);
+        } else if (!parEspece) {
+            separateur.getItems().remove(panneauDetail);
+        }
     }
 
     /// Rechargé par le [fr.univ_amu.iut.commun.view.Navigateur] au **retour** sur l'écran : des

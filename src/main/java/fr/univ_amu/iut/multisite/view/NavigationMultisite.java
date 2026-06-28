@@ -53,6 +53,12 @@ public class NavigationMultisite implements OuvrirMultisite {
         publier().focaliserSurPoint(numeroCarre, latitude, longitude);
     }
 
+    /// Ouvre la vue multi-sites, focalise sur le carré et **active l'édition** pour *placer* un point sans GPS.
+    @Override
+    public void ouvrirSurCarrePourPlacer(String numeroCarre) {
+        publier().focaliserSurCarrePourPlacer(numeroCarre);
+    }
+
     /// Charge `Multisite.fxml`, le publie dans la zone centrale et renvoie son controller.
     private MultisiteController publier() {
         FXMLLoader loader = new FXMLLoader(NavigationMultisite.class.getResource("Multisite.fxml"));

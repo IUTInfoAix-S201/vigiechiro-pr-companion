@@ -184,7 +184,7 @@ public class MultisiteController implements RafraichirAuRetour {
 
         configurerFiltres();
         choixTri.getItems().setAll(TriMultisite.values());
-        choixTri.setConverter(Convertisseurs.parLibelle(MultisiteController::libelleTri));
+        choixTri.setConverter(Convertisseurs.parLibelle(tri -> tri == null ? "" : tri.libelle()));
         // #370 : sans étiquette « Tri : » avant la liste, on préfixe l'intitulé DANS la cellule-bouton (la
         // valeur sélectionnée affichée), sans toucher aux items du menu déroulant qui restent bruts.
         choixTri.setButtonCell(new CelluleTri());
@@ -369,6 +369,13 @@ public class MultisiteController implements RafraichirAuRetour {
         focalisation.surPoint(numeroCarre, latitude, longitude);
     }
 
+    /// « Placer sur la carte » d'un point **sans GPS** : on focalise sur son carré ET on entre directement
+    /// en mode édition, pour glisser le marqueur approximatif (au centre du carré) vers sa vraie position.
+    public void focaliserSurCarrePourPlacer(String numeroCarre) {
+        edition.activer();
+        focalisation.surCarre(numeroCarre);
+    }
+
     /// Replie le tableau (#338) pour donner toute la largeur à la carte : c'est le but du clic « Voir sur
     /// la carte ». L'utilisateur le rouvre au besoin via la poignée « Tableau ◀ ».
     private void degagerLaCarte() {
@@ -495,18 +502,5 @@ public class MultisiteController implements RafraichirAuRetour {
             // instantané des items de la table (SortedList), et non l'ordre interne du ViewModel.
             viewModel.exporter(fichier.toPath(), new ArrayList<>(tableLignes.getItems()));
         }
-    }
-
-    /// Libellé d'un ordre de tri (paquet-privé : réutilisé par [CelluleTri] pour la cellule-bouton).
-    static String libelleTri(TriMultisite tri) {
-        if (tri == null) {
-            return "";
-        }
-        return switch (tri) {
-            case PAR_SITE -> "Par site";
-            case PAR_ANNEE -> "Par année";
-            case PAR_STATUT -> "Par statut";
-            case PAR_VERDICT -> "Par verdict";
-        };
     }
 }

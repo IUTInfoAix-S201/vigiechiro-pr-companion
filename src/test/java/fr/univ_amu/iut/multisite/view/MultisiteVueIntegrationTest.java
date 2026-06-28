@@ -38,6 +38,7 @@ import javafx.scene.control.SplitPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.input.KeyCode;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
@@ -247,6 +248,19 @@ class MultisiteVueIntegrationTest {
         assertThat(split.getItems())
                 .as("après « Voir sur la carte », le tableau est replié : la carte occupe tout")
                 .doesNotContain(panneauTableau);
+    }
+
+    @Test
+    @DisplayName("« Placer sur la carte » (focaliserSurCarrePourPlacer) active le mode édition des positions")
+    void placer_sur_la_carte_active_l_edition(FxRobot robot) {
+        ToggleButton editer = robot.lookup("#boutonEditerPositions").queryAs(ToggleButton.class);
+        assertThat(editer.isSelected()).as("édition inactive au départ").isFalse();
+
+        robot.interact(() -> controleur.focaliserSurCarrePourPlacer("640380"));
+
+        assertThat(editer.isSelected())
+                .as("le mode édition est activé pour glisser le point sans GPS")
+                .isTrue();
     }
 
     @Test

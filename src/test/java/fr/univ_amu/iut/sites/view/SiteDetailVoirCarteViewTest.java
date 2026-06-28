@@ -43,6 +43,7 @@ class SiteDetailVoirCarteViewTest {
     private static final String ID_USER = "u-1";
 
     private final AtomicReference<String> pointFocalise = new AtomicReference<>();
+    private final AtomicReference<String> carrePourPlacer = new AtomicReference<>();
 
     @Start
     void start(Stage stage) throws Exception {
@@ -59,13 +60,21 @@ class SiteDetailVoirCarteViewTest {
                     public void ouvrirSurPoint(String numeroCarre, double latitude, double longitude) {
                         pointFocalise.set(numeroCarre + "|" + latitude + "|" + longitude);
                     }
+
+                    @Override
+                    public void ouvrirSurCarrePourPlacer(String numeroCarre) {
+                        carrePourPlacer.set(numeroCarre);
+                    }
                 })));
         SourceDeDonnees source = injector.getInstance(SourceDeDonnees.class);
         new MigrationSchema(source).migrer();
         new UtilisateurDao(source).insert(new Utilisateur(ID_USER, "Testeur"));
         Site site = new SiteDao(source)
                 .insert(new Site(null, "640380", "Étang", Protocole.STANDARD, null, "2026-01-01", ID_USER));
-        new PointDao(source).insert(new PointDEcoute(null, "A1", 43.4031, -1.5708, null, site.id()));
+        PointDao pointDao = new PointDao(source);
+        pointDao.insert(new PointDEcoute(null, "A1", 43.4031, -1.5708, null, site.id()));
+        // Point SANS GPS (lat/lon nuls) : doit proposer un lien « placer sur la carte » (#…).
+        pointDao.insert(new PointDEcoute(null, "B2", null, null, null, site.id()));
 
         FXMLLoader loader = new FXMLLoader(App.class.getResource("commun/view/MainView.fxml"));
         loader.setControllerFactory(injector::getInstance);
@@ -91,5 +100,18 @@ class SiteDetailVoirCarteViewTest {
         assertThat(pointFocalise.get())
                 .as("focalisation sur le carré ET les coordonnées du point")
                 .isEqualTo("640380|43.4031|-1.5708");
+    }
+
+    @Test
+    @DisplayName("Un point sans GPS propose « placer sur la carte » qui ouvre le carré en mode édition")
+    void point_sans_gps_propose_placer_sur_la_carte(FxRobot robot) {
+        Hyperlink placer = robot.lookup(".gps-manquant").queryAs(Hyperlink.class);
+        assertThat(placer.getText()).contains("placer sur la carte");
+
+        robot.interact(placer::fire);
+
+        assertThat(carrePourPlacer.get())
+                .as("ouvre la carte sur le carré du site, pour y placer le point")
+                .isEqualTo("640380");
     }
 }

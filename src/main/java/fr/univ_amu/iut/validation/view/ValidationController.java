@@ -196,8 +196,36 @@ public class ValidationController implements EmplacementNavigation {
     /// Ouvre la validation du passage `passage`. Appelée par [NavigationValidation] après le chargement
     /// du FXML ; mémorise le contexte pour le fil d'Ariane.
     public void ouvrirSur(ContextePassage passage) {
+        ouvrirSur(passage, null);
+    }
+
+    /// Comme [#ouvrirSur(ContextePassage)] mais **pré-sélectionne** l'observation `idObservationCible`
+    /// (si non nulle) une fois la table chargée : sélectionner la ligne déclenche, via le ViewModel,
+    /// l'écoute de sa séquence. Permet d'arriver depuis « Espèces & observations » droit sur la détection.
+    ///
+    /// On **réinitialise le filtre de statut** avant le ciblage : l'API étant publique, elle pourrait être
+    /// appelée sur un écran déjà filtré où la cible serait masquée (donc ignorée silencieusement). Repartir
+    /// de la liste complète garantit que la détection visée est visible et sélectionnable.
+    public void ouvrirSur(ContextePassage passage, Long idObservationCible) {
         this.contexte = passage;
         viewModel.ouvrirSur(passage.idPassage());
+        if (idObservationCible != null) {
+            viewModel.filtreStatutProperty().set(null);
+            selectionnerObservation(idObservationCible);
+        }
+    }
+
+    /// Sélectionne l'observation d'identifiant `idObservation` parmi **toutes** les observations du passage
+    /// (liste complète, pas la vue filtrée) ; la sélection se propage au ViewModel, qui charge le détail et
+    /// l'audio. Sans correspondance (id absent du passage), aucune action.
+    private void selectionnerObservation(Long idObservation) {
+        for (ObservationStatut ligne : viewModel.observations()) {
+            if (idObservation.equals(ligne.observation().id())) {
+                tableObservations.getSelectionModel().select(ligne);
+                tableObservations.scrollTo(ligne);
+                return;
+            }
+        }
     }
 
     /// Emplacement dans le fil d'Ariane : `Mes sites › Carré N › Détails du passage N° X › Validation

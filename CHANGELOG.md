@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [1.38.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.37.0...v1.38.0) (2026-06-28)
+
+
+### Features
+
+* **recherche:** inclure les espèces/observations dans la recherche globale ([#323](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/323)) ([#363](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/363)) ([75ba3ab](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/75ba3abf12909cf3312a33bffa357e0e8b5b4501)), closes [DaoGenerique#projeter](https://github.com/DaoGenerique/issues/projeter)
+
 # [1.37.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.36.0...v1.37.0) (2026-06-28)
 
 

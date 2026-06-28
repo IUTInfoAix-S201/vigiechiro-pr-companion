@@ -77,7 +77,7 @@ extra_css:
 nav:
   - Accueil: index.md
   - 1. Présentation du projet: Présentation du projet.md
-  - 2. Contraintes techniques: Contraintes techniques.md
+  - 2. Stack technique et architecture: Contraintes techniques.md
   - 3. Objectifs qualités:
       - Vue d'ensemble: Objectifs qualités/index.md
       - Catégories ISO 25010: Objectifs qualités/Catégorie de qualité.md

@@ -41,6 +41,16 @@ class AccueilApparenceTest {
             String nom = activite.getClass().getSimpleName();
             assertThat(activite.iconeLiteral()).as("icône de %s", nom).matches(CODE_FONTAWESOME);
             assertThat(activite.couleur()).as("couleur de %s", nom).matches(COULEUR_HEX);
+            assertThat(activite.prisme()).as("prisme de %s", nom).isNotNull();
+        }
+    }
+
+    @Test
+    @DisplayName("Chaque prisme expose un intitulé et un code d'icône FontAwesome (en-tête de section)")
+    void prismes_exposent_libelle_et_icone() {
+        for (Prisme prisme : Prisme.values()) {
+            assertThat(prisme.libelle()).as("intitulé de %s", prisme).isNotBlank();
+            assertThat(prisme.iconeLiteral()).as("icône de %s", prisme).matches(CODE_FONTAWESOME);
         }
     }
 

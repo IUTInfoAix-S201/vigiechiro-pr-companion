@@ -72,7 +72,9 @@ public final class CaptureAccueil {
         new MigrationSchema(source).migrer();
 
         Parent chrome = chargerFxml(injecteur, CHROME);
-        ApercuFx.enregistrerPng(new Scene(chrome, 1100, 720), sortie.resolve("apercu-accueil.png"));
+        // Largeur suffisante pour poser les **deux sections de prismes** côte à côte (Collecte & passages /
+        // Espèces & biodiversité) ; hauteur ajustée pour ne pas rogner les cartes (l'app réelle défile).
+        ApercuFx.enregistrerPng(new Scene(chrome, 1180, 760), sortie.resolve("apercu-accueil.png"));
 
         System.out.println("Apercu d'accueil ecrit dans " + sortie.toAbsolutePath());
     }

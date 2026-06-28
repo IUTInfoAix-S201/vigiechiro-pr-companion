@@ -1,12 +1,8 @@
 # M-Bibliotheque - Bibliothèque de sons de référence
 
-> **⚠️ CIBLE ÉTIRÉE HORS MVP STRICT.** À engager **uniquement** si le fil rouge et la validation ([M-Vision-Tadarida](M-Vision-Tadarida.md)) sont solidement livrés.
->
-> **Type** : écran **« Bibliothèque de sons »** (liste + détail + export). Alimenté par les observations marquées « **référence** » pendant la validation taxonomique ([M-Vision-Tadarida](M-Vision-Tadarida.md), [P7](../Parcours%20utilisateurs/P7%20-%20Valider%20les%20résultats%20Tadarida.md)).
+> **Type** : écran secondaire **« Bibliothèque de sons »** (liste + détail + export), atteint depuis la carte *Bibliothèque de sons* de l'[accueil](M-Accueil.md) (prisme *Espèces & biodiversité*). Alimenté par les observations marquées « **référence** » pendant la validation taxonomique ([M-Vision-Tadarida](M-Vision-Tadarida.md)).
 > **Persona principal** : [Samuel](../Personas/Samuel.md) (transmission pédagogique, constitution d'une réothèque par espèce).
-> **Priorité** : 🟩 COULD (bonus, hors fil rouge).
 > **Parcours couverts** : [P10 - Exporter une bibliothèque de sons de référence](../Parcours%20utilisateurs/P10%20-%20Exporter%20une%20bibliothèque%20de%20sons%20de%20référence.md).
-> **Stories couvertes** : [E8.S2 - Marquer des séquences comme référence et exporter une bibliothèque par espèce](../Story%20mapping/E8%20-%20Productivité%20avancée%20Tadarida.md#e8s2).
 
 L'écran rassemble les **meilleurs exemples sonores par espèce** que l'utilisateur a retenus pendant la validation. À gauche, la **table des sons de référence** (espèce retenue, séquence source, fréquence) ; à droite, le **détail** de l'élément sélectionné (commentaire), un **lecteur audio** pour le réécouter, et le bouton d'**export** qui écrit un récapitulatif CSV et copie les fichiers `.wav` dans un dossier choisi. C'est l'aboutissement d'un usage pédagogique : se constituer une réothèque transmissible.
 
@@ -15,8 +11,14 @@ L'écran rassemble les **meilleurs exemples sonores par espèce** que l'utilisat
 ## Wireframe principal - 3 sons de référence retenus
 
 <div markdown="0">
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 600" role="img" aria-label="Maquette M-Bibliotheque - bibliotheque de sons de reference" style="max-width: 100%; height: auto; border: 1px solid #d0d7de; border-radius: 6px; background: #f7f9fb;">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 644" role="img" aria-label="Maquette M-Bibliotheque - bibliotheque de sons de reference" style="max-width: 100%; height: auto; border: 1px solid #d0d7de; border-radius: 6px; background: #f7f9fb;">
   <style>
+    .chrome { fill: #3f51b5; }
+    .chrometxt { fill: #ffffff; font: 600 14px sans-serif; }
+    .crumb { fill: #c5cae9; font: 13px sans-serif; }
+    .crumb-curr { fill: #ffffff; font: 700 13px sans-serif; }
+    .search { fill: #ffffff; stroke: #c5cae9; stroke-width: 1; }
+    .search-txt { fill: #9aa0b3; font: 13px sans-serif; }
     .pagetitle { font: 700 22px sans-serif; fill: #2c3e50; }
     .pagesub { font: 13px sans-serif; fill: #6a737d; }
     .section-title { font: 600 15px sans-serif; fill: #2c3e50; }
@@ -43,12 +45,21 @@ L'écran rassemble les **meilleurs exemples sonores par espèce** que l'utilisat
     .btn-txt { fill: #ffffff; font: 600 12px sans-serif; }
   </style>
 
-  <rect x="0" y="0" width="1000" height="600" fill="#f7f9fb"/>
+  <rect x="0" y="0" width="1000" height="644" fill="#f7f9fb"/>
+
+  <rect x="0" y="0" width="1000" height="44" class="chrome"/>
+  <text x="20" y="28" class="chrometxt">VigieChiro PR Companion</text>
+  <text x="210" y="28" class="crumb">Accueil  ›  </text>
+  <text x="284" y="28" class="crumb-curr">Bibliothèque de sons</text>
+  <rect x="740" y="11" width="240" height="22" rx="11" class="search"/>
+  <text x="756" y="27" class="search-txt">🔍  Rechercher (Ctrl+F)</text>
+
+  <g transform="translate(0,44)">
   <text x="30" y="40" class="pagetitle">🔊 Bibliothèque de sons</text>
   <text x="30" y="62" class="pagesub">3 son(s) de référence.</text>
 
   <!-- ===== Colonne gauche : table des sons de référence ===== -->
-  <text x="30" y="96" class="section-title">🗇 Sons de référence</text>
+  <text x="30" y="96" class="section-title">📚 Sons de référence</text>
   <rect x="30" y="106" width="365" height="470" class="panel"/>
   <!-- entête colonnes -->
   <rect x="30" y="106" width="365" height="26" class="table-head"/>
@@ -101,10 +112,11 @@ L'écran rassemble les **meilleurs exemples sonores par espèce** que l'utilisat
   <line x1="432" y1="320" x2="952" y2="320" class="specto-split"/>
 
   <!-- Export -->
-  <text x="432" y="488" class="section-title">📚 Export</text>
+  <text x="432" y="488" class="section-title">📤 Export</text>
   <text x="432" y="512" class="export-txt">Écrit le récapitulatif CSV et copie les fichiers son de référence dans le dossier choisi.</text>
   <rect x="432" y="528" width="200" height="30" rx="4" class="btn-primary"/>
-  <text x="532" y="548" class="btn-txt" text-anchor="middle">📚 Exporter la bibliothèque…</text>
+  <text x="532" y="548" class="btn-txt" text-anchor="middle">📤 Exporter la bibliothèque…</text>
+  </g>
 </svg>
 </div>
 
@@ -141,7 +153,7 @@ Tant qu'aucune observation n'a été marquée « référence » pendant la valid
   <text x="180" y="91" class="col-head">Séquence source</text>
   <text x="197" y="124" class="empty" text-anchor="middle">Aucun contenu dans la table</text>
   <rect x="432" y="120" width="200" height="30" rx="4" class="btn-disabled"/>
-  <text x="532" y="140" class="btn-disabled-txt" text-anchor="middle">📚 Exporter la bibliothèque…</text>
+  <text x="532" y="140" class="btn-disabled-txt" text-anchor="middle">📤 Exporter la bibliothèque…</text>
 </svg>
 </div>
 
@@ -156,7 +168,7 @@ Tant qu'aucune observation n'a été marquée « référence » pendant la valid
 
 ## Notes pour l'implémentation
 
-- **Alimentation par la validation** : la table liste les observations dont l'attribut « référence » est vrai, marquées via le bouton dédié de [M-Vision-Tadarida](M-Vision-Tadarida.md) ([E7.S4](../Story%20mapping/E7%20-%20Valider%20les%20résultats%20Tadarida.md#e7s4)). La sélection « référence » est **persistée en BD** ([E0.S5](../Story%20mapping/E0%20-%20Fondations%20de%20persistance.md#e0s5)) et réutilisable d'une session à l'autre.
+- **Alimentation par la validation** : la table liste les observations dont l'attribut « référence » est vrai, marquées via le bouton dédié de [M-Vision-Tadarida](M-Vision-Tadarida.md). La sélection « référence » est **persistée en base** et réutilisable d'une session à l'autre.
 - **`TableView` JavaFX** : colonnes liées aux propriétés de l'observation (code espèce, fichier source, fréquence). État vide géré nativement (`placeholder`).
 - **Composant audio fourni** : la zone Écoute est le **composant partagé** (cf. [M-Qualification](M-Qualification.md) / [M-Vision-Tadarida](M-Vision-Tadarida.md)) ; les étudiants l'instancient avec le `wav:Path` de la séquence sélectionnée, sans réimplémenter le rendu spectral.
 - **Bouton Export lié à l'état** : `disableProperty` du bouton liée à « la liste est non vide » (`BooleanBinding` sur la taille de la collection). L'export ouvre un `DirectoryChooser`, écrit le CSV et copie les fichiers (travail d'I/O à faire **hors du thread JavaFX**, avec retour d'état via `lblMessage`).

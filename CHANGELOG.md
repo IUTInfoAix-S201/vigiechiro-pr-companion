@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [1.42.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.41.0...v1.42.0) (2026-06-28)
+
+
+### Features
+
+* **carte:** numéro de carré dans le coin + nom de point abrégé, contourés ([#371](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/371)) ([bdaeb99](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/bdaeb99a0be37bd3e223e7bd8104701f1ee6492e))
+
 # [1.41.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.40.0...v1.41.0) (2026-06-28)
 
 

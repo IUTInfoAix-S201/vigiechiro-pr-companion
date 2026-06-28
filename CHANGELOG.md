@@ -2,6 +2,14 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [1.39.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.38.0...v1.39.0) (2026-06-28)
+
+
+### Features
+
+* **analyse:** projections d'inventaire des espèces (par espèce / par carré) ([#365](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/365)) ([541a649](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/541a649abd9aac2e6006aac9c477503aaa4ddb79))
+* **multisite:** toggle « Éditer les positions » en overlay icône sur la carte ([#362](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/362)) ([dae9131](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/dae913181300070080861f1cc31bfae57b410adb)), closes [#154](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/154)
+
 # [1.38.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.37.0...v1.38.0) (2026-06-28)
 
 

@@ -202,19 +202,24 @@ public class ValidationController implements EmplacementNavigation {
     /// Comme [#ouvrirSur(ContextePassage)] mais **pré-sélectionne** l'observation `idObservationCible`
     /// (si non nulle) une fois la table chargée : sélectionner la ligne déclenche, via le ViewModel,
     /// l'écoute de sa séquence. Permet d'arriver depuis « Espèces & observations » droit sur la détection.
+    ///
+    /// On **réinitialise le filtre de statut** avant le ciblage : l'API étant publique, elle pourrait être
+    /// appelée sur un écran déjà filtré où la cible serait masquée (donc ignorée silencieusement). Repartir
+    /// de la liste complète garantit que la détection visée est visible et sélectionnable.
     public void ouvrirSur(ContextePassage passage, Long idObservationCible) {
         this.contexte = passage;
         viewModel.ouvrirSur(passage.idPassage());
         if (idObservationCible != null) {
+            viewModel.filtreStatutProperty().set(null);
             selectionnerObservation(idObservationCible);
         }
     }
 
-    /// Sélectionne dans la table l'observation d'identifiant `idObservation`, si elle est présente (la
-    /// sélection se propage au ViewModel, qui charge le détail et l'audio). Sans correspondance (ligne
-    /// masquée par un filtre, par exemple), aucune action.
+    /// Sélectionne l'observation d'identifiant `idObservation` parmi **toutes** les observations du passage
+    /// (liste complète, pas la vue filtrée) ; la sélection se propage au ViewModel, qui charge le détail et
+    /// l'audio. Sans correspondance (id absent du passage), aucune action.
     private void selectionnerObservation(Long idObservation) {
-        for (ObservationStatut ligne : tableObservations.getItems()) {
+        for (ObservationStatut ligne : viewModel.observations()) {
             if (idObservation.equals(ligne.observation().id())) {
                 tableObservations.getSelectionModel().select(ligne);
                 tableObservations.scrollTo(ligne);

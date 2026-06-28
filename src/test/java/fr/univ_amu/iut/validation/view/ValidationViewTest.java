@@ -195,4 +195,24 @@ class ValidationViewTest {
                 .as("la séquence de la cible est chargée")
                 .isNotNull();
     }
+
+    @Test
+    @DisplayName("Le ciblage réinitialise un filtre qui masquerait la cible (API robuste)")
+    void ouvrir_cible_reinitialise_le_filtre(FxRobot robot) {
+        @SuppressWarnings("unchecked")
+        TableView<ObservationStatut> table = robot.lookup("#tableObservations").queryAs(TableView.class);
+        ComboBox<?> choixFiltre = robot.lookup("#choixFiltre").queryAs(ComboBox.class);
+
+        // Filtre « Corrigée » : aucune des deux observations (Non touchée / Validée) n'est visible.
+        robot.interact(() -> choixFiltre.getSelectionModel().select(3));
+        assertThat(table.getItems()).as("la cible est masquée par le filtre").isEmpty();
+
+        // Cibler l'observation 2 doit rétablir la liste complète puis la sélectionner.
+        robot.interact(() -> controleur.ouvrirSur(
+                new ContextePassage(42L, 2, new ContexteSite("640380", "A1", "Étang de la Tuilière")), 2L));
+
+        assertThat(table.getItems()).as("filtre réinitialisé").hasSize(2);
+        assertThat(table.getSelectionModel().getSelectedItem().observation().id())
+                .isEqualTo(2L);
+    }
 }

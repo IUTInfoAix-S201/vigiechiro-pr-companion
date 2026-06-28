@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 import javafx.geometry.Point2D;
+import javafx.scene.Group;
+import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
@@ -19,6 +21,12 @@ final class CoucheCarres extends MapLayer {
 
     private static final Color BORDURE = Color.web("#2c3e50");
     private static final Color BORDURE_SURBRILLANCE = Color.web("#3f51b5");
+
+    /// Étiquette du numéro de carré, volontairement **discrète** (le numéro est un repère secondaire, pas
+    /// l'info principale) : texte sombre + fin **halo clair** (casing blanc) à la manière d'une étiquette
+    /// cartographique, lisible sans s'imposer sur le remplissage indigo (du plus clair au plus foncé).
+    private static final String STYLE_NUMERO = "-fx-text-fill: #10026e; -fx-font-size: 10px;"
+            + " -fx-effect: dropshadow(gaussian, rgba(255, 255, 255, 0.6), 2, 0.45, 0, 0);";
 
     private final List<TraceCarre> traces = new ArrayList<>();
     private Consumer<CarreGeo> onClic = carre -> {};
@@ -34,7 +42,8 @@ final class CoucheCarres extends MapLayer {
         for (CarreGeo carre : carres) {
             TraceCarre trace = new TraceCarre(carre);
             traces.add(trace);
-            getChildren().add(trace.rectangle);
+            // Le numéro est posé APRÈS le rectangle pour rester au-dessus du remplissage.
+            getChildren().addAll(trace.rectangle, trace.enseigne);
         }
         markDirty();
     }
@@ -64,6 +73,7 @@ final class CoucheCarres extends MapLayer {
             Point2D basDroite = getMapPoint(emprise.latMin(), emprise.lonMax());
             if (hautGauche == null || basDroite == null) {
                 trace.rectangle.setVisible(false);
+                trace.enseigne.setVisible(false);
                 continue;
             }
             trace.rectangle.setVisible(true);
@@ -71,6 +81,10 @@ final class CoucheCarres extends MapLayer {
             trace.rectangle.setTranslateY(hautGauche.getY());
             trace.rectangle.setWidth(Math.abs(basDroite.getX() - hautGauche.getX()));
             trace.rectangle.setHeight(Math.abs(basDroite.getY() - hautGauche.getY()));
+            // Numéro logé dans le coin haut-gauche du carré (léger retrait pour ne pas chevaucher la bordure).
+            trace.enseigne.setVisible(true);
+            trace.enseigne.setTranslateX(hautGauche.getX() + 4);
+            trace.enseigne.setTranslateY(hautGauche.getY() + 3);
         }
     }
 
@@ -78,6 +92,9 @@ final class CoucheCarres extends MapLayer {
     private final class TraceCarre {
         private final CarreGeo carre;
         private final Rectangle rectangle;
+        /// Groupe portant le [Label] du numéro : le [Group] **dimensionne** le libellé (un `Label` posé nu
+        /// dans un [MapLayer] resterait à taille nulle, donc invisible).
+        private final Group enseigne;
 
         private TraceCarre(CarreGeo carre) {
             this.carre = carre;
@@ -100,6 +117,15 @@ final class CoucheCarres extends MapLayer {
                 }
             });
             this.rectangle = rectangle;
+
+            Label numero = new Label(carre.numeroCarre());
+            numero.getStyleClass().add("carte-carre-numero");
+            numero.setStyle(STYLE_NUMERO);
+            Group enseigne = new Group(numero);
+            // Étiquette décorative : les clics la traversent pour atteindre le rectangle (qui porte déjà
+            // l'accessibilité « Carré … » et le callback).
+            enseigne.setMouseTransparent(true);
+            this.enseigne = enseigne;
         }
     }
 }

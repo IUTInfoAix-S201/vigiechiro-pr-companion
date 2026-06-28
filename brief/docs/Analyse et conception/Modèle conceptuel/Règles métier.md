@@ -1,6 +1,6 @@
 # Règles métier
 
-Les 24 règles métier du modèle conceptuel. Chaque règle a un identifiant ancré (`#r1` à `#r24`) qui sert de point de référence depuis le reste du dossier (parcours, stories, maquettes).
+Les règles métier du modèle conceptuel. Chaque règle a un identifiant ancré (`#r1` à `#r32`) qui sert de point de référence depuis le reste du dossier (parcours, stories, maquettes).
 
 ## Site, point, passage
 
@@ -12,6 +12,12 @@ Les 24 règles métier du modèle conceptuel. Chaque règle a un identifiant anc
     L'application **alerte sans bloquer** si l'utilisateur déclare un passage hors fenêtre. Sur les sites en mode **`PointFixeRecherche`** (dates personnalisées pour des besoins recherche), cette règle est **muette** : aucune alerte n'est générée.
 - **R4**{ #r4 } : sur les sites en mode **`PointFixeStandard`**, intervalle conseillé entre les deux passages d'un même site : **≥ 1 mois**. Idéalement, dates « anniversaires » (±10 j) d'une année à l'autre. Sur les sites en mode **`PointFixeRecherche`**, cette règle est également **muette** (l'utilisateur enregistre à la fréquence qui convient à son protocole, y compris plusieurs nuits successives).
 - **R5**{ #r5 } : le triplet `(Site, Point, Année, n° de passage)` est **unique** : un même point ne peut pas avoir deux passages avec le même n° dans la même année.
+- **R25**{ #r25 } : un n° de carré est **unique par utilisateur** : un même utilisateur ne peut pas déclarer deux fois le même carré (alerte bloquante à la création ou au renommage d'un site ; la vérification exclut le site courant, pour qu'un simple renommage ne se bloque pas lui-même).
+
+## Géographie des carrés et des points
+
+- **R26**{ #r26 } : un point d'écoute appartient à un **carré de 2 km de côté** du **carroyage national Vigie-Chiro** (« carrenat »). Ses coordonnées GPS doivent tomber **dans l'emprise de ce carré**. À l'édition cartographique des positions, le marqueur est **contraint (clampé) au bord de la maille** : on ne peut pas glisser un point hors de son carré. L'emprise du carré est déduite du **centroïde officiel** de la maille (référentiel `carrenat` embarqué, ≈ 137 000 mailles couvrant la France métropolitaine), avec un **repli** : si le carré est hors référentiel, l'emprise est reconstruite autour des points **géolocalisés** du site.
+- **R27**{ #r27 } : un point dont les coordonnées GPS ne sont **pas (encore) saisies** est tout de même situé, **au centre de son carré** (position **approchée**, distinguée visuellement d'une position mesurée). Si plusieurs points d'un même carré sont sans GPS, ils sont **répartis en éventail** autour du centre pour ne pas se superposer. Un point n'est **non plaçable** que si son carré est hors référentiel **et** qu'aucun point du site n'est géolocalisé (centre inconnu).
 
 ## Convention de nommage des fichiers
 
@@ -21,7 +27,12 @@ Les 24 règles métier du modèle conceptuel. Chaque règle a un identifiant anc
 
 ## Copie protégée
 
-- **R9**{ #r9 } : à l'import, l'application **copie systématiquement** les fichiers depuis la carte SD vers son espace de travail. **Aucune écriture sur les originaux** sur la SD. C'est une contrainte explicite du protocole Vigie-Chiro pour éviter toute perte de données.
+- **R9**{ #r9 } : à l'import, l'application **copie systématiquement** les fichiers depuis la carte SD vers son espace de travail. **Aucune écriture sur les originaux** sur la SD. C'est une contrainte explicite du protocole Vigie-Chiro pour éviter toute perte de données. La copie est **vérifiée bit-à-bit** : l'empreinte **SHA-256** de la destination est recalculée et comparée à celle de la source ; toute divergence est une erreur (copie non fidèle).
+
+## Import : résilience et inspection
+
+- **R29**{ #r29 } : l'import est **résilient**. Un enregistrement original source **illisible ou de format invalide** (en-tête WAV corrompu, **fréquence d'échantillonnage non divisible par 10** donc non ralentissable ×10, cf. [R10](#r10)) est **rejeté individuellement** et consigné dans un **rapport d'import** (importés / rejetés / fichiers non pertinents) **sans interrompre** le traitement des autres fichiers. Le **remplacement d'une session** existante est en revanche **atomique** : si l'import échoue globalement (annulation, tous les WAV rejetés, erreur disque), la session précédente est **restaurée** — rien n'est perdu.
+- **R30**{ #r30 } : à l'**inspection** d'un dossier (avant import), l'application **signale sans bloquer** trois situations, à charge de l'utilisateur de décider : un **mélange** (le dossier contient des fichiers de **plusieurs enregistreurs**), une **incohérence** (le journal du capteur — n° de série, nuit — **contredit** les WAV), et une **nuit déjà importée** (un passage existe déjà pour le même enregistreur et la même date). Aucune de ces alertes n'empêche l'import.
 
 ## Transformation
 
@@ -33,6 +44,10 @@ Les 24 règles métier du modèle conceptuel. Chaque règle a un identifiant anc
 - **R12**{ #r12 } : une sélection d'écoute est constituée automatiquement à l'ouverture de la vue, avec la méthode `RéparTemporel` par défaut (séquences réparties uniformément sur la nuit).
 - **R13**{ #r13 } : le verdict global est saisi par l'utilisateur après écoute de **tout ou partie** de la sélection. Aucun seuil obligatoire d'écoute (l'utilisateur reste responsable).
 - **R14**{ #r14 } : un passage avec verdict `À jeter` ne peut pas être inclus dans un lot prêt à déposer (alerte bloquante).
+
+## Préparation du lot
+
+- **R31**{ #r31 } : préparer un lot s'appuie sur une **checklist de cohérence vivante** (chaque contrôle est affiché, même satisfait : ✓ / ⚠ / ✗). Un contrôle **bloquant** (✗) **interdit la préparation** tant qu'il n'est pas corrigé : verdict `À jeter` ([R14](#r14)), **transformation incomplète**, **préfixe de fichier non conforme** ([R6](#r6)), **journal du capteur absent**. Les contrôles **non bloquants** (⚠) — par exemple un **relevé climatique absent** ([R20](#r20)) — sont signalés mais **laissent préparer**. Quand la préparation réussit, le passage passe au statut `Prêt à déposer`.
 
 ## Validation taxonomique (SHOULD)
 
@@ -49,6 +64,12 @@ Les 24 règles métier du modèle conceptuel. Chaque règle a un identifiant anc
     - `null` : aucune validation n'a encore été effectuée (l'observation conserve uniquement les colonnes `tadarida_*`, cf. [R17](#r17)).
 
     Ce mode est tracé en BD et restituable dans l'export `_Vu.csv` (colonne optionnelle, à activer selon attentes Vigie-Chiro). Sa principale utilité : permettre à un évaluateur scientifique de distinguer ce qui a été réellement vérifié à l'oreille de ce qui a été propagé sur confiance.
+
+- **R32**{ #r32 } : pendant la validation, une observation peut être marquée **« séquence de référence »**. L'export de la **bibliothèque de sons de référence** est constitué **exactement de ces observations-là** : pour chacune, le **taxon retenu** est le taxon **observateur** s'il a été validé, sinon le taxon **Tadarida**, et le fichier audio correspondant est copié, organisé par taxon.
+
+## Suppression de sites et de points
+
+- **R28**{ #r28 } : un **point d'écoute** ou un **site** qui **porte des passages** ne peut pas être supprimé (garde-fou contre la perte de données rattachées). La suppression est **bloquée** tant qu'au moins un passage y est rattaché ; l'interface l'indique (action désactivée avec info-bulle explicative, ou message au clic). Pour supprimer, il faut d'abord retirer les passages concernés.
 
 ## Données
 

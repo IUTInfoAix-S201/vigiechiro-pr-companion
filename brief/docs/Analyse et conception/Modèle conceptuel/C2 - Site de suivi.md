@@ -13,6 +13,9 @@ Un site est un **carreau de 2 km × 2 km** issu d'un **carroyage de référence 
 ## Règles applicables
 
 - [R1](Règles%20métier.md#r1) - format du n° de carré (6 chiffres, leading zero départements 1-9).
+- [R25](Règles%20métier.md#r25) - le n° de carré est **unique par utilisateur** (pas deux fois le même carré).
+- [R26](Règles%20métier.md#r26) - le carré matérialise une **maille 2 km** du carroyage national : son emprise situe ses points sur la carte.
+- [R28](Règles%20métier.md#r28) - un site qui **porte des passages** ne peut pas être supprimé.
 
 ## Voisins dans le modèle
 

@@ -224,14 +224,19 @@ public class AudioViewModel {
         message.set(lignes.isEmpty() ? ResolveurSourceAudio.messageVide(source) : "");
     }
 
+    /// Repositionne la sélection après un rechargement : sur la ligne de même identifiant si elle existe
+    /// encore, **sinon `null`**. Indispensable car une action peut faire **disparaître** la ligne
+    /// sélectionnée de la source (ex. retirer `is_reference` sur la source `References`) : garder
+    /// l'ancienne sélection laisserait détail / audio / bouton de référence alimentés par une ligne
+    /// absente de la liste.
     private void reselectionner(Long idObservation) {
-        if (idObservation == null) {
-            return;
-        }
-        observations.stream()
-                .filter(ligne -> ligne.idObservation() == idObservation)
-                .findFirst()
-                .ifPresent(selection::set);
+        LigneObservationAudio retrouvee = idObservation == null
+                ? null
+                : observations.stream()
+                        .filter(ligne -> ligne.idObservation() == idObservation)
+                        .findFirst()
+                        .orElse(null);
+        selection.set(retrouvee);
     }
 
     private void majCompteurs() {

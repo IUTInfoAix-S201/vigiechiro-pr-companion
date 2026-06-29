@@ -260,6 +260,28 @@ class AudioViewModelTest {
         }
 
         @Test
+        @DisplayName("si la bascule fait quitter la source, la sélection (détail/audio) est remise à zéro")
+        void basculer_reference_fait_disparaitre_la_ligne() {
+            when(service.taxonsDisponibles()).thenReturn(List.of());
+            LigneObservationAudio ligne = ligne(1, 10, "Pippip", "Pippip", StatutObservation.VALIDEE, true);
+            // La ligne est référencée au départ, puis quitte le corpus au rechargement (liste vide).
+            when(service.lignesAudioReferences("u-1")).thenReturn(List.of(ligne), List.of());
+            when(service.cheminAudio(10L)).thenReturn(Optional.of(Path.of("/ws/p.wav")));
+
+            AudioViewModel vm = vm();
+            vm.ouvrirSur(new SourceObservations.References("u-1"));
+            vm.selectionProperty().set(ligne);
+            assertThat(vm.cheminAudioCourantProperty().get()).isNotNull();
+
+            assertThat(vm.basculerReference()).isTrue();
+            verify(service).marquerReference(1L, false);
+            assertThat(vm.selectionProperty().get()).isNull();
+            assertThat(vm.selectionPresenteProperty().get()).isFalse();
+            assertThat(vm.cheminAudioCourantProperty().get()).isNull();
+            assertThat(vm.detailProperty().get()).isEmpty();
+        }
+
+        @Test
         @DisplayName("basculerReference retire is_reference d'une ligne référencée")
         void basculer_reference_retire() {
             when(service.taxonsDisponibles()).thenReturn(List.of());

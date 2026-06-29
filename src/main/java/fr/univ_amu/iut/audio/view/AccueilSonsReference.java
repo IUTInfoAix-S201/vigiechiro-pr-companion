@@ -1,8 +1,9 @@
 package fr.univ_amu.iut.audio.view;
 
 import com.google.inject.Inject;
-import com.google.inject.Provider;
-import com.google.inject.name.Named;
+import com.google.inject.Injector;
+import com.google.inject.Key;
+import com.google.inject.name.Names;
 import fr.univ_amu.iut.commun.view.ActiviteAccueil;
 import fr.univ_amu.iut.commun.view.OuvrirAudio;
 import fr.univ_amu.iut.commun.view.Prisme;
@@ -20,13 +21,12 @@ import java.util.Objects;
 public final class AccueilSonsReference implements ActiviteAccueil {
 
     private final OuvrirAudio ouvrirAudio;
-    private final Provider<String> idUtilisateur;
+    private final Injector injector;
 
     @Inject
-    public AccueilSonsReference(
-            OuvrirAudio ouvrirAudio, @Named("idUtilisateurCourant") Provider<String> idUtilisateur) {
+    public AccueilSonsReference(OuvrirAudio ouvrirAudio, Injector injector) {
         this.ouvrirAudio = Objects.requireNonNull(ouvrirAudio, "ouvrirAudio");
-        this.idUtilisateur = Objects.requireNonNull(idUtilisateur, "idUtilisateur");
+        this.injector = Objects.requireNonNull(injector, "injector");
     }
 
     @Override
@@ -61,8 +61,10 @@ public final class AccueilSonsReference implements ActiviteAccueil {
 
     @Override
     public void ouvrir() {
-        // Identifiant résolu paresseusement (requête en base via SitesModule) : seulement à l'ouverture,
-        // pas à la construction de l'accueil - sinon le rendu des cartes exigerait un schéma migré.
-        ouvrirAudio.ouvrir(new SourceObservations.References(idUtilisateur.get()));
+        // Identifiant résolu paresseusement (requête en base via SitesModule), à l'ouverture seulement -
+        // pas à la construction de l'accueil, sinon le rendu des cartes exigerait un schéma migré. Même
+        // patron que NavigationSites.
+        String idUtilisateur = injector.getInstance(Key.get(String.class, Names.named("idUtilisateurCourant")));
+        ouvrirAudio.ouvrir(new SourceObservations.References(idUtilisateur));
     }
 }

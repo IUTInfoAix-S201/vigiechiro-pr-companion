@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [1.59.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.58.0...v1.59.0) (2026-06-29)
+
+
+### Features
+
+* **audio:** branchement multisite — ligne + lot filtré (PR-3d) ([#415](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/415)) ([70a63e0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/70a63e0c7a97c1c2e7efb01c53088a2f72f9bcc8)), closes [#291](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/291)
+
 # [1.58.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.57.0...v1.58.0) (2026-06-29)
 
 

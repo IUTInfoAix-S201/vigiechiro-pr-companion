@@ -15,8 +15,10 @@ import com.google.inject.Injector;
 import com.google.inject.Provides;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.model.Verdict;
+import fr.univ_amu.iut.commun.view.OuvrirAudio;
 import fr.univ_amu.iut.commun.view.OuvrirPassage;
 import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
+import fr.univ_amu.iut.commun.viewmodel.SourceObservations;
 import fr.univ_amu.iut.multisite.model.FiltresMultisite;
 import fr.univ_amu.iut.multisite.model.LignePassage;
 import fr.univ_amu.iut.multisite.model.ServiceMultisite;
@@ -53,6 +55,7 @@ class MultisiteViewTest {
     private ServiceMultisite service;
     private ServiceSites serviceSites;
     private OuvrirPassage ouvrirPassage;
+    private OuvrirAudio ouvrirAudio;
     private MultisiteViewModel viewModel;
 
     private static LignePassage ligne(long id, String carre, String point, int annee, int numero, String date) {
@@ -64,6 +67,7 @@ class MultisiteViewTest {
         service = mock(ServiceMultisite.class);
         serviceSites = mock(ServiceSites.class);
         ouvrirPassage = mock(OuvrirPassage.class);
+        ouvrirAudio = mock(OuvrirAudio.class);
         when(service.listerPassages(anyString(), any(), any()))
                 .thenReturn(List.of(
                         ligne(42L, "640380", "A1", 2026, 1, "2026-06-21"),
@@ -74,6 +78,7 @@ class MultisiteViewTest {
             @Override
             protected void configure() {
                 bind(OuvrirPassage.class).toInstance(ouvrirPassage);
+                bind(OuvrirAudio.class).toInstance(ouvrirAudio);
                 bind(NavigationMultisite.class).toInstance(mock(NavigationMultisite.class));
             }
 
@@ -165,5 +170,45 @@ class MultisiteViewTest {
         assertThat(enregistrer.isDisabled())
                 .as("plus rien en attente après enregistrement")
                 .isTrue();
+    }
+
+    @Test
+    @DisplayName("« Écouter le lot filtré » ouvre la vue audio sur tous les passages affichés (ParPassages)")
+    void ecouter_le_lot_ouvre_par_passages(FxRobot robot) {
+        // Les MenuItem ne sont pas des Node : on passe par le MenuButton (ordre du FXML : passage, lot, …).
+        MenuItem itemLot = robot.lookup("#menuActions")
+                .queryAs(MenuButton.class)
+                .getItems()
+                .get(1);
+
+        robot.interact(itemLot::fire);
+
+        ArgumentCaptor<SourceObservations> source = ArgumentCaptor.forClass(SourceObservations.class);
+        verify(ouvrirAudio).ouvrir(source.capture());
+        assertThat(source.getValue())
+                .isInstanceOfSatisfying(
+                        SourceObservations.ParPassages.class,
+                        lot -> assertThat(lot.idPassages()).containsExactlyInAnyOrder(42L, 7L));
+    }
+
+    @Test
+    @DisplayName("« Écouter le passage sélectionné » ouvre la vue audio sur ce passage (ParPassage)")
+    void ecouter_le_passage_ouvre_par_passage(FxRobot robot) {
+        TableView<?> table = robot.lookup("#tableLignes").queryAs(TableView.class);
+        MenuItem itemPassage = robot.lookup("#menuActions")
+                .queryAs(MenuButton.class)
+                .getItems()
+                .get(0);
+
+        robot.interact(() -> table.getSelectionModel().select(0)); // ligne 42L / carré 640380 / point A1
+        robot.interact(itemPassage::fire);
+
+        ArgumentCaptor<SourceObservations> source = ArgumentCaptor.forClass(SourceObservations.class);
+        verify(ouvrirAudio).ouvrir(source.capture());
+        assertThat(source.getValue()).isInstanceOfSatisfying(SourceObservations.ParPassage.class, passage -> {
+            assertThat(passage.contexte().idPassage()).isEqualTo(42L);
+            assertThat(passage.contexte().site().numeroCarre()).isEqualTo("640380");
+            assertThat(passage.contexte().site().codePoint()).isEqualTo("A1");
+        });
     }
 }

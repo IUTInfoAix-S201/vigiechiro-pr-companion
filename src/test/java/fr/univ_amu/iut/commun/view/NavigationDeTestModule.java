@@ -37,4 +37,9 @@ public final class NavigationDeTestModule extends AbstractModule {
     OuvrirAnalyse ouvrirAnalyse() {
         return () -> {};
     }
+
+    @Provides
+    OuvrirAudio ouvrirAudio() {
+        return source -> {};
+    }
 }

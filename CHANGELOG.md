@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [1.57.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.56.0...v1.57.0) (2026-06-29)
+
+
+### Features
+
+* **audio:** branchement passage — OuvrirValidation délègue à OuvrirAudio (PR-3b) ([#411](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/411)) ([bd0ffdb](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/bd0ffdb744806eefbad6eae523534452a9b55823))
+
 # [1.56.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.55.0...v1.56.0) (2026-06-29)
 
 

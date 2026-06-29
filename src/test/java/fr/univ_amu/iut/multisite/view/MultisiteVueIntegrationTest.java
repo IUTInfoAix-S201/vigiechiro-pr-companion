@@ -15,6 +15,7 @@ import com.google.inject.Injector;
 import com.google.inject.Provides;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.model.Verdict;
+import fr.univ_amu.iut.commun.view.OuvrirAudio;
 import fr.univ_amu.iut.commun.view.OuvrirPassage;
 import fr.univ_amu.iut.multisite.model.CarreAgrege;
 import fr.univ_amu.iut.multisite.model.FiltresMultisite;
@@ -94,6 +95,7 @@ class MultisiteVueIntegrationTest {
             @Override
             protected void configure() {
                 bind(OuvrirPassage.class).toInstance(ouvrirPassage);
+                bind(OuvrirAudio.class).toInstance(source -> {});
                 bind(NavigationMultisite.class).toInstance(navigation);
             }
 

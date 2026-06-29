@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [1.58.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.57.0...v1.58.0) (2026-06-29)
+
+
+### Features
+
+* **audio:** branchement analyse — source ParEspece + contrat OuvrirAnalyse (PR-3c) ([#413](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/413)) ([300e0ee](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/300e0eee68c795ed0b5852301b5c4b5e57b40868))
+
 # [1.57.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.56.0...v1.57.0) (2026-06-29)
 
 

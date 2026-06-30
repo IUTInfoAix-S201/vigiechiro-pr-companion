@@ -320,8 +320,9 @@ class ServiceValidationTest {
     @Test
     @DisplayName("Import tolérant : un taxon hors référentiel est auto-enregistré en souche, pas rejeté")
     void import_tolere_un_taxon_hors_referentiel() {
-        // Tetvir n'est pas semé ; la séquence seqA_000 existe → l'observation doit être importée.
-        String contenu = guillemets("nom du fichier", "tadarida_taxon") + guillemets("seqA_000", "Tetvir");
+        // « Zzztst » n'est pas dans le référentiel officiel (V05) ; la séquence seqA_000 existe → l'obs
+        // doit être importée et le taxon auto-enregistré en souche.
+        String contenu = guillemets("nom du fichier", "tadarida_taxon") + guillemets("seqA_000", "Zzztst");
         Path fichier = dossier.resolve("taxon_hors_referentiel.csv");
         try {
             Files.writeString(fichier, contenu, StandardCharsets.UTF_8);
@@ -333,11 +334,11 @@ class ServiceValidationTest {
 
         assertThat(bilan.importees()).isEqualTo(1);
         assertThat(bilan.taxonsHorsReferentiel()).isEqualTo(1);
-        // L'insertion FK a réussi : le code brut « Tetvir » est conservé (la souche existe désormais).
+        // L'insertion FK a réussi : le code brut « Zzztst » est conservé (la souche existe désormais).
         assertThat(observationDao.findByResults(bilan.idResultats()))
                 .singleElement()
                 .extracting(Observation::taxonTadarida)
-                .isEqualTo("Tetvir");
+                .isEqualTo("Zzztst");
     }
 
     @Test

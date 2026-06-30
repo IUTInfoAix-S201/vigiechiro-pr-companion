@@ -6,6 +6,11 @@
 -- INSERT OR IGNORE : les taxons fil rouge déjà semés (V02) et pseudo-taxons sont préservés.
 -- ============================================================================
 
+-- Idempotence des groupes : sans contrainte unique, INSERT OR IGNORE ne déduplique rien (il
+-- n'ignore que sur conflit de contrainte). Cet index unique sur le nom rend le seed rejouable
+-- et garantit que les recherches « SELECT id ... WHERE name = » restent déterministes.
+CREATE UNIQUE INDEX IF NOT EXISTS ux_taxonomic_group_name ON taxonomic_group(name);
+
 INSERT OR IGNORE INTO taxonomic_group (level, name) VALUES ('Catégorie', 'Chiroptères');
 INSERT OR IGNORE INTO taxonomic_group (level, name) VALUES ('Catégorie', 'Oiseaux');
 INSERT OR IGNORE INTO taxonomic_group (level, name) VALUES ('Catégorie', 'Orthoptères et cigales');
@@ -60,7 +65,10 @@ INSERT OR IGNORE INTO taxon (code, latin_name, vernacular_name_fr, group_id) SEL
 INSERT OR IGNORE INTO taxon (code, latin_name, vernacular_name_fr, group_id) SELECT 'Barsan', 'Barbitistes ''sanzii''', 'Barbitiste cryptique', id FROM taxonomic_group WHERE name = 'Orthoptères et cigales';
 INSERT OR IGNORE INTO taxon (code, latin_name, vernacular_name_fr, group_id) SELECT 'Barser', 'Barbitistes serricauda', 'Barbitiste des bois', id FROM taxonomic_group WHERE name = 'Orthoptères et cigales';
 INSERT OR IGNORE INTO taxon (code, latin_name, vernacular_name_fr, group_id) SELECT 'Bicbic', 'Bicolorana bicolor', 'Decticelle bicolore', id FROM taxonomic_group WHERE name = 'Orthoptères et cigales';
-INSERT OR IGNORE INTO taxon (code, latin_name, vernacular_name_fr, group_id) SELECT 'Bostau', 'Bos taurus', 'Butor étoilé', id FROM taxonomic_group WHERE name = 'Autres mammifères';
+-- Correction d'une erreur de la source amont (SpeciesListComplete.csv) : la colonne NomFR de
+-- « Bos taurus » y porte « Butor étoilé » (l'oiseau Botaurus stellaris), incohérent avec le bovin.
+-- Override délibéré → vernaculaire correct. À conserver si le V05 est un jour régénéré.
+INSERT OR IGNORE INTO taxon (code, latin_name, vernacular_name_fr, group_id) SELECT 'Bostau', 'Bos taurus', 'Vache', id FROM taxonomic_group WHERE name = 'Autres mammifères';
 INSERT OR IGNORE INTO taxon (code, latin_name, vernacular_name_fr, group_id) SELECT 'Bracan', 'Branta canadensis', 'Bernache du Canada', id FROM taxonomic_group WHERE name = 'Oiseaux';
 INSERT OR IGNORE INTO taxon (code, latin_name, vernacular_name_fr, group_id) SELECT 'Buroed', 'Burhinus oedicnemus', 'Oedicnème criard', id FROM taxonomic_group WHERE name = 'Oiseaux';
 INSERT OR IGNORE INTO taxon (code, latin_name, vernacular_name_fr, group_id) SELECT 'Butbut', 'Buteo buteo', 'Buse variable', id FROM taxonomic_group WHERE name = 'Oiseaux';

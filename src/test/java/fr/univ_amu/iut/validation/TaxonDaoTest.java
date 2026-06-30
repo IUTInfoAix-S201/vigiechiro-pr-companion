@@ -64,6 +64,15 @@ class TaxonDaoTest {
         assertThat(dao.findById("Minsch").orElseThrow().nomVernaculaireFr())
                 .as("accents réparés depuis la source")
                 .isEqualTo("Minioptère de Schreibers");
+        // Spot-check élargi à d'autres catégories (oiseau, orthoptère) pour détecter un éventuel
+        // décalage de colonnes, et non plus seulement les chiroptères.
+        assertThat(dao.findById("Alaarv").orElseThrow().nomVernaculaireFr()).isEqualTo("Alouette des champs");
+        assertThat(dao.findById("Bicbic").orElseThrow().nomVernaculaireFr()).isEqualTo("Decticelle bicolore");
+        // Bostau : la source amont y porte « Butor étoilé » (un oiseau) pour Bos taurus ; le V05 corrige
+        // ce vernaculaire. Garde-fou contre une régénération qui réintroduirait l'erreur.
+        Taxon bostau = dao.findById("Bostau").orElseThrow();
+        assertThat(bostau.nomLatin()).isEqualTo("Bos taurus");
+        assertThat(bostau.nomVernaculaireFr()).isEqualTo("Vache");
     }
 
     @Test

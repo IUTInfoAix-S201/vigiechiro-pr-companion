@@ -48,7 +48,31 @@
   -fx-padding: 16;
 }
 
+/* Bandeau de retour d'opération (import / export / valider / corriger). `.audio-message` porte la mise
+   en forme commune ; la classe de sévérité (ajoutée par le controller) porte les couleurs. Toujours
+   visible quand un retour est présent, contrairement au placeholder gris de l'état vide. */
 .audio-message {
   -fx-font-size: 12px;
+  -fx-padding: 8 10;
+  -fx-background-radius: 4;
+  -fx-border-radius: 4;
+  -fx-border-width: 1;
+}
+
+.retour-succes {
+  -fx-text-fill: #1e7e34;
+  -fx-background-color: #eaf7ee;
+  -fx-border-color: #b7e0c2;
+}
+
+.retour-info {
+  -fx-text-fill: #1a5276;
+  -fx-background-color: #eaf2f8;
+  -fx-border-color: #bcd6ea;
+}
+
+.retour-erreur {
   -fx-text-fill: #a93226;
+  -fx-background-color: #fdecea;
+  -fx-border-color: #f5c6cb;
 }

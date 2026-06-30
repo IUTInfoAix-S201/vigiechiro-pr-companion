@@ -84,6 +84,15 @@ public class ResultatsIdentificationDao extends DaoGenerique<ResultatsIdentifica
                 resultats.idPassage());
     }
 
+    /// Variante transactionnelle : supprime le jeu de résultats d'un passage (et ses observations,
+    /// cascade `ON DELETE CASCADE`) sur la `connexion` fournie, sans commit, pour grouper la
+    /// suppression de l'ancien jeu avec l'insertion du nouveau dans une seule unité de travail
+    /// (réimport atomique : si le nouveau CSV échoue, l'ancien n'est jamais perdu). Sans effet si
+    /// aucun jeu n'existe pour ce passage.
+    public void deleteParPassage(Connection connexion, Long idPassage) throws SQLException {
+        executerMaj(connexion, "DELETE FROM identification_results WHERE passage_id = ?", idPassage);
+    }
+
     @Override
     public void update(ResultatsIdentification resultats) {
         executerMaj(

@@ -168,7 +168,7 @@ class AudioViewModelTest {
             AudioViewModel vm = vm();
             vm.ouvrirSur(source());
 
-            assertThat(vm.importer(Path.of("obs.csv"))).isTrue();
+            assertThat(vm.importer(Path.of("obs.csv"), false)).isTrue();
             verify(service).importer(7L, Path.of("obs.csv"));
             assertThat(vm.resultatsDisponiblesProperty().get()).isTrue();
             assertThat(vm.retourProperty().get().severite()).isEqualTo(RetourOperation.Severite.SUCCES);
@@ -189,9 +189,45 @@ class AudioViewModelTest {
             AudioViewModel vm = vm();
             vm.ouvrirSur(source());
 
-            assertThat(vm.importer(Path.of("obs.csv"))).isFalse();
+            assertThat(vm.importer(Path.of("obs.csv"), false)).isFalse();
             assertThat(vm.retourProperty().get().severite()).isEqualTo(RetourOperation.Severite.ERREUR);
             assertThat(vm.retourProperty().get().texte()).contains("Séquence d'écoute introuvable");
+        }
+
+        @Test
+        @DisplayName("importer sans remplacer est refusé si un jeu existe déjà (info), sans toucher au service")
+        void importer_refuse_si_deja_importe() {
+            when(service.taxonsDisponibles()).thenReturn(List.of());
+            when(service.resultatsDuPassage(7L)).thenReturn(Optional.of(100L)); // un jeu existe déjà
+            when(service.lignesAudioDuPassage(7L)).thenReturn(List.of());
+
+            AudioViewModel vm = vm();
+            vm.ouvrirSur(source());
+
+            assertThat(vm.importer(Path.of("obs.csv"), false)).isFalse();
+            verify(service, never()).importer(any(), any());
+            assertThat(vm.retourProperty().get().severite()).isEqualTo(RetourOperation.Severite.INFO);
+        }
+
+        @Test
+        @DisplayName("réimporter (remplacer) délègue au remplacement atomique du service")
+        void reimporter_remplace() {
+            when(service.taxonsDisponibles()).thenReturn(List.of());
+            when(service.resultatsDuPassage(7L)).thenReturn(Optional.of(100L)); // un jeu existe déjà
+            when(service.lignesAudioDuPassage(7L))
+                    .thenReturn(List.of(ligne(1, 10, "Pippip", null, StatutObservation.NON_TOUCHEE, false)));
+            when(service.reimporter(7L, Path.of("neuf.csv")))
+                    .thenReturn(new BilanImport(
+                            new ResultatsIdentification(101L, "neuf.csv", "Brut", "2026-06-30T00:00", 7L), 1, 0, 0));
+
+            AudioViewModel vm = vm();
+            vm.ouvrirSur(source());
+
+            assertThat(vm.importer(Path.of("neuf.csv"), true)).isTrue();
+            // Remplacement atomique : un seul appel reimporter, pas de suppression hors transaction.
+            verify(service).reimporter(7L, Path.of("neuf.csv"));
+            verify(service, never()).importer(any(), any());
+            assertThat(vm.retourProperty().get().severite()).isEqualTo(RetourOperation.Severite.SUCCES);
         }
     }
 
@@ -216,7 +252,7 @@ class AudioViewModelTest {
             assertThat(vm.observationsFiltrees()).hasSize(1);
             assertThat(vm.source().permetWorkflowTadarida()).isFalse();
             assertThat(vm.source().permetExportBibliotheque()).isFalse();
-            assertThat(vm.importer(Path.of("obs.csv"))).isFalse();
+            assertThat(vm.importer(Path.of("obs.csv"), false)).isFalse();
             verify(service, never()).importer(any(), any());
         }
     }

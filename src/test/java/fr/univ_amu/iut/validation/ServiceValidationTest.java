@@ -177,6 +177,31 @@ class ServiceValidationTest {
         return fichier;
     }
 
+    /// CSV Brut bien formé mais dont **aucune** séquence n'existe en base : l'import est non importable
+    /// et lève. Sert à vérifier qu'un réimport invalide ne détruit pas le jeu déjà en place.
+    private Path ecrireBrutSequencesInconnues() {
+        String contenu = guillemets(
+                        "nom du fichier",
+                        "temps_debut",
+                        "temps_fin",
+                        "frequence_mediane",
+                        "tadarida_taxon",
+                        "tadarida_probabilite",
+                        "tadarida_taxon_autre",
+                        "observateur_taxon",
+                        "observateur_probabilite",
+                        "validateur_taxon",
+                        "validateur_probabilite")
+                + guillemets("zzzAbsente_000", "0.3", "3.9", "153", "Pippip", "0.93", "", "", "", "", "");
+        Path fichier = dossier.resolve("entree_inconnue.csv");
+        try {
+            Files.writeString(fichier, contenu, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        return fichier;
+    }
+
     private static String guillemets(String... champs) {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < champs.length; i++) {
@@ -234,6 +259,38 @@ class ServiceValidationTest {
         assertThat(observationDao.findByResults(idResultats))
                 .extracting(Observation::idSequence)
                 .doesNotContainNull();
+    }
+
+    @Test
+    @DisplayName("Réimport : remplace le jeu existant et ses observations par le nouveau jeu")
+    void reimporter_remplace_le_jeu() {
+        long idAncien = service.importer(idPassage, ecrireBrut()).idResultats();
+        assertThat(observationDao.findByResults(idAncien)).isNotEmpty();
+
+        BilanImport bilan = service.reimporter(idPassage, ecrireBrut());
+
+        // Un seul jeu par passage : l'ancien est remplacé (nouvel identifiant), ses observations effacées.
+        assertThat(bilan.idResultats()).isNotEqualTo(idAncien);
+        assertThat(observationDao.findByResults(idAncien))
+                .as("les observations de l'ancien jeu sont supprimées en cascade")
+                .isEmpty();
+        assertThat(resultatsDao.findByPassage(idPassage).orElseThrow().id()).isEqualTo(bilan.idResultats());
+        assertThat(bilan.importees()).isEqualTo(4);
+    }
+
+    @Test
+    @DisplayName("Réimport atomique : un nouveau CSV invalide conserve l'ancien jeu et ses observations")
+    void reimport_invalide_preserve_l_ancien_resultat() {
+        long idAncien = service.importer(idPassage, ecrireBrut()).idResultats();
+        int nbObs = observationDao.findByResults(idAncien).size();
+
+        // Le nouveau CSV n'a aucune séquence importable → reimporter lève AVANT toute suppression.
+        assertThatThrownBy(() -> service.reimporter(idPassage, ecrireBrutSequencesInconnues()))
+                .isInstanceOf(RegleMetierException.class);
+
+        // L'ancien jeu et ses observations sont intacts (pas de perte de données).
+        assertThat(resultatsDao.findByPassage(idPassage).orElseThrow().id()).isEqualTo(idAncien);
+        assertThat(observationDao.findByResults(idAncien)).hasSize(nbObs);
     }
 
     @Test

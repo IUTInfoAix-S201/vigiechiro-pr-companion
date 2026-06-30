@@ -149,6 +149,17 @@ public abstract class DaoGenerique<T, ID> implements Dao<T, ID> {
         }
     }
 
+    /// Variante transactionnelle : exécute un `INSERT`/`UPDATE`/`DELETE` sur la **connexion fournie**
+    /// (sans l'ouvrir ni la commiter) pour grouper l'écriture avec d'autres dans une même
+    /// [UniteDeTravail]. Propage la [SQLException] afin que l'unité de travail décide du commit /
+    /// rollback. Renvoie le nombre de lignes affectées.
+    protected int executerMaj(Connection connexion, String sql, Object... parametres) throws SQLException {
+        try (PreparedStatement ps = connexion.prepareStatement(sql)) {
+            lier(ps, parametres);
+            return ps.executeUpdate();
+        }
+    }
+
     /// Lie les paramètres positionnels (1-based), en gérant explicitement les valeurs nulles.
     private static void lier(PreparedStatement ps, Object... parametres) throws SQLException {
         for (int i = 0; i < parametres.length; i++) {

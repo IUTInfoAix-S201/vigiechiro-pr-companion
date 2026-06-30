@@ -61,6 +61,9 @@ public class ServiceValidation {
     /// Fin de citation `« … ».` des messages d'erreur métier (guillemet fermant + point).
     private static final String GUILLEMET_FERMANT = " ».";
 
+    /// Nom du paramètre `idPassage` (messages de `Objects.requireNonNull`).
+    private static final String PARAM_ID_PASSAGE = "idPassage";
+
     private final ResultatsIdentificationDao resultatsDao;
     private final ObservationDao observationDao;
     private final TaxonDao taxonDao;
@@ -164,7 +167,26 @@ public class ServiceValidation {
     /// @throws RegleMetierException si le passage n'a pas de session, ou si aucune séquence du CSV
     /// n'existe en base
     public BilanImport importer(Long idPassage, Path cheminCsv) {
-        Objects.requireNonNull(idPassage, "idPassage");
+        return importerInterne(idPassage, cheminCsv, false);
+    }
+
+    /// Réimporte un CSV Tadarida sur un passage **déjà importé**, en **remplaçant** l'ancien jeu de
+    /// façon **atomique** : le nouveau CSV est d'abord parsé et validé, puis l'ancien jeu (et ses
+    /// observations, cascade) est supprimé **dans la même transaction** que l'insertion du nouveau.
+    /// Si le nouveau CSV est invalide (parse en échec, ou aucune ligne importable), rien n'est
+    /// supprimé : l'ancien jeu et ses observations sont **conservés intacts**.
+    ///
+    /// @param idPassage passage déjà annoté (le jeu existant, s'il y en a un, est remplacé)
+    /// @param cheminCsv nouveau fichier CSV à importer
+    /// @return le bilan du nouvel import
+    /// @throws RegleMetierException si le passage n'a pas de session, ou si aucune séquence du CSV
+    /// n'existe en base (dans ce cas l'ancien jeu reste en place)
+    public BilanImport reimporter(Long idPassage, Path cheminCsv) {
+        return importerInterne(idPassage, cheminCsv, true);
+    }
+
+    private BilanImport importerInterne(Long idPassage, Path cheminCsv, boolean remplacer) {
+        Objects.requireNonNull(idPassage, PARAM_ID_PASSAGE);
         Objects.requireNonNull(cheminCsv, "cheminCsv");
 
         ResultatParseTadarida parse = parser.parser(cheminCsv);
@@ -207,9 +229,15 @@ public class ServiceValidation {
                 horloge.maintenant().toString(),
                 idPassage);
 
-        // Souches + jeu de résultats + observations dans une **seule transaction** (atomicité, FK).
+        // Remplacement (réimport) + souches + jeu de résultats + observations dans une **seule
+        // transaction** (atomicité, FK). La suppression de l'ancien jeu n'a lieu qu'ici, après que le
+        // parse et la validation ont réussi : un nouveau CSV invalide a déjà levé plus haut, sans
+        // rien supprimer. En cas d'échec d'écriture, le rollback préserve l'ancien jeu.
         ResultatsIdentification[] insere = {null};
         uniteDeTravail.executer(connexion -> {
+            if (remplacer) {
+                resultatsDao.deleteParPassage(connexion, idPassage);
+            }
             taxonDao.enregistrerHorsReferentiel(connexion, taxonsAutoCrees);
             insere[0] = resultatsDao.insert(connexion, aCreer);
             observationDao.insererTout(
@@ -374,7 +402,7 @@ public class ServiceValidation {
     /// Renvoie une vue **vide** (`idResultats` null, liste vide) si aucun CSV Tadarida n'a encore été
     /// importé pour le passage — l'écran affiche alors un état vide plutôt que de lever.
     public VueValidation chargerValidation(Long idPassage) {
-        Objects.requireNonNull(idPassage, "idPassage");
+        Objects.requireNonNull(idPassage, PARAM_ID_PASSAGE);
         Optional<ResultatsIdentification> resultats = resultatsDao.findByPassage(idPassage);
         if (resultats.isEmpty()) {
             return new VueValidation(null, List.of());

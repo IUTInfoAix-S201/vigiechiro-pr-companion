@@ -4,6 +4,10 @@ import fr.univ_amu.iut.commun.persistence.DaoGenerique;
 import fr.univ_amu.iut.commun.persistence.RowMapper;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
 import fr.univ_amu.iut.validation.model.Taxon;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.Collection;
 import java.util.List;
 
 /// DAO de l'entité [Taxon] (table `taxon`).
@@ -42,6 +46,26 @@ public class TaxonDao extends DaoGenerique<Taxon, String> {
     /// Taxons rattachés à un groupe taxonomique donné, triés par code.
     public List<Taxon> findByGroupe(Long idGroupe) {
         return query("SELECT * FROM taxon WHERE group_id = ? ORDER BY code", MAPPER, idGroupe);
+    }
+
+    /// Enregistre des taxons **hors référentiel** (auto-souches de l'import tolérant) : pour chaque `code`
+    /// inconnu, insère une ligne minimale (code seul, sans nom latin) rattachée au groupe « Hors
+    /// référentiel » (V04), afin de respecter la FK `observation.taxon_tadarida -> taxon(code)` sans
+    /// rejeter tout l'import quand le CSV contient des taxons non semés. `INSERT OR IGNORE` : un code déjà
+    /// présent est laissé intact. Écrit sur la `connexion` de la transaction d'import (atomicité).
+    public void enregistrerHorsReferentiel(Connection connexion, Collection<String> codes) throws SQLException {
+        if (codes.isEmpty()) {
+            return;
+        }
+        String sql = "INSERT OR IGNORE INTO taxon (code, latin_name, vernacular_name_fr, group_id)"
+                + " SELECT ?, NULL, 'Hors référentiel', g.id FROM taxonomic_group g WHERE g.name = 'Hors référentiel'";
+        try (PreparedStatement ps = connexion.prepareStatement(sql)) {
+            for (String code : codes) {
+                ps.setString(1, code);
+                ps.addBatch();
+            }
+            ps.executeBatch();
+        }
     }
 
     @Override

@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+## [1.61.1](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.61.0...v1.61.1) (2026-06-30)
+
+
+### Bug Fixes
+
+* **audio:** bandeau de retour d'import bien plus visible + erreur séquence actionnable ([#431](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/431)) ([49e540a](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/49e540a587f3b96682ecf62ef949cdce981872c5)), closes [#bandeauRetour](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/bandeauRetour) [#lblMessage](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/lblMessage)
+
 # [1.61.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.60.0...v1.61.0) (2026-06-30)
 
 

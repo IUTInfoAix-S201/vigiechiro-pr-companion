@@ -27,7 +27,11 @@ public class MigrationSchema {
 
     /// Migrations appliquées dans l'ordre. Le préfixe `V0n` porte le numéro de version.
     static final String[] MIGRATIONS = {
-        "V01__schema.sql", "V02__seed_taxons.sql", "V03__perf_indexes.sql", "V04__groupe_hors_referentiel.sql"
+        "V01__schema.sql",
+        "V02__seed_taxons.sql",
+        "V03__perf_indexes.sql",
+        "V04__groupe_hors_referentiel.sql",
+        "V05__seed_taxons_officiels.sql"
     };
 
     private static final String DOSSIER = "/db/migration/";

@@ -93,16 +93,17 @@ class PersistenceInfraTest {
         new MigrationSchema(premiere).migrer();
 
         assertThat(Files.exists(workspace.cheminBaseDeDonnees())).isTrue();
-        assertThat(compterTaxons(premiere))
-                .as("4 taxons fil rouge + noise + piaf")
-                .isEqualTo(6);
+        int apresPremiere = compterTaxons(premiere);
+        assertThat(apresPremiere)
+                .as("référentiel officiel Tadarida semé (V02 fil rouge + V05 France)")
+                .isGreaterThan(300);
 
-        // Réouverture (simule un redémarrage) : re-migrer ne doit pas re-seeder.
+        // Réouverture (simule un redémarrage) : re-migrer ne doit pas re-seeder (INSERT OR IGNORE).
         SourceDeDonnees seconde = new SourceDeDonnees(workspace);
         new MigrationSchema(seconde).migrer();
         assertThat(compterTaxons(seconde))
                 .as("pas de doublons après re-migration")
-                .isEqualTo(6);
+                .isEqualTo(apresPremiere);
     }
 
     @Test

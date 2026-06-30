@@ -54,6 +54,19 @@ class TaxonDaoTest {
     }
 
     @Test
+    @DisplayName("Le référentiel officiel Tadarida (V05) seede les espèces françaises avec leurs noms")
+    void referentiel_officiel_seede() {
+        Taxon rhifer = dao.findById("Rhifer").orElseThrow();
+        assertThat(rhifer.nomLatin()).isEqualTo("Rhinolophus ferrumequinum");
+        assertThat(rhifer.nomVernaculaireFr()).isEqualTo("Grand Rhinolophe");
+        // Un taxon non-chiroptère du jeu d'exemple est aussi semé (plus d'auto-souche pour lui).
+        assertThat(dao.findById("Rusnit")).isPresent();
+        assertThat(dao.findById("Minsch").orElseThrow().nomVernaculaireFr())
+                .as("accents réparés depuis la source")
+                .isEqualTo("Minioptère de Schreibers");
+    }
+
+    @Test
     @DisplayName("Le pseudo-taxon noise a un nom latin nul")
     void pseudo_taxon_a_un_nom_latin_nul() {
         Taxon noise = dao.findById("noise").orElseThrow();
@@ -66,30 +79,33 @@ class TaxonDaoTest {
     @Test
     @DisplayName("Insérer rend la clé naturelle telle quelle et le taxon relisible")
     void inserer_rend_la_cle_naturelle_et_le_taxon_relisible() {
-        Taxon insere = dao.insert(new Taxon("Myomyo", "Myotis myotis", "Grand murin", idGenrePipistrellus));
+        // Code volontairement hors référentiel officiel (V05) pour ne pas entrer en collision avec le seed.
+        Taxon insere = dao.insert(new Taxon("Zzztst", "Genus testus", "Taxon de test", idGenrePipistrellus));
 
-        assertThat(insere.code()).isEqualTo("Myomyo");
-        Taxon relu = dao.findById("Myomyo").orElseThrow();
-        assertThat(relu.nomVernaculaireFr()).isEqualTo("Grand murin");
+        assertThat(insere.code()).isEqualTo("Zzztst");
+        Taxon relu = dao.findById("Zzztst").orElseThrow();
+        assertThat(relu.nomVernaculaireFr()).isEqualTo("Taxon de test");
         assertThat(relu.idGroupe()).isEqualTo(idGenrePipistrellus);
     }
 
     @Test
     @DisplayName("Filtrer par groupe ne retient que les taxons de ce groupe")
     void filtrer_par_groupe() {
-        dao.insert(new Taxon("Pipnat", "Pipistrellus nathusii", "Pipistrelle de Nathusius", idGenrePipistrellus));
+        // Le seed officiel (V05) range les chauves-souris sous la catégorie « Chiroptères », pas sous les
+        // groupes de genre de V02 : le genre Pipistrellus ne contient donc que Pippip + ce qu'on ajoute.
+        dao.insert(new Taxon("Zzzpip", "Pipistrellus testus", "Pipistrelle de test", idGenrePipistrellus));
 
         assertThat(dao.findByGroupe(idGenrePipistrellus))
                 .extracting(Taxon::code)
-                .contains("Pippip", "Pipnat");
+                .contains("Pippip", "Zzzpip");
     }
 
     @Test
     @DisplayName("Un code déjà présent est rejeté (clé naturelle unique)")
     void unicite_de_la_cle_naturelle() {
-        dao.insert(new Taxon("Myomyo", "Myotis myotis", "Grand murin", idGenrePipistrellus));
+        dao.insert(new Taxon("Zzztst", "Genus testus", "Taxon de test", idGenrePipistrellus));
 
-        assertThatThrownBy(() -> dao.insert(new Taxon("Myomyo", "Autre", "Doublon", idGenrePipistrellus)))
+        assertThatThrownBy(() -> dao.insert(new Taxon("Zzztst", "Autre", "Doublon", idGenrePipistrellus)))
                 .as("la PK naturelle interdit deux taxons de même code")
                 .isInstanceOf(DataAccessException.class);
     }

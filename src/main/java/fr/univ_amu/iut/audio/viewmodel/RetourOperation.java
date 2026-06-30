@@ -29,14 +29,15 @@ public record RetourOperation(String texte, Severite severite) {
         return new RetourOperation("✅ " + texte, Severite.SUCCES);
     }
 
-    /// Retour d'**information** (neutre) : action refusée ou guidage, sans échec technique.
+    /// Retour d'**information** (neutre) : action refusée ou guidage, sans échec technique. Le sélecteur
+    /// de variante (U+FE0F) force la **présentation emoji** de l'icône (sinon « ℹ » s'affiche en texte « i »).
     public static RetourOperation info(String texte) {
-        return new RetourOperation("ℹ " + texte, Severite.INFO);
+        return new RetourOperation("ℹ️ " + texte, Severite.INFO);
     }
 
     /// Retour d'**erreur** (rouge) : l'opération a échoué.
     public static RetourOperation erreur(String texte) {
-        return new RetourOperation("⚠ " + (texte == null ? "Une erreur est survenue." : texte), Severite.ERREUR);
+        return new RetourOperation("⚠️ " + (texte == null ? "Une erreur est survenue." : texte), Severite.ERREUR);
     }
 
     /// `true` s'il y a un texte à présenter (bandeau visible).

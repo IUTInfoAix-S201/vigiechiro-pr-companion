@@ -96,8 +96,8 @@ public class AudioViewModel {
     }
 
     /// Ouvre la vue audio sur l'ensemble décrit par `source`. Une erreur de chargement est restituée
-    /// dans [#messageProperty()] sans lever, l'écran restant vide. Un ensemble vide n'est pas une
-    /// erreur : la liste est vide et un message d'état neutre l'explique.
+    /// dans [#retourProperty()] (bandeau d'erreur) sans lever, l'écran restant vide. Un ensemble vide
+    /// n'est pas une erreur : la liste est vide et l'indice d'état vide ([#messageProperty()]) l'explique.
     public void ouvrirSur(SourceObservations source) {
         this.source = Objects.requireNonNull(source, "source");
         reinitialiser();

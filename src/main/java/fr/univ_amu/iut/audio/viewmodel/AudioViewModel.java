@@ -176,10 +176,10 @@ public class AudioViewModel {
             return false;
         }
         try {
-            if (remplacer) {
-                service.supprimerResultatsDuPassage(idPassage);
-            }
-            BilanImport bilan = service.importer(idPassage, cheminCsv);
+            // Réimport **atomique** : remplace l'ancien jeu dans une seule transaction (un CSV invalide
+            // n'efface jamais l'ancien). Premier import : insertion simple.
+            BilanImport bilan =
+                    remplacer ? service.reimporter(idPassage, cheminCsv) : service.importer(idPassage, cheminCsv);
             charger();
             idResultats = bilan.idResultats();
             resultatsDisponibles.set(idResultats != null);

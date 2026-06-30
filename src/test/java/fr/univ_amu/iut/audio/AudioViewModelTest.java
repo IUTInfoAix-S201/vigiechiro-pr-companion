@@ -210,13 +210,13 @@ class AudioViewModelTest {
         }
 
         @Test
-        @DisplayName("réimporter (remplacer) supprime le jeu existant puis importe le nouveau")
+        @DisplayName("réimporter (remplacer) délègue au remplacement atomique du service")
         void reimporter_remplace() {
             when(service.taxonsDisponibles()).thenReturn(List.of());
             when(service.resultatsDuPassage(7L)).thenReturn(Optional.of(100L)); // un jeu existe déjà
             when(service.lignesAudioDuPassage(7L))
                     .thenReturn(List.of(ligne(1, 10, "Pippip", null, StatutObservation.NON_TOUCHEE, false)));
-            when(service.importer(7L, Path.of("neuf.csv")))
+            when(service.reimporter(7L, Path.of("neuf.csv")))
                     .thenReturn(new BilanImport(
                             new ResultatsIdentification(101L, "neuf.csv", "Brut", "2026-06-30T00:00", 7L), 1, 0, 0));
 
@@ -224,8 +224,9 @@ class AudioViewModelTest {
             vm.ouvrirSur(source());
 
             assertThat(vm.importer(Path.of("neuf.csv"), true)).isTrue();
-            verify(service).supprimerResultatsDuPassage(7L);
-            verify(service).importer(7L, Path.of("neuf.csv"));
+            // Remplacement atomique : un seul appel reimporter, pas de suppression hors transaction.
+            verify(service).reimporter(7L, Path.of("neuf.csv"));
+            verify(service, never()).importer(any(), any());
             assertThat(vm.retourProperty().get().severite()).isEqualTo(RetourOperation.Severite.SUCCES);
         }
     }

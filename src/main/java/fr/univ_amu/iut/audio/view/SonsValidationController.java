@@ -5,6 +5,7 @@ import fr.nedjar.vigiechiro.audio.AudioView;
 import fr.univ_amu.iut.audio.viewmodel.AudioViewModel;
 import fr.univ_amu.iut.audio.viewmodel.ComptageAudio;
 import fr.univ_amu.iut.audio.viewmodel.FormatLigneAudio;
+import fr.univ_amu.iut.audio.viewmodel.RetourOperation;
 import fr.univ_amu.iut.commun.view.EmplacementNavigation;
 import fr.univ_amu.iut.commun.view.EmplacementPassage;
 import fr.univ_amu.iut.commun.view.Lieu;
@@ -19,6 +20,7 @@ import fr.univ_amu.iut.validation.model.StatutObservation;
 import fr.univ_amu.iut.validation.model.Taxon;
 import java.io.File;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyStringWrapper;
@@ -220,15 +222,38 @@ public class SonsValidationController implements EmplacementNavigation {
         // Inclure (ou non) la colonne validation_mode dans l'export _Vu (R24), coché par défaut.
         itemInclureMode.selectedProperty().bindBidirectional(viewModel.inclureModeProperty());
 
-        // État vide superposé à la table ; message d'erreur en bas seulement quand la liste n'est pas vide.
+        // État vide : placeholder gris superposé à la table, réservé au seul « aucune observation… ».
         var listeVide = Bindings.isEmpty(viewModel.observationsFiltrees());
         lblVide.textProperty().bind(viewModel.messageProperty());
         lblVide.visibleProperty().bind(listeVide);
         lblVide.managedProperty().bind(listeVide);
-        var messagePresent = viewModel.messageProperty().isNotEmpty().and(listeVide.not());
-        lblMessage.textProperty().bind(viewModel.messageProperty());
-        lblMessage.visibleProperty().bind(messagePresent);
-        lblMessage.managedProperty().bind(messagePresent);
+
+        // Retour d'opération (import / export / valider / corriger) : bandeau **toujours visible quand
+        // présent** (même table vide), coloré selon la sévérité. Décorrélé de l'état vide pour qu'une
+        // erreur d'import ne soit plus noyée dans le placeholder gris (incident « For input string: SUR »).
+        lblMessage
+                .textProperty()
+                .bind(Bindings.createStringBinding(
+                        () -> viewModel.retourProperty().get().texte(), viewModel.retourProperty()));
+        var retourPresent = Bindings.createBooleanBinding(
+                () -> viewModel.retourProperty().get().present(), viewModel.retourProperty());
+        lblMessage.visibleProperty().bind(retourPresent);
+        lblMessage.managedProperty().bind(retourPresent);
+        viewModel.retourProperty().addListener((obs, avant, apres) -> appliquerStyleRetour(apres));
+        appliquerStyleRetour(viewModel.retourProperty().get());
+    }
+
+    /// Classe CSS du bandeau de retour selon la sévérité (succès vert / info neutre / erreur rouge).
+    private static final Map<RetourOperation.Severite, String> CLASSE_RETOUR = Map.of(
+            RetourOperation.Severite.SUCCES, "retour-succes",
+            RetourOperation.Severite.INFO, "retour-info",
+            RetourOperation.Severite.ERREUR, "retour-erreur");
+
+    /// Colore le bandeau de retour selon la sévérité de la dernière opération, en échangeant la classe
+    /// CSS portée par `lblMessage`.
+    private void appliquerStyleRetour(RetourOperation retour) {
+        lblMessage.getStyleClass().removeAll(CLASSE_RETOUR.values());
+        lblMessage.getStyleClass().add(CLASSE_RETOUR.get(retour.severite()));
     }
 
     /// Ouvre la vue audio sur `source`, en adaptant colonnes, actions et fil d'Ariane. Appelée par

@@ -58,10 +58,12 @@ class NavigationValidationViewTest {
     @Test
     @DisplayName("ouvrir(idPassage) charge l'écran M-Vision-Tadarida via Guice")
     void ouvrir_affiche_l_ecran(FxRobot robot) {
-        Label message = robot.lookup("#lblMessage").queryAs(Label.class);
+        // L'indice « passage vide » est le placeholder d'état vide (lblVide), pas le bandeau de retour
+        // d'opération (lblMessage), depuis la séparation des deux canaux.
+        Label etatVide = robot.lookup("#lblVide").queryAs(Label.class);
         TableView<?> table = robot.lookup("#tableObservations").queryAs(TableView.class);
 
-        assertThat(message.getText()).contains("Aucun résultat Tadarida importé");
+        assertThat(etatVide.getText()).contains("Aucun résultat Tadarida importé");
         assertThat(table.getItems()).isEmpty();
     }
 }

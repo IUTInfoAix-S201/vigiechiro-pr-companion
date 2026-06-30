@@ -2,6 +2,7 @@ package fr.univ_amu.iut.audio.view;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -13,6 +14,7 @@ import com.google.inject.Provides;
 import fr.nedjar.vigiechiro.audio.AudioView;
 import fr.univ_amu.iut.audio.viewmodel.AudioViewModel;
 import fr.univ_amu.iut.bibliotheque.model.ServiceBibliotheque;
+import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.commun.view.NavigationDeTestModule;
 import fr.univ_amu.iut.commun.viewmodel.SourceObservations;
 import fr.univ_amu.iut.validation.model.LigneObservationAudio;
@@ -137,6 +139,25 @@ class SonsValidationViewTest {
 
         robot.interact(btnReference::fire);
         verify(service).marquerReference(1L, false);
+    }
+
+    @Test
+    @DisplayName("Un échec d'opération s'affiche dans le bandeau de retour (erreur), pas dans le placeholder")
+    void echec_affiche_bandeau_de_retour(FxRobot robot) {
+        TableView<?> table = robot.lookup("#tableObservations").queryAs(TableView.class);
+        Label message = robot.lookup("#lblMessage").queryAs(Label.class);
+
+        assertThat(message.isVisible()).as("aucun retour au départ").isFalse();
+
+        Button btnReference = robot.lookup("#btnReference").queryAs(Button.class);
+        robot.interact(() -> table.getSelectionModel().select(0)); // ligne id=1, déjà référence
+        doThrow(new RegleMetierException("Échec simulé")).when(service).marquerReference(1L, false);
+        robot.interact(btnReference::fire);
+
+        // Le retour d'erreur est visible et stylé erreur, indépendamment du placeholder d'état vide.
+        assertThat(message.isVisible()).isTrue();
+        assertThat(message.getText()).contains("Échec simulé");
+        assertThat(message.getStyleClass()).contains("retour-erreur");
     }
 
     @Test

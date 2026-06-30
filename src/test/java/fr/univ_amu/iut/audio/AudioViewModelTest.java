@@ -7,8 +7,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import fr.univ_amu.iut.audio.viewmodel.AudioViewModel;
+import fr.univ_amu.iut.audio.viewmodel.RetourOperation;
 import fr.univ_amu.iut.bibliotheque.model.ExportBiblioSons;
 import fr.univ_amu.iut.bibliotheque.model.ServiceBibliotheque;
+import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.commun.viewmodel.ContextePassage;
 import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
 import fr.univ_amu.iut.commun.viewmodel.SourceObservations;
@@ -149,11 +151,13 @@ class AudioViewModelTest {
         }
 
         @Test
-        @DisplayName("importer délègue puis rafraîchit l'identifiant de résultats")
+        @DisplayName("importer délègue, rafraîchit l'identifiant de résultats et rend un retour de succès")
         void importer_delegue() {
             when(service.taxonsDisponibles()).thenReturn(List.of());
             when(service.resultatsDuPassage(7L)).thenReturn(Optional.empty(), Optional.of(100L));
-            when(service.lignesAudioDuPassage(7L)).thenReturn(List.of());
+            // Passage vide à l'ouverture, puis 1 observation après l'import (le résumé compte le rechargé).
+            when(service.lignesAudioDuPassage(7L))
+                    .thenReturn(List.of(), List.of(ligne(1, 10, "Pippip", null, StatutObservation.NON_TOUCHEE, false)));
 
             AudioViewModel vm = vm();
             vm.ouvrirSur(source());
@@ -161,6 +165,27 @@ class AudioViewModelTest {
             assertThat(vm.importer(Path.of("obs.csv"))).isTrue();
             verify(service).importer(7L, Path.of("obs.csv"));
             assertThat(vm.resultatsDisponiblesProperty().get()).isTrue();
+            assertThat(vm.retourProperty().get().severite()).isEqualTo(RetourOperation.Severite.SUCCES);
+            assertThat(vm.retourProperty().get().texte())
+                    .contains("Import réussi")
+                    .contains("1 observation");
+        }
+
+        @Test
+        @DisplayName("un import qui échoue rend un retour d'ERREUR visible (pas un placeholder silencieux)")
+        void importer_echoue_retour_erreur() {
+            when(service.taxonsDisponibles()).thenReturn(List.of());
+            when(service.resultatsDuPassage(7L)).thenReturn(Optional.empty());
+            when(service.lignesAudioDuPassage(7L)).thenReturn(List.of());
+            when(service.importer(7L, Path.of("obs.csv")))
+                    .thenThrow(new RegleMetierException("Séquence d'écoute introuvable en base pour « seq »."));
+
+            AudioViewModel vm = vm();
+            vm.ouvrirSur(source());
+
+            assertThat(vm.importer(Path.of("obs.csv"))).isFalse();
+            assertThat(vm.retourProperty().get().severite()).isEqualTo(RetourOperation.Severite.ERREUR);
+            assertThat(vm.retourProperty().get().texte()).contains("Séquence d'écoute introuvable");
         }
     }
 
@@ -256,7 +281,8 @@ class AudioViewModelTest {
 
             assertThat(vm.exporterBibliotheque(Path.of("/sortie"))).isTrue();
             verify(bibliotheque).exporterBibliotheque();
-            assertThat(vm.messageProperty().get()).contains("3 fichier(s)");
+            assertThat(vm.retourProperty().get().texte()).contains("3 fichier(s)");
+            assertThat(vm.retourProperty().get().severite()).isEqualTo(RetourOperation.Severite.SUCCES);
         }
 
         @Test
@@ -315,7 +341,8 @@ class AudioViewModelTest {
             assertThat(vm.corriger(new Taxon("Pippip", "Pipistrellus", null, 1L)))
                     .isFalse();
             verify(service, never()).corriger(any(), any(), any());
-            assertThat(vm.messageProperty().get()).contains("Valider");
+            assertThat(vm.retourProperty().get().texte()).contains("Valider");
+            assertThat(vm.retourProperty().get().severite()).isEqualTo(RetourOperation.Severite.INFO);
         }
 
         @Test

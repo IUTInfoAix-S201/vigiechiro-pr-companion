@@ -80,7 +80,11 @@ public class AudioViewModel {
             new ReadOnlyObjectWrapper<>(this, "comptage", ComptageAudio.VIDE);
 
     private final ReadOnlyStringWrapper detail = new ReadOnlyStringWrapper(this, "detail", "");
-    private final ReadOnlyStringWrapper message = new ReadOnlyStringWrapper(this, "message", "");
+
+    /// Messagerie de la vue : indice d'**état vide** (placeholder gris) et **retour d'opération** (bandeau
+    /// coloré par sévérité), deux canaux distincts pour qu'une erreur d'import ne soit plus noyée dans le
+    /// placeholder « aucune observation ». Voir [MessagesAudio].
+    private final MessagesAudio messages = new MessagesAudio();
 
     public AudioViewModel(ServiceValidation service, ServiceBibliotheque bibliotheque) {
         this.service = Objects.requireNonNull(service, "service");
@@ -104,7 +108,7 @@ public class AudioViewModel {
             charger();
         } catch (RuntimeException echec) {
             reinitialiser();
-            message.set(echec.getMessage());
+            messages.erreur(echec.getMessage());
         }
     }
 
@@ -133,7 +137,7 @@ public class AudioViewModel {
             return false;
         }
         if (taxon.code().equals(courant.taxonTadarida())) {
-            message.set("Pour retenir la proposition Tadarida, utilisez « Valider » : corriger attend"
+            messages.info("Pour retenir la proposition Tadarida, utilisez « Valider » : corriger attend"
                     + " un autre taxon.");
             return false;
         }
@@ -165,13 +169,14 @@ public class AudioViewModel {
             return false;
         }
         if (idResultats != null) {
-            message.set("Des résultats Tadarida sont déjà importés pour ce passage : un seul jeu est permis.");
+            messages.info("Des résultats Tadarida sont déjà importés pour ce passage : un seul jeu est permis.");
             return false;
         }
         boolean ok = appliquerAction(() -> service.importer(idPassage, cheminCsv));
         if (ok) {
             idResultats = service.resultatsDuPassage(idPassage).orElse(null);
             resultatsDisponibles.set(idResultats != null);
+            messages.succes("Import réussi : " + comptage.get().total() + " observation(s) chargée(s).");
         }
         return ok;
     }
@@ -195,9 +200,7 @@ public class AudioViewModel {
     }
 
     private boolean appliquerExport(ExporteurAudio.ResultatExport resultat) {
-        if (resultat.message() != null) {
-            message.set(resultat.message());
-        }
+        messages.export(resultat.reussi(), resultat.message());
         return resultat.reussi();
     }
 
@@ -205,15 +208,16 @@ public class AudioViewModel {
         try {
             action.run();
             charger();
+            messages.effacerRetour();
             return true;
         } catch (RuntimeException echec) {
-            message.set(echec.getMessage());
+            messages.erreur(echec.getMessage());
             return false;
         }
     }
 
     /// Recharge les lignes de la source courante en préservant la sélection (par identifiant
-    /// d'observation), puis met à jour compteurs et message d'état.
+    /// d'observation), puis met à jour compteurs et indice d'état vide.
     private void charger() {
         Long observationSelectionnee =
                 selection.get() == null ? null : selection.get().idObservation();
@@ -221,7 +225,7 @@ public class AudioViewModel {
         observations.setAll(lignes);
         reselectionner(observationSelectionnee);
         majCompteurs();
-        message.set(lignes.isEmpty() ? ResolveurSourceAudio.messageVide(source) : "");
+        messages.majEtatVide(lignes.isEmpty(), ResolveurSourceAudio.messageVide(source));
     }
 
     /// Repositionne la sélection après un rechargement : sur la ligne de même identifiant si elle existe
@@ -261,7 +265,7 @@ public class AudioViewModel {
         taxons.clear();
         detail.set("");
         comptage.set(ComptageAudio.VIDE);
-        message.set("");
+        messages.reinitialiser();
     }
 
     /// Source courante (provenance + portée), `null` avant la première ouverture. Porte aussi les
@@ -335,8 +339,15 @@ public class AudioViewModel {
         return comptage.getReadOnlyProperty();
     }
 
-    /// Message d'état (erreur de chargement, ou source vide), vide en nominal.
+    /// Indice d'**état vide** de la table (« aucune observation… »), vide en nominal. Réservé au
+    /// placeholder gris : le retour des opérations passe par [#retourProperty()].
     public ReadOnlyStringProperty messageProperty() {
-        return message.getReadOnlyProperty();
+        return messages.etatVideProperty();
+    }
+
+    /// Retour de la **dernière opération** (import / export / valider / corriger) avec sa sévérité, pour
+    /// un bandeau de feedback visible. [RetourOperation#AUCUN] en nominal.
+    public ReadOnlyObjectProperty<RetourOperation> retourProperty() {
+        return messages.retourProperty();
     }
 }

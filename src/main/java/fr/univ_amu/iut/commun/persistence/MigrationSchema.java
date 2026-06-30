@@ -31,7 +31,8 @@ public class MigrationSchema {
         "V02__seed_taxons.sql",
         "V03__perf_indexes.sql",
         "V04__groupe_hors_referentiel.sql",
-        "V05__seed_taxons_officiels.sql"
+        "V05__seed_taxons_officiels.sql",
+        "V06__reparer_souches_referentiel.sql"
     };
 
     private static final String DOSSIER = "/db/migration/";

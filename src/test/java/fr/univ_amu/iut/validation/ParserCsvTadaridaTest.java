@@ -167,4 +167,14 @@ class ParserCsvTadaridaTest {
         assertThat(ligne.taxonObservateur()).isEqualTo("Rhifer");
         assertThat(ligne.probTadarida()).isEqualTo(0.99);
     }
+
+    @Test
+    @DisplayName("La tolérance ne s'applique qu'aux probabilités : un temps non numérique reste rejeté")
+    void rejette_un_champ_non_probabilite_invalide() {
+        // temps_debut hors colonnes *_probabilite : une valeur malformée doit lever (pas d'avalage
+        // silencieux), pour ne pas masquer une donnée corrompue.
+        String tempsInvalide = "nom du fichier;temps_debut;tadarida_taxon\nseq_000;abc;Pippip\n";
+
+        assertThatThrownBy(() -> parser.parser(tempsInvalide)).isInstanceOf(NumberFormatException.class);
+    }
 }

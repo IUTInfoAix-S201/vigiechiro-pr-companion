@@ -1,9 +1,11 @@
 package fr.univ_amu.iut.audio.view;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -21,9 +23,11 @@ import fr.univ_amu.iut.validation.model.LigneObservationAudio;
 import fr.univ_amu.iut.validation.model.ServiceValidation;
 import fr.univ_amu.iut.validation.model.StatutObservation;
 import fr.univ_amu.iut.validation.model.Taxon;
+import java.io.File;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
+import javafx.event.Event;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -33,6 +37,11 @@ import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.input.DragEvent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.PickResult;
+import javafx.scene.input.TransferMode;
+import javafx.scene.layout.Region;
 import javafx.stage.Stage;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -178,6 +187,35 @@ class SonsValidationViewTest {
         assertThat(exporterVu.isVisible()).isFalse();
         // Source multi-passages : les colonnes de contexte restent visibles.
         assertThat(colonne(robot, "Passage").isVisible()).isTrue();
+    }
+
+    @Test
+    @DisplayName("Source References : déposer un CSV est refusé (le dépôt n'est actif qu'en workflow passage)")
+    void depot_refuse_hors_workflow(FxRobot robot) {
+        // Câblage réel du controller : sur la source References (non workflow), le prédicat d'activation
+        // du glisser-déposer est faux → un fichier déposé est refusé et n'enclenche aucun import.
+        Region racine = robot.lookup("#racine").queryAs(Region.class);
+        Dragboard presse = mock(Dragboard.class);
+        when(presse.hasFiles()).thenReturn(true);
+        when(presse.getFiles()).thenReturn(List.of(new File("obs.csv")));
+        DragEvent drop = new DragEvent(
+                null,
+                racine,
+                DragEvent.DRAG_DROPPED,
+                presse,
+                0,
+                0,
+                0,
+                0,
+                TransferMode.COPY,
+                null,
+                null,
+                new PickResult(racine, 0, 0));
+
+        robot.interact(() -> Event.fireEvent(racine, drop));
+
+        assertThat(drop.isDropCompleted()).isFalse();
+        verify(service, never()).importer(any(), any());
     }
 
     private static TableColumn<?, ?> colonne(FxRobot robot, String entete) {

@@ -55,6 +55,10 @@
     </right>
   </BorderPane>
 
+  <!-- Bandeau de retour d'opération (succès / erreur d'import…), juste sous la barre pour être vu tout
+       de suite. Masqué (non managé) tant qu'aucun retour n'est présent : il n'occupe alors aucune place. -->
+  <Label fx:id="lblMessage" styleClass="audio-message" wrapText="true"/>
+
   <SplitPane fx:id="separateur" orientation="VERTICAL" dividerPositions="0.5" VBox.vgrow="ALWAYS">
 
     <!-- Haut : la table des observations, pleine largeur. -->
@@ -91,6 +95,4 @@
     </VBox>
 
   </SplitPane>
-
-  <Label fx:id="lblMessage" styleClass="audio-message" wrapText="true"/>
 </VBox>

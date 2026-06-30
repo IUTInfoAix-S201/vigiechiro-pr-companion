@@ -50,29 +50,32 @@
 
 /* Bandeau de retour d'opération (import / export / valider / corriger). `.audio-message` porte la mise
    en forme commune ; la classe de sévérité (ajoutée par le controller) porte les couleurs. Toujours
-   visible quand un retour est présent, contrairement au placeholder gris de l'état vide. */
+   visible quand un retour est présent, contrairement au placeholder gris de l'état vide.
+   Volontairement TRÈS visible (gras, fond saturé, épais filet d'accent à gauche) : c'est le seul
+   retour sur le succès/échec d'un import, il ne doit pas passer inaperçu. */
 .audio-message {
-  -fx-font-size: 12px;
-  -fx-padding: 8 10;
-  -fx-background-radius: 4;
-  -fx-border-radius: 4;
-  -fx-border-width: 1;
+  -fx-font-size: 14px;
+  -fx-font-weight: bold;
+  -fx-padding: 12 16;
+  -fx-background-radius: 5;
+  -fx-border-radius: 5;
+  -fx-border-width: 1 1 1 6;
 }
 
 .retour-succes {
-  -fx-text-fill: #1e7e34;
-  -fx-background-color: #eaf7ee;
-  -fx-border-color: #b7e0c2;
+  -fx-text-fill: #14532d;
+  -fx-background-color: #d4edda;
+  -fx-border-color: #28a745;
 }
 
 .retour-info {
-  -fx-text-fill: #1a5276;
-  -fx-background-color: #eaf2f8;
-  -fx-border-color: #bcd6ea;
+  -fx-text-fill: #0c4a6e;
+  -fx-background-color: #d1ecf1;
+  -fx-border-color: #17a2b8;
 }
 
 .retour-erreur {
-  -fx-text-fill: #a93226;
-  -fx-background-color: #fdecea;
-  -fx-border-color: #f5c6cb;
+  -fx-text-fill: #842029;
+  -fx-background-color: #f8d7da;
+  -fx-border-color: #dc3545;
 }

@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [1.66.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.65.1...v1.66.0) (2026-07-01)
+
+
+### Features
+
+* **audio:** deux colonnes de taxon (Tadarida vs votre décision) au lieu de trois ([#442](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/442)) ([8f4028b](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/8f4028b984f153aea059bc2326e2c5ec16aa31da))
+
 ## [1.65.1](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.65.0...v1.65.1) (2026-06-30)
 
 

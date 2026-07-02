@@ -90,6 +90,9 @@ public class ImportationController implements GardeQuitter, AuDepartEcran {
     private Label labelNuitExistante;
 
     @FXML
+    private Label labelFichiersRalentis;
+
+    @FXML
     private ComboBox<Site> comboSites;
 
     @FXML
@@ -273,6 +276,13 @@ public class ImportationController implements GardeQuitter, AuDepartEcran {
         var nuitExistante = inspection.avertissementNuitExistanteProperty().isNotEmpty();
         labelNuitExistante.visibleProperty().bind(nuitExistante);
         labelNuitExistante.managedProperty().bind(nuitExistante);
+
+        // Garde-fou « enregistrements déjà ralentis » : même patron, visible seulement s'il y a un message.
+        labelFichiersRalentis.textProperty().bind(inspection.avertissementFichiersRalentisProperty());
+        var fichiersRalentis =
+                inspection.avertissementFichiersRalentisProperty().isNotEmpty();
+        labelFichiersRalentis.visibleProperty().bind(fichiersRalentis);
+        labelFichiersRalentis.managedProperty().bind(fichiersRalentis);
     }
 
     /// Section 3 : combos site/point, champs année/n° de passage, aperçu du préfixe et avertissement de

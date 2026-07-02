@@ -4,6 +4,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.multibindings.Multibinder;
+import fr.univ_amu.iut.commun.model.CompteurValidations;
 import fr.univ_amu.iut.commun.model.Horloge;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
 import fr.univ_amu.iut.commun.persistence.UniteDeTravail;
@@ -41,6 +42,9 @@ public class ValidationModule extends AbstractModule {
     @Override
     protected void configure() {
         bind(OuvrirValidation.class).to(NavigationValidation.class);
+        // Port socle de comptage des validations menacées : injecté par `passage` (suppression) et
+        // `importation` (écrasement) pour leurs confirmations destructives.
+        bind(CompteurValidations.class).to(ServiceValidation.class);
         // Compteur du tableau de bord d'accueil : nombre d'observations.
         Multibinder.newSetBinder(binder(), IndicateurAccueil.class).addBinding().to(IndicateurObservations.class);
     }

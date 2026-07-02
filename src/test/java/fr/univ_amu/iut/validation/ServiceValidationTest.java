@@ -366,6 +366,25 @@ class ServiceValidationTest {
     }
 
     @Test
+    @DisplayName("menaceesPourPassage compte les observations validées (correction, référence), pas les brutes")
+    void compte_les_validations_menacees() {
+        long idResultats = service.importer(idPassage, ecrireBrut()).idResultats();
+        // 4 observations importées, aucune validée : rien de menacé.
+        assertThat(service.menaceesPourPassage(idPassage)).isZero();
+
+        service.corriger(observationCiblee(idResultats, "Pippip", 1.0).id(), "Nyclei", 0.95);
+        service.marquerReference(observationCiblee(idResultats, "Nyclei", 0.0).id(), true);
+
+        assertThat(service.menaceesPourPassage(idPassage)).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("menaceesPourPassage vaut 0 pour un passage sans résultats importés")
+    void aucune_validation_menacee_sans_import() {
+        assertThat(service.menaceesPourPassage(idPassage)).isZero();
+    }
+
+    @Test
     @DisplayName("Import atomique : un second import (passage_id unique) échoue sans altérer le premier")
     void import_second_echec_preserve_le_premier() {
         Long idResultats1 = service.importer(idPassage, ecrireBrut()).idResultats();

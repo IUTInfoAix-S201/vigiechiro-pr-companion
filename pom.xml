@@ -52,7 +52,7 @@
         <sqlite.jdbc.version>3.53.2.0</sqlite.jdbc.version>
 
         <!-- Icônes FontAwesome5 via Ikonli (FontIcon en FXML), disponible pour toutes les équipes. -->
-        <ikonli.version>12.3.1</ikonli.version>
+        <ikonli.version>12.4.0</ikonli.version>
 
         <!-- Couverture (JaCoCo) + mutation (PIT, profil -Pmutation uniquement). -->
         <jacoco.version>0.8.14</jacoco.version>

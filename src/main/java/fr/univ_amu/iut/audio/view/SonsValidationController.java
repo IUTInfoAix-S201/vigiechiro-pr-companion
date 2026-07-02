@@ -196,6 +196,11 @@ public class SonsValidationController implements EmplacementNavigation {
         audioView.setNormalisation(true);
         audioView.setWaveNormalisation(true);
         audioView.setSpectrogramNormalisation(true);
+        // Expansion temporelle ×10 du protocole Vigie-Chiro : les séquences transformées sont les
+        // originaux ralentis ×10 (importation.model.TransformationAudio.FACTEUR_EXPANSION). Réglé ici
+        // pour que les axes affichent les grandeurs RÉELLES : fréquences × 10 (les vraies fréquences,
+        // pas celles du signal ralenti) et temps ÷ 10. N'affecte que les libellés, pas l'audio.
+        audioView.setTimeExpansionFactor(10);
         audioView.audioFileProperty().bind(viewModel.cheminAudioCourantProperty());
         audioView.sceneProperty().addListener((obs, avant, scene) -> {
             if (scene == null) {

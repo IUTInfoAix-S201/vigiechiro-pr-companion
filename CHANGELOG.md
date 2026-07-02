@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [1.68.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.67.0...v1.68.0) (2026-07-02)
+
+
+### Features
+
+* **audio:** normalisation visuelle du spectrogramme + axes en fréquences réelles ([#456](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/456)) ([8c99c32](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/8c99c32c038cc8592ae3d13b10498c3f4febff19))
+
 # [1.67.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.66.0...v1.67.0) (2026-07-02)
 
 

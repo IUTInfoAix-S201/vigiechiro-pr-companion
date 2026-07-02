@@ -127,7 +127,8 @@ class ServiceImportTest {
                 new AgregatImportDao(source),
                 new UniteDeTravail(source),
                 workspace,
-                new HorlogeFigee(LocalDate.of(2026, 5, 31)));
+                new HorlogeFigee(LocalDate.of(2026, 5, 31)),
+                idPassage -> 0);
 
         sd = preparerCarteSD(racine.resolve("sd"));
     }
@@ -255,7 +256,8 @@ class ServiceImportTest {
                 new AgregatImportDao(source),
                 new UniteDeTravail(source),
                 new Workspace(racine.resolve("ws")),
-                new HorlogeFigee(LocalDate.of(2026, 5, 31)));
+                new HorlogeFigee(LocalDate.of(2026, 5, 31)),
+                idPassage -> 0);
 
         ResultatImport resultat = reprise.importer(sd, idPoint, prefixe);
 
@@ -298,7 +300,8 @@ class ServiceImportTest {
                 new AgregatImportDao(source),
                 new UniteDeTravail(source),
                 new Workspace(racine.resolve("ws")),
-                new HorlogeFigee(LocalDate.of(2026, 5, 31)));
+                new HorlogeFigee(LocalDate.of(2026, 5, 31)),
+                idPassage -> 0);
 
         ResultatImport resultat = reprise.importer(sd, idPoint, prefixe);
 
@@ -524,7 +527,7 @@ class ServiceImportTest {
         assertThat(sequencesInitiales).isPositive();
         // Le quadruplet est pris : un import normal serait refusé (R5).
         assertThat(service.numeroPassageDejaUtilise(idPoint, 2026, 2)).isTrue();
-        assertThat(service.compterSequencesDuPassageExistant(idPoint, 2026, 2)).isEqualTo(sequencesInitiales);
+        assertThat(service.apercuEcrasement(idPoint, 2026, 2).sequences()).isEqualTo(sequencesInitiales);
 
         // Écrasement : supprime le passage n° 2 existant (cascade) puis réimporte la nuit.
         ResultatImport reimport = service.ecraserEtImporter(sd, idPoint, prefixe, p -> {}, JetonAnnulation.neutre());
@@ -537,11 +540,34 @@ class ServiceImportTest {
         assertThat(sessionDao.trouverParPassage(idPassageInitial)).isEmpty();
         assertThat(sequenceDao.findBySession(idSessionInitiale)).isEmpty();
         // Le nouveau passage a régénéré le même nombre de séquences.
-        assertThat(service.compterSequencesDuPassageExistant(idPoint, 2026, 2)).isEqualTo(sequencesInitiales);
+        assertThat(service.apercuEcrasement(idPoint, 2026, 2).sequences()).isEqualTo(sequencesInitiales);
         // L'écrasement est un REMPLACEMENT, pas un doublon : le rapport ne le signale pas comme doublon.
         assertThat(reimport.rapport().aDoublonDeNuit())
                 .as("un écrasement remplace, il n'est pas un doublon de nuit")
                 .isFalse();
+    }
+
+    @Test
+    @DisplayName("#214 : apercuEcrasement interroge le compteur de validations pour le passage écrasé, 0 si n° libre")
+    void compte_les_validations_du_passage_ecrase() {
+        service.importer(sd, idPoint, prefixe); // crée le passage n° 2 au quadruplet courant
+        // Compteur de validations doublé : renvoie 3 pour tout passage résolu (id non nul).
+        ServiceImport avecCompteur = new ServiceImport(
+                new InspecteurDossier(new AnalyseurLogPR()),
+                new CopieProtegee(),
+                new Renommeur(),
+                new TransformationAudio(),
+                new AgregatImportDao(source),
+                new UniteDeTravail(source),
+                new Workspace(racine.resolve("ws")),
+                new HorlogeFigee(LocalDate.of(2026, 5, 31)),
+                idPassage -> 3);
+
+        // Quadruplet déjà pris → le passage est résolu et interrogé (3) ; n° libre → aucun passage (0).
+        assertThat(avecCompteur.apercuEcrasement(idPoint, 2026, 2).validations())
+                .isEqualTo(3);
+        assertThat(avecCompteur.apercuEcrasement(idPoint, 2026, 99).validations())
+                .isZero();
     }
 
     @Test
@@ -620,7 +646,7 @@ class ServiceImportTest {
         assertThat(racine.resolve("ws").resolve(prefixe.nomDossierSession()))
                 .as("l'ancienne session physique est remise en place après l'annulation")
                 .exists();
-        assertThat(service.compterSequencesDuPassageExistant(idPoint, 2026, 2)).isEqualTo(sequencesInitiales);
+        assertThat(service.apercuEcrasement(idPoint, 2026, 2).sequences()).isEqualTo(sequencesInitiales);
     }
 
     @Test

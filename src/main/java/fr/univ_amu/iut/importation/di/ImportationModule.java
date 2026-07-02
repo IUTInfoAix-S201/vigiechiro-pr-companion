@@ -4,6 +4,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
+import fr.univ_amu.iut.commun.model.CompteurValidations;
 import fr.univ_amu.iut.commun.model.Horloge;
 import fr.univ_amu.iut.commun.model.Workspace;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
@@ -95,9 +96,18 @@ public class ImportationModule extends AbstractModule {
             AgregatImportDao agregatDao,
             UniteDeTravail uniteDeTravail,
             Workspace workspace,
-            Horloge horloge) {
+            Horloge horloge,
+            CompteurValidations compteurValidations) {
         return new ServiceImport(
-                inspecteur, copie, renommeur, transformation, agregatDao, uniteDeTravail, workspace, horloge);
+                inspecteur,
+                copie,
+                renommeur,
+                transformation,
+                agregatDao,
+                uniteDeTravail,
+                workspace,
+                horloge,
+                compteurValidations);
     }
 
     /// ViewModel de l'assistant M-Import. **Non-singleton** (un VM frais par chargement FXML : un

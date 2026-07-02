@@ -2,10 +2,12 @@ package fr.univ_amu.iut.importation;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import fr.univ_amu.iut.commun.di.CommunModule;
 import fr.univ_amu.iut.commun.di.PersistenceModule;
+import fr.univ_amu.iut.commun.model.CompteurValidations;
 import fr.univ_amu.iut.importation.di.ImportationModule;
 import fr.univ_amu.iut.importation.model.CopieProtegee;
 import fr.univ_amu.iut.importation.model.InspecteurDossier;
@@ -43,12 +45,21 @@ class ImportationModuleTest {
 
         // SitesModule est inclus car ImportationModule fournit désormais ImportationViewModel, qui
         // dépend de ServiceSites et de l'utilisateur courant (bindings fournis par SitesModule).
+        // Le port CompteurValidations dont ServiceImport dépend (#214) est fourni ici par un stub : on
+        // teste l'assemblage d'`importation`, pas la feature `validation` (dont l'implémentation réelle
+        // tirerait tout le graphe de navigation). Le vrai binding est vérifié par RacineInjecteurTest.
         Injector injecteur = Guice.createInjector(
                 new CommunModule(),
                 new PersistenceModule(),
                 new PassageModule(),
                 new SitesModule(),
-                new ImportationModule());
+                new ImportationModule(),
+                new AbstractModule() {
+                    @Override
+                    protected void configure() {
+                        bind(CompteurValidations.class).toInstance(idPassage -> 0);
+                    }
+                });
 
         assertThat(injecteur.getInstance(InspecteurDossier.class)).isNotNull();
         assertThat(injecteur.getInstance(CopieProtegee.class)).isNotNull();

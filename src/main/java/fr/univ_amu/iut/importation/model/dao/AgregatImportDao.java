@@ -19,6 +19,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /// Écrivain transactionnel de l'**agrégat d'import** : enregistreur, micro, passage, session,
@@ -64,6 +65,24 @@ public class AgregatImportDao {
             }
         } catch (SQLException e) {
             throw new DataAccessException("Échec du pré-contrôle d'unicité R5 : " + sql, e);
+        }
+    }
+
+    /// Identifiant du passage existant au quadruplet `(point, année, n° de passage)`, ou [Optional#empty()]
+    /// si le n° est libre. Sert à retrouver le passage qui serait **écrasé** (#214) pour compter les
+    /// validations qu'il porte avant de proposer sa suppression.
+    public Optional<Long> idPassageAuQuadruplet(Long idPoint, int annee, int numeroPassage) {
+        String sql = "SELECT id FROM passage WHERE point_id = ? AND year = ? AND passage_number = ?";
+        try (Connection cx = source.getConnection();
+                PreparedStatement ps = cx.prepareStatement(sql)) {
+            ps.setObject(1, idPoint);
+            ps.setInt(2, annee);
+            ps.setInt(3, numeroPassage);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? Optional.of(rs.getLong(1)) : Optional.empty();
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Échec de la résolution du passage au quadruplet : " + sql, e);
         }
     }
 

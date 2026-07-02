@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [1.69.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.68.0...v1.69.0) (2026-07-02)
+
+
+### Features
+
+* **import:** rejeter et prévenir les enregistrements déjà ralentis (garde-fou double expansion) ([#458](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/458)) ([76c27be](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/76c27be0f0469e5b5ceb08c6c28b51704266650e)), closes [#155](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/155)
+
 # [1.68.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.67.0...v1.68.0) (2026-07-02)
 
 

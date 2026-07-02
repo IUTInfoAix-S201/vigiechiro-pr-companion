@@ -18,13 +18,17 @@ import java.util.Optional;
 /// @param cheminReleveClimatique chemin du `*_THLog.csv`, ou `null` si la sonde manque (R20)
 /// @param originaux enregistrements originaux WAV détectés, triés par nom de fichier
 /// @param etatNommage état de nommage des originaux : bruts, déjà préfixés, ou aucun (R6)
+/// @param frequenceEnTeteHz fréquence d'échantillonnage lue dans l'en-tête d'un original représentatif
+///     (le premier lisible), ou `null` si aucun original lisible. Sert à repérer, à l'aperçu, un
+///     enregistrement **déjà ralenti** (cf. [DetectionRalenti]) au regard de la fréquence du journal.
 public record RapportInspection(
         Path dossierSource,
         Path cheminJournal,
         JournalParse journal,
         Path cheminReleveClimatique,
         List<Path> originaux,
-        EtatNommage etatNommage) {
+        EtatNommage etatNommage,
+        Integer frequenceEnTeteHz) {
 
     public RapportInspection {
         originaux = List.copyOf(originaux);

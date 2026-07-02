@@ -45,7 +45,22 @@ public class InspecteurDossier {
         Path releve = trouverPremier(dossierSource, this::estReleveClimatique);
         List<Path> originaux = listerOriginaux(dossierSource);
         EtatNommage etat = determinerEtatNommage(originaux);
-        return new RapportInspection(dossierSource, cheminJournal, journal, releve, originaux, etat);
+        Integer frequenceEnTete = lireFrequenceRepresentative(originaux);
+        return new RapportInspection(dossierSource, cheminJournal, journal, releve, originaux, etat, frequenceEnTete);
+    }
+
+    /// Fréquence d'échantillonnage du **premier original lisible** (en-tête seulement, sans charger le
+    /// PCM) : repère représentatif pour l'aperçu (une nuit vient d'un seul enregistreur → homogène).
+    /// `null` si aucun original, ou si aucun n'est lisible (ils seront de toute façon rejetés à l'import).
+    private static Integer lireFrequenceRepresentative(List<Path> originaux) {
+        for (Path original : originaux) {
+            try {
+                return FichierWav.lireFrequenceHz(original);
+            } catch (IOException illisible) {
+                // On tente l'original suivant : un en-tête illisible est traité à l'import (rejet #155).
+            }
+        }
+        return null;
     }
 
     /// Enregistrements originaux : dans `bruts/` si présent, sinon à la racine du dossier.

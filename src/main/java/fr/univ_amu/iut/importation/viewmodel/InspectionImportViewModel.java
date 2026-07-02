@@ -59,6 +59,12 @@ public class InspectionImportViewModel {
     private final ReadOnlyStringWrapper avertissementNuitExistante =
             new ReadOnlyStringWrapper(this, "avertissementNuitExistante", "");
 
+    /// Avertissement **« enregistrements déjà ralentis »** : non vide quand les originaux ont une
+    /// fréquence d'échantillonnage trop basse pour un ultrason brut (source déjà expansée ×10) — ils
+    /// seront rejetés à l'import (garde-fou double expansion). Non bloquant. Recalculé à chaque inspection.
+    private final ReadOnlyStringWrapper avertissementFichiersRalentis =
+            new ReadOnlyStringWrapper(this, "avertissementFichiersRalentis", "");
+
     /// Message d'erreur **propre à l'inspection** (dossier non choisi, chemin invalide), vide après une
     /// inspection réussie. L'orchestrateur le compose avec l'erreur d'exécution dans son message unifié.
     private final ReadOnlyStringWrapper messageErreur = new ReadOnlyStringWrapper(this, "messageErreur", "");
@@ -96,6 +102,12 @@ public class InspectionImportViewModel {
             avertissementMelange.set(AvertissementMelange.rediger(inspection.melange()));
             avertissementIncoherence.set(AvertissementIncoherence.rediger(inspection.coherence()));
             avertissementNuitExistante.set(detecterNuitExistante(inspection));
+            avertissementFichiersRalentis.set(AvertissementFichiersRalentis.rediger(
+                    inspection.frequenceEnTeteHz(),
+                    inspection
+                            .journalOptionnel()
+                            .map(JournalParse::frequenceEchantillonnageHz)
+                            .orElse(null)));
             inspecte.set(true);
             messageErreur.set("");
         } catch (RuntimeException echec) {
@@ -119,6 +131,7 @@ public class InspectionImportViewModel {
         avertissementMelange.set("");
         avertissementIncoherence.set("");
         avertissementNuitExistante.set("");
+        avertissementFichiersRalentis.set("");
         messageErreur.set("");
     }
 
@@ -232,6 +245,12 @@ public class InspectionImportViewModel {
     /// enregistreur à cette date (détection de doublon, non bloquante).
     public ReadOnlyStringProperty avertissementNuitExistanteProperty() {
         return avertissementNuitExistante.getReadOnlyProperty();
+    }
+
+    /// Avertissement « enregistrements déjà ralentis », vide si les originaux sont de vrais bruts (source
+    /// à une fréquence d'ultrason plausible). Sinon prévient qu'ils seront rejetés à l'import.
+    public ReadOnlyStringProperty avertissementFichiersRalentisProperty() {
+        return avertissementFichiersRalentis.getReadOnlyProperty();
     }
 
     /// Message d'erreur **propre à l'inspection** (dossier non choisi, chemin invalide), vide après un

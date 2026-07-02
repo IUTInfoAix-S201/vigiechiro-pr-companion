@@ -32,6 +32,18 @@ record FichierWav(int nombreCanaux, int frequenceEchantillonnageHz, int bitsParE
     private static final int TAILLE_ENTETE = 44;
     private static final short FORMAT_PCM = 1;
 
+    /// Étiquettes de chunks RIFF (extraites en constantes : réutilisées par lire / lireFrequenceHz /
+    /// ecrire, sans quoi PMD signale des littéraux dupliqués).
+    private static final String TAG_RIFF = "RIFF";
+
+    private static final String TAG_WAVE = "WAVE";
+
+    private static final String TAG_FMT = "fmt ";
+
+    /// Nombre d'octets de tête lus par [#lireFrequenceHz(Path)] : le chunk `fmt ` est en pratique au
+    /// tout début du fichier ; 4 Kio couvrent largement d'éventuels chunks intercalés (`LIST`, `fact`).
+    private static final int PREFIXE_ENTETE = 4096;
+
     /// Placeholder « taille de données inconnue » (0xFFFFFFFF) écrit par certains enregistreurs en flux :
     /// signifie « jusqu'à la fin du fichier », à ne pas confondre avec une troncature (#156).
     private static final long TAILLE_DATA_INCONNUE = 0xFFFFFFFFL;
@@ -54,7 +66,7 @@ record FichierWav(int nombreCanaux, int frequenceEchantillonnageHz, int bitsParE
     /// Lit un fichier WAV PCM depuis le disque.
     static FichierWav lire(Path fichier) throws IOException {
         byte[] o = Files.readAllBytes(fichier);
-        if (o.length < 12 || !tag(o, 0, "RIFF") || !tag(o, 8, "WAVE")) {
+        if (o.length < 12 || !tag(o, 0, TAG_RIFF) || !tag(o, 8, TAG_WAVE)) {
             throw new IOException("Fichier WAV invalide (en-tête RIFF/WAVE absent) : " + fichier);
         }
         Integer canaux = null;
@@ -69,7 +81,7 @@ record FichierWav(int nombreCanaux, int frequenceEchantillonnageHz, int bitsParE
             String id = new String(o, pos, 4, StandardCharsets.US_ASCII);
             long taille = lireUint32(o, pos + 4);
             int corps = pos + 8;
-            if ("fmt ".equals(id) && corps + 16 <= o.length) {
+            if (TAG_FMT.equals(id) && corps + 16 <= o.length) {
                 formatAudio = lireUint16(o, corps);
                 canaux = lireUint16(o, corps + 2);
                 frequence = (int) lireUint32(o, corps + 4);
@@ -112,6 +124,33 @@ record FichierWav(int nombreCanaux, int frequenceEchantillonnageHz, int bitsParE
         return new FichierWav(canaux, frequence, bits, pcm);
     }
 
+    /// Lit **seulement** la fréquence d'échantillonnage de l'en-tête, sans charger le PCM. Utile à
+    /// l'inspection (aperçu) où l'on veut juste repérer un fichier déjà ralenti sans payer la lecture
+    /// complète de gros WAV. Balaie les premiers octets à la recherche du chunk `"fmt "`.
+    ///
+    /// @throws IOException si l'en-tête RIFF/WAVE ou le chunk `fmt ` est absent des premiers octets
+    static int lireFrequenceHz(Path fichier) throws IOException {
+        byte[] o;
+        try (var canal = Files.newByteChannel(fichier)) {
+            ByteBuffer tampon = ByteBuffer.allocate(PREFIXE_ENTETE);
+            canal.read(tampon);
+            o = Arrays.copyOf(tampon.array(), tampon.position());
+        }
+        if (o.length < 12 || !tag(o, 0, TAG_RIFF) || !tag(o, 8, TAG_WAVE)) {
+            throw new IOException("Fichier WAV invalide (en-tête RIFF/WAVE absent) : " + fichier);
+        }
+        int pos = 12;
+        while (pos + 8 <= o.length) {
+            long taille = lireUint32(o, pos + 4);
+            int corps = pos + 8;
+            if (tag(o, pos, TAG_FMT) && corps + 8 <= o.length) {
+                return (int) lireUint32(o, corps + 4);
+            }
+            pos = corps + (int) taille + (taille % 2 == 1 ? 1 : 0);
+        }
+        throw new IOException("Chunk fmt introuvable dans l'en-tête : " + fichier);
+    }
+
     /// Écrit un WAV canonique (en-tête 44 octets) avec la fréquence et le format donnés, en copiant
     /// **tels quels** les octets `pcm[offset, offset+longueur)`.
     static void ecrire(
@@ -126,10 +165,10 @@ record FichierWav(int nombreCanaux, int frequenceEchantillonnageHz, int bitsParE
         int blocAlign = nombreCanaux * (bitsParEchantillon / 8);
         int debitOctets = frequenceEchantillonnageHz * blocAlign;
         ByteBuffer buf = ByteBuffer.allocate(TAILLE_ENTETE + longueur).order(ByteOrder.LITTLE_ENDIAN);
-        buf.put("RIFF".getBytes(StandardCharsets.US_ASCII));
+        buf.put(TAG_RIFF.getBytes(StandardCharsets.US_ASCII));
         buf.putInt(36 + longueur); // taille du fichier - 8
-        buf.put("WAVE".getBytes(StandardCharsets.US_ASCII));
-        buf.put("fmt ".getBytes(StandardCharsets.US_ASCII));
+        buf.put(TAG_WAVE.getBytes(StandardCharsets.US_ASCII));
+        buf.put(TAG_FMT.getBytes(StandardCharsets.US_ASCII));
         buf.putInt(16); // taille du sous-chunk fmt (PCM)
         buf.putShort(FORMAT_PCM);
         buf.putShort((short) nombreCanaux);

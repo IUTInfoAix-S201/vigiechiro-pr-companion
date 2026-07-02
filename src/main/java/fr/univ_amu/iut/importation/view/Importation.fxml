@@ -64,6 +64,9 @@
     <!-- Avertissement « nuit déjà importée » (#147) : un passage existe déjà pour cet enregistreur/date. -->
     <Label fx:id="labelNuitExistante" styleClass="insp-incoherence" wrapText="true"
            visible="false" managed="false"/>
+    <!-- Garde-fou « enregistrements déjà ralentis » : source déjà expansée ×10 → rejetée à l'import. -->
+    <Label fx:id="labelFichiersRalentis" styleClass="insp-incoherence" wrapText="true"
+           visible="false" managed="false"/>
   </VBox>
 
   <!-- 3. Rattachement -->

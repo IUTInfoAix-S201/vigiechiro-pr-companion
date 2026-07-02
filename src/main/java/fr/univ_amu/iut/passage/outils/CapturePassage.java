@@ -140,7 +140,8 @@ public final class CapturePassage {
                         idp -> {},
                         injecteur.getInstance(NavigationPassage.class),
                         ouvrirSiteNeutre(),
-                        numeroCarre -> {})
+                        numeroCarre -> {},
+                        idp -> 0)
                 : injecteur.getInstance(type));
         Parent vue = loader.load();
         PassageController controleur = loader.getController();

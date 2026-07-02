@@ -267,4 +267,27 @@ class PassageViewModelTest {
 
         verify(service).supprimer(ID_PASSAGE);
     }
+
+    @Test
+    @DisplayName("L'annulation du dépôt n'est disponible qu'une fois le passage déposé")
+    void annulation_depot_disponible_si_depose() {
+        when(service.detailPassage(ID_PASSAGE)).thenReturn(detail(StatutWorkflow.DEPOSE));
+        viewModel.ouvrirSur(ID_PASSAGE, CONTEXTE);
+        assertThat(viewModel.annulationDepotDisponibleProperty().get()).isTrue();
+
+        when(service.detailPassage(ID_PASSAGE)).thenReturn(detail(StatutWorkflow.PRET_A_DEPOSER));
+        viewModel.ouvrirSur(ID_PASSAGE, CONTEXTE);
+        assertThat(viewModel.annulationDepotDisponibleProperty().get()).isFalse();
+    }
+
+    @Test
+    @DisplayName("annulerDepot délègue au service avec l'identifiant du passage courant")
+    void annuler_depot_delegue_au_service() {
+        when(service.detailPassage(ID_PASSAGE)).thenReturn(detail(StatutWorkflow.DEPOSE));
+        viewModel.ouvrirSur(ID_PASSAGE, CONTEXTE);
+
+        viewModel.annulerDepot();
+
+        verify(service).annulerDepot(ID_PASSAGE);
+    }
 }

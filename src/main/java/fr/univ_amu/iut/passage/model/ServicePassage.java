@@ -376,6 +376,46 @@ public class ServicePassage {
         passageDao.delete(idPassage);
     }
 
+    /// **Annule le dépôt** d'un passage : le repasse de [StatutWorkflow#DEPOSE] à
+    /// [StatutWorkflow#PRET_A_DEPOSER] et efface son horodatage `deposited_at`, pour permettre de le
+    /// **corriger** (compléter/rectifier des validations, ré-importer le CSV Tadarida) puis re-déposer.
+    ///
+    /// Les observations et leurs **validations sont conservées** : seul le statut change (aucune donnée
+    /// n'est détruite). C'est la **seule transition arrière** admise du workflow — le
+    /// [MoteurWorkflowPassage] étant strictement linéaire, ce retour délibéré depuis « Déposé » est géré
+    /// ici directement, hors moteur.
+    ///
+    /// @throws RegleMetierException si le passage est introuvable ou n'est **pas** déposé
+    public Passage annulerDepot(Long idPassage) {
+        Objects.requireNonNull(idPassage, ID_PASSAGE);
+        Passage passage = passageDao
+                .findById(idPassage)
+                .orElseThrow(() -> new RegleMetierException(PASSAGE_INTROUVABLE + idPassage));
+        if (passage.statutWorkflow() != StatutWorkflow.DEPOSE) {
+            throw new RegleMetierException(
+                    "Annulation du dépôt impossible : le passage n'est pas déposé (statut actuel : « "
+                            + passage.statutWorkflow().libelle()
+                            + " »).");
+        }
+        Passage misAJour = new Passage(
+                passage.id(),
+                passage.numeroPassage(),
+                passage.annee(),
+                passage.dateEnregistrement(),
+                passage.heureDebut(),
+                passage.heureFin(),
+                passage.parametresAcquisition(),
+                StatutWorkflow.PRET_A_DEPOSER,
+                passage.verdictVerification(),
+                passage.commentaire(),
+                passage.donneesMeteo(),
+                null, // deposited_at effacé : le passage n'est plus déposé
+                passage.idPoint(),
+                passage.idEnregistreur());
+        passageDao.update(misAJour);
+        return misAJour;
+    }
+
     /// Modifie rétroactivement le rattachement d'un passage (E2.S8) : nouvelle année et/ou n° de
     /// passage, **même site/point**. Le préfixe `Car<carré>-<année>-Pass<n>-<point>` change : tous
     /// les fichiers de la nuit (dossier, originaux, séquences) sont re-renommés.

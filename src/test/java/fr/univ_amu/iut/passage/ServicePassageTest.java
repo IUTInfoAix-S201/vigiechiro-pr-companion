@@ -418,6 +418,57 @@ class ServicePassageTest {
                 .hasMessageContaining("introuvable");
     }
 
+    // --- Annulation du dépôt (retour Déposé → Prêt à déposer, validations conservées) ---
+
+    @Test
+    @DisplayName("annulerDepot ramène un passage déposé à « Prêt à déposer » et efface deposeLe")
+    void annuler_depot_ramene_a_pret_a_deposer() {
+        Passage depose = passageDao.insert(new Passage(
+                null,
+                1,
+                2026,
+                "2026-06-20",
+                "21:30:00",
+                "05:15:00",
+                null,
+                StatutWorkflow.DEPOSE,
+                Verdict.OK,
+                null,
+                null,
+                "2026-06-21T08:00",
+                idPoint,
+                SERIE));
+
+        Passage annule = service.annulerDepot(depose.id());
+
+        assertThat(annule.statutWorkflow()).isEqualTo(StatutWorkflow.PRET_A_DEPOSER);
+        assertThat(annule.deposeLe()).as("horodatage de dépôt effacé").isNull();
+        Passage persiste = passageDao.findById(depose.id()).orElseThrow();
+        assertThat(persiste.statutWorkflow()).isEqualTo(StatutWorkflow.PRET_A_DEPOSER);
+        assertThat(persiste.deposeLe()).isNull();
+    }
+
+    @Test
+    @DisplayName("annulerDepot refuse un passage qui n'est pas déposé")
+    void annuler_depot_refuse_passage_non_depose() {
+        long id = passageDao.insert(candidat(1, "2026-06-20")).id();
+
+        assertThatThrownBy(() -> service.annulerDepot(id))
+                .isInstanceOf(RegleMetierException.class)
+                .hasMessageContaining("pas déposé");
+        assertThat(passageDao.findById(id).orElseThrow().statutWorkflow())
+                .as("statut inchangé après refus")
+                .isEqualTo(StatutWorkflow.IMPORTE);
+    }
+
+    @Test
+    @DisplayName("annulerDepot sur un passage introuvable lève une RegleMetierException")
+    void annuler_depot_passage_introuvable() {
+        assertThatThrownBy(() -> service.annulerDepot(999L))
+                .isInstanceOf(RegleMetierException.class)
+                .hasMessageContaining("introuvable");
+    }
+
     // --- Modifier le rattachement (E2.S8 : année + n° de passage) ---
 
     @Test

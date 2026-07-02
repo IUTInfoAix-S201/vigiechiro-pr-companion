@@ -49,6 +49,8 @@ public class PassageViewModel {
     private final ReadOnlyBooleanWrapper validationVerrouillee =
             new ReadOnlyBooleanWrapper(this, "validationVerrouillee", true);
     private final ReadOnlyBooleanWrapper depotDisponible = new ReadOnlyBooleanWrapper(this, "depotDisponible", false);
+    private final ReadOnlyBooleanWrapper annulationDepotDisponible =
+            new ReadOnlyBooleanWrapper(this, "annulationDepotDisponible", false);
     private final ReadOnlyObjectWrapper<ActionRecommandee> actionRecommandee =
             new ReadOnlyObjectWrapper<>(this, "actionRecommandee", ActionRecommandee.AUCUNE);
     private final ReadOnlyStringWrapper message = new ReadOnlyStringWrapper(this, "message", "");
@@ -91,6 +93,14 @@ public class PassageViewModel {
         service.supprimer(idPassage);
     }
 
+    /// Annule le dépôt du passage courant : le ramène de « Déposé » à « Prêt à déposer » sans supprimer
+    /// les validations Tadarida déjà saisies. Délègue à [ServicePassage#annulerDepot] ; la
+    /// [fr.univ_amu.iut.commun.model.RegleMetierException] d'un passage non déposé remonte à la vue, qui
+    /// l'affiche. Le rechargement de l'affichage est à la charge de l'appelant (rejeu de [#ouvrirSur]).
+    public void annulerDepot() {
+        service.annulerDepot(idPassage);
+    }
+
     /// Enregistre la **température en début de nuit** saisie (#106) : donnée **optionnelle** ; une saisie
     /// vide l'efface, une saisie non numérique publie un message d'erreur sans rien modifier. Délègue à
     /// [ServicePassage#definirTemperatureDebutNuit] puis met à jour l'affichage.
@@ -130,6 +140,7 @@ public class PassageViewModel {
         validationVerrouillee.set(detail.statut() != StatutWorkflow.DEPOSE);
         depotDisponible.set(
                 detail.statut() == StatutWorkflow.VERIFIE || detail.statut() == StatutWorkflow.PRET_A_DEPOSER);
+        annulationDepotDisponible.set(detail.statut() == StatutWorkflow.DEPOSE);
         actionRecommandee.set(prochaineAction(detail.statut()));
         temperature.set(Formats.temperatureLisible(detail.temperatureDebutNuit()));
         Double temp = detail.temperatureDebutNuit();
@@ -162,6 +173,7 @@ public class PassageViewModel {
         verificationDisponible.set(false);
         validationVerrouillee.set(true);
         depotDisponible.set(false);
+        annulationDepotDisponible.set(false);
         actionRecommandee.set(ActionRecommandee.AUCUNE);
         temperature.set("—");
         temperatureSaisie.set("");
@@ -251,6 +263,12 @@ public class PassageViewModel {
     /// `true` quand la préparation/dépôt est pertinente (passage Vérifié ou Prêt à déposer).
     public ReadOnlyBooleanProperty depotDisponibleProperty() {
         return depotDisponible.getReadOnlyProperty();
+    }
+
+    /// `true` quand l'annulation du dépôt est pertinente (passage déjà **déposé**) : l'action ramène le
+    /// passage à « Prêt à déposer » sans toucher aux validations Tadarida déjà saisies.
+    public ReadOnlyBooleanProperty annulationDepotDisponibleProperty() {
+        return annulationDepotDisponible.getReadOnlyProperty();
     }
 
     /// Prochaine action recommandée du workflow (carte mise en avant), dérivée du statut. Se déplace

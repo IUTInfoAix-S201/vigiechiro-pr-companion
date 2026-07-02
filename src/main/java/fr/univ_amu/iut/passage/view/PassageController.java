@@ -110,6 +110,9 @@ public class PassageController implements EmplacementNavigation, RafraichirAuRet
     private Button boutonDepot;
 
     @FXML
+    private Button boutonAnnulerDepot;
+
+    @FXML
     private Label lblIndiceAction;
 
     @FXML
@@ -178,6 +181,10 @@ public class PassageController implements EmplacementNavigation, RafraichirAuRet
                 .bind(viewModel.verificationDisponibleProperty().not());
         boutonValidation.disableProperty().bind(viewModel.validationVerrouilleeProperty());
         boutonDepot.disableProperty().bind(viewModel.depotDisponibleProperty().not());
+        // « Annuler le dépôt » n'a de sens que sur un passage déposé : le bouton n'apparaît (et n'occupe
+        // de place) que dans ce cas, au lieu de rester grisé en permanence dans la barre d'actions.
+        boutonAnnulerDepot.visibleProperty().bind(viewModel.annulationDepotDisponibleProperty());
+        boutonAnnulerDepot.managedProperty().bind(viewModel.annulationDepotDisponibleProperty());
         lblIndiceAction
                 .textProperty()
                 .bind(Bindings.createStringBinding(
@@ -292,6 +299,24 @@ public class PassageController implements EmplacementNavigation, RafraichirAuRet
         try {
             viewModel.supprimer();
             navigation.ouvrirAccueil();
+        } catch (RegleMetierException refus) {
+            alerteErreur(refus.getMessage());
+        }
+    }
+
+    /// « Annuler le dépôt » : après confirmation, ramène le passage de « Déposé » à « Prêt à déposer »
+    /// (les validations Tadarida déjà saisies sont **conservées**) puis recharge l'écran pour refléter le
+    /// nouveau statut. Un passage non déposé est refusé par le service ([RegleMetierException]) ; l'erreur
+    /// est alors présentée sans quitter l'écran.
+    @FXML
+    private void annulerDepot() {
+        if (!confirmer("Annuler le dépôt de ce passage et le ramener à « Prêt à déposer » ? "
+                + "Les validations Tadarida déjà saisies sont conservées.")) {
+            return;
+        }
+        try {
+            viewModel.annulerDepot();
+            viewModel.ouvrirSur(idPassage, contexte);
         } catch (RegleMetierException refus) {
             alerteErreur(refus.getMessage());
         }

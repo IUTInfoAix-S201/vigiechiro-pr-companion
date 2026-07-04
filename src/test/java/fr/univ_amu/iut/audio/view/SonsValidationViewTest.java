@@ -33,9 +33,7 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.Label;
-import javafx.scene.control.Menu;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableColumn;
@@ -254,28 +252,18 @@ class SonsValidationViewTest {
     }
 
     @Test
-    @DisplayName("Sélecteur de colonnes : menu contextuel (clic droit) + sous-menu ☰ masquent une colonne")
-    void selecteur_colonnes_masque_une_colonne(FxRobot robot) {
+    @DisplayName("Gestion des colonnes : item « Colonnes… » dans le menu contextuel (clic droit) et dans le ☰")
+    void gestion_colonnes_accessible(FxRobot robot) {
         TableView<?> table = robot.lookup("#tableObservations").queryAs(TableView.class);
         assertThat(table.getContextMenu())
                 .as("menu contextuel installé (clic droit)")
                 .isNotNull();
+        assertThat(table.getContextMenu().getItems())
+                .anySatisfy(item -> assertThat(item.getText()).isEqualTo("Colonnes…"));
 
         MenuButton menu = robot.lookup("#menuActions").queryAs(MenuButton.class);
-        Menu colonnes = (Menu) menu.getItems().stream()
-                .filter(item -> "Colonnes".equals(item.getText()))
-                .findFirst()
-                .orElseThrow();
-        CheckMenuItem caseFichier = (CheckMenuItem) colonnes.getItems().stream()
-                .filter(item -> "Fichier".equals(item.getText()))
-                .findFirst()
-                .orElseThrow();
-
-        assertThat(colonne(robot, "Fichier").isVisible()).isTrue();
-        robot.interact(() -> caseFichier.setSelected(false));
-        assertThat(colonne(robot, "Fichier").isVisible())
-                .as("décocher la case masque la colonne (liaison bidirectionnelle)")
-                .isFalse();
+        assertThat(menu.getItems())
+                .anySatisfy(item -> assertThat(item.getText()).isEqualTo("Colonnes…"));
     }
 
     @Test

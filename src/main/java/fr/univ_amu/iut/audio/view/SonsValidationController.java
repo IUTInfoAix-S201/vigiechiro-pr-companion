@@ -7,6 +7,7 @@ import fr.univ_amu.iut.audio.viewmodel.ComptageAudio;
 import fr.univ_amu.iut.audio.viewmodel.FormatLigneAudio;
 import fr.univ_amu.iut.commun.view.EmplacementNavigation;
 import fr.univ_amu.iut.commun.view.EmplacementPassage;
+import fr.univ_amu.iut.commun.view.GestionnaireColonnes;
 import fr.univ_amu.iut.commun.view.Lieu;
 import fr.univ_amu.iut.commun.view.OuvrirAnalyse;
 import fr.univ_amu.iut.commun.view.OuvrirMultisite;
@@ -319,23 +320,25 @@ public class SonsValidationController implements EmplacementNavigation {
         // parfois en devcontainer / bureau distant). Actif seulement pour la source workflow (ParPassage).
         DepotFichier.installer(racine, () -> source != null && source.permetWorkflowTadarida(), this::deposerFichiers);
 
-        // Choix d'affichage des colonnes : menu contextuel (clic droit) + sous-menu « Colonnes » dans le ☰
-        // (la proposition Tadarida, colonne d'identité, reste toujours affichée).
-        SelecteurColonnes.installer(
+        // Gestion des colonnes (afficher/masquer + réordonner par glisser) : menu contextuel (clic droit)
+        // et item « Colonnes… » du ☰ ouvrent le même panneau. La proposition Tadarida, colonne d'identité,
+        // reste toujours affichée (visibilité verrouillée) mais peut être déplacée comme les autres.
+        GestionnaireColonnes.installer(
                 tableObservations,
                 menuActions,
                 List.of(
-                        new SelecteurColonnes.ColonneAffichable(colProba, "Proba."),
-                        new SelecteurColonnes.ColonneAffichable(colFrequence, "Fréquence"),
-                        new SelecteurColonnes.ColonneAffichable(colObservateur, "Votre taxon"),
-                        new SelecteurColonnes.ColonneAffichable(colFichier, "Fichier"),
-                        new SelecteurColonnes.ColonneAffichable(colPassage, "Passage"),
-                        new SelecteurColonnes.ColonneAffichable(colCarre, "Carré"),
-                        new SelecteurColonnes.ColonneAffichable(colPoint, "Point"),
-                        new SelecteurColonnes.ColonneAffichable(colDate, "Date"),
-                        new SelecteurColonnes.ColonneAffichable(colStatut, "Statut"),
-                        new SelecteurColonnes.ColonneAffichable(colReference, "Référence ⭐"),
-                        new SelecteurColonnes.ColonneAffichable(colCommentaire, "Commentaire 💬")));
+                        new GestionnaireColonnes.Colonne(colTadarida, "Proposition Tadarida", true),
+                        new GestionnaireColonnes.Colonne(colProba, "Proba.", false),
+                        new GestionnaireColonnes.Colonne(colFrequence, "Fréquence", false),
+                        new GestionnaireColonnes.Colonne(colObservateur, "Votre taxon", false),
+                        new GestionnaireColonnes.Colonne(colFichier, "Fichier", false),
+                        new GestionnaireColonnes.Colonne(colPassage, "Passage", false),
+                        new GestionnaireColonnes.Colonne(colCarre, "Carré", false),
+                        new GestionnaireColonnes.Colonne(colPoint, "Point", false),
+                        new GestionnaireColonnes.Colonne(colDate, "Date", false),
+                        new GestionnaireColonnes.Colonne(colStatut, "Statut", false),
+                        new GestionnaireColonnes.Colonne(colReference, "Référence ⭐", false),
+                        new GestionnaireColonnes.Colonne(colCommentaire, "Commentaire 💬", false)));
     }
 
     /// Importe le **premier** fichier glissé-déposé sur l'écran (workflow Tadarida). Délègue à

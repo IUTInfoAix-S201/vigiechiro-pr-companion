@@ -9,6 +9,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Provides;
+import fr.univ_amu.iut.commun.model.CompteurValidations;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.model.Verdict;
 import fr.univ_amu.iut.commun.view.OuvrirDiagnostic;
@@ -290,6 +291,11 @@ class PassageVueIntegrationTest {
                     @Override
                     public void ouvrirDetail(String numeroCarre) {}
                 };
+            }
+
+            @Provides
+            CompteurValidations compteurValidations() {
+                return idPassage -> 0;
             }
         });
         FXMLLoader loader = new FXMLLoader(PassageController.class.getResource("Passage.fxml"));

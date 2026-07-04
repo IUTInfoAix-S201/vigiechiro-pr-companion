@@ -486,7 +486,7 @@ public class ImportationController implements GardeQuitter, AuDepartEcran {
                 || !viewModel.inspection().estInspecte()) {
             return;
         }
-        if (!confirmations.confirmerEcrasement(viewModel.controleNumero().compterSequencesAEcraser())) {
+        if (!confirmations.confirmerEcrasement(viewModel.controleNumero().apercuEcrasement())) {
             return;
         }
         lancerImportHorsThread(viewModel.controleNumero()::ecraserEtImporter);

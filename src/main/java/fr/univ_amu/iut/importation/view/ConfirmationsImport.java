@@ -1,5 +1,6 @@
 package fr.univ_amu.iut.importation.view;
 
+import fr.univ_amu.iut.importation.model.ApercuEcrasement;
 import java.util.Objects;
 import java.util.function.Predicate;
 
@@ -30,11 +31,18 @@ final class ConfirmationsImport {
     }
 
     /// `true` si l'utilisateur confirme l'**écrasement** destructif d'un passage existant (#279) : **double
-    /// confirmation** (le principe, puis le nombre exact de séquences définitivement supprimées).
-    boolean confirmerEcrasement(int sequencesSupprimees) {
+    /// confirmation** (le principe, puis le détail de ce qui est définitivement supprimé). Si le passage
+    /// écrasé porte des **validations observateur** (`apercu.validations() > 0`), elles seront elles aussi
+    /// définitivement perdues (aucune préservation possible, contrairement à une ré-importation de CSV) : la
+    /// seconde confirmation le mentionne alors explicitement.
+    boolean confirmerEcrasement(ApercuEcrasement apercu) {
+        String alerteValidations = apercu.validations() == 0
+                ? ""
+                : " Dont " + apercu.validations()
+                        + " validation(s) Tadarida (correction, référence, commentaire) définitivement perdue(s).";
         return confirmateur.test("Le n° de passage choisi est déjà utilisé. Écraser le passage existant et le"
                         + " remplacer par cette nuit ?")
-                && confirmateur.test("⚠ Suppression DÉFINITIVE du passage existant et de ses " + sequencesSupprimees
-                        + " séquence(s). Action irréversible. Confirmer l'écrasement ?");
+                && confirmateur.test("⚠ Suppression DÉFINITIVE du passage existant et de ses " + apercu.sequences()
+                        + " séquence(s)." + alerteValidations + " Action irréversible. Confirmer l'écrasement ?");
     }
 }

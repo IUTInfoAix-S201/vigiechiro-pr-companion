@@ -1,5 +1,6 @@
 package fr.univ_amu.iut.importation.model;
 
+import fr.univ_amu.iut.commun.model.CompteurValidations;
 import fr.univ_amu.iut.commun.model.Horloge;
 import fr.univ_amu.iut.commun.model.Prefixe;
 import fr.univ_amu.iut.commun.model.RegleMetierException;
@@ -72,6 +73,7 @@ public class ServiceImport {
     private final UniteDeTravail uniteDeTravail;
     private final Workspace workspace;
     private final FabriqueEntitesImport fabriqueEntites;
+    private final CompteurValidations compteurValidations;
 
     /// Verrou anti-import-concurrent (#54) : le service étant un **singleton** partagé, il refuse un
     /// second import tant qu'un autre tourne. Filet « pire cas » indépendant de l'IHM (deux
@@ -86,7 +88,8 @@ public class ServiceImport {
             AgregatImportDao agregatDao,
             UniteDeTravail uniteDeTravail,
             Workspace workspace,
-            Horloge horloge) {
+            Horloge horloge,
+            CompteurValidations compteurValidations) {
         this.inspecteur = Objects.requireNonNull(inspecteur, "inspecteur");
         this.copie = Objects.requireNonNull(copie, "copie");
         this.renommeur = Objects.requireNonNull(renommeur, "renommeur");
@@ -95,6 +98,7 @@ public class ServiceImport {
         this.uniteDeTravail = Objects.requireNonNull(uniteDeTravail, "uniteDeTravail");
         this.workspace = Objects.requireNonNull(workspace, "workspace");
         this.fabriqueEntites = new FabriqueEntitesImport(horloge);
+        this.compteurValidations = Objects.requireNonNull(compteurValidations, "compteurValidations");
     }
 
     /// Inspecte (lecture seule) le dossier SD sans rien importer : utile pour prévisualiser le
@@ -204,11 +208,17 @@ public class ServiceImport {
         return agregatDao.passagesDeLaNuit(numeroSerie, dateNuit);
     }
 
-    /// Nombre de séquences du passage existant à ce quadruplet `(point, année, n° de passage)`, pour
-    /// rendre tangible ce qu'un **écrasement** supprimerait (#214). Zéro si aucun passage à ce quadruplet
-    /// (l'appelant, `ControleNumeroPassage`, ne sollicite ce compte que pour un quadruplet déjà avéré).
-    public int compterSequencesDuPassageExistant(Long idPoint, int annee, int numeroPassage) {
-        return agregatDao.compterSequencesDuPassage(idPoint, annee, numeroPassage);
+    /// Aperçu de ce qu'un **écrasement** du passage existant à ce quadruplet `(point, année, n° de passage)`
+    /// supprimerait (#214), pour rendre la confirmation tangible : nombre de **séquences** (régénérées à
+    /// l'identique au réimport) et nombre de **validations observateur** définitivement perdues (délégué au
+    /// port socle [CompteurValidations]). [ApercuEcrasement#VIDE] si aucun passage à ce quadruplet.
+    public ApercuEcrasement apercuEcrasement(Long idPoint, int annee, int numeroPassage) {
+        int sequences = agregatDao.compterSequencesDuPassage(idPoint, annee, numeroPassage);
+        int validations = agregatDao
+                .idPassageAuQuadruplet(idPoint, annee, numeroPassage)
+                .map(compteurValidations::menaceesPourPassage)
+                .orElse(0);
+        return new ApercuEcrasement(sequences, validations);
     }
 
     /// **Écrase** le passage existant à ce quadruplet (suppression **destructive** en cascade : session,

@@ -1,5 +1,6 @@
 package fr.univ_amu.iut.validation.model;
 
+import fr.univ_amu.iut.commun.model.CompteurValidations;
 import fr.univ_amu.iut.commun.model.Horloge;
 import fr.univ_amu.iut.commun.model.ModeValidation;
 import fr.univ_amu.iut.commun.model.RegleMetierException;
@@ -57,7 +58,7 @@ import java.util.Set;
 /// plutôt que de lever (cf. la méthode pour le détail). Restent **durs** (lèvent une [RegleMetierException],
 /// rien n'est laissé à demi-écrit) : un **passage sans session** et un CSV dont **aucune** ligne n'est
 /// importable.
-public class ServiceValidation {
+public class ServiceValidation implements CompteurValidations {
 
     /// Fin de citation `« … ».` des messages d'erreur métier (guillemet fermant + point).
     private static final String GUILLEMET_FERMANT = " ».";
@@ -271,6 +272,22 @@ public class ServiceValidation {
                 .filter(ServiceValidation::estValidee)
                 .forEach(obs -> parCle.putIfAbsent(cleDe(obs), obs));
         return parCle;
+    }
+
+    /// Nombre d'observations **validées** du passage (cf. [#estValidee(Observation)]) : le travail de
+    /// validation qui serait perdu si le passage était supprimé ou écrasé. Implémente le port socle
+    /// [CompteurValidations] injecté par les features `passage` et `importation` pour leurs confirmations
+    /// destructives.
+    @Override
+    public int menaceesPourPassage(Long idPassage) {
+        Objects.requireNonNull(idPassage, PARAM_ID_PASSAGE);
+        return (int) resultatsDao
+                .findByPassage(idPassage)
+                .map(resultats -> observationDao.findByResults(resultats.id()))
+                .orElseGet(List::of)
+                .stream()
+                .filter(ServiceValidation::estValidee)
+                .count();
     }
 
     /// Une observation « validée » par l'observateur : elle porte un taxon corrigé, un marquage référence

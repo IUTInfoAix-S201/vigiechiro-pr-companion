@@ -34,7 +34,7 @@ class PassageControllerEmplacementTest {
 
     private PassageController controller(PassageViewModel vm, OuvrirSite ouvrirSite) {
         return new PassageController(
-                vm, idp -> {}, idp -> {}, idp -> {}, idp -> {}, navigation, ouvrirSite, numeroCarre -> {});
+                vm, idp -> {}, idp -> {}, idp -> {}, idp -> {}, navigation, ouvrirSite, numeroCarre -> {}, idp -> 0);
     }
 
     @Test

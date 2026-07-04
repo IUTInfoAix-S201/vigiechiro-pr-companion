@@ -1,5 +1,6 @@
 package fr.univ_amu.iut.importation.viewmodel;
 
+import fr.univ_amu.iut.importation.model.ApercuEcrasement;
 import fr.univ_amu.iut.importation.model.JetonAnnulation;
 import fr.univ_amu.iut.importation.model.Progression;
 import fr.univ_amu.iut.importation.model.ResultatImport;
@@ -84,15 +85,16 @@ public final class ControleNumeroPassage {
         return dejaUtilise.get();
     }
 
-    /// Nombre de séquences du passage existant au quadruplet courant (#214), pour rendre tangible
-    /// l'écrasement dans la confirmation. Zéro si le rattachement est incomplet ou le n° libre.
-    public int compterSequencesAEcraser() {
+    /// Aperçu de ce que l'écrasement du passage existant au quadruplet courant supprimerait (#214) :
+    /// séquences et validations observateur, pour rendre tangibles les deux confirmations. [ApercuEcrasement#VIDE]
+    /// si le rattachement est incomplet ou le n° libre.
+    public ApercuEcrasement apercuEcrasement() {
         PointDEcoute point = rattachement.pointSelectionneProperty().get();
         int numero = rattachement.numeroPassageProperty().get();
         if (point == null || numero < 1 || !dejaUtilise.get()) {
-            return 0;
+            return ApercuEcrasement.VIDE;
         }
-        return serviceImport.compterSequencesDuPassageExistant(
+        return serviceImport.apercuEcrasement(
                 point.id(), rattachement.anneeProperty().get(), numero);
     }
 

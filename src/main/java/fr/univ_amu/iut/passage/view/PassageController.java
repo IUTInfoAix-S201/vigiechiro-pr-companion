@@ -1,6 +1,7 @@
 package fr.univ_amu.iut.passage.view;
 
 import com.google.inject.Inject;
+import fr.univ_amu.iut.commun.model.CompteurValidations;
 import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.model.Verdict;
@@ -61,6 +62,7 @@ public class PassageController implements EmplacementNavigation, RafraichirAuRet
     private final NavigationPassage navigation;
     private final OuvrirSite ouvrirSite;
     private final OuvrirMultisite ouvrirMultisite;
+    private final CompteurValidations compteurValidations;
     private Long idPassage;
     private ContexteSite contexte;
 
@@ -133,7 +135,8 @@ public class PassageController implements EmplacementNavigation, RafraichirAuRet
             OuvrirLot ouvrirLot,
             NavigationPassage navigation,
             OuvrirSite ouvrirSite,
-            OuvrirMultisite ouvrirMultisite) {
+            OuvrirMultisite ouvrirMultisite,
+            CompteurValidations compteurValidations) {
         this.viewModel = Objects.requireNonNull(viewModel, "viewModel");
         this.ouvrirVerification = Objects.requireNonNull(ouvrirVerification, "ouvrirVerification");
         this.ouvrirDiagnostic = Objects.requireNonNull(ouvrirDiagnostic, "ouvrirDiagnostic");
@@ -142,6 +145,7 @@ public class PassageController implements EmplacementNavigation, RafraichirAuRet
         this.navigation = Objects.requireNonNull(navigation, "navigation");
         this.ouvrirSite = Objects.requireNonNull(ouvrirSite, "ouvrirSite");
         this.ouvrirMultisite = Objects.requireNonNull(ouvrirMultisite, "ouvrirMultisite");
+        this.compteurValidations = Objects.requireNonNull(compteurValidations, "compteurValidations");
     }
 
     @FXML
@@ -293,7 +297,8 @@ public class PassageController implements EmplacementNavigation, RafraichirAuRet
     /// est alors présentée à l'utilisateur sans quitter l'écran.
     @FXML
     private void supprimer() {
-        if (!confirmer("Supprimer définitivement ce passage et toute sa nuit (séquences, relevés) ?")) {
+        if (!confirmer("Supprimer définitivement ce passage et toute sa nuit (séquences, relevés) ?"
+                + alerteValidationsMenacees())) {
             return;
         }
         try {
@@ -302,6 +307,19 @@ public class PassageController implements EmplacementNavigation, RafraichirAuRet
         } catch (RegleMetierException refus) {
             alerteErreur(refus.getMessage());
         }
+    }
+
+    /// Complément d'avertissement pour la confirmation de suppression : si le passage porte des validations
+    /// observateur (taxon corrigé, référence, commentaire), elles seront **définitivement perdues** avec la
+    /// cascade. Chaîne vide sinon (rien à signaler). Contrairement à une ré-importation de CSV, la
+    /// suppression ne permet aucune préservation.
+    private String alerteValidationsMenacees() {
+        int menacees = compteurValidations.menaceesPourPassage(idPassage);
+        if (menacees == 0) {
+            return "";
+        }
+        return "\n\n⚠ " + menacees
+                + " validation(s) Tadarida (correction, référence, commentaire) seront définitivement perdues.";
     }
 
     /// « Annuler le dépôt » : après confirmation, ramène le passage de « Déposé » à « Prêt à déposer »

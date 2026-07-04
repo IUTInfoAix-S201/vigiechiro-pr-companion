@@ -2,6 +2,14 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [1.81.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.80.0...v1.81.0) (2026-07-04)
+
+
+### Features
+
+* **audio:** colonne « Début » (position réelle du cri dans le fichier) ([#501](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/501)) ([5a46639](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/5a4663999c3841cd6197a6ba6ca49a56f5352550)), closes [#482](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/482) [#51](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/51) [#52](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/52)
+* **audio:** seek + surlignage de la fenêtre du cri sélectionné ([#482](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/482)) ([#502](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/502)) ([7544fbf](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/7544fbf399b06dd4618f72e0862f355631f4235f)), closes [51/#52](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/52)
+
 # [1.80.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.79.0...v1.80.0) (2026-07-04)
 
 

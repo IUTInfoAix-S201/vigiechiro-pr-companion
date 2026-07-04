@@ -32,12 +32,10 @@
    l'AudioView ne soit jamais aplati par la table quand on tire le diviseur (incident #329). */
 .panneau-ecoute {
   -fx-background-color: #ffffff;
-  -fx-border-color: #e1e4e8;
-  -fx-border-radius: 4;
-  -fx-background-radius: 4;
-  /* Pas de padding : le spectrogramme (et la barre d'actions) s'étendent sur toute la largeur du panneau,
-     alignés sur la table au-dessus (elle-même à ras bord). L'espacement vertical entre l'AudioView et la
-     barre d'actions est porté par le `spacing` du VBox. */
+  /* Ni bordure, ni coins arrondis, ni padding : le spectrogramme et la barre d'actions s'étendent à ras
+     bord (aucun cadre 1px qui les inset), parfaitement alignés sur la table au-dessus. La séparation avec
+     la table est déjà assurée par le diviseur du SplitPane ; l'espacement vertical AudioView / actions est
+     porté par le `spacing` du VBox. */
   -fx-padding: 0;
 }
 

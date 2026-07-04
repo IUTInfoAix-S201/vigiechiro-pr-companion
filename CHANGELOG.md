@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [1.80.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.79.0...v1.80.0) (2026-07-04)
+
+
+### Features
+
+* **audio:** colonne « Durée » du cri (discriminant plus utile que la fréquence médiane) ([#467](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/467)) ([#499](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/499)) ([165ce33](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/165ce336ac6509836e2e7c55f9e7d66a64e833ed)), closes [#482](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/482)
+
 # [1.79.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.78.0...v1.79.0) (2026-07-04)
 
 

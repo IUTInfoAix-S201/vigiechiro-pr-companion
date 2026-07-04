@@ -54,7 +54,8 @@ Le temps d'import **croît linéairement** avec la taille (débit ~stable 180-25
 
 **Lectures clés** : la **copie SD→workspace (I/O) domine** (~65-70 %), la transformation parallélisée
 (#12) ~25-30 %, la persistance est négligeable (~3 %). Ordre de grandeur de référence : une **vraie
-nuit** (~1572 fichiers) s'importe en **~6-8 s**, ~3600 séquences, empreinte ~600-700 Mo.
+nuit** (~1572 fichiers) s'importe en **~6-8 s**, ~2100 séquences (découpage à 5 s réelles, `ceil(D/5)`
+par enregistrement), empreinte ~600-700 Mo.
 
 !!! warning "Des ordres de grandeur, pas des garanties"
     Ces chiffres viennent d'une **machine de référence**. Sur un poste plus modeste, refaire la mesure.

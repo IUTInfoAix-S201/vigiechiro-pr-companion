@@ -18,7 +18,10 @@ L'écran **Importation** copie une nuit depuis la carte SD, la renomme et la tra
 
 Le bouton **Importer cette nuit** lance la copie (sans toucher aux originaux), le renommage avec le
 préfixe `CarXXXXXX-AAAA-PassN-YY-`, puis la transformation des enregistrements en séquences de 5 s
-ralenties dix fois.
+ralenties dix fois (une séquence de 5 s devient 50 s à l'écoute, dans la bande audible). Un
+enregistrement de plus de 5 s produit **plusieurs séquences**, chacune nommée avec l'**heure réelle de
+son début** (ex. `…_225849`, `…_225854`, `…_225859`…) : c'est ce qui permet de retrouver, pour chaque
+observation Tadarida, la séquence audio correspondante.
 
 ## Source compressée (.zip)
 

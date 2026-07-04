@@ -201,6 +201,19 @@ public class SonsValidationController implements EmplacementNavigation {
                 .selectedItemProperty()
                 .addListener((obs, ancienne, nouvelle) ->
                         viewModel.selectionProperty().set(nouvelle));
+        // Resynchronisation **VM → table** : après un Valider/Corriger, charger() reconstruit la liste avec
+        // de nouvelles instances de record (statut/taxon changés), ce qui vide la surbrillance de la table
+        // alors que le VM restaure la sélection par identifiant. On réaligne la ligne surlignée sur la
+        // sélection du VM (et on désélectionne si null). La garde d'égalité empêche toute boucle avec le
+        // listener table → VM ci-dessus (une sélection déjà alignée ne redéclenche rien).
+        viewModel.selectionProperty().addListener((obs, ancienne, nouvelle) -> {
+            var modele = tableObservations.getSelectionModel();
+            if (nouvelle == null) {
+                modele.clearSelection();
+            } else if (!nouvelle.equals(modele.getSelectedItem())) {
+                modele.select(nouvelle);
+            }
+        });
 
         choixFiltre.getItems().add(null);
         choixFiltre.getItems().addAll(StatutObservation.values());

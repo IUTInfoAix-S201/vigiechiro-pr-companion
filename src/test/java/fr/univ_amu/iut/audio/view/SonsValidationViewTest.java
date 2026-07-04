@@ -167,6 +167,27 @@ class SonsValidationViewTest {
     }
 
     @Test
+    @DisplayName("Après un Valider, la ligne revue reste surlignée (sélection re-synchronisée VM → table)")
+    void selection_reste_surlignee_apres_action(FxRobot robot) {
+        TableView<?> table = robot.lookup("#tableObservations").queryAs(TableView.class);
+        Button valider = robot.lookup("#btnValider").queryAs(Button.class);
+
+        // Le rechargement post-action renvoie la même observation (id=1) mais **modifiée** (nouvelle
+        // instance de record, non égale à l'ancienne) : sans resync, la table perdrait sa surbrillance.
+        when(service.lignesAudioReferences("u-1"))
+                .thenReturn(List.of(
+                        ligne(1, 10, "Pippip", "Nyclei", "Noctule de Leisler", "Pipistrelle commune"),
+                        ligne(2, 11, "Nyclei", "Nyclei", "Noctule de Leisler", "Noctule de Leisler")));
+
+        robot.interact(() -> table.getSelectionModel().select(0)); // observation id=1
+        robot.interact(valider::fire);
+
+        Object surlignee = table.getSelectionModel().getSelectedItem();
+        assertThat(surlignee).isNotNull();
+        assertThat(((LigneObservationAudio) surlignee).idObservation()).isEqualTo(1L);
+    }
+
+    @Test
     @DisplayName("Sélectionner une ligne alimente le détail et l'écoute (AudioView)")
     void selection_alimente_detail_et_audio(FxRobot robot) {
         TableView<?> table = robot.lookup("#tableObservations").queryAs(TableView.class);

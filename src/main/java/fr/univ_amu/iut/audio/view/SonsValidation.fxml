@@ -33,7 +33,8 @@
       styleClass="ecran-audio"
       spacing="10.0">
 
-  <Label fx:id="lblResume" styleClass="sous-titre-page"/>
+  <!-- Pas de bandeau de titre ici : le nom d'écran est déjà porté par le fil d'Ariane, et le résumé
+       (compteurs de revue) est déporté dans la barre de statut via ResumeStatut (gain d'espace vertical). -->
 
   <!-- Barre allégée : filtre de statut au centre (auto-descriptif), actions propres à la source épinglées
        à droite dans un menu « ☰ » (patron multisite) - seuls les items pertinents s'affichent. -->

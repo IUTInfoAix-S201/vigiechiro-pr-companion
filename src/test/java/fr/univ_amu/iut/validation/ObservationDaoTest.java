@@ -431,6 +431,7 @@ class ObservationDaoTest {
             assertThat(ligne.idPassage()).isEqualTo(idPassage);
             assertThat(ligne.numeroCarre()).isEqualTo("640380");
             assertThat(ligne.codePoint()).isEqualTo("A1");
+            assertThat(ligne.nomFichier()).isEqualTo("a_000.wav");
         });
         LigneObservationAudio reference = lignes.stream()
                 .filter(LigneObservationAudio::reference)

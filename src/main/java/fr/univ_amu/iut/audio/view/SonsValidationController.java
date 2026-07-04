@@ -29,8 +29,10 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
@@ -92,6 +94,9 @@ public class SonsValidationController implements EmplacementNavigation {
 
     @FXML
     private TableColumn<LigneObservationAudio, String> colObservateur;
+
+    @FXML
+    private TableColumn<LigneObservationAudio, String> colFichier;
 
     @FXML
     private TableColumn<LigneObservationAudio, String> colPassage;
@@ -161,6 +166,11 @@ public class SonsValidationController implements EmplacementNavigation {
         colProba.setCellValueFactory(c -> new ReadOnlyStringWrapper(
                 FormatLigneAudio.probabilite(c.getValue().probTadarida())));
         colObservateur.setCellValueFactory(c -> new ReadOnlyStringWrapper(FormatLigneAudio.votreTaxon(c.getValue())));
+        colFichier.setCellValueFactory(
+                c -> new ReadOnlyStringWrapper(ouTiret(c.getValue().nomFichier())));
+        // Le nom de fichier transformé est long (préfixe de campagne + suffixe de segment) : la cellule
+        // l'élide, une infobulle en donne la valeur complète au survol.
+        colFichier.setCellFactory(colonne -> celluleAvecInfobulle());
         colPassage.setCellValueFactory(
                 c -> new ReadOnlyStringWrapper("N°" + c.getValue().numeroPassage()));
         colCarre.setCellValueFactory(
@@ -427,6 +437,24 @@ public class SonsValidationController implements EmplacementNavigation {
 
     private static String ouTiret(String valeur) {
         return valeur == null || valeur.isBlank() ? "—" : valeur;
+    }
+
+    /// Cellule de texte qui **élide** un contenu long et en expose la valeur complète via une infobulle
+    /// au survol (le nom de fichier transformé dépasse souvent la largeur de colonne).
+    private static TableCell<LigneObservationAudio, String> celluleAvecInfobulle() {
+        return new TableCell<>() {
+            @Override
+            protected void updateItem(String valeur, boolean vide) {
+                super.updateItem(valeur, vide);
+                if (vide || valeur == null || valeur.isBlank() || "—".equals(valeur)) {
+                    setText(vide ? null : valeur);
+                    setTooltip(null);
+                } else {
+                    setText(valeur);
+                    setTooltip(new Tooltip(valeur));
+                }
+            }
+        };
     }
 
     private static <T> StringConverter<T> libelleConverter(java.util.function.Function<T, String> versLibelle) {

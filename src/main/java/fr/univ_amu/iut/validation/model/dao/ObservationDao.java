@@ -291,7 +291,8 @@ public class ObservationDao extends DaoGenerique<Observation, Long> {
             + " ms.user_id AS user_id, o.taxon_tadarida AS tadarida, o.prob_tadarida AS prob_tadarida,"
             + " o.taxon_observer AS observer, o.prob_observer AS prob_observer,"
             + " o.is_reference AS is_reference, o.user_comment AS commentaire, o.median_freq_hz AS frequence,"
-            + " te.vernacular_name_fr AS nom_espece, tt.vernacular_name_fr AS nom_tadarida"
+            + " te.vernacular_name_fr AS nom_espece, tt.vernacular_name_fr AS nom_tadarida,"
+            + " ls.file_name AS nom_fichier"
             + DE_OBSERVATION_AU_SITE
             + " LEFT JOIN taxon te ON te.code = COALESCE(o.taxon_observer, o.taxon_tadarida)"
             + " LEFT JOIN taxon tt ON tt.code = o.taxon_tadarida"
@@ -325,7 +326,8 @@ public class ObservationDao extends DaoGenerique<Observation, Long> {
             rs.getString("commentaire"),
             entierNullable(rs, "frequence"),
             rs.getString("nom_espece"),
-            rs.getString("nom_tadarida"));
+            rs.getString("nom_tadarida"),
+            rs.getString("nom_fichier"));
 
     /// Source **Passage** : toutes les observations d'un passage (pseudo-taxons compris : on revoit tout).
     public List<LigneObservationAudio> lignesAudioDuPassage(Long idPassage) {

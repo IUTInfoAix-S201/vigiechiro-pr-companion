@@ -71,7 +71,8 @@ class AudioViewModelTest {
                 null,
                 45000,
                 null,
-                null);
+                null,
+                "PaRec_" + idSeq + "_000.wav");
     }
 
     @Nested

@@ -33,7 +33,8 @@ class FormatLigneAudioTest {
                 null,
                 45000,
                 nomEspece,
-                "Pipistrelle commune");
+                "Pipistrelle commune",
+                "PaRec_20260620_000.wav");
     }
 
     @Test

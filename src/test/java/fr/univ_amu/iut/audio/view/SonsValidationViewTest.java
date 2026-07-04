@@ -81,7 +81,8 @@ class SonsValidationViewTest {
                 "beau cri",
                 45000,
                 nomEspece,
-                nomTadarida);
+                nomTadarida,
+                "PaRec_" + seq + "_000.wav");
     }
 
     @Start
@@ -138,6 +139,13 @@ class SonsValidationViewTest {
         assertThat(colonne(robot, "Votre taxon").getCellData(1)).isEqualTo("Noctule de Leisler");
         // Proba = probabilité Tadarida formatée (0.9 → « 90 % »).
         assertThat(colonne(robot, "Proba.").getCellData(0)).isEqualTo("90 %");
+    }
+
+    @Test
+    @DisplayName("La colonne « Fichier » affiche le nom de fichier de la séquence")
+    void affiche_le_nom_de_fichier(FxRobot robot) {
+        assertThat(colonne(robot, "Fichier").getCellData(0)).isEqualTo("PaRec_10_000.wav");
+        assertThat(colonne(robot, "Fichier").getCellData(1)).isEqualTo("PaRec_11_000.wav");
     }
 
     @Test

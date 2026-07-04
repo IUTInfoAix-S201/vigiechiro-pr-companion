@@ -29,6 +29,8 @@ package fr.univ_amu.iut.validation.model;
 ///     `null` si le taxon n'a pas de nom vernaculaire (souche hors référentiel) — la vue affiche alors le code
 /// @param nomTadarida nom vernaculaire FR de la **proposition Tadarida** (`taxon_tadarida`), ou `null`
 ///     (souche hors référentiel) — la vue affiche alors le code
+/// @param nomFichier nom de fichier de la séquence d'écoute (`listening_sequence.file_name`), pour relier
+///     la ligne à l'enregistrement écouté
 public record LigneObservationAudio(
         long idObservation,
         long idSequence,
@@ -47,4 +49,5 @@ public record LigneObservationAudio(
         String commentaire,
         Integer frequenceHz,
         String nomEspece,
-        String nomTadarida) {}
+        String nomTadarida,
+        String nomFichier) {}

@@ -9,26 +9,35 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-/// Moteur de transformation audio (R10/R11) : le **point dur** de la feature import.
+/// Moteur de transformation audio (R10/R11) : le **point dur** de la feature import. Reproduit
+/// **fidèlement** la chaîne Vigie-Chiro/Tadarida, condition pour que l'`observations.csv` (produit par
+/// Tadarida sur les mêmes tranches) se raccroche à l'audio produit par l'application.
 ///
-/// ## Expansion temporelle ×10 = réinterprétation du rythme d'échantillonnage
+/// ## Vue d'ensemble : découper à 5 s réelles, PUIS expanser ×10
 ///
-/// Un enregistrement original est un ultrason mono 16 bits échantillonné très vite (ex. 384 000
-/// Hz), donc inaudible. La transformation ne **recalcule aucun échantillon** : elle conserve les
-/// **mêmes octets PCM** et se contente de déclarer une fréquence de lecture dix fois plus basse
-/// (`frequenceSortie = frequenceSource / 10`, ex. 38 400 Hz). Le signal devient alors audible et
-/// dure dix fois plus longtemps : c'est l'« expansion de temps » du protocole Vigie-Chiro.
+/// L'ordre est essentiel. Un enregistrement brut est un ultrason mono 16 bits échantillonné très vite
+/// (ex. 384 000 Hz), donc inaudible. La chaîne :
 ///
-/// ## Découpage en séquences de 5 s au NOUVEAU rythme (R10)
+/// 1. **Découpe** le brut en **tranches de 5 s au rythme SOURCE** (5 s *réelles*) : chaque tranche porte
+///    `5 × frequenceSource` trames (la dernière peut être plus courte).
+/// 2. **Expanse ×10** chaque tranche en **réinterprétant** son rythme d'échantillonnage
+///    (`frequenceSortie = frequenceSource / 10`, ex. 38 400 Hz) : **aucun échantillon n'est recalculé**,
+///    les mêmes octets PCM sont conservés. Une tranche de 5 s réelles devient donc **50 s à l'écoute**,
+///    et audible (c'est l'« expansion de temps » du protocole).
 ///
-/// Le signal expansé est tranché en séquences de 5 s *au nouveau rythme* : chaque séquence porte
-/// `5 * frequenceSortie` trames (la dernière peut être plus courte). Comme la concaténation des
-/// séquences reconstitue exactement les octets source, on a, pour une durée source `D` :
+/// ⚠️ **Piège corrigé (#…)** : découper *après* expansion et au rythme de **sortie** donnerait des
+/// tranches de **0,5 s réelles** (10× trop courtes), désalignées des temps de l'`observations.csv` (qui
+/// sont en secondes réelles dans une tranche de 5 s). On découpe donc bien au rythme **source**.
 ///
-/// ```
-/// tramesParSequence = 5 * frequenceSortie = frequenceSource / 2
-/// nbSequences       = ceil(tramesTotales / tramesParSequence) = ceil(2 * D)
-/// ```
+/// Pour une durée source `D` (secondes) : `nbSequences = ceil(D / 5)`.
+///
+/// ## Nommage HORODATÉ des tranches (R8, convention Tadarida)
+///
+/// Chaque tranche est nommée avec l'**heure réelle de son début**, pas un index : l'horodatage de
+/// l'original (`_AAAAMMJJ_HHMMSS`) est **décalé** de `index × 5 s`, et le suffixe est **toujours `_000`**.
+/// Exemple : `..._20260422_225849.wav` → tranches `..._225849_000`, `..._225854_000`, `..._225859_000`…
+/// C'est le nommage que porte l'`observations.csv` : c'est la **clé de jointure** observation ↔ tranche
+/// (cf. `ServiceValidation`). Détail dans [Prefixe#nommerSequence(String, int, int)].
 ///
 /// ## Déterminisme (R11)
 ///
@@ -36,12 +45,10 @@ import java.util.Objects;
 /// octets PCM sont copiés sans altération (aucun rééchantillonnage, donc aucun clipping
 /// introduit), et [FichierWav#ecrire] produit un en-tête canonique fixe. Relancer la
 /// transformation réécrit des fichiers identiques au bit près.
-///
-/// Nommage des séquences (R8) : nom de l'original + suffixe `_000`, `_001`… inséré avant
-/// l'extension, via [Prefixe#nommerSequence(String, int)].
 public class TransformationAudio {
 
-    /// Durée d'une séquence d'écoute, en secondes, au rythme de sortie (R10).
+    /// Durée d'une séquence d'écoute, en secondes **réelles** (au rythme source) : une tranche = 5 s de
+    /// l'enregistrement d'origine, soit 50 s à l'écoute une fois expansée ×10 (R10).
     public static final int DUREE_SEQUENCE_SECONDES = 5;
 
     /// Facteur d'expansion temporelle du protocole Vigie-Chiro (R10).
@@ -90,7 +97,12 @@ public class TransformationAudio {
         }
         int frequenceSortie = frequenceSource / FACTEUR_EXPANSION;
         int octetsParTrame = source.octetsParTrame();
-        int octetsParSequence = DUREE_SEQUENCE_SECONDES * frequenceSortie * octetsParTrame;
+        // Découpage à 5 s **réelles** = au rythme SOURCE (et non de sortie). Chaque séquence porte donc les
+        // octets de 5 s de l'enregistrement d'origine, qui, rejoués à `frequenceSortie` (÷10), durent 50 s à
+        // l'écoute. C'est le découpage du pipeline Vigie-Chiro/Tadarida (segment _000 = 5 s réelles) : les
+        // temps du CSV Tadarida sont en secondes réelles DANS cette séquence de 5 s. (L'ancien calcul avec
+        // `frequenceSortie` donnait des séquences de 0,5 s réelles, désalignées des temps Tadarida.)
+        int octetsParSequence = DUREE_SEQUENCE_SECONDES * frequenceSource * octetsParTrame;
         byte[] pcm = source.donneesPcm();
         String nomOriginal = originalWav.getFileName().toString();
         String sha256 = empreinteSource(originalWav);
@@ -104,7 +116,10 @@ public class TransformationAudio {
             int index = 0;
             for (int offset = 0; offset < pcm.length; offset += octetsParSequence) {
                 int longueur = Math.min(octetsParSequence, pcm.length - offset);
-                String nomSequence = prefixe.nommerSequence(nomOriginal, index);
+                // Nommage horodaté (convention Vigie-Chiro/Tadarida) : la tranche d'index k porte l'heure
+                // réelle de son début = horodatage de l'original + k × 5 s, avec un `_000` systématique. Ce
+                // nom est la clé de jointure avec les lignes de l'observations.csv (cf. ServiceValidation).
+                String nomSequence = prefixe.nommerSequence(nomOriginal, index, index * DUREE_SEQUENCE_SECONDES);
                 Path cheminSequence = dossierSortie.resolve(nomSequence);
                 // Reprise (#231) : on réécrit **toujours** la séquence (R11 : bytes déterministes), pour ne
                 // jamais persister une séquence périmée/corrompue par un crash, même de taille identique.
@@ -163,9 +178,10 @@ public class TransformationAudio {
         }
     }
 
-    /// Nombre de séquences attendues pour une durée source donnée (R10) : `ceil(2 * D)`. Exposé pour
-    /// la lisibilité des tests et de l'IHM (prévisualisation du volume à produire).
+    /// Nombre de séquences attendues pour une durée source donnée (R10) : `ceil(D / 5)` — une séquence par
+    /// tranche de 5 s **réelles** de l'enregistrement. Exposé pour la lisibilité des tests et de l'IHM
+    /// (prévisualisation du volume à produire).
     public static long nombreSequencesAttendu(double dureeSourceSecondes) {
-        return (long) Math.ceil(FACTEUR_EXPANSION * dureeSourceSecondes / DUREE_SEQUENCE_SECONDES);
+        return (long) Math.ceil(dureeSourceSecondes / DUREE_SEQUENCE_SECONDES);
     }
 }

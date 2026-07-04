@@ -69,7 +69,7 @@ class ServiceImportTest {
     // Vrai rythme d'un brut ultrason (384 kHz), cohérent avec le log Fe384kHz : sans quoi le garde-fou
     // « déjà ralenti » (en-tête < Fe du log) rejetterait ces fixtures.
     private static final int FREQUENCE_WAV = 384_000; // Hz, multiple de 10, = Fe du log
-    private static final int TRAMES = 576_000; // 1,5 s à 384 kHz -> ceil(2 × 1,5) = 3 séquences par original
+    private static final int TRAMES = 576_000; // 1,5 s à 384 kHz -> ceil(1,5 / 5) = 1 séquence par original
     private static final String SERIE = "1925492";
 
     private static final String LOG =
@@ -148,12 +148,12 @@ class ServiceImportTest {
         assertThat(resultat.passage().heureDebut()).isEqualTo("20:25:00");
         assertThat(resultat.passage().heureFin()).isEqualTo("07:47:00");
         assertThat(resultat.nombreOriginaux()).isEqualTo(2);
-        assertThat(resultat.nombreSequences()).isEqualTo(6); // 3 par original
+        assertThat(resultat.nombreSequences()).isEqualTo(2); // 1 par original (1,5 s < 5 s)
 
         Long idSession = resultat.session().id();
         assertThat(sessionDao.trouverParPassage(resultat.passage().id())).isPresent();
         assertThat(originalDao.findBySession(idSession)).hasSize(2);
-        assertThat(sequenceDao.findBySession(idSession)).hasSize(6);
+        assertThat(sequenceDao.findBySession(idSession)).hasSize(2);
         assertThat(originalDao.findBySession(idSession))
                 .allSatisfy(o -> assertThat(o.frequenceEchantillonnageHz()).isEqualTo(FREQUENCE_WAV));
     }
@@ -266,7 +266,7 @@ class ServiceImportTest {
                 .as("les originaux déjà présents ne sont pas re-copiés")
                 .isZero();
         assertThat(resultat.nombreOriginaux()).isEqualTo(2);
-        assertThat(resultat.nombreSequences()).isEqualTo(6);
+        assertThat(resultat.nombreSequences()).isEqualTo(2);
         assertThat(resultat.passage().statutWorkflow()).isEqualTo(StatutWorkflow.TRANSFORME);
     }
 
@@ -310,7 +310,7 @@ class ServiceImportTest {
                 .as("le fidèle est sauté, le corrompu est re-copié")
                 .isEqualTo(1);
         assertThat(resultat.nombreOriginaux()).isEqualTo(2);
-        assertThat(resultat.nombreSequences()).isEqualTo(6);
+        assertThat(resultat.nombreSequences()).isEqualTo(2);
     }
 
     @Test
@@ -449,7 +449,7 @@ class ServiceImportTest {
                 racine.resolve("ws").resolve(prefixe.nomDossierSession()).resolve("transformes");
         try (var flux = Files.list(transformes)) {
             assertThat(flux.filter(p -> p.getFileName().toString().endsWith(".wav")))
-                    .hasSize(6);
+                    .hasSize(2); // 2 originaux × 1 tranche (1,5 s < 5 s)
         }
     }
 

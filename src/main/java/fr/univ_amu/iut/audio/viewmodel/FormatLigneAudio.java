@@ -59,6 +59,12 @@ public final class FormatLigneAudio {
         return probabilite == null ? "—" : Math.round(probabilite * 100) + " %";
     }
 
+    /// Fréquence médiane formatée pour la **colonne** (« 45000 Hz »), tiret si absente. (Le pendant privé
+    /// [#frequence(Integer)] sert au panneau de détail avec le libellé « non renseigné ».)
+    public static String frequenceColonne(Integer frequenceHz) {
+        return frequenceHz == null ? "—" : frequenceHz + " Hz";
+    }
+
     /// Libellé d'affichage du statut de revue (partagé avec la colonne « Statut » de la vue).
     public static String libelleStatut(StatutObservation statut) {
         return switch (statut) {
@@ -78,6 +84,12 @@ public final class FormatLigneAudio {
     /// Comparateur de tri de la colonne « Passage » : ordonne selon le **numéro** (« N°2 » < « N°10 »), et
     /// non alphabétiquement.
     public static Comparator<String> comparateurNumeroPassage() {
+        return Comparator.comparingInt(FormatLigneAudio::premierEntierOuMoinsUn);
+    }
+
+    /// Comparateur de tri de la colonne « Fréquence » : ordonne selon la valeur en Hz (« 9000 Hz » <
+    /// « 45000 Hz »), et non alphabétiquement ; absente (« — ») classée en tête.
+    public static Comparator<String> comparateurFrequence() {
         return Comparator.comparingInt(FormatLigneAudio::premierEntierOuMoinsUn);
     }
 

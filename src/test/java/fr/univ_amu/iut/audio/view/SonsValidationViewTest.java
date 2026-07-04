@@ -149,6 +149,15 @@ class SonsValidationViewTest {
     }
 
     @Test
+    @DisplayName("Colonnes Date, Fréquence et indicateur de commentaire")
+    void affiche_date_frequence_commentaire(FxRobot robot) {
+        assertThat(colonne(robot, "Date").getCellData(0)).isEqualTo("2026-06-20");
+        assertThat(colonne(robot, "Fréquence").getCellData(0)).isEqualTo("45000 Hz");
+        // Les deux lignes de la fixture portent un commentaire (« beau cri ») → icône 💬.
+        assertThat(colonne(robot, "💬").getCellData(0)).isEqualTo("💬");
+    }
+
+    @Test
     @DisplayName("Les colonnes sont triables : trier « Fichier » en décroissant réordonne les lignes")
     @SuppressWarnings({"rawtypes", "unchecked"})
     void colonnes_triables(FxRobot robot) {

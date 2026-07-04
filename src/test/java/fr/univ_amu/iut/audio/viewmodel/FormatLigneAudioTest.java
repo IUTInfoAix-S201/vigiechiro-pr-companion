@@ -80,4 +80,19 @@ class FormatLigneAudioTest {
         tri.sort(FormatLigneAudio.comparateurStatut());
         assertThat(tri).containsExactly("À revoir", "Validée", "Corrigée");
     }
+
+    @Test
+    @DisplayName("Fréquence colonne : « 45000 Hz », tiret si absente")
+    void frequence_colonne_formatee() {
+        assertThat(FormatLigneAudio.frequenceColonne(45000)).isEqualTo("45000 Hz");
+        assertThat(FormatLigneAudio.frequenceColonne(null)).isEqualTo("—");
+    }
+
+    @Test
+    @DisplayName("Comparateur Fréquence : ordre numérique (« 9000 Hz » < « 45000 Hz »), absente en tête")
+    void comparateur_frequence_ordonne_par_valeur() {
+        var tri = new java.util.ArrayList<>(java.util.List.of("45000 Hz", "9000 Hz", "—"));
+        tri.sort(FormatLigneAudio.comparateurFrequence());
+        assertThat(tri).containsExactly("—", "9000 Hz", "45000 Hz");
+    }
 }

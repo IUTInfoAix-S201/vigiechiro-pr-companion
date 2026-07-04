@@ -47,6 +47,7 @@ import javafx.stage.Stage;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.kordamp.ikonli.javafx.FontIcon;
 import org.testfx.api.FxRobot;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
@@ -149,12 +150,26 @@ class SonsValidationViewTest {
     }
 
     @Test
-    @DisplayName("Colonnes Date, Fréquence et indicateur de commentaire")
-    void affiche_date_frequence_commentaire(FxRobot robot) {
+    @DisplayName("Colonnes Date et Fréquence")
+    void affiche_date_et_frequence(FxRobot robot) {
         assertThat(colonne(robot, "Date").getCellData(0)).isEqualTo("2026-06-20");
         assertThat(colonne(robot, "Fréquence").getCellData(0)).isEqualTo("45000 Hz");
-        // Les deux lignes de la fixture portent un commentaire (« beau cri ») → icône 💬.
-        assertThat(colonne(robot, "💬").getCellData(0)).isEqualTo("💬");
+    }
+
+    @Test
+    @DisplayName("Indicateurs référence / commentaire : en-tête et cellules en icônes Ikonli colorées")
+    void indicateurs_en_icones(FxRobot robot) {
+        TableColumn<?, ?> ref = colonneParId(robot, "colReference");
+        TableColumn<?, ?> commentaire = colonneParId(robot, "colCommentaire");
+        // En-tête : pas de texte (emoji retiré), une icône colorée à la place.
+        assertThat(ref.getText()).isEmpty();
+        assertThat(ref.getGraphic()).isInstanceOf(FontIcon.class);
+        assertThat(ref.getGraphic().getStyleClass()).contains("icone-reference");
+        assertThat(commentaire.getGraphic().getStyleClass()).contains("icone-commentaire");
+        // Les deux lignes de la fixture sont en référence et commentées → icônes aussi en cellule
+        // (donc plus d'occurrences que le seul en-tête).
+        assertThat(robot.lookup(".icone-reference").queryAll()).hasSizeGreaterThan(1);
+        assertThat(robot.lookup(".icone-commentaire").queryAll()).hasSizeGreaterThan(1);
     }
 
     @Test
@@ -256,8 +271,11 @@ class SonsValidationViewTest {
             "Ordre par défaut des colonnes (contexte, fichier, identification, indicateurs) et indicateurs non triables")
     void ordre_par_defaut_et_indicateurs_non_triables(FxRobot robot) {
         TableView<?> table = robot.lookup("#tableObservations").queryAs(TableView.class);
-        assertThat(table.getColumns())
-                .extracting(TableColumn::getText)
+        // Les 10 premières colonnes par en-tête ; les 2 indicateurs (icônes, sans texte) par leur id.
+        assertThat(table.getColumns().stream()
+                        .limit(10)
+                        .map(TableColumn::getText)
+                        .toList())
                 .containsExactly(
                         "Date",
                         "Passage",
@@ -268,12 +286,12 @@ class SonsValidationViewTest {
                         "Proba.",
                         "Votre taxon",
                         "Fréquence",
-                        "Statut",
-                        "⭐",
-                        "💬");
+                        "Statut");
+        assertThat(table.getColumns().get(10).getId()).isEqualTo("colReference");
+        assertThat(table.getColumns().get(11).getId()).isEqualTo("colCommentaire");
         // Colonnes-indicateurs : non triables (trier une icône est déroutant, cf. « colonne vide triable »).
-        assertThat(colonne(robot, "⭐").isSortable()).isFalse();
-        assertThat(colonne(robot, "💬").isSortable()).isFalse();
+        assertThat(colonneParId(robot, "colReference").isSortable()).isFalse();
+        assertThat(colonneParId(robot, "colCommentaire").isSortable()).isFalse();
     }
 
     @Test
@@ -344,6 +362,14 @@ class SonsValidationViewTest {
         TableView<?> table = robot.lookup("#tableObservations").queryAs(TableView.class);
         return table.getColumns().stream()
                 .filter(c -> entete.equals(c.getText()))
+                .findFirst()
+                .orElseThrow();
+    }
+
+    private static TableColumn<?, ?> colonneParId(FxRobot robot, String id) {
+        TableView<?> table = robot.lookup("#tableObservations").queryAs(TableView.class);
+        return table.getColumns().stream()
+                .filter(c -> id.equals(c.getId()))
                 .findFirst()
                 .orElseThrow();
     }

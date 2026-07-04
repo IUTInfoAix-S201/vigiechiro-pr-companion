@@ -89,4 +89,6 @@ concentrer le développement sur la chaîne métier :
 - Les **WAV bruts** sont au format PCM 16 bits, mono, 384 kHz. Les **WAV transformés** déposés sur
   Vigie-Chiro sont des séquences de 5 s **déjà ralenties ×10** (signal ramené dans la bande audible) :
   c'est ce fichier qui est lu en lecture normale dans l'IHM, et non un ralentissement appliqué à la
-  volée.
+  volée. Chaque séquence est **nommée par l'heure réelle de son début** (l'horodatage de
+  l'enregistrement décalé de 5 s par séquence, suffixe `_000`) : c'est ce nom que porte l'`observations.csv`,
+  et qui relie une observation à sa séquence audio.

@@ -96,6 +96,48 @@ accents), **SQL** (anglais).
 S'ajoutent des tables techniques : `saved_view` (vues sauvegardées de M-Multisite) et `schema_version`
 (suivi des [migrations](persistance.md#les-migrations-de-schema)).
 
+## Transformation audio : de l'original brut aux séquences d'écoute (R10/R11)
+
+Un **enregistrement original** (`original_recording`) est un ultrason mono 16 bits échantillonné très
+vite (**384 kHz**), donc **inaudible**. L'import le transforme en **séquences d'écoute**
+(`listening_sequence`) que l'humain peut écouter et que Tadarida a analysées. Le point dur est
+[`TransformationAudio`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/importation/model/TransformationAudio.java) ;
+l'**ordre des opérations reproduit fidèlement la chaîne Vigie-Chiro/Tadarida** (condition pour que
+l'`observations.csv`, produit sur les mêmes séquences, se raccroche à l'audio) :
+
+1. **Découper à 5 s réelles** — au **rythme source** (`5 × frequenceSource` trames), et **non** au rythme
+   de sortie. Une séquence porte donc 5 s de l'enregistrement d'origine (la dernière peut être plus
+   courte). Nombre de séquences pour une durée `D` : `ceil(D / 5)`.
+2. **Expanser ×10** — en **réinterprétant** le rythme d'échantillonnage (`frequenceSortie = source / 10`,
+   ex. 38 400 Hz) : **aucun échantillon n'est recalculé**, les mêmes octets PCM sont conservés. Une
+   séquence de 5 s réelles devient **50 s à l'écoute**, dans la bande audible.
+
+!!! warning "Piège corrigé"
+    Découper *après* l'expansion et au rythme de **sortie** donnait des séquences de **0,5 s réelles**
+    (10× trop courtes), désalignées des temps de l'`observations.csv` — qui sont en **secondes réelles
+    dans une séquence de 5 s**. On découpe donc bien à 5 s **au rythme source**.
+
+**Nommage horodaté (clé de jointure).** Chaque séquence porte l'**heure réelle de son début** :
+l'horodatage de l'original (`_AAAAMMJJ_HHMMSS`) **décalé** de `index × 5 s`, suivi d'un `_000`
+systématique — et non un index `_000`, `_001`… Exemple : `…_20260422_225849.wav` →
+`…_225849_000`, `…_225854_000`, `…_225859_000`… C'est exactement le nom que porte l'`observations.csv`,
+et `ServiceValidation` **relie une observation à sa séquence par ce nom** (sans extension).
+
+**Collisions.** Des enregistrements peuvent se **chevaucher sur la grille de 5 s** : la séquence de
+queue d'un long (ex. `…_225332` de 10 s → séquence `…_225342_000`) tombe sur l'heure de début d'un
+enregistrement plus récent (`…_225342`, dont la tête vise aussi `…_225342_000`).
+[`ReconciliationNoms`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/importation/model/ReconciliationNoms.java)
+tranche de façon **déterministe** : le **plus ancien enregistrement garde le `_000`** (c'est ce que
+référence l'`observations.csv`), le perdant passe en **`_001`** (disponible à l'écoute, sans
+observation associée — **aucune donnée perdue**). Comme le découpage est parallèle
+([`DecoupageParallele`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/importation/model/DecoupageParallele.java)),
+chaque original écrit d'abord dans un **dossier temporaire propre**, puis les noms définitifs sont
+attribués en une passe séquentielle qui déplace les fichiers vers `transformes/`.
+
+**Déterminisme (R11).** Mêmes octets en entrée ⇒ mêmes octets en sortie : découpage positionnel, PCM
+copié sans altération, en-tête canonique fixe. Relancer l'import (reprise, session réutilisée par
+quadruplet) réécrit des fichiers **identiques au bit près**.
+
 ## Énumérations du domaine
 
 Plutôt que des codes magiques, les états sont des **énums** dans `commun.model` :

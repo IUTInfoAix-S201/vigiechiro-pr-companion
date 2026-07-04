@@ -1,6 +1,9 @@
 package fr.univ_amu.iut.commun.model;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Locale;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /// Construit le préfixe de nommage des fichiers et dossiers d'une session (R6/R7/R8).
@@ -65,5 +68,58 @@ public record Prefixe(String carre, int annee, int numeroPassage, String codePoi
             return nomOriginal + suffixe;
         }
         return nomOriginal.substring(0, point) + suffixe + nomOriginal.substring(point);
+    }
+
+    /// Horodatage `_AAAAMMJJ_HHMMSS` d'un nom d'enregistreur (ex. `..._20260422_225849.wav`).
+    private static final Pattern MOTIF_HORODATAGE = Pattern.compile("_(\\d{8})_(\\d{6})");
+
+    /// Format de l'horodatage des noms d'enregistreur (date puis heure, séparées par `_`).
+    private static final DateTimeFormatter FORMAT_HORODATAGE =
+            DateTimeFormatter.ofPattern("yyyyMMdd'_'HHmmss", Locale.ROOT);
+
+    /// Nom d'une séquence d'écoute **horodatée** (R8, convention Vigie-Chiro/Tadarida) : chaque tranche de
+    /// 5 s réelles porte l'**heure réelle de son début** (horodatage de l'original **décalé** de
+    /// `decalageSecondes`) et un suffixe `_000` systématique — et non un index `_000`, `_001`… C'est
+    /// indispensable pour que les lignes de l'`observations.csv` (qui référencent ces noms décalés) se
+    /// raccrochent à la bonne tranche audio. Exemple : `..._20260422_225849.wav`, tranche d'index 2
+    /// (`decalageSecondes = 10`) → `..._20260422_225859_000.wav`.
+    ///
+    /// Le décalage traverse correctement minutes/heures/jours (arithmétique [LocalDateTime]). Si le nom ne
+    /// porte pas d'horodatage reconnu (cas de test ou nom non standard), on **retombe** sur le suffixe
+    /// indexé historique [#nommerSequence(String, int)].
+    ///
+    /// @param nomOriginal nom de l'enregistrement original (préfixé R6, avec horodatage `_AAAAMMJJ_HHMMSS`)
+    /// @param index index de la tranche (≥ 0), utilisé seulement pour le repli sans horodatage
+    /// @param decalageSecondes décalage à appliquer à l'horodatage (= `index × durée de séquence`)
+    public String nommerSequence(String nomOriginal, int index, int decalageSecondes) {
+        int point = nomOriginal.lastIndexOf('.');
+        String base = point < 0 ? nomOriginal : nomOriginal.substring(0, point);
+        String extension = point < 0 ? "" : nomOriginal.substring(point);
+        String baseDecalee = decalerHorodatage(base, decalageSecondes);
+        if (baseDecalee == null) {
+            return nommerSequence(nomOriginal, index); // repli : pas d'horodatage → suffixe indexé
+        }
+        return baseDecalee + "_000" + extension;
+    }
+
+    /// Décale le **dernier** horodatage `_AAAAMMJJ_HHMMSS` de `base` de `decalageSecondes`, ou `null` si
+    /// aucun horodatage n'est reconnu. Le « dernier » évite toute ambiguïté avec des chiffres du préfixe.
+    private static String decalerHorodatage(String base, int decalageSecondes) {
+        Matcher m = MOTIF_HORODATAGE.matcher(base);
+        int debut = -1;
+        int fin = -1;
+        String horodatage = null;
+        while (m.find()) {
+            debut = m.start();
+            fin = m.end();
+            horodatage = m.group(1) + "_" + m.group(2);
+        }
+        if (horodatage == null) {
+            return null;
+        }
+        String decale = LocalDateTime.parse(horodatage, FORMAT_HORODATAGE)
+                .plusSeconds(decalageSecondes)
+                .format(FORMAT_HORODATAGE);
+        return base.substring(0, debut) + "_" + decale + base.substring(fin);
     }
 }

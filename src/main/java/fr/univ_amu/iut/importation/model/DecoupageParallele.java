@@ -1,7 +1,11 @@
 package fr.univ_amu.iut.importation.model;
 
 import fr.univ_amu.iut.commun.model.Prefixe;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
@@ -11,6 +15,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 /// Découpe (#12) en **parallèle** la transformation R10/R11 des originaux d'une nuit, extraite de
 /// [ServiceImport]. Un thread virtuel par fichier (Java 25), la concurrence étant **bornée** par un
@@ -47,11 +53,16 @@ final class DecoupageParallele {
         AtomicInteger traites = new AtomicInteger(0);
         Object verrouProgression = new Object();
         Semaphore creneaux = new Semaphore(parallelisme);
+        // Chaque original écrit ses tranches dans un sous-dossier temporaire PROPRE (indexé) : cela évite les
+        // écrasements entre écritures parallèles quand deux tranches d'originaux différents visent le même nom
+        // horodaté. Les noms définitifs (et la résolution des collisions) sont attribués APRÈS, en séquentiel
+        // déterministe, par ReconciliationNoms, qui déplace les fichiers vers `transformes/`.
+        Path dossierTemporaire = dossierTransformes.resolve(".tmp-decoupage");
         try (ExecutorService executeur = Executors.newVirtualThreadPerTaskExecutor()) {
-            List<Future<ResultatDecoupage>> decoupagesEnCours = originaux.stream()
-                    .map(original -> executeur.submit(() -> decouperUn(
-                            original,
-                            dossierTransformes,
+            List<Future<ResultatDecoupage>> decoupagesEnCours = IntStream.range(0, originaux.size())
+                    .mapToObj(i -> executeur.submit(() -> decouperUn(
+                            originaux.get(i),
+                            dossierTemporaire.resolve(Integer.toString(i)),
                             prefixe,
                             frequenceAcquisitionLogHz,
                             nbOriginaux,
@@ -63,9 +74,12 @@ final class DecoupageParallele {
                             creneaux)))
                     .toList();
             try {
-                return decoupagesEnCours.stream()
+                List<ResultatDecoupage> bruts = decoupagesEnCours.stream()
                         .map(DecoupageParallele::resultat)
                         .toList();
+                List<ResultatDecoupage> reconcilies = ReconciliationNoms.reconcilier(bruts, dossierTransformes);
+                supprimerRecursif(dossierTemporaire);
+                return reconcilies;
             } catch (AnnulationImportException annulation) {
                 // Annulation (#146) : on arrête les découpages restants au lieu d'attendre la fin de tous
                 // les originaux déjà soumis, puis on propage pour que l'appelant nettoie la session.
@@ -75,9 +89,27 @@ final class DecoupageParallele {
         }
     }
 
+    /// Supprime récursivement un dossier (nettoyage du temporaire de découpage). Sans échec si absent.
+    private static void supprimerRecursif(Path dossier) {
+        if (!Files.exists(dossier)) {
+            return;
+        }
+        try (Stream<Path> arbre = Files.walk(dossier)) {
+            arbre.sorted(Comparator.reverseOrder()).forEach(chemin -> {
+                try {
+                    Files.delete(chemin);
+                } catch (IOException e) {
+                    throw new UncheckedIOException("Nettoyage du temporaire impossible : " + chemin, e);
+                }
+            });
+        } catch (IOException e) {
+            throw new UncheckedIOException("Nettoyage du temporaire impossible : " + dossier, e);
+        }
+    }
+
     private ResultatDecoupage decouperUn(
             Path original,
-            Path dossierTransformes,
+            Path dossierSortieOriginal,
             Prefixe prefixe,
             Integer frequenceAcquisitionLogHz,
             int nbOriginaux,
@@ -94,7 +126,7 @@ final class DecoupageParallele {
             ResultatDecoupage resultat;
             try {
                 TransformationOriginal t =
-                        transformation.transformer(original, dossierTransformes, prefixe, frequenceAcquisitionLogHz);
+                        transformation.transformer(original, dossierSortieOriginal, prefixe, frequenceAcquisitionLogHz);
                 resultat = new ResultatDecoupage(original, t, null);
             } catch (OriginalIllisibleException | OriginalDejaRalentiException rejet) {
                 // Résilience (#155) : une erreur de lecture/format SOURCE OU un enregistrement déjà ralenti

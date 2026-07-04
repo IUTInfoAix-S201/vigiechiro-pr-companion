@@ -35,7 +35,9 @@ class TransformationAudioTest {
     private static final int FREQUENCE_SORTIE = FREQUENCE_SOURCE / 10; // 200 Hz
     private static final int CANAUX = 1; // mono
     private static final int BITS = 16;
-    private static final int TRAMES_SOURCE = 5200; // 2,6 s à 2000 Hz
+    // 12 s à 2000 Hz : > 5 s pour exercer plusieurs tranches (découpage à 5 s RÉELLES) + une dernière plus
+    // courte. Une tranche = 5 s source = 5 × 2000 = 10 000 trames ; 24 000 = 2 tranches pleines + 4 000.
+    private static final int TRAMES_SOURCE = 24_000;
     private static final int ENTETE_WAV = 44;
 
     @TempDir
@@ -77,34 +79,35 @@ class TransformationAudioTest {
     }
 
     @Test
-    @DisplayName("R10 : le nombre de séquences vaut ceil(2 × durée source)")
+    @DisplayName("R10 : le nombre de séquences vaut ceil(durée source / 5)")
     void nombre_de_sequences() {
         TransformationOriginal resultat =
                 transformation.transformer(originalWav, dossier.resolve("transformes"), prefixe, FREQUENCE_SOURCE);
 
-        // durée source = 5200 / 2000 = 2,6 s -> ceil(2 × 2,6) = ceil(5,2) = 6
-        assertThat(resultat.sequences()).hasSize(6);
-        assertThat(TransformationAudio.nombreSequencesAttendu(2.6)).isEqualTo(6L);
+        // durée source = 24000 / 2000 = 12 s -> ceil(12 / 5) = ceil(2,4) = 3
+        assertThat(resultat.sequences()).hasSize(3);
+        assertThat(TransformationAudio.nombreSequencesAttendu(12.0)).isEqualTo(3L);
         assertThat(resultat.frequenceSourceHz()).isEqualTo(FREQUENCE_SOURCE);
         assertThat(resultat.frequenceSortieHz()).isEqualTo(FREQUENCE_SORTIE);
     }
 
     @Test
-    @DisplayName("R10 : 5 séquences pleines de 5 s + une dernière plus courte (1 s)")
+    @DisplayName("R10 : 2 séquences pleines (5 s réelles = 50 s d'écoute) + une dernière plus courte (20 s)")
     void duree_de_chaque_sequence() {
         List<SequenceProduite> sequences = transformation
                 .transformer(originalWav, dossier.resolve("transformes"), prefixe, FREQUENCE_SOURCE)
                 .sequences();
 
-        for (int i = 0; i < 5; i++) {
+        // Séquence pleine = 5 s source = 10 000 trames ; à l'écoute (÷10) 10 000 / 200 Hz = 50 s.
+        for (int i = 0; i < 2; i++) {
             assertThat(sequences.get(i).dureeSecondes())
                     .as("séquence pleine n°%d", i)
-                    .isEqualTo(5.0, org.assertj.core.api.Assertions.within(1e-9));
+                    .isEqualTo(50.0, org.assertj.core.api.Assertions.within(1e-9));
         }
-        // 5200 trames - 5 × 1000 = 200 trames -> 200 / 200 Hz = 1 s
-        assertThat(sequences.get(5).dureeSecondes())
+        // 24000 trames - 2 × 10000 = 4000 trames -> à l'écoute 4000 / 200 Hz = 20 s.
+        assertThat(sequences.get(2).dureeSecondes())
                 .as("dernière séquence plus courte")
-                .isEqualTo(1.0, org.assertj.core.api.Assertions.within(1e-9));
+                .isEqualTo(20.0, org.assertj.core.api.Assertions.within(1e-9));
     }
 
     @Test
@@ -156,14 +159,16 @@ class TransformationAudioTest {
     }
 
     @Test
-    @DisplayName("R8 : les séquences reprennent le nom de l'original + suffixe _000, _001…")
+    @DisplayName("R8 : les séquences portent l'heure réelle de leur début (horodatage + 5k s) + suffixe _000")
     void nommage_des_sequences() {
         List<SequenceProduite> sequences = transformation
                 .transformer(originalWav, dossier.resolve("transformes"), prefixe, FREQUENCE_SOURCE)
                 .sequences();
 
+        // Original à 20:39:22 : tranche 0 à 20:39:22, tranche 1 à +5 s = 20:39:27, tranche 2 à +10 s = 20:39:32.
         assertThat(sequences.get(0).nomFichier()).isEqualTo("PaRecPR1925492_20260422_203922_000.wav");
-        assertThat(sequences.get(1).nomFichier()).isEqualTo("PaRecPR1925492_20260422_203922_001.wav");
+        assertThat(sequences.get(1).nomFichier()).isEqualTo("PaRecPR1925492_20260422_203927_000.wav");
+        assertThat(sequences.get(2).nomFichier()).isEqualTo("PaRecPR1925492_20260422_203932_000.wav");
     }
 
     @Test

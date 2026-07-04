@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+## [1.81.1](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.81.0...v1.81.1) (2026-07-04)
+
+
+### Bug Fixes
+
+* **audio:** fréquence médiane en kHz (et non en Hz) ([#503](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/503)) ([6f4afbc](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/6f4afbc255b87fcd2cd421f5cc3b62b0df3e123e)), closes [#502](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/502)
+
 # [1.81.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.80.0...v1.81.0) (2026-07-04)
 
 

@@ -41,6 +41,11 @@ l'autre (et le rouvrent) ; on ne peut pas masquer les deux. Replier la carte est
 **dégradation élégante hors connexion** : quand le fond OpenStreetMap n'est pas joignable, le tableau
 seul reste pleinement exploitable.
 
+![Tableau replié, carte en plein écran : l'état où arrive « Voir sur la carte ». La poignée « Tableau ◀ » rouvre le tableau.](../assets/captures/apercu-multisite-carte-pleine.png)
+
+C'est aussi l'état où l'on arrive en cliquant **« Voir sur la carte »** depuis un site, un point ou un
+passage : le tableau se replie automatiquement pour centrer l'attention sur la carte.
+
 À **droite**, le **tableau** liste chaque passage (carré, point, année, numéro, date, **statut**,
 **verdict**). La barre du haut permet de **filtrer** (par carré, statut, verdict, année) et de
 **réinitialiser** les filtres ; un menu **☰** à droite de la barre regroupe les actions secondaires

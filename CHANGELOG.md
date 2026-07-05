@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [1.92.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.91.0...v1.92.0) (2026-07-05)
+
+
+### Features
+
+* **passage:** socle heure de capture — extraction à l import + persistance ([#530](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/530) partie 1/2) ([#539](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/539)) ([5f6044b](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/5f6044bd2d50527487e56ec55451ba4baf953622))
+
 # [1.91.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.90.0...v1.91.0) (2026-07-05)
 
 

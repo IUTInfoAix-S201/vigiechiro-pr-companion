@@ -402,8 +402,8 @@ class AudioViewModelTest {
         }
 
         @Test
-        @DisplayName("Filtre de statut : restreint les lignes ET les compteurs suivent le sous-ensemble (#470)")
-        void filtre_statut() {
+        @DisplayName("Filtre composable : restreint les lignes ET les compteurs suivent le sous-ensemble (#470)")
+        void filtre_suit_le_sous_ensemble() {
             when(service.taxonsDisponibles()).thenReturn(List.of());
             when(service.lignesAudioReferences("u-1"))
                     .thenReturn(List.of(
@@ -412,7 +412,7 @@ class AudioViewModelTest {
 
             AudioViewModel vm = vm();
             vm.ouvrirSur(new SourceObservations.References("u-1"));
-            vm.filtreStatutProperty().set(StatutObservation.VALIDEE);
+            vm.filtres().definir("statut", ligne -> ligne.statut() == StatutObservation.VALIDEE);
 
             assertThat(vm.observationsFiltrees()).hasSize(1);
             // #470 : les compteurs reflètent le sous-ensemble affiché (1 visible, 1 validée), pas le total.
@@ -420,7 +420,7 @@ class AudioViewModelTest {
             assertThat(vm.comptageProperty().get().validees()).isEqualTo(1);
 
             // Retirer le filtre : on retrouve tout et les compteurs repassent au total.
-            vm.filtreStatutProperty().set(null);
+            vm.filtres().definir("statut", null);
             assertThat(vm.observationsFiltrees()).hasSize(2);
             assertThat(vm.comptageProperty().get().total()).isEqualTo(2);
         }

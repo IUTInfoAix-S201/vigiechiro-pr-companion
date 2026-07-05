@@ -123,3 +123,44 @@
   -fx-icon-color: #3498db;
   -fx-icon-size: 14px;
 }
+
+/* Barre de filtres « à la Notion » (#470/#471) : bouton « + Filtre » discret et puces des filtres actifs
+   (pilules indigo clair), avec un ✕ pour retirer. Couleurs de la palette (indigo). */
+.menu-ajout-filtre {
+  -fx-background-color: transparent;
+  -fx-border-color: -couleur-primaire-fond;
+  -fx-border-radius: 6;
+  -fx-background-radius: 6;
+  -fx-text-fill: -couleur-primaire-sombre;
+}
+
+.menu-ajout-filtre:hover {
+  -fx-background-color: -couleur-primaire-voile;
+}
+
+.puce-filtre {
+  -fx-background-color: -couleur-primaire-voile;
+  -fx-border-color: -couleur-primaire-fond;
+  -fx-background-radius: 12;
+  -fx-border-radius: 12;
+  -fx-padding: 2 4 2 10;
+  -fx-alignment: center-left;
+}
+
+.puce-filtre > .label {
+  -fx-text-fill: -couleur-primaire-sombre;
+  -fx-font-size: 0.9em;
+}
+
+.puce-filtre-retirer {
+  -fx-background-color: transparent;
+  -fx-text-fill: -couleur-primaire-sombre;
+  -fx-padding: 0 5;
+  -fx-background-radius: 10;
+  -fx-cursor: hand;
+  -fx-font-size: 0.85em;
+}
+
+.puce-filtre-retirer:hover {
+  -fx-background-color: rgba(0, 0, 0, 0.08);
+}

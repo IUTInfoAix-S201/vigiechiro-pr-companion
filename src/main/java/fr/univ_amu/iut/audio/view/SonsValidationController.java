@@ -18,7 +18,6 @@ import fr.univ_amu.iut.commun.view.ResumeStatut;
 import fr.univ_amu.iut.commun.viewmodel.SourceObservations;
 import fr.univ_amu.iut.validation.model.LigneObservationAudio;
 import fr.univ_amu.iut.validation.model.ModeRevue;
-import fr.univ_amu.iut.validation.model.StatutObservation;
 import fr.univ_amu.iut.validation.model.Taxon;
 import java.io.File;
 import java.util.List;
@@ -36,6 +35,8 @@ import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
@@ -70,7 +71,17 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
     private VBox racine;
 
     @FXML
-    private ComboBox<StatutObservation> choixFiltre;
+    private TextField champRecherche;
+
+    @FXML
+    private MenuButton menuAjoutFiltre;
+
+    @FXML
+    private FlowPane pucesFiltres;
+
+    /// Barre de filtres « à la Notion » (#470/#471) : recherche + « + Filtre » + puces, pilotant
+    /// [AudioViewModel#filtres]. Mémorisée pour la réinitialiser lors d'une navigation ciblée.
+    private GestionnaireFiltres gestionnaireFiltres;
 
     @FXML
     private MenuButton menuActions;
@@ -258,11 +269,10 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
             }
         });
 
-        choixFiltre.getItems().add(null);
-        choixFiltre.getItems().addAll(StatutObservation.values());
-        choixFiltre.setConverter(libelleConverter(
-                statut -> statut == null ? "Tous les statuts" : FormatLigneAudio.libelleStatut(statut)));
-        choixFiltre.valueProperty().bindBidirectional(viewModel.filtreStatutProperty());
+        // Barre de filtres « à la Notion » (#470/#471) : recherche texte permanente + « + Filtre » + puces,
+        // pilotant les filtres composables du view-model. Catalogue de critères (statut pour l'instant).
+        gestionnaireFiltres = new GestionnaireFiltres(
+                champRecherche, menuAjoutFiltre, pucesFiltres, viewModel.filtres(), List.of(CriteresAudio.statut()));
 
         resumeStatut.bind(Bindings.createStringBinding(this::resumeStatutTexte, viewModel.comptageProperty()));
 
@@ -397,7 +407,7 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
         adapterAffichage(source);
         viewModel.ouvrirSur(source);
         if (idObservationCible != null) {
-            viewModel.filtreStatutProperty().set(null);
+            gestionnaireFiltres.reinitialiser();
             selectionnerObservation(idObservationCible);
         }
     }

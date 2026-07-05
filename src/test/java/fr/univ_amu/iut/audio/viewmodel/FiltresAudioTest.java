@@ -41,17 +41,17 @@ class FiltresAudioTest {
     }
 
     @Test
-    @DisplayName("definirStatut filtre par statut de revue ; null retire le filtre")
-    void filtre_statut() {
+    @DisplayName("reinitialiser retire tous les filtres actifs")
+    void reinitialiser_retire_tout() {
         ObservableList<LigneObservationAudio> source = FXCollections.observableArrayList(
                 ligne(1, "Pippip", StatutObservation.VALIDEE), ligne(2, "Nyclei", StatutObservation.NON_TOUCHEE));
         FilteredList<LigneObservationAudio> affichees = new FilteredList<>(source);
         FiltresAudio filtres = new FiltresAudio(affichees, () -> {});
 
-        filtres.definirStatut(StatutObservation.VALIDEE);
-        assertThat(affichees).extracting(LigneObservationAudio::idObservation).containsExactly(1L);
+        filtres.definir("taxon", ligne -> "Pippip".equals(ligne.taxonTadarida()));
+        assertThat(affichees).hasSize(1);
 
-        filtres.definirStatut(null);
+        filtres.reinitialiser();
         assertThat(affichees).hasSize(2);
     }
 

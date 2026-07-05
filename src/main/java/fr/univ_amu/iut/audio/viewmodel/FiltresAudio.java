@@ -1,7 +1,6 @@
 package fr.univ_amu.iut.audio.viewmodel;
 
 import fr.univ_amu.iut.validation.model.LigneObservationAudio;
-import fr.univ_amu.iut.validation.model.StatutObservation;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -12,29 +11,22 @@ import javafx.collections.transformation.FilteredList;
 /// appliqués à la [FilteredList] affichée. À chaque changement, on recompose la conjonction puis on
 /// **notifie l'appelant** (`apresApplication`) — c'est là que le [AudioViewModel] recalcule les compteurs
 /// sur le sous-ensemble effectivement affiché. Extrait du view-model pour tenir les seuils de cohésion PMD.
-final class FiltresAudio {
-
-    /// Clé du filtre de **statut de revue** (les filtres unitaires suivants — chauves-souris, taxon,
-    /// références, probabilité, texte — se branchent via [#definir] avec leur propre clé).
-    static final String STATUT = "statut";
+///
+/// Piloté par la **barre de filtres** (patron « à la Notion », #471+) : chaque puce active branche son
+/// prédicat via [#definir] avec sa propre clé (statut, chauves-souris, taxon, références, proba, texte…).
+public final class FiltresAudio {
 
     private final FilteredList<LigneObservationAudio> affichees;
     private final Runnable apresApplication;
     private final Map<String, Predicate<LigneObservationAudio>> actifs = new LinkedHashMap<>();
 
-    FiltresAudio(FilteredList<LigneObservationAudio> affichees, Runnable apresApplication) {
+    public FiltresAudio(FilteredList<LigneObservationAudio> affichees, Runnable apresApplication) {
         this.affichees = Objects.requireNonNull(affichees, "affichees");
         this.apresApplication = Objects.requireNonNull(apresApplication, "apresApplication");
     }
 
-    /// Filtre de **statut de revue** : ne garde que les observations au statut donné (ou **aucun** filtre
-    /// de statut si `statut` est `null`).
-    void definirStatut(StatutObservation statut) {
-        definir(STATUT, statut == null ? null : ligne -> ligne.statut() == statut);
-    }
-
     /// Définit (ou **retire** si `predicat` est `null`) le filtre identifié par `nom`, puis réapplique.
-    void definir(String nom, Predicate<LigneObservationAudio> predicat) {
+    public void definir(String nom, Predicate<LigneObservationAudio> predicat) {
         Objects.requireNonNull(nom, "nom");
         if (predicat == null) {
             actifs.remove(nom);
@@ -42,6 +34,15 @@ final class FiltresAudio {
             actifs.put(nom, predicat);
         }
         appliquer();
+    }
+
+    /// Retire **tous** les filtres actifs (ex. navigation vers une observation précise qui doit rester
+    /// visible quel que soit le filtrage courant).
+    public void reinitialiser() {
+        if (!actifs.isEmpty()) {
+            actifs.clear();
+            appliquer();
+        }
     }
 
     /// Réapplique la **conjonction** des filtres actifs (ou aucun prédicat si vide) à la liste affichée,

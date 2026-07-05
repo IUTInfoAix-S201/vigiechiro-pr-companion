@@ -396,12 +396,20 @@ public class ServiceValidation implements CompteurValidations {
     ///
     /// @throws RegleMetierException si l'observation est introuvable
     public Observation valider(Long idObservation) {
-        Observation observation = chargerObservation(idObservation);
+        Observation mise = valideeManuellement(chargerObservation(idObservation));
+        observationDao.update(mise);
+        return mise;
+    }
+
+    /// Observation **validée à la main** (R15, sans I/O) : retient la proposition Tadarida en `manuel`, avec
+    /// la probabilité observateur si présente, sinon Tadarida, sinon `1.0`. Partagé par [#valider(Long)] et
+    /// la validation **en lot** [#validerLot(List)].
+    private static Observation valideeManuellement(Observation observation) {
         Double prob = observation.probObservateur();
         if (prob == null) {
             prob = observation.probTadarida() != null ? observation.probTadarida() : 1.0;
         }
-        return majObservateur(observation, observation.taxonTadarida(), prob, ModeValidation.MANUEL);
+        return observation.avecObservateur(observation.taxonTadarida(), prob, ModeValidation.MANUEL);
     }
 
     /// Corrige une observation (R16) : saisit un taxon observateur **différent** du taxon Tadarida,
@@ -584,21 +592,7 @@ public class ServiceValidation implements CompteurValidations {
     /// Met à jour le triplet observateur (taxon, probabilité, mode) d'une observation et la relit.
     private Observation majObservateur(
             Observation o, String taxonObservateur, Double probObservateur, ModeValidation mode) {
-        Observation mise = new Observation(
-                o.id(),
-                o.idSequence(),
-                o.debutS(),
-                o.finS(),
-                o.frequenceMedianeKHz(),
-                o.taxonTadarida(),
-                o.probTadarida(),
-                o.taxonAutreTadarida(),
-                taxonObservateur,
-                probObservateur,
-                o.commentaire(),
-                o.reference(),
-                mode,
-                o.idResultats());
+        Observation mise = o.avecObservateur(taxonObservateur, probObservateur, mode);
         observationDao.update(mise);
         return mise;
     }

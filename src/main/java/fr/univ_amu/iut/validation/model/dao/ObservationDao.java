@@ -54,6 +54,11 @@ public class ObservationDao extends DaoGenerique<Observation, Long> {
             + " is_reference, validation_mode, results_id)"
             + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
+    private static final String SQL_UPDATE = "UPDATE observation SET sequence_id = ?, start_time_s = ?,"
+            + " end_time_s = ?, median_freq_khz = ?, taxon_tadarida = ?, prob_tadarida = ?,"
+            + " taxon_other_tadarida = ?, taxon_observer = ?, prob_observer = ?, user_comment = ?,"
+            + " is_reference = ?, validation_mode = ?, results_id = ? WHERE id = ?";
+
     private static final RowMapper<Observation> MAPPER = rs -> new Observation(
             rs.getLong("id"),
             rs.getLong("sequence_id"),
@@ -414,13 +419,21 @@ public class ObservationDao extends DaoGenerique<Observation, Long> {
     /// Insère un lot d'observations dans une **transaction unique** (tout réussit ou tout est
     /// annulé). Renvoie le nombre de lignes insérées.
     public int insererTout(List<Observation> observations) {
+        return ecrireLotTransactionnel(SQL_INSERT, observations, ObservationDao::valeurs);
+    }
+
+    /// Exécute un lot d'écritures (`sql` + valeurs positionnelles par observation) dans **une transaction**
+    /// (tout ou rien) : autocommit désactivé, `addBatch`/`executeBatch`, `commit`, `rollback` sur erreur.
+    /// Factorise les insertions et les mises à jour en lot (#479). Renvoie le nombre de lignes écrites.
+    private int ecrireLotTransactionnel(
+            String sql, List<Observation> observations, java.util.function.Function<Observation, Object[]> valeurs) {
         try (Connection connexion = source.getConnection();
-                PreparedStatement ps = connexion.prepareStatement(SQL_INSERT)) {
+                PreparedStatement ps = connexion.prepareStatement(sql)) {
             boolean autoCommitInitial = connexion.getAutoCommit();
             connexion.setAutoCommit(false);
             try {
                 for (Observation observation : observations) {
-                    lier(ps, valeurs(observation));
+                    lier(ps, valeurs.apply(observation));
                     ps.addBatch();
                 }
                 int total = 0;
@@ -436,31 +449,30 @@ public class ObservationDao extends DaoGenerique<Observation, Long> {
                 connexion.setAutoCommit(autoCommitInitial);
             }
         } catch (SQLException e) {
-            throw new DataAccessException("Échec de l'insertion en lot d'observations", e);
+            throw new DataAccessException("Échec de l'écriture en lot d'observations", e);
         }
     }
 
     @Override
     public void update(Observation observation) {
-        executerMaj(
-                "UPDATE observation SET sequence_id = ?, start_time_s = ?, end_time_s = ?,"
-                        + " median_freq_khz = ?, taxon_tadarida = ?, prob_tadarida = ?, taxon_other_tadarida = ?,"
-                        + " taxon_observer = ?, prob_observer = ?, user_comment = ?, is_reference = ?,"
-                        + " validation_mode = ?, results_id = ? WHERE id = ?",
-                observation.idSequence(),
-                observation.debutS(),
-                observation.finS(),
-                observation.frequenceMedianeKHz(),
-                observation.taxonTadarida(),
-                observation.probTadarida(),
-                observation.taxonAutreTadarida(),
-                observation.taxonObservateur(),
-                observation.probObservateur(),
-                observation.commentaire(),
-                observation.reference() ? 1 : 0,
-                observation.modeValidation().libelle(),
-                observation.idResultats(),
-                observation.id());
+        executerMaj(SQL_UPDATE, valeursUpdate(observation));
+    }
+
+    /// Met à jour un **lot** d'observations dans une **transaction unique** (tout réussit ou tout est
+    /// annulé), miroir de [#insererTout(List)]. Sert aux actions groupées de la revue (#479). Renvoie le
+    /// nombre de lignes écrites.
+    public int updateTout(List<Observation> observations) {
+        return ecrireLotTransactionnel(SQL_UPDATE, observations, ObservationDao::valeursUpdate);
+    }
+
+    /// Valeurs positionnelles de [#SQL_UPDATE] : les colonnes (comme [#valeurs]) suivies de l'`id` (clause
+    /// `WHERE id = ?`).
+    private static Object[] valeursUpdate(Observation observation) {
+        Object[] colonnes = valeurs(observation);
+        Object[] avecId = new Object[colonnes.length + 1];
+        System.arraycopy(colonnes, 0, avecId, 0, colonnes.length);
+        avecId[colonnes.length] = observation.id();
+        return avecId;
     }
 
     /// Valeurs positionnelles de [#SQL_INSERT], dans l'ordre des colonnes.

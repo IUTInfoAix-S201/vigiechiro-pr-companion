@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [1.108.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.107.0...v1.108.0) (2026-07-05)
+
+
+### Features
+
+* **captures:** aperçus de la vue audio (filtres actifs, colonnes de mesures) ([#519](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/519)) ([#586](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/586)) ([e00723a](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/e00723a5e7751e77679dd7b888779227a550883f)), closes [471/#512](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/512) [491/#500](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/500)
+
 # [1.107.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.106.0...v1.107.0) (2026-07-05)
 
 

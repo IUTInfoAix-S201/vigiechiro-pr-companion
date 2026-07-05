@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [1.111.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.110.0...v1.111.0) (2026-07-05)
+
+
+### Features
+
+* **captures:** dialogues programmatiques (confirmations, modales de saisie) ([#526](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/526)) ([#593](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/593)) ([9490dda](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/9490dda46d9d735e7b8fb253548c057778141bff)), closes [#534](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/534) [#147](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/147) [#279](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/279) [#326](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/326) [#30](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/30) [#178](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/178)
+
 # [1.110.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.109.0...v1.110.0) (2026-07-05)
 
 

@@ -1,9 +1,11 @@
 package fr.univ_amu.iut.diagnostic.viewmodel;
 
 import fr.univ_amu.iut.commun.viewmodel.Formats;
+import fr.univ_amu.iut.diagnostic.model.CoherenceHoraire;
 import fr.univ_amu.iut.diagnostic.model.Diagnostic;
 import fr.univ_amu.iut.diagnostic.model.MesureClimatique;
 import fr.univ_amu.iut.diagnostic.model.ServiceDiagnostic;
+import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
@@ -20,6 +22,9 @@ import javafx.collections.ObservableList;
 /// `viewmodel_sans_javafx_ui`) : seuls `javafx.beans`/`javafx.collections`. Non-singleton.
 public class DiagnosticViewModel {
 
+    /// Format d'affichage des heures de la fenêtre nocturne (`HH:mm`).
+    private static final DateTimeFormatter HEURE = DateTimeFormatter.ofPattern("HH:mm");
+
     private final ServiceDiagnostic service;
 
     private final ReadOnlyStringWrapper enregistreur = new ReadOnlyStringWrapper(this, "enregistreur", "");
@@ -34,6 +39,16 @@ public class DiagnosticViewModel {
 
     /// Température en début de nuit (#106) : libellé d'affichage (`8,5 °C` / `—`).
     private final ReadOnlyStringWrapper temperature = new ReadOnlyStringWrapper(this, "temperature", "—");
+
+    /// Cohérence horaires (#548) : fenêtre nocturne calculable au point d'écoute.
+    private final ReadOnlyBooleanWrapper coherenceHoraireDisponible =
+            new ReadOnlyBooleanWrapper(this, "coherenceHoraireDisponible", false);
+
+    /// Libellé de la fenêtre nocturne (`🌙 Nuit : coucher 21:58 · lever 05:48`), vide si indisponible.
+    private final ReadOnlyStringWrapper fenetreNuit = new ReadOnlyStringWrapper(this, "fenetreNuit", "");
+
+    /// Alerte « hors nuit » (démarrage/arrêt diurne), vide si les horaires sont cohérents.
+    private final ReadOnlyStringWrapper alerteHorsNuit = new ReadOnlyStringWrapper(this, "alerteHorsNuit", "");
 
     public DiagnosticViewModel(ServiceDiagnostic service) {
         this.service = Objects.requireNonNull(service, "service");
@@ -64,6 +79,34 @@ public class DiagnosticViewModel {
                         ? diagnostic.climat().nombreMesures() + " mesures T°/hygrométrie"
                         : "Relevé climatique absent");
         temperature.set(Formats.temperatureLisible(diagnostic.temperatureDebutNuit()));
+        appliquerCoherence(diagnostic.coherenceHoraire());
+    }
+
+    private void appliquerCoherence(CoherenceHoraire coherence) {
+        coherenceHoraireDisponible.set(coherence.disponible());
+        if (!coherence.disponible()) {
+            fenetreNuit.set("");
+            alerteHorsNuit.set("");
+            return;
+        }
+        fenetreNuit.set("🌙 Nuit : coucher " + HEURE.format(coherence.coucherSoleil()) + " · lever "
+                + HEURE.format(coherence.leverSoleil()));
+        alerteHorsNuit.set(libelleEcart(coherence));
+    }
+
+    private static String libelleEcart(CoherenceHoraire coherence) {
+        if (!coherence.aUnEcart()) {
+            return "";
+        }
+        String detail;
+        if (coherence.demarrageHorsNuit() && coherence.arretHorsNuit()) {
+            detail = "démarrage avant le coucher et arrêt après le lever du soleil";
+        } else if (coherence.demarrageHorsNuit()) {
+            detail = "démarrage avant le coucher du soleil";
+        } else {
+            detail = "arrêt après le lever du soleil";
+        }
+        return "⚠ Hors nuit : " + detail + " (une partie de l'enregistrement est diurne).";
     }
 
     private void reinitialiser() {
@@ -75,6 +118,9 @@ public class DiagnosticViewModel {
         anomalies.clear();
         evenements.clear();
         temperature.set("—");
+        coherenceHoraireDisponible.set(false);
+        fenetreNuit.set("");
+        alerteHorsNuit.set("");
     }
 
     /// Enregistreur de la nuit (`PR <n° de série>`).
@@ -100,6 +146,22 @@ public class DiagnosticViewModel {
     /// `true` si les coordonnées GPS du point sont disponibles (précondition de l'encart horaires).
     public ReadOnlyBooleanProperty gpsDisponibleProperty() {
         return gpsDisponible.getReadOnlyProperty();
+    }
+
+    /// `true` si la fenêtre nocturne a pu être calculée (GPS + horaires + latitude non polaire, #548).
+    public ReadOnlyBooleanProperty coherenceHoraireDisponibleProperty() {
+        return coherenceHoraireDisponible.getReadOnlyProperty();
+    }
+
+    /// Libellé de la fenêtre nocturne au point (`🌙 Nuit : coucher 21:58 · lever 05:48`), vide si
+    /// indisponible.
+    public ReadOnlyStringProperty fenetreNuitProperty() {
+        return fenetreNuit.getReadOnlyProperty();
+    }
+
+    /// Alerte « hors nuit » quand l'enregistrement déborde de la fenêtre nocturne, vide sinon (#548).
+    public ReadOnlyStringProperty alerteHorsNuitProperty() {
+        return alerteHorsNuit.getReadOnlyProperty();
     }
 
     /// Série temporelle T°/hygrométrie de la nuit (points du graphe).

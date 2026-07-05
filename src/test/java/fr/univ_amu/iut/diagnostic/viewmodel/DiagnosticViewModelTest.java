@@ -5,6 +5,7 @@ import static org.mockito.Mockito.when;
 
 import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.diagnostic.model.AnalyseAnomalies;
+import fr.univ_amu.iut.diagnostic.model.CoherenceHoraire;
 import fr.univ_amu.iut.diagnostic.model.Diagnostic;
 import fr.univ_amu.iut.diagnostic.model.MesureClimatique;
 import fr.univ_amu.iut.diagnostic.model.SerieClimatique;
@@ -38,6 +39,10 @@ class DiagnosticViewModelTest {
     }
 
     private static Diagnostic diagnostic(SerieClimatique climat, Double lat, Double lon) {
+        return diagnostic(climat, lat, lon, CoherenceHoraire.indisponible());
+    }
+
+    private static Diagnostic diagnostic(SerieClimatique climat, Double lat, Double lon, CoherenceHoraire coherence) {
         return new Diagnostic(
                 ID_PASSAGE,
                 7L,
@@ -47,7 +52,8 @@ class DiagnosticViewModelTest {
                 lat,
                 lon,
                 LocalDateTime.of(2026, 6, 23, 8, 0),
-                8.5);
+                8.5,
+                coherence);
     }
 
     private static SerieClimatique serie() {
@@ -100,6 +106,46 @@ class DiagnosticViewModelTest {
         assertThat(viewModel.gpsDisponibleProperty().get()).isFalse();
         assertThat(viewModel.resumeClimatProperty().get()).contains("absent");
         assertThat(viewModel.mesures()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("#548 : cohérence horaires disponible → fenêtre nocturne exposée, sans alerte si tout est nocturne")
+    void coherence_horaires_nominale() {
+        CoherenceHoraire coherence =
+                new CoherenceHoraire(true, LocalTime.of(21, 58), LocalTime.of(5, 48), false, false);
+        when(service.diagnostiquer(ID_PASSAGE)).thenReturn(diagnostic(serie(), 43.5, 5.4, coherence));
+
+        viewModel.ouvrirSur(ID_PASSAGE);
+
+        assertThat(viewModel.coherenceHoraireDisponibleProperty().get()).isTrue();
+        assertThat(viewModel.fenetreNuitProperty().get()).contains("21:58").contains("05:48");
+        assertThat(viewModel.alerteHorsNuitProperty().get()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("#548 : démarrage et arrêt hors nuit → une alerte « hors nuit » est produite")
+    void coherence_horaires_hors_nuit() {
+        CoherenceHoraire coherence = new CoherenceHoraire(true, LocalTime.of(21, 58), LocalTime.of(5, 48), true, true);
+        when(service.diagnostiquer(ID_PASSAGE)).thenReturn(diagnostic(serie(), 43.5, 5.4, coherence));
+
+        viewModel.ouvrirSur(ID_PASSAGE);
+
+        assertThat(viewModel.alerteHorsNuitProperty().get())
+                .contains("Hors nuit")
+                .contains("diurne");
+    }
+
+    @Test
+    @DisplayName("#548 : cohérence indisponible (pas de GPS/horaires) → ni fenêtre ni alerte")
+    void coherence_horaires_indisponible() {
+        when(service.diagnostiquer(ID_PASSAGE))
+                .thenReturn(diagnostic(SerieClimatique.absente(), null, null, CoherenceHoraire.indisponible()));
+
+        viewModel.ouvrirSur(ID_PASSAGE);
+
+        assertThat(viewModel.coherenceHoraireDisponibleProperty().get()).isFalse();
+        assertThat(viewModel.fenetreNuitProperty().get()).isEmpty();
+        assertThat(viewModel.alerteHorsNuitProperty().get()).isEmpty();
     }
 
     @Test

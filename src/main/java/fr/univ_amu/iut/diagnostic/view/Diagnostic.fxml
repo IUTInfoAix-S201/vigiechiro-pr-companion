@@ -51,6 +51,9 @@
     </VBox>
   </HBox>
 
+  <!-- Cohérence horaires (#548) : fenêtre nocturne réelle au point + repère « hors nuit ». -->
+  <Label fx:id="lblFenetreNuit" styleClass="section-sous"/>
+  <Label fx:id="lblAlerteHorsNuit" styleClass="alerte-r20" wrapText="true"/>
   <Label fx:id="lblGps" styleClass="section-sous"/>
   <Label fx:id="lblMessage" styleClass="message-erreur" wrapText="true"/>
 </VBox>

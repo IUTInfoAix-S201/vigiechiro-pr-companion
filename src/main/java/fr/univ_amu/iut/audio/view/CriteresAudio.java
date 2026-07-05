@@ -11,11 +11,14 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.Slider;
+import javafx.scene.layout.HBox;
 import javafx.util.StringConverter;
 
 /// Catalogue des **critères de filtrage** de la table audio (patron « à la Notion »). Chaque critère est
-/// une entrée du menu « + Filtre » qui s'ajoute comme puce. Pour l'instant : **Statut**, **Groupe**
-/// taxonomique, **Espèce** (taxon) et **Références** ; le suivant — proba — s'ajoutera ici, par PR.
+/// une entrée du menu « + Filtre » qui s'ajoute comme puce : **Statut**, **Groupe** taxonomique,
+/// **Espèce** (taxon), **Références** et **Proba** (seuil de probabilité Tadarida).
 final class CriteresAudio {
 
     /// Groupe des chauves-souris (`taxonomic_group.name`, cf. #507) : sélection par défaut du critère
@@ -176,6 +179,44 @@ final class CriteresAudio {
                 return null; // booléen : pas d'éditeur, la présence de la puce suffit
             }
         };
+    }
+
+    /// Critère **Seuil de probabilité** : éditeur = **curseur** (0 à 100 %) dans la puce ; garde les
+    /// observations dont la probabilité Tadarida est **≥ au seuil** (isoler les détections les plus sûres).
+    /// Les observations **sans probabilité** sont **toujours conservées** (elles n'ont pas de confiance
+    /// comparable au seuil, on évite de perdre des lignes à revoir). Défaut **50 %**, appliqué dès l'ajout.
+    static CritereFiltre probabilite() {
+        return new CritereFiltre() {
+            @Override
+            public String nom() {
+                return "proba";
+            }
+
+            @Override
+            public String libelle() {
+                return "Proba";
+            }
+
+            @Override
+            public Node editeur(Consumer<Predicate<LigneObservationAudio>> applique) {
+                Slider curseur = new Slider(0, 1, 0.5);
+                curseur.setBlockIncrement(0.05);
+                curseur.setPrefWidth(120);
+                Label valeur = new Label();
+                valeur.textProperty()
+                        .bind(curseur.valueProperty().map(v -> "≥ " + FormatLigneAudio.probabilite(v.doubleValue())));
+                curseur.valueProperty()
+                        .addListener((obs, avant, seuil) -> applique.accept(auMoins(seuil.doubleValue())));
+                applique.accept(auMoins(curseur.getValue())); // application initiale (défaut 50 %)
+                return new HBox(6, curseur, valeur);
+            }
+        };
+    }
+
+    /// Prédicat du seuil de probabilité : garde une observation si sa probabilité Tadarida est **≥ `seuil`**,
+    /// **ou** si elle n'en a pas (sans proba toujours conservée, cf. [#probabilite()]).
+    private static Predicate<LigneObservationAudio> auMoins(double seuil) {
+        return ligne -> ligne.probTadarida() == null || ligne.probTadarida() >= seuil;
     }
 
     /// Espèces présentes dans `lignes`, une par **taxon retenu**, **distinctes** et triées par libellé

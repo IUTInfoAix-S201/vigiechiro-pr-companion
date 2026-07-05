@@ -14,6 +14,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.Slider;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
@@ -192,6 +193,35 @@ class GestionnaireFiltresTest {
         assertThat(vues).hasSize(2);
     }
 
+    @Test
+    @DisplayName("Critère Proba : garde les proba ≥ seuil ; les observations SANS proba restent toujours visibles")
+    void filtre_probabilite(FxRobot robot) {
+        ObservableList<LigneObservationAudio> source = FXCollections.observableArrayList(
+                ligneProba(1, "Pippip", 0.9), // sûre
+                ligneProba(2, "Nyclei", 0.3), // peu sûre
+                ligneProba(3, "Tadten", null)); // sans proba
+        FilteredList<LigneObservationAudio> vues = new FilteredList<>(source);
+        FiltresAudio filtresLocaux = new FiltresAudio(vues, () -> {});
+        MenuButton menuLocal = new MenuButton();
+        FlowPane pucesLocales = new FlowPane();
+        GestionnaireFiltres ignore = new GestionnaireFiltres(
+                new TextField(), menuLocal, pucesLocales, filtresLocaux, List.of(CriteresAudio.probabilite()));
+        assertThat(ignore).isNotNull();
+
+        // Ajouter la puce Proba : défaut 50 % → garde 0.9 (≥ 0.5) et la ligne sans proba ; 0.3 masquée.
+        robot.interact(() -> menuLocal.getItems().get(0).fire());
+        Slider curseur = sliderDe(pucesLocales);
+        assertThat(vues).extracting(LigneObservationAudio::idObservation).containsExactly(1L, 3L);
+
+        // Monter le seuil à 95 % → 0.9 exclue, seule la ligne sans proba reste (toujours conservée).
+        robot.interact(() -> curseur.setValue(0.95));
+        assertThat(vues).extracting(LigneObservationAudio::idObservation).containsExactly(3L);
+
+        // Descendre à 0 % → toutes visibles.
+        robot.interact(() -> curseur.setValue(0.0));
+        assertThat(vues).hasSize(3);
+    }
+
     private Button boutonRetirer() {
         return (Button) puces.lookupAll(".puce-filtre-retirer").iterator().next();
     }
@@ -207,6 +237,13 @@ class GestionnaireFiltresTest {
     private static ComboBox<Object> comboDe(FlowPane puces) {
         HBox puce = (HBox) puces.getChildren().get(0);
         return (ComboBox<Object>) puce.getChildren().get(1);
+    }
+
+    /// L'éditeur du critère Proba est un HBox (curseur + valeur), 2e enfant de la puce ; le curseur en tête.
+    private static Slider sliderDe(FlowPane puces) {
+        HBox puce = (HBox) puces.getChildren().get(0);
+        HBox editeur = (HBox) puce.getChildren().get(1);
+        return (Slider) editeur.getChildren().get(0);
     }
 
     private static LigneObservationAudio ligne(long id, String taxon, String fichier, StatutObservation statut) {
@@ -267,6 +304,33 @@ class GestionnaireFiltresTest {
                 taxonTadarida,
                 "Chiroptères",
                 fichier,
+                0.2,
+                0.4);
+    }
+
+    /// Observation portant une **probabilité Tadarida** donnée (ou `null` = sans proba), pour le critère Proba.
+    private static LigneObservationAudio ligneProba(long id, String taxon, Double proba) {
+        return new LigneObservationAudio(
+                id,
+                10 + id,
+                7L,
+                1,
+                "2026-06-20",
+                "640380",
+                "A1",
+                "Site",
+                taxon,
+                proba,
+                null,
+                null,
+                StatutObservation.NON_TOUCHEE,
+                false,
+                null,
+                45,
+                null,
+                taxon,
+                "Chiroptères",
+                "f" + id + ".wav",
                 0.2,
                 0.4);
     }

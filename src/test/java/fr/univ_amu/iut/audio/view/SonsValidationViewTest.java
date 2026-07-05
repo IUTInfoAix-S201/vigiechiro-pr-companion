@@ -45,6 +45,8 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.PickResult;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.Region;
@@ -449,6 +451,24 @@ class SonsValidationViewTest {
 
         robot.interact(() -> boucle.setSelected(true));
         assertThat(audio.isLoop()).as("la boucle de l'AudioView suit la case").isTrue();
+    }
+
+    @Test
+    @DisplayName("#478 : raccourcis clavier sur la table — Entrée valide, R bascule la référence")
+    void raccourcis_clavier_valider_et_reference(FxRobot robot) {
+        TableView<?> table = robot.lookup("#tableObservations").queryAs(TableView.class);
+        robot.interact(() -> table.getSelectionModel().select(0));
+
+        robot.interact(() -> table.fireEvent(toucheAppuyee(KeyCode.ENTER)));
+        verify(service).validerSelonMode(eq(1L), any());
+
+        // Les deux lignes sont en référence : R la retire (marquerReference false).
+        robot.interact(() -> table.fireEvent(toucheAppuyee(KeyCode.R)));
+        verify(service).marquerReference(1L, false);
+    }
+
+    private static KeyEvent toucheAppuyee(KeyCode code) {
+        return new KeyEvent(KeyEvent.KEY_PRESSED, "", "", code, false, false, false, false);
     }
 
     /// Retrouve une option de lecture (CheckMenuItem) du menu ☰ par mot-clé de son libellé.

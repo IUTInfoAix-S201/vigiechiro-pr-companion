@@ -261,6 +261,9 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
         SortedList<LigneObservationAudio> triees = new SortedList<>(viewModel.observationsFiltrees());
         triees.comparatorProperty().bind(tableObservations.comparatorProperty());
         tableObservations.setItems(triees);
+        // Revue au clavier (#478) : Entrée = valider, R = référence, N = prochaine « À revoir » ; ↑/↓ =
+        // navigation native. Handler posé sur la table → n'agit pas quand un champ a le focus.
+        RevueClavier.installer(tableObservations, viewModel);
         tableObservations
                 .getSelectionModel()
                 .selectedItemProperty()

@@ -5,6 +5,7 @@ import com.google.inject.Injector;
 import com.google.inject.util.Modules;
 import fr.univ_amu.iut.commun.di.CommunModule;
 import fr.univ_amu.iut.commun.di.PersistenceModule;
+import fr.univ_amu.iut.commun.model.CompteurValidations;
 import fr.univ_amu.iut.commun.model.Horloge;
 import fr.univ_amu.iut.commun.model.HorlogeFigee;
 import fr.univ_amu.iut.commun.model.Protocole;
@@ -262,7 +263,14 @@ public final class CaptureImport {
                         new SitesModule(),
                         new PassageModule(),
                         new ImportationModule())
-                .with(liaison -> liaison.bind(Horloge.class).toInstance(new HorlogeFigee(REFERENCE))));
+                .with(liaison -> {
+                    liaison.bind(Horloge.class).toInstance(new HorlogeFigee(REFERENCE));
+                    // Port socle du comptage des validations menacées : son implémentation vit dans la
+                    // feature `validation`, non installée dans cet injecteur partiel de capture. Stub
+                    // déterministe (0) : les aperçus de l'import n'affichent pas ce compteur, qui ne sert
+                    // qu'à la confirmation d'écrasement d'un passage existant.
+                    liaison.bind(CompteurValidations.class).toInstance(idPassage -> 0);
+                }));
     }
 
     private static void seeder(Injector injecteur) {

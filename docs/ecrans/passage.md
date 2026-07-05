@@ -30,6 +30,14 @@ ci-dessus, au statut « Vérifié »). Une fois la nuit **déposée**, elle se d
     Vigie-Chiro ne renvoie les résultats Tadarida que 24 à 48 h après le dépôt : la validation des
     espèces vient donc nécessairement **après** le dépôt. Voir le [parcours métier](../parcours/index.md).
 
+## Annuler le dépôt
+
+Sur un passage **déposé**, un bouton **Annuler le dépôt** permet de revenir en arrière : après
+confirmation, la nuit repasse du statut « Déposé » à « **Prêt à déposer** ». Les **validations Tadarida
+déjà saisies sont conservées** : annuler le dépôt ne touche pas votre travail de validation, il rouvre
+seulement l'étape de dépôt (par exemple pour corriger quelque chose avant de redéposer). Le bouton
+n'apparaît que lorsqu'il a un sens, c'est-à-dire sur un passage effectivement déposé.
+
 ## Modifier le rattachement
 
 Si une nuit a été rattachée par erreur (mauvaise année ou mauvais numéro de passage), le bouton

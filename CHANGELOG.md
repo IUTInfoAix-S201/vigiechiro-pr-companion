@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [1.93.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.92.0...v1.93.0) (2026-07-05)
+
+
+### Features
+
+* **audio:** colonne « Heure » triable (chronologique, gère minuit) ([#530](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/530) partie 2/2) ([#541](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/541)) ([d5fdbd9](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/d5fdbd97ef1c0aeffe54411450a294022e06ab7c)), closes [#531](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/531)
+
 # [1.92.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.91.0...v1.92.0) (2026-07-05)
 
 

@@ -80,6 +80,12 @@ public class AudioViewModel {
     private final ReadOnlyObjectWrapper<ComptageAudio> comptage =
             new ReadOnlyObjectWrapper<>(this, "comptage", ComptageAudio.VIDE);
 
+    /// Filtres **composables** (#470) appliqués à [#observationsFiltrees] ; à chaque changement, les
+    /// compteurs sont recalculés sur le **sous-ensemble affiché** (callback). Déclaré après [#comptage] car
+    /// le callback le référence.
+    private final FiltresAudio filtres =
+            new FiltresAudio(observationsFiltrees, () -> comptage.set(ComptageAudio.de(observationsFiltrees)));
+
     private final ReadOnlyStringWrapper detail = new ReadOnlyStringWrapper(this, "detail", "");
 
     /// Messagerie de la vue : indice d'**état vide** (placeholder gris) et **retour d'opération** (bandeau
@@ -92,8 +98,7 @@ public class AudioViewModel {
         this.resolveur = new ResolveurSourceAudio(service);
         this.exporteur = new ExporteurAudio(service, bibliotheque);
         selection.addListener((obs, ancien, nouveau) -> majSelection(nouveau));
-        filtreStatut.addListener((obs, ancien, nouveau) ->
-                observationsFiltrees.setPredicate(nouveau == null ? null : ligne -> ligne.statut() == nouveau));
+        filtreStatut.addListener((obs, ancien, nouveau) -> filtres.definirStatut(nouveau));
     }
 
     /// Ouvre la vue audio sur l'ensemble décrit par `source`. Une erreur de chargement est restituée
@@ -233,7 +238,7 @@ public class AudioViewModel {
         List<LigneObservationAudio> lignes = resolveur.lignes(source);
         observations.setAll(lignes);
         reselectionner(observationSelectionnee);
-        comptage.set(ComptageAudio.de(observations));
+        filtres.appliquer(); // ré-applique les filtres actifs et recompte sur le sous-ensemble affiché
         messages.majEtatVide(lignes.isEmpty(), ResolveurSourceAudio.messageVide(source));
     }
 
@@ -281,8 +286,8 @@ public class AudioViewModel {
         return source;
     }
 
-    /// Lignes **filtrées** (par [#filtreStatutProperty()]) à afficher dans la table. Les compteurs
-    /// ([#comptageProperty()]) reflètent l'ensemble **non filtré**.
+    /// Lignes **filtrées** (conjonction des filtres actifs, cf. [#definirFiltre]) à afficher dans la table.
+    /// Les compteurs ([#comptageProperty()]) reflètent ce **sous-ensemble affiché** (#470).
     public ObservableList<LigneObservationAudio> observationsFiltrees() {
         return observationsFiltrees;
     }

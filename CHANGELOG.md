@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [1.90.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.89.0...v1.90.0) (2026-07-05)
+
+
+### Features
+
+* **captures:** capture hors-écran des Dialog et DialogPane ([#534](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/534)) ([936775c](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/936775cf417d4ec3d770f9b4068f172f956650aa))
+
 # [1.89.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.88.0...v1.89.0) (2026-07-05)
 
 

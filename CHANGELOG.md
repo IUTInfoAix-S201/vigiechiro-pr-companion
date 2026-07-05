@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [1.101.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.100.0...v1.101.0) (2026-07-05)
+
+
+### Features
+
+* **passage:** saisie du releve meteo dans la vue Passage (P3a) ([#562](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/562)) ([681e015](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/681e015ec9715c6f5e226f48d8efd9731048d65a)), closes [#106](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/106) [#546](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/546) [#546](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/546) [#543](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/543)
+
 # [1.100.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.99.0...v1.100.0) (2026-07-05)
 
 

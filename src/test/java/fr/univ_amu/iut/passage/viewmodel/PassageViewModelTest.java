@@ -11,6 +11,7 @@ import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.model.Verdict;
 import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
 import fr.univ_amu.iut.passage.model.DetailPassage;
+import fr.univ_amu.iut.passage.model.MeteoReleve;
 import fr.univ_amu.iut.passage.model.ServicePassage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -52,10 +53,10 @@ class PassageViewModelTest {
                 1024L,
                 30,
                 150.0,
-                null);
+                MeteoReleve.VIDE);
     }
 
-    private static DetailPassage detailAvec(Double temperature) {
+    private static DetailPassage detailAvec(MeteoReleve meteo) {
         return new DetailPassage(
                 2,
                 2026,
@@ -70,52 +71,54 @@ class PassageViewModelTest {
                 1024L,
                 30,
                 150.0,
-                temperature);
+                meteo);
     }
 
     @Test
-    @DisplayName("#106 : ouvrirSur expose la température (affichage formaté + saisie éditable)")
-    void temperature_affichee() {
-        when(service.detailPassage(ID_PASSAGE)).thenReturn(detailAvec(8.5));
+    @DisplayName("#106 étendu : ouvrirSur pré-remplit les champs météo depuis le relevé du passage")
+    void meteo_affichee() {
+        when(service.detailPassage(ID_PASSAGE)).thenReturn(detailAvec(new MeteoReleve(8.5, 4.0, 12.0, 40.0)));
         viewModel.ouvrirSur(ID_PASSAGE, CONTEXTE);
-        assertThat(viewModel.temperatureProperty().get()).isEqualTo("8,5 °C");
         assertThat(viewModel.temperatureSaisieProperty().get()).isEqualTo("8.5");
+        assertThat(viewModel.temperatureFinSaisieProperty().get()).isEqualTo("4.0");
+        assertThat(viewModel.ventSaisieProperty().get()).isEqualTo("12.0");
+        assertThat(viewModel.couvertureNuageuseSaisieProperty().get()).isEqualTo("40.0");
     }
 
     @Test
-    @DisplayName("#106 : température absente → affichage « — » et saisie vide")
-    void temperature_absente() {
-        when(service.detailPassage(ID_PASSAGE)).thenReturn(detailAvec(null));
+    @DisplayName("#106 étendu : relevé météo absent → champs de saisie vides")
+    void meteo_absente() {
+        when(service.detailPassage(ID_PASSAGE)).thenReturn(detailAvec(MeteoReleve.VIDE));
         viewModel.ouvrirSur(ID_PASSAGE, CONTEXTE);
-        assertThat(viewModel.temperatureProperty().get()).isEqualTo("—");
         assertThat(viewModel.temperatureSaisieProperty().get()).isEmpty();
+        assertThat(viewModel.ventSaisieProperty().get()).isEmpty();
     }
 
     @Test
-    @DisplayName("#106 : enregistrerTemperature valide délègue au service et met à jour l'affichage")
-    void enregistrer_temperature_valide() {
-        when(service.detailPassage(ID_PASSAGE)).thenReturn(detailAvec(null));
+    @DisplayName("#106 étendu : enregistrerMeteo valide délègue le relevé au service, sans message")
+    void enregistrer_meteo_valide() {
+        when(service.detailPassage(ID_PASSAGE)).thenReturn(detailAvec(MeteoReleve.VIDE));
         viewModel.ouvrirSur(ID_PASSAGE, CONTEXTE);
         viewModel.temperatureSaisieProperty().set("9,0");
+        viewModel.ventSaisieProperty().set("12");
 
-        viewModel.enregistrerTemperature();
+        viewModel.enregistrerMeteo();
 
-        verify(service).definirTemperatureDebutNuit(ID_PASSAGE, 9.0);
-        assertThat(viewModel.temperatureProperty().get()).isEqualTo("9,0 °C");
+        verify(service).definirMeteo(ID_PASSAGE, new MeteoReleve(9.0, null, 12.0, null));
         assertThat(viewModel.messageProperty().get()).isEmpty();
     }
 
     @Test
-    @DisplayName("#106 : une saisie de température invalide publie un message, sans appeler le service")
-    void enregistrer_temperature_invalide() {
-        when(service.detailPassage(ID_PASSAGE)).thenReturn(detailAvec(null));
+    @DisplayName("#106 étendu : une saisie météo invalide publie un message, sans appeler le service")
+    void enregistrer_meteo_invalide() {
+        when(service.detailPassage(ID_PASSAGE)).thenReturn(detailAvec(MeteoReleve.VIDE));
         viewModel.ouvrirSur(ID_PASSAGE, CONTEXTE);
         viewModel.temperatureSaisieProperty().set("froid");
 
-        viewModel.enregistrerTemperature();
+        viewModel.enregistrerMeteo();
 
         assertThat(viewModel.messageProperty().get()).contains("invalide");
-        verify(service, never()).definirTemperatureDebutNuit(any(), any());
+        verify(service, never()).definirMeteo(any(), any());
     }
 
     @Test

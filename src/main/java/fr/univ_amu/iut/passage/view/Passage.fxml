@@ -91,14 +91,26 @@
         </VBox>
       </HBox>
 
-      <!-- Météo de début de nuit (#106) : donnée optionnelle, éditable (vide pour effacer). -->
-      <Label text="Météo de début de nuit" styleClass="section-sous"/>
+      <!-- Conditions météo (#106 étendu) : grandeurs optionnelles, éditables (vide pour effacer). -->
+      <Label text="Conditions météo (optionnel)" styleClass="section-sous"/>
       <HBox spacing="10.0" alignment="CENTER_LEFT">
-        <Label text="Température :"/>
-        <Label fx:id="lblTemperature" styleClass="bandeau-valeur"/>
-        <TextField fx:id="champTemperature" promptText="ex. 8,5" prefWidth="90.0"/>
+        <Label text="Température début :"/>
+        <TextField fx:id="champTemperature" promptText="ex. 8,5" prefWidth="80.0"/>
         <Label text="°C"/>
-        <Button fx:id="boutonTemperature" text="Enregistrer" onAction="#enregistrerTemperature"/>
+        <Label text="fin :"/>
+        <TextField fx:id="champTemperatureFin" promptText="ex. 5,0" prefWidth="80.0"/>
+        <Label text="°C"/>
+      </HBox>
+      <HBox spacing="10.0" alignment="CENTER_LEFT">
+        <Label text="Vent :"/>
+        <TextField fx:id="champVent" promptText="ex. 12" prefWidth="80.0"/>
+        <Label text="km/h"/>
+        <Label text="Couverture nuageuse :"/>
+        <TextField fx:id="champCouverture" promptText="ex. 40" prefWidth="80.0"/>
+        <Label text="\%"/>
+      </HBox>
+      <HBox spacing="10.0" alignment="CENTER_LEFT">
+        <Button fx:id="boutonMeteo" text="Enregistrer" onAction="#enregistrerMeteo"/>
       </HBox>
 
       <!-- Actions : avancer dans le workflow (le retour et le fil d'Ariane sont portés par le chrome) -->

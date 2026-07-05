@@ -118,13 +118,19 @@ public class PassageController implements EmplacementNavigation, RafraichirAuRet
     private Label lblIndiceAction;
 
     @FXML
-    private Label lblTemperature;
-
-    @FXML
     private TextField champTemperature;
 
     @FXML
-    private Button boutonTemperature;
+    private TextField champTemperatureFin;
+
+    @FXML
+    private TextField champVent;
+
+    @FXML
+    private TextField champCouverture;
+
+    @FXML
+    private Button boutonMeteo;
 
     @Inject
     public PassageController(
@@ -176,9 +182,11 @@ public class PassageController implements EmplacementNavigation, RafraichirAuRet
         lblDureeAudible.textProperty().bind(viewModel.dureeAudibleProperty());
         lblNbSequences.textProperty().bind(viewModel.nombreSequencesProperty().asString());
 
-        // Météo de début de nuit (#106) : affichage lié au VM, saisie bidirectionnelle.
-        lblTemperature.textProperty().bind(viewModel.temperatureProperty());
+        // Conditions météo (#106 étendu) : saisie bidirectionnelle des quatre grandeurs.
         champTemperature.textProperty().bindBidirectional(viewModel.temperatureSaisieProperty());
+        champTemperatureFin.textProperty().bindBidirectional(viewModel.temperatureFinSaisieProperty());
+        champVent.textProperty().bindBidirectional(viewModel.ventSaisieProperty());
+        champCouverture.textProperty().bindBidirectional(viewModel.couvertureNuageuseSaisieProperty());
 
         boutonVerifier
                 .disableProperty()
@@ -361,11 +369,11 @@ public class PassageController implements EmplacementNavigation, RafraichirAuRet
         }
     }
 
-    /// « Enregistrer » la température de début de nuit (#106) : délègue au VM (saisie vide = effacer ;
-    /// saisie invalide = message d'erreur, sans modification).
+    /// « Enregistrer » le relevé météo (#106 étendu) : délègue au VM (grandeur vide = effacer ; saisie
+    /// invalide = message d'erreur, sans modification).
     @FXML
-    private void enregistrerTemperature() {
-        viewModel.enregistrerTemperature();
+    private void enregistrerMeteo() {
+        viewModel.enregistrerMeteo();
     }
 
     private void majStepper() {

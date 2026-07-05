@@ -36,6 +36,7 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
@@ -431,6 +432,34 @@ class SonsValidationViewTest {
 
         assertThat(drop.isDropCompleted()).isFalse();
         verify(service, never()).importer(any(), any());
+    }
+
+    @Test
+    @DisplayName("#483 : options de lecture — auto-lecture cochée par défaut, la boucle de l'AudioView suit sa case")
+    void options_de_lecture(FxRobot robot) {
+        MenuButton menu = robot.lookup("#menuActions").queryAs(MenuButton.class);
+        AudioView audio = robot.lookup("#audioView").queryAs(AudioView.class);
+        CheckMenuItem lectureAuto = optionLecture(menu, "automatique");
+        CheckMenuItem boucle = optionLecture(menu, "boucle");
+
+        assertThat(lectureAuto.isSelected())
+                .as("auto-lecture activée par défaut")
+                .isTrue();
+        assertThat(audio.isLoop()).isFalse();
+
+        robot.interact(() -> boucle.setSelected(true));
+        assertThat(audio.isLoop()).as("la boucle de l'AudioView suit la case").isTrue();
+    }
+
+    /// Retrouve une option de lecture (CheckMenuItem) du menu ☰ par mot-clé de son libellé.
+    private static CheckMenuItem optionLecture(MenuButton menu, String motCle) {
+        return menu.getItems().stream()
+                .filter(CheckMenuItem.class::isInstance)
+                .map(CheckMenuItem.class::cast)
+                .filter(item ->
+                        item.getText().toLowerCase(java.util.Locale.ROOT).contains(motCle))
+                .findFirst()
+                .orElseThrow();
     }
 
     private static TableColumn<?, ?> colonne(FxRobot robot, String entete) {

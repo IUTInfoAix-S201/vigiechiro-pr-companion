@@ -297,25 +297,9 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
 
         resumeStatut.bind(Bindings.createStringBinding(this::resumeStatutTexte, viewModel.comptageProperty()));
 
-        // Vue audio (composant fourni, E7.S3) : la source suit l'observation sélectionnée ; le clip est
-        // libéré quand la vue quitte la scène. Trois normalisations activées, complémentaires : celle du
-        // NIVEAU à la lecture (#109) pour égaliser le volume d'un cri à l'autre, et les deux VISUELLES
-        // (audio-view 1.14) pour les cris faibles — l'onde du sonogramme remplit la gouttière au lieu de
-        // rester plate, et la fenêtre dB du spectrogramme se recale sur le pic au lieu de rester noire.
-        audioView.setNormalisation(true);
-        audioView.setWaveNormalisation(true);
-        audioView.setSpectrogramNormalisation(true);
-        // Expansion temporelle ×10 du protocole Vigie-Chiro : les séquences transformées sont les
-        // originaux ralentis ×10 (importation.model.TransformationAudio.FACTEUR_EXPANSION). Réglé ici
-        // pour que les axes affichent les grandeurs RÉELLES : fréquences × 10 (les vraies fréquences,
-        // pas celles du signal ralenti) et temps ÷ 10. N'affecte que les libellés, pas l'audio.
-        audioView.setTimeExpansionFactor(RepereCriAudio.FACTEUR_EXPANSION_TEMPS);
-        audioView.audioFileProperty().bind(viewModel.cheminAudioCourantProperty());
-        audioView.sceneProperty().addListener((obs, avant, scene) -> {
-            if (scene == null) {
-                audioView.dispose();
-            }
-        });
+        // Vue audio (composant fourni, E7.S3) : normalisations + expansion ×10 + source liée à la sélection
+        // + libération du clip hors scène (détail dans ConfigurationAudioView).
+        ConfigurationAudioView.installer(audioView, viewModel.cheminAudioCourantProperty());
         // Repérage du cri sélectionné (#482) : surligne la fenêtre [début, fin] sur l'onde et le
         // spectrogramme (emphase) et y positionne la lecture (seek). Détail dans RepereCriAudio.
         RepereCriAudio.installer(audioView, viewModel.selectionProperty());
@@ -323,6 +307,8 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
         // pour le cri sélectionné, colonnes peuplées au fil de la navigation (détail dans le helper).
         MetriquesAcoustiquesAudio.installer(
                 audioView, viewModel.selectionProperty(), tableObservations, colFme, colFreqTerminale);
+        // Options de lecture (#483) : auto-lecture à la sélection (par défaut) + boucle, en tête du menu ☰.
+        LecteurAudio.installer(audioView, menuActions);
 
         choixMode.getItems().setAll(ModeRevue.values());
         choixMode.setConverter(libelleConverter(mode -> mode == null ? "" : libelleMode(mode)));

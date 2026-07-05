@@ -10,8 +10,10 @@ import java.time.LocalDateTime;
 /// - [#anomalies()] : anomalies et évènements du journal du capteur (R19) ;
 /// - [#climat()] : série T°/hygrométrie prête pour un graphe, avec signalement d'absence (R20) ;
 /// - [#gpsLatitude()] / [#gpsLongitude()] : coordonnées du point d'écoute (feature `sites`),
-///   socle d'un futur encart « cohérence horaires » astronomique (P6-CA3/CA4), `null` si non
+///   socle de l'encart « cohérence horaires » astronomique (P6-CA3/CA4), `null` si non
 ///   renseignées ;
+/// - [#coherenceHoraire()] : confrontation des horaires d'enregistrement à la fenêtre nocturne
+///   réelle (coucher → lever du soleil au point, #548) ;
 /// - [#numeroSerieEnregistreur()] : clé de comparaison inter-passages (P6-CA5).
 ///
 /// @param idPassage passage diagnostiqué
@@ -24,6 +26,7 @@ import java.time.LocalDateTime;
 /// @param genereLe horodatage de calcul du diagnostic (issu de l'horloge injectée)
 /// @param temperatureDebutNuit température en début de nuit (°C), **optionnelle** (`null` si non
 /// renseignée, #106)
+/// @param coherenceHoraire cohérence des horaires d'enregistrement avec la nuit réelle (#548)
 public record Diagnostic(
         Long idPassage,
         Long idSession,
@@ -33,7 +36,8 @@ public record Diagnostic(
         Double gpsLatitude,
         Double gpsLongitude,
         LocalDateTime genereLe,
-        Double temperatureDebutNuit) {
+        Double temperatureDebutNuit,
+        CoherenceHoraire coherenceHoraire) {
 
     /// `true` si aucun relevé climatique n'est rattaché à la session (R20, à signaler).
     public boolean releveClimatiqueAbsent() {

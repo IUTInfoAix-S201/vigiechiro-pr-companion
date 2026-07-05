@@ -199,6 +199,22 @@ class ServiceDiagnosticTest {
     }
 
     @Test
+    @DisplayName("#548 : la cohérence horaires est calculée au GPS du point et signale l'arrêt diurne")
+    void coherence_horaires_calculee_au_point() {
+        creerSession(); // passage seedé : nuit du 2026-04-22, 20:25 → 07:47 au point d'Aix (43.529, 5.447)
+
+        Diagnostic diagnostic = service.diagnostiquer(idPassage);
+
+        assertThat(diagnostic.coherenceHoraire().disponible()).isTrue();
+        assertThat(diagnostic.coherenceHoraire().coucherSoleil()).isNotNull();
+        assertThat(diagnostic.coherenceHoraire().leverSoleil()).isNotNull();
+        assertThat(diagnostic.coherenceHoraire().arretHorsNuit())
+                .as("arrêt à 07:47, bien après le lever du soleil d'avril (~06:44)")
+                .isTrue();
+        assertThat(diagnostic.coherenceHoraire().aUnEcart()).isTrue();
+    }
+
+    @Test
     @DisplayName("Relevé climatique présent → série lue depuis le THLog (~1 mesure/600s)")
     void serie_climatique_lue() {
         Long idSession = creerSession();

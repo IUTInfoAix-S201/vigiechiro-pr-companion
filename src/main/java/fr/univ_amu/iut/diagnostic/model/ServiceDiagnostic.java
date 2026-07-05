@@ -94,6 +94,11 @@ public class ServiceDiagnostic {
             longitude = point.longitude();
         }
 
+        // Cohérence horaires (#548) : la fenêtre nocturne réelle au point sert à repérer un
+        // démarrage/arrêt hors nuit. Indisponible sans GPS ou sans horaires (dégradation propre).
+        CoherenceHoraire coherence = AnalyseCoherenceHoraire.analyser(
+                latitude, longitude, passage.dateEnregistrement(), passage.heureDebut(), passage.heureFin());
+
         return new Diagnostic(
                 idPassage,
                 idSession,
@@ -103,7 +108,8 @@ public class ServiceDiagnostic {
                 latitude,
                 longitude,
                 horloge.maintenant(),
-                MeteoPassage.temperatureDebutNuit(passage.donneesMeteo()));
+                MeteoPassage.temperatureDebutNuit(passage.donneesMeteo()),
+                coherence);
     }
 
     private static Path chemin(String valeur) {

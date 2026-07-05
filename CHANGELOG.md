@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [1.102.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.101.0...v1.102.0) (2026-07-05)
+
+
+### Features
+
+* **audio:** multi-sélection et actions groupées dans la vue ([#479](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/479) partie 3/3) ([#563](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/563)) ([29eddc0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/29eddc0b3a3a3185751a70a4ef98ee60aa28015e))
+
 # [1.101.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.100.0...v1.101.0) (2026-07-05)
 
 

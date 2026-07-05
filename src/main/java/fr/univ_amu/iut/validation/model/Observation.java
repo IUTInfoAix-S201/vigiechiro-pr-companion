@@ -89,4 +89,25 @@ public record Observation(
                 modeValidation,
                 idResultats);
     }
+
+    /// Copie de cette observation avec le **triplet observateur** (taxon retenu, probabilité, mode de
+    /// validation) modifié, les autres champs inchangés : c'est ce que produisent valider (R15) et
+    /// corriger (R16). Sert aux actions **en lot** pour reconstruire l'observation sans I/O (#479).
+    public Observation avecObservateur(String taxonObservateur, Double probObservateur, ModeValidation mode) {
+        return new Observation(
+                id,
+                idSequence,
+                debutS,
+                finS,
+                frequenceMedianeKHz,
+                taxonTadarida,
+                probTadarida,
+                taxonAutreTadarida,
+                taxonObservateur,
+                probObservateur,
+                commentaire,
+                reference,
+                mode,
+                idResultats);
+    }
 }

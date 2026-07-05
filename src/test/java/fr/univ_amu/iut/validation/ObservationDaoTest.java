@@ -454,6 +454,21 @@ class ObservationDaoTest {
     }
 
     @Test
+    @DisplayName("#479 : updateTout applique les modifications du lot en une transaction et compte les lignes")
+    void update_tout_ecrit_le_lot() {
+        long id1 = dao.insert(observationComplete()).id();
+        long id2 = dao.insert(observationComplete()).id();
+        Observation o1 = dao.findById(id1).orElseThrow().avecCommentaire("revu");
+        Observation o2 = dao.findById(id2).orElseThrow().avecReference(false);
+
+        int ecrites = dao.updateTout(List.of(o1, o2));
+
+        assertThat(ecrites).isEqualTo(2);
+        assertThat(dao.findById(id1).orElseThrow().commentaire()).isEqualTo("revu");
+        assertThat(dao.findById(id2).orElseThrow().reference()).isFalse();
+    }
+
+    @Test
     @DisplayName("#audio/#530 : la projection porte l'heure de capture (instant complet) depuis recorded_at")
     void lignes_audio_portent_l_heure_de_capture() {
         dao.insert(observation("Nyclei", null));

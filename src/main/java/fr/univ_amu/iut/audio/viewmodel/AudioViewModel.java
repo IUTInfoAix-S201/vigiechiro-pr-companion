@@ -6,7 +6,6 @@ import fr.univ_amu.iut.validation.model.BilanImport;
 import fr.univ_amu.iut.validation.model.LigneObservationAudio;
 import fr.univ_amu.iut.validation.model.ModeRevue;
 import fr.univ_amu.iut.validation.model.ServiceValidation;
-import fr.univ_amu.iut.validation.model.StatutObservation;
 import fr.univ_amu.iut.validation.model.Taxon;
 import java.nio.file.Path;
 import java.util.List;
@@ -58,8 +57,6 @@ public class AudioViewModel {
 
     private final ObservableList<LigneObservationAudio> observations = FXCollections.observableArrayList();
     private final FilteredList<LigneObservationAudio> observationsFiltrees = new FilteredList<>(observations);
-    private final ObjectProperty<StatutObservation> filtreStatut =
-            new SimpleObjectProperty<>(this, "filtreStatut", null);
     private final ObservableList<Taxon> taxons = FXCollections.observableArrayList();
     private final ObjectProperty<LigneObservationAudio> selection = new SimpleObjectProperty<>(this, "selection");
     private final ReadOnlyBooleanWrapper selectionPresente =
@@ -87,13 +84,21 @@ public class AudioViewModel {
     /// placeholder « aucune observation ». Voir [MessagesAudio].
     private final MessagesAudio messages = new MessagesAudio();
 
+    /// Filtres **composables** (#470) appliqués à [#observationsFiltrees]. À chaque changement, le callback
+    /// recalcule les **compteurs** sur le sous-ensemble affiché **et** l'**indice d'état vide** (distingue
+    /// « source sans observation » de « filtres qui masquent tout »). Déclaré après ses dépendances
+    /// (`comptage`, `messages`, `source`) que le callback référence.
+    private final FiltresAudio filtres = new FiltresAudio(observationsFiltrees, () -> {
+        comptage.set(ComptageAudio.de(observationsFiltrees));
+        messages.majEtatVide(
+                observations.isEmpty(), observationsFiltrees.isEmpty(), ResolveurSourceAudio.messageVide(source));
+    });
+
     public AudioViewModel(ServiceValidation service, ServiceBibliotheque bibliotheque) {
         this.service = Objects.requireNonNull(service, "service");
         this.resolveur = new ResolveurSourceAudio(service);
         this.exporteur = new ExporteurAudio(service, bibliotheque);
         selection.addListener((obs, ancien, nouveau) -> majSelection(nouveau));
-        filtreStatut.addListener((obs, ancien, nouveau) ->
-                observationsFiltrees.setPredicate(nouveau == null ? null : ligne -> ligne.statut() == nouveau));
     }
 
     /// Ouvre la vue audio sur l'ensemble décrit par `source`. Une erreur de chargement est restituée
@@ -233,8 +238,9 @@ public class AudioViewModel {
         List<LigneObservationAudio> lignes = resolveur.lignes(source);
         observations.setAll(lignes);
         reselectionner(observationSelectionnee);
-        comptage.set(ComptageAudio.de(observations));
-        messages.majEtatVide(lignes.isEmpty(), ResolveurSourceAudio.messageVide(source));
+        // Ré-applique les filtres actifs ; le callback recompte ET met à jour l'indice d'état vide (source
+        // vide vs filtres qui masquent tout) sur le sous-ensemble affiché.
+        filtres.appliquer();
     }
 
     /// Repositionne la sélection après un rechargement : sur la ligne de même identifiant si elle existe
@@ -281,15 +287,18 @@ public class AudioViewModel {
         return source;
     }
 
-    /// Lignes **filtrées** (par [#filtreStatutProperty()]) à afficher dans la table. Les compteurs
-    /// ([#comptageProperty()]) reflètent l'ensemble **non filtré**.
+    /// Lignes **filtrées** (conjonction des filtres actifs, cf. [#filtres]) à afficher dans la table. Les
+    /// compteurs ([#comptageProperty()]) reflètent ce **sous-ensemble affiché** (#470).
     public ObservableList<LigneObservationAudio> observationsFiltrees() {
         return observationsFiltrees;
     }
 
-    /// Filtre de statut de la table (`null` = tous) : À revoir / Validée / Corrigée.
-    public ObjectProperty<StatutObservation> filtreStatutProperty() {
-        return filtreStatut;
+    /// Filtres **composables** de la table (#470/#471) : la barre de filtres (patron « à la Notion ») y
+    /// branche/retire ses critères (statut, chauves-souris, taxon, références, proba, texte) via
+    /// [FiltresAudio#definir] ; la conjonction est appliquée à [#observationsFiltrees] et les compteurs
+    /// suivent le sous-ensemble affiché.
+    public FiltresAudio filtres() {
+        return filtres;
     }
 
     /// Observation sélectionnée (liée au modèle de sélection de la table par la vue).

@@ -10,6 +10,7 @@
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
@@ -36,13 +37,17 @@
   <!-- Pas de bandeau de titre ici : le nom d'écran est déjà porté par le fil d'Ariane, et le résumé
        (compteurs de revue) est déporté dans la barre de statut via ResumeStatut (gain d'espace vertical). -->
 
-  <!-- Barre allégée : filtre de statut au centre (auto-descriptif), actions propres à la source épinglées
-       à droite dans un menu « ☰ » (patron multisite) - seuls les items pertinents s'affichent. -->
+  <!-- Barre de filtres « à la Notion » (#470/#471) : recherche texte permanente + « + Filtre » (menu des
+       critères) + puces des filtres actifs. Actions propres à la source épinglées à droite dans « ☰ ». -->
   <BorderPane styleClass="barre-filtres">
     <center>
-      <FlowPane hgap="8.0" vgap="6.0" alignment="CENTER_LEFT" BorderPane.alignment="CENTER_LEFT">
-        <ComboBox fx:id="choixFiltre" accessibleText="Filtrer par statut de revue"/>
-      </FlowPane>
+      <HBox spacing="8.0" alignment="CENTER_LEFT" BorderPane.alignment="CENTER_LEFT">
+        <TextField fx:id="champRecherche" promptText="Rechercher (espèce, fichier, commentaire…)"
+                   accessibleText="Rechercher dans les observations" prefWidth="240.0"/>
+        <MenuButton fx:id="menuAjoutFiltre" text="+ Filtre" styleClass="menu-ajout-filtre"
+                    accessibleText="Ajouter un filtre"/>
+        <FlowPane fx:id="pucesFiltres" hgap="6.0" vgap="6.0" alignment="CENTER_LEFT"/>
+      </HBox>
     </center>
     <right>
       <MenuButton fx:id="menuActions" text="☰" styleClass="menu-actions" BorderPane.alignment="CENTER">

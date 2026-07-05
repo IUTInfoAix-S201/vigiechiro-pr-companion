@@ -150,15 +150,17 @@ class ServicePassageDetailTest {
     void temperature_optionnelle() {
         Passage passage = insererPassage(3, StatutWorkflow.TRANSFORME);
 
-        assertThat(service.detailPassage(passage.id()).temperatureDebutNuit())
+        assertThat(service.detailPassage(passage.id()).meteo().temperatureDebutNuit())
                 .as("température non renseignée par défaut")
                 .isNull();
 
         service.definirTemperatureDebutNuit(passage.id(), 8.5);
-        assertThat(service.detailPassage(passage.id()).temperatureDebutNuit()).isEqualTo(8.5);
+        assertThat(service.detailPassage(passage.id()).meteo().temperatureDebutNuit())
+                .isEqualTo(8.5);
 
         service.definirTemperatureDebutNuit(passage.id(), null); // saisie vide → effacement
-        assertThat(service.detailPassage(passage.id()).temperatureDebutNuit()).isNull();
+        assertThat(service.detailPassage(passage.id()).meteo().temperatureDebutNuit())
+                .isNull();
     }
 
     @Test
@@ -184,7 +186,8 @@ class ServicePassageDetailTest {
 
         String meteo = passageDao.findById(passage.id()).orElseThrow().donneesMeteo();
         assertThat(meteo).contains("\"hygro\":80").contains("\"tempDebut\":8.5");
-        assertThat(service.detailPassage(passage.id()).temperatureDebutNuit()).isEqualTo(8.5);
+        assertThat(service.detailPassage(passage.id()).meteo().temperatureDebutNuit())
+                .isEqualTo(8.5);
     }
 
     @Test

@@ -118,7 +118,7 @@ public class ServicePassage {
                 session.map(SessionDEnregistrement::volumeSequencesOctets).orElse(0L),
                 sequences.size(),
                 dureeAudible,
-                MeteoPassage.temperatureDebutNuit(passage.donneesMeteo()));
+                MeteoPassage.lire(passage.donneesMeteo()));
     }
 
     /// Renseigne (ou efface, avec `null`) la **température en début de nuit** (°C) d'un passage (#106) :
@@ -132,7 +132,32 @@ public class ServicePassage {
         Passage passage = passageDao
                 .findById(idPassage)
                 .orElseThrow(() -> new RegleMetierException(PASSAGE_INTROUVABLE + idPassage));
-        Passage modifie = new Passage(
+        Passage modifie = avecDonneesMeteo(passage, MeteoPassage.definir(passage.donneesMeteo(), temperatureDebutNuit));
+        passageDao.update(modifie);
+        return modifie;
+    }
+
+    /// Renseigne le **relevé météo complet** d'un passage (température début/fin, vent, couverture
+    /// nuageuse ; #106 étendu) : données **optionnelles** stockées dans `passage.weather_data` via
+    /// [MeteoPassage]. Chaque grandeur `null` du relevé efface sa clé ; les autres clés sont préservées.
+    ///
+    /// @param idPassage passage cible
+    /// @param releve relevé météo (grandeurs optionnelles ; `null` par grandeur = effacer)
+    /// @return le passage mis à jour
+    public Passage definirMeteo(Long idPassage, MeteoReleve releve) {
+        Objects.requireNonNull(idPassage, ID_PASSAGE);
+        Passage passage = passageDao
+                .findById(idPassage)
+                .orElseThrow(() -> new RegleMetierException(PASSAGE_INTROUVABLE + idPassage));
+        Passage modifie = avecDonneesMeteo(passage, MeteoPassage.definirReleve(passage.donneesMeteo(), releve));
+        passageDao.update(modifie);
+        return modifie;
+    }
+
+    /// Copie `passage` en ne changeant que ses données météo sérialisées (colonne `weather_data`),
+    /// factorisée par les deux points d'entrée météo ci-dessus.
+    private static Passage avecDonneesMeteo(Passage passage, String donneesMeteo) {
+        return new Passage(
                 passage.id(),
                 passage.numeroPassage(),
                 passage.annee(),
@@ -143,12 +168,10 @@ public class ServicePassage {
                 passage.statutWorkflow(),
                 passage.verdictVerification(),
                 passage.commentaire(),
-                MeteoPassage.definir(passage.donneesMeteo(), temperatureDebutNuit),
+                donneesMeteo,
                 passage.deposeLe(),
                 passage.idPoint(),
                 passage.idEnregistreur());
-        passageDao.update(modifie);
-        return modifie;
     }
 
     /// Crée un passage à l'état initial [StatutWorkflow#IMPORTE], sans verdict.

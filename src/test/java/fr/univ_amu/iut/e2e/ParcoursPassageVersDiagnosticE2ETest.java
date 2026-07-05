@@ -110,7 +110,7 @@ class ParcoursPassageVersDiagnosticE2ETest {
         // 1) Entrer sur M-Passage et saisir la température de début de nuit, puis enregistrer.
         robot.interact(() -> injector.getInstance(OuvrirPassage.class).ouvrir(idPassage, contexte));
         robot.clickOn("#champTemperature").write("8,5");
-        robot.clickOn("#boutonTemperature"); // persiste dans passage.weather_data
+        robot.clickOn("#boutonMeteo"); // enregistre le relevé météo dans passage.weather_data
 
         // 2) Ouvrir M-Diagnostic : la température persistée est relue de la base et affichée.
         robot.interact(robot.lookup("#boutonDiagnostic").queryAs(Button.class)::fire);

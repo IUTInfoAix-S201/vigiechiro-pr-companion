@@ -61,6 +61,12 @@ public class DiagnosticController implements EmplacementNavigation {
     private ListView<String> listeEvenements;
 
     @FXML
+    private Label lblFenetreNuit;
+
+    @FXML
+    private Label lblAlerteHorsNuit;
+
+    @FXML
     private Label lblGps;
 
     @FXML
@@ -89,16 +95,29 @@ public class DiagnosticController implements EmplacementNavigation {
         viewModel.mesures().addListener((ListChangeListener<MesureClimatique>) changement -> majGraphe());
         majGraphe();
 
+        // Encart cohérence horaires (#548) : la fenêtre nocturne réelle quand elle est calculable.
+        lblFenetreNuit.textProperty().bind(viewModel.fenetreNuitProperty());
+        lblFenetreNuit.visibleProperty().bind(viewModel.coherenceHoraireDisponibleProperty());
+        lblFenetreNuit.managedProperty().bind(viewModel.coherenceHoraireDisponibleProperty());
+
+        // Alerte « hors nuit » : visible seulement quand un écart est détecté (texte non vide).
+        lblAlerteHorsNuit.textProperty().bind(viewModel.alerteHorsNuitProperty());
+        var horsNuit = viewModel.alerteHorsNuitProperty().isNotEmpty();
+        lblAlerteHorsNuit.visibleProperty().bind(horsNuit);
+        lblAlerteHorsNuit.managedProperty().bind(horsNuit);
+
         lblGps.textProperty()
                 .bind(Bindings.createStringBinding(
                         () -> viewModel.gpsDisponibleProperty().get()
-                                ? "📍 GPS du point disponible (cohérence horaires possible)."
+                                ? "📍 GPS du point disponible, mais horaires incomplets : cohérence horaires indisponible."
                                 : "📍 GPS du point non renseigné : cohérence horaires indisponible.",
                         viewModel.gpsDisponibleProperty()));
-        // La note GPS n'a de sens qu'une fois un diagnostic chargé : masquée à l'erreur / au démarrage.
+        // La note GPS n'explique l'absence d'encart qu'une fois un diagnostic chargé sans fenêtre calculée.
         var diagnosticCharge = viewModel.enregistreurProperty().isNotEmpty();
-        lblGps.visibleProperty().bind(diagnosticCharge);
-        lblGps.managedProperty().bind(diagnosticCharge);
+        var coherenceIndisponible = diagnosticCharge.and(
+                viewModel.coherenceHoraireDisponibleProperty().not());
+        lblGps.visibleProperty().bind(coherenceIndisponible);
+        lblGps.managedProperty().bind(coherenceIndisponible);
 
         lblMessage.textProperty().bind(viewModel.messageProperty());
         var messagePresent = viewModel.messageProperty().isNotEmpty();

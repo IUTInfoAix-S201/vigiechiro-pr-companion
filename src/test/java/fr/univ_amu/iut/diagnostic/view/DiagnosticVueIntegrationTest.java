@@ -13,6 +13,7 @@ import fr.univ_amu.iut.commun.view.NavigationDeTestModule;
 import fr.univ_amu.iut.commun.viewmodel.ContextePassage;
 import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
 import fr.univ_amu.iut.diagnostic.model.AnalyseAnomalies;
+import fr.univ_amu.iut.diagnostic.model.CoherenceHoraire;
 import fr.univ_amu.iut.diagnostic.model.Diagnostic;
 import fr.univ_amu.iut.diagnostic.model.MesureClimatique;
 import fr.univ_amu.iut.diagnostic.model.SerieClimatique;
@@ -225,7 +226,8 @@ class DiagnosticVueIntegrationTest {
                 43.5,
                 5.4,
                 LocalDateTime.of(2026, 6, 23, 8, 0),
-                8.5);
+                8.5,
+                CoherenceHoraire.indisponible());
     }
 
     /// Diagnostic R20 : aucun relevé climatique rattaché, GPS non renseigné, journal sans anomalie.
@@ -239,6 +241,7 @@ class DiagnosticVueIntegrationTest {
                 null,
                 null,
                 LocalDateTime.of(2026, 6, 24, 8, 0),
-                null);
+                null,
+                CoherenceHoraire.indisponible());
     }
 }

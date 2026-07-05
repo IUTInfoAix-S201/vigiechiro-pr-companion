@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [1.107.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.106.0...v1.107.0) (2026-07-05)
+
+
+### Features
+
+* **commun:** ephemeride solaire locale NOAA (lever/coucher) ([#548](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/548)) ([#585](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/585)) ([889d428](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/889d4284001270311392dd3dae2d63334a9c3c83))
+
 # [1.106.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.105.0...v1.106.0) (2026-07-05)
 
 

@@ -424,5 +424,27 @@ class AudioViewModelTest {
             assertThat(vm.observationsFiltrees()).hasSize(2);
             assertThat(vm.comptageProperty().get().total()).isEqualTo(2);
         }
+
+        @Test
+        @DisplayName("Filtre qui masque tout : l'indice d'état vide distingue « filtres » de « source vide » (#506)")
+        void filtre_masque_tout_message_dedie() {
+            when(service.taxonsDisponibles()).thenReturn(List.of());
+            when(service.lignesAudioReferences("u-1"))
+                    .thenReturn(List.of(ligne(1, 10, "Pippip", "Pippip", StatutObservation.VALIDEE, true)));
+
+            AudioViewModel vm = vm();
+            vm.ouvrirSur(new SourceObservations.References("u-1"));
+            // Source non vide + affichage non vide → aucun indice d'état vide.
+            assertThat(vm.messageProperty().get()).isEmpty();
+
+            // Un filtre qui ne laisse rien : message dédié « filtres », pas le message « source vide ».
+            vm.filtres().definir("statut", ligne -> ligne.statut() == StatutObservation.NON_TOUCHEE);
+            assertThat(vm.observationsFiltrees()).isEmpty();
+            assertThat(vm.messageProperty().get()).isEqualTo("Aucun résultat pour les filtres actifs.");
+
+            // Retirer le filtre : l'indice disparaît (rien à signaler).
+            vm.filtres().definir("statut", null);
+            assertThat(vm.messageProperty().get()).isEmpty();
+        }
     }
 }

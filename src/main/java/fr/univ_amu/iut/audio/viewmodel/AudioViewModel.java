@@ -77,18 +77,22 @@ public class AudioViewModel {
     private final ReadOnlyObjectWrapper<ComptageAudio> comptage =
             new ReadOnlyObjectWrapper<>(this, "comptage", ComptageAudio.VIDE);
 
-    /// Filtres **composables** (#470) appliqués à [#observationsFiltrees] ; à chaque changement, les
-    /// compteurs sont recalculés sur le **sous-ensemble affiché** (callback). Déclaré après [#comptage] car
-    /// le callback le référence.
-    private final FiltresAudio filtres =
-            new FiltresAudio(observationsFiltrees, () -> comptage.set(ComptageAudio.de(observationsFiltrees)));
-
     private final ReadOnlyStringWrapper detail = new ReadOnlyStringWrapper(this, "detail", "");
 
     /// Messagerie de la vue : indice d'**état vide** (placeholder gris) et **retour d'opération** (bandeau
     /// coloré par sévérité), deux canaux distincts pour qu'une erreur d'import ne soit plus noyée dans le
     /// placeholder « aucune observation ». Voir [MessagesAudio].
     private final MessagesAudio messages = new MessagesAudio();
+
+    /// Filtres **composables** (#470) appliqués à [#observationsFiltrees]. À chaque changement, le callback
+    /// recalcule les **compteurs** sur le sous-ensemble affiché **et** l'**indice d'état vide** (distingue
+    /// « source sans observation » de « filtres qui masquent tout »). Déclaré après ses dépendances
+    /// (`comptage`, `messages`, `source`) que le callback référence.
+    private final FiltresAudio filtres = new FiltresAudio(observationsFiltrees, () -> {
+        comptage.set(ComptageAudio.de(observationsFiltrees));
+        messages.majEtatVide(
+                observations.isEmpty(), observationsFiltrees.isEmpty(), ResolveurSourceAudio.messageVide(source));
+    });
 
     public AudioViewModel(ServiceValidation service, ServiceBibliotheque bibliotheque) {
         this.service = Objects.requireNonNull(service, "service");
@@ -234,8 +238,9 @@ public class AudioViewModel {
         List<LigneObservationAudio> lignes = resolveur.lignes(source);
         observations.setAll(lignes);
         reselectionner(observationSelectionnee);
-        filtres.appliquer(); // ré-applique les filtres actifs et recompte sur le sous-ensemble affiché
-        messages.majEtatVide(lignes.isEmpty(), ResolveurSourceAudio.messageVide(source));
+        // Ré-applique les filtres actifs ; le callback recompte ET met à jour l'indice d'état vide (source
+        // vide vs filtres qui masquent tout) sur le sous-ensemble affiché.
+        filtres.appliquer();
     }
 
     /// Repositionne la sélection après un rechargement : sur la ligne de même identifiant si elle existe

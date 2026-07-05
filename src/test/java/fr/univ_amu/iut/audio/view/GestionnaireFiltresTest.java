@@ -42,7 +42,9 @@ class GestionnaireFiltresTest {
         puces = new FlowPane();
         ObservableList<LigneObservationAudio> source = FXCollections.observableArrayList(
                 ligne(1, "Pippip", "PaRec_1.wav", StatutObservation.NON_TOUCHEE),
-                ligne(2, "Nyclei", "PaRec_2.wav", StatutObservation.VALIDEE));
+                ligne(2, "Nyclei", "PaRec_2.wav", StatutObservation.VALIDEE),
+                // Observation CORRIGÉE : Tadarida disait « Bruit », l'observateur a retenu « Grand Rhinolophe ».
+                ligneCorrigee(3, "Bruit", "Rhifer", "Grand Rhinolophe", "PaRec_3.wav"));
         affichees = new FilteredList<>(source);
         FiltresAudio filtres = new FiltresAudio(affichees, () -> {});
         gestionnaire = new GestionnaireFiltres(recherche, menu, puces, filtres, List.of(CriteresAudio.statut()));
@@ -53,7 +55,7 @@ class GestionnaireFiltresTest {
     @Test
     @DisplayName("« + Filtre » ajoute la puce Statut (À revoir par défaut), filtre, et vide le menu ; ✕ restaure")
     void ajouter_puis_retirer_la_puce_statut(FxRobot robot) {
-        assertThat(affichees).hasSize(2);
+        assertThat(affichees).hasSize(3);
         assertThat(menu.getItems()).extracting(MenuItem::getText).containsExactly("Statut");
         assertThat(puces.getChildren()).isEmpty();
 
@@ -65,7 +67,7 @@ class GestionnaireFiltresTest {
 
         // Retirer la puce (✕) → tout revisible ; le critère revient au menu.
         robot.interact(() -> boutonRetirer().fire());
-        assertThat(affichees).hasSize(2);
+        assertThat(affichees).hasSize(3);
         assertThat(menu.getItems()).hasSize(1);
         assertThat(puces.getChildren()).isEmpty();
     }
@@ -76,7 +78,18 @@ class GestionnaireFiltresTest {
         robot.interact(() -> recherche.setText("nyclei"));
         assertThat(affichees).extracting(LigneObservationAudio::idObservation).containsExactly(2L);
         robot.interact(() -> recherche.clear());
-        assertThat(affichees).hasSize(2);
+        assertThat(affichees).hasSize(3);
+    }
+
+    @Test
+    @DisplayName("Recherche texte : trouve l'espèce RETENUE d'une observation corrigée (taxon + vernaculaire)")
+    void recherche_texte_espece_corrigee(FxRobot robot) {
+        // La ligne 3 est « Bruit » côté Tadarida mais corrigée en « Grand Rhinolophe » (code Rhifer) :
+        // chercher l'espèce retenue doit la trouver, même si Tadarida ne l'a pas proposée.
+        robot.interact(() -> recherche.setText("rhinolophe"));
+        assertThat(affichees).extracting(LigneObservationAudio::idObservation).containsExactly(3L);
+        robot.interact(() -> recherche.setText("rhifer")); // code taxon observateur
+        assertThat(affichees).extracting(LigneObservationAudio::idObservation).containsExactly(3L);
     }
 
     @Test
@@ -89,7 +102,7 @@ class GestionnaireFiltresTest {
         assertThat(affichees).isEmpty();
 
         robot.interact(() -> gestionnaire.reinitialiser());
-        assertThat(affichees).hasSize(2);
+        assertThat(affichees).hasSize(3);
         assertThat(puces.getChildren()).isEmpty();
         assertThat(recherche.getText()).isEmpty();
     }
@@ -118,6 +131,35 @@ class GestionnaireFiltresTest {
                 45,
                 null,
                 taxon,
+                fichier,
+                0.2,
+                0.4);
+    }
+
+    /// Observation **corrigée** : Tadarida a proposé `taxonTadarida`, l'observateur a retenu le taxon
+    /// `codeObservateur` (vernaculaire `nomEspece`). Sert à vérifier que la recherche trouve l'espèce
+    /// **retenue** (côté observateur), pas seulement la proposition Tadarida.
+    private static LigneObservationAudio ligneCorrigee(
+            long id, String taxonTadarida, String codeObservateur, String nomEspece, String fichier) {
+        return new LigneObservationAudio(
+                id,
+                10 + id,
+                7L,
+                1,
+                "2026-06-20",
+                "640380",
+                "A1",
+                "Site",
+                taxonTadarida,
+                0.9,
+                codeObservateur,
+                0.95,
+                StatutObservation.CORRIGEE,
+                false,
+                null,
+                45,
+                nomEspece,
+                taxonTadarida,
                 fichier,
                 0.2,
                 0.4);

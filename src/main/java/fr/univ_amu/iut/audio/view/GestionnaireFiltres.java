@@ -104,13 +104,17 @@ final class GestionnaireFiltres {
         reconstruireMenu();
     }
 
-    /// Vrai si un des champs cherchables (fichier, taxon Tadarida, commentaire) contient `texte`
-    /// (comparaison **insensible casse/accents**).
+    /// Vrai si un des champs cherchables contient `texte` (comparaison **insensible casse/accents**) :
+    /// fichier, **espèce retenue** (taxon + vernaculaire observateur `nomEspece`, ou Tadarida à défaut) et
+    /// commentaire. On inclut `taxonObservateur`/`nomEspece` pour qu'une observation **corrigée** vers une
+    /// autre espèce (visible en « Votre taxon ») soit trouvable en cherchant cette espèce.
     private static boolean correspond(LigneObservationAudio ligne, String texte) {
         String aiguille = NormalisationTexte.normaliser(texte);
         return contient(ligne.nomFichier(), aiguille)
                 || contient(ligne.taxonTadarida(), aiguille)
                 || contient(ligne.nomTadarida(), aiguille)
+                || contient(ligne.taxonObservateur(), aiguille)
+                || contient(ligne.nomEspece(), aiguille)
                 || contient(ligne.commentaire(), aiguille);
     }
 

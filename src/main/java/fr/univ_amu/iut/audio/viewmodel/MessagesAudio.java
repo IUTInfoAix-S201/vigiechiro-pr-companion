@@ -21,6 +21,9 @@ final class MessagesAudio {
     /// Séparateur des segments du résumé d'import (« … · … · … »).
     private static final String SEPARATEUR = " · ";
 
+    /// Indice affiché quand la source a des observations mais que les **filtres actifs les masquent toutes**.
+    private static final String AUCUN_RESULTAT_FILTRE = "Aucun résultat pour les filtres actifs.";
+
     private final ReadOnlyStringWrapper etatVide = new ReadOnlyStringWrapper(this, "etatVide", "");
     private final ReadOnlyObjectWrapper<RetourOperation> retour =
             new ReadOnlyObjectWrapper<>(this, "retour", RetourOperation.AUCUN);
@@ -35,9 +38,15 @@ final class MessagesAudio {
         return retour.getReadOnlyProperty();
     }
 
-    /// Met à jour l'indice d'état vide : `texteSiVide` quand la table est vide, rien sinon.
-    void majEtatVide(boolean vide, String texteSiVide) {
-        etatVide.set(vide ? texteSiVide : "");
+    /// Met à jour l'indice d'état vide (placeholder) selon le cas : rien si l'affichage n'est **pas** vide ;
+    /// sinon `messageSource` si la **source** elle-même est vide, ou « Aucun résultat pour les filtres
+    /// actifs. » si la source a des observations mais que les **filtres les masquent toutes** (#506).
+    void majEtatVide(boolean sourceVide, boolean affichageVide, String messageSource) {
+        if (!affichageVide) {
+            etatVide.set("");
+        } else {
+            etatVide.set(sourceVide ? messageSource : AUCUN_RESULTAT_FILTRE);
+        }
     }
 
     void succes(String texte) {

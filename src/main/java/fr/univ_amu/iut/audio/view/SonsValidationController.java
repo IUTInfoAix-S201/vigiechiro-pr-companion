@@ -62,6 +62,9 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
     private final OuvrirAnalyse ouvrirAnalyse;
     private final OuvrirMultisite ouvrirMultisite;
 
+    /// Mémoire de session (tri, #484) : conserve l'état de la table entre deux ouvertures de la vue.
+    private final MemoireRevueAudio memoire;
+
     /// Source courante, mémorisée pour adapter colonnes / actions / fil d'Ariane.
     private SourceObservations source;
 
@@ -197,12 +200,14 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
             OuvrirSite ouvrirSite,
             OuvrirPassage ouvrirPassage,
             OuvrirAnalyse ouvrirAnalyse,
-            OuvrirMultisite ouvrirMultisite) {
+            OuvrirMultisite ouvrirMultisite,
+            MemoireRevueAudio memoire) {
         this.viewModel = Objects.requireNonNull(viewModel, "viewModel");
         this.ouvrirSite = Objects.requireNonNull(ouvrirSite, "ouvrirSite");
         this.ouvrirPassage = Objects.requireNonNull(ouvrirPassage, "ouvrirPassage");
         this.ouvrirAnalyse = Objects.requireNonNull(ouvrirAnalyse, "ouvrirAnalyse");
         this.ouvrirMultisite = Objects.requireNonNull(ouvrirMultisite, "ouvrirMultisite");
+        this.memoire = Objects.requireNonNull(memoire, "memoire");
     }
 
     /// Câble chaque colonne à son champ de la ligne (valeur affichée), ses cellules personnalisées (fichier
@@ -273,6 +278,8 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
         // Revue au clavier (#478) : Entrée = valider, R = référence, N = prochaine « À revoir » ; ↑/↓ =
         // navigation native. Entrée/R passent par actionsSelection (unitaire si 1 ligne, lot si plusieurs).
         RevueClavier.installer(tableObservations, viewModel, actionsSelection);
+        // Mémoire de session (#484) : restaure le tri de la dernière ouverture et le re-mémorise à la fermeture.
+        memoire.installer(tableObservations);
         tableObservations
                 .getSelectionModel()
                 .selectedItemProperty()
@@ -309,18 +316,9 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
 
         resumeStatut.bind(Bindings.createStringBinding(this::resumeStatutTexte, viewModel.comptageProperty()));
 
-        // Vue audio (composant fourni, E7.S3) : normalisations + expansion ×10 + source liée à la sélection
-        // + libération du clip hors scène (détail dans ConfigurationAudioView).
-        ConfigurationAudioView.installer(audioView, viewModel.cheminAudioCourantProperty());
-        // Repérage du cri sélectionné (#482) : surligne la fenêtre [début, fin] sur l'onde et le
-        // spectrogramme (emphase) et y positionne la lecture (seek). Détail dans RepereCriAudio.
-        RepereCriAudio.installer(audioView, viewModel.selectionProperty());
-        // Grandeurs acoustiques (#500) : FME / fréq. terminale calculées paresseusement par l'audio-view
-        // pour le cri sélectionné, colonnes peuplées au fil de la navigation (détail dans le helper).
-        MetriquesAcoustiquesAudio.installer(
-                audioView, viewModel.selectionProperty(), tableObservations, colFme, colFreqTerminale);
-        // Options de lecture (#483) : auto-lecture à la sélection (par défaut) + boucle, en tête du menu ☰.
-        LecteurAudio.installer(audioView, menuActions);
+        // Panneau d'écoute : config AudioView (normalisations, expansion ×10, source, dispose) + repérage du
+        // cri (#482) + métriques FME/fréq. terminale (#500) + options de lecture (#483). Détail dans le helper.
+        PanneauEcouteAudio.installer(audioView, viewModel, tableObservations, colFme, colFreqTerminale, menuActions);
 
         choixMode.getItems().setAll(ModeRevue.values());
         choixMode.setConverter(libelleConverter(mode -> mode == null ? "" : libelleMode(mode)));

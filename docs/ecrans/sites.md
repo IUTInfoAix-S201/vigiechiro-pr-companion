@@ -32,6 +32,10 @@ création, dernière nuit importée, nombre de passages), ses **points d'écoute
 
 ![Le détail d'un site : bandeau d'identité, points d'écoute et tableau des passages.](../assets/captures/apercu-sites-detail.png)
 
+Le bouton **Modifier** (bandeau d'identité) ouvre une fenêtre pour **éditer la fiche du site** :
+numéro de carré, nom, protocole et commentaire. Pratique pour corriger une saisie ou compléter le
+site après coup, sans repasser par sa création.
+
 - **Points d'écoute** : une carte par point, avec sa description, son **statut GPS** et le nombre de
   passages rattachés. Quand les coordonnées sont renseignées, le lien **« ✓ GPS — voir sur la carte »**
   ouvre la **carte multi-sites centrée sur ce point** (où le mode édition permet de corriger sa

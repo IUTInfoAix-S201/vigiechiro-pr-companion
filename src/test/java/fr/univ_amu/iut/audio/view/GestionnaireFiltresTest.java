@@ -168,8 +168,38 @@ class GestionnaireFiltresTest {
         assertThat(vues).extracting(LigneObservationAudio::idObservation).containsExactly(2L);
     }
 
+    @Test
+    @DisplayName("Critère Références : booléen sans éditeur ; activé, seules les observations en référence restent")
+    void filtre_references(FxRobot robot) {
+        ObservableList<LigneObservationAudio> source = FXCollections.observableArrayList(
+                ligne(1, "Pippip", "PaRec_1.wav", StatutObservation.VALIDEE), // pas en référence
+                ligneReference(2, "Nyclei", "PaRec_2.wav")); // en référence
+        FilteredList<LigneObservationAudio> vues = new FilteredList<>(source);
+        FiltresAudio filtresLocaux = new FiltresAudio(vues, () -> {});
+        MenuButton menuLocal = new MenuButton();
+        FlowPane pucesLocales = new FlowPane();
+        GestionnaireFiltres ignore = new GestionnaireFiltres(
+                new TextField(), menuLocal, pucesLocales, filtresLocaux, List.of(CriteresAudio.references()));
+        assertThat(ignore).isNotNull();
+
+        // Ajouter la puce Références : critère booléen (puce = Label + ✕, sans éditeur) → filtre actif.
+        robot.interact(() -> menuLocal.getItems().get(0).fire());
+        assertThat(((HBox) pucesLocales.getChildren().get(0)).getChildren()).hasSize(2);
+        assertThat(vues).extracting(LigneObservationAudio::idObservation).containsExactly(2L);
+
+        // Retirer la puce → tout redevient visible.
+        robot.interact(() -> boutonRetirerDe(pucesLocales).fire());
+        assertThat(vues).hasSize(2);
+    }
+
     private Button boutonRetirer() {
         return (Button) puces.lookupAll(".puce-filtre-retirer").iterator().next();
+    }
+
+    /// Le bouton ✕ est toujours le **dernier** enfant de la puce (après un éventuel éditeur).
+    private static Button boutonRetirerDe(FlowPane puces) {
+        HBox puce = (HBox) puces.getChildren().get(0);
+        return (Button) puce.getChildren().get(puce.getChildren().size() - 1);
     }
 
     /// L'éditeur d'un critère à liste déroulante est le 2e enfant de sa puce (Label, ComboBox, bouton ✕).
@@ -235,6 +265,33 @@ class GestionnaireFiltresTest {
                 45,
                 nomEspece,
                 taxonTadarida,
+                "Chiroptères",
+                fichier,
+                0.2,
+                0.4);
+    }
+
+    /// Observation **archivée en référence** (`is_reference` = true), pour le critère Références.
+    private static LigneObservationAudio ligneReference(long id, String taxon, String fichier) {
+        return new LigneObservationAudio(
+                id,
+                10 + id,
+                7L,
+                1,
+                "2026-06-20",
+                "640380",
+                "A1",
+                "Site",
+                taxon,
+                0.9,
+                null,
+                null,
+                StatutObservation.VALIDEE,
+                true,
+                null,
+                45,
+                null,
+                taxon,
                 "Chiroptères",
                 fichier,
                 0.2,

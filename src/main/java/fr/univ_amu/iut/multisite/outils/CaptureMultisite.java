@@ -38,6 +38,7 @@ import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ToggleButton;
@@ -109,6 +110,7 @@ public final class CaptureMultisite {
         rendreEcran(injecteur, sortie.resolve("apercu-multisite.png"));
         rendreEcranFiltre(injecteur, sortie.resolve("apercu-multisite-filtre.png"));
         rendreEcranEdition(injecteur, sortie.resolve("apercu-multisite-edition.png"));
+        rendreEcranCartePleine(injecteur, sortie.resolve("apercu-multisite-carte-pleine.png"));
         rendreModale(injecteur, sortie.resolve("apercu-multisite-vues.png"));
     }
 
@@ -156,6 +158,25 @@ public final class CaptureMultisite {
             editer.setSelected(true);
         }
         // 3) re-layout APRÈS pour que « 💾 » (devenu managed) soit pris en compte dans la capture.
+        vue.applyCss();
+        vue.layout();
+        capturerCarte(scene, fichier);
+    }
+
+    /// Rend l'écran **tableau replié / carte plein écran** (#347) : on actionne la poignée « Tableau ▶ »
+    /// (`#basculerTableau`) pour retirer le tableau du `SplitPane` et donner toute la largeur à la carte —
+    /// l'état où arrive « Voir sur la carte ». Le `applyCss/layout` préalable garantit que la poignée est
+    /// trouvable par `lookup` (comme pour le mode édition).
+    private static void rendreEcranCartePleine(Injector injecteur, Path fichier) throws IOException {
+        FXMLLoader loader = new FXMLLoader(MultisiteController.class.getResource(FXML));
+        loader.setControllerFactory(injecteur::getInstance);
+        Parent vue = loader.load();
+        Scene scene = new Scene(vue, 1100, 620);
+        vue.applyCss();
+        vue.layout();
+        if (scene.lookup("#boutonReplierTableau") instanceof Button replierTableau) {
+            replierTableau.fire(); // replie le tableau → carte plein écran
+        }
         vue.applyCss();
         vue.layout();
         capturerCarte(scene, fichier);

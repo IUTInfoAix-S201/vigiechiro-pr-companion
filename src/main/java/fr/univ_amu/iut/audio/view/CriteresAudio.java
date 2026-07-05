@@ -15,7 +15,7 @@ import javafx.util.StringConverter;
 
 /// Catalogue des **critères de filtrage** de la table audio (patron « à la Notion »). Chaque critère est
 /// une entrée du menu « + Filtre » qui s'ajoute comme puce. Pour l'instant : **Statut**, **Groupe**
-/// taxonomique et **Espèce** (taxon) ; les suivants — références, proba — s'ajouteront ici, un par PR.
+/// taxonomique, **Espèce** (taxon) et **Références** ; le suivant — proba — s'ajoutera ici, par PR.
 final class CriteresAudio {
 
     /// Groupe des chauves-souris (`taxonomic_group.name`, cf. #507) : sélection par défaut du critère
@@ -150,6 +150,30 @@ final class CriteresAudio {
                                         ? ligne -> true
                                         : ligne -> espece.code().equals(codeRetenu(ligne))));
                 return choix; // pas de présélection : filtre inactif tant qu'aucune espèce n'est choisie
+            }
+        };
+    }
+
+    /// Critère **Références seulement** (booléen) : ne garde que les observations archivées en référence
+    /// (`is_reference`). Critère **sans éditeur** — la simple présence de la puce active le filtre (#473),
+    /// son retrait le désactive. Libellé en texte (l'étoile ⭐ ne rend pas dans toutes les polices, cf.
+    /// [CellulesAudio] ; l'indication visuelle reste la colonne-icône dorée de la table).
+    static CritereFiltre references() {
+        return new CritereFiltre() {
+            @Override
+            public String nom() {
+                return "references";
+            }
+
+            @Override
+            public String libelle() {
+                return "Références";
+            }
+
+            @Override
+            public Node editeur(Consumer<Predicate<LigneObservationAudio>> applique) {
+                applique.accept(LigneObservationAudio::reference); // filtre actif dès l'ajout de la puce
+                return null; // booléen : pas d'éditeur, la présence de la puce suffit
             }
         };
     }

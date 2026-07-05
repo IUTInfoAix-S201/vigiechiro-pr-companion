@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [1.84.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.83.0...v1.84.0) (2026-07-05)
+
+
+### Features
+
+* **audio:** filtres « à la Notion » — socle composable + barre (statut + recherche) ([#470](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/470)) ([#506](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/506)) ([ef52041](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/ef5204194695ae196b0fc2964c0fd5eddf4284d1)), closes [471-#475](https://github.com/471-/issues/475) [470/#471](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/471)
+
 # [1.83.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.82.0...v1.83.0) (2026-07-05)
 
 

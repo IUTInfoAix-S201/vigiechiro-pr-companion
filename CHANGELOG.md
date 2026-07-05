@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [1.112.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.111.0...v1.112.0) (2026-07-05)
+
+
+### Features
+
+* **audio:** filtre Heure — defaut = coucher/lever du soleil du passage ([#549](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/549)) ([#594](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/594)) ([d73b458](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/d73b4583e7bbce03ba8cd35d50920621e376a22e))
+
 # [1.111.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.110.0...v1.111.0) (2026-07-05)
 
 

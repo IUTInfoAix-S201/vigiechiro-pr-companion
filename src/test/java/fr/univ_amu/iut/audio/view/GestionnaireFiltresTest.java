@@ -3,6 +3,8 @@ package fr.univ_amu.iut.audio.view;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import fr.univ_amu.iut.commun.model.PlageNuit;
+import fr.univ_amu.iut.commun.view.DescripteurCritere;
+import fr.univ_amu.iut.commun.view.DescripteurFiltre;
 import fr.univ_amu.iut.commun.view.GestionnaireFiltres;
 import fr.univ_amu.iut.commun.viewmodel.Filtres;
 import fr.univ_amu.iut.validation.model.LigneObservationAudio;
@@ -304,6 +306,47 @@ class GestionnaireFiltresTest {
 
         assertThat(comboHeure(pucesLocales, 1).getValue()).isEqualTo(19);
         assertThat(comboHeure(pucesLocales, 3).getValue()).isEqualTo(7);
+    }
+
+    @Test
+    @DisplayName("#537 : decrire() produit un descripteur sémantique transportable des filtres actifs")
+    void decrire_produit_un_descripteur_semantique(FxRobot robot) {
+        ObservableList<LigneObservationAudio> source =
+                FXCollections.observableArrayList(ligne(1, "Pippip", "PaRec_1.wav", StatutObservation.VALIDEE));
+        FilteredList<LigneObservationAudio> vues = new FilteredList<>(source);
+        Filtres<LigneObservationAudio> filtresLocaux = new Filtres<>(vues, () -> {});
+        MenuButton menuLocal = new MenuButton();
+        FlowPane pucesLocales = new FlowPane();
+        TextField rechercheLocale = new TextField();
+        GestionnaireFiltres<LigneObservationAudio> gestion = new GestionnaireFiltres<>(
+                rechercheLocale,
+                menuLocal,
+                pucesLocales,
+                filtresLocaux,
+                List.of(
+                        CriteresAudio.statut(),
+                        CriteresAudio.probabilite(),
+                        CriteresAudio.heure(),
+                        CriteresAudio.references()),
+                CriteresAudio.rechercheTexte());
+
+        // Recherche texte + les 4 puces (ordre du menu : statut, proba, heure, références), valeurs par défaut.
+        robot.interact(() -> {
+            rechercheLocale.setText("bruant");
+            for (int i = 0; i < 4; i++) {
+                menuLocal.getItems().get(0).fire();
+            }
+        });
+
+        // Valeurs SÉMANTIQUES (pas des index d'IHM) : statut À revoir, proba 50 %, nuit 21→6, référence booléenne.
+        assertThat(gestion.decrire())
+                .isEqualTo(new DescripteurFiltre(
+                        "bruant",
+                        List.of(
+                                new DescripteurCritere("statut", List.of("NON_TOUCHEE")),
+                                new DescripteurCritere("proba", List.of("0.5")),
+                                new DescripteurCritere("heure", List.of("21", "6")),
+                                new DescripteurCritere("references", List.of()))));
     }
 
     private Button boutonRetirer() {

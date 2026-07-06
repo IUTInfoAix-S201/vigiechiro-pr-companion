@@ -74,6 +74,12 @@ final class CriteresAudio {
                 choix.setValue(StatutObservation.NON_TOUCHEE); // déclenche l'application initiale (À revoir)
                 return choix;
             }
+
+            @Override
+            public List<String> valeurCourante(Node editeur) {
+                Object valeur = ((ComboBox<?>) editeur).getValue();
+                return valeur == null ? List.of() : List.of(((StatutObservation) valeur).name());
+            }
         };
     }
 
@@ -104,6 +110,12 @@ final class CriteresAudio {
                                 groupe == null ? ligne -> true : ligne -> groupe.equals(ligne.groupe())));
                 choix.setValue(defaut(choix.getItems())); // déclenche l'application initiale
                 return choix;
+            }
+
+            @Override
+            public List<String> valeurCourante(Node editeur) {
+                Object valeur = ((ComboBox<?>) editeur).getValue();
+                return valeur == null ? List.of() : List.of((String) valeur);
             }
         };
     }
@@ -167,6 +179,12 @@ final class CriteresAudio {
                                         : ligne -> espece.code().equals(codeRetenu(ligne))));
                 return choix; // pas de présélection : filtre inactif tant qu'aucune espèce n'est choisie
             }
+
+            @Override
+            public List<String> valeurCourante(Node editeur) {
+                Object valeur = ((ComboBox<?>) editeur).getValue();
+                return valeur == null ? List.of() : List.of(((EspecePresente) valeur).code());
+            }
         };
     }
 
@@ -223,6 +241,12 @@ final class CriteresAudio {
                 applique.accept(auMoins(curseur.getValue())); // application initiale (défaut 50 %)
                 return new HBox(6, curseur, valeur);
             }
+
+            @Override
+            public List<String> valeurCourante(Node editeur) {
+                Slider curseur = (Slider) ((HBox) editeur).getChildren().get(0);
+                return List.of(Double.toString(curseur.getValue()));
+            }
         };
     }
 
@@ -273,6 +297,14 @@ final class CriteresAudio {
                         .addListener((obs, avant, apres) -> applique.accept(dansPlage(de.getValue(), a.getValue())));
                 applique.accept(dansPlage(de.getValue(), a.getValue())); // application initiale (nuit)
                 return new HBox(6.0, new Label("de"), de, new Label("à"), a);
+            }
+
+            @Override
+            public List<String> valeurCourante(Node editeur) {
+                HBox conteneur = (HBox) editeur;
+                int debut = (Integer) ((ComboBox<?>) conteneur.getChildren().get(1)).getValue();
+                int fin = (Integer) ((ComboBox<?>) conteneur.getChildren().get(3)).getValue();
+                return List.of(Integer.toString(debut), Integer.toString(fin));
             }
         };
     }

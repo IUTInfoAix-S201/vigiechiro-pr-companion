@@ -161,6 +161,22 @@ public final class GestionnaireFiltres<T> {
         }
     }
 
+    /// **Décrit** l'état courant des filtres sous une forme **sémantique et transportable** (#537 étape 2) :
+    /// recherche texte + valeur en clair de chaque puce active (via [CritereFiltre#valeurCourante]), dans
+    /// l'ordre d'ajout. À la différence de [#capturer()] (index de contrôles, mémoire de session #484), ce
+    /// descripteur est **réapplicable à une autre vue** partageant les mêmes clés de critères (base de
+    /// « Voir sur la carte », #476).
+    public DescripteurFiltre decrire() {
+        List<DescripteurCritere> criteresActifs = actifs.entrySet().stream()
+                .map(entree -> new DescripteurCritere(
+                        entree.getKey(),
+                        critereParNom(entree.getKey())
+                                .map(critere -> critere.valeurCourante(entree.getValue()))
+                                .orElseGet(List::of)))
+                .toList();
+        return new DescripteurFiltre(Objects.requireNonNullElse(recherche.getText(), ""), criteresActifs);
+    }
+
     private Optional<CritereFiltre<T>> critereParNom(String nom) {
         return criteres.stream().filter(critere -> critere.nom().equals(nom)).findFirst();
     }

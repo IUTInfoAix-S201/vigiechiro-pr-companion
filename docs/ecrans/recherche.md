@@ -26,6 +26,8 @@ Pour une **espèce**, le détail commence par son **taxon parent** (sa catégori
 suivi du carré / point, du numéro de passage et de la date. Ouvrir une entrée espèce mène au **passage** où
 elle a été relevée.
 
+![La recherche « pipistrelle » : le groupe « Espèces » liste les pipistrelles observées, chaque détail commençant par le taxon parent « Chiroptères ».](../assets/captures/apercu-recherche-especes.png)
+
 ## Naviguer au clavier
 
 La recherche se pilote **entièrement au clavier** :

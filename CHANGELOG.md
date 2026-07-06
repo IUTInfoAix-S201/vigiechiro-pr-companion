@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [1.115.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.114.0...v1.115.0) (2026-07-06)
+
+
+### Features
+
+* **filtres:** descripteur de filtre transportable ([#537](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/537) etape 2/5) ([#606](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/606)) ([9857fa9](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/9857fa9b808ef371a4e645df8b0d9a75cca0d40d)), closes [#476](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/476) [#484](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/484)
+
 # [1.114.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.113.0...v1.114.0) (2026-07-06)
 
 

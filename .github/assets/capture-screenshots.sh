@@ -13,35 +13,11 @@
 # Usage :
 #   .github/assets/capture-screenshots.sh
 #
-# Sorties (dans .github/assets/) :
-#   apercu-accueil.png              ecran d'accueil (chrome + cartes d'activites des features)
-#   apercu-sites-mes-sites.png      ecran d'accueil M-Sites (cartes des sites)
-#   apercu-sites-mes-sites-vide.png M-Sites etat initial (aucun site : onboarding « premier site »)
-#   apercu-sites-detail.png         M-Site-detail (fiche + points + tableau des passages)
-#   apercu-sites-detail-sans-passage.png  M-Site-detail d'un site sans passage (tableau vide)
-#   apercu-sites-modale-point.png   modale point : edition (champs pre-remplis)
-#   apercu-sites-modale-point-creation.png  modale point : creation (formulaire vierge)
-#   apercu-import-assistant.png     M-Import (assistant « Importer une nuit », cas standard)
-#   apercu-import-en-cours.png      M-Import (import en cours : barre de progression deterministe, form gele)
-#   apercu-import-melange.png       M-Import (cas « melange » : 2 enregistreurs detectes, avertissement non bloquant)
-#   apercu-import-incoherence.png   M-Import (cas « incoherence » : journal/releve en desaccord avec les WAV, serie + date)
-#   apercu-qualification-initial.png  M-Qualification (etat initial : selection generee, rien d'ecoute, sans verdict)
-#   apercu-qualification.png        M-Qualification (avance : sequences ecoutees, verdict OK pose)
-#   apercu-passage.png              M-Passage (pivot, statut Verifie : preparer le depot actif, validation verrouillee)
-#   apercu-passage-depose.png       M-Passage (pivot, statut Depose : depot fait, validation deverrouillee)
-#   apercu-passage-rattachement.png M-Passage (modale Modifier le rattachement : annee + n de passage)
-#   apercu-validation-import.png    M-Vision-Tadarida (etat d'entree : avant import, bouton import)
-#   apercu-validation-revue.png     M-Vision-Tadarida (revue : statuts varies + detail selectionne)
-#   apercu-lot-preparer.png         M-Lot (Verifie coherent : recap + dossier, preparer actif)
-#   apercu-lot-deposer.png          M-Lot (Pret a deposer : marquer depose actif)
-#   apercu-lot-alertes.png          M-Lot (Verifie incoherent : alertes de coherence R14)
-#   apercu-bibliotheque-vide.png    M-Bibliotheque (etat vide : aucun son de reference, export inactif)
-#   apercu-bibliotheque-sons.png    M-Bibliotheque (peuplee : sons de reference, detail + ecoute, export actif)
-#   apercu-multisite.png            M-Multisite (vue agregee : tableau complet, filtres, tri, export)
-#   apercu-multisite-filtre.png     M-Multisite (tableau filtre par verdict OK : resume recalcule)
-#   apercu-multisite-vues.png       M-Multisite (modale des vues sauvegardees, une vue selectionnee)
-#   apercu-diagnostic.png           M-Diagnostic (releve present : courbe climat + anomalies + GPS)
-#   apercu-diagnostic-sans-releve.png  M-Diagnostic (releve absent : absence signalee, anomalies seules)
+# Sorties (dans .github/assets/) : un ou plusieurs apercu-*.png par vue. La liste FAISANT FOI est le
+# manifeste .github/assets/captures.manifest (verifie en CI par check-captures.sh : chaque vue y a au
+# moins une capture, et chaque capture declaree existe). On ne duplique donc PAS ici l'enumeration des
+# fichiers (elle derivait) : chaque outil ci-dessous ecrit les PNG que son `main` produit, le manifeste
+# recense l'ensemble. Le tableau de correspondance vue <-> capture(s) vit dans le manifeste.
 set -euo pipefail
 
 ICI="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

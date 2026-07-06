@@ -32,11 +32,12 @@ ci-dessus, au statut « Vérifié »). Une fois la nuit **déposée**, elle se d
 
 ## Annuler le dépôt
 
-Sur un passage **déposé**, un bouton **Annuler le dépôt** permet de revenir en arrière : après
-confirmation, la nuit repasse du statut « Déposé » à « **Prêt à déposer** ». Les **validations Tadarida
-déjà saisies sont conservées** : annuler le dépôt ne touche pas votre travail de validation, il rouvre
-seulement l'étape de dépôt (par exemple pour corriger quelque chose avant de redéposer). Le bouton
-n'apparaît que lorsqu'il a un sens, c'est-à-dire sur un passage effectivement déposé.
+Sur un passage **déposé**, un bouton **Annuler le dépôt** (barre du haut, visible sur la capture ci-dessus)
+permet de revenir en arrière : après confirmation, la nuit repasse du statut « Déposé » à « **Prêt à
+déposer** ». Les **validations Tadarida déjà saisies sont conservées** : annuler le dépôt ne touche pas
+votre travail de validation, il rouvre seulement l'étape de dépôt (par exemple pour corriger quelque chose
+avant de redéposer). Le bouton n'apparaît que lorsqu'il a un sens, c'est-à-dire sur un passage
+effectivement déposé.
 
 ## Modifier le rattachement
 

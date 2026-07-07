@@ -3,8 +3,6 @@ package fr.univ_amu.iut.multisite.view;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -18,7 +16,6 @@ import fr.univ_amu.iut.commun.model.Verdict;
 import fr.univ_amu.iut.commun.view.OuvrirAudio;
 import fr.univ_amu.iut.commun.view.OuvrirPassage;
 import fr.univ_amu.iut.multisite.model.CarreAgrege;
-import fr.univ_amu.iut.multisite.model.FiltresMultisite;
 import fr.univ_amu.iut.multisite.model.LignePassage;
 import fr.univ_amu.iut.multisite.model.PointAgrege;
 import fr.univ_amu.iut.multisite.model.ServiceMultisite;
@@ -47,7 +44,6 @@ import javafx.stage.Window;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.testfx.api.FxRobot;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
@@ -60,10 +56,10 @@ import org.testfx.util.WaitForAsyncUtils;
 /// mort) : autant de manques **invisibles** aux tests canoniques qui passent par le VM.
 ///
 /// Ces tests forcent donc une vraie **interaction** sur chaque contrôle (`#choixVerdict`,
-/// `#champCarre`, `#champAnnee`, `#choixTri`, item « Vues » du menu `#menuActions`) et vérifient que le service est
-/// ré-interrogé avec le bon critère (R2/R3) ou que la navigation vers la modale est déclenchée
-/// (E5.S3). Complète [MultisiteViewTest] sans le dupliquer (statut, export, réinitialiser et
-/// double-clic y sont déjà couverts). Pas de base de données.
+/// `#champCarre`, `#champAnnee`, `#choixTri`, item « Vues » du menu `#menuActions`) et vérifient que le contrôle
+/// **filtre ou ordonne le tableau** (R2/R3 ; filtrage client-side en mémoire depuis #537) ou que la navigation
+/// vers la modale est déclenchée (E5.S3). Complète [MultisiteViewTest] sans le dupliquer (statut, export,
+/// réinitialiser et double-clic y sont déjà couverts). Pas de base de données.
 @ExtendWith(ApplicationExtension.class)
 class MultisiteVueIntegrationTest {
 
@@ -72,7 +68,18 @@ class MultisiteVueIntegrationTest {
     private MultisiteController controleur;
 
     private static LignePassage ligne(long id, String carre, String point, int annee, int numero, String date) {
-        return new LignePassage(id, carre, point, annee, numero, date, StatutWorkflow.DEPOSE, Verdict.OK);
+        return ligne(id, carre, point, annee, numero, date, Verdict.OK);
+    }
+
+    private static LignePassage ligne(
+            long id, String carre, String point, int annee, int numero, String date, Verdict verdict) {
+        return new LignePassage(id, carre, point, annee, numero, date, StatutWorkflow.DEPOSE, verdict);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static TableView<LignePassage> tableau(FxRobot robot) {
+        return (TableView<LignePassage>)
+                (TableView<?>) robot.lookup("#tableLignes").queryTableView();
     }
 
     @Start
@@ -80,10 +87,10 @@ class MultisiteVueIntegrationTest {
         service = mock(ServiceMultisite.class);
         navigation = mock(NavigationMultisite.class);
         OuvrirPassage ouvrirPassage = mock(OuvrirPassage.class);
-        when(service.listerPassages(anyString(), any(), any()))
+        when(service.listerPassages(anyString()))
                 .thenReturn(List.of(
                         ligne(42L, "640380", "A1", 2026, 10, "2026-06-21"),
-                        ligne(7L, "640381", "B2", 2025, 3, "2025-07-02")));
+                        ligne(7L, "640381", "B2", 2025, 3, "2025-07-02", Verdict.DOUTEUX)));
         // Carte (#152) : un carré avec un point géolocalisé → un marqueur attendu sur la carte.
         when(service.agregerPourCarte(anyString()))
                 .thenReturn(List.of(new CarreAgrege(
@@ -270,12 +277,12 @@ class MultisiteVueIntegrationTest {
     void clic_carre_filtre_le_tableau(FxRobot robot) {
         Node rectangle = robot.lookup(".carte-carre").query();
         robot.interact(() -> rectangle.getOnMouseClicked().handle(null));
+        WaitForAsyncUtils.waitForFxEvents();
 
-        ArgumentCaptor<FiltresMultisite> capteur = ArgumentCaptor.forClass(FiltresMultisite.class);
-        verify(service, atLeastOnce()).listerPassages(eq("u-1"), capteur.capture(), any());
-        assertThat(capteur.getAllValues())
-                .as("le filtre carré du tableau prend le n° du carré cliqué")
-                .anyMatch(filtre -> "640380".equals(filtre.numeroCarre()));
+        assertThat(tableau(robot).getItems())
+                .as("le tableau ne montre plus que le carré cliqué (filtrage en mémoire)")
+                .extracting(LignePassage::numeroCarre)
+                .containsOnly("640380");
     }
 
     @Test
@@ -307,46 +314,51 @@ class MultisiteVueIntegrationTest {
     }
 
     @Test
-    @DisplayName("Choisir un filtre de verdict ré-interroge le service avec ce critère")
-    void filtre_verdict_re_interroge_le_service(FxRobot robot) {
+    @DisplayName("Choisir un filtre de verdict filtre le tableau sur ce critère")
+    void filtre_verdict_filtre_le_tableau(FxRobot robot) {
         ComboBox<?> choixVerdict = robot.lookup("#choixVerdict").queryAs(ComboBox.class);
         // Items : [Tous(null), A_VERIFIER, OK, DOUTEUX, A_JETER] → index 3 = DOUTEUX.
         robot.interact(() -> choixVerdict.getSelectionModel().select(3));
+        WaitForAsyncUtils.waitForFxEvents();
 
-        ArgumentCaptor<FiltresMultisite> capteur = ArgumentCaptor.forClass(FiltresMultisite.class);
-        verify(service, atLeastOnce()).listerPassages(eq("u-1"), capteur.capture(), any());
-        assertThat(capteur.getAllValues()).anyMatch(filtre -> filtre.verdict() == Verdict.DOUTEUX);
+        assertThat(tableau(robot).getItems())
+                .as("seule la ligne au verdict DOUTEUX reste")
+                .extracting(LignePassage::verdict)
+                .containsOnly(Verdict.DOUTEUX);
     }
 
     @Test
-    @DisplayName("Saisir un n° de carré et valider (Entrée) ré-interroge le service avec ce critère")
-    void filtre_carre_valide_re_interroge_le_service(FxRobot robot) {
+    @DisplayName("Saisir un n° de carré et valider (Entrée) filtre le tableau sur ce critère")
+    void filtre_carre_valide_filtre_le_tableau(FxRobot robot) {
         robot.clickOn("#champCarre").write("640380").type(KeyCode.ENTER);
+        WaitForAsyncUtils.waitForFxEvents();
 
-        ArgumentCaptor<FiltresMultisite> capteur = ArgumentCaptor.forClass(FiltresMultisite.class);
-        verify(service, atLeastOnce()).listerPassages(eq("u-1"), capteur.capture(), any());
-        assertThat(capteur.getAllValues()).anyMatch(filtre -> "640380".equals(filtre.numeroCarre()));
+        assertThat(tableau(robot).getItems())
+                .extracting(LignePassage::numeroCarre)
+                .containsOnly("640380");
     }
 
     @Test
-    @DisplayName("Saisir une année et valider (Entrée) ré-interroge le service avec ce critère")
-    void filtre_annee_valide_re_interroge_le_service(FxRobot robot) {
+    @DisplayName("Saisir une année et valider (Entrée) filtre le tableau sur ce critère")
+    void filtre_annee_valide_filtre_le_tableau(FxRobot robot) {
         robot.clickOn("#champAnnee").write("2025").type(KeyCode.ENTER);
+        WaitForAsyncUtils.waitForFxEvents();
 
-        ArgumentCaptor<FiltresMultisite> capteur = ArgumentCaptor.forClass(FiltresMultisite.class);
-        verify(service, atLeastOnce()).listerPassages(eq("u-1"), capteur.capture(), any());
-        assertThat(capteur.getAllValues())
-                .anyMatch(filtre -> filtre.annee() != null && filtre.annee().intValue() == 2025);
+        assertThat(tableau(robot).getItems()).extracting(LignePassage::annee).containsOnly(2025);
     }
 
     @Test
-    @DisplayName("Changer le sélecteur de tri ré-interroge le service avec ce tri")
-    void changer_le_tri_re_interroge_le_service(FxRobot robot) {
+    @DisplayName("Changer le sélecteur de tri ré-ordonne le tableau selon ce tri")
+    void changer_le_tri_re_ordonne_le_tableau(FxRobot robot) {
         ComboBox<?> choixTri = robot.lookup("#choixTri").queryAs(ComboBox.class);
         // Items = TriMultisite.values() : [PAR_SITE, PAR_ANNEE, ...] → index 1 = PAR_ANNEE.
         robot.interact(() -> choixTri.getSelectionModel().select(1));
+        WaitForAsyncUtils.waitForFxEvents();
 
-        verify(service, atLeastOnce()).listerPassages(eq("u-1"), any(), eq(TriMultisite.PAR_ANNEE));
+        assertThat(tableau(robot).getItems())
+                .as("tri par année croissante : 2025 (carré 640381) puis 2026 (carré 640380)")
+                .extracting(LignePassage::annee)
+                .containsExactly(2025, 2026);
     }
 
     @Test

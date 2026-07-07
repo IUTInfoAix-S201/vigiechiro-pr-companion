@@ -39,7 +39,7 @@ class ModaleVuesViewTest {
     @Start
     void start(Stage stage) throws Exception {
         service = mock(ServiceMultisite.class);
-        when(service.listerPassages(anyString(), any(), any())).thenReturn(List.of());
+        when(service.listerPassages(anyString())).thenReturn(List.of());
         when(service.listerVues())
                 .thenReturn(List.of(new SavedView(1L, "Déposés 2026", "{}"), new SavedView(2L, "Douteux", "{}")));
         viewModel = new MultisiteViewModel(service, mock(ServiceSites.class), "u-1");

@@ -21,4 +21,16 @@ public record ResultatImportMultiNuits(List<ResultatImport> parNuit) {
     public int nombreSequencesTotal() {
         return parNuit.stream().mapToInt(ResultatImport::nombreSequences).sum();
     }
+
+    /// Premier passage créé (nuit la plus ancienne), ou `null` si la liste est vide.
+    public ResultatImport premier() {
+        return parNuit.isEmpty() ? null : parNuit.getFirst();
+    }
+
+    /// Fichiers **rejetés** (#155) de **toutes** les nuits, formatés « nom — raison », pour M-Import.
+    public List<String> rejetsFormates() {
+        return parNuit.stream()
+                .flatMap(resultat -> resultat.rapport().rejetsFormates().stream())
+                .toList();
+    }
 }

@@ -5,10 +5,11 @@ import fr.univ_amu.iut.commun.model.Prefixe;
 import fr.univ_amu.iut.commun.viewmodel.NavigationViewModel;
 import fr.univ_amu.iut.importation.model.ExtracteurZip;
 import fr.univ_amu.iut.importation.model.JetonAnnulation;
+import fr.univ_amu.iut.importation.model.NuitAImporter;
 import fr.univ_amu.iut.importation.model.Progression;
 import fr.univ_amu.iut.importation.model.ResultatImport;
+import fr.univ_amu.iut.importation.model.ResultatImportMultiNuits;
 import fr.univ_amu.iut.importation.model.ServiceImport;
-import fr.univ_amu.iut.importation.model.StatutImportFichier;
 import fr.univ_amu.iut.sites.model.ServiceSites;
 import java.nio.file.Path;
 import java.util.List;
@@ -16,8 +17,6 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
-import javafx.beans.property.ReadOnlyDoubleProperty;
-import javafx.beans.property.ReadOnlyDoubleWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
@@ -80,24 +79,32 @@ public class ImportationViewModel {
     private final ReadOnlyObjectWrapper<EtatImport> etat = new ReadOnlyObjectWrapper<>(this, "etat", EtatImport.PRET);
     private final ReadOnlyObjectWrapper<ResultatImport> resultat = new ReadOnlyObjectWrapper<>(this, "resultat", null);
 
-    /// Progression déterminée de l'import en cours (#33) : fraction `[0, 1]` pour la barre et libellé
-    /// d'étape (« Transformation 45/191 »). Alimentées par [#appliquerProgression] sur le fil JavaFX.
-    private final ReadOnlyDoubleWrapper progression = new ReadOnlyDoubleWrapper(this, "progression", 0.0);
-    private final ReadOnlyStringWrapper messageProgression = new ReadOnlyStringWrapper(this, "messageProgression", "");
+    /// Résultat d'un import **multi-nuits** (un passage par nuit incluse), `null` hors de ce cas. La vue
+    /// s'en sert pour un récapitulatif « N passages créés ». Le [#resultatProperty()] mono-nuit pointe
+    /// alors sur la **première** nuit (compatibilité des consommateurs existants).
+    private final ReadOnlyObjectWrapper<ResultatImportMultiNuits> resultatNuits =
+            new ReadOnlyObjectWrapper<>(this, "resultatNuits", null);
+
+    /// Suivi de la **progression déterminée** de l'import en cours (#33/#146), extrait dans un collaborateur
+    /// dédié ([ProgressionImport]) : fraction `[0, 1]` + libellé d'étape avec ETA. La vue s'y lie via
+    /// [#progression()].
+    private final ProgressionImport progressionImport = new ProgressionImport();
 
     /// Pré-contrôle R5 proactif (#108) extrait dans un collaborateur dédié ([ControleNumeroPassage]) :
     /// signale qu'un n° de passage est déjà pris (bloque [#peutImporter()]) et propose le prochain libre.
     /// Recalculé à chaque changement de point / année / n° de passage du rattachement.
     private final ControleNumeroPassage controleNumeroPassage;
 
+    /// Coordination de l'import **multi-nuits** (#…) extraite dans un collaborateur dédié
+    /// ([CoordinationNuits]) : auto-numérotation des nuits incluses + préparation/exécution de la demande.
+    /// Il s'abonne lui-même au rattachement et à la table des nuits ; l'orchestrateur compose sa validité
+    /// dans `peutImporter`.
+    private final CoordinationNuits coordinationNuits;
+
     /// Dossier temporaire d'extraction d'un `.zip` choisi comme source (#139), à supprimer après import
     /// (succès ou échec) ou au changement de source ; `null` quand la source est un dossier déjà
     /// décompressé.
     private Path dossierTemporaireZip;
-
-    /// Horodatage (nanos) du début de l'opération longue en cours (import ou décompression), pour estimer
-    /// le **temps restant** (#146). Posé par marquerEnCours / marquerExtractionEnCours.
-    private long debutOperationNanos;
 
     /// Fichiers **rejetés** par le dernier import (#155), « nom — raison », pour les afficher dans M-Import.
     private final ObservableList<String> rejetsImport = FXCollections.observableArrayList();
@@ -118,6 +125,9 @@ public class ImportationViewModel {
         this.rattachement = new RattachementImportViewModel(serviceSites, horloge, idUtilisateur);
         // Pré-contrôle R5 proactif (#108) : observe lui-même le rattachement et entretient son état.
         this.controleNumeroPassage = new ControleNumeroPassage(serviceImport, rattachement);
+        // Coordination multi-nuits (#…) : s'abonne au rattachement et à la table des nuits pour
+        // auto-numéroter les nuits incluses et exposer la validité de cette numérotation.
+        this.coordinationNuits = new CoordinationNuits(serviceImport, inspection, rattachement);
 
         // Changer de dossier source invalide l'inspection précédente : un nouveau dossier doit être
         // ré-inspecté (sinon le bouton Importer resterait actif et l'aperçu garderait l'ancien exemple).
@@ -134,15 +144,21 @@ public class ImportationViewModel {
         inspection.messageErreurProperty().addListener((obs, ancien, nouveau) -> rafraichirMessage());
         messageExecution.addListener((obs, ancien, nouveau) -> rafraichirMessage());
 
-        // peutImporter = inspection réussie ET rattachement complet ET n° de passage libre (#108) :
-        // composition par l'orchestrateur.
+        // peutImporter = inspection réussie ET rattachement complet ET (multi-nuits : numérotation valide,
+        // déléguée à CoordinationNuits ; sinon : n° de passage libre #108) : composition par l'orchestrateur.
         peutImporter = Bindings.createBooleanBinding(
-                () -> inspection.estInspecte() && rattachement.estComplet() && !controleNumeroPassage.estDejaUtilise(),
+                () -> inspection.estInspecte()
+                        && rattachement.estComplet()
+                        && (inspection.plusieursNuits()
+                                ? coordinationNuits.numerotationValideProperty().get()
+                                : !controleNumeroPassage.estDejaUtilise()),
                 inspection.inspecteProperty(),
+                inspection.plusieursNuitsProperty(),
                 rattachement.siteSelectionneProperty(),
                 rattachement.pointSelectionneProperty(),
                 rattachement.numeroPassageProperty(),
-                controleNumeroPassage.dejaUtiliseProperty());
+                controleNumeroPassage.dejaUtiliseProperty(),
+                coordinationNuits.numerotationValideProperty());
     }
 
     /// Sous-VM d'**inspection** (étapes 1-2) : la vue **s'y lie directement** (dossier source, état
@@ -192,19 +208,22 @@ public class ImportationViewModel {
     }
 
     /// Résultat du dernier import réussi (passage/session créés, compteurs, anomalies) ; `null` tant
-    /// qu'aucun import n'a abouti.
+    /// qu'aucun import n'a abouti. En import multi-nuits, pointe sur la **première** nuit.
     public ReadOnlyObjectProperty<ResultatImport> resultatProperty() {
         return resultat.getReadOnlyProperty();
     }
 
-    /// Fraction de progression de l'import en cours (`[0, 1]`), pour la barre déterminée (#33).
-    public ReadOnlyDoubleProperty progressionProperty() {
-        return progression.getReadOnlyProperty();
+    /// Résultat d'un import **multi-nuits** (un [ResultatImport] par passage créé) ; `null` hors de ce
+    /// cas. La vue en tire un récapitulatif « N passages créés ».
+    public ReadOnlyObjectProperty<ResultatImportMultiNuits> resultatNuitsProperty() {
+        return resultatNuits.getReadOnlyProperty();
     }
 
-    /// Libellé d'étape de l'import en cours (« Copie X/N », « Transformation X/N »).
-    public ReadOnlyStringProperty messageProgressionProperty() {
-        return messageProgression.getReadOnlyProperty();
+    /// Suivi de la **progression** de l'import/décompression en cours (#33/#146) : la vue lie la barre à
+    /// `progression().fractionProperty()` et le libellé à `progression().messageProperty()` ; le travail
+    /// hors-thread appelle `progression().appliquer(...)`. Extrait dans [ProgressionImport].
+    public ProgressionImport progression() {
+        return progressionImport;
     }
 
     /// Recharge les sites de l'utilisateur courant (à l'ouverture de l'écran ou après création d'un
@@ -231,10 +250,11 @@ public class ImportationViewModel {
         }
     }
 
-    /// Lance l'import de la nuit **de façon synchrone** (copie protégée R9 + renommage R6/R7 +
-    /// transformation R10/R11). Pratique pour les tests et le chemin simple ; pour ne pas figer
-    /// l'IHM, la vue préfère le découpage `preparerImport` (instantané) + `executerImport`
-    /// (hors-thread) + `marquerEnCours`/`marquerTermine`/`marquerEchec` (sur le fil JavaFX).
+    /// Lance l'import **mono-nuit de façon synchrone** (copie protégée R9 + renommage R6/R7 +
+    /// transformation R10/R11). Pratique pour les tests et le chemin simple ; pour ne pas figer l'IHM (et
+    /// pour le **multi-nuits**), la vue préfère le découpage `preparerImport`/`preparerImportNuits`
+    /// (instantané) + `executerImport`/`executerImportNuits` (hors-thread) +
+    /// `marquerEnCours`/`marquerTermine`/`marquerTermineNuits`/`marquerEchec` (sur le fil JavaFX).
     public void importer() {
         if (!peutImporter.get()) {
             // Message ciblé : si l'import est bloqué par un n° déjà pris (#108), on l'explique au lieu du
@@ -243,10 +263,9 @@ public class ImportationViewModel {
                     "Complétez le rattachement (dossier inspecté, site, point) avant d'importer."));
             return;
         }
-        DemandeImport demande = preparerImport();
         marquerEnCours();
         try {
-            marquerTermine(executerImport(demande));
+            marquerTermine(executerImport(preparerImport()));
         } catch (RuntimeException echec) {
             marquerEchec(echec.getMessage());
         }
@@ -256,9 +275,7 @@ public class ImportationViewModel {
     /// lancer l'exécution en arrière-plan.
     public void marquerEnCours() {
         messageExecution.set("");
-        progression.set(0.0);
-        messageProgression.set("Préparation…");
-        debutOperationNanos = System.nanoTime();
+        progressionImport.demarrer("Préparation…");
         etat.set(EtatImport.EN_COURS);
         // Verrou de navigation (#54) : on ne doit pas quitter l'assistant tant que l'import tourne,
         // sinon son résultat (marquerTermine/marquerEchec) serait perdu en détachant la vue.
@@ -271,31 +288,12 @@ public class ImportationViewModel {
     /// source extraite est posée (réinitialisation pour nouveau dossier) ou via [#signalerSourceIllisible].
     public void marquerExtractionEnCours() {
         messageExecution.set("");
-        progression.set(0.0);
-        messageProgression.set("Préparation de la décompression…");
-        debutOperationNanos = System.nanoTime();
+        progressionImport.demarrer("Préparation de la décompression…");
         etat.set(EtatImport.EXTRACTION);
         // Verrou de navigation (#54) : on ne doit pas quitter l'assistant pendant la décompression, sinon
         // le fil d'arrière-plan continuerait d'écrire un gros temporaire et posterait des mutations
         // Platform.runLater sur une vue détachée. Déverrouillé par reinitialiserExecution (fin ou erreur).
         navigation.setNavigationVerrouillee(true);
-    }
-
-    /// Applique un point de progression de l'import en cours (#33) : met à jour la fraction et le
-    /// libellé d'étape. À appeler sur le fil JavaFX (depuis `Platform.runLater`), car le callback du
-    /// service s'exécute hors-thread.
-    public void appliquerProgression(Progression p) {
-        progression.set(p.fraction());
-        messageProgression.set(avecTempsRestant(p.libelle(), p.fraction()));
-    }
-
-    /// Complète le libellé de progression par une **estimation du temps restant** (#146, déléguée à
-    /// [LibelleProgression]) déduite du temps écoulé depuis le début de l'opération en cours. Sans début
-    /// posé (marquer*), pas de référence temporelle → pas d'ETA (évite un temps restant aberrant calculé
-    /// depuis l'origine de `System.nanoTime()`).
-    private String avecTempsRestant(String libelle, double fraction) {
-        long ecoule = debutOperationNanos == 0L ? 0L : System.nanoTime() - debutOperationNanos;
-        return LibelleProgression.avecTempsRestant(libelle, fraction, ecoule);
     }
 
     /// Résout la **source d'import** choisie (#139) : si `chemin` est un `.zip`, le décompresse vers un
@@ -390,19 +388,49 @@ public class ImportationViewModel {
     ///     transformer directement depuis la source sans les copier (économie d'espace).
     public record DemandeImport(Path dossier, Long idPoint, Prefixe prefixe, boolean conserverOriginaux) {}
 
+    /// Coordination de l'import **multi-nuits** (#…) : la vue s'y adresse pour préparer la demande
+    /// (nuits incluses + n° proposés) et l'exécuter hors-thread. Extraite pour garder l'orchestrateur
+    /// mince (cf. [CoordinationNuits]).
+    public CoordinationNuits coordinationNuits() {
+        return coordinationNuits;
+    }
+
+    /// Instantané immuable des entrées d'un import multi-nuits (un passage par nuit incluse).
+    ///
+    /// @param prefixeBase préfixe R6 commun (carré/année/point) ; le n° de passage vient de chaque
+    ///     [NuitAImporter]
+    /// @param nuits nuits incluses, avec leur n° de passage attribué (auto-numérotation consécutive)
+    public record DemandeImportNuits(
+            Path dossier, Long idPoint, Prefixe prefixeBase, List<NuitAImporter> nuits, boolean conserverOriginaux) {
+        public DemandeImportNuits {
+            nuits = List.copyOf(nuits);
+        }
+    }
+
     /// Applique un import réussi (résultat exposé, état `TERMINE`). À appeler sur le fil JavaFX
     /// (depuis `Platform.runLater`).
     public void marquerTermine(ResultatImport resultatImport) {
         resultat.set(resultatImport);
         messageExecution.set("");
         // Rapport (#155) : on expose la liste des fichiers rejetés (« nom — raison ») pour M-Import.
-        rejetsImport.setAll(resultatImport.rapport().lignes().stream()
-                .filter(l -> l.statut() == StatutImportFichier.REJETE)
-                .map(l -> l.nomFichier() + " — " + l.detail())
-                .toList());
+        rejetsImport.setAll(resultatImport.rapport().rejetsFormates());
+        resultatNuits.set(null); // import mono-nuit : pas de résultat agrégé
         etat.set(EtatImport.TERMINE);
         navigation.setNavigationVerrouillee(false); // l'import est fini : on peut de nouveau naviguer (#54)
         nettoyerTemporaireZip(); // les fichiers ont été copiés (R9) : le temporaire du zip n'est plus utile (#139)
+    }
+
+    /// Applique un import **multi-nuits** réussi (#…) : expose le résultat agrégé (un passage par nuit),
+    /// pointe [#resultatProperty()] sur la première nuit (compatibilité), agrège les fichiers rejetés de
+    /// **toutes** les nuits, état `TERMINE`. À appeler sur le fil JavaFX (depuis `Platform.runLater`).
+    public void marquerTermineNuits(ResultatImportMultiNuits resultatMultiNuits) {
+        resultatNuits.set(resultatMultiNuits);
+        resultat.set(resultatMultiNuits.premier()); // compatibilité : le mono-résultat pointe la 1re nuit
+        messageExecution.set("");
+        rejetsImport.setAll(resultatMultiNuits.rejetsFormates()); // rejets cumulés de toutes les nuits (#155)
+        etat.set(EtatImport.TERMINE);
+        navigation.setNavigationVerrouillee(false); // l'import est fini : on peut de nouveau naviguer (#54)
+        nettoyerTemporaireZip();
     }
 
     /// Fichiers rejetés (« nom — raison ») par le dernier import (#155), pour affichage dans M-Import.
@@ -414,6 +442,7 @@ public class ImportationViewModel {
     /// appeler sur le fil JavaFX (depuis `Platform.runLater`).
     public void marquerEchec(String message) {
         resultat.set(null);
+        resultatNuits.set(null);
         messageExecution.set(message);
         etat.set(EtatImport.ECHEC);
         navigation.setNavigationVerrouillee(false); // l'import s'est arrêté : on déverrouille (#54)
@@ -426,9 +455,9 @@ public class ImportationViewModel {
     /// dossier d'extraction). À appeler sur le fil JavaFX (depuis `Platform.runLater`).
     public void marquerAnnule() {
         resultat.set(null);
+        resultatNuits.set(null);
         messageExecution.set("");
-        progression.set(0.0);
-        messageProgression.set("");
+        progressionImport.reinitialiser();
         etat.set(EtatImport.ANNULE);
         navigation.setNavigationVerrouillee(false);
         nettoyerTemporaireZip();
@@ -474,9 +503,9 @@ public class ImportationViewModel {
     private void reinitialiserExecution() {
         etat.set(EtatImport.PRET);
         resultat.set(null);
+        resultatNuits.set(null);
         rejetsImport.clear(); // #155
-        progression.set(0.0);
-        messageProgression.set("");
+        progressionImport.reinitialiser();
         messageExecution.set("");
         // Fin de toute opération longue : on lève le verrou de navigation posé par marquerExtractionEnCours
         // (#54). Appelé sur le chemin de succès (nouvelle source extraite posée) comme d'erreur
@@ -493,6 +522,7 @@ public class ImportationViewModel {
     private void rearmerPreparationSiTerminee() {
         if (etat.get() == EtatImport.TERMINE || etat.get() == EtatImport.ECHEC) {
             resultat.set(null);
+            resultatNuits.set(null);
             messageExecution.set("");
             etat.set(EtatImport.PRET);
         }

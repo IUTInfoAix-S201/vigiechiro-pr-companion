@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [1.117.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.116.0...v1.117.0) (2026-07-07)
+
+
+### Features
+
+* **saisie:** coordonnées GPS multi-format DD/DMS avec validation ([#153](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/153)) ([61b0d1a](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/61b0d1a37d7a3b5dcf0193cfc30e2b3de2b467da)), closes [#615](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/615)
+
 # [1.116.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.115.0...v1.116.0) (2026-07-07)
 
 

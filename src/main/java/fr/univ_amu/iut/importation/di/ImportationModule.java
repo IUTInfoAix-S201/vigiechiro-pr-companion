@@ -6,6 +6,7 @@ import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import fr.univ_amu.iut.commun.model.CompteurValidations;
 import fr.univ_amu.iut.commun.model.Horloge;
+import fr.univ_amu.iut.commun.model.Reglages;
 import fr.univ_amu.iut.commun.model.Workspace;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
 import fr.univ_amu.iut.commun.persistence.UniteDeTravail;
@@ -120,7 +121,8 @@ public class ImportationModule extends AbstractModule {
             ServiceSites serviceSites,
             Horloge horloge,
             @Named("idUtilisateurCourant") String idUtilisateur,
-            NavigationViewModel navigation) {
-        return new ImportationViewModel(serviceImport, serviceSites, horloge, idUtilisateur, navigation);
+            NavigationViewModel navigation,
+            Reglages reglages) {
+        return new ImportationViewModel(serviceImport, serviceSites, horloge, idUtilisateur, navigation, reglages);
     }
 }

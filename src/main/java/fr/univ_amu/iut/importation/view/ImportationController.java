@@ -28,6 +28,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
@@ -49,6 +50,10 @@ import javafx.util.converter.NumberStringConverter;
 /// rattachement / action) aux propriétés de l'[ImportationViewModel]. Aucun accès base de données
 /// ni logique métier ici (règle ArchUnit `view_sans_jdbc`) : « Parcourir » délègue à
 /// [ImportationViewModel#inspecter()] ; « Importer » lance le travail lourd hors du fil JavaFX.
+// NcssCount marginal (201 lignes vs seuil 200) : contrôleur de **pur câblage** FXML (aucune logique
+// métier, cf. Javadoc) où chaque contrôle ajoute des lignes de liaison. Faux positif du détecteur de God
+// Class sur du wiring. Bypass ponctuel sanctionné par le ruleset PMD.
+@SuppressWarnings("PMD.NcssCount")
 public class ImportationController implements GardeQuitter, AuDepartEcran {
 
     /// Classe CSS du retour visuel de glisser-déposer (#139), posée sur la racine pendant le survol.
@@ -132,6 +137,9 @@ public class ImportationController implements GardeQuitter, AuDepartEcran {
     private Button boutonImporter;
 
     @FXML
+    private CheckBox caseConserverOriginaux;
+
+    @FXML
     private VBox zoneProgression;
 
     @FXML
@@ -213,6 +221,9 @@ public class ImportationController implements GardeQuitter, AuDepartEcran {
         lierDossierEtInspection(viewModel.inspection());
         lierRattachement(viewModel.rattachement());
         lierAction();
+        // Option « conserver les originaux » : la case reflète le choix persisté (initialisé par le VM)
+        // et le met à jour dans les deux sens ; le VM mémorise chaque changement (cf. Reglages).
+        caseConserverOriginaux.selectedProperty().bindBidirectional(viewModel.conserverOriginauxProperty());
         installerGlisserDeposer();
         viewModel.chargerSites();
     }

@@ -29,9 +29,11 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-/// Tests unitaires du [MultisiteViewModel] : chargement/résumé du tableau, ré-interrogation du
-/// service à chaque changement de filtre ou de tri, réinitialisation, et délégation de l'export.
-/// Service mocké, pas de base de données ni de JavaFX UI.
+/// Tests unitaires du [MultisiteViewModel]. Depuis #537, les passages sont chargés **une fois**
+/// puis filtrés/triés **en mémoire** via le socle partagé : ces tests vérifient donc le
+/// chargement/résumé du tableau, le **filtrage client-side sans ré-interroger le service**, la
+/// réinitialisation, les vues sauvegardées et la délégation de l'export. Service mocké, pas de base
+/// de données ni de JavaFX UI.
 @ExtendWith(MockitoExtension.class)
 class MultisiteViewModelTest {
 
@@ -44,14 +46,17 @@ class MultisiteViewModelTest {
     private ServiceSites serviceSites;
 
     private static LignePassage ligne(String carre, String point, int annee, int numero) {
-        return new LignePassage(
-                (long) numero, carre, point, annee, numero, "2026-06-2" + numero, StatutWorkflow.DEPOSE, Verdict.OK);
+        return ligne(carre, point, annee, numero, StatutWorkflow.DEPOSE);
+    }
+
+    private static LignePassage ligne(String carre, String point, int annee, int numero, StatutWorkflow statut) {
+        return new LignePassage((long) numero, carre, point, annee, numero, "2026-06-2" + numero, statut, Verdict.OK);
     }
 
     @Test
     @DisplayName("rafraichir charge le tableau et résume le nombre de passages")
     void rafraichir_charge_et_resume() {
-        when(service.listerPassages(eq(ID), any(), any()))
+        when(service.listerPassages(ID))
                 .thenReturn(List.of(ligne("640380", "A1", 2026, 1), ligne("640381", "B2", 2026, 2)));
         MultisiteViewModel vm = new MultisiteViewModel(service, serviceSites, ID);
 
@@ -74,73 +79,87 @@ class MultisiteViewModelTest {
     }
 
     @Test
-    @DisplayName("#152 : rafraichir (filtres/tri) ne recalcule PAS l'agrégat carte (coût évité)")
+    @DisplayName("#152 : filtrer ne recalcule PAS l'agrégat carte (coût évité)")
     void rafraichir_ne_touche_pas_la_carte() {
-        when(service.listerPassages(eq(ID), any(), any())).thenReturn(List.of());
+        when(service.listerPassages(ID)).thenReturn(List.of());
         MultisiteViewModel vm = new MultisiteViewModel(service, serviceSites, ID);
 
         vm.rafraichir();
-        vm.filtreStatutProperty().set(StatutWorkflow.DEPOSE); // re-déclenche rafraichir
+        vm.filtreStatutProperty().set(StatutWorkflow.DEPOSE); // re-filtre en mémoire
 
         verify(service, never()).agregerPourCarte(any());
     }
 
     @Test
-    @DisplayName("Changer un filtre ré-interroge le service avec les critères courants")
-    void filtre_re_interroge_le_service() {
-        when(service.listerPassages(eq(ID), any(), any())).thenReturn(List.of());
+    @DisplayName("#537 : changer un filtre filtre EN MÉMOIRE, sans ré-interroger le service")
+    void filtre_filtre_en_memoire() {
+        when(service.listerPassages(ID))
+                .thenReturn(List.of(
+                        ligne("640380", "A1", 2026, 1, StatutWorkflow.DEPOSE),
+                        ligne("640381", "B2", 2026, 2, StatutWorkflow.VERIFIE)));
         MultisiteViewModel vm = new MultisiteViewModel(service, serviceSites, ID);
+        vm.rafraichir();
+        assertThat(vm.lignes()).hasSize(2);
 
-        vm.filtreStatutProperty().set(StatutWorkflow.DEPOSE);
+        vm.filtreStatutProperty().set(StatutWorkflow.VERIFIE);
 
-        ArgumentCaptor<FiltresMultisite> capteur = ArgumentCaptor.forClass(FiltresMultisite.class);
-        verify(service, atLeastOnce()).listerPassages(eq(ID), capteur.capture(), any());
-        assertThat(capteur.getValue().statut()).isEqualTo(StatutWorkflow.DEPOSE);
+        assertThat(vm.lignes()).extracting(LignePassage::statut).containsExactly(StatutWorkflow.VERIFIE);
+        verify(service, times(1)).listerPassages(ID); // chargé une fois, pas de ré-requête au filtrage
     }
 
     @Test
-    @DisplayName("Changer le tri ré-interroge le service avec le critère de tri choisi")
-    void tri_re_interroge_le_service() {
-        when(service.listerPassages(eq(ID), any(), any())).thenReturn(List.of());
+    @DisplayName("#537 : changer le tri ré-ordonne en mémoire, sans ré-interroger le service")
+    void tri_re_ordonne_en_memoire() {
+        when(service.listerPassages(ID))
+                .thenReturn(List.of(ligne("640380", "A1", 2026, 1), ligne("640381", "B2", 2024, 2)));
         MultisiteViewModel vm = new MultisiteViewModel(service, serviceSites, ID);
+        vm.rafraichir();
 
         vm.triProperty().set(TriMultisite.PAR_ANNEE);
 
-        verify(service).listerPassages(eq(ID), any(), eq(TriMultisite.PAR_ANNEE));
+        assertThat(vm.lignes()).extracting(LignePassage::annee).containsExactly(2024, 2026);
+        verify(service, times(1)).listerPassages(ID);
     }
 
     @Test
-    @DisplayName("Un numéro de carré vide ou en blanc n'applique aucun filtre (null)")
+    @DisplayName("Un numéro de carré vide ou en blanc n'applique aucun filtre")
     void numero_carre_blanc_pas_de_filtre() {
-        when(service.listerPassages(eq(ID), any(), any())).thenReturn(List.of());
+        when(service.listerPassages(ID))
+                .thenReturn(List.of(ligne("640380", "A1", 2026, 1), ligne("640381", "B2", 2026, 2)));
         MultisiteViewModel vm = new MultisiteViewModel(service, serviceSites, ID);
+        vm.rafraichir();
 
         vm.filtreNumeroCarreProperty().set("640380");
-        vm.filtreNumeroCarreProperty().set("   "); // blanc → aucun filtre
+        assertThat(vm.lignes()).extracting(LignePassage::numeroCarre).containsExactly("640380");
 
-        ArgumentCaptor<FiltresMultisite> capteur = ArgumentCaptor.forClass(FiltresMultisite.class);
-        verify(service, atLeastOnce()).listerPassages(eq(ID), capteur.capture(), any());
-        assertThat(capteur.getValue().numeroCarre()).isNull();
+        vm.filtreNumeroCarreProperty().set("   "); // blanc → aucun filtre
+        assertThat(vm.lignes()).hasSize(2);
     }
 
     @Test
-    @DisplayName("reinitialiserFiltres remet tous les critères à zéro")
+    @DisplayName("reinitialiserFiltres remet tous les critères à zéro et réaffiche tout")
     void reinitialiser_remet_a_zero() {
-        when(service.listerPassages(eq(ID), any(), any())).thenReturn(List.of());
+        when(service.listerPassages(ID))
+                .thenReturn(List.of(
+                        ligne("640380", "A1", 2026, 1, StatutWorkflow.DEPOSE),
+                        ligne("640381", "B2", 2026, 2, StatutWorkflow.VERIFIE)));
         MultisiteViewModel vm = new MultisiteViewModel(service, serviceSites, ID);
+        vm.rafraichir();
         vm.filtreStatutProperty().set(StatutWorkflow.DEPOSE);
         vm.filtreNumeroCarreProperty().set("640380");
+        assertThat(vm.lignes()).hasSize(1);
 
         vm.reinitialiserFiltres();
 
         assertThat(vm.filtreStatutProperty().get()).isNull();
         assertThat(vm.filtreNumeroCarreProperty().get()).isEmpty();
+        assertThat(vm.lignes()).hasSize(2);
     }
 
     @Test
     @DisplayName("exporter délègue l'écriture au service et restitue un bilan")
     void exporter_delegue_au_service() {
-        when(service.listerPassages(eq(ID), any(), any())).thenReturn(List.of(ligne("640380", "A1", 2026, 1)));
+        when(service.listerPassages(ID)).thenReturn(List.of(ligne("640380", "A1", 2026, 1)));
         MultisiteViewModel vm = new MultisiteViewModel(service, serviceSites, ID);
         vm.rafraichir();
 
@@ -167,7 +186,6 @@ class MultisiteViewModelTest {
     @Test
     @DisplayName("enregistrerVue enregistre la combinaison courante et recharge la liste des vues")
     void enregistrer_vue() {
-        when(service.listerPassages(eq(ID), any(), any())).thenReturn(List.of());
         when(service.listerVues()).thenReturn(List.of(new SavedView(1L, "Déposés 2026", "{}")));
         MultisiteViewModel vm = new MultisiteViewModel(service, serviceSites, ID);
         vm.filtreStatutProperty().set(StatutWorkflow.DEPOSE);
@@ -191,11 +209,15 @@ class MultisiteViewModelTest {
     }
 
     @Test
-    @DisplayName("appliquerVue rejoue les filtres de la vue et ne recharge le tableau qu'une fois")
+    @DisplayName("appliquerVue rejoue les filtres de la vue (re-filtrage en mémoire, sans ré-requête)")
     void appliquer_vue() {
-        when(service.listerPassages(eq(ID), any(), any())).thenReturn(List.of());
+        when(service.listerPassages(ID))
+                .thenReturn(List.of(
+                        ligne("640380", "A1", 2026, 1, StatutWorkflow.VERIFIE),
+                        ligne("640381", "B2", 2025, 2, StatutWorkflow.DEPOSE)));
         when(service.chargerVue(5L)).thenReturn(new FiltresMultisite("640380", StatutWorkflow.VERIFIE, null, 2026));
         MultisiteViewModel vm = new MultisiteViewModel(service, serviceSites, ID);
+        vm.rafraichir();
 
         boolean ok = vm.appliquerVue(new SavedView(5L, "Ma vue", "{}"));
 
@@ -203,8 +225,8 @@ class MultisiteViewModelTest {
         assertThat(vm.filtreNumeroCarreProperty().get()).isEqualTo("640380");
         assertThat(vm.filtreStatutProperty().get()).isEqualTo(StatutWorkflow.VERIFIE);
         assertThat(vm.filtreAnneeProperty().get()).isEqualTo(2026);
-        // Les 4 critères sont posés sous garde → un seul rafraîchissement (un seul appel service).
-        verify(service, times(1)).listerPassages(eq(ID), any(), any());
+        assertThat(vm.lignes()).extracting(LignePassage::numeroCarre).containsExactly("640380");
+        verify(service, times(1)).listerPassages(ID); // aucune ré-requête : re-filtrage en mémoire
     }
 
     @Test

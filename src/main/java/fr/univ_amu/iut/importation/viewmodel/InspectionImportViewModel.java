@@ -3,6 +3,7 @@ package fr.univ_amu.iut.importation.viewmodel;
 import fr.univ_amu.iut.importation.model.AnalyseMelange;
 import fr.univ_amu.iut.importation.model.EtatNommage;
 import fr.univ_amu.iut.importation.model.JournalParse;
+import fr.univ_amu.iut.importation.model.NuitDetectee;
 import fr.univ_amu.iut.importation.model.PassageExistant;
 import fr.univ_amu.iut.importation.model.RapportInspection;
 import fr.univ_amu.iut.importation.model.ServiceImport;
@@ -19,6 +20,8 @@ import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 
 /// Sous-ViewModel de **M-Import** — étapes 1 et 2 : choix du **dossier source** et son **inspection
 /// en lecture seule** (R9).
@@ -69,6 +72,15 @@ public class InspectionImportViewModel {
     /// inspection réussie. L'orchestrateur le compose avec l'erreur d'exécution dans son message unifié.
     private final ReadOnlyStringWrapper messageErreur = new ReadOnlyStringWrapper(this, "messageErreur", "");
 
+    /// **Nuits détectées** dans le dossier (#…) : une carte laissée tourner plusieurs nuits en produit
+    /// plusieurs (une ligne [NuitVM] par nuit), sinon une seule. Repeuplée à chaque inspection. La vue
+    /// n'affiche la table que lorsqu'il y en a plusieurs ([#plusieursNuitsProperty()]).
+    private final ObservableList<NuitVM> nuits = FXCollections.observableArrayList();
+
+    /// `true` quand la carte contient **plus d'une** nuit : pilote l'affichage de la table des nuits et
+    /// bascule l'import sur le chemin multi-nuits (un passage par nuit incluse).
+    private final ReadOnlyBooleanWrapper plusieursNuits = new ReadOnlyBooleanWrapper(this, "plusieursNuits", false);
+
     /// Rapport d'inspection courant, conservé pour l'aperçu du préfixe (exemple de nom d'origine) et
     /// les tranches suivantes. `null` tant qu'aucune inspection n'a réussi.
     private RapportInspection rapport;
@@ -108,6 +120,7 @@ public class InspectionImportViewModel {
                             .journalOptionnel()
                             .map(JournalParse::frequenceEchantillonnageHz)
                             .orElse(null)));
+            peuplerNuits(inspection);
             inspecte.set(true);
             messageErreur.set("");
         } catch (RuntimeException echec) {
@@ -133,6 +146,50 @@ public class InspectionImportViewModel {
         avertissementNuitExistante.set("");
         avertissementFichiersRalentis.set("");
         messageErreur.set("");
+        nuits.clear();
+        plusieursNuits.set(false);
+    }
+
+    /// Construit la **table des nuits** (une ligne [NuitVM] par nuit détectée) à partir de la partition du
+    /// rapport, en marquant chaque nuit **déjà importée** (#147). La série d'enregistreur (commune à la
+    /// carte) provient du journal, sinon des noms de WAV (mode dégradé #107). Les cases « inclure » sont
+    /// vraies par défaut ; la numérotation proposée est fixée plus tard par l'orchestrateur (elle dépend
+    /// du rattachement).
+    private void peuplerNuits(RapportInspection inspection) {
+        String serie = serieDeLaCarte(inspection);
+        List<NuitVM> lignes = inspection.partitionNuits().stream()
+                .map(nuit -> {
+                    NuitVM ligne = new NuitVM(nuit);
+                    ligne.definirStatutDejaImportee(statutDejaImporteeDe(serie, nuit));
+                    return ligne;
+                })
+                .toList();
+        nuits.setAll(lignes);
+        plusieursNuits.set(lignes.size() > 1);
+    }
+
+    /// Numéro de série de l'enregistreur de la carte (commun à toutes les nuits) : issu du **journal**
+    /// s'il est présent, sinon **reconstitué des noms de WAV** (mode dégradé #107). `null` si indéterminable.
+    private String serieDeLaCarte(RapportInspection inspection) {
+        JournalParse journal = inspection
+                .journalOptionnel()
+                .filter(j -> j.numeroSerie() != null)
+                .orElse(null);
+        if (journal != null) {
+            return journal.numeroSerie();
+        }
+        AnalyseMelange analyse = AnalyseMelange.depuis(inspection.originaux());
+        return analyse.series().isEmpty() ? null : analyse.series().first();
+    }
+
+    /// Badge « déjà importée » (#147) d'une nuit (même enregistreur + même date en base), vide sinon.
+    private String statutDejaImporteeDe(String serie, NuitDetectee nuit) {
+        if (serie == null) {
+            return "";
+        }
+        List<PassageExistant> existants =
+                serviceImport.nuitDejaImportee(serie, nuit.dateNuit().toString());
+        return (existants == null || existants.isEmpty()) ? "" : "déjà importée";
     }
 
     /// Détecte (lecture base via le service) si la nuit inspectée a déjà été importée (#147) : même
@@ -167,6 +224,30 @@ public class InspectionImportViewModel {
     /// confirmation). Sans inspection courante, l'avertissement reste vide.
     public void rafraichirNuitExistante() {
         avertissementNuitExistante.set(rapport == null ? "" : detecterNuitExistante(rapport));
+        if (rapport != null) {
+            // Rafraîchit les badges par nuit **en place** (sans reconstruire la table, pour préserver les
+            // cases « inclure » cochées par l'utilisateur).
+            String serie = serieDeLaCarte(rapport);
+            for (NuitVM ligne : nuits) {
+                ligne.definirStatutDejaImportee(statutDejaImporteeDe(serie, ligne.nuit()));
+            }
+        }
+    }
+
+    /// Nuits détectées dans le dossier inspecté (une ligne par nuit ; liste vide avant toute inspection).
+    /// La vue s'y lie pour la table des nuits ; l'orchestrateur en tire la demande d'import multi-nuits.
+    public ObservableList<NuitVM> nuits() {
+        return nuits;
+    }
+
+    /// `true` quand la carte contient plus d'une nuit (pilote la table des nuits et le chemin multi-nuits).
+    public boolean plusieursNuits() {
+        return plusieursNuits.get();
+    }
+
+    /// Propriété « plusieurs nuits » (visibilité de la table des nuits dans la vue).
+    public ReadOnlyBooleanProperty plusieursNuitsProperty() {
+        return plusieursNuits.getReadOnlyProperty();
     }
 
     /// Dossier source courant (pour assembler la demande d'import).

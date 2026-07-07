@@ -149,5 +149,68 @@ class InspectionImportViewModelTest {
         assertThat(vm.nombreOriginauxProperty().get()).isZero();
         assertThat(vm.rapport()).isNull();
         assertThat(vm.messageErreurProperty().get()).isEmpty();
+        assertThat(vm.nuits()).isEmpty();
+        assertThat(vm.plusieursNuits()).isFalse();
+    }
+
+    @Test
+    @DisplayName("Une seule nuit : la table a une ligne, plusieursNuits est faux")
+    void inspecter_une_seule_nuit() {
+        when(serviceImport.inspecter(sd)).thenReturn(inspecteur.inspecter(sd));
+        vm.dossierSourceProperty().set(sd);
+
+        vm.inspecter();
+
+        assertThat(vm.plusieursNuits()).isFalse();
+        assertThat(vm.nuits()).hasSize(1);
+        assertThat(vm.nuits().getFirst().date()).hasToString("2026-04-22");
+        assertThat(vm.nuits().getFirst().nombreFichiers()).isEqualTo(2);
+        assertThat(vm.nuits().getFirst().estIncluse()).isTrue();
+    }
+
+    @Test
+    @DisplayName("Plusieurs dates : une ligne de nuit par nuit (triées), plusieursNuits vrai")
+    void inspecter_plusieurs_nuits() throws IOException {
+        Path multi = Files.createDirectories(racine.resolve("multi"));
+        Files.writeString(multi.resolve("LogPR1925492.txt"), LOG, StandardCharsets.UTF_8);
+        for (String jour : List.of("20260422", "20260423", "20260424")) {
+            Files.writeString(multi.resolve("PaRecPR1925492_" + jour + "_203922.wav"), "wav");
+            Files.writeString(multi.resolve("PaRecPR1925492_" + jour + "_204326.wav"), "wav");
+        }
+        when(serviceImport.inspecter(multi)).thenReturn(inspecteur.inspecter(multi));
+        vm.dossierSourceProperty().set(multi);
+
+        vm.inspecter();
+
+        assertThat(vm.plusieursNuits()).isTrue();
+        assertThat(vm.nuits()).hasSize(3);
+        assertThat(vm.nuits())
+                .extracting(nuit -> nuit.date().toString())
+                .containsExactly("2026-04-22", "2026-04-23", "2026-04-24");
+        assertThat(vm.nuits()).allSatisfy(nuit -> {
+            assertThat(nuit.nombreFichiers()).isEqualTo(2);
+            assertThat(nuit.estIncluse()).isTrue();
+        });
+    }
+
+    @Test
+    @DisplayName("#147 par nuit : seule la nuit déjà en base porte le badge « déjà importée »")
+    void nuit_deja_importee_par_ligne() throws IOException {
+        Path multi = Files.createDirectories(racine.resolve("multi2"));
+        Files.writeString(multi.resolve("LogPR1925492.txt"), LOG, StandardCharsets.UTF_8);
+        for (String jour : List.of("20260422", "20260423")) {
+            Files.writeString(multi.resolve("PaRecPR1925492_" + jour + "_203922.wav"), "wav");
+        }
+        when(serviceImport.inspecter(multi)).thenReturn(inspecteur.inspecter(multi));
+        when(serviceImport.nuitDejaImportee("1925492", "2026-04-22")).thenReturn(List.of());
+        when(serviceImport.nuitDejaImportee("1925492", "2026-04-23"))
+                .thenReturn(List.of(new PassageExistant(5, 2026, "640380", "Z1")));
+        vm.dossierSourceProperty().set(multi);
+
+        vm.inspecter();
+
+        assertThat(vm.nuits()).hasSize(2);
+        assertThat(vm.nuits().get(0).statutDejaImporteeProperty().get()).isEmpty();
+        assertThat(vm.nuits().get(1).statutDejaImporteeProperty().get()).contains("déjà importée");
     }
 }

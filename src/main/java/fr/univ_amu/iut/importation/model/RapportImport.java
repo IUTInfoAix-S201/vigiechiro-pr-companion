@@ -32,6 +32,15 @@ public record RapportImport(List<LigneRapport> lignes, List<PassageExistant> dou
         return !doublonsDeNuit.isEmpty();
     }
 
+    /// Fichiers **rejetés** (non importés, #155) formatés « nom — raison », pour l'affichage dans M-Import.
+    /// Liste vide si aucun rejet.
+    public List<String> rejetsFormates() {
+        return lignes.stream()
+                .filter(ligne -> ligne.statut() == StatutImportFichier.REJETE)
+                .map(ligne -> ligne.nomFichier() + " — " + ligne.detail())
+                .toList();
+    }
+
     /// Avertissements lisibles à accoler au récap d'un import réussi : doublon de nuit (#214/#147),
     /// fichiers non pertinents ignorés et fichiers rejetés (#155). Chaîne **vide** si l'import est nominal
     /// (nuit neuve, aucun rejet, aucun fichier ignoré).

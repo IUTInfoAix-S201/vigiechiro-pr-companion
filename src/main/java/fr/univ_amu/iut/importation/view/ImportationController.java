@@ -9,6 +9,7 @@ import fr.univ_amu.iut.importation.model.ExtracteurZip;
 import fr.univ_amu.iut.importation.model.JetonAnnulation;
 import fr.univ_amu.iut.importation.model.Progression;
 import fr.univ_amu.iut.importation.model.ResultatImport;
+import fr.univ_amu.iut.importation.model.ResultatImportMultiNuits;
 import fr.univ_amu.iut.importation.viewmodel.EtatImport;
 import fr.univ_amu.iut.importation.viewmodel.ImportationViewModel;
 import fr.univ_amu.iut.importation.viewmodel.InspectionImportViewModel;
@@ -20,7 +21,6 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
@@ -37,14 +37,11 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TextField;
-import javafx.scene.input.Dragboard;
-import javafx.scene.input.TransferMode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
-import javafx.util.StringConverter;
 import javafx.util.converter.NumberStringConverter;
 
 /// Controller de l'assistant **M-Import** (`Importation.fxml`).
@@ -54,9 +51,6 @@ import javafx.util.converter.NumberStringConverter;
 /// ni logique métier ici (règle ArchUnit `view_sans_jdbc`) : « Parcourir » délègue à
 /// [ImportationViewModel#inspecter()] ; « Importer » lance le travail lourd hors du fil JavaFX.
 public class ImportationController implements GardeQuitter, AuDepartEcran {
-
-    /// Classe CSS du retour visuel de glisser-déposer (#139), posée sur la racine pendant le survol.
-    private static final String CLASSE_ZONE_DEPOT_ACTIVE = "zone-depot-active";
 
     private final ImportationViewModel viewModel;
 
@@ -166,6 +160,9 @@ public class ImportationController implements GardeQuitter, AuDepartEcran {
     @FXML
     private ListView<String> listeRejets;
 
+    @FXML
+    private VBox zoneNuits;
+
     /// Jeton d'annulation (#146) de l'opération longue **en cours** (décompression ou import), créé au
     /// lancement et déclenché par le bouton « Annuler ». `null` hors traitement. Accédé uniquement sur le
     /// fil JavaFX (lancement + clic « Annuler ») ; le travail hors-thread reçoit le jeton en paramètre.
@@ -228,7 +225,8 @@ public class ImportationController implements GardeQuitter, AuDepartEcran {
         // Option « conserver les originaux » : la case reflète le choix persisté (défaut : conservation
         // activée) et le met à jour dans les deux sens ; il est mémorisé au lancement de l'import.
         caseConserverOriginaux.selectedProperty().bindBidirectional(conservation.conserverOriginauxProperty());
-        installerGlisserDeposer();
+        // Glisser-déposer (#139) d'un dossier/.zip sur tout l'écran, gelé pendant un traitement.
+        GlisserDeposerImport.installer(racineImport, this::traitementEnCours, this::chargerSource);
         viewModel.chargerSites();
     }
 
@@ -301,16 +299,21 @@ public class ImportationController implements GardeQuitter, AuDepartEcran {
         var fichiersRalentis =
                 inspection.avertissementFichiersRalentisProperty().isNotEmpty();
         lierVisibiliteGeree(labelFichiersRalentis, fichiersRalentis);
+
+        // Table des nuits (#…) : construite par programme ([TableNuits]) et insérée dans sa zone, visible
+        // seulement quand la carte contient plusieurs nuits.
+        lierVisibiliteGeree(zoneNuits, inspection.plusieursNuitsProperty());
+        zoneNuits.getChildren().add(TableNuits.creer(inspection.nuits()));
     }
 
     /// Section 3 : combos site/point, champs année/n° de passage, aperçu du préfixe et avertissement de
     /// discordance (#111), liés au sous-VM de rattachement.
     private void lierRattachement(RattachementImportViewModel rattachement) {
         comboSites.setItems(rattachement.sites());
-        comboSites.setConverter(convertisseur(this::libelleSite));
+        comboSites.setConverter(Convertisseurs.depuis(this::libelleSite));
         comboSites.valueProperty().bindBidirectional(rattachement.siteSelectionneProperty());
         comboPoints.setItems(rattachement.points());
-        comboPoints.setConverter(convertisseur(PointDEcoute::code));
+        comboPoints.setConverter(Convertisseurs.depuis(PointDEcoute::code));
         comboPoints.valueProperty().bindBidirectional(rattachement.pointSelectionneProperty());
         // Carte de confirmation (#154, lecture seule) : reflète le carré du site et le point choisi.
         zoneCarteRattachement.getChildren().add(carteRattachement.vue());
@@ -337,8 +340,8 @@ public class ImportationController implements GardeQuitter, AuDepartEcran {
                 .isEqualTo(EtatImport.EN_COURS)
                 .or(viewModel.etatProperty().isEqualTo(EtatImport.EXTRACTION));
         lierVisibiliteGeree(zoneProgression, traitement);
-        barreProgression.progressProperty().bind(viewModel.progressionProperty());
-        labelProgression.textProperty().bind(viewModel.messageProgressionProperty());
+        barreProgression.progressProperty().bind(viewModel.progression().fractionProperty());
+        labelProgression.textProperty().bind(viewModel.progression().messageProperty());
         boutonImporter.disableProperty().bind(viewModel.peutImporter().not().or(traitement));
         boutonParcourir.disableProperty().bind(traitement);
         boutonZip.disableProperty().bind(traitement);
@@ -362,7 +365,10 @@ public class ImportationController implements GardeQuitter, AuDepartEcran {
         labelStatut
                 .textProperty()
                 .bind(Bindings.createStringBinding(
-                        this::libelleStatut, viewModel.etatProperty(), viewModel.resultatProperty()));
+                        this::libelleStatut,
+                        viewModel.etatProperty(),
+                        viewModel.resultatProperty(),
+                        viewModel.resultatNuitsProperty()));
 
         // Rapport d'import (#155) : la liste des fichiers rejetés n'apparaît que s'il y en a.
         listeRejets.setItems(viewModel.rejetsImport());
@@ -409,7 +415,9 @@ public class ImportationController implements GardeQuitter, AuDepartEcran {
         Thread.ofVirtual().name("source-import-vigiechiro").start(() -> {
             try {
                 Path dossier = viewModel.extraireSiZip(
-                        chemin, p -> Platform.runLater(() -> viewModel.appliquerProgression(p)), jeton);
+                        chemin,
+                        p -> Platform.runLater(() -> viewModel.progression().appliquer(p)),
+                        jeton);
                 Platform.runLater(() -> {
                     viewModel.inspection().dossierSourceProperty().set(dossier);
                     viewModel.inspecter();
@@ -422,44 +430,11 @@ public class ImportationController implements GardeQuitter, AuDepartEcran {
         });
     }
 
-    /// Active le **glisser-déposer** (#139) d'un dossier ou d'un `.zip` sur tout l'écran d'import, avec un
-    /// **retour visuel** pendant le survol (classe CSS `zone-depot-active`). Le dépôt charge la source via
-    /// [#chargerSource]. Ignoré pendant un import en cours (formulaire gelé).
-    private void installerGlisserDeposer() {
-        racineImport.setOnDragOver(evenement -> {
-            if (sourceGlisseeAcceptable(evenement.getDragboard())) {
-                evenement.acceptTransferModes(TransferMode.COPY);
-                if (!racineImport.getStyleClass().contains(CLASSE_ZONE_DEPOT_ACTIVE)) {
-                    racineImport.getStyleClass().add(CLASSE_ZONE_DEPOT_ACTIVE);
-                }
-            }
-            evenement.consume();
-        });
-        racineImport.setOnDragExited(evenement -> {
-            racineImport.getStyleClass().remove(CLASSE_ZONE_DEPOT_ACTIVE);
-            evenement.consume();
-        });
-        racineImport.setOnDragDropped(evenement -> {
-            boolean accepte = sourceGlisseeAcceptable(evenement.getDragboard());
-            if (accepte) {
-                chargerSource(evenement.getDragboard().getFiles().get(0).toPath());
-            }
-            racineImport.getStyleClass().remove(CLASSE_ZONE_DEPOT_ACTIVE);
-            evenement.setDropCompleted(accepte);
-            evenement.consume();
-        });
-    }
-
-    /// Vrai si le glisser porte un **dossier** ou un **.zip** (seules sources d'import acceptables) et
-    /// qu'aucun traitement n'est en cours (import EN_COURS ou décompression EXTRACTION : le formulaire est
-    /// alors gelé).
-    private boolean sourceGlisseeAcceptable(Dragboard dragboard) {
+    /// Vrai si un traitement est en cours (import `EN_COURS` ou décompression `EXTRACTION`) : le formulaire
+    /// est alors gelé (utilisé pour ignorer un glisser-déposer, #139).
+    private boolean traitementEnCours() {
         EtatImport etat = viewModel.etatProperty().get();
-        if (etat == EtatImport.EN_COURS || etat == EtatImport.EXTRACTION || !dragboard.hasFiles()) {
-            return false;
-        }
-        File premier = dragboard.getFiles().get(0);
-        return premier.isDirectory() || ExtracteurZip.estZip(premier.toPath());
+        return etat == EtatImport.EN_COURS || etat == EtatImport.EXTRACTION;
     }
 
     /// Signature d'une exécution d'import hors-thread : import normal ou écrasement (#214).
@@ -486,7 +461,13 @@ public class ImportationController implements GardeQuitter, AuDepartEcran {
                 viewModel.inspection().avertissementNuitExistanteProperty().get())) {
             return;
         }
-        lancerImportHorsThread(viewModel::executerImport);
+        // Carte laissée tourner plusieurs nuits (#…) : un passage par nuit incluse (chemin multi-nuits),
+        // sinon l'import mono-nuit historique.
+        if (viewModel.inspection().plusieursNuits()) {
+            lancerImportNuitsHorsThread();
+        } else {
+            lancerImportHorsThread(viewModel::executerImport);
+        }
     }
 
     /// « Écraser et réimporter » (#214) : quand le n° de passage choisi est déjà pris, l'utilisateur peut
@@ -515,11 +496,43 @@ public class ImportationController implements GardeQuitter, AuDepartEcran {
         JetonAnnulation jeton = new JetonAnnulation();
         jetonCourant = jeton;
         // Progression (#33) : le service notifie hors-thread ; on relaie chaque point au fil JavaFX.
-        Consumer<Progression> progres = p -> Platform.runLater(() -> viewModel.appliquerProgression(p));
-        Thread.ofVirtual().name("import-vigiechiro").start(() -> {
+        Consumer<Progression> progres =
+                p -> Platform.runLater(() -> viewModel.progression().appliquer(p));
+        surVirtualThread("import-vigiechiro", () -> {
+            ResultatImport resultatImport = executeur.executer(demande, progres, jeton);
+            Platform.runLater(() -> viewModel.marquerTermine(resultatImport));
+        });
+    }
+
+    /// Variante **multi-nuits** de [#lancerImportHorsThread] (#…) : un passage par nuit incluse, sur un
+    /// virtual thread, avec progression agrégée (« Nuit i/N · … ») et annulation entre deux nuits. Applique
+    /// le résultat agrégé via `Platform.runLater`.
+    private void lancerImportNuitsHorsThread() {
+        // Mémorise le choix « conserver les originaux » (survit aux sessions) au lancement, puis capture les
+        // nuits incluses + leurs n° dans un instantané immuable (fil JavaFX).
+        conservation.memoriser();
+        var demande = viewModel
+                .coordinationNuits()
+                .preparerDemande(viewModel.inspection().dossier(), conservation.valeur());
+        viewModel.marquerEnCours();
+        JetonAnnulation jeton = new JetonAnnulation();
+        jetonCourant = jeton;
+        Consumer<Progression> progres =
+                p -> Platform.runLater(() -> viewModel.progression().appliquer(p));
+        surVirtualThread("import-nuits-vigiechiro", () -> {
+            ResultatImportMultiNuits resultat = viewModel.coordinationNuits().executer(demande, progres, jeton);
+            Platform.runLater(() -> viewModel.marquerTermineNuits(resultat));
+        });
+    }
+
+    /// Exécute `travail` sur un **virtual thread** (Java 25) nommé `nom`, en traitant de façon uniforme
+    /// l'**annulation** (#146 → `marquerAnnule`) et l'**échec** (`marquerEchec`) via `Platform.runLater`.
+    /// Mutualise l'enveloppe des deux lanceurs (mono-nuit et multi-nuits) ; `travail` poste lui-même son
+    /// succès (`marquerTermine`/`marquerTermineNuits`) sur le fil JavaFX.
+    private void surVirtualThread(String nom, Runnable travail) {
+        Thread.ofVirtual().name(nom).start(() -> {
             try {
-                ResultatImport resultatImport = executeur.executer(demande, progres, jeton);
-                Platform.runLater(() -> viewModel.marquerTermine(resultatImport));
+                travail.run();
             } catch (AnnulationImportException annulation) {
                 Platform.runLater(viewModel::marquerAnnule); // annulation demandée : arrêt propre (#146)
             } catch (RuntimeException echec) {
@@ -566,37 +579,12 @@ public class ImportationController implements GardeQuitter, AuDepartEcran {
         };
     }
 
+    /// Statut affiché sous le bouton « Importer » : issue de l'import (annulé / mono-nuit / multi-nuits),
+    /// mise en phrase par [RecapImport] à partir de l'état et du (des) résultat(s) courant(s).
     private String libelleStatut() {
-        if (viewModel.etatProperty().get() == EtatImport.ANNULE) {
-            return "Opération annulée.";
-        }
-        if (viewModel.etatProperty().get() != EtatImport.TERMINE) {
-            return "";
-        }
-        ResultatImport resultat = viewModel.resultatProperty().get();
-        if (resultat == null) {
-            return "";
-        }
-        String base = "✓ Import terminé : "
-                + resultat.nombreSequences()
-                + " séquence(s) produite(s) à partir de "
-                + resultat.nombreOriginaux()
-                + " original(aux).";
-        // Rapport d'import (#155, #214) : doublon de nuit, fichiers ignorés et rejetés, délégué au rapport.
-        return base + resultat.rapport().avertissements();
-    }
-
-    private static <T> StringConverter<T> convertisseur(Function<T, String> versTexte) {
-        return new StringConverter<>() {
-            @Override
-            public String toString(T valeur) {
-                return valeur == null ? "" : versTexte.apply(valeur);
-            }
-
-            @Override
-            public T fromString(String texte) {
-                return null;
-            }
-        };
+        return RecapImport.libelle(
+                viewModel.etatProperty().get(),
+                viewModel.resultatProperty().get(),
+                viewModel.resultatNuitsProperty().get());
     }
 }

@@ -22,10 +22,12 @@ import fr.univ_amu.iut.importation.model.EtatNommage;
 import fr.univ_amu.iut.importation.model.InspecteurDossier;
 import fr.univ_amu.iut.importation.model.JournalParse;
 import fr.univ_amu.iut.importation.model.LigneRapport;
+import fr.univ_amu.iut.importation.model.NuitAImporter;
 import fr.univ_amu.iut.importation.model.Progression;
 import fr.univ_amu.iut.importation.model.RapportImport;
 import fr.univ_amu.iut.importation.model.RapportInspection;
 import fr.univ_amu.iut.importation.model.ResultatImport;
+import fr.univ_amu.iut.importation.model.ResultatImportMultiNuits;
 import fr.univ_amu.iut.importation.model.ServiceImport;
 import fr.univ_amu.iut.importation.model.StatutImportFichier;
 import fr.univ_amu.iut.sites.model.PointDEcoute;
@@ -438,7 +440,8 @@ class ImportationViewModelTest {
                         null,
                         List.of(Path.of("PaRecPR111_20260422_200000.wav"), Path.of("PaRecPR222_20260422_200000.wav")),
                         EtatNommage.BRUT,
-                        null));
+                        null,
+                        List.of()));
         viewModel.inspection().dossierSourceProperty().set(sd);
 
         viewModel.inspecter();
@@ -458,7 +461,8 @@ class ImportationViewModelTest {
                         null,
                         List.of(Path.of("PaRecPR1925492_20260422_200000.wav")),
                         EtatNommage.BRUT,
-                        38400));
+                        38400,
+                        List.of()));
         viewModel.inspection().dossierSourceProperty().set(sd);
 
         viewModel.inspecter();
@@ -495,7 +499,8 @@ class ImportationViewModelTest {
                         null,
                         List.of(Path.of("PaRecPR1648011_20260422_203000.wav")), // série ≠ journal
                         EtatNommage.BRUT,
-                        null));
+                        null,
+                        List.of()));
         viewModel.inspection().dossierSourceProperty().set(sd);
 
         viewModel.inspecter();
@@ -509,10 +514,10 @@ class ImportationViewModelTest {
     @Test
     @DisplayName("#33 : appliquerProgression alimente la fraction et le libellé d'étape")
     void appliquer_progression_alimente_les_proprietes() {
-        viewModel.appliquerProgression(new Progression("Transformation 45/191", 0.62));
+        viewModel.progression().appliquer(new Progression("Transformation 45/191", 0.62));
 
-        assertThat(viewModel.progressionProperty().get()).isEqualTo(0.62);
-        assertThat(viewModel.messageProgressionProperty().get()).isEqualTo("Transformation 45/191");
+        assertThat(viewModel.progression().fractionProperty().get()).isEqualTo(0.62);
+        assertThat(viewModel.progression().messageProperty().get()).isEqualTo("Transformation 45/191");
     }
 
     @Test
@@ -594,13 +599,13 @@ class ImportationViewModelTest {
         viewModel.marquerExtractionEnCours();
 
         assertThat(viewModel.etatProperty().get()).isEqualTo(EtatImport.EXTRACTION);
-        assertThat(viewModel.progressionProperty().get()).isZero();
-        assertThat(viewModel.messageProgressionProperty().get()).containsIgnoringCase("décompression");
+        assertThat(viewModel.progression().fractionProperty().get()).isZero();
+        assertThat(viewModel.progression().messageProperty().get()).containsIgnoringCase("décompression");
 
         // L'avancement publié pendant la décompression alimente la même barre que l'import (#33).
-        viewModel.appliquerProgression(new Progression("Décompression : 2 / 4 fichiers…", 0.5));
-        assertThat(viewModel.progressionProperty().get()).isEqualTo(0.5);
-        assertThat(viewModel.messageProgressionProperty().get()).contains("2 / 4");
+        viewModel.progression().appliquer(new Progression("Décompression : 2 / 4 fichiers…", 0.5));
+        assertThat(viewModel.progression().fractionProperty().get()).isEqualTo(0.5);
+        assertThat(viewModel.progression().messageProperty().get()).contains("2 / 4");
     }
 
     @Test
@@ -627,8 +632,8 @@ class ImportationViewModelTest {
         viewModel.marquerAnnule();
 
         assertThat(viewModel.etatProperty().get()).isEqualTo(EtatImport.ANNULE);
-        assertThat(viewModel.progressionProperty().get()).isZero();
-        assertThat(viewModel.messageProgressionProperty().get()).isEmpty();
+        assertThat(viewModel.progression().fractionProperty().get()).isZero();
+        assertThat(viewModel.progression().messageProperty().get()).isEmpty();
         assertThat(navigation.isNavigationVerrouillee()).isFalse();
     }
 
@@ -652,6 +657,130 @@ class ImportationViewModelTest {
         assertThat(LibelleProgression.formaterDuree(45)).isEqualTo("~45 s");
         assertThat(LibelleProgression.formaterDuree(60)).isEqualTo("~1 min");
         assertThat(LibelleProgression.formaterDuree(90)).isEqualTo("~1 min 30 s");
+    }
+
+    // --- Import multi-nuits ---
+
+    @Test
+    @DisplayName("Multi-nuits : n° de passage auto-consécutifs depuis le prochain libre, peutImporter vrai")
+    void multi_nuits_numerotation_auto() throws IOException {
+        Path multi = carteMultiNuits();
+        Site site = site(1L, "640380");
+        PointDEcoute point = point(10L, "A1", site.id());
+        when(serviceSites.listerPoints(site.id())).thenReturn(List.of(point));
+        when(serviceImport.inspecter(multi)).thenReturn(inspecteur.inspecter(multi));
+        when(serviceImport.prochainNumeroPassageLibre(10L, 2026)).thenReturn(4);
+        when(serviceImport.numeroPassageDejaUtilise(eq(10L), eq(2026), anyInt()))
+                .thenReturn(false);
+
+        viewModel.inspection().dossierSourceProperty().set(multi);
+        viewModel.inspecter();
+        viewModel.rattachement().siteSelectionneProperty().set(site);
+        viewModel.rattachement().pointSelectionneProperty().set(point);
+
+        assertThat(viewModel.inspection().plusieursNuits()).isTrue();
+        assertThat(viewModel.inspection().nuits())
+                .extracting(NuitVM::numeroPassagePropose)
+                .containsExactly(4, 5, 6);
+        assertThat(viewModel.peutImporter().get()).isTrue();
+    }
+
+    @Test
+    @DisplayName("Multi-nuits : décocher une nuit la met à 0 et renumérote les incluses consécutivement")
+    void multi_nuits_exclure_renumerote() throws IOException {
+        Path multi = carteMultiNuits();
+        Site site = site(1L, "640380");
+        PointDEcoute point = point(10L, "A1", site.id());
+        when(serviceSites.listerPoints(site.id())).thenReturn(List.of(point));
+        when(serviceImport.inspecter(multi)).thenReturn(inspecteur.inspecter(multi));
+        when(serviceImport.prochainNumeroPassageLibre(10L, 2026)).thenReturn(4);
+        when(serviceImport.numeroPassageDejaUtilise(eq(10L), eq(2026), anyInt()))
+                .thenReturn(false);
+        viewModel.inspection().dossierSourceProperty().set(multi);
+        viewModel.inspecter();
+        viewModel.rattachement().siteSelectionneProperty().set(site);
+        viewModel.rattachement().pointSelectionneProperty().set(point);
+
+        viewModel.inspection().nuits().get(1).inclureProperty().set(false); // exclure la nuit du milieu
+
+        assertThat(viewModel.inspection().nuits())
+                .extracting(NuitVM::numeroPassagePropose)
+                .containsExactly(4, 0, 5); // exclue → 0 ; les incluses renumérotées 4 puis 5
+        assertThat(viewModel.peutImporter().get()).isTrue();
+    }
+
+    @Test
+    @DisplayName("Multi-nuits : peutImporter est faux si aucune nuit n'est incluse")
+    void multi_nuits_aucune_incluse_bloque() throws IOException {
+        Path multi = carteMultiNuits();
+        Site site = site(1L, "640380");
+        PointDEcoute point = point(10L, "A1", site.id());
+        when(serviceSites.listerPoints(site.id())).thenReturn(List.of(point));
+        when(serviceImport.inspecter(multi)).thenReturn(inspecteur.inspecter(multi));
+        when(serviceImport.prochainNumeroPassageLibre(10L, 2026)).thenReturn(4);
+        when(serviceImport.numeroPassageDejaUtilise(eq(10L), eq(2026), anyInt()))
+                .thenReturn(false);
+        viewModel.inspection().dossierSourceProperty().set(multi);
+        viewModel.inspecter();
+        viewModel.rattachement().siteSelectionneProperty().set(site);
+        viewModel.rattachement().pointSelectionneProperty().set(point);
+        assertThat(viewModel.peutImporter().get()).isTrue();
+
+        viewModel.inspection().nuits().forEach(nuit -> nuit.inclureProperty().set(false));
+
+        assertThat(viewModel.peutImporter().get()).isFalse();
+    }
+
+    @Test
+    @DisplayName("Multi-nuits : preparerImportNuits ne retient que les nuits incluses, avec leur n° et le point")
+    void multi_nuits_preparer_demande() throws IOException {
+        Path multi = carteMultiNuits();
+        Site site = site(1L, "640380");
+        PointDEcoute point = point(10L, "A1", site.id());
+        when(serviceSites.listerPoints(site.id())).thenReturn(List.of(point));
+        when(serviceImport.inspecter(multi)).thenReturn(inspecteur.inspecter(multi));
+        when(serviceImport.prochainNumeroPassageLibre(10L, 2026)).thenReturn(4);
+        when(serviceImport.numeroPassageDejaUtilise(eq(10L), eq(2026), anyInt()))
+                .thenReturn(false);
+        viewModel.inspection().dossierSourceProperty().set(multi);
+        viewModel.inspecter();
+        viewModel.rattachement().siteSelectionneProperty().set(site);
+        viewModel.rattachement().pointSelectionneProperty().set(point);
+        viewModel.inspection().nuits().get(1).inclureProperty().set(false); // exclure la nuit du milieu
+
+        ImportationViewModel.DemandeImportNuits demande =
+                viewModel.coordinationNuits().preparerDemande(multi, true);
+
+        assertThat(demande.idPoint()).isEqualTo(10L);
+        assertThat(demande.nuits()).hasSize(2);
+        assertThat(demande.nuits()).extracting(NuitAImporter::numeroPassage).containsExactly(4, 5);
+    }
+
+    @Test
+    @DisplayName("Multi-nuits : marquerTermineNuits expose le résultat agrégé (TERMINE, rejets cumulés)")
+    void multi_nuits_marquer_termine() {
+        RapportImport rapport = new RapportImport(List.of(
+                new LigneRapport("ok.wav", StatutImportFichier.IMPORTE, "1 séquence(s)"),
+                new LigneRapport("casse.wav", StatutImportFichier.REJETE, "Original illisible")));
+        ResultatImport nuit = new ResultatImport(null, null, "1925492", 1, 1, List.of(), rapport);
+
+        viewModel.marquerTermineNuits(new ResultatImportMultiNuits(List.of(nuit, nuit)));
+
+        assertThat(viewModel.resultatNuitsProperty().get().nombrePassages()).isEqualTo(2);
+        assertThat(viewModel.etatProperty().get()).isEqualTo(EtatImport.TERMINE);
+        // Les rejets des deux nuits sont cumulés.
+        assertThat(viewModel.rejetsImport())
+                .containsExactly("casse.wav — Original illisible", "casse.wav — Original illisible");
+    }
+
+    private Path carteMultiNuits() throws IOException {
+        Path multi = Files.createDirectories(racine.resolve("multi"));
+        Files.writeString(multi.resolve("LogPR1925492.txt"), LOG, StandardCharsets.UTF_8);
+        for (String jour : List.of("20260422", "20260423", "20260424")) {
+            Files.writeString(multi.resolve("PaRecPR1925492_" + jour + "_203922.wav"), "wav");
+            Files.writeString(multi.resolve("PaRecPR1925492_" + jour + "_204326.wav"), "wav");
+        }
+        return multi;
     }
 
     private void prepareRattachement(Site site, PointDEcoute point) {

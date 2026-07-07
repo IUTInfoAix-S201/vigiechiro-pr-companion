@@ -68,6 +68,14 @@
     <!-- Garde-fou « enregistrements déjà ralentis » : source déjà expansée ×10 → rejetée à l'import. -->
     <Label fx:id="labelFichiersRalentis" styleClass="insp-incoherence" wrapText="true"
            visible="false" managed="false"/>
+    <!-- Découpage par nuit (#…) : une carte laissée tourner plusieurs nuits produit une ligne par nuit
+         (chacune deviendra un passage). Visible seulement s'il y a plus d'une nuit. Décochez celles à
+         exclure (ex. une nuit tronquée). -->
+    <VBox fx:id="zoneNuits" spacing="6.0" visible="false" managed="false">
+      <Label text="Plusieurs nuits détectées sur cette carte : chacune deviendra un passage distinct (même point, n° de passage consécutifs). Décochez celles que vous ne voulez pas importer."
+             styleClass="section-sous" wrapText="true"/>
+      <!-- La table des nuits est construite par programme (TableNuits) et insérée ici par le controller. -->
+    </VBox>
   </VBox>
 
   <!-- 3. Rattachement -->

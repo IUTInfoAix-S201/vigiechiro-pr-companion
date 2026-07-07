@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [1.129.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.128.0...v1.129.0) (2026-07-07)
+
+
+### Features
+
+* **cli:** importer les résultats Tadarida (CSV) ([#616](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/616)) ([dfe4ffa](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/dfe4ffa2c1a3409adeac24034b438a174a43333c))
+
 # [1.128.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.127.0...v1.128.0) (2026-07-07)
 
 

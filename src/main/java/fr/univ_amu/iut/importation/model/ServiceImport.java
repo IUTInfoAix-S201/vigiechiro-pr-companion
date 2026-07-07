@@ -5,6 +5,7 @@ import fr.univ_amu.iut.commun.model.Horloge;
 import fr.univ_amu.iut.commun.model.Prefixe;
 import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.commun.model.Workspace;
+import fr.univ_amu.iut.commun.persistence.ServiceSauvegarde;
 import fr.univ_amu.iut.commun.persistence.UniteDeTravail;
 import fr.univ_amu.iut.importation.model.dao.AgregatImportDao;
 import fr.univ_amu.iut.passage.model.EnregistrementOriginal;
@@ -74,6 +75,7 @@ public class ServiceImport {
     private final Workspace workspace;
     private final FabriqueEntitesImport fabriqueEntites;
     private final CompteurValidations compteurValidations;
+    private final ServiceSauvegarde serviceSauvegarde;
 
     /// Verrou anti-import-concurrent (#54) : le service étant un **singleton** partagé, il refuse un
     /// second import tant qu'un autre tourne. Filet « pire cas » indépendant de l'IHM (deux
@@ -89,7 +91,8 @@ public class ServiceImport {
             UniteDeTravail uniteDeTravail,
             Workspace workspace,
             Horloge horloge,
-            CompteurValidations compteurValidations) {
+            CompteurValidations compteurValidations,
+            ServiceSauvegarde serviceSauvegarde) {
         this.inspecteur = Objects.requireNonNull(inspecteur, "inspecteur");
         this.copie = Objects.requireNonNull(copie, "copie");
         this.renommeur = Objects.requireNonNull(renommeur, "renommeur");
@@ -99,6 +102,7 @@ public class ServiceImport {
         this.workspace = Objects.requireNonNull(workspace, "workspace");
         this.fabriqueEntites = new FabriqueEntitesImport(horloge);
         this.compteurValidations = Objects.requireNonNull(compteurValidations, "compteurValidations");
+        this.serviceSauvegarde = Objects.requireNonNull(serviceSauvegarde, "serviceSauvegarde");
     }
 
     /// Inspecte (lecture seule) le dossier SD sans rien importer : utile pour prévisualiser le
@@ -225,6 +229,10 @@ public class ServiceImport {
     /// originaux, séquences, journal, relevé) **puis** importe la nuit, sous le même verrou
     /// anti-concurrent (#54) que [#importer]. À n'appeler qu'après **double confirmation** côté IHM (#214).
     ///
+    /// **Filet de sécurité (#148)** : une **sauvegarde automatique** de la base est écrite **avant** la
+    /// suppression destructive. Si elle échoue (disque plein…), l'exception remonte et l'écrasement
+    /// **n'a pas lieu** : on ne détruit jamais sans copie de secours.
+    ///
     /// @return le compte rendu de l'import qui suit l'écrasement
     public ResultatImport ecraserEtImporter(
             Path dossierSource, Long idPoint, Prefixe prefixe, Consumer<Progression> progres, JetonAnnulation jeton) {
@@ -233,6 +241,7 @@ public class ServiceImport {
         Objects.requireNonNull(prefixe, "prefixe");
         Objects.requireNonNull(progres, "progres");
         Objects.requireNonNull(jeton, "jeton");
+        serviceSauvegarde.sauvegarder(serviceSauvegarde.dossierParDefaut());
         return sousVerrouImport(dossierSource, idPoint, prefixe, progres, jeton, true);
     }
 

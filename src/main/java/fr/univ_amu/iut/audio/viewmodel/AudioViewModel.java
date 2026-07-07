@@ -288,7 +288,7 @@ public class AudioViewModel {
         LigneObservationAudio retrouvee = idObservation == null
                 ? null
                 : observations.stream()
-                        .filter(ligne -> ligne.idObservation() == idObservation)
+                        .filter(ligne -> idObservation.equals(ligne.idObservation()))
                         .findFirst()
                         .orElse(null);
         selection.set(retrouvee);

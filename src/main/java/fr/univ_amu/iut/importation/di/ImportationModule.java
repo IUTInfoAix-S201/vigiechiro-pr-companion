@@ -7,6 +7,7 @@ import com.google.inject.name.Named;
 import fr.univ_amu.iut.commun.model.CompteurValidations;
 import fr.univ_amu.iut.commun.model.Horloge;
 import fr.univ_amu.iut.commun.model.Workspace;
+import fr.univ_amu.iut.commun.persistence.ServiceSauvegarde;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
 import fr.univ_amu.iut.commun.persistence.UniteDeTravail;
 import fr.univ_amu.iut.commun.view.OuvrirImportation;
@@ -97,7 +98,8 @@ public class ImportationModule extends AbstractModule {
             UniteDeTravail uniteDeTravail,
             Workspace workspace,
             Horloge horloge,
-            CompteurValidations compteurValidations) {
+            CompteurValidations compteurValidations,
+            ServiceSauvegarde serviceSauvegarde) {
         return new ServiceImport(
                 inspecteur,
                 copie,
@@ -107,7 +109,8 @@ public class ImportationModule extends AbstractModule {
                 uniteDeTravail,
                 workspace,
                 horloge,
-                compteurValidations);
+                compteurValidations,
+                serviceSauvegarde);
     }
 
     /// ViewModel de l'assistant M-Import. **Non-singleton** (un VM frais par chargement FXML : un

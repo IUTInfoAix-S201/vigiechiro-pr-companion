@@ -59,6 +59,13 @@ final class CriteresAnalyse {
                 Object valeur = ((ComboBox<?>) editeur).getValue();
                 return valeur == null ? List.of() : List.of(((StatutObservation) valeur).name());
             }
+
+            @Override
+            public void restaurerValeurs(Node editeur, List<String> valeurs) {
+                if (!valeurs.isEmpty()) {
+                    selectionnerParValeur(editeur, StatutObservation.valueOf(valeurs.get(0)));
+                }
+            }
         };
     }
 
@@ -93,6 +100,13 @@ final class CriteresAnalyse {
                 Object valeur = ((ComboBox<?>) editeur).getValue();
                 return valeur == null ? List.of() : List.of((String) valeur);
             }
+
+            @Override
+            public void restaurerValeurs(Node editeur, List<String> valeurs) {
+                if (!valeurs.isEmpty()) {
+                    selectionnerParValeur(editeur, valeurs.get(0));
+                }
+            }
         };
     }
 
@@ -114,6 +128,13 @@ final class CriteresAnalyse {
 
     private static boolean contient(String champ, String aiguille) {
         return champ != null && NormalisationTexte.normaliser(champ).contains(aiguille);
+    }
+
+    /// Sélectionne dans une liste déroulante l'élément **égal** à `valeur` (ou vide la sélection s'il est
+    /// absent : `indexOf` → -1), pour restaurer une valeur mémorisée **sans cast générique non vérifié**.
+    private static void selectionnerParValeur(Node editeur, Object valeur) {
+        ComboBox<?> choix = (ComboBox<?>) editeur;
+        choix.getSelectionModel().select(choix.getItems().indexOf(valeur));
     }
 
     private static <T> StringConverter<T> convertisseur(Function<T, String> versTexte) {

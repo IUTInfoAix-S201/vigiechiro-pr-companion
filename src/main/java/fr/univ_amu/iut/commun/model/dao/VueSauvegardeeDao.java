@@ -1,5 +1,6 @@
 package fr.univ_amu.iut.commun.model.dao;
 
+import fr.univ_amu.iut.commun.model.DepotVues;
 import fr.univ_amu.iut.commun.model.VueSauvegardee;
 import fr.univ_amu.iut.commun.persistence.DaoGenerique;
 import fr.univ_amu.iut.commun.persistence.RowMapper;
@@ -12,7 +13,7 @@ import java.util.List;
 ///
 /// `findAll` / `findById` / `delete` sont hérités de [DaoGenerique] ; seuls les écritures dépendantes des
 /// colonnes (`insert` / `update`) et la requête métier [#findByFeature(String)] sont écrites ici.
-public class VueSauvegardeeDao extends DaoGenerique<VueSauvegardee, Long> {
+public class VueSauvegardeeDao extends DaoGenerique<VueSauvegardee, Long> implements DepotVues {
 
     private static final RowMapper<VueSauvegardee> MAPPER = rs -> new VueSauvegardee(
             rs.getLong("id"), rs.getString("feature"), rs.getString("name"), rs.getString("descriptor_json"));

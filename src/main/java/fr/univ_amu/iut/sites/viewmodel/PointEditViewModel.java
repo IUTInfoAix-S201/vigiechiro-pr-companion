@@ -1,5 +1,6 @@
 package fr.univ_amu.iut.sites.viewmodel;
 
+import fr.univ_amu.iut.commun.model.AnalyseurCoordonnees;
 import fr.univ_amu.iut.commun.model.validation.ValidateurCodePoint;
 import fr.univ_amu.iut.sites.model.PointDEcoute;
 import fr.univ_amu.iut.sites.model.ServiceSites;
@@ -191,8 +192,10 @@ public class PointEditViewModel {
         return texte == null || texte.isBlank() ? null : parserDouble(texte);
     }
 
-    /// Parse un décimal en tolérant la virgule française comme séparateur.
+    /// Parse une coordonnée en **degrés décimaux**, en acceptant décimal (DD) **et** degrés/minutes/secondes
+    /// (DMS), via [AnalyseurCoordonnees] (#153). Lève `NumberFormatException` sur une saisie inanalysable
+    /// (la validité de plage est vérifiée à part par [#coordonneeValide]).
     private static double parserDouble(String texte) {
-        return Double.parseDouble(texte.trim().replace(',', '.'));
+        return AnalyseurCoordonnees.enDegresDecimaux(texte);
     }
 }

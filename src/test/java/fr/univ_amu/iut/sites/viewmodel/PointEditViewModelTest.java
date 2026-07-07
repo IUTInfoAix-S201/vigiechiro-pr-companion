@@ -113,6 +113,23 @@ class PointEditViewModelTest {
     }
 
     @Test
+    @DisplayName("Une saisie DMS est acceptée et convertie en degrés décimaux (#153)")
+    void coordonnees_dms() {
+        viewModel.preparerCreation(site);
+        viewModel.codeProperty().set("A1");
+
+        // Latitude en degrés/minutes/secondes, longitude en DMS ouest (négative).
+        viewModel.latitudeProperty().set("43°24'3.6\"N");
+        viewModel.longitudeProperty().set("1°34'26.4\"W");
+        assertThat(viewModel.peutEnregistrer().get()).isTrue();
+
+        assertThat(viewModel.coordonneesValides()).hasValueSatisfying(gps -> {
+            assertThat(gps[0]).isCloseTo(43.401, org.assertj.core.api.Assertions.within(1e-6));
+            assertThat(gps[1]).isCloseTo(-1.574, org.assertj.core.api.Assertions.within(1e-6));
+        });
+    }
+
+    @Test
     @DisplayName("Enregistrer en création insère le point (coordonnées parsées)")
     void enregistrer_creation() {
         viewModel.preparerCreation(site);

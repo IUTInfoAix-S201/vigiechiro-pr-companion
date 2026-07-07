@@ -61,6 +61,11 @@ modification, il est pré-rempli avec les valeurs existantes.
 La fenêtre intègre une **carte-outil** centrée sur le carré du site, **synchronisée dans les deux
 sens** avec les champs latitude / longitude (#153) : **glissez le marqueur** sur la carte pour fixer
 la position (les champs se remplissent), ou **saisissez les coordonnées** (le marqueur se déplace).
+
+Les champs acceptent **deux formats**, au choix : **degrés décimaux** (`43.5298`, la virgule est
+tolérée) **ou** **degrés/minutes/secondes** (`43°31'47"N`, `1°34'26.4"W`). Vous pouvez donc **coller**
+des coordonnées depuis n'importe quelle source ; elles sont converties automatiquement, et une saisie
+hors plage (latitude −90..90, longitude −180..180) est refusée.
 Tant qu'aucun GPS n'est renseigné, le marqueur démarre **au centre du carré** en position
 **approximative** (anneau pointillé) : un point de départ à caler, pas une position mesurée.
 

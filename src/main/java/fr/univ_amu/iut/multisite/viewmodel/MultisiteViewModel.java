@@ -2,6 +2,7 @@ package fr.univ_amu.iut.multisite.viewmodel;
 
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.model.Verdict;
+import fr.univ_amu.iut.commun.viewmodel.Filtres;
 import fr.univ_amu.iut.multisite.model.CarreAgrege;
 import fr.univ_amu.iut.multisite.model.FiltresMultisite;
 import fr.univ_amu.iut.multisite.model.LignePassage;
@@ -10,6 +11,7 @@ import fr.univ_amu.iut.multisite.model.ServiceMultisite;
 import fr.univ_amu.iut.multisite.model.TriMultisite;
 import fr.univ_amu.iut.sites.model.ServiceSites;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import javafx.beans.property.ObjectProperty;
@@ -22,21 +24,37 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 
 /// ViewModel de l'écran **M-Multisite** (vue agrégée des passages de tous les sites de
 /// l'utilisateur, parcours P5, story E5, statut **SHOULD**).
 ///
 /// Expose le tableau des [lignes][LignePassage], les critères de **filtre** (numéro de carré,
-/// statut, verdict, année) et de **tri** ([TriMultisite]), et l'**export CSV**. Tout changement de
-/// filtre ou de tri **ré-interroge le service** et rafraîchit le tableau ([#rafraichir()]) : le
-/// service filtre et trie côté métier, le VM ne fait que relayer.
+/// statut, verdict, année) et de **tri** ([TriMultisite]), et l'**export CSV**.
+///
+/// **Filtrage côté client (#537).** Les passages sont chargés **une seule fois**
+/// ([#rafraichir()]) puis filtrés **en mémoire** via le socle partagé [Filtres] : chaque
+/// changement de filtre recompose la **conjonction** de prédicats sur une [FilteredList], **sans
+/// ré-interroger le service** (le multisite chargeait auparavant tous les passages à chaque
+/// changement de critère). Le **tri nommé** ré-ordonne la liste publiée. Les prédicats
+/// **réutilisent** [FiltresMultisite#accepte(LignePassage)] : même sémantique que les vues
+/// sauvegardées et que la vue « saison » du service, aucune logique de filtrage dupliquée.
 ///
 /// Gère aussi les **vues sauvegardées** ([SavedView]) : enregistrer la combinaison de filtres
-/// courante sous un nom, lister, appliquer (rejouer ses filtres), mettre à jour ou supprimer.
+/// courante sous un nom, lister, appliquer (rejouer ses filtres), mettre à jour ou supprimer. Une
+/// vue reste sérialisée en [FiltresMultisite] (`saved_view.filters_json`) ; l'appliquer repose les
+/// quatre propriétés de filtre, que le socle traduit en prédicats.
 ///
 /// VM agnostique de l'IHM (règle ArchUnit `viewmodel_sans_javafx_ui`) : seuls
 /// `javafx.beans`/`javafx.collections`. Non-singleton (un VM frais par chargement de vue).
 public class MultisiteViewModel {
+
+    /// Clés des filtres composables (une par critère) dans le socle [Filtres].
+    private static final String CLE_CARRE = "carre";
+
+    private static final String CLE_STATUT = "statut";
+    private static final String CLE_VERDICT = "verdict";
+    private static final String CLE_ANNEE = "annee";
 
     private final ServiceMultisite service;
     private final String idUtilisateur;
@@ -45,17 +63,23 @@ public class MultisiteViewModel {
     /// extraite : le ViewModel l'expose, la vue la pilote.
     private final PositionsEnAttente positionsEnAttente;
 
-    /// Vrai pendant l'application groupée de plusieurs filtres (réinitialisation, vue sauvegardée) :
-    /// les listeners ne rafraîchissent pas à chaque propriété, un seul rafraîchissement suit le lot.
-    private boolean chargementGroupe;
-
     private final StringProperty filtreNumeroCarre = new SimpleStringProperty(this, "filtreNumeroCarre", "");
     private final ObjectProperty<StatutWorkflow> filtreStatut = new SimpleObjectProperty<>(this, "filtreStatut");
     private final ObjectProperty<Verdict> filtreVerdict = new SimpleObjectProperty<>(this, "filtreVerdict");
     private final ObjectProperty<Integer> filtreAnnee = new SimpleObjectProperty<>(this, "filtreAnnee");
     private final ObjectProperty<TriMultisite> tri = new SimpleObjectProperty<>(this, "tri", TriMultisite.PAR_SITE);
 
+    /// Tous les passages de l'utilisateur, chargés une fois ([#rafraichir()]). Source **non filtrée**
+    /// du socle : les filtres et le tri travaillent dessus en mémoire, sans ré-interroger le service.
+    private final ObservableList<LignePassage> tousLesPassages = FXCollections.observableArrayList();
+
+    private final FilteredList<LignePassage> passagesFiltres = new FilteredList<>(tousLesPassages);
+
+    /// Lignes **publiées** vers la vue : sous-ensemble filtré, ré-ordonné par le tri nommé. La vue y
+    /// pose par-dessus un [javafx.collections.transformation.SortedList] pour le tri par clic
+    /// d'en-tête (#145) ; cette liste reste donc la même instance au fil des rafraîchissements.
     private final ObservableList<LignePassage> lignes = FXCollections.observableArrayList();
+
     private final ObservableList<SavedView> vues = FXCollections.observableArrayList();
     /// Agrégat des carrés pour la carte (#152) : vue d'ensemble **non filtrée** (carrés + points + statut).
     private final ObservableList<CarreAgrege> carresCarte = FXCollections.observableArrayList();
@@ -63,32 +87,45 @@ public class MultisiteViewModel {
     private final ReadOnlyStringWrapper resume = new ReadOnlyStringWrapper(this, "resume", "");
     private final ReadOnlyStringWrapper message = new ReadOnlyStringWrapper(this, "message", "");
 
+    /// Socle de filtres composables (#537) : recompose la conjonction sur [#passagesFiltres] puis
+    /// publie via [#publierLignes()]. Déclaré après ses dépendances (la liste filtrée).
+    private final Filtres<LignePassage> filtres = new Filtres<>(passagesFiltres, this::publierLignes);
+
     public MultisiteViewModel(ServiceMultisite service, ServiceSites serviceSites, String idUtilisateur) {
         this.service = Objects.requireNonNull(service, "service");
         this.idUtilisateur = Objects.requireNonNull(idUtilisateur, "idUtilisateur");
         this.positionsEnAttente = new PositionsEnAttente(serviceSites, this::rafraichirCarte, message::set);
-        // Tout changement interactif de filtre ou de tri ré-interroge le service et rafraîchit le
-        // tableau (sauf pendant une application groupée : un seul rafraîchissement la conclut).
-        filtreNumeroCarre.addListener((obs, ancien, nouveau) -> rafraichirSiInteractif());
-        filtreStatut.addListener((obs, ancien, nouveau) -> rafraichirSiInteractif());
-        filtreVerdict.addListener((obs, ancien, nouveau) -> rafraichirSiInteractif());
-        filtreAnnee.addListener((obs, ancien, nouveau) -> rafraichirSiInteractif());
-        tri.addListener((obs, ancien, nouveau) -> rafraichirSiInteractif());
+        // Chaque critère branche/retire son prédicat dans le socle (filtrage en mémoire, sans
+        // ré-interroger le service). Le tri nommé ne re-filtre pas : il ré-ordonne la liste publiée.
+        filtreNumeroCarre.addListener(
+                (obs, ancien, nouveau) -> filtres.definir(CLE_CARRE, CriteresMultisite.parCarre(nouveau)));
+        filtreStatut.addListener(
+                (obs, ancien, nouveau) -> filtres.definir(CLE_STATUT, CriteresMultisite.parStatut(nouveau)));
+        filtreVerdict.addListener(
+                (obs, ancien, nouveau) -> filtres.definir(CLE_VERDICT, CriteresMultisite.parVerdict(nouveau)));
+        filtreAnnee.addListener(
+                (obs, ancien, nouveau) -> filtres.definir(CLE_ANNEE, CriteresMultisite.parAnnee(nouveau)));
+        tri.addListener((obs, ancien, nouveau) -> publierLignes());
     }
 
-    /// (Re)charge le tableau selon les filtres et le tri courants. À appeler à l'ouverture de
-    /// l'écran ; ensuite déclenché automatiquement par tout changement de filtre ou de tri.
+    /// (Re)charge **tous** les passages de l'utilisateur, puis ré-applique filtres et tri courants.
+    /// À appeler à l'ouverture de l'écran et après une modification des données (retour d'un passage
+    /// édité). Les changements de filtre ou de tri **ne rechargent pas** : ils re-filtrent /
+    /// ré-ordonnent en mémoire.
     public void rafraichir() {
-        lignes.setAll(service.listerPassages(idUtilisateur, filtresCourants(), tri.get()));
+        tousLesPassages.setAll(service.listerPassages(idUtilisateur));
+        filtres.appliquer();
+    }
+
+    /// Callback du socle (`apresApplication`) : ré-ordonne le sous-ensemble filtré selon le tri
+    /// nommé, le publie dans [#lignes], et met à jour le résumé et l'indice d'état vide.
+    private void publierLignes() {
+        List<LignePassage> triees = new ArrayList<>(passagesFiltres);
+        triees.sort(tri.get().comparateur());
+        lignes.setAll(triees);
         nonVide.set(!lignes.isEmpty());
         resume.set(lignes.size() + " passage(s) affiché(s).");
         message.set("");
-    }
-
-    private void rafraichirSiInteractif() {
-        if (!chargementGroupe) {
-            rafraichir();
-        }
     }
 
     /// (Re)charge l'agrégat des carrés pour la **carte** (#152), vue d'ensemble **non filtrée**.
@@ -108,30 +145,27 @@ public class MultisiteViewModel {
 
     private FiltresMultisite filtresCourants() {
         return new FiltresMultisite(
-                texteOuNull(filtreNumeroCarre.get()), filtreStatut.get(), filtreVerdict.get(), filtreAnnee.get());
+                CriteresMultisite.texteOuNull(filtreNumeroCarre.get()),
+                filtreStatut.get(),
+                filtreVerdict.get(),
+                filtreAnnee.get());
     }
 
-    /// Applique un jeu de filtres d'un seul tenant (réinitialisation, vue sauvegardée) : les quatre
-    /// critères sont posés sous garde, puis un unique rafraîchissement suit (au lieu de quatre).
-    private void appliquerFiltres(FiltresMultisite filtres) {
-        chargementGroupe = true;
-        try {
-            filtreNumeroCarre.set(filtres.numeroCarre() == null ? "" : filtres.numeroCarre());
-            filtreStatut.set(filtres.statut());
-            filtreVerdict.set(filtres.verdict());
-            filtreAnnee.set(filtres.annee());
-        } finally {
-            chargementGroupe = false;
-        }
-        rafraichir();
+    /// Applique un jeu de filtres d'un seul tenant (réinitialisation, vue sauvegardée) : repose les
+    /// quatre propriétés, que les listeners traduisent en prédicats du socle (re-filtrage en mémoire).
+    private void appliquerFiltres(FiltresMultisite filtresAAppliquer) {
+        filtreNumeroCarre.set(filtresAAppliquer.numeroCarre() == null ? "" : filtresAAppliquer.numeroCarre());
+        filtreStatut.set(filtresAAppliquer.statut());
+        filtreVerdict.set(filtresAAppliquer.verdict());
+        filtreAnnee.set(filtresAAppliquer.annee());
     }
 
-    /// Réinitialise tous les filtres (le tri est conservé), puis recharge le tableau une fois.
+    /// Réinitialise tous les filtres (le tri est conservé). Le socle re-filtre en mémoire.
     public void reinitialiserFiltres() {
         appliquerFiltres(FiltresMultisite.aucun());
     }
 
-    /// Exporte les lignes **internes** du tableau (ordre filtré/trié côté service) en CSV vers
+    /// Exporte les lignes **internes** du tableau (sous-ensemble filtré, tri nommé) en CSV vers
     /// `destination`. La vue préfère [#exporter(Path, List)] pour exporter l'ordre **affiché** (tri par
     /// clic d'en-tête inclus).
     public boolean exporter(Path destination) {
@@ -187,7 +221,8 @@ public class MultisiteViewModel {
         }
     }
 
-    /// Applique les filtres d'une vue sauvegardée (rejoue la combinaison) puis recharge le tableau.
+    /// Applique les filtres d'une vue sauvegardée (rejoue la combinaison). Le socle re-filtre en
+    /// mémoire.
     ///
     /// @return `true` si la vue a été appliquée
     public boolean appliquerVue(SavedView vue) {
@@ -237,10 +272,6 @@ public class MultisiteViewModel {
             message.set(echec.getMessage());
             return false;
         }
-    }
-
-    private static String texteOuNull(String valeur) {
-        return valeur == null || valeur.isBlank() ? null : valeur.trim();
     }
 
     public ObservableList<LignePassage> lignes() {

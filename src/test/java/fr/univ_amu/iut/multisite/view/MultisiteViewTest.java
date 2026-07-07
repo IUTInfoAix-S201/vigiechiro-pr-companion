@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -19,7 +18,6 @@ import fr.univ_amu.iut.commun.view.OuvrirAudio;
 import fr.univ_amu.iut.commun.view.OuvrirPassage;
 import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
 import fr.univ_amu.iut.commun.viewmodel.SourceObservations;
-import fr.univ_amu.iut.multisite.model.FiltresMultisite;
 import fr.univ_amu.iut.multisite.model.LignePassage;
 import fr.univ_amu.iut.multisite.model.ServiceMultisite;
 import fr.univ_amu.iut.multisite.viewmodel.MultisiteViewModel;
@@ -44,11 +42,12 @@ import org.mockito.ArgumentCaptor;
 import org.testfx.api.FxRobot;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
+import org.testfx.util.WaitForAsyncUtils;
 
 /// Test d'intégration TestFX de l'écran **M-Multisite** : chargement du FXML via Guice (avec un
 /// [ServiceMultisite] et un [OuvrirPassage] mockés), auto-chargement du tableau en `initialize()`,
-/// vérification du câblage (tableau peuplé, résumé, filtre → ré-interrogation, export actif) et du
-/// **drill-down** double-clic → contrat socle `OuvrirPassage`. Pas de base de données.
+/// vérification du câblage (tableau peuplé, résumé, filtre → tableau filtré en mémoire, export actif)
+/// et du **drill-down** double-clic → contrat socle `OuvrirPassage`. Pas de base de données.
 @ExtendWith(ApplicationExtension.class)
 class MultisiteViewTest {
 
@@ -59,7 +58,12 @@ class MultisiteViewTest {
     private MultisiteViewModel viewModel;
 
     private static LignePassage ligne(long id, String carre, String point, int annee, int numero, String date) {
-        return new LignePassage(id, carre, point, annee, numero, date, StatutWorkflow.DEPOSE, Verdict.OK);
+        return ligne(id, carre, point, annee, numero, date, StatutWorkflow.DEPOSE);
+    }
+
+    private static LignePassage ligne(
+            long id, String carre, String point, int annee, int numero, String date, StatutWorkflow statut) {
+        return new LignePassage(id, carre, point, annee, numero, date, statut, Verdict.OK);
     }
 
     @Start
@@ -68,10 +72,10 @@ class MultisiteViewTest {
         serviceSites = mock(ServiceSites.class);
         ouvrirPassage = mock(OuvrirPassage.class);
         ouvrirAudio = mock(OuvrirAudio.class);
-        when(service.listerPassages(anyString(), any(), any()))
+        when(service.listerPassages(anyString()))
                 .thenReturn(List.of(
                         ligne(42L, "640380", "A1", 2026, 1, "2026-06-21"),
-                        ligne(7L, "640381", "B2", 2025, 3, "2025-07-02")));
+                        ligne(7L, "640381", "B2", 2025, 3, "2025-07-02", StatutWorkflow.VERIFIE)));
         when(service.agregerPourCarte(anyString())).thenReturn(List.of()); // carte (#152) : pas de NPE à l'init
         viewModel = new MultisiteViewModel(service, serviceSites, "u-1");
         Injector injector = Guice.createInjector(new AbstractModule() {
@@ -105,15 +109,20 @@ class MultisiteViewTest {
     }
 
     @Test
-    @DisplayName("Choisir un filtre de statut ré-interroge le service avec ce critère")
-    void filtre_statut_re_interroge(FxRobot robot) {
+    @DisplayName("Choisir un filtre de statut filtre le tableau sur ce critère")
+    void filtre_statut_filtre_le_tableau(FxRobot robot) {
         ComboBox<?> choixStatut = robot.lookup("#choixStatut").queryAs(ComboBox.class);
-        // Items : [Tous(null), IMPORTE, TRANSFORME, VERIFIE, PRET_A_DEPOSER, DEPOSE] → index 4.
-        robot.interact(() -> choixStatut.getSelectionModel().select(4));
+        // Items : [Tous(null), IMPORTE, TRANSFORME, VERIFIE, PRET_A_DEPOSER, DEPOSE] → index 3 = VERIFIE.
+        robot.interact(() -> choixStatut.getSelectionModel().select(3));
+        WaitForAsyncUtils.waitForFxEvents();
 
-        ArgumentCaptor<FiltresMultisite> capteur = ArgumentCaptor.forClass(FiltresMultisite.class);
-        verify(service, atLeastOnce()).listerPassages(eq("u-1"), capteur.capture(), any());
-        assertThat(capteur.getAllValues()).anyMatch(filtre -> filtre.statut() == StatutWorkflow.PRET_A_DEPOSER);
+        @SuppressWarnings("unchecked")
+        TableView<LignePassage> table = (TableView<LignePassage>)
+                (TableView<?>) robot.lookup("#tableLignes").queryTableView();
+        assertThat(table.getItems())
+                .as("seule la ligne au statut VERIFIE reste (filtrage en mémoire)")
+                .extracting(LignePassage::statut)
+                .containsOnly(StatutWorkflow.VERIFIE);
     }
 
     @Test

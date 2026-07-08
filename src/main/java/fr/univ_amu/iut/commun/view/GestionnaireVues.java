@@ -2,9 +2,11 @@ package fr.univ_amu.iut.commun.view;
 
 import fr.univ_amu.iut.commun.model.DepotVues;
 import fr.univ_amu.iut.commun.model.VueSauvegardee;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Stream;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextInputDialog;
@@ -31,6 +33,11 @@ public final class GestionnaireVues<T> {
     private final String feature;
     private final Function<String, Optional<String>> saisieNom;
 
+    /// Vues **par défaut** de l'écran (fournies par la vue hôte) : rendues **en premier**, en **lecture seule**
+    /// (pas de renommer/supprimer). Repérées par un `id` `null` (jamais persistées). Sur une vue par défaut,
+    /// « 💾 » enregistre les filtres courants **comme une nouvelle vue** (on ne peut pas l'écraser).
+    private final List<VueSauvegardee> vuesParDefaut;
+
     /// Vue actuellement **active** (onglet surligné), ou `null` (aucune vue rejouée / filtres libres).
     private VueSauvegardee active;
 
@@ -56,13 +63,29 @@ public final class GestionnaireVues<T> {
             DepotVues depot,
             String feature,
             Function<String, Optional<String>> saisieNom) {
+        this(onglets, filtres, depot, feature, List.of(), saisieNom);
+    }
+
+    /// Variante avec des **vues par défaut** en lecture seule (rendues en premier). Au chargement, la vue
+    /// (par défaut ou utilisateur) correspondant aux filtres courants est activée ; à défaut, la **première
+    /// vue par défaut** est appliquée — il y a donc **toujours** une vue active tant qu'il en existe une par
+    /// défaut, ce qui évite d'avoir à sélectionner un onglet avant de modifier les filtres.
+    public GestionnaireVues(
+            Pane onglets,
+            GestionnaireFiltres<T> filtres,
+            DepotVues depot,
+            String feature,
+            List<VueSauvegardee> vuesParDefaut,
+            Function<String, Optional<String>> saisieNom) {
         this.onglets = Objects.requireNonNull(onglets, "onglets");
         this.filtres = Objects.requireNonNull(filtres, "filtres");
         this.depot = Objects.requireNonNull(depot, "depot");
         this.feature = Objects.requireNonNull(feature, "feature");
+        this.vuesParDefaut = List.copyOf(vuesParDefaut);
         this.saisieNom = Objects.requireNonNull(saisieNom, "saisieNom");
         this.filtres.surChangement(this::auChangementFiltres);
         rafraichir();
+        activerAuChargement();
     }
 
     /// Réévalue si les filtres courants divergent de la vue active à chaque changement de filtre, et ne
@@ -91,7 +114,19 @@ public final class GestionnaireVues<T> {
     /// @param feature clé de l'écran/table
     public static <T> GestionnaireVues<T> avecDialogue(
             Pane onglets, GestionnaireFiltres<T> filtres, DepotVues depot, String feature) {
-        return new GestionnaireVues<>(onglets, filtres, depot, feature, defaut -> demanderNom(onglets, defaut));
+        return avecDialogue(onglets, filtres, depot, feature, List.of());
+    }
+
+    /// Variante avec des **vues par défaut** (lecture seule, rendues en premier), avec la boîte de saisie
+    /// standard.
+    public static <T> GestionnaireVues<T> avecDialogue(
+            Pane onglets,
+            GestionnaireFiltres<T> filtres,
+            DepotVues depot,
+            String feature,
+            List<VueSauvegardee> vuesParDefaut) {
+        return new GestionnaireVues<>(
+                onglets, filtres, depot, feature, vuesParDefaut, defaut -> demanderNom(onglets, defaut));
     }
 
     /// Boîte de saisie standard du nom d'une vue (création ou renommage) : renvoie le nom nettoyé, ou vide
@@ -107,7 +142,7 @@ public final class GestionnaireVues<T> {
     /// Recharge les vues de la `feature` et reconstruit la barre (un onglet par vue + le bouton « + Vue »).
     public void rafraichir() {
         onglets.getChildren().clear();
-        for (VueSauvegardee vue : depot.findByFeature(feature)) {
+        for (VueSauvegardee vue : toutesLesVues()) {
             onglets.getChildren().add(construireOnglet(vue));
         }
         onglets.getChildren().add(boutonNouvelle());
@@ -138,6 +173,39 @@ public final class GestionnaireVues<T> {
         active = vue;
         modifiee = false;
         rafraichir();
+    }
+
+    /// Au chargement : active la vue (par défaut ou utilisateur) dont l'instantané **correspond aux filtres
+    /// courants** (sans les changer) ; à défaut, applique la **première vue par défaut** s'il en existe. Garantit
+    /// une vue active dès l'ouverture (plus besoin de sélectionner un onglet avant de modifier).
+    private void activerAuChargement() {
+        String courant = DescripteurFiltreJson.serialiser(filtres.decrire());
+        Optional<VueSauvegardee> correspondante = toutesLesVues().stream()
+                .filter(vue -> courant.equals(vue.descripteurJson()))
+                .findFirst();
+        if (correspondante.isPresent()) {
+            active = correspondante.get();
+            rafraichir();
+        } else if (!vuesParDefaut.isEmpty()) {
+            appliquer(vuesParDefaut.get(0));
+        }
+    }
+
+    /// Toutes les vues connues : **par défaut d'abord**, puis les persistées de la feature.
+    private List<VueSauvegardee> toutesLesVues() {
+        return Stream.concat(vuesParDefaut.stream(), depot.findByFeature(feature).stream())
+                .toList();
+    }
+
+    /// Une vue est **par défaut** (lecture seule) si elle n'a pas d'`id` (jamais persistée).
+    private static boolean estParDefaut(VueSauvegardee vue) {
+        return vue.id() == null;
+    }
+
+    /// « 💾 » sur une vue **par défaut** (non écrasable) : enregistre les filtres courants comme une **nouvelle**
+    /// vue nommée — même effet que « + Vue », mais accessible depuis l'onglet actif.
+    private void enregistrerCommeNouvelle() {
+        saisieNom.apply("").ifPresent(this::enregistrer);
     }
 
     /// Réécrit l'instantané de la **vue active** avec les filtres courants (« 💾 Enregistrer dans la vue ») :
@@ -185,25 +253,38 @@ public final class GestionnaireVues<T> {
         HBox onglet = new HBox(4.0, nom);
         onglet.getStyleClass().add("onglet-vue");
         boolean estActive = vue.equals(active);
+        boolean parDefaut = estParDefaut(vue);
         if (estActive) {
             onglet.getStyleClass().add("onglet-vue-actif");
         }
-        // Vue active dont les filtres ont divergé de l'instantané : indicateur « modifié » (le bouton 💾
-        // n'apparaît que dans cet état) + enregistrement explicite, sans écraser la vue par surprise.
+        if (parDefaut) {
+            onglet.getStyleClass().add("onglet-vue-defaut");
+        }
+        // Vue active dont les filtres ont divergé : bouton 💾. Sur une vue **par défaut** (lecture seule), il
+        // enregistre les filtres courants comme une NOUVELLE vue ; sur une vue **utilisateur**, il écrase la vue.
         if (estActive && modifiee) {
             onglet.getStyleClass().add("onglet-vue-modifie");
             onglet.getChildren()
-                    .add(bouton(
-                            "💾",
-                            "Enregistrer les filtres courants dans la vue " + vue.nom(),
-                            this::enregistrerDansActive));
+                    .add(
+                            parDefaut
+                                    ? bouton(
+                                            "💾",
+                                            "Enregistrer les filtres courants comme une nouvelle vue",
+                                            this::enregistrerCommeNouvelle)
+                                    : bouton(
+                                            "💾",
+                                            "Enregistrer les filtres courants dans la vue " + vue.nom(),
+                                            this::enregistrerDansActive));
         }
-        onglet.getChildren()
-                .add(bouton(
-                        "✎",
-                        "Renommer la vue " + vue.nom(),
-                        () -> saisieNom.apply(vue.nom()).ifPresent(nouveau -> renommer(vue, nouveau))));
-        onglet.getChildren().add(bouton("✕", "Supprimer la vue " + vue.nom(), () -> supprimer(vue)));
+        // Renommer / supprimer : uniquement sur les vues utilisateur (les vues par défaut sont en lecture seule).
+        if (!parDefaut) {
+            onglet.getChildren()
+                    .add(bouton(
+                            "✎",
+                            "Renommer la vue " + vue.nom(),
+                            () -> saisieNom.apply(vue.nom()).ifPresent(nouveau -> renommer(vue, nouveau))));
+            onglet.getChildren().add(bouton("✕", "Supprimer la vue " + vue.nom(), () -> supprimer(vue)));
+        }
         return onglet;
     }
 
@@ -220,7 +301,7 @@ public final class GestionnaireVues<T> {
         Button ajout = new Button("+ Vue");
         ajout.getStyleClass().add("onglet-vue-nouvelle");
         ajout.setAccessibleText("Enregistrer les filtres courants comme une nouvelle vue");
-        ajout.setOnAction(evenement -> saisieNom.apply("").ifPresent(this::enregistrer));
+        ajout.setOnAction(evenement -> enregistrerCommeNouvelle());
         return ajout;
     }
 }

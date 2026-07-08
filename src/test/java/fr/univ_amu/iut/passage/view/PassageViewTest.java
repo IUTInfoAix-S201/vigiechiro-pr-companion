@@ -16,7 +16,6 @@ import fr.univ_amu.iut.commun.persistence.ServicePurgeOriginaux;
 import fr.univ_amu.iut.commun.view.OuvrirDiagnostic;
 import fr.univ_amu.iut.commun.view.OuvrirLot;
 import fr.univ_amu.iut.commun.view.OuvrirMultisite;
-import fr.univ_amu.iut.commun.view.OuvrirNonIdentifies;
 import fr.univ_amu.iut.commun.view.OuvrirSite;
 import fr.univ_amu.iut.commun.view.OuvrirValidation;
 import fr.univ_amu.iut.commun.view.OuvrirVerification;
@@ -92,11 +91,6 @@ class PassageViewTest {
             @Provides
             OuvrirValidation ouvrirValidation() {
                 return passage -> validationOuverte.set(passage.idPassage());
-            }
-
-            @Provides
-            OuvrirNonIdentifies ouvrirNonIdentifies() {
-                return passage -> {};
             }
 
             @Provides

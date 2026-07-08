@@ -146,7 +146,6 @@ public final class CapturePassage {
                         idp -> {},
                         idp -> {},
                         idp -> {},
-                        idp -> {},
                         injecteur.getInstance(NavigationPassage.class),
                         ouvrirSiteNeutre(),
                         numeroCarre -> {},

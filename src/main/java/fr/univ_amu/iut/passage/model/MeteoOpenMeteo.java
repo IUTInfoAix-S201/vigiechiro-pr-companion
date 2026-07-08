@@ -84,10 +84,15 @@ public final class MeteoOpenMeteo implements FournisseurMeteo {
 
         Double tempDebut = valeur(temperatures, iDebut);
         Double tempFin = valeur(temperatures, iFin);
-        Double vent = valeur(vents, iDebut);
-        Double couverture = valeur(couvertures, iDebut);
+        Double vitesseVent = valeur(vents, iDebut);
+        Double pourcentageCouverture = valeur(couvertures, iDebut);
 
-        MeteoReleve releve = new MeteoReleve(tempDebut, tempFin, vent, couverture);
+        // Vent (km/h) et couverture (%) chiffrés par Open-Meteo sont ramenés aux catégories du dépôt.
+        MeteoReleve releve = new MeteoReleve(
+                tempDebut,
+                tempFin,
+                vitesseVent == null ? null : Vent.depuisVitesse(vitesseVent),
+                pourcentageCouverture == null ? null : CouvertureNuageuse.depuisPourcentage(pourcentageCouverture));
         return releve.estVide() ? Optional.empty() : Optional.of(releve);
     }
 

@@ -11,10 +11,12 @@ import com.google.inject.Injector;
 import com.google.inject.Provides;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.model.Verdict;
+import fr.univ_amu.iut.passage.model.CouvertureNuageuse;
 import fr.univ_amu.iut.passage.model.DetailPassage;
 import fr.univ_amu.iut.passage.model.MaterielMicro;
 import fr.univ_amu.iut.passage.model.PositionMicro;
 import fr.univ_amu.iut.passage.model.ServicePassage;
+import fr.univ_amu.iut.passage.model.Vent;
 import fr.univ_amu.iut.passage.viewmodel.RattachementViewModel;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -112,11 +114,22 @@ class RattachementModaleViewTest {
     }
 
     @Test
-    @DisplayName("Les conditions de dépôt sont câblées : champs météo présents et type de micro en liste fermée")
+    @DisplayName("Les conditions de dépôt sont câblées : température libre, vent/couverture/type en listes fermées")
     void champs_conditions_cables(FxRobot robot) {
-        // Météo : les champs de saisie sont présents dans la modale.
+        // Température : saisie libre (champ texte).
         assertThat(robot.lookup("#champTemperature").queryAs(TextField.class)).isNotNull();
-        assertThat(robot.lookup("#champVent").queryAs(TextField.class)).isNotNull();
+
+        // Vent : catégories nul/faible/moyen/fort + entrée « non renseigné » (null) en tête.
+        @SuppressWarnings("unchecked")
+        ComboBox<Vent> vent = robot.lookup("#champVent").queryAs(ComboBox.class);
+        assertThat(vent.getItems()).containsExactly(null, Vent.NUL, Vent.FAIBLE, Vent.MOYEN, Vent.FORT);
+
+        // Couverture nuageuse : tranches 0-25 … 75-100 % + entrée « non renseigné » en tête.
+        @SuppressWarnings("unchecked")
+        ComboBox<CouvertureNuageuse> couverture =
+                robot.lookup("#champCouverture").queryAs(ComboBox.class);
+        assertThat(couverture.getItems()).hasSize(CouvertureNuageuse.values().length + 1);
+        assertThat(couverture.getItems()).contains(CouvertureNuageuse.DE_25_A_50, CouvertureNuageuse.DE_75_A_100);
 
         // Position : liste sol/canopée + entrée « non renseigné » (null) en tête.
         @SuppressWarnings("unchecked")

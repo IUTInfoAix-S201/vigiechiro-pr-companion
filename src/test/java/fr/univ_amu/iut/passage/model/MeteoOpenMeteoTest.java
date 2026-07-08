@@ -25,7 +25,8 @@ class MeteoOpenMeteoTest {
     void parse_aligne_les_heures() {
         Optional<MeteoReleve> releve = MeteoOpenMeteo.parse(REPONSE, "2026-06-20T21:00", "2026-06-21T05:00");
 
-        assertThat(releve).contains(new MeteoReleve(13.5, 8.2, 12.4, 40.0));
+        // Vent 12,4 km/h → faible ; couverture 40 % → tranche 25-50 %.
+        assertThat(releve).contains(new MeteoReleve(13.5, 8.2, Vent.FAIBLE, CouvertureNuageuse.DE_25_A_50));
     }
 
     @Test

@@ -1,5 +1,6 @@
 package fr.univ_amu.iut.passage.model;
 
+import fr.univ_amu.iut.commun.model.JsonSimple;
 import java.util.Map;
 
 /// Accès typé aux **données météo optionnelles** d'un passage (#106, étendu aux données demandées au
@@ -33,14 +34,16 @@ public final class MeteoPassage {
     }
 
     /// Relevé météo **complet** lu depuis `donneesMeteo` (température début/fin, vent, couverture
-    /// nuageuse) : chaque grandeur absente ou illisible vaut `null`. Tolérant : ne lève jamais.
+    /// nuageuse) : chaque grandeur absente ou illisible vaut `null`. Tolérant : ne lève jamais. Le vent
+    /// et la couverture sont lus comme **catégories** ([Vent] / [CouvertureNuageuse]) ; une ancienne
+    /// valeur **chiffrée** (km/h, %) est ramenée à sa catégorie (compatibilité ascendante).
     public static MeteoReleve lire(String donneesMeteo) {
         Map<String, String> champs = ObjetJson.lire(donneesMeteo);
         return new MeteoReleve(
                 lireDouble(champs, CLE_TEMPERATURE),
                 lireDouble(champs, CLE_TEMPERATURE_FIN),
-                lireDouble(champs, CLE_VENT),
-                lireDouble(champs, CLE_COUVERTURE));
+                lireVent(champs.get(CLE_VENT)),
+                lireCouverture(champs.get(CLE_COUVERTURE)));
     }
 
     /// Met à jour la **température de début de nuit** dans `donneesMeteoExistant` en **préservant les
@@ -62,8 +65,14 @@ public final class MeteoPassage {
         Map<String, String> champs = ObjetJson.lire(donneesMeteoExistant);
         poser(champs, CLE_TEMPERATURE, releve.temperatureDebutNuit());
         poser(champs, CLE_TEMPERATURE_FIN, releve.temperatureFinNuit());
-        poser(champs, CLE_VENT, releve.vent());
-        poser(champs, CLE_COUVERTURE, releve.couvertureNuageuse());
+        poserTexte(
+                champs, CLE_VENT, releve.vent() == null ? null : releve.vent().name());
+        poserTexte(
+                champs,
+                CLE_COUVERTURE,
+                releve.couvertureNuageuse() == null
+                        ? null
+                        : releve.couvertureNuageuse().name());
         return ObjetJson.ecrire(champs);
     }
 
@@ -85,7 +94,51 @@ public final class MeteoPassage {
     /// Lecture tolérante d'une grandeur numérique dans une map de jetons JSON : `null` si absente, vide,
     /// illisible ou non finie (jamais de `NaN`/`Infini` remonté).
     private static Double lireDouble(Map<String, String> champs, String cle) {
-        String brut = champs.get(cle);
+        return nombreFiniOuNull(champs.get(cle));
+    }
+
+    /// Lit une force de **vent** depuis un jeton stocké : d'abord comme catégorie ([Vent#depuisTexte]),
+    /// sinon comme ancienne **vitesse chiffrée** (km/h) ramenée à sa catégorie ([Vent#depuisVitesse]),
+    /// pour relire un `weather_data` d'avant la catégorisation. `null` si absent/illisible.
+    private static Vent lireVent(String jeton) {
+        String texte = texteJson(jeton);
+        Vent categorie = Vent.depuisTexte(texte);
+        if (categorie != null) {
+            return categorie;
+        }
+        Double vitesse = nombreFiniOuNull(texte);
+        return vitesse == null ? null : Vent.depuisVitesse(vitesse);
+    }
+
+    /// Lit une **couverture nuageuse** depuis un jeton stocké : d'abord comme tranche
+    /// ([CouvertureNuageuse#depuisTexte]), sinon comme ancien **pourcentage chiffré** ramené à sa tranche
+    /// ([CouvertureNuageuse#depuisPourcentage]). `null` si absent/illisible.
+    private static CouvertureNuageuse lireCouverture(String jeton) {
+        String texte = texteJson(jeton);
+        CouvertureNuageuse tranche = CouvertureNuageuse.depuisTexte(texte);
+        if (tranche != null) {
+            return tranche;
+        }
+        Double pourcentage = nombreFiniOuNull(texte);
+        return pourcentage == null ? null : CouvertureNuageuse.depuisPourcentage(pourcentage);
+    }
+
+    /// Ramène un jeton de valeur JSON à sa **chaîne** : retire les guillemets encadrants (grandeur
+    /// catégorielle stockée sous son `name()`), ou renvoie le jeton nu tel quel (ancien nombre `12.4`).
+    private static String texteJson(String jeton) {
+        if (jeton == null) {
+            return null;
+        }
+        String t = jeton.trim();
+        if (t.length() >= 2 && t.startsWith("\"") && t.endsWith("\"")) {
+            return t.substring(1, t.length() - 1);
+        }
+        return t;
+    }
+
+    /// Parse un jeton en nombre **fini**, ou `null` si absent, illisible ou non fini (jamais de
+    /// `NaN`/`Infini` remonté).
+    private static Double nombreFiniOuNull(String brut) {
         if (brut == null) {
             return null;
         }
@@ -94,6 +147,16 @@ public final class MeteoPassage {
             return Double.isFinite(valeur) ? valeur : null;
         } catch (NumberFormatException illisible) {
             return null;
+        }
+    }
+
+    /// Pose (ou efface si `null`) un jeton **chaîne JSON** (entre guillemets, échappé) dans la map : sert
+    /// aux grandeurs catégorielles (vent, couverture), stockées sous leur `name()`.
+    private static void poserTexte(Map<String, String> champs, String cle, String valeur) {
+        if (valeur == null) {
+            champs.remove(cle);
+        } else {
+            champs.put(cle, "\"" + JsonSimple.echapper(valeur) + "\"");
         }
     }
 

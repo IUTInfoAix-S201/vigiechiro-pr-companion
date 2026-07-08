@@ -14,12 +14,14 @@ import fr.univ_amu.iut.commun.model.PositionGeo;
 import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.persistence.UniteDeTravail;
+import fr.univ_amu.iut.passage.model.CouvertureNuageuse;
 import fr.univ_amu.iut.passage.model.FournisseurMeteo;
 import fr.univ_amu.iut.passage.model.MeteoReleve;
 import fr.univ_amu.iut.passage.model.MoteurWorkflowPassage;
 import fr.univ_amu.iut.passage.model.Passage;
 import fr.univ_amu.iut.passage.model.ReprefixeurSession;
 import fr.univ_amu.iut.passage.model.ServicePassage;
+import fr.univ_amu.iut.passage.model.Vent;
 import fr.univ_amu.iut.passage.model.dao.MaterielMicroDao;
 import fr.univ_amu.iut.passage.model.dao.PassageDao;
 import fr.univ_amu.iut.passage.model.dao.RattachementDao;
@@ -140,7 +142,7 @@ class ServicePassageMockTest {
     void recuperer_meteo_delegue_avec_gps_et_heures() {
         when(passageDao.findById(7L)).thenReturn(Optional.of(passageNuit(7L)));
         when(coordonnees.pour(1L)).thenReturn(Optional.of(new PositionGeo(43.4, -1.5)));
-        MeteoReleve attendu = new MeteoReleve(8.5, 4.0, 12.0, 40.0);
+        MeteoReleve attendu = new MeteoReleve(8.5, 4.0, Vent.FAIBLE, CouvertureNuageuse.DE_25_A_50);
         when(fournisseurMeteo.pour(43.4, -1.5, LocalDate.of(2026, 6, 20), LocalTime.of(21, 30), LocalTime.of(5, 15)))
                 .thenReturn(Optional.of(attendu));
 

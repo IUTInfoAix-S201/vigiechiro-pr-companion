@@ -19,7 +19,8 @@ import java.util.Objects;
 /// - [ParPassage] un passage (workflow Tadarida) — seule à permettre l'import CSV / l'export `_Vu` ;
 /// - [ParPassages] un lot de passages (multisite filtré) ;
 /// - [ParEspece] une espèce à travers les passages d'un utilisateur ;
-/// - [References] le corpus `is_reference` d'un utilisateur — seule à permettre l'export bibliothèque.
+/// - [References] le corpus `is_reference` d'un utilisateur — seule à permettre l'export bibliothèque ;
+/// - [NonIdentifies] les séquences d'un passage **sans observation Tadarida** (à écouter/valider à la main).
 public sealed interface SourceObservations {
 
     /// Observations d'**un passage** (parcours de validation Tadarida). Porte le [ContextePassage]
@@ -59,6 +60,16 @@ public sealed interface SourceObservations {
         }
     }
 
+    /// **Séquences non identifiées** d'un passage : les enregistrements présents sur disque (écoutables)
+    /// mais **sans observation Tadarida**. Permet de les écouter pour les valider manuellement, alors que
+    /// le CSV Tadarida ne les a pas retenues. Cible un **passage unique** (comme [ParPassage]) : porte le
+    /// [ContextePassage] pour le fil d'Ariane (retour au passage).
+    record NonIdentifies(ContextePassage contexte) implements SourceObservations {
+        public NonIdentifies {
+            Objects.requireNonNull(contexte, "contexte");
+        }
+    }
+
     /// `true` si le **workflow Tadarida par passage** (import d'un CSV, export `_Vu`) est pertinent :
     /// uniquement pour [ParPassage] (un lot, une espèce ou les références n'ont pas un unique jeu de
     /// résultats à importer/exporter).
@@ -70,5 +81,21 @@ public sealed interface SourceObservations {
     /// [References].
     default boolean permetExportBibliotheque() {
         return this instanceof References;
+    }
+
+    /// `true` si la source cible **un seul passage** ([ParPassage] ou [NonIdentifies]) : les colonnes de
+    /// contexte (passage / carré / point / date) y sont constantes, donc masquées par la vue.
+    default boolean cibleUnPassageUnique() {
+        return contexteDuPassage() != null;
+    }
+
+    /// Contexte du **passage ciblé** quand la source en vise un seul ([ParPassage] ou [NonIdentifies]),
+    /// `null` sinon. Sert au fil d'Ariane (retour au passage) et à la plage nuit par défaut du filtre heure.
+    default ContextePassage contexteDuPassage() {
+        return switch (this) {
+            case ParPassage p -> p.contexte();
+            case NonIdentifies n -> n.contexte();
+            default -> null;
+        };
     }
 }

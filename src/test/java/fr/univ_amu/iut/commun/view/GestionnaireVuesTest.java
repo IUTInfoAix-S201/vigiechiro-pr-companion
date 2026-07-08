@@ -74,6 +74,12 @@ class GestionnaireVuesTest {
         gestion = new GestionnaireVues<>(onglets, filtres, dao, FEATURE, defaut -> saisieNom.apply(defaut));
     }
 
+    /// Construit le gestionnaire avec des **vues par défaut** (lecture seule) fournies par l'écran.
+    private void construireAvecDefauts(VueSauvegardee... defauts) {
+        gestion = new GestionnaireVues<>(
+                onglets, filtres, dao, FEATURE, List.of(defauts), defaut -> saisieNom.apply(defaut));
+    }
+
     private VueSauvegardee inserer(String nom, String descripteurJson) {
         return dao.insert(new VueSauvegardee(null, FEATURE, nom, descripteurJson));
     }
@@ -230,5 +236,38 @@ class GestionnaireVuesTest {
         assertThat(boutonEnregistrer(ongletsVues().getFirst()))
                 .as("filtres redevenus identiques → vue non modifiée")
                 .isEmpty();
+    }
+
+    @Test
+    @DisplayName("Vue par défaut : active au chargement (filtres appliqués) et en lecture seule (sans ✎/✕)")
+    void vue_par_defaut_active_au_chargement_et_lecture_seule(FxRobot robot) {
+        VueSauvegardee defaut = new VueSauvegardee(null, FEATURE, "Avec a", "{\"texte\":\"a\",\"criteres\":[]}");
+        robot.interact(() -> construireAvecDefauts(defaut));
+
+        // Aucun filtre courant ne correspond au chargement → la 1re vue par défaut est appliquée (recherche « a »,
+        // qui ne laisse que les lignes contenant « a »).
+        assertThat(recherche.getText()).isEqualTo("a");
+        assertThat(affichees).containsExactly("apple", "banana");
+        // L'onglet par défaut, actif et non modifié, n'a QUE son libellé (pas de ✎/✕/💾 : lecture seule).
+        assertThat(ongletsVues().getFirst().getChildren()).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("💾 sur une vue par défaut enregistre une NOUVELLE vue (ne l'écrase pas)")
+    void enregistrer_depuis_une_vue_par_defaut_cree_une_nouvelle_vue(FxRobot robot) {
+        VueSauvegardee defaut = new VueSauvegardee(null, FEATURE, "Avec a", "{\"texte\":\"a\",\"criteres\":[]}");
+        saisieNom = defautNom -> Optional.of("Ma vue");
+        robot.interact(() -> construireAvecDefauts(defaut));
+
+        robot.interact(() -> recherche.setText("ab")); // diverge de la vue par défaut
+
+        Button enregistrer = boutonEnregistrer(ongletsVues().getFirst()).orElseThrow();
+        robot.interact(enregistrer::fire);
+
+        // Une nouvelle vue utilisateur est créée ; la vue par défaut n'est jamais persistée.
+        assertThat(dao.findByFeature(FEATURE)).singleElement().satisfies(vue -> {
+            assertThat(vue.nom()).isEqualTo("Ma vue");
+            assertThat(vue.descripteurJson()).contains("\"texte\":\"ab\"");
+        });
     }
 }

@@ -3,7 +3,11 @@ package fr.univ_amu.iut.audio.view;
 import fr.univ_amu.iut.audio.viewmodel.FormatLigneAudio;
 import fr.univ_amu.iut.commun.model.NormalisationTexte;
 import fr.univ_amu.iut.commun.model.PlageNuit;
+import fr.univ_amu.iut.commun.model.VueSauvegardee;
 import fr.univ_amu.iut.commun.view.CritereFiltre;
+import fr.univ_amu.iut.commun.view.DescripteurCritere;
+import fr.univ_amu.iut.commun.view.DescripteurFiltre;
+import fr.univ_amu.iut.commun.view.DescripteurFiltreJson;
 import fr.univ_amu.iut.validation.model.LigneObservationAudio;
 import fr.univ_amu.iut.validation.model.StatutObservation;
 import java.util.Comparator;
@@ -39,6 +43,31 @@ final class CriteresAudio {
     private static final int HEURE_FIN_NUIT = 6;
 
     private CriteresAudio() {}
+
+    /// Vues **par défaut** (lecture seule) de l'écran « Sons & validation », rendues comme onglets avant les
+    /// vues de l'utilisateur (#623) :
+    /// - **« Tout »** (aucun filtre) : la vue active au chargement — elle correspond à l'état sans filtre, donc
+    ///   n'écarte rien (indispensable pour ne pas masquer des séquences déjà validées, ni casser la source
+    ///   « non identifiés » qui n'a pas de statut « à revoir » après validation manuelle) ;
+    /// - **« À valider »** (statut À revoir, le cœur de la revue) ;
+    /// - **« Chiroptères »** (groupe Chiroptères, #471).
+    ///
+    /// Chaque descripteur est sérialisé exactement comme [GestionnaireFiltres#decrire()] le produirait, pour
+    /// que rejouer la vue laisse un état « non modifié ».
+    static List<VueSauvegardee> vuesParDefaut() {
+        return List.of(
+                vueParDefaut("Tout"),
+                vueParDefaut(
+                        "À valider", new DescripteurCritere("statut", List.of(StatutObservation.NON_TOUCHEE.name()))),
+                vueParDefaut("Chiroptères", new DescripteurCritere("groupe", List.of(GROUPE_CHIROPTERES))));
+    }
+
+    /// Une vue par défaut : `id` **nul** (jamais persistée → lecture seule) et descripteur des critères donnés
+    /// (aucun critère = vue « Tout », sans filtre).
+    private static VueSauvegardee vueParDefaut(String nom, DescripteurCritere... criteres) {
+        String descripteur = DescripteurFiltreJson.serialiser(new DescripteurFiltre("", List.of(criteres)));
+        return new VueSauvegardee(null, "audio", nom, descripteur);
+    }
 
     /// Critère **Statut de revue** : éditeur = liste déroulante (À revoir / Validée / Corrigée) dans la
     /// puce ; par défaut **À revoir** (le plus utile pour la revue), appliqué dès l'ajout.

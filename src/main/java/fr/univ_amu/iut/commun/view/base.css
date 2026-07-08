@@ -233,12 +233,32 @@
     -fx-opacity: 1;
 }
 
-/* Pied de page : bandeau sombre discret. */
+/* Barre de statut (#495) : bandeau sombre à 3 zones (gauche = identité/contexte, centre = résumé de
+   l'écran, droite = compteurs/état vivant). Le conteneur porte le fond et le rythme ; les libellés de
+   zone portent la couleur et la taille du texte. */
 .pied-page {
     -fx-background-color: -couleur-texte;
-    -fx-text-fill: -couleur-texte-clair;
     -fx-padding: 8 20 8 20;
+}
+
+.pied-zone {
+    -fx-text-fill: -couleur-texte-clair;
     -fx-font-size: 12px;
+}
+
+/* Gauche = identité / contexte : présente mais discrète (l'info vivante est au centre et à droite). */
+.pied-gauche {
+    -fx-opacity: 0.85;
+}
+
+/* Centre = résumé de l'écran courant, centré dans le bandeau. */
+.pied-centre {
+    -fx-alignment: center;
+}
+
+/* Droite = compteurs / état vivant, légèrement appuyés. */
+.pied-droite {
+    -fx-font-weight: bold;
 }
 
 /* Zone centrale défilante : fait apparaître une barre verticale quand l'écran courant dépasse la

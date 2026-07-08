@@ -79,7 +79,16 @@ public class MainController {
     private HBox filAriane;
 
     @FXML
-    private Label pied;
+    private BorderPane barreStatut;
+
+    @FXML
+    private Label piedGauche;
+
+    @FXML
+    private Label piedCentre;
+
+    @FXML
+    private Label piedDroite;
 
     @FXML
     private StackPane hero;
@@ -135,7 +144,10 @@ public class MainController {
     @FXML
     private void initialize() {
         titreApplication.textProperty().bind(navigation.titreApplicationProperty());
-        pied.textProperty().bind(navigation.piedDePageProperty());
+
+        // Barre de statut à 3 zones (#495), câblée à part (BarreStatut) pour garder ce controller compact :
+        // les libellés suivent NavigationViewModel.zonesStatut et la barre se masque quand tout est vide.
+        BarreStatut.lier(barreStatut, piedGauche, piedCentre, piedDroite, navigation);
 
         // Menu « ☰ » : sauvegarde/restauration de la base (#148). Après une restauration réussie, on
         // revient à l'accueil pour relire la base restaurée (les écrans ouverts liraient un état périmé).

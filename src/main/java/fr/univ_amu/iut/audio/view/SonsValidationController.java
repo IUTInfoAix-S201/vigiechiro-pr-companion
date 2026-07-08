@@ -19,6 +19,7 @@ import fr.univ_amu.iut.commun.view.OuvrirPassage;
 import fr.univ_amu.iut.commun.view.OuvrirSite;
 import fr.univ_amu.iut.commun.view.ResumeStatut;
 import fr.univ_amu.iut.commun.viewmodel.SourceObservations;
+import fr.univ_amu.iut.commun.viewmodel.ZonesStatut;
 import fr.univ_amu.iut.validation.model.LigneObservationAudio;
 import fr.univ_amu.iut.validation.model.ModeRevue;
 import fr.univ_amu.iut.validation.model.Taxon;
@@ -27,7 +28,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import javafx.beans.binding.Bindings;
-import javafx.beans.property.ReadOnlyStringProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
@@ -73,9 +75,11 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
     /// Source courante, mémorisée pour adapter colonnes / actions / fil d'Ariane.
     private SourceObservations source;
 
-    /// Résumé exposé à la **barre de statut** ([ResumeStatut]) : compteurs de revue de la source courante,
-    /// mis à jour en direct. Remplace l'ancien bandeau de titre (redondant avec le fil d'Ariane).
-    private final ReadOnlyStringWrapper resumeStatut = new ReadOnlyStringWrapper(this, "resumeStatut", "");
+    /// Zones exposées à la **barre de statut** ([ResumeStatut], #495) : total d'observations en centre,
+    /// avancement de la revue à droite, mis à jour en direct. La gauche reste au défaut du chrome
+    /// (identité). Remplace l'ancien bandeau de titre (redondant avec le fil d'Ariane).
+    private final ReadOnlyObjectWrapper<ZonesStatut> zonesStatut =
+            new ReadOnlyObjectWrapper<>(this, "zonesStatut", ZonesStatut.VIDE);
 
     @FXML
     private VBox racine;
@@ -339,7 +343,7 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
         GestionnaireVues.avecDialogue(
                 barreOnglets, gestionnaireFiltres, depotVues, FEATURE, CriteresAudio.vuesParDefaut());
 
-        resumeStatut.bind(Bindings.createStringBinding(this::resumeStatutTexte, viewModel.comptageProperty()));
+        zonesStatut.bind(Bindings.createObjectBinding(this::zonesStatutCourantes, viewModel.comptageProperty()));
 
         // Panneau d'écoute : config AudioView (normalisations, expansion ×10, source, dispose) + repérage du
         // cri (#482) + métriques FME/fréq. terminale (#500) + options de lecture (#483). Détail dans le helper.
@@ -515,22 +519,23 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
         return List.of(Lieu.courant(source.titre()));
     }
 
-    /// Texte de la **barre de statut** : total d'observations + avancement de la revue (« N observation(s)
-    /// · X / N revues »). Sans le nom d'écran (déjà porté par le fil d'Ariane).
-    private String resumeStatutTexte() {
+    /// Zones de la **barre de statut** : le total d'observations en **centre**, l'avancement de la revue à
+    /// **droite** (« N observation(s) » · « X / N revues »). La gauche reste au défaut du chrome (identité).
+    /// Sans le nom d'écran (déjà porté par le fil d'Ariane).
+    private ZonesStatut zonesStatutCourantes() {
         if (source == null) {
-            return "";
+            return ZonesStatut.VIDE;
         }
         ComptageAudio comptage = viewModel.comptageProperty().get();
         if (comptage.total() == 0) {
-            return "Aucune observation";
+            return ZonesStatut.centre("Aucune observation");
         }
-        return comptage.total() + " observation(s) · " + comptage.progression();
+        return ZonesStatut.centreEtDroite(comptage.total() + " observation(s)", comptage.progression());
     }
 
     @Override
-    public ReadOnlyStringProperty resumeStatutProperty() {
-        return resumeStatut.getReadOnlyProperty();
+    public ReadOnlyObjectProperty<ZonesStatut> zonesStatutProperty() {
+        return zonesStatut.getReadOnlyProperty();
     }
 
     @FXML

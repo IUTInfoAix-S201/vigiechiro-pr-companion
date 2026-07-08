@@ -3,8 +3,9 @@ package fr.univ_amu.iut.commun.view;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import fr.univ_amu.iut.commun.viewmodel.NavigationViewModel;
+import fr.univ_amu.iut.commun.viewmodel.ZonesStatut;
 import java.util.List;
-import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.scene.Group;
 import javafx.scene.Parent;
 import javafx.stage.Stage;
@@ -248,28 +249,52 @@ class NavigateurTest {
     }
 
     @Test
-    @DisplayName("La barre de statut suit le résumé de l'écran au sommet (ResumeStatut), défaut sinon")
+    @DisplayName("La barre de statut suit le résumé zoné de l'écran au sommet (ResumeStatut), défaut sinon")
     void pied_suit_le_resume_de_l_ecran() {
         NavigationViewModel navigation = new NavigationViewModel();
         Navigateur navigateur = navigateur(navigation, new Group());
-        assertThat(navigation.getPiedDePage())
-                .as("accueil sans résumé → mention par défaut")
-                .isEqualTo(NavigationViewModel.PIED_DEFAUT);
+        assertThat(navigation.getZonesStatut())
+                .as("accueil sans résumé → zones par défaut (toutes vides → barre masquée)")
+                .isEqualTo(NavigationViewModel.ZONES_DEFAUT);
+        assertThat(navigation.getZonesStatut().estVide()).isTrue();
 
-        // Écran déclarant un résumé de statut (contrat ResumeStatut, ici via une propriété mutable).
-        ReadOnlyStringWrapper resume = new ReadOnlyStringWrapper("42 observation(s) · 3 / 42 revues");
+        // Écran déclarant un résumé zoné (centre + droite), la gauche laissée vide.
+        ReadOnlyObjectWrapper<ZonesStatut> resume =
+                new ReadOnlyObjectWrapper<>(ZonesStatut.centreEtDroite("42 observation(s)", "3 / 42 revues"));
         ResumeStatut ecranAudio = resume::getReadOnlyProperty;
         navigateur.empiler(new Group(), "audio", "Sons & validation", ecranAudio);
-        assertThat(navigation.getPiedDePage()).isEqualTo("42 observation(s) · 3 / 42 revues");
+        // Le résumé de l'écran occupe centre + droite ; la gauche reste vide (aucun défaut à afficher).
+        assertThat(navigation.getZonesStatut().gauche()).isEmpty();
+        assertThat(navigation.getZonesStatut().centre()).isEqualTo("42 observation(s)");
+        assertThat(navigation.getZonesStatut().droite()).isEqualTo("3 / 42 revues");
 
         // Mise à jour en direct du résumé → le pied suit.
-        resume.set("42 observation(s) · 10 / 42 revues");
-        assertThat(navigation.getPiedDePage()).isEqualTo("42 observation(s) · 10 / 42 revues");
+        resume.set(ZonesStatut.centreEtDroite("42 observation(s)", "10 / 42 revues"));
+        assertThat(navigation.getZonesStatut().droite()).isEqualTo("10 / 42 revues");
 
-        // Écran sans résumé au sommet → retour à la mention par défaut (et plus de lien vivant).
+        // Écran sans résumé au sommet → retour aux zones par défaut (et plus de lien vivant).
         navigateur.empiler(new Group(), "autre", "Autre écran", null);
-        assertThat(navigation.getPiedDePage()).isEqualTo(NavigationViewModel.PIED_DEFAUT);
-        resume.set("ne doit plus être reflété");
-        assertThat(navigation.getPiedDePage()).isEqualTo(NavigationViewModel.PIED_DEFAUT);
+        assertThat(navigation.getZonesStatut()).isEqualTo(NavigationViewModel.ZONES_DEFAUT);
+        resume.set(ZonesStatut.centre("ne doit plus être reflété"));
+        assertThat(navigation.getZonesStatut()).isEqualTo(NavigationViewModel.ZONES_DEFAUT);
+    }
+
+    @Test
+    @DisplayName("Un écran peut renseigner la zone gauche (contexte) ; les zones vides restent vides")
+    void ecran_peut_renseigner_zone_gauche() {
+        NavigationViewModel navigation = new NavigationViewModel();
+        Navigateur navigateur = navigateur(navigation, new Group());
+
+        // L'écran renseigne gauche (contexte) + centre, mais laisse la droite vide.
+        ReadOnlyObjectWrapper<ZonesStatut> resume =
+                new ReadOnlyObjectWrapper<>(new ZonesStatut("Carré 640380 · A1", "60 observation(s)", ""));
+        ResumeStatut ecran = resume::getReadOnlyProperty;
+        navigateur.empiler(new Group(), "audio", "Sons & validation", ecran);
+
+        assertThat(navigation.getZonesStatut().gauche()).as("contexte à gauche").isEqualTo("Carré 640380 · A1");
+        assertThat(navigation.getZonesStatut().centre()).isEqualTo("60 observation(s)");
+        assertThat(navigation.getZonesStatut().droite())
+                .as("zone non renseignée → vide")
+                .isEmpty();
     }
 }

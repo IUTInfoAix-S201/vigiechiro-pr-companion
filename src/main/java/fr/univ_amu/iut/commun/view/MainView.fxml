@@ -82,9 +82,24 @@
       </VBox>
     </center>
 
+    <!--
+      Barre de statut à 3 zones (#495) : gauche = contexte de l'écran, centre = résumé, droite =
+      compteurs / état vivant. Les trois libellés sont alimentés par MainController depuis
+      NavigationViewModel.zonesStatut. Le conteneur (barreStatut) est masqué tant qu'aucune zone n'a
+      de contenu, pour ne pas laisser un bandeau sans information sur les écrans sans résumé.
+    -->
     <bottom>
-      <Label fx:id="pied" styleClass="pied-page" maxWidth="Infinity"
-             text="SAÉ 2.01 · IUT d'Aix-Marseille"/>
+      <BorderPane fx:id="barreStatut" styleClass="pied-page">
+        <left>
+          <Label fx:id="piedGauche" styleClass="pied-zone, pied-gauche"/>
+        </left>
+        <center>
+          <Label fx:id="piedCentre" styleClass="pied-zone, pied-centre" maxWidth="Infinity"/>
+        </center>
+        <right>
+          <Label fx:id="piedDroite" styleClass="pied-zone, pied-droite"/>
+        </right>
+      </BorderPane>
     </bottom>
   </BorderPane>
 

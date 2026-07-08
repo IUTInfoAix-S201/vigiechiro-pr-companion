@@ -12,7 +12,9 @@ centrale** via le [`Navigateur`](https://github.com/IUTInfoAix-S201/vigiechiro-p
 - **haut** : titre, bouton ← Retour, fil d'Ariane ;
 - **centre** : un **`ScrollPane` permanent** dont le `MainController` échange le **contenu** à chaque
   navigation (barre verticale dès que l'écran dépasse la hauteur ; la nav et le pied restent fixes) ;
-- **bas** : pied de page.
+- **bas** : **barre de statut à 3 zones** (gauche = contexte · centre = résumé de l'écran · droite =
+  compteurs/état vivant), alimentée par `NavigationViewModel.zonesStatut` (cf. `ResumeStatut`
+  ci-dessous). Elle est **masquée** tant qu'aucune zone n'a de contenu.
 
 Le [`MainController`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/view/MainController.java)
 lie le centre à la `vueCentraleProperty()` du `Navigateur`, reconstruit le fil d'Ariane à chaque
@@ -49,11 +51,32 @@ mémorise le `controller` de l'écran et en dérive, par `instanceof`, des **con
 | [`GardeQuitter`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/view/GardeQuitter.java) | L'écran a une **saisie non enregistrée** | Demande confirmation avant de quitter |
 | [`EmplacementNavigation`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/view/EmplacementNavigation.java) | L'écran a une **place hiérarchique** (ex. `Mes sites › Carré N › Passage`) | Alimente le fil d'Ariane (segments cliquables) |
 | [`RafraichirAuRetour`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/view/RafraichirAuRetour.java) | L'écran affiche des données qu'une **sous-activité peut modifier** | Recharge ses données quand on y **revient** |
+| [`ResumeStatut`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/view/ResumeStatut.java) | L'écran a une **info vivante** à afficher en pied (compteurs, avancement) | Alimente les **3 zones de la barre de statut** |
 
 !!! example "Pourquoi `RafraichirAuRetour` existe"
     M-Passage ouvre M-Qualification ; un verdict y fait avancer le statut. Sans contrat, revenir
     ré-afficherait le passage **périmé** (instance vivante). En l'implémentant, le `Navigateur` le
     recharge au retour. M-Multisite et M-Site-detail (tableaux de passages) l'implémentent aussi.
+
+### Convention de la barre de statut (`ResumeStatut`)
+
+La barre de statut du chrome se lit en **3 zones**, alimentées par le `ResumeStatut` de l'écran au
+sommet ([`ZonesStatut`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/viewmodel/ZonesStatut.java),
+value object) :
+
+| Zone | Rôle | Exemple |
+|---|---|---|
+| **gauche** | contexte de l'écran (optionnel) | `Carré 640380 · A1` |
+| **centre** | résumé de l'écran | `60 observation(s)` |
+| **droite** | compteurs / état vivant | `12 / 60 revues` |
+
+Le `Navigateur` **superpose** les zones de l'écran sur un défaut (`NavigationViewModel.ZONES_DEFAUT`,
+aujourd'hui **vide**) : une zone laissée vide par l'écran garde le défaut. Un écran n'a donc besoin de
+renseigner **que les zones qui le concernent**. Quand **toutes** les zones sont vides (écran sans
+résumé), le chrome **masque** la barre : pas de bandeau sans information. La propagation (bind/unbind)
+est centralisée dans `Navigateur.synchroniser()` : aucun nettoyage par écran n'est requis. Les **barres
+d'action internes** à un écran (ex. les replis carte/tableau de M-Multisite) sont un pattern distinct et
+ne transitent pas par ce contrat.
 
 ## Ouvrir une autre feature sans en dépendre
 

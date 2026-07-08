@@ -3,10 +3,12 @@ package fr.univ_amu.iut.commun.view;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import fr.univ_amu.iut.commun.viewmodel.NavigationViewModel;
+import fr.univ_amu.iut.commun.viewmodel.ZonesStatut;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -239,15 +241,23 @@ public class Navigateur {
         navigation.setVueCourante(sommet.id());
         navigation.setFilAriane(filActuel().stream().map(Lieu::libelle).collect(Collectors.joining(" › ")));
 
-        // Barre de statut : le pied suit le **résumé** de l'écran au sommet s'il en déclare un
-        // ([ResumeStatut], lié pour une mise à jour en direct) ; sinon on revient à la mention par défaut.
-        // Centralisé ici (appelé à chaque changement d'écran), donc aucun nettoyage par écran n'est requis.
-        navigation.piedDePageProperty().unbind();
+        // Barre de statut : les zones du pied suivent le **résumé** de l'écran au sommet s'il en déclare
+        // un ([ResumeStatut], lié pour une mise à jour en direct), superposé sur le défaut du chrome (une
+        // zone non renseignée par l'écran garde le défaut). Sinon on revient au défaut (zones vides → le
+        // chrome masque la barre). Centralisé ici (appelé à chaque changement d'écran), donc aucun
+        // nettoyage par écran n'est requis.
+        navigation.zonesStatutProperty().unbind();
         ResumeStatut resume = sommet.resumeStatut();
         if (resume != null) {
-            navigation.piedDePageProperty().bind(resume.resumeStatutProperty());
+            navigation
+                    .zonesStatutProperty()
+                    .bind(Bindings.createObjectBinding(
+                            () -> ZonesStatut.superposer(
+                                    NavigationViewModel.ZONES_DEFAUT,
+                                    resume.zonesStatutProperty().get()),
+                            resume.zonesStatutProperty()));
         } else {
-            navigation.setPiedDePage(NavigationViewModel.PIED_DEFAUT);
+            navigation.setZonesStatut(NavigationViewModel.ZONES_DEFAUT);
         }
     }
 

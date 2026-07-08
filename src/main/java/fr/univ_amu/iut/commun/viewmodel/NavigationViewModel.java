@@ -1,7 +1,9 @@
 package fr.univ_amu.iut.commun.viewmodel;
 
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
@@ -11,7 +13,7 @@ import javafx.beans.property.StringProperty;
 ///  - le titre de l'application (barre haute),
 ///  - la vue courante (identifiant logique de la zone centrale affichée),
 ///  - le fil d'Ariane (libellé lisible du chemin de navigation),
-///  - le pied de page (mention affichée en bas du chrome).
+///  - les trois zones de la barre de statut (pied du chrome : identité / résumé / compteurs).
 ///
 /// Cette classe est volontairement **agnostique de l'IHM** : elle n'importe que
 /// `javafx.beans.property` (le modèle observable), jamais `javafx.scene`, `javafx.fxml`
@@ -20,16 +22,19 @@ import javafx.beans.property.StringProperty;
 /// les met à jour quand une feature change de zone centrale.
 public class NavigationViewModel {
 
-    /// Mention par défaut de la barre de statut, affichée quand l'écran courant ne fournit pas de résumé
-    /// (cf. [fr.univ_amu.iut.commun.view.ResumeStatut]). Le [fr.univ_amu.iut.commun.view.Navigateur] y
-    /// revient à chaque changement d'écran.
-    public static final String PIED_DEFAUT = "SAÉ 2.01 · IUT d'Aix-Marseille";
+    /// Zones par défaut de la barre de statut : **toutes vides**. Quand l'écran courant ne fournit pas de
+    /// résumé (cf. [fr.univ_amu.iut.commun.view.ResumeStatut]), le chrome masque la barre plutôt que
+    /// d'afficher une mention sans information. Le [fr.univ_amu.iut.commun.view.Navigateur] y revient à
+    /// chaque changement d'écran ; un écran ne renseigne que les zones qui le concernent (les autres
+    /// restent vides par superposition, cf. [ZonesStatut#superposer]).
+    public static final ZonesStatut ZONES_DEFAUT = ZonesStatut.VIDE;
 
     private final StringProperty titreApplication =
             new SimpleStringProperty(this, "titreApplication", "VigieChiro PR Companion");
     private final StringProperty vueCourante = new SimpleStringProperty(this, "vueCourante", "accueil");
     private final StringProperty filAriane = new SimpleStringProperty(this, "filAriane", "Accueil");
-    private final StringProperty piedDePage = new SimpleStringProperty(this, "piedDePage", PIED_DEFAUT);
+    private final ObjectProperty<ZonesStatut> zonesStatut =
+            new SimpleObjectProperty<>(this, "zonesStatut", ZONES_DEFAUT);
 
     /// Verrou de navigation (#54) : `true` pendant une opération longue (ex. un import en cours) qui ne
     /// doit pas être quittée. Le chrome lie le `disable` du lien « 🏠 Accueil » à cette propriété et le
@@ -77,17 +82,17 @@ public class NavigationViewModel {
         filAriane.set(valeur);
     }
 
-    /// Propriété observable du texte de pied de page.
-    public StringProperty piedDePageProperty() {
-        return piedDePage;
+    /// Propriété observable des trois zones de la barre de statut (identité / résumé / compteurs).
+    public ObjectProperty<ZonesStatut> zonesStatutProperty() {
+        return zonesStatut;
     }
 
-    public String getPiedDePage() {
-        return piedDePage.get();
+    public ZonesStatut getZonesStatut() {
+        return zonesStatut.get();
     }
 
-    public void setPiedDePage(String valeur) {
-        piedDePage.set(valeur);
+    public void setZonesStatut(ZonesStatut valeur) {
+        zonesStatut.set(valeur);
     }
 
     /// Propriété observable du verrou de navigation (#54) : `true` interdit de quitter l'écran courant.

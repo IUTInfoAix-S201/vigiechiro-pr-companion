@@ -161,4 +161,74 @@ class GestionnaireVuesTest {
             assertThat(v.descripteurJson()).isEqualTo("{\"texte\":\"ban\",\"criteres\":[]}");
         });
     }
+
+    /// Active la première vue (clic sur son libellé) : rejoue ses filtres et la marque active.
+    private void activerPremiereVue(FxRobot robot) {
+        robot.interact(() -> ongletsVues()
+                .getFirst()
+                .getChildren()
+                .get(0)
+                .getOnMouseClicked()
+                .handle(null));
+    }
+
+    /// Le bouton « 💾 Enregistrer dans la vue » de l'onglet, présent seulement quand la vue active a divergé.
+    private static Optional<Button> boutonEnregistrer(HBox onglet) {
+        return onglet.getChildren().stream()
+                .filter(Button.class::isInstance)
+                .map(Button.class::cast)
+                .filter(bouton -> "💾".equals(bouton.getText()))
+                .findFirst();
+    }
+
+    @Test
+    @DisplayName("Modifier les filtres d'une vue active la marque « modifiée » (bouton 💾 sur l'onglet)")
+    void modifier_les_filtres_marque_la_vue_active_modifiee(FxRobot robot) {
+        inserer("Bananes", "{\"texte\":\"ban\",\"criteres\":[]}");
+        robot.interact(this::construire);
+        activerPremiereVue(robot); // rejoue « ban » : aucune divergence
+
+        assertThat(boutonEnregistrer(ongletsVues().getFirst()))
+                .as("pas de divergence juste après activation")
+                .isEmpty();
+
+        robot.interact(() -> recherche.setText("app")); // les filtres divergent de la vue
+
+        assertThat(boutonEnregistrer(ongletsVues().getFirst()))
+                .as("filtres divergents → la vue active est modifiée")
+                .isPresent();
+    }
+
+    @Test
+    @DisplayName("« 💾 Enregistrer dans la vue » réécrit l'instantané avec les filtres courants")
+    void enregistrer_dans_la_vue_ecrase_le_descripteur(FxRobot robot) {
+        VueSauvegardee vue = inserer("Bananes", "{\"texte\":\"ban\",\"criteres\":[]}");
+        robot.interact(this::construire);
+        activerPremiereVue(robot);
+        robot.interact(() -> recherche.setText("app"));
+
+        Button enregistrer = boutonEnregistrer(ongletsVues().getFirst()).orElseThrow();
+        robot.interact(enregistrer::fire);
+
+        assertThat(dao.findById(vue.id()).orElseThrow().descripteurJson()).contains("\"texte\":\"app\"");
+        assertThat(boutonEnregistrer(ongletsVues().getFirst()))
+                .as("plus de divergence après enregistrement")
+                .isEmpty();
+    }
+
+    @Test
+    @DisplayName("Revenir aux filtres de la vue efface l'indicateur « modifié »")
+    void revenir_aux_filtres_de_la_vue_efface_l_indicateur(FxRobot robot) {
+        inserer("Bananes", "{\"texte\":\"ban\",\"criteres\":[]}");
+        robot.interact(this::construire);
+        activerPremiereVue(robot);
+        robot.interact(() -> recherche.setText("app"));
+        assertThat(boutonEnregistrer(ongletsVues().getFirst())).isPresent();
+
+        robot.interact(() -> recherche.setText("ban")); // retour exact à l'état de la vue
+
+        assertThat(boutonEnregistrer(ongletsVues().getFirst()))
+                .as("filtres redevenus identiques → vue non modifiée")
+                .isEmpty();
+    }
 }

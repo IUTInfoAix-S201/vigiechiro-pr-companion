@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [1.139.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.138.0...v1.139.0) (2026-07-08)
+
+
+### Features
+
+* **design:** socle de design partagé + jetons (chantier 0, [#688](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/688)) ([#698](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/698)) ([905b99f](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/905b99fd7456e26213c7159dc2aa52d01921a52d)), closes [#685](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/685) [#494](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/494) [#689](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/689) [#34495e](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/34495e)
+
 # [1.138.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.137.1...v1.138.0) (2026-07-08)
 
 

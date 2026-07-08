@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+## [1.134.1](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.134.0...v1.134.1) (2026-07-08)
+
+
+### Bug Fixes
+
+* **sites:** accepter les codes de point à plusieurs chiffres (Z41…) ([#668](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/668)) ([1d97079](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/1d97079b3d06c48e893962becb9f2baf65d4bcfb))
+
 # [1.134.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.133.0...v1.134.0) (2026-07-07)
 
 

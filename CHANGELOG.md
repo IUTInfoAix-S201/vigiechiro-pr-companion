@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+## [1.135.2](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.135.1...v1.135.2) (2026-07-08)
+
+
+### Bug Fixes
+
+* **import:** table des nuits (hauteur, numérotation, cohérence) + capture ([#675](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/675)) ([5a56dcd](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/5a56dcd903727715c55d52fa5bb5d34cfcdc677b))
+
 ## [1.135.1](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.135.0...v1.135.1) (2026-07-08)
 
 

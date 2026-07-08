@@ -491,29 +491,19 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
         // ParPassage et NonIdentifies ciblent le même passage : même ascendance (site › passage › écran).
         var contextePassage = source.contexteDuPassage();
         if (contextePassage != null) {
-            return EmplacementPassage.emplacementEnfant(contextePassage, ouvrirSite, ouvrirPassage, libelleEcran());
+            return EmplacementPassage.emplacementEnfant(contextePassage, ouvrirSite, ouvrirPassage, source.titre());
         }
         if (source instanceof SourceObservations.ParEspece) {
             // Accueil › Espèces & observations › Écoute : [espèce] — le segment analyse rouvre l'écran.
-            return List.of(Lieu.vers("Espèces & observations", ouvrirAnalyse::ouvrir), Lieu.courant(libelleEcran()));
+            return List.of(Lieu.vers("Espèces & observations", ouvrirAnalyse::ouvrir), Lieu.courant(source.titre()));
         }
         if (source instanceof SourceObservations.ParPassages) {
             // Accueil › Carte & passages › Écoute : lot — le segment multisite rouvre la vue agrégée.
             return List.of(
                     Lieu.vers("Carte & passages", () -> ouvrirMultisite.ouvrirSurCarre(null)),
-                    Lieu.courant(libelleEcran()));
+                    Lieu.courant(source.titre()));
         }
-        return List.of(Lieu.courant(libelleEcran()));
-    }
-
-    private String libelleEcran() {
-        return switch (source) {
-            case SourceObservations.References r -> "Sons de référence";
-            case SourceObservations.NonIdentifies n -> "Sons non identifiés";
-            case SourceObservations.ParEspece espece -> "Écoute : " + espece.libelle();
-            case SourceObservations.ParPassages lot -> "Écoute : " + lot.libelle();
-            case SourceObservations.ParPassage p -> "Sons & validation";
-        };
+        return List.of(Lieu.courant(source.titre()));
     }
 
     /// Texte de la **barre de statut** : total d'observations + avancement de la revue (« N observation(s)

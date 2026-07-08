@@ -98,4 +98,17 @@ public sealed interface SourceObservations {
             default -> null;
         };
     }
+
+    /// **Intitulé** de la source, tel qu'affiché dans le fil d'Ariane / le titre de l'écran audio. C'est
+    /// une propriété **sémantique** de la source (ce qu'elle représente), pas du rendu : elle vit donc ici,
+    /// pas dans le controller. Pour une espèce ou un lot, elle reprend le `libelle` porté par la source.
+    default String titre() {
+        return switch (this) {
+            case ParPassage p -> "Sons & validation";
+            case NonIdentifies n -> "Sons non identifiés";
+            case References r -> "Sons de référence";
+            case ParEspece espece -> "Écoute : " + espece.libelle();
+            case ParPassages lot -> "Écoute : " + lot.libelle();
+        };
+    }
 }

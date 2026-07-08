@@ -43,6 +43,11 @@ public final class GestionnaireFiltres<T> {
     private final List<CritereFiltre<T>> criteres;
     private final TextField recherche;
 
+    /// Écouteur notifié à **chaque changement de filtre** (recherche texte, ajout/retrait de puce, valeur d'un
+    /// critère, réinitialisation). Permet aux onglets de vues mémorisées (#623) de détecter que les filtres
+    /// courants ont **divergé** de la vue active. No-op par défaut ; un seul écouteur (le dernier posé).
+    private Runnable auChangement = () -> {};
+
     /// Critères actifs, **par ordre d'ajout** (clé = [CritereFiltre#nom()], valeur = Node éditeur de la puce,
     /// `null` pour un critère booléen). Ordonné pour restituer les puces dans le même ordre, et porteur du
     /// Node éditeur dont on lit/écrit les valeurs lors de la mémorisation de session (#484).
@@ -69,12 +74,18 @@ public final class GestionnaireFiltres<T> {
         this.filtres = Objects.requireNonNull(filtres, "filtres");
         this.criteres = List.copyOf(criteres);
         Objects.requireNonNull(rechercheTexte, "rechercheTexte");
-        recherche
-                .textProperty()
-                .addListener((obs, avant, texte) -> filtres.definir(
-                        NOM_TEXTE,
-                        texte == null || texte.isBlank() ? null : ligne -> rechercheTexte.test(ligne, texte)));
+        recherche.textProperty().addListener((obs, avant, texte) -> {
+            filtres.definir(
+                    NOM_TEXTE, texte == null || texte.isBlank() ? null : ligne -> rechercheTexte.test(ligne, texte));
+            auChangement.run();
+        });
         reconstruireMenu();
+    }
+
+    /// Enregistre l'écouteur appelé à chaque changement de filtre (un seul ; remplace le précédent). Les
+    /// onglets de vues mémorisées s'y branchent pour repérer une divergence avec la vue active (#623).
+    public void surChangement(Runnable ecouteur) {
+        this.auChangement = Objects.requireNonNull(ecouteur, "ecouteur");
     }
 
     /// Retire **tous** les filtres (texte + puces) : utilisé quand on doit garantir la visibilité d'une ligne
@@ -85,6 +96,7 @@ public final class GestionnaireFiltres<T> {
         actifs.clear();
         filtres.reinitialiser();
         reconstruireMenu();
+        auChangement.run();
     }
 
     /// Menu « + Filtre » : les critères **non encore actifs** ; désactivé quand tout est déjà ajouté.
@@ -105,7 +117,10 @@ public final class GestionnaireFiltres<T> {
     }
 
     private void ajouterPuce(CritereFiltre<T> critere) {
-        Node editeur = critere.editeur(predicat -> filtres.definir(critere.nom(), predicat));
+        Node editeur = critere.editeur(predicat -> {
+            filtres.definir(critere.nom(), predicat);
+            auChangement.run();
+        });
         actifs.put(critere.nom(), editeur);
         puces.getChildren().add(construirePuce(critere, editeur));
         reconstruireMenu();
@@ -130,6 +145,7 @@ public final class GestionnaireFiltres<T> {
         actifs.remove(critere.nom());
         filtres.definir(critere.nom(), null);
         reconstruireMenu();
+        auChangement.run();
     }
 
     /// **Pose** (ou met à jour) par programme le critère `nom` avec les `valeurs` sémantiques données :

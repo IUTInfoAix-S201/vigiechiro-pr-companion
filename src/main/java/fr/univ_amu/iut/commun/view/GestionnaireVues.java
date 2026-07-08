@@ -34,6 +34,15 @@ public final class GestionnaireVues<T> {
     /// Vue actuellement **active** (onglet surligné), ou `null` (aucune vue rejouée / filtres libres).
     private VueSauvegardee active;
 
+    /// `true` si les filtres courants ont **divergé** de l'instantané de la vue active (modifications non
+    /// enregistrées) : l'onglet actif propose alors « 💾 Enregistrer dans la vue ». Toujours faux sans vue
+    /// active.
+    private boolean modifiee;
+
+    /// Garde : vrai le temps de [#appliquer(VueSauvegardee)], pour **ignorer** les changements de filtres émis
+    /// par la restauration elle-même (sinon la vue tout juste rejouée serait aussitôt marquée « modifiée »).
+    private boolean enApplication;
+
     /// Construit la barre d'onglets et la peuple immédiatement (vues persistées de la `feature`).
     ///
     /// @param onglets conteneur des onglets (fourni par la vue, typiquement un `HBox`/`FlowPane`)
@@ -52,7 +61,23 @@ public final class GestionnaireVues<T> {
         this.depot = Objects.requireNonNull(depot, "depot");
         this.feature = Objects.requireNonNull(feature, "feature");
         this.saisieNom = Objects.requireNonNull(saisieNom, "saisieNom");
+        this.filtres.surChangement(this::auChangementFiltres);
         rafraichir();
+    }
+
+    /// Réévalue si les filtres courants divergent de la vue active à chaque changement de filtre, et ne
+    /// reconstruit la barre **qu'au basculement** de l'état (apparition/disparition du « 💾 »), pas à chaque
+    /// frappe. Ignore les changements émis par [#appliquer(VueSauvegardee)] (garde [#enApplication]).
+    private void auChangementFiltres() {
+        if (enApplication) {
+            return;
+        }
+        boolean neo = active != null
+                && !DescripteurFiltreJson.serialiser(filtres.decrire()).equals(active.descripteurJson());
+        if (neo != modifiee) {
+            modifiee = neo;
+            rafraichir();
+        }
     }
 
     /// Construit la barre d'onglets avec la **boîte de saisie standard** du nom de vue : un [TextInputDialog]
@@ -99,14 +124,34 @@ public final class GestionnaireVues<T> {
         VueSauvegardee vue = depot.insert(
                 new VueSauvegardee(null, feature, nom.trim(), DescripteurFiltreJson.serialiser(filtres.decrire())));
         active = vue;
+        modifiee = false; // la nouvelle vue capture exactement les filtres courants
         rafraichir();
         return vue;
     }
 
-    /// Rejoue la combinaison de filtres de `vue` (la restaure sur la barre de filtres) et l'active.
+    /// Rejoue la combinaison de filtres de `vue` (la restaure sur la barre de filtres) et l'active. La garde
+    /// [#enApplication] empêche que la restauration elle-même ne marque aussitôt la vue « modifiée ».
     public void appliquer(VueSauvegardee vue) {
+        enApplication = true;
         filtres.restaurer(DescripteurFiltreJson.interpreter(vue.descripteurJson()));
+        enApplication = false;
         active = vue;
+        modifiee = false;
+        rafraichir();
+    }
+
+    /// Réécrit l'instantané de la **vue active** avec les filtres courants (« 💾 Enregistrer dans la vue ») :
+    /// les modifications en cours deviennent le nouvel état enregistré de la vue. Sans effet si aucune vue
+    /// n'est active.
+    public void enregistrerDansActive() {
+        if (active == null) {
+            return;
+        }
+        VueSauvegardee misAJour = new VueSauvegardee(
+                active.id(), feature, active.nom(), DescripteurFiltreJson.serialiser(filtres.decrire()));
+        depot.update(misAJour);
+        active = misAJour;
+        modifiee = false;
         rafraichir();
     }
 
@@ -127,6 +172,7 @@ public final class GestionnaireVues<T> {
         depot.delete(vue.id());
         if (vue.equals(active)) {
             active = null;
+            modifiee = false;
         }
         rafraichir();
     }
@@ -136,22 +182,38 @@ public final class GestionnaireVues<T> {
         nom.getStyleClass().add("onglet-vue-nom");
         nom.setOnMouseClicked(evenement -> appliquer(vue));
 
-        Button renommer = new Button("✎");
-        renommer.getStyleClass().add("onglet-vue-action");
-        renommer.setAccessibleText("Renommer la vue " + vue.nom());
-        renommer.setOnAction(evenement -> saisieNom.apply(vue.nom()).ifPresent(nouveau -> renommer(vue, nouveau)));
-
-        Button supprimer = new Button("✕");
-        supprimer.getStyleClass().add("onglet-vue-action");
-        supprimer.setAccessibleText("Supprimer la vue " + vue.nom());
-        supprimer.setOnAction(evenement -> supprimer(vue));
-
-        HBox onglet = new HBox(4.0, nom, renommer, supprimer);
+        HBox onglet = new HBox(4.0, nom);
         onglet.getStyleClass().add("onglet-vue");
-        if (vue.equals(active)) {
+        boolean estActive = vue.equals(active);
+        if (estActive) {
             onglet.getStyleClass().add("onglet-vue-actif");
         }
+        // Vue active dont les filtres ont divergé de l'instantané : indicateur « modifié » (le bouton 💾
+        // n'apparaît que dans cet état) + enregistrement explicite, sans écraser la vue par surprise.
+        if (estActive && modifiee) {
+            onglet.getStyleClass().add("onglet-vue-modifie");
+            onglet.getChildren()
+                    .add(bouton(
+                            "💾",
+                            "Enregistrer les filtres courants dans la vue " + vue.nom(),
+                            this::enregistrerDansActive));
+        }
+        onglet.getChildren()
+                .add(bouton(
+                        "✎",
+                        "Renommer la vue " + vue.nom(),
+                        () -> saisieNom.apply(vue.nom()).ifPresent(nouveau -> renommer(vue, nouveau))));
+        onglet.getChildren().add(bouton("✕", "Supprimer la vue " + vue.nom(), () -> supprimer(vue)));
         return onglet;
+    }
+
+    /// Bouton d'action d'un onglet (💾 / ✎ / ✕) : style et libellé accessible communs.
+    private static Button bouton(String texte, String accessible, Runnable action) {
+        Button bouton = new Button(texte);
+        bouton.getStyleClass().add("onglet-vue-action");
+        bouton.setAccessibleText(accessible);
+        bouton.setOnAction(evenement -> action.run());
+        return bouton;
     }
 
     private Button boutonNouvelle() {

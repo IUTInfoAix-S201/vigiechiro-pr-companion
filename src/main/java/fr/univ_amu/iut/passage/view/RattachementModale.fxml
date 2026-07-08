@@ -60,14 +60,12 @@
     <Label text="°C" GridPane.rowIndex="1" GridPane.columnIndex="2"/>
 
     <Label text="Vent :" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
-    <TextField fx:id="champVent" promptText="ex. 12" prefWidth="90.0"
-               GridPane.rowIndex="2" GridPane.columnIndex="1"/>
-    <Label text="km/h" GridPane.rowIndex="2" GridPane.columnIndex="2"/>
+    <ComboBox fx:id="champVent" prefWidth="180.0"
+              GridPane.rowIndex="2" GridPane.columnIndex="1"/>
 
     <Label text="Couverture nuageuse :" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
-    <TextField fx:id="champCouverture" promptText="ex. 40" prefWidth="90.0"
-               GridPane.rowIndex="3" GridPane.columnIndex="1"/>
-    <Label text="\%" GridPane.rowIndex="3" GridPane.columnIndex="2"/>
+    <ComboBox fx:id="champCouverture" prefWidth="180.0"
+              GridPane.rowIndex="3" GridPane.columnIndex="1"/>
   </GridPane>
   <HBox alignment="CENTER_LEFT">
     <Button fx:id="boutonRecupererMeteo" text="Récupérer la météo"

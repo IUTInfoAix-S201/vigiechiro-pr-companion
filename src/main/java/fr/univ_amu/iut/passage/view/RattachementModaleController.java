@@ -1,12 +1,15 @@
 package fr.univ_amu.iut.passage.view;
 
 import com.google.inject.Inject;
+import fr.univ_amu.iut.passage.model.CouvertureNuageuse;
 import fr.univ_amu.iut.passage.model.MaterielMicro;
 import fr.univ_amu.iut.passage.model.MeteoReleve;
 import fr.univ_amu.iut.passage.model.PositionMicro;
+import fr.univ_amu.iut.passage.model.Vent;
 import fr.univ_amu.iut.passage.viewmodel.RattachementViewModel;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.fxml.FXML;
@@ -62,10 +65,10 @@ public class RattachementModaleController {
     private TextField champTemperatureFin;
 
     @FXML
-    private TextField champVent;
+    private ComboBox<Vent> champVent;
 
     @FXML
-    private TextField champCouverture;
+    private ComboBox<CouvertureNuageuse> champCouverture;
 
     @FXML
     private Button boutonRecupererMeteo;
@@ -114,29 +117,24 @@ public class RattachementModaleController {
     }
 
     /// Lie les champs des conditions de dépôt (météo + matériel du micro) au sous-ViewModel
-    /// [RattachementViewModel#conditions] : saisie bidirectionnelle des grandeurs (vide = effacer). La
-    /// position et le type de micro sont des **listes fermées** (une entrée « non renseigné » en tête).
+    /// [RattachementViewModel#conditions] : températures/hauteur en saisie libre ; vent, couverture,
+    /// position et type de micro en **listes fermées** (une entrée « non renseigné » en tête).
     private void lierConditions() {
         var conditions = viewModel.conditions();
         champTemperature.textProperty().bindBidirectional(conditions.temperatureSaisieProperty());
         champTemperatureFin.textProperty().bindBidirectional(conditions.temperatureFinSaisieProperty());
-        champVent.textProperty().bindBidirectional(conditions.ventSaisieProperty());
-        champCouverture.textProperty().bindBidirectional(conditions.couvertureNuageuseSaisieProperty());
 
-        // Position : liste sol/canopée + entrée vide « non renseigné » ; converter → libellé lisible.
-        champPosition.getItems().setAll(null, PositionMicro.SOL, PositionMicro.CANOPEE);
-        champPosition.setConverter(new StringConverter<>() {
-            @Override
-            public String toString(PositionMicro position) {
-                return position == null ? "" : position.libelle();
-            }
+        // Vent et couverture nuageuse : catégories d'appréciation VigieChiro (nul/faible/… et tranches).
+        lierListeEnum(champVent, Vent.values(), Vent::libelle, conditions.ventSaisieProperty());
+        lierListeEnum(
+                champCouverture,
+                CouvertureNuageuse.values(),
+                CouvertureNuageuse::libelle,
+                conditions.couvertureNuageuseSaisieProperty());
 
-            @Override
-            public PositionMicro fromString(String texte) {
-                return null;
-            }
-        });
-        champPosition.valueProperty().bindBidirectional(conditions.positionSaisieProperty());
+        // Position : liste sol/canopée.
+        lierListeEnum(
+                champPosition, PositionMicro.values(), PositionMicro::libelle, conditions.positionSaisieProperty());
 
         champHauteur.textProperty().bindBidirectional(conditions.hauteurSaisieProperty());
 
@@ -156,6 +154,26 @@ public class RattachementModaleController {
             }
         });
         champTypeMicro.valueProperty().bindBidirectional(conditions.typeMicroSaisieProperty());
+    }
+
+    /// Peuple un `ComboBox` d'énum (avec une entrée « non renseigné » `null` en tête) et le lie en
+    /// bidirectionnel à `propriete`, en affichant le `libelle` de chaque valeur.
+    private static <E extends Enum<E>> void lierListeEnum(
+            ComboBox<E> combo, E[] valeurs, Function<E, String> libelle, ObjectProperty<E> propriete) {
+        combo.getItems().add(null);
+        combo.getItems().addAll(valeurs);
+        combo.setConverter(new StringConverter<>() {
+            @Override
+            public String toString(E valeur) {
+                return valeur == null ? "" : libelle.apply(valeur);
+            }
+
+            @Override
+            public E fromString(String texte) {
+                return null;
+            }
+        });
+        combo.valueProperty().bindBidirectional(propriete);
     }
 
     /// Prépare la modale sur le passage `idPassage` (carré/point fournis par M-Passage) et mémorise

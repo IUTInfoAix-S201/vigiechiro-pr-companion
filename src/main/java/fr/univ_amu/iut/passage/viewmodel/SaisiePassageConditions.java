@@ -1,10 +1,12 @@
 package fr.univ_amu.iut.passage.viewmodel;
 
+import fr.univ_amu.iut.passage.model.CouvertureNuageuse;
 import fr.univ_amu.iut.passage.model.MaterielMicro;
 import fr.univ_amu.iut.passage.model.MeteoPassage;
 import fr.univ_amu.iut.passage.model.MeteoReleve;
 import fr.univ_amu.iut.passage.model.PositionMicro;
 import fr.univ_amu.iut.passage.model.ServicePassage;
+import fr.univ_amu.iut.passage.model.Vent;
 import java.util.Optional;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
@@ -31,9 +33,9 @@ public class SaisiePassageConditions {
 
     private final StringProperty temperatureSaisie = new SimpleStringProperty(this, "temperatureSaisie", "");
     private final StringProperty temperatureFinSaisie = new SimpleStringProperty(this, "temperatureFinSaisie", "");
-    private final StringProperty ventSaisie = new SimpleStringProperty(this, "ventSaisie", "");
-    private final StringProperty couvertureNuageuseSaisie =
-            new SimpleStringProperty(this, "couvertureNuageuseSaisie", "");
+    private final ObjectProperty<Vent> ventSaisie = new SimpleObjectProperty<>(this, "ventSaisie");
+    private final ObjectProperty<CouvertureNuageuse> couvertureNuageuseSaisie =
+            new SimpleObjectProperty<>(this, "couvertureNuageuseSaisie");
 
     private final ObjectProperty<PositionMicro> positionSaisie = new SimpleObjectProperty<>(this, "positionSaisie");
     private final StringProperty hauteurSaisie = new SimpleStringProperty(this, "hauteurSaisie", "");
@@ -60,8 +62,8 @@ public class SaisiePassageConditions {
             MeteoReleve releve = new MeteoReleve(
                     MeteoPassage.lireSaisie(temperatureSaisie.get()),
                     MeteoPassage.lireSaisie(temperatureFinSaisie.get()),
-                    MeteoPassage.lireSaisie(ventSaisie.get()),
-                    MeteoPassage.lireSaisie(couvertureNuageuseSaisie.get()));
+                    ventSaisie.get(),
+                    couvertureNuageuseSaisie.get());
             service.definirMeteo(idPassage, releve);
             appliquerMeteo(releve);
             message.set("");
@@ -115,8 +117,8 @@ public class SaisiePassageConditions {
         MeteoReleve valeurs = releve == null ? MeteoReleve.VIDE : releve;
         temperatureSaisie.set(texteOuVide(valeurs.temperatureDebutNuit()));
         temperatureFinSaisie.set(texteOuVide(valeurs.temperatureFinNuit()));
-        ventSaisie.set(texteOuVide(valeurs.vent()));
-        couvertureNuageuseSaisie.set(texteOuVide(valeurs.couvertureNuageuse()));
+        ventSaisie.set(valeurs.vent());
+        couvertureNuageuseSaisie.set(valeurs.couvertureNuageuse());
     }
 
     private void appliquerMateriel(MaterielMicro materiel) {
@@ -141,11 +143,11 @@ public class SaisiePassageConditions {
         return temperatureFinSaisie;
     }
 
-    public StringProperty ventSaisieProperty() {
+    public ObjectProperty<Vent> ventSaisieProperty() {
         return ventSaisie;
     }
 
-    public StringProperty couvertureNuageuseSaisieProperty() {
+    public ObjectProperty<CouvertureNuageuse> couvertureNuageuseSaisieProperty() {
         return couvertureNuageuseSaisie;
     }
 

@@ -4,8 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.model.Verdict;
+import fr.univ_amu.iut.passage.model.CouvertureNuageuse;
 import fr.univ_amu.iut.passage.model.DetailPassage;
 import fr.univ_amu.iut.passage.model.MeteoReleve;
+import fr.univ_amu.iut.passage.model.Vent;
 import fr.univ_amu.iut.validation.model.ResultatsIdentification;
 import java.util.Map;
 import java.util.Optional;
@@ -34,7 +36,7 @@ class StatutPassageTest {
                 536_870_912L, // 512 Mo
                 128,
                 640.0,
-                new MeteoReleve(18.5, 12.0, 15.0, 40.0));
+                new MeteoReleve(18.5, 12.0, Vent.MOYEN, CouvertureNuageuse.DE_25_A_50));
     }
 
     private static DetailPassage passageMinimal() {
@@ -72,7 +74,8 @@ class StatutPassageTest {
                 .contains("bruts 4,2 Go, séquences 512 Mo")
                 .contains("128 (durée audible 10 min 40 s)")
                 .contains("début 18,5 °C")
-                .contains("vent 15 km/h")
+                .contains("vent moyen")
+                .contains("nuages 25 à 50 %")
                 .contains("oui (\"Vu\", importé le 2026-06-21T08:00:00)");
     }
 

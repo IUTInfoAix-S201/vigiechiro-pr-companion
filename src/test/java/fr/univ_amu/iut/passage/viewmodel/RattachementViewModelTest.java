@@ -12,11 +12,13 @@ import fr.univ_amu.iut.commun.model.Prefixe;
 import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.model.Verdict;
+import fr.univ_amu.iut.passage.model.CouvertureNuageuse;
 import fr.univ_amu.iut.passage.model.DetailPassage;
 import fr.univ_amu.iut.passage.model.MaterielMicro;
 import fr.univ_amu.iut.passage.model.MeteoReleve;
 import fr.univ_amu.iut.passage.model.PositionMicro;
 import fr.univ_amu.iut.passage.model.ServicePassage;
+import fr.univ_amu.iut.passage.model.Vent;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Optional;
@@ -170,13 +172,14 @@ class RattachementViewModelTest {
     @Test
     @DisplayName("#106 étendu : ouvrirSur pré-remplit les champs météo depuis le relevé du passage")
     void meteo_affichee() {
-        when(service.detailPassage(ID)).thenReturn(detailMeteo(new MeteoReleve(8.5, 4.0, 12.0, 40.0)));
+        when(service.detailPassage(ID))
+                .thenReturn(detailMeteo(new MeteoReleve(8.5, 4.0, Vent.FAIBLE, CouvertureNuageuse.DE_25_A_50)));
         viewModel.ouvrirSur(ID, "040962", "A1");
         assertThat(viewModel.conditions().temperatureSaisieProperty().get()).isEqualTo("8.5");
         assertThat(viewModel.conditions().temperatureFinSaisieProperty().get()).isEqualTo("4.0");
-        assertThat(viewModel.conditions().ventSaisieProperty().get()).isEqualTo("12.0");
+        assertThat(viewModel.conditions().ventSaisieProperty().get()).isEqualTo(Vent.FAIBLE);
         assertThat(viewModel.conditions().couvertureNuageuseSaisieProperty().get())
-                .isEqualTo("40.0");
+                .isEqualTo(CouvertureNuageuse.DE_25_A_50);
     }
 
     @Test
@@ -185,7 +188,7 @@ class RattachementViewModelTest {
         when(service.detailPassage(ID)).thenReturn(detailMeteo(MeteoReleve.VIDE));
         viewModel.ouvrirSur(ID, "040962", "A1");
         assertThat(viewModel.conditions().temperatureSaisieProperty().get()).isEmpty();
-        assertThat(viewModel.conditions().ventSaisieProperty().get()).isEmpty();
+        assertThat(viewModel.conditions().ventSaisieProperty().get()).isNull();
     }
 
     @Test
@@ -194,11 +197,11 @@ class RattachementViewModelTest {
         when(service.detailPassage(ID)).thenReturn(detailMeteo(MeteoReleve.VIDE));
         viewModel.ouvrirSur(ID, "040962", "A1");
         viewModel.conditions().temperatureSaisieProperty().set("9,0");
-        viewModel.conditions().ventSaisieProperty().set("12");
+        viewModel.conditions().ventSaisieProperty().set(Vent.FAIBLE);
 
         assertThat(viewModel.conditions().enregistrerMeteo()).isTrue();
 
-        verify(service).definirMeteo(ID, new MeteoReleve(9.0, null, 12.0, null));
+        verify(service).definirMeteo(ID, new MeteoReleve(9.0, null, Vent.FAIBLE, null));
         assertThat(viewModel.messageErreurProperty().get()).isEmpty();
     }
 
@@ -259,9 +262,11 @@ class RattachementViewModelTest {
     void recuperer_meteo_delegue_au_service() {
         when(service.detailPassage(ID)).thenReturn(detailMeteo(MeteoReleve.VIDE));
         viewModel.ouvrirSur(ID, "040962", "A1");
-        when(service.recupererMeteo(ID)).thenReturn(Optional.of(new MeteoReleve(9.0, 3.0, 12.0, 40.0)));
+        when(service.recupererMeteo(ID))
+                .thenReturn(Optional.of(new MeteoReleve(9.0, 3.0, Vent.FAIBLE, CouvertureNuageuse.DE_25_A_50)));
 
-        assertThat(viewModel.conditions().recupererMeteo()).contains(new MeteoReleve(9.0, 3.0, 12.0, 40.0));
+        assertThat(viewModel.conditions().recupererMeteo())
+                .contains(new MeteoReleve(9.0, 3.0, Vent.FAIBLE, CouvertureNuageuse.DE_25_A_50));
     }
 
     @Test
@@ -270,10 +275,13 @@ class RattachementViewModelTest {
         when(service.detailPassage(ID)).thenReturn(detailMeteo(MeteoReleve.VIDE));
         viewModel.ouvrirSur(ID, "040962", "A1");
 
-        viewModel.conditions().appliquerMeteoRecuperee(Optional.of(new MeteoReleve(9.0, 3.0, 12.0, 40.0)));
+        viewModel
+                .conditions()
+                .appliquerMeteoRecuperee(
+                        Optional.of(new MeteoReleve(9.0, 3.0, Vent.FAIBLE, CouvertureNuageuse.DE_25_A_50)));
 
         assertThat(viewModel.conditions().temperatureSaisieProperty().get()).isEqualTo("9.0");
-        assertThat(viewModel.conditions().ventSaisieProperty().get()).isEqualTo("12.0");
+        assertThat(viewModel.conditions().ventSaisieProperty().get()).isEqualTo(Vent.FAIBLE);
         assertThat(viewModel.messageErreurProperty().get()).contains("pré-remplie");
     }
 

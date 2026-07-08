@@ -123,10 +123,10 @@ public final class StatutPassage implements Callable<Integer> {
             grandeurs.add("fin " + Formats.temperatureLisible(meteo.temperatureFinNuit()));
         }
         if (meteo.vent() != null) {
-            grandeurs.add(String.format(Locale.FRANCE, "vent %.0f km/h", meteo.vent()));
+            grandeurs.add("vent " + meteo.vent().libelle().toLowerCase(Locale.FRANCE));
         }
         if (meteo.couvertureNuageuse() != null) {
-            grandeurs.add(String.format(Locale.FRANCE, "nuages %.0f %%", meteo.couvertureNuageuse()));
+            grandeurs.add("nuages " + meteo.couvertureNuageuse().libelle());
         }
         return grandeurs.isEmpty() ? "non renseignée" : String.join(", ", grandeurs);
     }

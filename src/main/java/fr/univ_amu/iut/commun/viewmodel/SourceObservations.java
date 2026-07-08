@@ -24,8 +24,7 @@ import java.util.Objects;
 /// - [ParPassage] un passage (workflow Tadarida) — seule à permettre l'import CSV / l'export `_Vu` ;
 /// - [ParPassages] un lot de passages (multisite filtré) ;
 /// - [ParEspece] une espèce à travers les passages d'un utilisateur ;
-/// - [References] le corpus `is_reference` d'un utilisateur — seule à permettre l'export bibliothèque ;
-/// - [NonIdentifies] les séquences d'un passage **sans observation Tadarida** (à écouter/valider à la main).
+/// - [References] le corpus `is_reference` d'un utilisateur — seule à permettre l'export bibliothèque.
 public sealed interface SourceObservations {
 
     /// **Intitulé** de la source, tel qu'affiché dans le fil d'Ariane / le titre de l'écran audio. C'est
@@ -47,8 +46,7 @@ public sealed interface SourceObservations {
     }
 
     /// Contexte du **passage ciblé** quand la source en vise un seul, `null` sinon (défaut). Redéfini par
-    /// [ParPassage] et [NonIdentifies]. Sert au fil d'Ariane (retour au passage) et à la plage nuit par
-    /// défaut du filtre heure.
+    /// [ParPassage]. Sert au fil d'Ariane (retour au passage) et à la plage nuit par défaut du filtre heure.
     default ContextePassage contexteDuPassage() {
         return null;
     }
@@ -128,26 +126,6 @@ public sealed interface SourceObservations {
         @Override
         public boolean permetExportBibliotheque() {
             return true;
-        }
-    }
-
-    /// **Séquences non identifiées** d'un passage : les enregistrements présents sur disque (écoutables)
-    /// mais **sans observation Tadarida**. Permet de les écouter pour les valider manuellement, alors que
-    /// le CSV Tadarida ne les a pas retenues. Cible un **passage unique** (comme [ParPassage]) : porte le
-    /// [ContextePassage] pour le fil d'Ariane (retour au passage).
-    record NonIdentifies(ContextePassage contexte) implements SourceObservations {
-        public NonIdentifies {
-            Objects.requireNonNull(contexte, "contexte");
-        }
-
-        @Override
-        public String titre() {
-            return "Sons non identifiés";
-        }
-
-        @Override
-        public ContextePassage contexteDuPassage() {
-            return contexte;
         }
     }
 }

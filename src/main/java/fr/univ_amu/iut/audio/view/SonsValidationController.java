@@ -497,7 +497,7 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
     /// autonome (segment courant seul).
     @Override
     public List<Lieu> emplacement() {
-        // ParPassage et NonIdentifies ciblent le même passage : même ascendance (site › passage › écran).
+        // ParPassage cible un passage : ascendance site › passage › écran (retour au passage).
         var contextePassage = source.contexteDuPassage();
         if (contextePassage != null) {
             return EmplacementPassage.emplacementEnfant(contextePassage, ouvrirSite, ouvrirPassage, source.titre());

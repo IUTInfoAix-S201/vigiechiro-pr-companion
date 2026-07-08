@@ -11,7 +11,8 @@ import fr.univ_amu.iut.commun.model.Utilisateur;
 import fr.univ_amu.iut.commun.model.dao.UtilisateurDao;
 import fr.univ_amu.iut.commun.persistence.MigrationSchema;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
-import fr.univ_amu.iut.commun.view.OuvrirPassage;
+import fr.univ_amu.iut.commun.view.OuvrirValidation;
+import fr.univ_amu.iut.commun.viewmodel.ContextePassage;
 import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
 import fr.univ_amu.iut.importation.model.ServiceImport;
 import fr.univ_amu.iut.passage.model.Passage;
@@ -42,14 +43,17 @@ import org.testfx.api.FxRobot;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
 
-/// **Test E2E de parcours** : depuis **M-Passage**, l'ouverture des **séquences non identifiées** (sons
-/// présents sur disque mais **sans observation Tadarida**) via le contrat socle `OuvrirNonIdentifies`.
+/// **Test E2E de parcours** : l'écran **« Sons & validation »** d'un passage (source `ParPassage`) réunit
+/// désormais les observations Tadarida **et** les **séquences non identifiées** (sons présents sur disque
+/// mais **sans observation Tadarida**), qui y forment la vue « Sons non identifiés ».
 ///
 /// On importe une nuit synthétique **sans importer de CSV Tadarida** : le passage a donc des séquences
-/// d'écoute (`listening_sequence`) mais **aucune observation**. On vérifie que « Écouter les non
-/// identifiés » ouvre la vue audio, que ces séquences y **apparaissent** (sans taxon), et qu'elles ne sont
-/// **pas validables en l'état** (le bouton « Valider » reste désactivé même après sélection : la validation
-/// manuelle viendra ensuite).
+/// d'écoute (`listening_sequence`) mais **aucune observation**. L'écran audio du passage (ouvert via le
+/// contrat socle `OuvrirValidation`, comme la carte « Validation Tadarida » de M-Passage) ne liste donc que
+/// ces séquences non identifiées. On vérifie qu'elles **apparaissent** (sans taxon), qu'elles ne sont **pas
+/// validables en l'état** (« Valider » reste désactivé : pas de proposition Tadarida à retenir), puis qu'on
+/// peut les **valider à la main** (« Corriger ») — ce qui crée une observation corrigée qui **persiste** et
+/// laisse la séquence dans la liste.
 @ExtendWith(ApplicationExtension.class)
 class ParcoursPassageVersNonIdentifiesE2ETest {
 
@@ -61,8 +65,7 @@ class ParcoursPassageVersNonIdentifiesE2ETest {
             + " 1925492, V1.01, CPU 600000000, T4.1\n";
 
     private Injector injector;
-    private long idPassage;
-    private ContexteSite contexte;
+    private ContextePassage contextePassage;
 
     @Start
     void start(Stage stage) throws Exception {
@@ -81,8 +84,7 @@ class ParcoursPassageVersNonIdentifiesE2ETest {
         Passage importe = injector.getInstance(ServiceImport.class)
                 .importer(sd, point.id(), new Prefixe("640380", 2026, 1, "A1"))
                 .passage();
-        idPassage = importe.id();
-        contexte = new ContexteSite("640380", "A1", null);
+        contextePassage = new ContextePassage(importe.id(), 1, new ContexteSite("640380", "A1", null));
 
         FXMLLoader loader = new FXMLLoader(App.class.getResource("commun/view/MainView.fxml"));
         loader.setControllerFactory(injector::getInstance);
@@ -96,19 +98,21 @@ class ParcoursPassageVersNonIdentifiesE2ETest {
         System.clearProperty("vigiechiro.workspace");
     }
 
-    @Test
-    @DisplayName("M-Passage : « Écouter les non identifiés » ouvre la vue audio sur les séquences sans observation")
-    void passage_ouvre_les_non_identifies(FxRobot robot) {
-        // 1) Entrer sur M-Passage puis ouvrir les non identifiés (action toujours disponible).
-        robot.interact(() -> injector.getInstance(OuvrirPassage.class).ouvrir(idPassage, contexte));
-        Button nonIdentifies = robot.lookup("#boutonNonIdentifies").queryAs(Button.class);
-        assertThat(nonIdentifies.isDisabled()).isFalse();
-        robot.interact(nonIdentifies::fire);
-
-        // 2) La vue audio liste les séquences non identifiées (présentes sur disque, sans observation).
-        @SuppressWarnings("unchecked")
-        TableView<LigneObservationAudio> table = (TableView<LigneObservationAudio>)
+    /// Ouvre l'écran « Sons & validation » du passage (source `ParPassage`) via le contrat socle, comme la
+    /// carte « Validation Tadarida » de M-Passage, et renvoie sa table d'observations.
+    @SuppressWarnings("unchecked")
+    private TableView<LigneObservationAudio> ouvrirSonsEtValidation(FxRobot robot) {
+        robot.interact(() -> injector.getInstance(OuvrirValidation.class).ouvrir(contextePassage));
+        return (TableView<LigneObservationAudio>)
                 (TableView<?>) robot.lookup("#tableObservations").queryAs(TableView.class);
+    }
+
+    @Test
+    @DisplayName("« Sons & validation » d'un passage sans CSV liste ses séquences non identifiées (sans observation)")
+    void sons_et_validation_liste_les_non_identifies(FxRobot robot) {
+        // Sans CSV importé, la liste fusionnée du passage ne contient que les séquences non identifiées.
+        TableView<LigneObservationAudio> table = ouvrirSonsEtValidation(robot);
+
         assertThat(table.getItems())
                 .as("des séquences non identifiées à écouter")
                 .isNotEmpty();
@@ -119,8 +123,8 @@ class ParcoursPassageVersNonIdentifiesE2ETest {
                     .isNull();
         });
 
-        // 3) « Valider » (retenir la proposition Tadarida) reste désactivé : il n'y a pas de proposition
-        // Tadarida sur une séquence non identifiée. La validation se fait par « Corriger » (cf. test suivant).
+        // « Valider » (retenir la proposition Tadarida) reste désactivé : pas de proposition sur une séquence
+        // non identifiée. La validation se fait par « Corriger » (cf. test suivant).
         robot.interact(() -> table.getSelectionModel().select(0));
         assertThat(robot.lookup("#btnValider").queryAs(Button.class).isDisabled())
                 .as("rien à « retenir » : pas de proposition Tadarida")
@@ -128,14 +132,9 @@ class ParcoursPassageVersNonIdentifiesE2ETest {
     }
 
     @Test
-    @DisplayName("Non identifiés : valider une séquence à la main crée une observation (corrigée) qui persiste")
+    @DisplayName("Valider une séquence non identifiée à la main crée une observation (corrigée) qui persiste")
     void valider_manuellement_une_sequence(FxRobot robot) {
-        robot.interact(() -> injector.getInstance(OuvrirPassage.class).ouvrir(idPassage, contexte));
-        robot.interact(robot.lookup("#boutonNonIdentifies").queryAs(Button.class)::fire);
-
-        @SuppressWarnings("unchecked")
-        TableView<LigneObservationAudio> table = (TableView<LigneObservationAudio>)
-                (TableView<?>) robot.lookup("#tableObservations").queryAs(TableView.class);
+        TableView<LigneObservationAudio> table = ouvrirSonsEtValidation(robot);
         long idSequence = table.getItems().get(0).idSequence();
 
         // Sélectionner la 1re séquence, choisir un taxon, puis « Corriger » = la valider à la main.

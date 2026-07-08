@@ -155,9 +155,10 @@ public class ServiceValidation implements CompteurValidations {
         return observationDao.lignesAudioReferences(idUtilisateur);
     }
 
-    /// Lignes audio des **séquences non identifiées** d'un passage (source `NonIdentifies`) : les
-    /// enregistrements présents sur disque mais **sans observation Tadarida**, à écouter pour les valider
-    /// manuellement.
+    /// Lignes audio des **séquences non identifiées** d'un passage : les enregistrements présents sur disque
+    /// mais **sans observation Tadarida**, à écouter pour les valider manuellement. Réunies aux observations
+    /// Tadarida du passage dans la vue « Sons & validation » (source `ParPassage`), où elles forment la vue
+    /// « Sons non identifiés ».
     public List<LigneObservationAudio> lignesAudioNonIdentifiees(Long idPassage) {
         return observationDao.lignesAudioNonIdentifiees(idPassage);
     }

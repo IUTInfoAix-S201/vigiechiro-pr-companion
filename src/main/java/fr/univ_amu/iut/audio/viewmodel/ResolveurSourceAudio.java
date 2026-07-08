@@ -36,8 +36,6 @@ final class ResolveurSourceAudio {
             case SourceObservations.ParEspece s ->
                 service.lignesAudioDeLEspece(s.idUtilisateur(), s.codeEspece(), statutDe(s.statut()));
             case SourceObservations.References s -> service.lignesAudioReferences(s.idUtilisateur());
-            case SourceObservations.NonIdentifies s ->
-                service.lignesAudioNonIdentifiees(s.contexte().idPassage());
         };
     }
 
@@ -55,8 +53,8 @@ final class ResolveurSourceAudio {
     }
 
     /// Plage **nuit** par défaut du filtre « Heure » (#549) : pour une source ciblant **un passage unique**
-    /// ([ParPassage] ou [NonIdentifies]), le coucher/lever de la nuit de la relève ; **vide** sinon (plusieurs
-    /// nuits, ou pas de contexte), le filtre retombant alors sur son défaut fixe 21 h → 6 h.
+    /// ([ParPassage]), le coucher/lever de la nuit de la relève ; **vide** sinon (plusieurs nuits, ou pas de
+    /// contexte), le filtre retombant alors sur son défaut fixe 21 h → 6 h.
     Optional<PlageNuit> plageNuit(SourceObservations source) {
         ContextePassage contexte = source.contexteDuPassage();
         return contexte == null ? Optional.empty() : service.plageNuitParDefaut(contexte.idPassage());
@@ -75,10 +73,6 @@ final class ResolveurSourceAudio {
 
     /// Message d'état affiché quand l'ensemble est vide (nuance selon la source).
     static String messageVide(SourceObservations source) {
-        if (source instanceof SourceObservations.NonIdentifies) {
-            return "Aucun enregistrement non identifié : toutes les séquences de ce passage ont une"
-                    + " identification Tadarida.";
-        }
         return source instanceof SourceObservations.ParPassage
                 ? "Aucun son à écouter pour ce passage (ni observation Tadarida, ni séquence non identifiée)."
                 : "Aucune observation à écouter pour cette source.";

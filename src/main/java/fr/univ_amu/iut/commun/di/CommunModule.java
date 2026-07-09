@@ -3,6 +3,7 @@ package fr.univ_amu.iut.commun.di;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
+import com.google.inject.multibindings.OptionalBinder;
 import fr.univ_amu.iut.commun.model.DepotVues;
 import fr.univ_amu.iut.commun.model.Horloge;
 import fr.univ_amu.iut.commun.model.Workspace;
@@ -11,6 +12,8 @@ import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
 import fr.univ_amu.iut.commun.view.Navigateur;
 import fr.univ_amu.iut.commun.view.OuvreurDeLien;
 import fr.univ_amu.iut.commun.view.OuvreurDeLienSysteme;
+import fr.univ_amu.iut.commun.view.OuvrirConnexion;
+import fr.univ_amu.iut.commun.view.OuvrirConnexionAucun;
 import fr.univ_amu.iut.commun.viewmodel.NavigationViewModel;
 import java.nio.file.Path;
 
@@ -34,6 +37,11 @@ public class CommunModule extends AbstractModule {
         // Ouverture de liens externes (ex. coordonnées GPS -> OpenStreetMap). Singleton :
         // `App` y branche le HostServices une fois au démarrage (cf. App.start).
         bind(OuvreurDeLien.class).to(OuvreurDeLienSysteme.class).in(Singleton.class);
+        // Ouverture de la modale de connexion depuis le menu ☰ (#741). Défaut inerte : la feature
+        // `connexion` (ConnexionModule) fournit l'implémentation réelle via setBinding en app complète.
+        OptionalBinder.newOptionalBinder(binder(), OuvrirConnexion.class)
+                .setDefault()
+                .to(OuvrirConnexionAucun.class);
     }
 
     @Provides

@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [1.150.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.149.0...v1.150.0) (2026-07-09)
+
+
+### Features
+
+* **design:** en-tête retiré + statut en barre de statut, M-Lot ([#693](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/693)) ([#760](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/760)) ([f6d1100](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/f6d11001bbcda65f094ae8c22f3b9b0b9a1bb7cf)), closes [#496](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/496)
+
 # [1.149.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.148.0...v1.149.0) (2026-07-09)
 
 

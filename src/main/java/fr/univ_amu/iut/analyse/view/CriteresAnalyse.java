@@ -29,6 +29,10 @@ import javafx.util.StringConverter;
 /// par défaut, comme avant la barre à puces).
 final class CriteresAnalyse {
 
+    /// Clé **stable** du critère Statut, partagée par le critère et les vues par défaut (évite un littéral
+    /// dupliqué).
+    private static final String STATUT = "statut";
+
     private CriteresAnalyse() {}
 
     /// Vues **par défaut** (lecture seule) de l'inventaire analyse, rendues comme onglets avant les vues de
@@ -44,8 +48,8 @@ final class CriteresAnalyse {
         return List.of(
                 vueParDefaut("Tout"),
                 vueParDefaut(
-                        "À valider", new DescripteurCritere("statut", List.of(StatutObservation.NON_TOUCHEE.name()))),
-                vueParDefaut("Validées", new DescripteurCritere("statut", List.of(StatutObservation.VALIDEE.name()))),
+                        "À valider", new DescripteurCritere(STATUT, List.of(StatutObservation.NON_TOUCHEE.name()))),
+                vueParDefaut("Validées", new DescripteurCritere(STATUT, List.of(StatutObservation.VALIDEE.name()))),
                 vueParDefaut("Chiroptères", new DescripteurCritere("groupe", List.of("Chiroptères"))));
     }
 
@@ -62,7 +66,7 @@ final class CriteresAnalyse {
         return new CritereFiltre<ObservationAnalyse>() {
             @Override
             public String nom() {
-                return "statut";
+                return STATUT;
             }
 
             @Override

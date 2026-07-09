@@ -30,6 +30,10 @@ import javafx.util.StringConverter;
 /// présélection : ajouter une puce n'écarte rien tant qu'une valeur n'est pas saisie.
 final class CriteresMultisite {
 
+    /// Clé **stable** du critère Statut, partagée par le critère et les vues par défaut (évite un littéral
+    /// dupliqué).
+    private static final String STATUT = "statut";
+
     private CriteresMultisite() {}
 
     /// Vues **par défaut** (lecture seule) du tableau des passages, rendues comme onglets avant les vues de
@@ -44,9 +48,9 @@ final class CriteresMultisite {
     static List<VueSauvegardee> vuesParDefaut() {
         return List.of(
                 vueParDefaut("Tout"),
-                vueParDefaut("Déposés", new DescripteurCritere("statut", List.of(StatutWorkflow.DEPOSE.name()))),
+                vueParDefaut("Déposés", new DescripteurCritere(STATUT, List.of(StatutWorkflow.DEPOSE.name()))),
                 vueParDefaut("À vérifier", new DescripteurCritere("verdict", List.of(Verdict.A_VERIFIER.name()))),
-                vueParDefaut("Vérifiés", new DescripteurCritere("statut", List.of(StatutWorkflow.VERIFIE.name()))));
+                vueParDefaut("Vérifiés", new DescripteurCritere(STATUT, List.of(StatutWorkflow.VERIFIE.name()))));
     }
 
     /// Une vue par défaut : `id` **nul** (jamais persistée → lecture seule) et descripteur des critères donnés
@@ -97,7 +101,7 @@ final class CriteresMultisite {
         return new CritereFiltre<LignePassage>() {
             @Override
             public String nom() {
-                return "statut";
+                return STATUT;
             }
 
             @Override

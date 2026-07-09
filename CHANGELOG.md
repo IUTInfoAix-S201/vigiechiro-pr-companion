@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [1.154.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.153.0...v1.154.0) (2026-07-09)
+
+
+### Features
+
+* **design:** Chantier 4 — cartes consolidées + fond unique ([#694](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/694), [#687](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/687)) ([#777](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/777)) ([39bcadd](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/39bcaddfb5f918c97035addf024a19b169afbca9)), closes [#f5f6f8](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/f5f6f8) [688-#692](https://github.com/688-/issues/692)
+
 # [1.153.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.152.0...v1.153.0) (2026-07-09)
 
 

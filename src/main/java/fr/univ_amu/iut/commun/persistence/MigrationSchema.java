@@ -40,7 +40,8 @@ public class MigrationSchema {
         "V11__saved_filter_view.sql",
         "V12__reglages.sql",
         "V13__observation_manuelle.sql",
-        "V14__observation_douteuse.sql"
+        "V14__observation_douteuse.sql",
+        "V15__vigiechiro_link.sql"
     };
 
     private static final String DOSSIER = "/db/migration/";

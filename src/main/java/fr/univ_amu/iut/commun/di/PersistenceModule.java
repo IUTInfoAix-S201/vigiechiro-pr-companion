@@ -4,6 +4,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import fr.univ_amu.iut.commun.model.Reglages;
+import fr.univ_amu.iut.commun.model.dao.LienVigieChiroDao;
 import fr.univ_amu.iut.commun.model.dao.ReglagesDao;
 import fr.univ_amu.iut.commun.model.dao.UtilisateurDao;
 import fr.univ_amu.iut.commun.persistence.MigrationSchema;
@@ -49,5 +50,13 @@ public class PersistenceModule extends AbstractModule {
     @Singleton
     Reglages fournirReglages(ReglagesDao dao) {
         return new Reglages(dao);
+    }
+
+    /// DAO des correspondances locale ↔ VigieChiro (#728), transverse comme [UtilisateurDao] :
+    /// alimenté par `connexion` (rapprocheurs) et consommé par les features (taxons, sites, dépôt).
+    @Provides
+    @Singleton
+    LienVigieChiroDao fournirLienVigieChiroDao(SourceDeDonnees source) {
+        return new LienVigieChiroDao(source);
     }
 }

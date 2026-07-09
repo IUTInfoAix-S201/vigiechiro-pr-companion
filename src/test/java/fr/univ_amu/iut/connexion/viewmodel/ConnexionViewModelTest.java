@@ -1,17 +1,20 @@
 package fr.univ_amu.iut.connexion.viewmodel;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import fr.univ_amu.iut.commun.api.ClientVigieChiro;
 import fr.univ_amu.iut.commun.api.ProfilVigieChiro;
+import fr.univ_amu.iut.commun.api.RapprochementVigieChiro;
 import fr.univ_amu.iut.commun.model.Horloge;
 import fr.univ_amu.iut.commun.model.Workspace;
 import fr.univ_amu.iut.connexion.model.StockageConnexion;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,13 +36,16 @@ class ConnexionViewModelTest {
     @Mock
     private ClientVigieChiro client;
 
+    @Mock
+    private RapprochementVigieChiro rapprocheur;
+
     private StockageConnexion stockage;
     private ConnexionViewModel viewModel;
 
     @BeforeEach
     void preparer() {
         stockage = new StockageConnexion(new Workspace(workspace), Horloge.figeeAu(LocalDate.of(2026, 1, 1)));
-        viewModel = new ConnexionViewModel(stockage, client);
+        viewModel = new ConnexionViewModel(stockage, client, Set.of(rapprocheur));
     }
 
     @Test
@@ -50,6 +56,7 @@ class ConnexionViewModelTest {
         assertThat(viewModel.connecter("TOK123")).contains(PROFIL);
 
         assertThat(stockage.profil()).as("persisté").contains(PROFIL);
+        verify(rapprocheur).synchroniser(client);
         viewModel.rafraichir();
         assertThat(viewModel.connecteProperty().get()).isTrue();
         assertThat(viewModel.identiteProperty().get()).contains("Sébastien").contains("Observateur");
@@ -62,6 +69,7 @@ class ConnexionViewModelTest {
 
         assertThat(viewModel.connecter("MAUVAIS")).isEmpty();
 
+        verifyNoInteractions(rapprocheur);
         assertThat(stockage.token()).as("effacé").isEmpty();
         viewModel.rafraichir();
         assertThat(viewModel.connecteProperty().get()).isFalse();
@@ -73,7 +81,7 @@ class ConnexionViewModelTest {
     void connecter_vide() {
         assertThat(viewModel.connecter("   ")).isEmpty();
 
-        verifyNoInteractions(client);
+        verifyNoInteractions(client, rapprocheur);
         assertThat(stockage.token()).isEmpty();
     }
 

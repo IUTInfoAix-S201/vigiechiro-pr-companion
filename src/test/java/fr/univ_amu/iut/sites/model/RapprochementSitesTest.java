@@ -85,6 +85,8 @@ class RapprochementSitesTest {
 
         assertThat(rapport).contains(new RapportSynchro("sites", 2));
         assertThat(liens.tous(LienVigieChiro.ENTITE_SITE)).containsOnly(Map.entry("11", "s1"), Map.entry("22", "s2"));
+        // s1 est verrouillé (dépôt possible), pas s2 : seul le site 11 est marqué verrouillé.
+        assertThat(liens.verrouilles(LienVigieChiro.ENTITE_SITE)).containsExactly("11");
     }
 
     @Test

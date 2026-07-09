@@ -26,11 +26,13 @@
       styleClass="ecran-import"
       spacing="18.0">
 
-  <VBox spacing="2.0">
-    <Label text="Importer une nuit d'enregistrement" styleClass="titre-page"/>
-    <Label styleClass="sous-titre-page" wrapText="true"
-           text="L'application prépare les séquences d'écoute à partir de la carte SD, sans jamais modifier vos fichiers d'origine."/>
-  </VBox>
+  <!--
+    Titre « Importer une nuit d'enregistrement » retiré (#693) : redondant avec le fil d'Ariane
+    (« Importer une nuit »). La ligne de guidance de l'assistant est conservée (elle oriente
+    l'utilisateur, ce n'est pas un résumé à déporter en barre de statut).
+  -->
+  <Label styleClass="sous-titre-page" wrapText="true"
+         text="L'application prépare les séquences d'écoute à partir de la carte SD, sans jamais modifier vos fichiers d'origine."/>
 
   <!-- 1. Dossier source -->
   <VBox styleClass="section-carte" spacing="6.0">

@@ -80,11 +80,13 @@ class ImportationViewTest {
     }
 
     @Test
-    @DisplayName("L'assistant d'import s'affiche avec son titre")
-    void affiche_le_titre(FxRobot robot) {
-        Label titre = robot.lookup(".titre-page").queryAs(Label.class);
-
-        assertThat(titre.getText()).isEqualTo("Importer une nuit d'enregistrement");
+    @DisplayName("L'assistant d'import : titre retiré (#693), ligne de guidance conservée")
+    void affiche_la_guidance_sans_titre(FxRobot robot) {
+        // Titre « Importer une nuit d'enregistrement » retiré (redondant avec le fil d'Ariane).
+        assertThat(robot.lookup(".titre-page").tryQuery()).isEmpty();
+        // La ligne de guidance de l'assistant est conservée.
+        Label guidance = robot.lookup(".sous-titre-page").queryAs(Label.class);
+        assertThat(guidance.getText()).contains("sans jamais modifier vos fichiers d'origine");
     }
 
     @Test

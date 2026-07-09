@@ -2,9 +2,11 @@ package fr.univ_amu.iut.connexion.viewmodel;
 
 import fr.univ_amu.iut.commun.api.ClientVigieChiro;
 import fr.univ_amu.iut.commun.api.ProfilVigieChiro;
+import fr.univ_amu.iut.commun.api.RapprochementVigieChiro;
 import fr.univ_amu.iut.connexion.model.StockageConnexion;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
@@ -19,13 +21,16 @@ public class ConnexionViewModel {
 
     private final StockageConnexion stockage;
     private final ClientVigieChiro client;
+    private final Set<RapprochementVigieChiro> rapprocheurs;
 
     private final ReadOnlyStringWrapper identite = new ReadOnlyStringWrapper(this, "identite", "");
     private final ReadOnlyBooleanWrapper connecte = new ReadOnlyBooleanWrapper(this, "connecte", false);
 
-    public ConnexionViewModel(StockageConnexion stockage, ClientVigieChiro client) {
+    public ConnexionViewModel(
+            StockageConnexion stockage, ClientVigieChiro client, Set<RapprochementVigieChiro> rapprocheurs) {
         this.stockage = Objects.requireNonNull(stockage, "stockage");
         this.client = Objects.requireNonNull(client, "client");
+        this.rapprocheurs = Set.copyOf(Objects.requireNonNull(rapprocheurs, "rapprocheurs"));
     }
 
     /// Recalcule l'état affiché depuis le stockage local (sans réseau). À appeler sur le fil JavaFX.
@@ -47,10 +52,20 @@ public class ConnexionViewModel {
         Optional<ProfilVigieChiro> profil = client.moi();
         if (profil.isPresent()) {
             stockage.enregistrer(propre, profil.get());
+            amorcerRapprochements();
         } else {
             stockage.effacer();
         }
         return profil;
+    }
+
+    /// Amorce les correspondances locales ↔ VigieChiro (taxons, sites) juste après une connexion réussie
+    /// (#728). Chaque rapprocheur est **best-effort** (il avale ses propres erreurs) : un échec ne
+    /// compromet pas la connexion. Déjà hors du fil JavaFX (appelé depuis [#connecter]).
+    private void amorcerRapprochements() {
+        for (RapprochementVigieChiro rapprocheur : rapprocheurs) {
+            rapprocheur.synchroniser(client);
+        }
     }
 
     /// Efface la connexion locale. À suivre d'un [#rafraichir].

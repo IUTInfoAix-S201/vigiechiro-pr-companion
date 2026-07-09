@@ -15,6 +15,7 @@ import fr.univ_amu.iut.connexion.model.StockageConnexion;
 import fr.univ_amu.iut.connexion.viewmodel.ConnexionViewModel;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -48,7 +49,7 @@ class ConnexionModaleViewTest {
         Injector injector = Guice.createInjector(new AbstractModule() {
             @Provides
             ConnexionViewModel viewModel() {
-                return new ConnexionViewModel(stockage, client);
+                return new ConnexionViewModel(stockage, client, Set.of());
             }
 
             @Provides

@@ -6,15 +6,18 @@ import com.google.inject.Singleton;
 import com.google.inject.multibindings.Multibinder;
 import com.google.inject.multibindings.OptionalBinder;
 import com.google.inject.name.Named;
+import fr.univ_amu.iut.commun.api.RapprochementVigieChiro;
 import fr.univ_amu.iut.commun.model.CoordonneesPoint;
 import fr.univ_amu.iut.commun.model.Horloge;
 import fr.univ_amu.iut.commun.model.Utilisateur;
+import fr.univ_amu.iut.commun.model.dao.LienVigieChiroDao;
 import fr.univ_amu.iut.commun.model.dao.UtilisateurDao;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
 import fr.univ_amu.iut.commun.view.ActiviteAccueil;
 import fr.univ_amu.iut.commun.view.IndicateurAccueil;
 import fr.univ_amu.iut.commun.view.OuvrirSite;
 import fr.univ_amu.iut.passage.model.dao.PassageDao;
+import fr.univ_amu.iut.sites.model.RapprochementSites;
 import fr.univ_amu.iut.sites.model.ServiceSites;
 import fr.univ_amu.iut.sites.model.dao.PointDao;
 import fr.univ_amu.iut.sites.model.dao.SiteDao;
@@ -61,6 +64,10 @@ public class SitesModule extends AbstractModule {
         OptionalBinder.newOptionalBinder(binder(), CoordonneesPoint.class)
                 .setBinding()
                 .to(CoordonneesPointSites.class);
+        // Rapprochement des sites locaux avec VigieChiro (#728), invoqué à la connexion.
+        Multibinder.newSetBinder(binder(), RapprochementVigieChiro.class)
+                .addBinding()
+                .to(RapprochementSites.class);
     }
 
     @Provides
@@ -73,6 +80,15 @@ public class SitesModule extends AbstractModule {
     @Singleton
     PointDao fournirPointDao(SourceDeDonnees source) {
         return new PointDao(source);
+    }
+
+    /// Rapprocheur des sites (#728) : relie `monitoring_site.id` ↔ `objectid` VigieChiro (par titre).
+    /// Contribué au `Multibinder<RapprochementVigieChiro>` (cf. [#configure()]). Ne dépend que du
+    /// [SiteDao] de la feature et du [LienVigieChiroDao] du socle : aucune dépendance vers `connexion`.
+    @Provides
+    @Singleton
+    RapprochementSites fournirRapprochementSites(SiteDao siteDao, LienVigieChiroDao liens) {
+        return new RapprochementSites(siteDao, liens);
     }
 
     /// Service métier de référence. Reçoit ses DAO (dont [PassageDao], fourni par

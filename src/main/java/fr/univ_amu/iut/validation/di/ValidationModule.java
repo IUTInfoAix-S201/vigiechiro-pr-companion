@@ -4,8 +4,10 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.multibindings.Multibinder;
+import fr.univ_amu.iut.commun.api.RapprochementVigieChiro;
 import fr.univ_amu.iut.commun.model.CompteurValidations;
 import fr.univ_amu.iut.commun.model.Horloge;
+import fr.univ_amu.iut.commun.model.dao.LienVigieChiroDao;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
 import fr.univ_amu.iut.commun.persistence.UniteDeTravail;
 import fr.univ_amu.iut.commun.view.IndicateurAccueil;
@@ -16,6 +18,7 @@ import fr.univ_amu.iut.validation.model.ExportVuCsv;
 import fr.univ_amu.iut.validation.model.MarquageDouteux;
 import fr.univ_amu.iut.validation.model.ParserCsvTadarida;
 import fr.univ_amu.iut.validation.model.PlageNuitPassage;
+import fr.univ_amu.iut.validation.model.RapprochementTaxons;
 import fr.univ_amu.iut.validation.model.ServiceValidation;
 import fr.univ_amu.iut.validation.model.ValidationManuelle;
 import fr.univ_amu.iut.validation.model.dao.GroupeTaxonomiqueDao;
@@ -50,6 +53,10 @@ public class ValidationModule extends AbstractModule {
         bind(CompteurValidations.class).to(ServiceValidation.class);
         // Compteur du tableau de bord d'accueil : nombre d'observations.
         Multibinder.newSetBinder(binder(), IndicateurAccueil.class).addBinding().to(IndicateurObservations.class);
+        // Rapprochement du référentiel taxons avec VigieChiro (#728), invoqué à la connexion.
+        Multibinder.newSetBinder(binder(), RapprochementVigieChiro.class)
+                .addBinding()
+                .to(RapprochementTaxons.class);
     }
 
     @Provides
@@ -62,6 +69,15 @@ public class ValidationModule extends AbstractModule {
     @Singleton
     TaxonDao fournirTaxonDao(SourceDeDonnees source) {
         return new TaxonDao(source);
+    }
+
+    /// Rapprocheur des taxons (#728) : relie `taxon.code` ↔ `objectid` VigieChiro. Contribué au
+    /// `Multibinder<RapprochementVigieChiro>` (cf. [#configure()]). Ne dépend que du [TaxonDao] de la
+    /// feature et du [LienVigieChiroDao] du socle : aucune dépendance vers la feature `connexion`.
+    @Provides
+    @Singleton
+    RapprochementTaxons fournirRapprochementTaxons(TaxonDao taxonDao, LienVigieChiroDao liens) {
+        return new RapprochementTaxons(taxonDao, liens);
     }
 
     @Provides

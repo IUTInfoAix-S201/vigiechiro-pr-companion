@@ -6,12 +6,14 @@ import com.google.inject.Singleton;
 import com.google.inject.multibindings.Multibinder;
 import fr.univ_amu.iut.commun.api.ClientVigieChiro;
 import fr.univ_amu.iut.commun.api.FournisseurToken;
+import fr.univ_amu.iut.commun.api.RapprochementVigieChiro;
 import fr.univ_amu.iut.commun.model.Horloge;
 import fr.univ_amu.iut.commun.model.Workspace;
 import fr.univ_amu.iut.commun.view.ActiviteAccueil;
 import fr.univ_amu.iut.connexion.model.StockageConnexion;
 import fr.univ_amu.iut.connexion.view.ActiviteConnexion;
 import fr.univ_amu.iut.connexion.viewmodel.ConnexionViewModel;
+import java.util.Set;
 
 /// Module Guice de la feature `connexion` (#727). Câble :
 /// - le stockage local du token comme [FournisseurToken] du socle (consommé par [ClientVigieChiro]) ;
@@ -26,6 +28,10 @@ public class ConnexionModule extends AbstractModule {
         bind(FournisseurToken.class).to(StockageConnexion.class);
         // Publie la carte d'accueil sans que `commun` dépende de la feature.
         Multibinder.newSetBinder(binder(), ActiviteAccueil.class).addBinding().to(ActiviteConnexion.class);
+        // Déclare le point d'extension de rapprochement (#728). Vide ici : les features taxons/sites y
+        // contribuent leurs rapprocheurs. Déclaré même sans contributeur pour que `ConnexionViewModel`
+        // reçoive un Set (éventuellement vide) quand seule `connexion` est chargée (outil de capture).
+        Multibinder.newSetBinder(binder(), RapprochementVigieChiro.class);
     }
 
     @Provides
@@ -43,8 +49,10 @@ public class ConnexionModule extends AbstractModule {
     }
 
     // ViewModel non-singleton : le FXMLLoader recrée le controller à chaque ouverture de la modale.
+    // Reçoit l'ensemble des rapprocheurs (#728) qu'il déclenche après une connexion réussie.
     @Provides
-    ConnexionViewModel fournirViewModel(StockageConnexion stockage, ClientVigieChiro client) {
-        return new ConnexionViewModel(stockage, client);
+    ConnexionViewModel fournirViewModel(
+            StockageConnexion stockage, ClientVigieChiro client, Set<RapprochementVigieChiro> rapprocheurs) {
+        return new ConnexionViewModel(stockage, client, rapprocheurs);
     }
 }

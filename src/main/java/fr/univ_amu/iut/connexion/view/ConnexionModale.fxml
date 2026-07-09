@@ -31,7 +31,8 @@
   <Label text="Reliez l'application à votre compte VigieChiro en trois étapes (aucun fichier à installer)."
          styleClass="section-sous" wrapText="true"/>
 
-  <Label fx:id="labelIdentite" styleClass="bandeau-valeur"/>
+  <!-- Badge d'état : gris « Non connecté » / vert « Connecté : … ». styleClass pilotée par le controller. -->
+  <Label fx:id="labelIdentite" styleClass="badge, badge-neutre"/>
 
   <!-- Étape 1 : ouvrir la plateforme -->
   <VBox spacing="4.0">
@@ -64,7 +65,10 @@
     </HBox>
   </VBox>
 
-  <Label fx:id="labelMessage" styleClass="message-erreur" wrapText="true"/>
+  <!-- Bandeau de feedback de l'action (succès/échec/hint) : masqué tant qu'il n'y a rien à dire ; sa
+       styleClass sémantique (bandeau-statut + badge-succes/danger/info) est posée par le controller. -->
+  <Label fx:id="bandeauStatut" styleClass="bandeau-statut" wrapText="true"
+         maxWidth="Infinity" visible="false" managed="false"/>
 
   <HBox alignment="CENTER_RIGHT" spacing="8.0">
     <Button fx:id="boutonDeconnecter" text="Se déconnecter"

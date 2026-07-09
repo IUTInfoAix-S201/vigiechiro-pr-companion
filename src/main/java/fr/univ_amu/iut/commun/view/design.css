@@ -355,6 +355,18 @@
 }
 
 /*
+ * Bandeau de statut pleine largeur (ex. feedback de la modale de connexion, #717) : reprend les couleurs
+ * sémantiques des badges (badge-succes / badge-danger / badge-info) mais avec un gabarit « bandeau »
+ * (pleine largeur, plus d'air) plutôt que « pastille ». Se compose : styleClass = bandeau-statut + une
+ * famille de couleur.
+ */
+.bandeau-statut {
+    -fx-padding: 10 14 10 14;
+    -fx-background-radius: 6;
+    -fx-font-weight: bold;
+}
+
+/*
  * En-tête d'écran réduit à ses actions (#693) : le titre redondant avec le fil d'Ariane est retiré et le
  * résumé déporté en barre de statut ; ne reste qu'une barre d'actions alignée à droite en tête de contenu
  * (ex. « + Nouveau site »). Slot partagé pour uniformiser le placement des actions d'écran.

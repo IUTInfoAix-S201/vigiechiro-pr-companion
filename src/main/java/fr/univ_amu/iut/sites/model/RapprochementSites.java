@@ -7,9 +7,8 @@ import fr.univ_amu.iut.commun.api.SiteVigieChiro;
 import fr.univ_amu.iut.commun.model.LienVigieChiro;
 import fr.univ_amu.iut.commun.model.dao.LienVigieChiroDao;
 import fr.univ_amu.iut.sites.model.dao.SiteDao;
-import java.util.LinkedHashMap;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -41,10 +40,14 @@ public class RapprochementSites implements RapprochementVigieChiro {
     public Optional<RapportSynchro> synchroniser(ClientVigieChiro client) {
         try {
             List<SiteVigieChiro> distants = client.mesSites();
-            Map<String, String> correspondances = new LinkedHashMap<>();
+            List<LienVigieChiro> correspondances = new ArrayList<>();
             for (Site local : siteDao.findAll()) {
                 correspondant(local, distants)
-                        .ifPresent(distant -> correspondances.put(String.valueOf(local.id()), distant.id()));
+                        .ifPresent(distant -> correspondances.add(new LienVigieChiro(
+                                LienVigieChiro.ENTITE_SITE,
+                                String.valueOf(local.id()),
+                                distant.id(),
+                                distant.verrouille())));
             }
             // Aucune correspondance = non connecté, aucun site distant, ou aucun titre rapproché : on ne
             // purge pas les liens déjà acquis (prudence face à une heuristique de titre imparfaite).

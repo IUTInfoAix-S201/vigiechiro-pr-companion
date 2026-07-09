@@ -7,6 +7,7 @@ import fr.univ_amu.iut.commun.api.TaxonVigieChiro;
 import fr.univ_amu.iut.commun.model.LienVigieChiro;
 import fr.univ_amu.iut.commun.model.dao.LienVigieChiroDao;
 import fr.univ_amu.iut.validation.model.dao.TaxonDao;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -55,9 +56,10 @@ public class RapprochementTaxons implements RapprochementVigieChiro {
             taxonDao.fusionnerReferentielOfficiel(codeVersNomLatin);
             // 2. Rapprochement code -> objectid de tous les taxons officiels (tous présents localement après
             //    la fusion). remplacer() reflète l'état courant et purge les correspondances obsolètes.
-            Map<String, String> liensParCode = new LinkedHashMap<>();
+            //    Les taxons n'ont pas d'état « verrouillé » (spécifique aux sites) : constructeur 3-arg.
+            List<LienVigieChiro> liensParCode = new ArrayList<>();
             for (TaxonVigieChiro taxon : officiels) {
-                liensParCode.put(taxon.libelleCourt(), taxon.id());
+                liensParCode.add(new LienVigieChiro(LienVigieChiro.ENTITE_TAXON, taxon.libelleCourt(), taxon.id()));
             }
             liens.remplacer(LienVigieChiro.ENTITE_TAXON, liensParCode);
             return Optional.of(new RapportSynchro("taxons", officiels.size()));

@@ -7,7 +7,7 @@ import fr.univ_amu.iut.commun.model.Workspace;
 import fr.univ_amu.iut.commun.persistence.MigrationSchema;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
 import java.nio.file.Path;
-import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -83,9 +83,9 @@ class LienVigieChiroDaoTest {
         dao.upsert(new LienVigieChiro(LienVigieChiro.ENTITE_TAXON, "Obsolete", "vieux"));
         dao.upsert(new LienVigieChiro(LienVigieChiro.ENTITE_SITE, "9", "site-9"));
 
-        Map<String, String> frais = new LinkedHashMap<>();
-        frais.put("Pippip", "5a1");
-        frais.put("Barbar", "5a2");
+        List<LienVigieChiro> frais = List.of(
+                new LienVigieChiro(LienVigieChiro.ENTITE_TAXON, "Pippip", "5a1"),
+                new LienVigieChiro(LienVigieChiro.ENTITE_TAXON, "Barbar", "5a2"));
         dao.remplacer(LienVigieChiro.ENTITE_TAXON, frais);
 
         // La correspondance obsolète a disparu ; les deux fraîches sont là ; l'entité site est intacte.
@@ -96,6 +96,20 @@ class LienVigieChiroDaoTest {
         // Rejouer la même resynchro ne change rien (idempotent).
         dao.remplacer(LienVigieChiro.ENTITE_TAXON, frais);
         assertThat(dao.compter(LienVigieChiro.ENTITE_TAXON)).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("verrouille (#718) : persisté, restitué par le mapper, et verrouilles() ne liste que les 1")
+    void verrouille_persiste_et_liste() {
+        dao.upsert(new LienVigieChiro(LienVigieChiro.ENTITE_SITE, "7", "site-7", true));
+        dao.upsert(new LienVigieChiro(LienVigieChiro.ENTITE_SITE, "8", "site-8", false));
+        dao.upsert(new LienVigieChiro(LienVigieChiro.ENTITE_TAXON, "Pippip", "5a1")); // verrouille NULL
+
+        assertThat(dao.findById("7").orElseThrow().verrouille()).isTrue();
+        assertThat(dao.findById("8").orElseThrow().verrouille()).isFalse();
+        assertThat(dao.findById("Pippip").orElseThrow().verrouille()).isNull();
+        // Seuls les sites verrouillés (= 1) sont listés ; le site non verrouillé et le taxon sont exclus.
+        assertThat(dao.verrouilles(LienVigieChiro.ENTITE_SITE)).containsExactly("7");
     }
 
     private static Map.Entry<String, String> entry(String cle, String valeur) {

@@ -11,11 +11,19 @@ package fr.univ_amu.iut.commun.model;
 /// @param entite type d'entité rapprochée ([#ENTITE_TAXON] ou [#ENTITE_SITE])
 /// @param refLocale clé locale (taxon `code`, ou `monitoring_site.id` en texte)
 /// @param objectid identifiant VigieChiro (`_id` MongoDB, 24 caractères hexadécimaux)
-public record LienVigieChiro(String entite, String refLocale, String objectid) {
+/// @param verrouille état *verrouillé* de l'objet VigieChiro (dépôt possible), **spécifique aux sites**
+///     (#718) : `null` pour un taxon ou tant qu'aucune synchro ne l'a renseigné
+public record LienVigieChiro(String entite, String refLocale, String objectid, Boolean verrouille) {
 
     /// Discriminant d'un rapprochement de **taxon** (clé locale = `taxon.code`).
     public static final String ENTITE_TAXON = "taxon";
 
     /// Discriminant d'un rapprochement de **site** (clé locale = `monitoring_site.id` en texte).
     public static final String ENTITE_SITE = "site";
+
+    /// Correspondance sans état de verrouillage (`verrouille` = `null`) : cas des taxons et des liens
+    /// posés avant l'axe 3. Laisse le code existant (constructeur à 3 arguments) inchangé.
+    public LienVigieChiro(String entite, String refLocale, String objectid) {
+        this(entite, refLocale, objectid, null);
+    }
 }

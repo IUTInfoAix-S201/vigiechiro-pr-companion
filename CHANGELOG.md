@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [1.145.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.144.0...v1.145.0) (2026-07-09)
+
+
+### Features
+
+* **design:** densité de table unique via TableDonnees ([#690](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/690)) ([#743](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/743)) ([4473440](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/44734400c00e90b8223b5f54ca37d6de91658946))
+
 # [1.144.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.143.0...v1.144.0) (2026-07-09)
 
 

@@ -7,6 +7,8 @@ import fr.univ_amu.iut.connexion.viewmodel.ConnexionViewModel;
 import java.util.Objects;
 import java.util.Optional;
 import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -39,8 +41,19 @@ public class ConnexionModaleController {
             + "function(){window.prompt('Copiez votre token VigieChiro :',t);});}"
             + "else{window.prompt('Copiez votre token VigieChiro :',t);}})();";
 
+    /// Familles de couleur sémantiques (design system) du bandeau de statut et du badge d'identité.
+    private static final String STATUT_INFO = "badge-info";
+
+    private static final String STATUT_SUCCES = "badge-succes";
+
+    private static final String STATUT_DANGER = "badge-danger";
+
     private final ConnexionViewModel viewModel;
     private final OuvreurDeLien ouvreurDeLien;
+
+    /// Vrai le temps de l'appel réseau de connexion : grise le bouton (et le champ) sans se battre avec
+    /// le binding sur l'état connecté.
+    private final BooleanProperty verificationEnCours = new SimpleBooleanProperty(false);
 
     @FXML
     private VBox racine;
@@ -52,7 +65,7 @@ public class ConnexionModaleController {
     private Label labelIdentite;
 
     @FXML
-    private Label labelMessage;
+    private Label bandeauStatut;
 
     @FXML
     private Button boutonConnecter;
@@ -69,8 +82,15 @@ public class ConnexionModaleController {
     @FXML
     private void initialize() {
         labelIdentite.textProperty().bind(viewModel.identiteProperty());
+        // Le badge d'identité vire au vert quand on est connecté, au gris sinon (affordance d'état).
+        viewModel.connecteProperty().addListener((obs, ancien, connecte) -> majBadgeIdentite(connecte));
+        // Verrouille la saisie quand on est connecté (ou pendant la vérification) : on comprend qu'il n'y
+        // a plus rien à coller. Le bouton « Se déconnecter » fait le miroir.
+        champToken.disableProperty().bind(viewModel.connecteProperty().or(verificationEnCours));
+        boutonConnecter.disableProperty().bind(viewModel.connecteProperty().or(verificationEnCours));
         boutonDeconnecter.disableProperty().bind(viewModel.connecteProperty().not());
         viewModel.rafraichir();
+        majBadgeIdentite(viewModel.connecteProperty().get());
     }
 
     /// Étape 1 : ouvre la plateforme dans le navigateur système (pour s'y connecter).
@@ -85,8 +105,9 @@ public class ConnexionModaleController {
         ClipboardContent contenu = new ClipboardContent();
         contenu.putString(MARQUE_PAGE);
         Clipboard.getSystemClipboard().setContent(contenu);
-        labelMessage.setText(
-                "Marque-page copié : créez un favori, collez-le comme adresse, puis cliquez-le sur l'onglet VigieChiro.");
+        afficherStatut(
+                "Marque-page copié : créez un favori, collez-le comme adresse, puis cliquez-le sur l'onglet VigieChiro.",
+                STATUT_INFO);
     }
 
     /// Étape 3 : vérifie et enregistre le token collé.
@@ -94,21 +115,27 @@ public class ConnexionModaleController {
     private void connecter() {
         String token = champToken.getText();
         if (token == null || token.isBlank()) {
-            labelMessage.setText("Collez d'abord votre token VigieChiro.");
+            afficherStatut("Collez d'abord votre token VigieChiro.", STATUT_INFO);
             return;
         }
-        boutonConnecter.setDisable(true);
-        labelMessage.setText("Vérification en cours…");
+        verificationEnCours.set(true);
+        afficherStatut("Vérification en cours…", STATUT_INFO);
         Thread.ofVirtual().name("connexion-vigiechiro").start(() -> {
             Optional<ProfilVigieChiro> profil = viewModel.connecter(token);
             Platform.runLater(() -> {
+                verificationEnCours.set(false);
                 viewModel.rafraichir();
-                boutonConnecter.setDisable(false);
                 if (profil.isPresent()) {
-                    labelMessage.setText("Connexion réussie.");
+                    String resume = viewModel.resumeSynchro();
+                    afficherStatut(
+                            resume.isBlank()
+                                    ? "Connexion réussie."
+                                    : "Connexion réussie · référentiel à jour : " + resume + ".",
+                            STATUT_SUCCES);
                     champToken.clear();
                 } else {
-                    labelMessage.setText("Token invalide ou expiré : recollez-en un depuis le site VigieChiro.");
+                    afficherStatut(
+                            "Token invalide ou expiré : recollez-en un depuis le site VigieChiro.", STATUT_DANGER);
                 }
             });
         });
@@ -119,7 +146,21 @@ public class ConnexionModaleController {
         viewModel.deconnecter();
         viewModel.rafraichir();
         champToken.clear();
-        labelMessage.setText("Déconnecté.");
+        afficherStatut("Déconnecté.", STATUT_INFO);
+    }
+
+    /// Bascule le badge d'identité entre le vert « connecté » et le gris « non connecté ».
+    private void majBadgeIdentite(boolean connecte) {
+        labelIdentite.getStyleClass().setAll("badge", connecte ? STATUT_SUCCES : "badge-neutre");
+    }
+
+    /// Affiche le bandeau de statut avec le texte et la famille de couleur sémantique donnés
+    /// (`badge-succes` / `badge-danger` / `badge-info`).
+    private void afficherStatut(String texte, String classeSemantique) {
+        bandeauStatut.setText(texte);
+        bandeauStatut.getStyleClass().setAll("bandeau-statut", classeSemantique);
+        bandeauStatut.setVisible(true);
+        bandeauStatut.setManaged(true);
     }
 
     @FXML

@@ -41,7 +41,8 @@ public class MigrationSchema {
         "V12__reglages.sql",
         "V13__observation_manuelle.sql",
         "V14__observation_douteuse.sql",
-        "V15__vigiechiro_link.sql"
+        "V15__vigiechiro_link.sql",
+        "V16__groupe_referentiel_vigiechiro.sql"
     };
 
     private static final String DOSSIER = "/db/migration/";

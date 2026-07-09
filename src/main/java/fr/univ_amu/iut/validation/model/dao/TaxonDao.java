@@ -1,6 +1,7 @@
 package fr.univ_amu.iut.validation.model.dao;
 
 import fr.univ_amu.iut.commun.persistence.DaoGenerique;
+import fr.univ_amu.iut.commun.persistence.DataAccessException;
 import fr.univ_amu.iut.commun.persistence.RowMapper;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
 import fr.univ_amu.iut.validation.model.Taxon;
@@ -9,6 +10,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /// DAO de l'entité [Taxon] (table `taxon`).
 ///
@@ -67,6 +69,53 @@ public class TaxonDao extends DaoGenerique<Taxon, String> {
                 ps.addBatch();
             }
             ps.executeBatch();
+        }
+    }
+
+    /// Fusion **conservatrice** du référentiel officiel VigieChiro (#717, axe 2) dans la table `taxon`,
+    /// depuis une table `code -> nom latin` (issue de `GET /taxons/liste`). Pour chaque entrée :
+    /// - **taxon absent** : inséré, rattaché au groupe catch-all « Référentiel VigieChiro » (V16) ;
+    /// - **taxon présent au nom latin absent** (souche auto-créée à l'import) : le nom latin est complété.
+    ///
+    /// Ne réécrit **jamais** un nom latin ou vernaculaire déjà renseigné : le seed V05 reste la source de
+    /// vérité pour ce qu'il possède (les noms français, notamment, absents de l'API). Transaction unique
+    /// (deux lots atomiques), idempotente.
+    public void fusionnerReferentielOfficiel(Map<String, String> codeVersNomLatin) {
+        if (codeVersNomLatin.isEmpty()) {
+            return;
+        }
+        try (Connection cx = source.getConnection()) {
+            cx.setAutoCommit(false);
+            try {
+                // 1. Taxons officiels absents : insérés sous le groupe catch-all « Référentiel VigieChiro »
+                // (résolu par son nom, comme les souches « Hors référentiel »). Absent = laissé intact.
+                String insertion = "INSERT OR IGNORE INTO taxon (code, latin_name, vernacular_name_fr, group_id)"
+                        + " SELECT ?, ?, NULL, g.id FROM taxonomic_group g WHERE g.name = 'Référentiel VigieChiro'";
+                try (PreparedStatement ps = cx.prepareStatement(insertion)) {
+                    for (Map.Entry<String, String> entree : codeVersNomLatin.entrySet()) {
+                        ps.setString(1, entree.getKey());
+                        ps.setString(2, entree.getValue());
+                        ps.addBatch();
+                    }
+                    ps.executeBatch();
+                }
+                // 2. Taxons déjà présents mais sans nom latin (souches auto) : complétés depuis l'officiel.
+                try (PreparedStatement ps =
+                        cx.prepareStatement("UPDATE taxon SET latin_name = ? WHERE code = ? AND latin_name IS NULL")) {
+                    for (Map.Entry<String, String> entree : codeVersNomLatin.entrySet()) {
+                        ps.setString(1, entree.getValue());
+                        ps.setString(2, entree.getKey());
+                        ps.addBatch();
+                    }
+                    ps.executeBatch();
+                }
+                cx.commit();
+            } catch (SQLException echec) {
+                cx.rollback();
+                throw echec;
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Échec de la fusion du référentiel taxons officiel", e);
         }
     }
 

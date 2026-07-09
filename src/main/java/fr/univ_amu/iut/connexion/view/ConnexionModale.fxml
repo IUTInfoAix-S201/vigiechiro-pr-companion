@@ -8,28 +8,54 @@
 <?import javafx.scene.layout.VBox?>
 
 <!--
-  Modale « Connexion VigieChiro » (#727), ouverte depuis la carte d'accueil du même nom dans un Stage
-  modal applicatif. On colle le token obtenu sur le site (marque-page), l'app vérifie l'identité via
-  GET /moi et l'affiche ; « Se déconnecter » efface la connexion locale. Câblée au ConnexionViewModel
-  par ConnexionModaleController.
+  Modale « Connexion VigieChiro » (#727/#741), ouverte depuis la carte d'accueil du même nom dans un
+  Stage modal applicatif. Guide en trois étapes : ouvrir VigieChiro, installer le marque-page qui copie
+  le token, puis coller le token (vérifié via GET /moi). « Se déconnecter » efface la connexion locale.
+  Câblée au ConnexionViewModel par ConnexionModaleController.
 -->
 <VBox xmlns="http://javafx.com/javafx"
       xmlns:fx="http://javafx.com/fxml"
       fx:id="racine"
       fx:controller="fr.univ_amu.iut.connexion.view.ConnexionModaleController"
       stylesheets="@../../commun/view/palette.css, @../../commun/view/design.css"
-      prefWidth="540.0"
-      spacing="12.0">
+      prefWidth="560.0"
+      spacing="14.0">
 
   <Label text="Connexion VigieChiro" styleClass="titre-page"/>
-  <Label text="Collez le token obtenu sur le site VigieChiro (via le marque-page « Token VigieChiro »). Il relie l'application à votre compte pour le dépôt et la synchronisation."
+  <Label text="Reliez l'application à votre compte VigieChiro en trois étapes (aucun fichier à installer)."
          styleClass="section-sous" wrapText="true"/>
 
   <Label fx:id="labelIdentite" styleClass="bandeau-valeur"/>
 
+  <!-- Étape 1 : ouvrir la plateforme -->
   <VBox spacing="4.0">
-    <Label text="Token" styleClass="bandeau-label"/>
-    <TextField fx:id="champToken" promptText="collez votre token ici"/>
+    <Label text="1 · Ouvrir la plateforme" styleClass="bandeau-label"/>
+    <HBox spacing="10.0" alignment="CENTER_LEFT">
+      <Label text="Connectez-vous sur VigieChiro (GitHub ou Google)."
+             wrapText="true" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+      <Button text="Ouvrir VigieChiro" styleClass="action-secondaire" onAction="#ouvrirSite"/>
+    </HBox>
+  </VBox>
+
+  <!-- Étape 2 : installer le marque-page -->
+  <VBox spacing="4.0">
+    <Label text="2 · Installer le marque-page (une seule fois)" styleClass="bandeau-label"/>
+    <HBox spacing="10.0" alignment="CENTER_LEFT">
+      <Label text="Copiez le marque-page, créez un favori et collez-le comme adresse."
+             wrapText="true" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+      <Button text="Copier le marque-page" styleClass="action-secondaire" onAction="#copierMarquePage"/>
+    </HBox>
+  </VBox>
+
+  <!-- Étape 3 : coller le token -->
+  <VBox spacing="4.0">
+    <Label text="3 · Coller le token" styleClass="bandeau-label"/>
+    <Label text="Sur l'onglet VigieChiro connecté, cliquez le marque-page (il copie votre token), puis collez-le ici."
+           styleClass="section-sous" wrapText="true"/>
+    <HBox spacing="10.0" alignment="CENTER_LEFT">
+      <TextField fx:id="champToken" promptText="collez votre token ici" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+      <Button fx:id="boutonConnecter" text="Se connecter" styleClass="action-primaire" onAction="#connecter"/>
+    </HBox>
   </VBox>
 
   <Label fx:id="labelMessage" styleClass="message-erreur" wrapText="true"/>
@@ -39,7 +65,5 @@
             styleClass="action-secondaire" onAction="#deconnecter"/>
     <Region HBox.hgrow="ALWAYS"/>
     <Button text="Fermer" styleClass="action-secondaire" onAction="#fermer"/>
-    <Button fx:id="boutonConnecter" text="Se connecter"
-            styleClass="action-primaire" onAction="#connecter"/>
   </HBox>
 </VBox>

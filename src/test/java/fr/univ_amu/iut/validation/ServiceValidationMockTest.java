@@ -3,11 +3,14 @@ package fr.univ_amu.iut.validation;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import fr.univ_amu.iut.commun.api.DonneeVigieChiro;
+import fr.univ_amu.iut.commun.api.ObservationVigieChiro;
 import fr.univ_amu.iut.commun.model.CoordonneesPoint;
 import fr.univ_amu.iut.commun.model.HorlogeFigee;
 import fr.univ_amu.iut.commun.model.ModeValidation;
@@ -18,13 +21,16 @@ import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.persistence.UniteDeTravail;
 import fr.univ_amu.iut.passage.model.Passage;
 import fr.univ_amu.iut.passage.model.SequenceDEcoute;
+import fr.univ_amu.iut.passage.model.SessionDEnregistrement;
 import fr.univ_amu.iut.passage.model.dao.PassageDao;
 import fr.univ_amu.iut.passage.model.dao.SequenceDao;
 import fr.univ_amu.iut.passage.model.dao.SessionDao;
+import fr.univ_amu.iut.validation.model.BilanImport;
 import fr.univ_amu.iut.validation.model.ExportVuCsv;
 import fr.univ_amu.iut.validation.model.Observation;
 import fr.univ_amu.iut.validation.model.ParserCsvTadarida;
 import fr.univ_amu.iut.validation.model.PlageNuitPassage;
+import fr.univ_amu.iut.validation.model.ResultatsIdentification;
 import fr.univ_amu.iut.validation.model.ServiceValidation;
 import fr.univ_amu.iut.validation.model.StatutObservation;
 import fr.univ_amu.iut.validation.model.Taxon;
@@ -39,6 +45,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -73,6 +80,9 @@ class ServiceValidationMockTest {
 
     @Mock
     CoordonneesPoint coordonnees;
+
+    @Captor
+    ArgumentCaptor<List<Observation>> observationsCaptor;
 
     private ServiceValidation service() {
         return new ServiceValidation(
@@ -263,5 +273,59 @@ class ServiceValidationMockTest {
         when(passageDao.findById(1L)).thenReturn(Optional.empty());
 
         assertThat(service().plageNuitParDefaut(1L)).isEmpty();
+    }
+
+    @Test
+    @DisplayName("#719 : importerDepuisVigieChiro convertit les donnees et insère les observations rattachées")
+    void importer_depuis_vigiechiro() throws Exception {
+        Long idPassage = 42L;
+        Long idSession = 7L;
+        // Séquence audio déjà importée (nuit) : la donnée VigieChiro se rattache par nom de fichier.
+        SequenceDEcoute sequence = new SequenceDEcoute(
+                100L,
+                "Car130711-Z41_000.wav",
+                null,
+                null,
+                null,
+                null,
+                "/x/Car130711-Z41_000.wav",
+                true,
+                idSession,
+                null);
+        when(sessionDao.trouverParPassage(idPassage))
+                .thenReturn(Optional.of(new SessionDEnregistrement(idSession, "/x", null, null, idPassage)));
+        when(sequenceDao.findBySession(idSession)).thenReturn(List.of(sequence));
+        when(taxonDao.findAll()).thenReturn(List.of()); // référentiel vide -> le taxon Tadarida est auto-créé
+        when(resultatsDao.insert(any(), any()))
+                .thenReturn(new ResultatsIdentification(9L, "vigiechiro", "VigieChiro", "2026-05-31", idPassage));
+        // Exécute réellement le bloc transactionnel (connexion inutile : les DAO sont mockés).
+        doAnswer(invocation -> {
+                    invocation
+                            .getArgument(
+                                    0, fr.univ_amu.iut.commun.persistence.UniteDeTravail.TravailTransactionnel.class)
+                            .executer(null);
+                    return null;
+                })
+                .when(uniteDeTravail)
+                .executer(any());
+
+        // Titre sans extension (comme l'API) ; le rattachement compare sans l'extension .wav.
+        List<DonneeVigieChiro> donnees = List.of(new DonneeVigieChiro(
+                "Car130711-Z41_000",
+                List.of(new ObservationVigieChiro("Pipkuh", 0.99, 44.0, 0.8, 4.7, "noise", null, null))));
+
+        BilanImport bilan = service().importerDepuisVigieChiro(idPassage, donnees, false);
+
+        assertThat(bilan.importees()).isEqualTo(1);
+        assertThat(bilan.taxonsHorsReferentiel()).isEqualTo(1); // Pipkuh auto-créé (référentiel vide)
+        verify(taxonDao).enregistrerHorsReferentiel(any(), any());
+        verify(observationDao).insererTout(any(), observationsCaptor.capture());
+        assertThat(observationsCaptor.getValue()).singleElement().satisfies(obs -> {
+            assertThat(obs.idSequence()).isEqualTo(100L);
+            assertThat(obs.taxonTadarida()).isEqualTo("Pipkuh");
+            assertThat(obs.frequenceMedianeKHz()).isEqualTo(44);
+            assertThat(obs.idResultats()).isEqualTo(9L);
+            assertThat(obs.modeValidation()).isEqualTo(ModeValidation.NON_VALIDE);
+        });
     }
 }

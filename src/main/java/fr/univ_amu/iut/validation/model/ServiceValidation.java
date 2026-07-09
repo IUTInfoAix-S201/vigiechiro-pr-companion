@@ -1,5 +1,6 @@
 package fr.univ_amu.iut.validation.model;
 
+import fr.univ_amu.iut.commun.api.DonneeVigieChiro;
 import fr.univ_amu.iut.commun.model.CompteurValidations;
 import fr.univ_amu.iut.commun.model.Horloge;
 import fr.univ_amu.iut.commun.model.ModeValidation;
@@ -17,7 +18,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -77,6 +77,7 @@ public class ServiceValidation implements CompteurValidations {
     private final UniteDeTravail uniteDeTravail;
     private final Horloge horloge;
     private final PlageNuitPassage plageNuitPassage;
+    private final PreservationValidations preservation;
 
     public ServiceValidation(
             ResultatsIdentificationDao resultatsDao,
@@ -99,6 +100,7 @@ public class ServiceValidation implements CompteurValidations {
         this.uniteDeTravail = Objects.requireNonNull(uniteDeTravail, "uniteDeTravail");
         this.horloge = Objects.requireNonNull(horloge, "horloge");
         this.plageNuitPassage = Objects.requireNonNull(plageNuitPassage, "plageNuitPassage");
+        this.preservation = new PreservationValidations(resultatsDao, observationDao);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -207,10 +209,36 @@ public class ServiceValidation implements CompteurValidations {
     }
 
     private BilanImport importerInterne(Long idPassage, Path cheminCsv, boolean remplacer) {
-        Objects.requireNonNull(idPassage, PARAM_ID_PASSAGE);
         Objects.requireNonNull(cheminCsv, "cheminCsv");
-
         ResultatParseTadarida parse = parser.parser(cheminCsv);
+        return importerLignes(
+                idPassage, parse.lignes(), cheminCsv.toString(), parse.format().libelle(), remplacer);
+    }
+
+    /// Importe les résultats **VigieChiro** d'une participation (#719, axe 4.2) sur un passage dont la
+    /// nuit (audio) est déjà importée : convertit les [DonneeVigieChiro] en lignes d'observation et suit
+    /// le même cœur d'import que le CSV Tadarida ([#importerLignes]) — rattachement aux séquences par nom
+    /// de fichier, résolution des taxons, préservation des validations observateur.
+    ///
+    /// @param idPassage passage cible (sa nuit doit avoir été importée : séquences présentes)
+    /// @param donnees résultats de la participation (`GET /participations/#id/donnees`)
+    /// @param remplacer remplace le jeu existant (en préservant les validations observateur) si `true`
+    public BilanImport importerDepuisVigieChiro(Long idPassage, List<DonneeVigieChiro> donnees, boolean remplacer) {
+        Objects.requireNonNull(donnees, "donnees");
+        return importerLignes(
+                idPassage, ConversionDonneesVigieChiro.enLignes(donnees), "vigiechiro", "VigieChiro", remplacer);
+    }
+
+    /// **Cœur d'import** commun à toutes les sources d'observations (CSV Tadarida ou résultats
+    /// VigieChiro) : rattache chaque ligne à la séquence d'écoute de **même nom** (les lignes sans
+    /// séquence en base ou sans taxon Tadarida sont ignorées), auto-crée les taxons hors référentiel, et
+    /// écrit le jeu de résultats + les observations dans **une seule transaction** — en préservant les
+    /// validations observateur d'un jeu précédent lors d'un remplacement. `source` et `format` tracent la
+    /// provenance dans le [ResultatsIdentification].
+    private BilanImport importerLignes(
+            Long idPassage, List<LigneObservation> lignes, String source, String format, boolean remplacer) {
+        Objects.requireNonNull(idPassage, PARAM_ID_PASSAGE);
+
         SessionDEnregistrement session = sessionDao
                 .trouverParPassage(idPassage)
                 .orElseThrow(() -> new RegleMetierException("Aucune session d'enregistrement pour le passage "
@@ -221,21 +249,21 @@ public class ServiceValidation implements CompteurValidations {
         Set<String> taxonsConnus = chargerCodesTaxons();
 
         // Lignes **importables** : séquence audio en base ET taxon Tadarida renseigné (`taxon_tadarida`
-        // est NOT NULL en base ; Tadarida en assigne toujours un, une ligne sans taxon est un CSV invalide).
+        // est NOT NULL en base ; Tadarida en assigne toujours un, une ligne sans taxon est invalide).
         // Tout le reste est ignoré (audio non fourni — cas courant d'un échantillon — ou ligne sans taxon)
         // plutôt que de faire échouer l'import en bloc ou de laisser planter l'insertion.
-        List<LigneObservation> retenues = parse.lignes().stream()
+        List<LigneObservation> retenues = lignes.stream()
                 .filter(ligne -> sequenceParNom.containsKey(cleSequence(ligne.nomSequence())))
                 .filter(ligne ->
                         ligne.taxonTadarida() != null && !ligne.taxonTadarida().isBlank())
                 .toList();
-        int ignorees = parse.lignes().size() - retenues.size();
+        int ignorees = lignes.size() - retenues.size();
         if (retenues.isEmpty()) {
             throw new RegleMetierException("Séquence d'écoute introuvable : aucune des "
-                    + parse.lignes().size()
-                    + " observations du CSV n'est importable (séquence audio absente, ou ligne sans taxon)."
+                    + lignes.size()
+                    + " observations n'est importable (séquence audio absente, ou ligne sans taxon)."
                     + " Importez d'abord la nuit de ce passage (carré, année, n° de passage et point doivent"
-                    + " correspondre au nom du fichier Tadarida).");
+                    + " correspondre au nom du fichier).");
         }
 
         // Tolérance taxons : auto-souches pour les codes Tadarida hors référentiel des lignes retenues.
@@ -245,21 +273,18 @@ public class ServiceValidation implements CompteurValidations {
 
         // Réimport : on mémorise les **validations observateur** de l'ancien jeu (taxon corrigé, marquage
         // référence, commentaire) AVANT sa suppression, pour les réattacher aux nouvelles observations de
-        // même (séquence, taxon Tadarida, début, fin). Sans cela, réimporter un CSV corrigé effacerait tout
-        // le travail de validation déjà saisi. Vide hors réimport.
-        Map<CleObservation, Observation> validationsAnciennes = remplacer ? validationsExistantes(idPassage) : Map.of();
+        // même (séquence, taxon Tadarida, début, fin). Sans cela, réimporter effacerait tout le travail de
+        // validation déjà saisi. Vide hors réimport.
+        PreservationValidations.ValidationsAnciennes validationsAnciennes =
+                remplacer ? preservation.existantes(idPassage) : PreservationValidations.ValidationsAnciennes.vide();
 
         ResultatsIdentification aCreer = new ResultatsIdentification(
-                null,
-                cheminCsv.toString(),
-                parse.format().libelle(),
-                horloge.maintenant().toString(),
-                idPassage);
+                null, source, format, horloge.maintenant().toString(), idPassage);
 
         // Remplacement (réimport) + souches + jeu de résultats + observations dans une **seule
         // transaction** (atomicité, FK). La suppression de l'ancien jeu n'a lieu qu'ici, après que le
-        // parse et la validation ont réussi : un nouveau CSV invalide a déjà levé plus haut, sans
-        // rien supprimer. En cas d'échec d'écriture, le rollback préserve l'ancien jeu.
+        // parse et la validation ont réussi : une source invalide a déjà levé plus haut, sans rien
+        // supprimer. En cas d'échec d'écriture, le rollback préserve l'ancien jeu.
         ResultatsIdentification[] insere = {null};
         int[] preservees = {0};
         uniteDeTravail.executer(connexion -> {
@@ -270,27 +295,11 @@ public class ServiceValidation implements CompteurValidations {
             insere[0] = resultatsDao.insert(connexion, aCreer);
             List<Observation> neuves =
                     construireObservations(retenues, sequenceParNom, taxonsApresImport, insere[0].id());
-            preservees[0] = reappliquerValidations(neuves, validationsAnciennes);
+            preservees[0] = preservation.reappliquer(neuves, validationsAnciennes);
             observationDao.insererTout(connexion, neuves);
         });
-        int perdues = validationsAnciennes.size() - preservees[0];
+        int perdues = validationsAnciennes.taille() - preservees[0];
         return new BilanImport(insere[0], retenues.size(), ignorees, taxonsAutoCrees.size(), preservees[0], perdues);
-    }
-
-    /// Clé d'appariement d'une observation entre deux imports : même séquence, même taxon Tadarida et même
-    /// fenêtre temporelle. **Exacte** (aucune tolérance) : Tadarida est déterministe pour un segment donné,
-    /// donc réimporter le même cri reproduit ces quatre valeurs à l'identique.
-    private record CleObservation(Long idSequence, String taxonTadarida, Double debutS, Double finS) {}
-
-    /// Observations de l'ancien jeu du passage portant une **validation observateur** (taxon corrigé,
-    /// marquage référence ou commentaire), indexées par [CleObservation]. Vide si le passage n'a pas encore
-    /// de jeu. Lu **avant** la transaction de remplacement (aucun écrivain concurrent sur ce poste).
-    private Map<CleObservation, Observation> validationsExistantes(Long idPassage) {
-        Map<CleObservation, Observation> parCle = new LinkedHashMap<>();
-        resultatsDao.findByPassage(idPassage).map(r -> observationDao.findByResults(r.id())).orElse(List.of()).stream()
-                .filter(ServiceValidation::estValidee)
-                .forEach(obs -> parCle.putIfAbsent(cleDe(obs), obs));
-        return parCle;
     }
 
     /// Nombre d'observations **validées** du passage (cf. [#estValidee(Observation)]) : le travail de
@@ -300,66 +309,7 @@ public class ServiceValidation implements CompteurValidations {
     @Override
     public int menaceesPourPassage(Long idPassage) {
         Objects.requireNonNull(idPassage, PARAM_ID_PASSAGE);
-        return (int) resultatsDao
-                .findByPassage(idPassage)
-                .map(resultats -> observationDao.findByResults(resultats.id()))
-                .orElseGet(List::of)
-                .stream()
-                .filter(ServiceValidation::estValidee)
-                .count();
-    }
-
-    /// Une observation « validée » par l'observateur : elle porte un taxon corrigé, un marquage référence
-    /// ou un commentaire. Ce sont les décisions humaines à préserver au fil des réimports (les champs
-    /// purement Tadarida, eux, sont recalculés à chaque import).
-    private static boolean estValidee(Observation observation) {
-        return observation.reference() || observation.commentaire() != null || observation.taxonObservateur() != null;
-    }
-
-    private static CleObservation cleDe(Observation observation) {
-        return new CleObservation(
-                observation.idSequence(), observation.taxonTadarida(), observation.debutS(), observation.finS());
-    }
-
-    /// Réattache **en place** les validations observateur mémorisées aux nouvelles observations de même
-    /// [CleObservation] (les champs Tadarida et l'`idResultats` du nouveau jeu restent ceux de la nouvelle
-    /// observation). Renvoie le nombre de validations distinctes effectivement réappliquées ; celles dont la
-    /// clé a disparu du nouveau CSV sont perdues (comptées par différence).
-    private static int reappliquerValidations(List<Observation> neuves, Map<CleObservation, Observation> anciennes) {
-        if (anciennes.isEmpty()) {
-            return 0;
-        }
-        Set<CleObservation> reattachees = new HashSet<>();
-        for (int i = 0; i < neuves.size(); i++) {
-            CleObservation cle = cleDe(neuves.get(i));
-            Observation ancienne = anciennes.get(cle);
-            if (ancienne != null) {
-                neuves.set(i, avecValidation(neuves.get(i), ancienne));
-                reattachees.add(cle);
-            }
-        }
-        return reattachees.size();
-    }
-
-    /// Copie `neuve` en y réinjectant les cinq champs de validation observateur de `ancienne` : taxon
-    /// observateur, probabilité observateur, commentaire, référence et mode de validation.
-    private static Observation avecValidation(Observation neuve, Observation ancienne) {
-        return new Observation(
-                neuve.id(),
-                neuve.idSequence(),
-                neuve.debutS(),
-                neuve.finS(),
-                neuve.frequenceMedianeKHz(),
-                neuve.taxonTadarida(),
-                neuve.probTadarida(),
-                neuve.taxonAutreTadarida(),
-                ancienne.taxonObservateur(),
-                ancienne.probObservateur(),
-                ancienne.commentaire(),
-                ancienne.reference(),
-                ancienne.modeValidation(),
-                neuve.idResultats(),
-                ancienne.douteux());
+        return (int) preservation.compterValidees(idPassage);
     }
 
     /// Codes Tadarida hors référentiel parmi `lignes` : taxon principal (stocké tel quel → FK obligatoire)

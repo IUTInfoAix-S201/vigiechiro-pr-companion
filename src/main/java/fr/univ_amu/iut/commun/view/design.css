@@ -324,3 +324,32 @@
     -fx-background-color: transparent;
     -fx-text-fill: -badge-neutre-texte;
 }
+
+/*
+ * Badges sémantiques génériques : pour les statuts dont l'enum ne vit pas dans le socle (ex. le statut
+ * d'observation d'analyse). Une feature mappe son statut vers l'une de ces familles.
+ */
+.badge-succes {
+    -fx-background-color: -badge-succes-fond;
+    -fx-text-fill: -badge-succes-texte;
+}
+
+.badge-avertissement {
+    -fx-background-color: -badge-avertissement-fond;
+    -fx-text-fill: -badge-avertissement-texte;
+}
+
+.badge-danger {
+    -fx-background-color: -badge-danger-fond;
+    -fx-text-fill: -badge-danger-texte;
+}
+
+.badge-neutre {
+    -fx-background-color: -badge-neutre-fond;
+    -fx-text-fill: -badge-neutre-texte;
+}
+
+.badge-info {
+    -fx-background-color: -badge-info-fond;
+    -fx-text-fill: -badge-info-texte;
+}

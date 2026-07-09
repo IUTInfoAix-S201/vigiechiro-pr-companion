@@ -21,6 +21,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.control.MenuButton;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
@@ -57,14 +59,13 @@ public class MainController {
     private final RechercheGlobale recherche;
     private final OuvrirSite ouvrirSite;
     private final OuvrirPassage ouvrirPassage;
+    private final OuvrirConnexion ouvrirConnexion;
     private final ServiceSauvegarde serviceSauvegarde;
     private final ServicePurgeOriginaux servicePurge;
 
-    /// Actions de sauvegarde/restauration de la base (menu « ☰ »), initialisées dans `initialize()`.
-    private ActionsSauvegarde actionsSauvegarde;
-
-    /// Action de purge globale des originaux (menu « ☰ »), initialisée dans `initialize()`.
-    private ActionsPurge actionsPurge;
+    /// Câblage du menu « ☰ » (sauvegarde/restauration, purge, connexion VigieChiro), initialisé dans
+    /// `initialize()` quand les `@FXML` du menu sont disponibles.
+    private MenuOutils menuOutilsActions;
 
     @FXML
     private BorderPane racine;
@@ -104,6 +105,14 @@ public class MainController {
     @FXML
     private TextField champRecherche;
 
+    /// Menu ☰ (outils) : son libellé de connexion est rafraîchi à chaque ouverture.
+    @FXML
+    private MenuButton menuOutils;
+
+    /// Entrée « Connexion VigieChiro » du menu ☰ (#741) : texte piloté par [OuvrirConnexion].
+    @FXML
+    private MenuItem itemConnexion;
+
     @FXML
     private VBox panneauResultats;
 
@@ -127,6 +136,7 @@ public class MainController {
             RechercheGlobale recherche,
             OuvrirSite ouvrirSite,
             OuvrirPassage ouvrirPassage,
+            OuvrirConnexion ouvrirConnexion,
             ServiceSauvegarde serviceSauvegarde,
             ServicePurgeOriginaux servicePurge) {
         this.navigation = navigation;
@@ -136,6 +146,7 @@ public class MainController {
         this.recherche = recherche;
         this.ouvrirSite = ouvrirSite;
         this.ouvrirPassage = ouvrirPassage;
+        this.ouvrirConnexion = ouvrirConnexion;
         this.serviceSauvegarde = serviceSauvegarde;
         this.servicePurge = servicePurge;
     }
@@ -149,12 +160,16 @@ public class MainController {
         // les libellés suivent NavigationViewModel.zonesStatut et la barre se masque quand tout est vide.
         BarreStatut.lier(barreStatut, piedGauche, piedCentre, piedDroite, navigation);
 
-        // Menu « ☰ » : sauvegarde/restauration de la base (#148). Après une restauration réussie, on
-        // revient à l'accueil pour relire la base restaurée (les écrans ouverts liraient un état périmé).
-        actionsSauvegarde = new ActionsSauvegarde(serviceSauvegarde, this::fenetre, navigateur::afficherAccueil);
-        // Menu « ☰ » : purge globale des originaux (bruts/) pour récupérer de l'espace disque. Après une
-        // purge, retour à l'accueil pour rafraîchir les volumes affichés.
-        actionsPurge = new ActionsPurge(servicePurge, this::fenetre, navigateur::afficherAccueil);
+        // Menu « ☰ » (outils) : sauvegarde/restauration de la base (#148), purge des originaux, et
+        // connexion VigieChiro (#741). Câblage regroupé dans MenuOutils pour garder ce controller compact.
+        menuOutilsActions = new MenuOutils(
+                menuOutils,
+                itemConnexion,
+                serviceSauvegarde,
+                servicePurge,
+                ouvrirConnexion,
+                this::fenetre,
+                navigateur::afficherAccueil);
 
         // ← Retour (historique) : grisé pendant une opération longue (import en cours, #54) qu'on ne
         // doit pas quitter. Sa visibilité (présent hors accueil) est gérée par rafraichirNavigation().
@@ -228,22 +243,28 @@ public class MainController {
         });
     }
 
-    /// Menu « ☰ » → Sauvegarder la base : délègue à [ActionsSauvegarde] (#148).
+    /// Menu « ☰ » → Sauvegarder la base : délègue à [MenuOutils] (#148).
     @FXML
     private void sauvegarderBase() {
-        actionsSauvegarde.sauvegarder();
+        menuOutilsActions.sauvegarder();
     }
 
-    /// Menu « ☰ » → Restaurer une sauvegarde : délègue à [ActionsSauvegarde] (#148).
+    /// Menu « ☰ » → Restaurer une sauvegarde : délègue à [MenuOutils] (#148).
     @FXML
     private void restaurerBase() {
-        actionsSauvegarde.restaurer();
+        menuOutilsActions.restaurer();
     }
 
-    /// Menu « ☰ » → Purger les originaux importés : délègue à [ActionsPurge].
+    /// Menu « ☰ » → Purger les originaux importés : délègue à [MenuOutils].
     @FXML
     private void purgerOriginaux() {
-        actionsPurge.purger();
+        menuOutilsActions.purger();
+    }
+
+    /// Menu « ☰ » → Connexion VigieChiro : ouvre la modale (contrat socle [OuvrirConnexion], #741).
+    @FXML
+    private void ouvrirModaleConnexion() {
+        menuOutilsActions.ouvrirConnexion();
     }
 
     /// Fenêtre propriétaire des sélecteurs/alertes (ou `null` tant que la scène n'est pas attachée).

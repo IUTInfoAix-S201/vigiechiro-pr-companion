@@ -43,11 +43,19 @@
   <HBox spacing="14.0" VBox.vgrow="ALWAYS">
     <VBox spacing="4.0" HBox.hgrow="ALWAYS">
       <Label text="⚠ Anomalies" styleClass="section-titre"/>
-      <ListView fx:id="listeAnomalies" VBox.vgrow="ALWAYS"/>
+      <ListView fx:id="listeAnomalies" VBox.vgrow="ALWAYS">
+        <placeholder>
+          <Label text="Aucune anomalie détectée." wrapText="true"/>
+        </placeholder>
+      </ListView>
     </VBox>
     <VBox spacing="4.0" HBox.hgrow="ALWAYS">
       <Label text="📋 Évènements du journal" styleClass="section-titre"/>
-      <ListView fx:id="listeEvenements" VBox.vgrow="ALWAYS"/>
+      <ListView fx:id="listeEvenements" VBox.vgrow="ALWAYS">
+        <placeholder>
+          <Label text="Aucun évènement dans le journal du capteur." wrapText="true"/>
+        </placeholder>
+      </ListView>
     </VBox>
   </HBox>
 

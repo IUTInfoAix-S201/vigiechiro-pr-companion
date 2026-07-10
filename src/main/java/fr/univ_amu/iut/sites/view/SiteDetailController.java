@@ -113,6 +113,11 @@ public class SiteDetailController implements RafraichirAuRetour, ResumeStatut {
     @FXML
     private FlowPane cartesPoints;
 
+    /// Repli d'état vide des points d'écoute (#791) : affiché quand [#cartesPoints] ne contient aucune
+    /// carte (un FlowPane n'a pas de placeholder). Visibilité liée à la liste des cartes dans initialize.
+    @FXML
+    private Label lblAucunPoint;
+
     @FXML
     private TableView<LignePassage> tablePassages;
 
@@ -176,6 +181,11 @@ public class SiteDetailController implements RafraichirAuRetour, ResumeStatut {
     private void initialize() {
         // Densité/habillage de table uniformes (#690) + table navigable au double-clic (#792).
         TableDonnees.uniformiserNavigable(tablePassages);
+        // Repli d'état vide des points d'écoute (#791) : le label prend la place du FlowPane (sans
+        // placeholder) tant qu'aucune carte de point n'y est ajoutée. La liaison suit la liste vivante.
+        var aucunPoint = Bindings.isEmpty(cartesPoints.getChildren());
+        lblAucunPoint.visibleProperty().bind(aucunPoint);
+        lblAucunPoint.managedProperty().bind(aucunPoint);
         // Titre (nom du site) et sous-titre (commune/protocole) déportés en barre de statut (#693) :
         // contexte à gauche, résumé au centre.
         zonesStatut.bind(Bindings.createObjectBinding(

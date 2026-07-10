@@ -29,6 +29,10 @@ import fr.univ_amu.iut.sites.model.dao.PointDao;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -97,8 +101,10 @@ class DepotVigieChiroTest {
         verify(client).creerParticipation(eq(OBJECTID_SITE), participationCaptor.capture());
         ParticipationADeposer envoyee = participationCaptor.getValue();
         assertThat(envoyee.point()).isEqualTo("Z41");
-        assertThat(envoyee.dateDebut()).isEqualTo("2026-07-03T21:00:00");
-        assertThat(envoyee.dateFin()).isEqualTo("2026-07-04T05:00:00"); // fin < début → lendemain
+        // Dates au format **RFC 1123 en UTC** (exigé par Eve, pas l'ISO 8601). On revérifie l'instant en
+        // reconvertissant vers le fuseau local : le test reste déterministe quel que soit le fuseau machine.
+        assertThat(instantLocal(envoyee.dateDebut())).isEqualTo(LocalDateTime.of(2026, 7, 3, 21, 0));
+        assertThat(instantLocal(envoyee.dateFin())).isEqualTo(LocalDateTime.of(2026, 7, 4, 5, 0)); // franchit minuit
         assertThat(envoyee.meteo().vent()).isEqualTo("FAIBLE");
         assertThat(envoyee.meteo().couverture()).isEqualTo("25-50");
         assertThat(envoyee.configuration())
@@ -184,6 +190,14 @@ class DepotVigieChiroTest {
 
     private static PointDEcoute point() {
         return new PointDEcoute(7L, "Z41", 43.5145, 5.4513, null, 7L);
+    }
+
+    /// Reconvertit une date RFC 1123 (UTC) envoyée à VigieChiro vers l'heure locale, pour vérifier l'instant
+    /// sans dépendre du fuseau de la machine de test.
+    private static LocalDateTime instantLocal(String rfc1123) {
+        return ZonedDateTime.parse(rfc1123, DateTimeFormatter.RFC_1123_DATE_TIME)
+                .withZoneSameInstant(ZoneId.systemDefault())
+                .toLocalDateTime();
     }
 
     private static Path fichier(Path dossier, String nom) throws IOException {

@@ -455,3 +455,15 @@
     -fx-font-weight: bold;
     -fx-text-fill: -couleur-texte;
 }
+
+/*
+ * Champ de formulaire en erreur (#790) : bordure rouge posée réactivement par
+ * ValidationFormulaire.marquerInvalide quand une saisie est incorrecte. Déplacée de sites.css vers cette
+ * feuille partagée car la validation « en direct » est un patron transverse (modales point/site,
+ * rattachement…).
+ */
+.champ-invalide {
+    -fx-border-color: #a93226;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 3;
+}

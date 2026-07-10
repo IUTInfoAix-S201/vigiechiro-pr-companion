@@ -142,6 +142,27 @@ class ServiceLotTest {
     }
 
     @Test
+    @DisplayName("#142 : sequencesADeposer renvoie les chemins des séquences transformées du passage")
+    void sequences_a_deposer_liste_les_transformes() {
+        Passage passage = creerPassage(Verdict.OK);
+        creerSessionCoherente(passage.id());
+
+        List<Path> sequences = service.sequencesADeposer(passage.id());
+
+        assertThat(sequences)
+                .hasSize(2)
+                .allSatisfy(chemin -> assertThat(chemin.toString()).startsWith("transformes/"));
+    }
+
+    @Test
+    @DisplayName("#142 : sequencesADeposer sur un passage sans session → liste vide")
+    void sequences_a_deposer_sans_session_est_vide() {
+        Passage passage = creerPassage(Verdict.OK);
+
+        assertThat(service.sequencesADeposer(passage.id())).isEmpty();
+    }
+
+    @Test
     @DisplayName("consulterLot reflète statut/dossier/séquences/volume sans transitionner le passage")
     void consulter_lot_reflete_l_etat() {
         Passage passage = creerPassage(Verdict.OK);

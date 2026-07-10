@@ -127,6 +127,29 @@ final class ReponsesVigieChiro {
         }
     }
 
+    /// Identifiant du document **créé** par une écriture Eve (`POST` renvoyant le document), ou vide si le
+    /// corps est illisible ou sans `_id`. Sert à récupérer l'id d'une participation créée (#142).
+    static Optional<String> idCree(String corps) {
+        try {
+            return Optional.ofNullable(texte(JsonParser.parseString(corps).getAsJsonObject(), CLE_ID));
+        } catch (RuntimeException illisible) {
+            return Optional.empty();
+        }
+    }
+
+    /// Fichier signé depuis `POST /fichiers` (#142) : `_id` + `s3_signed_url` (URL S3 pré-signée pour le
+    /// `PUT`). Vide si l'un des deux manque ou si le corps est illisible.
+    static Optional<FichierSigne> fichierSigne(String corps) {
+        try {
+            JsonObject objet = JsonParser.parseString(corps).getAsJsonObject();
+            String id = texte(objet, CLE_ID);
+            String url = texte(objet, "s3_signed_url");
+            return id != null && url != null ? Optional.of(new FichierSigne(id, url)) : Optional.empty();
+        } catch (RuntimeException illisible) {
+            return Optional.empty();
+        }
+    }
+
     /// Éléments d'une réponse de liste Eve : le tableau `_items` (réponses paginées) ou le corps
     /// lui-même s'il est déjà un tableau JSON. Corps illisible / forme inattendue → tableau vide.
     /// Package-visible : partagé par les autres lecteurs du paquet (ex. [DonneesVigieChiro]).

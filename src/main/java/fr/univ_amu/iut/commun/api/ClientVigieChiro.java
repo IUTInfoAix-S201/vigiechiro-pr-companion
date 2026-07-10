@@ -28,6 +28,10 @@ public final class ClientVigieChiro {
 
     private static final String URL_DEFAUT = "https://vigiechiro.herokuapp.com/api/v1";
     private static final Duration DELAI = Duration.ofSeconds(10);
+    /// Délai d'un **téléversement** S3 (envoi d'octets), plus long que les appels JSON courts.
+    private static final Duration DELAI_UPLOAD = Duration.ofSeconds(120);
+    /// Type de média JSON des échanges avec le backend Eve (`Accept` et `Content-Type`).
+    private static final String TYPE_JSON = "application/json";
     /// Garde-fou de pagination (`GET …/donnees`) : une participation a des milliers de fichiers, jamais
     /// des centaines de milliers ; on plafonne le nombre de pages pour éviter toute boucle.
     private static final int PAGES_MAX = 500;
@@ -92,6 +96,80 @@ public final class ClientVigieChiro {
         return tout;
     }
 
+    // ---------------------------------------------------------------------------------------------
+    // Écritures (dépôt d'une nuit, #142) : création de participation + upload de fichiers vers S3
+    // ---------------------------------------------------------------------------------------------
+
+    /// Crée une **participation** sur un site (`POST /sites/#id/participations`, #142) : renvoie l'`_id` de
+    /// la participation créée, ou vide si non connecté / refus / réseau. Prérequis métier : le site doit
+    /// être **verrouillé** côté VigieChiro (l'observateur y est rattaché).
+    public Optional<String> creerParticipation(String siteId, ParticipationADeposer participation) {
+        return post("/sites/" + siteId + "/participations", RequetesVigieChiro.participation(participation))
+                .flatMap(ReponsesVigieChiro::idCree);
+    }
+
+    /// Déclare un **fichier** à téléverser (`POST /fichiers`, étape 1/3) : renvoie son `_id` et l'URL S3
+    /// pré-signée ([FichierSigne]), ou vide. Le mime n'est pas transmis (déduit de l'extension du titre) ;
+    /// le titre doit respecter la convention de nommage VigieChiro (`Car…-Pass…`).
+    public Optional<FichierSigne> creerFichier(String titre) {
+        return post("/fichiers", RequetesVigieChiro.fichier(titre)).flatMap(ReponsesVigieChiro::fichierSigne);
+    }
+
+    /// **PUT** des octets vers l'**URL S3 pré-signée** (étape 2/3) : hors API VigieChiro (aucun en-tête
+    /// d'auth, l'URL est déjà signée). Le `Content-Type` doit être le **mime attendu par la signature**
+    /// (sinon S3 répond `SignatureDoesNotMatch`). `true` si 2xx, `false` sinon (dégradation propre).
+    public boolean televerserVersS3(String urlSignee, byte[] octets, String mime) {
+        try {
+            HttpRequest requete = HttpRequest.newBuilder(URI.create(urlSignee))
+                    .timeout(DELAI_UPLOAD)
+                    .header("Content-Type", mime)
+                    .PUT(HttpRequest.BodyPublishers.ofByteArray(octets))
+                    .build();
+            HttpResponse<Void> reponse = client.send(requete, HttpResponse.BodyHandlers.discarding());
+            return estSucces(reponse.statusCode());
+        } catch (InterruptedException interrompu) {
+            Thread.currentThread().interrupt();
+            return false;
+        } catch (RuntimeException | IOException indisponible) {
+            return false;
+        }
+    }
+
+    /// Finalise un fichier téléversé (`POST /fichiers/#id`, étape 3/3) : `true` si accepté, `false` sinon.
+    public boolean finaliserFichier(String fichierId) {
+        return post("/fichiers/" + fichierId, RequetesVigieChiro.finalisation()).isPresent();
+    }
+
+    /// **POST authentifié** d'un corps JSON sur `chemin` : renvoie le corps de la réponse si 2xx, vide
+    /// sinon (pas de token, refus, autre statut, réseau indisponible). Pendant en écriture de [#get].
+    Optional<String> post(String chemin, String corpsJson) {
+        Optional<String> entete = enteteAuthorization();
+        if (entete.isEmpty()) {
+            return Optional.empty();
+        }
+        try {
+            HttpRequest requete = HttpRequest.newBuilder(URI.create(baseUrl + chemin))
+                    .timeout(DELAI)
+                    .header("Authorization", entete.get())
+                    .header("Accept", TYPE_JSON)
+                    .header("Content-Type", TYPE_JSON)
+                    .POST(HttpRequest.BodyPublishers.ofString(corpsJson, StandardCharsets.UTF_8))
+                    .build();
+            HttpResponse<String> reponse = client.send(requete, HttpResponse.BodyHandlers.ofString());
+            return estSucces(reponse.statusCode()) ? Optional.of(reponse.body()) : Optional.empty();
+        } catch (InterruptedException interrompu) {
+            Thread.currentThread().interrupt();
+            return Optional.empty();
+        } catch (RuntimeException | IOException indisponible) {
+            return Optional.empty();
+        }
+    }
+
+    /// Statut HTTP de **succès** (2xx) : Eve renvoie `200` (finalisation) ou `201` (création), S3 `200`.
+    private static boolean estSucces(int statut) {
+        return statut >= 200 && statut < 300;
+    }
+
     /// **GET authentifié** sur `chemin` (relatif à la base) : renvoie le corps de la réponse si `200`,
     /// vide dans tous les autres cas (pas de token, `401`, autre non-`200`, réseau indisponible).
     Optional<String> get(String chemin) {
@@ -103,7 +181,7 @@ public final class ClientVigieChiro {
             HttpRequest requete = HttpRequest.newBuilder(URI.create(baseUrl + chemin))
                     .timeout(DELAI)
                     .header("Authorization", entete.get())
-                    .header("Accept", "application/json")
+                    .header("Accept", TYPE_JSON)
                     .GET()
                     .build();
             HttpResponse<String> reponse = client.send(requete, HttpResponse.BodyHandlers.ofString());

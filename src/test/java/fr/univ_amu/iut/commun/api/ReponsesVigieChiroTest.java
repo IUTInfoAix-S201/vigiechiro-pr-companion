@@ -101,6 +101,26 @@ class ReponsesVigieChiroTest {
     }
 
     @Test
+    @DisplayName("idCree : _id d'un document créé (POST participation) ; illisible ou sans _id → vide")
+    void id_cree() {
+        assertThat(ReponsesVigieChiro.idCree("{\"_id\":\"6a49\",\"_status\":\"OK\"}"))
+                .contains("6a49");
+        assertThat(ReponsesVigieChiro.idCree("{\"_status\":\"OK\"}")).isEmpty();
+        assertThat(ReponsesVigieChiro.idCree("pas du json")).isEmpty();
+    }
+
+    @Test
+    @DisplayName("fichierSigne : _id + s3_signed_url (POST /fichiers) ; l'un manque → vide")
+    void fichier_signe() {
+        String corps = "{\"_id\":\"f1\",\"s3_signed_url\":\"https://s3.amazonaws.com/bucket/f1?sig=abc\"}";
+
+        assertThat(ReponsesVigieChiro.fichierSigne(corps))
+                .contains(new FichierSigne("f1", "https://s3.amazonaws.com/bucket/f1?sig=abc"));
+        assertThat(ReponsesVigieChiro.fichierSigne("{\"_id\":\"f1\"}")).isEmpty(); // pas d'URL
+        assertThat(ReponsesVigieChiro.fichierSigne("nope")).isEmpty();
+    }
+
+    @Test
     @DisplayName("sitesDepuisParticipations : dédup par site, participation sans site ignorée, illisible → vide")
     void sites_depuis_participations_tolerant() {
         String memeSiteDeuxFois = "{\"_items\":["

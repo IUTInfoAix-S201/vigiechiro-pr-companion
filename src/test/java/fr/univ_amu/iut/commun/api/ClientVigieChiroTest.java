@@ -59,4 +59,38 @@ class ClientVigieChiroTest {
         assertThat(client.mesSites()).isEmpty();
         assertThat(client.donnees("6a49")).isEmpty();
     }
+
+    @Test
+    @DisplayName("écritures sans token → vide / false, sans toucher le réseau (#142)")
+    void ecritures_sans_token() {
+        ClientVigieChiro client = new ClientVigieChiro("http://localhost:1/api/v1", SANS_TOKEN);
+
+        assertThat(client.post("/fichiers", "{}")).isEmpty();
+        assertThat(client.creerParticipation("site1", participationMinimale())).isEmpty();
+        assertThat(client.creerFichier("Car130711-2026-Pass1-Z41_000.wav")).isEmpty();
+        assertThat(client.finaliserFichier("f1")).isFalse();
+    }
+
+    @Test
+    @DisplayName("écritures hors-ligne (URL injoignable) → vide / false, sans lever (#142)")
+    void ecritures_hors_ligne() {
+        ClientVigieChiro client = new ClientVigieChiro("http://localhost:1/api/v1", TOKEN_ABC);
+
+        assertThat(client.creerParticipation("site1", participationMinimale())).isEmpty();
+        assertThat(client.creerFichier("Car130711-2026-Pass1-Z41_000.wav")).isEmpty();
+        assertThat(client.finaliserFichier("f1")).isFalse();
+    }
+
+    @Test
+    @DisplayName("televerserVersS3 hors-ligne → false, sans lever (URL S3 déjà signée, sans auth)")
+    void upload_s3_hors_ligne_est_false() {
+        ClientVigieChiro client = new ClientVigieChiro("http://localhost:1/api/v1", TOKEN_ABC);
+
+        assertThat(client.televerserVersS3("http://localhost:1/s3/signe", new byte[] {1, 2, 3}, "audio/x-wav"))
+                .isFalse();
+    }
+
+    private static ParticipationADeposer participationMinimale() {
+        return new ParticipationADeposer(1, "Z41", "2026-07-03T19:00:00Z", "2026-07-04T04:00:00Z", null, null, null);
+    }
 }

@@ -207,6 +207,29 @@ public class ServiceLot {
         return compacteur.compacter(fichiers, prefixe, racineSession.resolve(SOUS_DOSSIER_DEPOT), progres);
     }
 
+    /// Espace disque **disponible** (octets) sur le système de fichiers du dossier de session, pour
+    /// anticiper (avant génération) si les archives tiendront. `0` si le chemin est inconnu/inaccessible
+    /// (l'IHM ne bloque alors **pas** proactivement).
+    public long espaceDisqueDisponible(String cheminDossier) {
+        if (cheminDossier == null) {
+            return 0L;
+        }
+        try {
+            Path racine = Path.of(cheminDossier);
+            Path reference = Files.isDirectory(racine) ? racine : racine.getParent();
+            return reference == null ? 0L : Files.getFileStore(reference).getUsableSpace();
+        } catch (IOException e) {
+            return 0L;
+        }
+    }
+
+    /// Estimation **compression comprise** de la taille des archives pour un volume de séquences source
+    /// (délègue à [CompacteurDepot#estimationTailleDepot], même calcul que le garde-fou avant écriture) :
+    /// l'IHM s'en sert pour anticiper l'espace requis (bouton/alerte).
+    public long estimationTailleDepotOctets(long volumeSourceOctets) {
+        return CompacteurDepot.estimationTailleDepot(volumeSourceOctets);
+    }
+
     /// Archives ZIP de dépôt (`depot/*.zip`) **présentes sur disque** pour un dossier de session (liste vide
     /// si le dossier `depot/` est absent). Permet à l'IHM de **réafficher** les archives déjà générées à la
     /// réouverture de l'écran (et d'activer « Ouvrir le dossier » / « Supprimer »). **Lecture disque pure**

@@ -90,6 +90,9 @@
               <TableColumn fx:id="colStatut" text="Statut" prefWidth="120.0"/>
               <TableColumn fx:id="colVerdict" text="Verdict" prefWidth="100.0"/>
             </columns>
+            <placeholder>
+              <Label text="Aucun passage à afficher (ajustez éventuellement les filtres)." wrapText="true"/>
+            </placeholder>
           </TableView>
           <Label text="Astuce : double-cliquez une ligne pour ouvrir l'écran du passage."
                  styleClass="section-sous"/>

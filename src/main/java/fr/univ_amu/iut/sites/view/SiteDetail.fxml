@@ -75,6 +75,10 @@
     <Button text="+ Ajouter un point" styleClass="bouton-primaire" onAction="#ajouterPoint"/>
   </HBox>
   <FlowPane fx:id="cartesPoints" styleClass="cartes-points" hgap="12.0" vgap="12.0"/>
+  <!-- Repli d'état vide (#791) : un FlowPane n'a pas de placeholder ; ce label s'affiche à sa place quand
+       aucune carte de point n'est présente (visibilité liée en code à cartesPoints). -->
+  <Label fx:id="lblAucunPoint" styleClass="section-sous" wrapText="true" managed="false" visible="false"
+         text="Aucun point d'écoute déclaré. Cliquez « + Ajouter un point » pour en créer un."/>
 
   <Label text="📅 Passages enregistrés sur ce site" styleClass="section-titre"/>
   <TableView fx:id="tablePassages" prefHeight="320.0" VBox.vgrow="ALWAYS">

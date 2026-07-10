@@ -109,6 +109,9 @@
             <TableColumn fx:id="colDuree" text="Durée" prefWidth="80.0"/>
             <TableColumn fx:id="colEcoute" text="Écouté" prefWidth="70.0"/>
           </columns>
+          <placeholder>
+            <Label text="Aucune séquence à écouter pour l'instant." wrapText="true"/>
+          </placeholder>
         </TableView>
       </VBox>
 

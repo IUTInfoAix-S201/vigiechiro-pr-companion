@@ -132,8 +132,11 @@
 
   <!-- 4. Action -->
   <HBox spacing="14.0" alignment="CENTER_LEFT">
-    <Button fx:id="boutonImporter" text="📥 Importer cette nuit" styleClass="bouton-primaire"
-            onAction="#importer"/>
+    <!-- Enveloppe : un Button désactivé n'affiche pas de Tooltip, on le pose sur ce StackPane (#789). -->
+    <StackPane fx:id="enveloppeImporter">
+      <Button fx:id="boutonImporter" text="📥 Importer cette nuit" styleClass="bouton-primaire"
+              onAction="#importer"/>
+    </StackPane>
     <Label fx:id="labelMessage" styleClass="message-erreur" wrapText="true" HBox.hgrow="ALWAYS"/>
   </HBox>
   <!-- Progression déterminée (#33/#146), visible pendant la décompression d'un .zip ou l'import :

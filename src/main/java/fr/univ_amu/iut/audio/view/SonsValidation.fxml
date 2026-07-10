@@ -7,6 +7,7 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.MenuButton?>
 <?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.control.SeparatorMenuItem?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.TableColumn?>
@@ -58,7 +59,11 @@
       </HBox>
     </center>
     <right>
-      <MenuButton fx:id="menuActions" text="☰" styleClass="menu-actions" BorderPane.alignment="CENTER">
+      <MenuButton fx:id="menuActions" text="☰" styleClass="menu-actions" BorderPane.alignment="CENTER"
+                  accessibleText="Actions : voir sur la carte, importer, exporter">
+        <tooltip>
+          <Tooltip text="Actions : voir sur la carte, importer, exporter"/>
+        </tooltip>
         <items>
           <MenuItem fx:id="itemVoirCarte" text="🗺 Voir sur la carte" onAction="#voirSurCarte"/>
           <SeparatorMenuItem/>

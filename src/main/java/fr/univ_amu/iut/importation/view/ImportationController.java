@@ -3,6 +3,7 @@ package fr.univ_amu.iut.importation.view;
 import com.google.inject.Inject;
 import fr.univ_amu.iut.commun.view.AuDepartEcran;
 import fr.univ_amu.iut.commun.view.GardeQuitter;
+import fr.univ_amu.iut.commun.view.IndicateurBlocage;
 import fr.univ_amu.iut.importation.model.AnnulationImportException;
 import fr.univ_amu.iut.importation.model.EtatNommage;
 import fr.univ_amu.iut.importation.model.ExtracteurZip;
@@ -129,6 +130,11 @@ public class ImportationController implements GardeQuitter, AuDepartEcran {
 
     @FXML
     private Button boutonImporter;
+
+    /// Enveloppe (non désactivée) du bouton « Importer » : porte le tooltip d'explication du blocage,
+    /// qu'un Button désactivé n'affiche pas. Cf. [IndicateurBlocage] (#789).
+    @FXML
+    private StackPane enveloppeImporter;
 
     @FXML
     private CheckBox caseConserverOriginaux;
@@ -334,6 +340,17 @@ public class ImportationController implements GardeQuitter, AuDepartEcran {
         barreProgression.progressProperty().bind(viewModel.progression().fractionProperty());
         labelProgression.textProperty().bind(viewModel.progression().messageProperty());
         boutonImporter.disableProperty().bind(viewModel.peutImporter().not().or(traitement));
+        // Explique le grisage (#789) sur l'enveloppe (un Button désactivé n'affiche pas de tooltip). Le
+        // grisage pendant l'import est déjà signalé par la zone de progression ; on nomme surtout les
+        // prérequis manquants (config incomplète) quand l'import n'est pas en cours.
+        IndicateurBlocage.expliquer(
+                enveloppeImporter,
+                Bindings.when(traitement)
+                        .then("Import en cours…")
+                        .otherwise(Bindings.when(viewModel.peutImporter())
+                                .then("Lancer l'import de la nuit inspectée.")
+                                .otherwise("Pour lancer l'import : inspectez un dossier, choisissez le site"
+                                        + " et le point, et renseignez un numéro de passage valide.")));
         boutonParcourir.disableProperty().bind(traitement);
         boutonZip.disableProperty().bind(traitement);
         comboSites.disableProperty().bind(traitement);

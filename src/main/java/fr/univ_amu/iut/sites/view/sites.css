@@ -226,11 +226,7 @@
     -fx-text-fill: #a93226;
 }
 
-.champ-invalide {
-    -fx-border-color: #a93226;
-    -fx-border-width: 1.5;
-    -fx-border-radius: 3;
-}
+/* .champ-invalide déplacée dans commun/view/design.css (#790) : patron de validation transverse. */
 
 /* Carte-outil de saisie GPS de la modale point (#153) : cadre discret, coins arrondis. */
 .zone-carte-modale {

@@ -6,6 +6,7 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.MenuButton?>
 <?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
@@ -59,10 +60,14 @@
       </HBox>
     </center>
     <right>
-      <MenuButton fx:id="menuActions" text="☰" styleClass="menu-actions" BorderPane.alignment="CENTER">
+      <MenuButton fx:id="menuActions" text="☰" styleClass="menu-actions" BorderPane.alignment="CENTER"
+                  accessibleText="Actions : écouter le passage ou le lot, exporter">
         <BorderPane.margin>
           <Insets left="8.0"/>
         </BorderPane.margin>
+        <tooltip>
+          <Tooltip text="Actions : écouter le passage ou le lot, exporter"/>
+        </tooltip>
         <items>
           <MenuItem fx:id="itemEcouterPassage" text="🎧 Écouter le passage sélectionné" onAction="#ecouterPassage"/>
           <MenuItem fx:id="itemEcouterLot" text="🎧 Écouter le lot filtré" onAction="#ecouterLot"/>

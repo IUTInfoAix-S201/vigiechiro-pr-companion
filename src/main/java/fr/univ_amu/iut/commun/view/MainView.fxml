@@ -7,6 +7,7 @@
 <?import javafx.scene.control.MenuButton?>
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.SeparatorMenuItem?>
+<?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.FlowPane?>
@@ -50,7 +51,11 @@
               HBox.hgrow="ALWAYS"/>
         <TextField fx:id="champRecherche" styleClass="champ-recherche" promptText="🔍 Rechercher (Ctrl+F)"
                    prefWidth="240.0"/>
-        <MenuButton fx:id="menuOutils" text="☰" styleClass="menu-outils">
+        <MenuButton fx:id="menuOutils" text="☰" styleClass="menu-outils"
+                    accessibleText="Outils : sauvegarde, restauration, purge, connexion VigieChiro">
+          <tooltip>
+            <Tooltip text="Outils : sauvegarde, restauration, purge, connexion VigieChiro"/>
+          </tooltip>
           <items>
             <MenuItem text="💾 Sauvegarder la base…" onAction="#sauvegarderBase"/>
             <MenuItem text="↩ Restaurer une sauvegarde…" onAction="#restaurerBase"/>

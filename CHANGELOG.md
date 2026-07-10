@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [1.162.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.161.0...v1.162.0) (2026-07-10)
+
+
+### Features
+
+* **audio:** action « Importer depuis VigieChiro » dans « Sons & validation » (axe 4.2) ([#839](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/839)) ([8586c0e](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/8586c0ee1035f0dcf14682d95848587967a9571c))
+
 # [1.161.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.160.0...v1.161.0) (2026-07-10)
 
 

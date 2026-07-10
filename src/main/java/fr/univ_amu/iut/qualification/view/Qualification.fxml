@@ -13,6 +13,7 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
 <!--
@@ -156,8 +157,11 @@
         <Label fx:id="lblMessage" styleClass="message-erreur" wrapText="true"/>
 
         <HBox alignment="CENTER_RIGHT">
-          <Button fx:id="boutonEnregistrer" text="💾 Enregistrer le verdict"
-                  styleClass="bouton-primaire" onAction="#enregistrer"/>
+          <!-- Enveloppe : un Button désactivé n'affiche pas de Tooltip, on le pose sur ce StackPane (#789). -->
+          <StackPane fx:id="enveloppeEnregistrer">
+            <Button fx:id="boutonEnregistrer" text="💾 Enregistrer le verdict"
+                    styleClass="bouton-primaire" onAction="#enregistrer"/>
+          </StackPane>
         </HBox>
       </VBox>
       </ScrollPane>

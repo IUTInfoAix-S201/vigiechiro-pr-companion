@@ -8,6 +8,7 @@ import fr.univ_amu.iut.commun.model.Verdict;
 import fr.univ_amu.iut.commun.view.EmplacementNavigation;
 import fr.univ_amu.iut.commun.view.EmplacementPassage;
 import fr.univ_amu.iut.commun.view.GardeQuitter;
+import fr.univ_amu.iut.commun.view.IndicateurBlocage;
 import fr.univ_amu.iut.commun.view.Lieu;
 import fr.univ_amu.iut.commun.view.OuvrirPassage;
 import fr.univ_amu.iut.commun.view.OuvrirSite;
@@ -42,6 +43,7 @@ import javafx.scene.control.TextInputControl;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
 /// Controller de l'écran **M-Qualification** (`Qualification.fxml`).
@@ -153,6 +155,11 @@ public class QualificationController implements GardeQuitter, EmplacementNavigat
 
     @FXML
     private Button boutonEnregistrer;
+
+    /// Enveloppe (non désactivée) du bouton « Enregistrer » : porte le tooltip d'explication du blocage,
+    /// qu'un Button désactivé n'affiche pas. Cf. [IndicateurBlocage] (#789).
+    @FXML
+    private StackPane enveloppeEnregistrer;
 
     @Inject
     public QualificationController(
@@ -287,6 +294,13 @@ public class QualificationController implements GardeQuitter, EmplacementNavigat
         lblMessage.managedProperty().bind(verdictVm.messageProperty().isNotEmpty());
 
         boutonEnregistrer.disableProperty().bind(verdictVm.peutEnregistrer().not());
+        // Explique le grisage (#789) sur l'enveloppe (un Button désactivé n'affiche pas de tooltip) : tant
+        // qu'aucun verdict n'est choisi, l'enregistrement n'a rien à persister.
+        IndicateurBlocage.expliquer(
+                enveloppeEnregistrer,
+                Bindings.when(verdictVm.peutEnregistrer())
+                        .then("Enregistrer le verdict de ce passage.")
+                        .otherwise("Choisissez d'abord un verdict (OK, Douteux…) pour pouvoir l'enregistrer."));
 
         // Raccourcis clavier (O/D/J, Entrée, Espace) sur la racine de l'écran : addEventHandler (et non
         // setOnKeyPressed) pour coexister avec d'autres handlers, et limité à cette vue plutôt qu'à la

@@ -9,6 +9,7 @@ import fr.univ_amu.iut.bibliotheque.di.BibliothequeModule;
 import fr.univ_amu.iut.connexion.di.ConnexionModule;
 import fr.univ_amu.iut.diagnostic.di.DiagnosticModule;
 import fr.univ_amu.iut.importation.di.ImportationModule;
+import fr.univ_amu.iut.lot.di.DepotVigieChiroModule;
 import fr.univ_amu.iut.lot.di.LotModule;
 import fr.univ_amu.iut.multisite.di.MultisiteModule;
 import fr.univ_amu.iut.passage.di.PassageModule;
@@ -56,6 +57,7 @@ public final class RacineInjecteur {
                 new MultisiteModule(),
                 new ImportationModule(),
                 new LotModule(),
+                new DepotVigieChiroModule(),
                 new DiagnosticModule(),
                 new BibliothequeModule(),
                 new RechercheModule(),

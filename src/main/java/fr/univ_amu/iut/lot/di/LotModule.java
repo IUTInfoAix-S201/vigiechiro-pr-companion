@@ -3,12 +3,15 @@ package fr.univ_amu.iut.lot.di;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
+import com.google.inject.multibindings.OptionalBinder;
 import fr.univ_amu.iut.commun.model.Horloge;
 import fr.univ_amu.iut.commun.view.OuvrirLot;
 import fr.univ_amu.iut.lot.model.CompacteurDepot;
+import fr.univ_amu.iut.lot.model.DepotVigieChiro;
 import fr.univ_amu.iut.lot.model.ServiceLot;
 import fr.univ_amu.iut.lot.model.VerificationCoherence;
 import fr.univ_amu.iut.lot.view.NavigationLot;
+import fr.univ_amu.iut.lot.viewmodel.DepotViewModel;
 import fr.univ_amu.iut.lot.viewmodel.LotViewModel;
 import fr.univ_amu.iut.passage.model.MoteurWorkflowPassage;
 import fr.univ_amu.iut.passage.model.dao.EnregistrementOriginalDao;
@@ -19,6 +22,7 @@ import fr.univ_amu.iut.passage.model.dao.SequenceDao;
 import fr.univ_amu.iut.passage.model.dao.SessionDao;
 import fr.univ_amu.iut.sites.model.dao.PointDao;
 import fr.univ_amu.iut.sites.model.dao.SiteDao;
+import java.util.Optional;
 
 /// Module Guice de la feature `lot` : assemble le moteur de vérification et le service de
 /// dépôt à partir des DAO publiés par les autres features (`sites`, `passage`) et de
@@ -39,6 +43,11 @@ public class LotModule extends AbstractModule {
     @Override
     protected void configure() {
         bind(OuvrirLot.class).to(NavigationLot.class);
+        // Dépôt VigieChiro (#142) en liaison **optionnelle** : déclaré ici (défaut absent) pour que les
+        // injecteurs partiels de la feature `lot` — notamment `CaptureLot`, sans `ConnexionModule` donc sans
+        // client HTTP — résolvent `Optional<DepotVigieChiro>` à vide. La liaison réelle est posée par
+        // `DepotVigieChiroModule` (chargé seulement dans l'injecteur applicatif complet).
+        OptionalBinder.newOptionalBinder(binder(), DepotVigieChiro.class);
     }
 
     @Provides
@@ -85,5 +94,13 @@ public class LotModule extends AbstractModule {
     @Provides
     LotViewModel fournirLotViewModel(ServiceLot service) {
         return new LotViewModel(service);
+    }
+
+    /// ViewModel du **téléversement VigieChiro** (#142), séparé de [LotViewModel] (concern distinct, et pour
+    /// ne pas alourdir ce VM déjà volumineux). `depot` est vide dans les injecteurs partiels de capture
+    /// (sans `connexion`) et présent dans l'application complète (cf. `DepotVigieChiroModule`).
+    @Provides
+    DepotViewModel fournirDepotViewModel(ServiceLot service, Optional<DepotVigieChiro> depot) {
+        return new DepotViewModel(service, depot);
     }
 }

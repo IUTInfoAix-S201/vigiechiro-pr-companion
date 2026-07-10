@@ -83,6 +83,22 @@ public class ServiceLot {
         return compacteur.tailleMaxOctets();
     }
 
+    /// Chemins des **séquences transformées** (5 s) d'un passage, à téléverser sur VigieChiro (#142) : ce
+    /// sont les fichiers au format attendu par la plateforme. Liste vide si le passage n'a pas de session
+    /// ou pas de séquence. N'écrit rien.
+    ///
+    /// @param idPassage passage dont on veut les séquences
+    /// @return les chemins disque des séquences (`transformes/…`), dans l'ordre du DAO
+    public List<Path> sequencesADeposer(Long idPassage) {
+        Objects.requireNonNull(idPassage, PARAM_ID_PASSAGE);
+        return sessionDao
+                .trouverParPassage(idPassage)
+                .map(session -> sequenceDao.findBySession(session.id()).stream()
+                        .map(sequence -> Path.of(sequence.cheminFichier()))
+                        .toList())
+                .orElseGet(List::of);
+    }
+
     /// Consulte l'état de dépôt d'un passage **sans le transitionner** (lecture pour l'IHM M-Lot) :
     /// statut courant, dossier de session à téléverser (R22), nombre et volume des séquences, et les
     /// alertes de cohérence bloquantes (R14) qui empêcheraient la préparation. N'écrit rien.

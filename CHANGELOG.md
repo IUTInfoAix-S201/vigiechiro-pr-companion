@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [1.158.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.157.0...v1.158.0) (2026-07-10)
+
+
+### Features
+
+* **lot:** coordination du téléversement d'une nuit sur VigieChiro (viewmodel + DI) ([#825](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/825)) ([7fe9420](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/7fe94202349e352cb377efe3b1747c411e8c7928)), closes [#142](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/142)
+
 # [1.157.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.156.0...v1.157.0) (2026-07-10)
 
 

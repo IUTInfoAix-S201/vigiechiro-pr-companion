@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [1.159.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.158.0...v1.159.0) (2026-07-10)
+
+
+### Features
+
+* **lot:** action « Téléverser sur VigieChiro » à l'écran M-Lot ([#142](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/142)) ([#829](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/829)) ([513998f](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/513998fbf0f556f702695b3d0750d08a9c92aa89))
+
 # [1.158.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.157.0...v1.158.0) (2026-07-10)
 
 

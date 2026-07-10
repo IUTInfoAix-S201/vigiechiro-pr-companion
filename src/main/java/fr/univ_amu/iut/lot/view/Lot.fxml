@@ -88,11 +88,16 @@
     <Label text="Téléversez la nuit directement sur Vigie-Chiro (les séquences transformées, au format attendu par la plateforme). En cas de besoin, un dépôt manuel des archives ZIP reste possible depuis le dossier :"
            styleClass="section-sous" wrapText="true"/>
     <Label fx:id="lblCheminDepot" styleClass="chemin" wrapText="true"/>
-    <Button fx:id="btnTeleverser" text="☁ Téléverser sur Vigie-Chiro"
-            styleClass="bouton-primaire" onAction="#televerserVigieChiro"/>
+    <!-- Téléversement automatisé (#142) et repli manuel côte à côte : quand le téléversement direct est
+         indisponible (application non connectée), btnTeleverser est démanagé et « Ouvrir le dossier » reste
+         seul à gauche. Le message d'avancement/bilan du téléversement suit en dessous. -->
+    <HBox spacing="8.0" alignment="CENTER_LEFT">
+      <Button fx:id="btnTeleverser" text="☁ Téléverser sur Vigie-Chiro"
+              styleClass="bouton-primaire" onAction="#televerserVigieChiro"/>
+      <Button fx:id="btnOuvrirDepot" text="📂 Ouvrir le dossier (dépôt manuel)"
+              styleClass="bouton-secondaire" onAction="#ouvrirDossierDepot"/>
+    </HBox>
     <Label fx:id="lblDepotMessage" styleClass="section-sous" wrapText="true"/>
-    <Button fx:id="btnOuvrirDepot" text="📂 Ouvrir le dossier (dépôt manuel)"
-            styleClass="bouton-secondaire" onAction="#ouvrirDossierDepot"/>
   </VBox>
 
   <!-- Étape 4 - Marquer déposé -->

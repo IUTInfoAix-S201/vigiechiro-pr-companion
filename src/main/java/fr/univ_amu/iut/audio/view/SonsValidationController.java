@@ -12,7 +12,6 @@ import fr.univ_amu.iut.commun.view.EmplacementPassage;
 import fr.univ_amu.iut.commun.view.GestionnaireColonnes;
 import fr.univ_amu.iut.commun.view.GestionnaireFiltres;
 import fr.univ_amu.iut.commun.view.GestionnaireVues;
-import fr.univ_amu.iut.commun.view.IndicateurBlocage;
 import fr.univ_amu.iut.commun.view.Lieu;
 import fr.univ_amu.iut.commun.view.OuvrirAnalyse;
 import fr.univ_amu.iut.commun.view.OuvrirMultisite;
@@ -211,7 +210,7 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
     private Button btnDouteux;
 
     /// Enveloppes (non désactivées) des boutons d'action : portent le tooltip expliquant le blocage
-    /// (un Button désactivé n'en affiche pas), via [IndicateurBlocage] (#789).
+    /// (un Button désactivé n'en affiche pas). Câblées par [ActionsRevueAudio] (#789).
     @FXML
     private StackPane enveloppeValider;
 
@@ -379,68 +378,20 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
         choixTaxon.setItems(viewModel.taxons());
         choixTaxon.setConverter(LibellesAudio.converter(taxon -> taxon == null ? "" : LibellesAudio.taxon(taxon)));
 
-        // Valider = retenir la proposition Tadarida : seulement s'il y en a une.
-        btnValider
-                .disableProperty()
-                .bind(viewModel.etatSelection().avecTadaridaProperty().not());
-        // Corriger = affecter un taxon : sur toute ligne sélectionnée (correction d'une observation OU
-        // validation manuelle d'une séquence non identifiée), dès qu'un taxon est choisi.
-        btnCorriger
-                .disableProperty()
-                .bind(viewModel
-                        .etatSelection()
-                        .presenteProperty()
-                        .not()
-                        .or(choixTaxon.valueProperty().isNull()));
-        // Référence = archiver : seulement ce qui est déjà une observation.
-        btnReference
-                .disableProperty()
-                .bind(viewModel.etatSelection().avecObservationProperty().not());
-        // Libellé + icône (étoile dorée) de la bascule selon l'état de l'observation sélectionnée.
-        btnReference.setGraphic(CellulesAudio.icone(CellulesAudio.ICONE_REFERENCE, CellulesAudio.STYLE_REFERENCE));
-        btnReference
-                .textProperty()
-                .bind(Bindings.when(viewModel.etatSelection().referenceProperty())
-                        .then("Retirer la référence")
-                        .otherwise("Marquer référence"));
-        // Douteux (#160) = « à repasser » : seulement sur une observation (idObservation non nul), comme la
-        // référence. Libellé + icône selon l'état de l'observation sélectionnée.
-        btnDouteux
-                .disableProperty()
-                .bind(viewModel.etatSelection().avecObservationProperty().not());
-        btnDouteux.setGraphic(CellulesAudio.icone(CellulesAudio.ICONE_DOUTEUX, CellulesAudio.STYLE_DOUTEUX));
-        btnDouteux
-                .textProperty()
-                .bind(Bindings.when(viewModel.etatSelection().douteuxProperty())
-                        .then("Retirer le doute")
-                        .otherwise("Marquer douteux"));
-
-        // Tooltips d'explication du blocage (#789), posés sur les enveloppes (un Button désactivé n'affiche
-        // pas de tooltip). Le texte suit l'état : ce que fait l'action quand elle est possible, la cause du
-        // blocage et le remède sinon.
-        IndicateurBlocage.expliquer(
+        // Câblage de la barre d'actions (Valider / Corriger / Référence / Douteux) : désactivation selon la
+        // sélection, icônes/libellés des bascules et tooltips d'explication du blocage (#789). Extrait dans
+        // ActionsRevueAudio (unité cohésive) pour garder ce contrôleur sous le seuil de God Class.
+        ActionsRevueAudio.configurer(
+                viewModel,
+                choixTaxon,
+                btnValider,
                 enveloppeValider,
-                Bindings.when(viewModel.etatSelection().avecTadaridaProperty())
-                        .then("Retenir la proposition Tadarida (taxon proposé) pour la ligne sélectionnée.")
-                        .otherwise("Sélectionnez une ligne qui porte une proposition Tadarida pour la valider."));
-        IndicateurBlocage.expliquer(
+                btnCorriger,
                 enveloppeCorriger,
-                Bindings.when(viewModel
-                                .etatSelection()
-                                .presenteProperty()
-                                .and(choixTaxon.valueProperty().isNotNull()))
-                        .then("Affecter le taxon choisi à la ligne sélectionnée.")
-                        .otherwise("Sélectionnez une ligne puis choisissez un taxon dans la liste pour corriger."));
-        IndicateurBlocage.expliquer(
+                btnReference,
                 enveloppeReference,
-                Bindings.when(viewModel.etatSelection().avecObservationProperty())
-                        .then("Archiver cette observation comme son de référence (ou retirer la référence).")
-                        .otherwise("Réservé à une observation validée : validez ou corrigez d'abord la ligne."));
-        IndicateurBlocage.expliquer(
-                enveloppeDouteux,
-                Bindings.when(viewModel.etatSelection().avecObservationProperty())
-                        .then("Marquer l'observation « à repasser » (douteuse), ou retirer le doute.")
-                        .otherwise("Réservé à une observation validée : validez ou corrigez d'abord la ligne."));
+                btnDouteux,
+                enveloppeDouteux);
 
         // Workflow Tadarida (source ParPassage) : toujours actif ; « Importer » tant qu'aucun résultat,
         // « Réimporter » (remplacement après confirmation) une fois un jeu chargé.

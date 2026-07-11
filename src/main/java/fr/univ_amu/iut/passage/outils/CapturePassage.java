@@ -14,6 +14,8 @@ import fr.univ_amu.iut.commun.persistence.MigrationSchema;
 import fr.univ_amu.iut.commun.persistence.ServicePurgeOriginaux;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
 import fr.univ_amu.iut.commun.view.OuvrirDiagnostic;
+import fr.univ_amu.iut.commun.view.OuvrirLot;
+import fr.univ_amu.iut.commun.view.OuvrirVerification;
 import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
 import fr.univ_amu.iut.passage.di.PassageModule;
 import fr.univ_amu.iut.passage.model.EnregistrementOriginal;
@@ -144,10 +146,10 @@ public final class CapturePassage {
         loader.setControllerFactory(type -> type == PassageController.class
                 ? new PassageController(
                         passageVm,
-                        idp -> {},
+                        Optional.<OuvrirVerification>of(idp -> {}),
                         Optional.<OuvrirDiagnostic>of(idp -> {}),
                         idp -> {},
-                        idp -> {},
+                        Optional.<OuvrirLot>of(idp -> {}),
                         injecteur.getInstance(NavigationPassage.class),
                         ouvrirSiteNeutre(),
                         numeroCarre -> {},

@@ -55,6 +55,8 @@ class DecouverteModulesTest {
         System.clearProperty("vigiechiro.features.diagnostic");
         System.clearProperty("vigiechiro.features.import-vigiechiro");
         System.clearProperty("vigiechiro.features.passage");
+        System.clearProperty("vigiechiro.features.lot");
+        System.clearProperty("vigiechiro.features.qualification");
         System.clearProperty("vigiechiro.workspace");
     }
 
@@ -155,6 +157,34 @@ class DecouverteModulesTest {
                 .map(module -> module.getClass().getSimpleName())
                 .toList();
         assertThat(noms).doesNotContain("DiagnosticModule");
+
+        assertThatCode(RacineInjecteur::creer).doesNotThrowAnyException();
+    }
+
+    @Test
+    @DisplayName("la feuille lot (désormais OPTIONNELLE) est désactivable et l'injecteur se construit")
+    void feuille_lot_desactivable(@TempDir Path tmp) {
+        System.setProperty("vigiechiro.workspace", tmp.toString());
+        System.setProperty("vigiechiro.features.lot", "off");
+
+        List<String> noms = RacineInjecteur.modules().stream()
+                .map(module -> module.getClass().getSimpleName())
+                .toList();
+        assertThat(noms).doesNotContain("LotModule");
+
+        assertThatCode(RacineInjecteur::creer).doesNotThrowAnyException();
+    }
+
+    @Test
+    @DisplayName("la feuille qualification (désormais OPTIONNELLE) est désactivable et l'injecteur se construit")
+    void feuille_qualification_desactivable(@TempDir Path tmp) {
+        System.setProperty("vigiechiro.workspace", tmp.toString());
+        System.setProperty("vigiechiro.features.qualification", "off");
+
+        List<String> noms = RacineInjecteur.modules().stream()
+                .map(module -> module.getClass().getSimpleName())
+                .toList();
+        assertThat(noms).doesNotContain("QualificationModule");
 
         assertThatCode(RacineInjecteur::creer).doesNotThrowAnyException();
     }

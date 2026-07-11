@@ -2,6 +2,7 @@ package fr.univ_amu.iut.qualification.di;
 
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
+import com.google.inject.multibindings.OptionalBinder;
 import fr.univ_amu.iut.commun.di.Categorie;
 import fr.univ_amu.iut.commun.di.Fonctionnalite;
 import fr.univ_amu.iut.commun.di.ModuleDeFeature;
@@ -38,12 +39,12 @@ import fr.univ_amu.iut.sites.model.dao.SiteDao;
 /// (contrôlé par `ArchitectureTest`).
 public class QualificationModule extends ModuleDeFeature {
 
-    /// Identité de la feature. `COEUR` pour l'instant (feuille couplée au runtime via son contrat
-    /// `Ouvrir…` : la désactiver casserait l'écran consommateur) ; passera `OPTIONNELLE` une fois ce
-    /// contrat neutralisé (P3, #1064).
+    /// Identité de la feature. `OPTIONNELLE` (désactivable) : son contrat `OuvrirVerification` est
+    /// neutralisé chez son consommateur (PassageController l'injecte en `Optional` et masque la carte
+    /// si absent).
     @Override
     public Fonctionnalite fonctionnalite() {
-        return new Fonctionnalite("qualification", "Qualification des passages", Categorie.COEUR);
+        return new Fonctionnalite("qualification", "Qualification des passages", Categorie.OPTIONNELLE);
     }
 
     /// Fournit le contrat de navigation socle [OuvrirVerification] : l'écran M-Passage l'injecte
@@ -51,7 +52,9 @@ public class QualificationModule extends ModuleDeFeature {
     /// `passage ↔ qualification`).
     @Override
     protected void configure() {
-        bind(OuvrirVerification.class).to(NavigationQualification.class);
+        OptionalBinder.newOptionalBinder(binder(), OuvrirVerification.class)
+                .setBinding()
+                .to(NavigationQualification.class);
     }
 
     @Provides

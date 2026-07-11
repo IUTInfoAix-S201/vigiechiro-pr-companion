@@ -83,7 +83,7 @@ class PassageViewModelTest {
         assertThat(viewModel.verdictProperty().get()).isEqualTo(Verdict.OK);
         assertThat(viewModel.volumeBrutsProperty().get()).isEqualTo("4 Ko");
         assertThat(viewModel.volumeTransformesProperty().get()).isEqualTo("1 Ko");
-        assertThat(viewModel.dureeAudibleProperty().get()).isEqualTo("2 min 30 s");
+        assertThat(viewModel.dureeEnregistreeProperty().get()).isEqualTo("2 min 30 s");
         assertThat(viewModel.messageProperty().get()).isEmpty();
     }
 

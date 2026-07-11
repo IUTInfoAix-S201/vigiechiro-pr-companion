@@ -4,7 +4,7 @@ import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.model.Verdict;
 
 /// Projection de lecture pour l'écran **M-Passage** : agrège un passage et sa session
-/// d'enregistrement (volumes, durée audible, nombre de séquences).
+/// d'enregistrement (volumes, durée enregistrée, nombre de séquences).
 ///
 /// **Sans jointure vers `sites`** : le carré et le code du point sont fournis à la vue par le
 /// contexte de navigation (depuis M-Site-detail), pour éviter un cycle `passage → sites`. Produite
@@ -22,7 +22,7 @@ import fr.univ_amu.iut.commun.model.Verdict;
 /// @param volumeOriginauxOctets volume des enregistrements bruts (0 si inconnu)
 /// @param volumeSequencesOctets volume des séquences transformées (0 si inconnu)
 /// @param nombreSequences nombre de séquences d'écoute de la session
-/// @param dureeAudibleSecondes durée audible cumulée des séquences (secondes)
+/// @param dureeEnregistreeSecondes durée enregistrée cumulée des séquences (secondes)
 /// @param meteo relevé météo optionnel du passage (température début/fin, vent, couverture nuageuse ;
 /// #106 étendu) — jamais `null`, mais chacune de ses grandeurs peut l'être
 public record DetailPassage(
@@ -38,5 +38,5 @@ public record DetailPassage(
         long volumeOriginauxOctets,
         long volumeSequencesOctets,
         int nombreSequences,
-        double dureeAudibleSecondes,
+        double dureeEnregistreeSecondes,
         MeteoReleve meteo) {}

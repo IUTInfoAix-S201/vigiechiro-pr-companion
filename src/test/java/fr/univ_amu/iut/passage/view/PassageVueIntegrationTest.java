@@ -130,7 +130,7 @@ class PassageVueIntegrationTest {
         assertThat(robot.lookup("#lblVolBruts").queryAs(Label.class).getText()).isEqualTo("4 Ko");
         assertThat(robot.lookup("#lblVolTransformes").queryAs(Label.class).getText())
                 .isEqualTo("1 Ko");
-        assertThat(robot.lookup("#lblDureeAudible").queryAs(Label.class).getText())
+        assertThat(robot.lookup("#lblDureeEnregistree").queryAs(Label.class).getText())
                 .isEqualTo("2 min 30 s");
         assertThat(robot.lookup("#lblNbSequences").queryAs(Label.class).getText())
                 .isEqualTo("30");

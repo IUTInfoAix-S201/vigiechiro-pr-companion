@@ -246,13 +246,13 @@ class SonsValidationViewTest {
         // Plus de bandeau de titre en tête de vue (déporté : nom d'écran dans le fil d'Ariane).
         assertThat(robot.lookup("#lblResume").tryQuery()).isEmpty();
 
-        // Le résumé destiné à la barre de statut porte le total en zone centre et l'avancement en zone
-        // droite (les 2 lignes sont VALIDEE), sans répéter le nom d'écran. La gauche reste au défaut (vide
-        // ici, l'identité étant fournie par le chrome).
+        // Barre de statut 3 zones : gauche = identité de la source (#1025), centre = total, droite =
+        // avancement (les 2 lignes sont VALIDEE). Source « Sons de référence » → pas de passage ciblé, donc
+        // la gauche reprend l'intitulé de la source.
         ZonesStatut zones = controleur.zonesStatutProperty().get();
+        assertThat(zones.gauche()).isEqualTo("Sons de référence");
         assertThat(zones.centre()).isEqualTo("2 observation(s)");
         assertThat(zones.droite()).isEqualTo("2 / 2 revues");
-        assertThat(zones.gauche()).isEmpty();
     }
 
     @Test

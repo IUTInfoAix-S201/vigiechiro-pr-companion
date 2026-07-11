@@ -181,7 +181,7 @@ public class MainController {
                 enveloppeRetour,
                 Bindings.when(navigation.navigationVerrouilleeProperty())
                         .then("Navigation bloquée le temps de l'import en cours. Revenez une fois l'import terminé.")
-                        .otherwise("Revenir à l'écran précédent."));
+                        .otherwise("Revenir à l'écran précédent (Alt+←, Alt+Début pour l'accueil)."));
         enveloppeRetour.visibleProperty().bind(boutonRetour.visibleProperty());
         enveloppeRetour.managedProperty().bind(boutonRetour.managedProperty());
 

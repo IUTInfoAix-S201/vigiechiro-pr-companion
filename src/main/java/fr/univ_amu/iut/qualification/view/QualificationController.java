@@ -15,8 +15,10 @@ import fr.univ_amu.iut.commun.view.IndicateurBlocage;
 import fr.univ_amu.iut.commun.view.Lieu;
 import fr.univ_amu.iut.commun.view.OuvrirPassage;
 import fr.univ_amu.iut.commun.view.OuvrirSite;
+import fr.univ_amu.iut.commun.view.ResumeStatut;
 import fr.univ_amu.iut.commun.view.TableDonnees;
 import fr.univ_amu.iut.commun.viewmodel.ContextePassage;
+import fr.univ_amu.iut.commun.viewmodel.ZonesStatut;
 import fr.univ_amu.iut.qualification.model.GenerateurSelection;
 import fr.univ_amu.iut.qualification.model.SequenceEnSelection;
 import fr.univ_amu.iut.qualification.viewmodel.EtatVerdict;
@@ -27,6 +29,8 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.function.Predicate;
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -56,7 +60,7 @@ import javafx.scene.layout.VBox;
 /// branche la vue audio fournie ([AudioView]), ouvre la modale de personnalisation et gère les
 /// raccourcis clavier (O/D/J, Entrée, Espace). Aucun accès base de données ni logique métier ici
 /// (règle ArchUnit `view_sans_jdbc`).
-public class QualificationController implements GardeQuitter, EmplacementNavigation {
+public class QualificationController implements GardeQuitter, EmplacementNavigation, ResumeStatut {
 
     /// Facteur d'expansion temporelle ×10 du protocole Vigie-Chiro : les séquences transformées sont les
     /// originaux ralentis ×10 (cf. `TransformationAudio` côté import). Posé sur l'[AudioView] pour que ses
@@ -72,6 +76,11 @@ public class QualificationController implements GardeQuitter, EmplacementNavigat
 
     /// Contexte de navigation (passage + site), mémorisé pour reconstruire le fil d'Ariane du chrome.
     private ContextePassage contexte;
+
+    /// Zones de la barre de statut (#1021) : identité / statut+volumétrie / état vivant, recomposées à
+    /// chaque changement des propriétés observées.
+    private final ReadOnlyObjectWrapper<ZonesStatut> zonesStatut =
+            new ReadOnlyObjectWrapper<>(this, "zonesStatut", ZonesStatut.VIDE);
 
     /// Confirmateur injectable (#798) : par défaut un `Alert` de confirmation ; remplacé dans les tests par
     /// un stub déterministe (sans dialogue natif).
@@ -215,6 +224,11 @@ public class QualificationController implements GardeQuitter, EmplacementNavigat
         return "Un verdict choisi n'a pas été enregistré. Quitter cet écran sans l'enregistrer ?";
     }
 
+    @Override
+    public ReadOnlyObjectProperty<ZonesStatut> zonesStatutProperty() {
+        return zonesStatut.getReadOnlyProperty();
+    }
+
     @FXML
     private void initialize() {
         // Densite et habillage de table uniformes (#690).
@@ -235,6 +249,15 @@ public class QualificationController implements GardeQuitter, EmplacementNavigat
                 .textProperty()
                 .bind(Bindings.createStringBinding(
                         () -> libelleStatut(verdictVm.statutProperty().get()), verdictVm.statutProperty()));
+
+        // Barre de statut 3 zones (#1021, EPIC #1016), même modèle que M-Lot : identité à gauche,
+        // statut + volumétrie au centre, état vivant à droite (anomalie de pré-check > progression d'écoute).
+        zonesStatut.bind(Bindings.createObjectBinding(
+                () -> StatutQualification.zones(contexte, verdictVm, selectionVm),
+                verdictVm.statutProperty(),
+                selectionVm.volumetrieProperty(),
+                verdictVm.preCheckAnomalieProperty(),
+                selectionVm.progressionTexteProperty()));
 
         // Pré-check 3 feux (R13, consultatif et jamais bloquant).
         Feux.lier(feuCouverture, "Couverture horaire", verdictVm.feuCouvertureProperty());

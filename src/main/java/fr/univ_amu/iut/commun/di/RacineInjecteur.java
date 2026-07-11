@@ -4,12 +4,10 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.ServiceLoader;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.function.Predicate;
 
 /// Racine de composition Guice de l'application (composition root).
 ///
@@ -26,10 +24,6 @@ import java.util.stream.Collectors;
 /// Note d'architecture : ce paquet `commun.di` peut dépendre des features (rôle d'une racine de
 /// composition) ; le test `ArchitectureTest` ignore donc `commun.di` dans la détection de cycles.
 public final class RacineInjecteur {
-
-    /// Propriété système (noms **simples** de classes, séparés par des virgules) listant les features à
-    /// **ne pas** installer, ex. `-Dvigiechiro.features.desactivees=DiagnosticModule`.
-    private static final String PROP_DESACTIVEES = "vigiechiro.features.desactivees";
 
     private RacineInjecteur() {}
 
@@ -51,24 +45,13 @@ public final class RacineInjecteur {
         // Socle : toujours explicite, jamais découvert.
         modules.add(new CommunModule());
         modules.add(new PersistenceModule());
-        // Features : auto-découvertes, éventuellement filtrées, triées pour un ordre déterministe.
-        Set<String> desactivees = featuresDesactivees();
+        // Features : auto-découvertes, filtrées par les feature-flags (Fonctionnalites, #1057), triées.
+        Predicate<ModuleDeFeature> active = Fonctionnalites.filtreActives();
         ServiceLoader.load(ModuleDeFeature.class).stream()
                 .map(ServiceLoader.Provider::get)
-                .filter(module -> !desactivees.contains(module.getClass().getSimpleName()))
+                .filter(active)
                 .sorted(Comparator.comparing(module -> module.getClass().getName()))
                 .forEach(modules::add);
         return List.copyOf(modules);
-    }
-
-    private static Set<String> featuresDesactivees() {
-        String propriete = System.getProperty(PROP_DESACTIVEES, "").trim();
-        if (propriete.isEmpty()) {
-            return Set.of();
-        }
-        return Arrays.stream(propriete.split(","))
-                .map(String::trim)
-                .filter(nom -> !nom.isEmpty())
-                .collect(Collectors.toUnmodifiableSet());
     }
 }

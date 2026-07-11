@@ -1,8 +1,14 @@
 package fr.univ_amu.iut.commun.di;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 import com.google.inject.Module;
+import fr.univ_amu.iut.commun.model.Reglages;
+import fr.univ_amu.iut.commun.model.Workspace;
+import fr.univ_amu.iut.commun.model.dao.ReglagesDao;
+import fr.univ_amu.iut.commun.persistence.MigrationSchema;
+import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.module.ModuleDescriptor;
@@ -46,6 +52,8 @@ class DecouverteModulesTest {
     @AfterEach
     void nettoyer() {
         System.clearProperty("vigiechiro.features.desactivees");
+        System.clearProperty("vigiechiro.features.diagnostic");
+        System.clearProperty("vigiechiro.features.import-vigiechiro");
         System.clearProperty("vigiechiro.workspace");
     }
 
@@ -82,10 +90,10 @@ class DecouverteModulesTest {
     }
 
     @Test
-    @DisplayName("le socle est explicite et une feature peut être désactivée par propriété système")
+    @DisplayName("le socle est explicite et une feature désactivable l'est par l'alias rétro-compatible")
     void socle_explicite_et_feature_desactivable(@TempDir Path tmp) {
         System.setProperty("vigiechiro.workspace", tmp.toString());
-        System.setProperty("vigiechiro.features.desactivees", "DiagnosticModule");
+        System.setProperty("vigiechiro.features.desactivees", "ImportVigieChiroModule");
 
         List<String> noms = RacineInjecteur.modules().stream()
                 .map(module -> module.getClass().getSimpleName())
@@ -93,8 +101,8 @@ class DecouverteModulesTest {
 
         // Socle toujours présent, en tête, jamais découvert.
         assertThat(noms).startsWith("CommunModule", "PersistenceModule");
-        // La feature désactivée est absente, les autres restent.
-        assertThat(noms).doesNotContain("DiagnosticModule").contains("SitesModule", "ConnexionModule");
+        // La feature désactivable désactivée est absente, les autres restent.
+        assertThat(noms).doesNotContain("ImportVigieChiroModule").contains("SitesModule", "ConnexionModule");
     }
 
     @Test
@@ -121,5 +129,47 @@ class DecouverteModulesTest {
             assertThat(f.categorie()).isNotNull();
         });
         assertThat(fonctionnalites).extracting(Fonctionnalite::id).doesNotHaveDuplicates();
+    }
+
+    @Test
+    @DisplayName("garde-fou : une feature COEUR ne peut pas être désactivée, même par propriété système")
+    void garde_fou_coeur_non_desactivable(@TempDir Path tmp) {
+        System.setProperty("vigiechiro.workspace", tmp.toString());
+        System.setProperty("vigiechiro.features.diagnostic", "off");
+
+        List<String> noms = RacineInjecteur.modules().stream()
+                .map(module -> module.getClass().getSimpleName())
+                .toList();
+
+        assertThat(noms).contains("DiagnosticModule");
+    }
+
+    @Test
+    @DisplayName("désactiver import-vigiechiro (propriété système) la retire ; l'injecteur se construit encore")
+    void feature_optionnelle_desactivable_par_propriete(@TempDir Path tmp) {
+        System.setProperty("vigiechiro.workspace", tmp.toString());
+        System.setProperty("vigiechiro.features.import-vigiechiro", "off");
+
+        List<String> noms = RacineInjecteur.modules().stream()
+                .map(module -> module.getClass().getSimpleName())
+                .toList();
+        assertThat(noms).doesNotContain("ImportVigieChiroModule");
+
+        assertThatCode(RacineInjecteur::creer).doesNotThrowAnyException();
+    }
+
+    @Test
+    @DisplayName("un flag persisté feature.<id>.active=false (app_setting) désactive la feature au démarrage")
+    void flag_persiste_desactive_une_feature(@TempDir Path tmp) {
+        System.setProperty("vigiechiro.workspace", tmp.toString());
+        SourceDeDonnees source = new SourceDeDonnees(new Workspace(tmp));
+        new MigrationSchema(source).migrer();
+        new Reglages(new ReglagesDao(source)).ecrireBooleen("feature.import-vigiechiro.active", false);
+
+        List<String> noms = RacineInjecteur.modules().stream()
+                .map(module -> module.getClass().getSimpleName())
+                .toList();
+
+        assertThat(noms).doesNotContain("ImportVigieChiroModule").contains("SitesModule");
     }
 }

@@ -20,6 +20,7 @@ import fr.univ_amu.iut.commun.view.OuvrirPassage;
 import fr.univ_amu.iut.commun.view.OuvrirSite;
 import fr.univ_amu.iut.commun.view.ResumeStatut;
 import fr.univ_amu.iut.commun.view.TableDonnees;
+import fr.univ_amu.iut.commun.viewmodel.ReglagesReactifs;
 import fr.univ_amu.iut.commun.viewmodel.SourceObservations;
 import fr.univ_amu.iut.commun.viewmodel.ZonesStatut;
 import fr.univ_amu.iut.validation.model.LigneObservationAudio;
@@ -77,6 +78,10 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
 
     /// Mémoire de session (tri, #484) : conserve l'état de la table entre deux ouvertures de la vue.
     private final MemoireRevueAudio memoire;
+
+    /// Réglages réactifs (#1006) : câble les options de lecture du menu ☰ ([LecteurAudio]) aux mêmes
+    /// Property que l'onglet « Audio » de l'écran Réglages (persistance + synchro).
+    private final ReglagesReactifs reactifs;
 
     /// Source courante, mémorisée pour adapter colonnes / actions / fil d'Ariane.
     private SourceObservations source;
@@ -255,7 +260,8 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
             OuvrirMultisite ouvrirMultisite,
             MemoireRevueAudio memoire,
             DepotVues depotVues,
-            ActionFicheEspece actionFicheEspece) {
+            ActionFicheEspece actionFicheEspece,
+            ReglagesReactifs reactifs) {
         this.viewModel = Objects.requireNonNull(viewModel, "viewModel");
         this.importVigieChiro = Objects.requireNonNull(importVigieChiro, "importVigieChiro");
         this.ouvrirSite = Objects.requireNonNull(ouvrirSite, "ouvrirSite");
@@ -265,6 +271,7 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
         this.memoire = Objects.requireNonNull(memoire, "memoire");
         this.depotVues = Objects.requireNonNull(depotVues, "depotVues");
         this.actionFicheEspece = Objects.requireNonNull(actionFicheEspece, "actionFicheEspece");
+        this.reactifs = Objects.requireNonNull(reactifs, "reactifs");
     }
 
     /// Câble les colonnes de la table (valeur, cellules, comparateurs de tri). Le détail vit dans
@@ -362,7 +369,8 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
 
         // Panneau d'écoute : config AudioView (normalisations, expansion ×10, source, dispose) + repérage du
         // cri (#482) + métriques FME/fréq. terminale (#500) + options de lecture (#483). Détail dans le helper.
-        PanneauEcouteAudio.installer(audioView, viewModel, tableObservations, colFme, colFreqTerminale, menuActions);
+        PanneauEcouteAudio.installer(
+                audioView, viewModel, tableObservations, colFme, colFreqTerminale, menuActions, reactifs);
 
         choixMode.getItems().setAll(ModeRevue.values());
         choixMode.setConverter(LibellesAudio.converter(mode -> mode == null ? "" : LibellesAudio.mode(mode)));

@@ -63,6 +63,12 @@ public final class CaptureAnalyse {
 
     private static final String MOLOSSE = "Tadten";
 
+    /// Ressource FXML de l'écran, chargée par chaque rendu (une scène neuve par PNG).
+    private static final String FXML_ANALYSE = "Analyse.fxml";
+
+    /// `fx:id` de la table maître (inventaire par espèce), atteinte après affichage.
+    private static final String ID_TABLE_ESPECES = "#tableEspeces";
+
     private CaptureAnalyse() {}
 
     public static void main(String[] args) throws InterruptedException {
@@ -121,10 +127,10 @@ public final class CaptureAnalyse {
     /// mode Par espèce (regroupement nul), sélectionne la première espèce pour peupler le panneau détail.
     ///
     /// La sélection se fait **après l'affichage** (via [ApercuFx#capturerApresPreparation]) : le `SplitPane`
-    /// n'attache ses enfants au graphe de scène qu'une fois son skin appliqué, donc `lookup("#tableEspeces")`
+    /// n'attache ses enfants au graphe de scène qu'une fois son skin appliqué, donc `lookup(ID_TABLE_ESPECES)`
     /// renverrait `null` avant la première mise en page.
     private static void rendre(Injector injecteur, Regroupement regroupement, Path fichier) throws IOException {
-        FXMLLoader loader = new FXMLLoader(AnalyseController.class.getResource("Analyse.fxml"));
+        FXMLLoader loader = new FXMLLoader(AnalyseController.class.getResource(FXML_ANALYSE));
         loader.setControllerFactory(injecteur::getInstance);
         Parent vue = loader.load();
         Scene scene = new Scene(vue, 1080, 640);
@@ -137,7 +143,7 @@ public final class CaptureAnalyse {
     /// s'ancre le ☰ « outils ». On joint palette + design **à la scène** : le panneau, frère de la vue, n'hérite
     /// pas des feuilles chargées par le FXML sur la vue.
     private static void rendreColonnes(Injector injecteur, Path fichier) throws IOException {
-        FXMLLoader loader = new FXMLLoader(AnalyseController.class.getResource("Analyse.fxml"));
+        FXMLLoader loader = new FXMLLoader(AnalyseController.class.getResource(FXML_ANALYSE));
         loader.setControllerFactory(injecteur::getInstance);
         Parent vue = loader.load();
         StackPane pile = new StackPane(vue);
@@ -149,7 +155,7 @@ public final class CaptureAnalyse {
         ApercuFx.capturerApresPreparation(
                 scene,
                 () -> {
-                    if (vue.lookup("#tableEspeces") instanceof TableView<?> table) {
+                    if (vue.lookup(ID_TABLE_ESPECES) instanceof TableView<?> table) {
                         table.getSelectionModel().select(0);
                         VBox panneau = GestionnaireColonnes.construirePanneau(
                                 table, GestionnaireColonnes.colonnesParDefaut(table));
@@ -172,7 +178,7 @@ public final class CaptureAnalyse {
     /// démarre sinon pas (carte hidden → fond vide). Comme `multisite`, on laisse ensuite les tuiles OSM
     /// se peindre avant la capture (choroplèthe de richesse + légende, par-dessus le fond).
     private static void rendreCarte(Injector injecteur, Path fichier) throws IOException {
-        FXMLLoader loader = new FXMLLoader(AnalyseController.class.getResource("Analyse.fxml"));
+        FXMLLoader loader = new FXMLLoader(AnalyseController.class.getResource(FXML_ANALYSE));
         loader.setControllerFactory(injecteur::getInstance);
         Parent vue = loader.load();
         if (vue.lookup("#boutonCarte") instanceof Button bascule) {
@@ -188,7 +194,7 @@ public final class CaptureAnalyse {
                     if (vue.lookup("#champRecherche") instanceof TextField champ) {
                         champ.setText("Pipistrelle");
                     }
-                    if (vue.lookup("#tableEspeces") instanceof TableView<?> table
+                    if (vue.lookup(ID_TABLE_ESPECES) instanceof TableView<?> table
                             && !table.getItems().isEmpty()) {
                         table.getSelectionModel().select(0);
                     }
@@ -221,7 +227,7 @@ public final class CaptureAnalyse {
             @SuppressWarnings("unchecked")
             ComboBox<Regroupement> choix = (ComboBox<Regroupement>) combo;
             choix.getSelectionModel().select(regroupement);
-        } else if (regroupement == null && vue.lookup("#tableEspeces") instanceof TableView<?> table) {
+        } else if (regroupement == null && vue.lookup(ID_TABLE_ESPECES) instanceof TableView<?> table) {
             @SuppressWarnings("unchecked")
             TableView<EspeceAgregee> especes = (TableView<EspeceAgregee>) table;
             especes.getSelectionModel().select(0);

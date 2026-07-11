@@ -160,10 +160,28 @@ public class ServiceImport {
             Consumer<Progression> progres,
             JetonAnnulation jeton,
             boolean conserverOriginaux) {
+        return importer(dossierSource, idPoint, prefixe, progres, jeton, conserverOriginaux, SuiviFichiers.inerte());
+    }
+
+    /// Variante avec **suivi par fichier** (#947) : `suiviFichiers` est notifié au fil de la copie et de
+    /// la transformation de chaque original (plan de la nuit, démarrages, fins, rejets #155), en
+    /// complément de la progression globale. Notifié hors-thread et **dans le désordre** (transformation
+    /// parallèle #12) — la couche IHM relaie au fil JavaFX et cible les lignes par numéro. Mêmes règles
+    /// métier, même contrat transactionnel que les autres variantes.
+    public ResultatImport importer(
+            Path dossierSource,
+            Long idPoint,
+            Prefixe prefixe,
+            Consumer<Progression> progres,
+            JetonAnnulation jeton,
+            boolean conserverOriginaux,
+            SuiviFichiers suiviFichiers) {
         exigerParametresCommuns(dossierSource, idPoint, progres, jeton);
         Objects.requireNonNull(prefixe, "prefixe");
+        exigerSuiviFichiers(suiviFichiers);
 
-        return sousVerrouImport(dossierSource, idPoint, prefixe, progres, jeton, false, conserverOriginaux);
+        return sousVerrouImport(
+                dossierSource, idPoint, prefixe, progres, jeton, false, conserverOriginaux, suiviFichiers);
     }
 
     /// Exécute un import **sous le verrou anti-concurrent** (#54) : un seul import à la fois sur ce service
@@ -178,7 +196,8 @@ public class ServiceImport {
             Consumer<Progression> progres,
             JetonAnnulation jeton,
             boolean ecraser,
-            boolean conserverOriginaux) {
+            boolean conserverOriginaux,
+            SuiviFichiers suiviFichiers) {
         if (!importEnCours.compareAndSet(false, true)) {
             throw new RegleMetierException("Un import est déjà en cours : attendez sa fin avant d'en lancer un autre.");
         }
@@ -187,8 +206,16 @@ public class ServiceImport {
                     ? RemplacementSession.autourDe(
                             workspace.dossierSession(prefixe.nomDossierSession()),
                             () -> executerImportProtege(
-                                    dossierSource, idPoint, prefixe, progres, jeton, true, conserverOriginaux))
-                    : executerImportProtege(dossierSource, idPoint, prefixe, progres, jeton, false, conserverOriginaux);
+                                    dossierSource,
+                                    idPoint,
+                                    prefixe,
+                                    progres,
+                                    jeton,
+                                    true,
+                                    conserverOriginaux,
+                                    suiviFichiers))
+                    : executerImportProtege(
+                            dossierSource, idPoint, prefixe, progres, jeton, false, conserverOriginaux, suiviFichiers);
             // La nuit est persistée (transaction O7 committée) : on crée sa participation VigieChiro au plus
             // tôt (best-effort), pour que le dépôt la réutilise ensuite (pas de doublon).
             creerParticipationSiPossible(resultat.passage().id());
@@ -271,10 +298,26 @@ public class ServiceImport {
             Consumer<Progression> progres,
             JetonAnnulation jeton,
             boolean conserverOriginaux) {
+        return ecraserEtImporter(
+                dossierSource, idPoint, prefixe, progres, jeton, conserverOriginaux, SuiviFichiers.inerte());
+    }
+
+    /// Variante **écrasement** avec [#importer(Path, Long, Prefixe, Consumer, JetonAnnulation, boolean,
+    /// SuiviFichiers) suivi par fichier] (#947). À n'appeler qu'après **double confirmation** côté IHM (#214).
+    public ResultatImport ecraserEtImporter(
+            Path dossierSource,
+            Long idPoint,
+            Prefixe prefixe,
+            Consumer<Progression> progres,
+            JetonAnnulation jeton,
+            boolean conserverOriginaux,
+            SuiviFichiers suiviFichiers) {
         exigerParametresCommuns(dossierSource, idPoint, progres, jeton);
         Objects.requireNonNull(prefixe, "prefixe");
+        exigerSuiviFichiers(suiviFichiers);
         serviceSauvegarde.sauvegarder(serviceSauvegarde.dossierParDefaut());
-        return sousVerrouImport(dossierSource, idPoint, prefixe, progres, jeton, true, conserverOriginaux);
+        return sousVerrouImport(
+                dossierSource, idPoint, prefixe, progres, jeton, true, conserverOriginaux, suiviFichiers);
     }
 
     /// Importe **plusieurs nuits** d'une même carte SD en **un passage par nuit** (même point, n° de
@@ -299,9 +342,26 @@ public class ServiceImport {
             boolean conserverOriginaux,
             Consumer<Progression> progres,
             JetonAnnulation jeton) {
+        return importerNuits(
+                dossierSource, idPoint, prefixeBase, nuits, conserverOriginaux, progres, jeton, SuiviFichiers.inerte());
+    }
+
+    /// Variante **multi-nuits** avec [#importer(Path, Long, Prefixe, Consumer, JetonAnnulation, boolean,
+    /// SuiviFichiers) suivi par fichier] (#947) : le plan est **replanifié à chaque nuit** (une table par
+    /// nuit en cours), en phase avec la progression agrégée « Nuit i/N · … ».
+    public ResultatImportMultiNuits importerNuits(
+            Path dossierSource,
+            Long idPoint,
+            Prefixe prefixeBase,
+            List<NuitAImporter> nuits,
+            boolean conserverOriginaux,
+            Consumer<Progression> progres,
+            JetonAnnulation jeton,
+            SuiviFichiers suiviFichiers) {
         exigerParametresCommuns(dossierSource, idPoint, progres, jeton);
         Objects.requireNonNull(prefixeBase, "prefixeBase");
         Objects.requireNonNull(nuits, "nuits");
+        exigerSuiviFichiers(suiviFichiers);
         if (nuits.isEmpty()) {
             throw new RegleMetierException("Aucune nuit à importer : cochez au moins une nuit.");
         }
@@ -316,7 +376,15 @@ public class ServiceImport {
             JournalParse journal =
                     rapport.journalOptionnel().orElseGet(() -> JournalDeRepli.depuis(rapport.originaux()));
             ContexteImport ctx = new ContexteImport(
-                    rapport, journal, sansJournal, dossierSource, idPoint, conserverOriginaux, false, jeton);
+                    rapport,
+                    journal,
+                    sansJournal,
+                    dossierSource,
+                    idPoint,
+                    conserverOriginaux,
+                    false,
+                    jeton,
+                    suiviFichiers);
             ResultatImportMultiNuits resultat = moteur.importerNuits(ctx, prefixeBase, nuits, progres);
             // Une participation VigieChiro par nuit persistée (best-effort), réutilisée au dépôt.
             resultat.parNuit()
@@ -336,7 +404,8 @@ public class ServiceImport {
             Consumer<Progression> progres,
             JetonAnnulation jeton,
             boolean ecraser,
-            boolean conserverOriginaux) {
+            boolean conserverOriginaux,
+            SuiviFichiers suiviFichiers) {
         // R5 : on refuse le doublon AVANT de copier/transformer quoi que ce soit. En mode écrasement (#214)
         // le doublon est au contraire attendu : on ne refuse pas, l'ancien passage sera supprimé dans la
         // transaction d'insertion du nouveau (remplacement atomique).
@@ -370,7 +439,15 @@ public class ServiceImport {
         List<NuitDetectee> nuits = rapport.partitionNuits();
         LocalDate dateNuit = nuits.size() == 1 ? nuits.getFirst().dateNuit() : journal.dateDebut();
         ContexteImport ctx = new ContexteImport(
-                rapport, journal, sansJournal, dossierSource, idPoint, conserverOriginaux, ecraser, jeton);
+                rapport,
+                journal,
+                sansJournal,
+                dossierSource,
+                idPoint,
+                conserverOriginaux,
+                ecraser,
+                jeton,
+                suiviFichiers);
         return moteur.importerUneNuit(ctx, prefixe, rapport.originaux(), dateNuit, progres);
     }
 
@@ -392,6 +469,12 @@ public class ServiceImport {
     /// Rejette (NPE) tout paramètre commun manquant d'un import, factorisé pour éviter la duplication : les
     /// trois points d'entrée ([#importer], [#ecraserEtImporter], [#importerNuits]) partagent ces quatre
     /// paramètres. Les paramètres spécifiques (préfixe, nuits) sont vérifiés par chaque appelant.
+    /// Rejette (NPE) un suivi par fichier manquant (#947), factorisé entre les trois variantes qui le
+    /// reçoivent (les variantes sans suivi passent déjà [SuiviFichiers#inerte()]).
+    private static void exigerSuiviFichiers(SuiviFichiers suiviFichiers) {
+        Objects.requireNonNull(suiviFichiers, "suiviFichiers");
+    }
+
     private static void exigerParametresCommuns(
             Path dossierSource, Long idPoint, Consumer<Progression> progres, JetonAnnulation jeton) {
         Objects.requireNonNull(dossierSource, "dossierSource");

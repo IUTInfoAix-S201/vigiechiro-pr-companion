@@ -31,7 +31,9 @@ import java.util.stream.Stream;
 ///
 /// L'**ordre d'origine est préservé** (Future récupérés dans l'ordre de soumission) → résultat
 /// déterministe. La progression (#33) est émise **sous verrou + compteur** pour rester appelée un à un,
-/// libellés « k/N · fichier » monotones (#146), un point par fichier traité (réussi **ou** rejeté).
+/// libellés « k/N · fichier » monotones (#146), un point par fichier traité (réussi **ou** rejeté). Le
+/// suivi **par fichier** ([SuiviFichiers], #947) est émis hors verrou : chaque événement cible sa ligne
+/// par le numéro de plan de la source, l'ordre d'arrivée n'importe pas.
 final class DecoupageParallele {
 
     private final TransformationAudio transformation;
@@ -42,6 +44,21 @@ final class DecoupageParallele {
         this.parallelisme = parallelisme;
     }
 
+    /// Invariants d'**une** campagne de découpage, partagés par tous les threads : cadence globale
+    /// (compteur + verrou de progression + sémaphore), callbacks et paramètres de nommage. Objet-paramètre
+    /// pour garder [#decouperUn] lisible (PMD `ExcessiveParameterList`).
+    private record CampagneDecoupage(
+            Prefixe prefixe,
+            Integer frequenceAcquisitionLogHz,
+            int nbOriginaux,
+            int totalEtapes,
+            Consumer<Progression> progres,
+            SuiviFichiers suivi,
+            JetonAnnulation jeton,
+            AtomicInteger traites,
+            Object verrouProgression,
+            Semaphore creneaux) {}
+
     List<ResultatDecoupage> decouper(
             List<SourceOriginal> originaux,
             Path dossierTransformes,
@@ -50,10 +67,19 @@ final class DecoupageParallele {
             int nbOriginaux,
             int totalEtapes,
             Consumer<Progression> progres,
-            JetonAnnulation jeton) {
-        AtomicInteger traites = new AtomicInteger(0);
-        Object verrouProgression = new Object();
-        Semaphore creneaux = new Semaphore(parallelisme);
+            JetonAnnulation jeton,
+            SuiviFichiers suivi) {
+        CampagneDecoupage campagne = new CampagneDecoupage(
+                prefixe,
+                frequenceAcquisitionLogHz,
+                nbOriginaux,
+                totalEtapes,
+                progres,
+                suivi,
+                jeton,
+                new AtomicInteger(0),
+                new Object(),
+                new Semaphore(parallelisme));
         // Chaque original écrit ses tranches dans un sous-dossier temporaire PROPRE (indexé) : cela évite les
         // écrasements entre écritures parallèles quand deux tranches d'originaux différents visent le même nom
         // horodaté. Les noms définitifs (et la résolution des collisions) sont attribués APRÈS, en séquentiel
@@ -61,18 +87,8 @@ final class DecoupageParallele {
         Path dossierTemporaire = dossierTransformes.resolve(".tmp-decoupage");
         try (ExecutorService executeur = Executors.newVirtualThreadPerTaskExecutor()) {
             List<Future<ResultatDecoupage>> decoupagesEnCours = IntStream.range(0, originaux.size())
-                    .mapToObj(i -> executeur.submit(() -> decouperUn(
-                            originaux.get(i),
-                            dossierTemporaire.resolve(Integer.toString(i)),
-                            prefixe,
-                            frequenceAcquisitionLogHz,
-                            nbOriginaux,
-                            totalEtapes,
-                            progres,
-                            jeton,
-                            traites,
-                            verrouProgression,
-                            creneaux)))
+                    .mapToObj(i -> executeur.submit(() ->
+                            decouperUn(originaux.get(i), dossierTemporaire.resolve(Integer.toString(i)), campagne)))
                     .toList();
             try {
                 List<ResultatDecoupage> bruts = decoupagesEnCours.stream()
@@ -108,48 +124,46 @@ final class DecoupageParallele {
         }
     }
 
-    private ResultatDecoupage decouperUn(
-            SourceOriginal source,
-            Path dossierSortieOriginal,
-            Prefixe prefixe,
-            Integer frequenceAcquisitionLogHz,
-            int nbOriginaux,
-            int totalEtapes,
-            Consumer<Progression> progres,
-            JetonAnnulation jeton,
-            AtomicInteger traites,
-            Object verrouProgression,
-            Semaphore creneaux)
+    private ResultatDecoupage decouperUn(SourceOriginal source, Path dossierSortieOriginal, CampagneDecoupage campagne)
             throws InterruptedException {
-        creneaux.acquire();
+        campagne.creneaux().acquire();
         try {
-            jeton.leverSiAnnule(); // l'annulation (#146) interrompt ; un rejet de fichier, lui, est capturé
+            campagne.jeton().leverSiAnnule(); // l'annulation (#146) interrompt ; un rejet, lui, est capturé
+            campagne.suivi().transformationDemarree(source.numero());
             Path original = source.chemin();
             ResultatDecoupage resultat;
             try {
                 // Nommage des séquences d'après le nom logique R6 (source.nomR6()), découplé du chemin lu :
                 // en mode « sans copie » on lit la source SD mais on nomme comme si elle était renommée R6.
                 TransformationOriginal t = transformation.transformer(
-                        original, source.nomR6(), dossierSortieOriginal, prefixe, frequenceAcquisitionLogHz);
+                        original,
+                        source.nomR6(),
+                        dossierSortieOriginal,
+                        campagne.prefixe(),
+                        campagne.frequenceAcquisitionLogHz());
                 resultat = new ResultatDecoupage(original, t, null);
+                campagne.suivi().fichierTermine(source.numero());
             } catch (OriginalIllisibleException rejet) {
                 // Résilience (#155) : une erreur de lecture/format SOURCE est consignée en rejet et l'import
                 // continue. Une erreur d'écriture workspace (UncheckedIOException) reste fatale et se propage.
                 resultat = new ResultatDecoupage(original, null, raison(rejet));
+                campagne.suivi().fichierRejete(source.numero(), raison(rejet));
             }
-            synchronized (verrouProgression) {
-                int faits = traites.incrementAndGet();
+            synchronized (campagne.verrouProgression()) {
+                int faits = campagne.traites().incrementAndGet();
                 // Les étapes précédant la transformation (les copies, en mode conservation) valent
                 // `totalEtapes - nbOriginaux` : 0 en mode sans copie (total = nbOriginaux). La fraction
                 // reprend donc là où la phase de copie s'est arrêtée.
-                int etapesDejaFaites = totalEtapes - nbOriginaux;
-                progres.accept(new Progression(
-                        "Transformation " + faits + "/" + nbOriginaux + " · " + original.getFileName(),
-                        (double) (etapesDejaFaites + faits) / totalEtapes));
+                int etapesDejaFaites = campagne.totalEtapes() - campagne.nbOriginaux();
+                campagne.progres()
+                        .accept(new Progression(
+                                "Transformation " + faits + "/" + campagne.nbOriginaux() + " · "
+                                        + original.getFileName(),
+                                (double) (etapesDejaFaites + faits) / campagne.totalEtapes()));
             }
             return resultat;
         } finally {
-            creneaux.release();
+            campagne.creneaux().release();
         }
     }
 

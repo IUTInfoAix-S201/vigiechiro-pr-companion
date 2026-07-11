@@ -38,4 +38,11 @@ class FormatsLotTest {
                 .contains("Dépôt VigieChiro entamé")
                 .contains("reprise");
     }
+
+    @Test
+    @DisplayName("bilanArchives : « N archive(s) · volume » ; chaîne vide quand aucune archive (#823)")
+    void bilan_archives() {
+        assertThat(FormatsLot.bilanArchives(0, 0L)).isEmpty();
+        assertThat(FormatsLot.bilanArchives(21, 3_145_728L)).isEqualTo("21 archive(s) · 3 Mo");
+    }
 }

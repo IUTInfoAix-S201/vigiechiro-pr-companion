@@ -4,6 +4,8 @@ import fr.univ_amu.iut.commun.viewmodel.SuiviLignes;
 import fr.univ_amu.iut.lot.model.ArchiveDepot;
 import fr.univ_amu.iut.lot.model.ArchivePlanifiee;
 import java.util.List;
+import javafx.beans.property.ReadOnlyStringProperty;
+import javafx.beans.property.ReadOnlyStringWrapper;
 
 /// Table de suivi des archives de dépôt (#820) côté ViewModel : spécialise le socle [SuiviLignes] pour
 /// traduire le cycle de vie reçu du [fr.univ_amu.iut.lot.model.SuiviArchives] (plan établi → démarrée →
@@ -14,6 +16,15 @@ import java.util.List;
 /// **Fil JavaFX** : ces méthodes mutent des collections/propriétés observables ; l'appelant (le
 /// controller) les invoque via `Platform.runLater`, comme le callback de progression global.
 public final class SuiviLignesArchives extends SuiviLignes<LigneArchive> {
+
+    /// Bilan des archives **écrites** sur disque, au repos : « N archive(s) · volume » (#823), vide s'il
+    /// n'y en a aucune. Alimenté à chaque affichage de l'état terminé (réhydratation, fin de génération) ;
+    /// la barre de statut l'expose quand aucune tâche ni alerte n'est prioritaire.
+    private final ReadOnlyStringWrapper bilanArchives = new ReadOnlyStringWrapper(this, "bilanArchives", "");
+
+    public ReadOnlyStringProperty bilanArchivesProperty() {
+        return bilanArchives.getReadOnlyProperty();
+    }
 
     /// Pré-remplit la table d'une ligne « en attente » par archive planifiée (dans l'ordre des numéros).
     public void planifier(List<ArchivePlanifiee> plan) {
@@ -33,6 +44,7 @@ public final class SuiviLignesArchives extends SuiviLignes<LigneArchive> {
                     return ligne;
                 })
                 .toList());
+        bilanArchives.set(FormatsLot.bilanArchives(archives));
     }
 
     /// L'archive est écrite : sa ligne passe « terminée » avec sa taille réelle.

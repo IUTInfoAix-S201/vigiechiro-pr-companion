@@ -2,7 +2,9 @@ package fr.univ_amu.iut.lot.viewmodel;
 
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.viewmodel.Formats;
+import fr.univ_amu.iut.lot.model.ArchiveDepot;
 import fr.univ_amu.iut.lot.model.EtatLot;
+import java.util.List;
 import java.util.Locale;
 
 /// Formatage **textuel** pur des éléments de l'écran M-Lot (récapitulatif, message d'état, ligne
@@ -22,6 +24,18 @@ final class FormatsLot {
 
     private static String enGigaoctets(long octets) {
         return String.format(Locale.FRENCH, "%.1f", octets / 1_000_000_000.0);
+    }
+
+    /// Bilan des **archives de dépôt** présentes sur disque (au repos) : « N archive(s) · volume », même
+    /// convention de volume que le récapitulatif. Chaîne vide quand il n'y a aucune archive (#823).
+    static String bilanArchives(int nombre, long octets) {
+        return nombre == 0 ? "" : nombre + " archive(s) · " + Formats.octetsLisibles(octets);
+    }
+
+    /// Bilan des archives à partir de la liste : agrège le nombre et le volume cumulé (cf. [#bilanArchives]).
+    static String bilanArchives(List<ArchiveDepot> archives) {
+        long octets = archives.stream().mapToLong(ArchiveDepot::tailleOctets).sum();
+        return bilanArchives(archives.size(), octets);
     }
 
     /// Récapitulatif du lot : « N séquences · volume ».

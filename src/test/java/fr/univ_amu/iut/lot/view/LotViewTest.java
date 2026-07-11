@@ -15,6 +15,7 @@ import fr.univ_amu.iut.commun.view.NavigationDeTestModule;
 import fr.univ_amu.iut.commun.view.OuvreurDeLien;
 import fr.univ_amu.iut.commun.viewmodel.ContextePassage;
 import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
+import fr.univ_amu.iut.commun.viewmodel.ZonesStatut;
 import fr.univ_amu.iut.lot.model.DepotVigieChiro;
 import fr.univ_amu.iut.lot.model.EtatLot;
 import fr.univ_amu.iut.lot.model.ServiceLot;
@@ -79,16 +80,16 @@ class LotViewTest {
     }
 
     @Test
-    @DisplayName("Affiche statut/récap/dossier ; préparer actif, déposer désactivé (Vérifié)")
+    @DisplayName("Barre de statut : gauche = contexte, centre = statut + récap ; préparer actif, déposer désactivé")
     void affiche_etat_verifie(FxRobot robot) {
-        Label recap = robot.lookup("#lblRecap").queryAs(Label.class);
         Label chemin = robot.lookup("#lblCheminDepot").queryAs(Label.class);
         Button preparer = robot.lookup("#btnPreparer").queryAs(Button.class);
         Button deposer = robot.lookup("#btnDeposer").queryAs(Button.class);
 
-        // Le statut est déporté en barre de statut (#693) : plus de label d'en-tête, il vit dans les zones.
-        assertThat(controleur.zonesStatutProperty().get().centre()).isEqualTo("Vérifié");
-        assertThat(recap.getText()).isEqualTo("2 séquences · 8 Ko");
+        // Statut + récap déportés dans la barre de statut (#823) : identité à gauche, statut + récap au centre.
+        ZonesStatut zones = controleur.zonesStatutProperty().get();
+        assertThat(zones.gauche()).isEqualTo("Carré 640380 · A1 · N° 2");
+        assertThat(zones.centre()).isEqualTo("Vérifié · 2 séquences · 8 Ko");
         assertThat(chemin.getText()).isEqualTo("/ws/session-42/depot");
         assertThat(preparer.isDisabled()).isFalse();
         assertThat(deposer.isDisabled()).isTrue();

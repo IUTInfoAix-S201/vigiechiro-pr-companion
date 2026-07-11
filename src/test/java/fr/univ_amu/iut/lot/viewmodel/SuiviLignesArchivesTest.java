@@ -16,6 +16,23 @@ import org.junit.jupiter.api.Test;
 class SuiviLignesArchivesTest {
 
     @Test
+    @DisplayName("#823 : afficherTerminees alimente le bilan « N archive(s) · volume » ; vide si aucune")
+    void afficher_terminees_calcule_le_bilan() {
+        SuiviLignesArchives suivi = new SuiviLignesArchives();
+        assertThat(suivi.bilanArchivesProperty().get()).isEmpty();
+
+        suivi.afficherTerminees(List.of(
+                new ArchiveDepot(Path.of("depot/p-1.zip"), 1, 2_097_152L, 210),
+                new ArchiveDepot(Path.of("depot/p-2.zip"), 2, 1_048_576L, 208)));
+        assertThat(suivi.bilanArchivesProperty().get()).isEqualTo("2 archive(s) · 3 Mo");
+
+        suivi.afficherTerminees(List.of());
+        assertThat(suivi.bilanArchivesProperty().get())
+                .as("plus d'archive → bilan vide")
+                .isEmpty();
+    }
+
+    @Test
     @DisplayName("planifier() pré-remplit une ligne « en attente » par archive, dans l'ordre des numéros")
     void planifier_pre_remplit_les_lignes_en_attente() {
         SuiviLignesArchives suivi = new SuiviLignesArchives();

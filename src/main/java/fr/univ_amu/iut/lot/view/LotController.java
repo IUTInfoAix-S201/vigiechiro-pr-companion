@@ -87,9 +87,6 @@ public class LotController implements EmplacementNavigation, ResumeStatut {
     private Predicate<String> confirmateur = this::confirmerParDialogue;
 
     @FXML
-    private Label lblRecap;
-
-    @FXML
     private HBox stepper;
 
     @FXML
@@ -178,6 +175,26 @@ public class LotController implements EmplacementNavigation, ResumeStatut {
         return zonesStatut.getReadOnlyProperty();
     }
 
+    /// Compose les 3 zones de la barre de statut (#823) : identité du passage à gauche, statut + récap au
+    /// centre, et à droite l'état vivant **prioritaire** (génération en cours > alerte espace disque >
+    /// bilan des archives au repos), via [ZonesStatut#premierNonVide].
+    private ZonesStatut zonesStatutCourantes() {
+        String gauche = contexte == null ? "" : contexte.identiteStatut();
+        String statut = viewModel.statutProperty().get();
+        String recap = viewModel.recapProperty().get();
+        String centre = recap.isBlank() ? statut : statut + " · " + recap;
+        String progression = viewModel.generationEnCoursProperty().get()
+                ? viewModel.progression().messageProperty().get()
+                : "";
+        String alerte =
+                viewModel.raisonEspaceInsuffisantProperty().get().isBlank() ? "" : "⚠ Espace disque insuffisant";
+        String droite = ZonesStatut.premierNonVide(
+                progression,
+                alerte,
+                viewModel.suiviLignes().bilanArchivesProperty().get());
+        return new ZonesStatut(gauche, centre, droite);
+    }
+
     /// Reflète l'opération critique en cours du lot sur le chrome (#906) : génération d'archives, puis
     /// dépôt, sinon rien. Un état non vide fait avertir le [fr.univ_amu.iut.commun.view.Navigateur] / `App`
     /// avant une sortie d'écran ou une fermeture.
@@ -201,10 +218,16 @@ public class LotController implements EmplacementNavigation, ResumeStatut {
         depotViewModel.enCoursProperty().addListener((obs, avant, apres) -> majOperationCritique());
         majOperationCritique();
 
-        // Statut du workflow déporté en zone centre de la barre de statut (#693), plus de sous-titre.
+        // État du lot déporté dans les 3 zones de la barre de statut (#823) : identité à gauche, statut +
+        // récapitulatif au centre, état vivant prioritaire à droite. Le récap ne vit donc plus dans une carte.
         zonesStatut.bind(Bindings.createObjectBinding(
-                () -> ZonesStatut.centre(viewModel.statutProperty().get()), viewModel.statutProperty()));
-        lblRecap.textProperty().bind(viewModel.recapProperty());
+                this::zonesStatutCourantes,
+                viewModel.statutProperty(),
+                viewModel.recapProperty(),
+                viewModel.generationEnCoursProperty(),
+                viewModel.progression().messageProperty(),
+                viewModel.raisonEspaceInsuffisantProperty(),
+                viewModel.suiviLignes().bilanArchivesProperty()));
         // Étape ③ : la cible du téléversement est le sous-dossier depot/ (archives ZIP), pas la session.
         lblCheminDepot.textProperty().bind(viewModel.cheminDepotProperty());
 

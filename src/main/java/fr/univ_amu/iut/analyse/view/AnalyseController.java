@@ -8,7 +8,6 @@ import fr.univ_amu.iut.commun.model.EspeceIdentifiee;
 import fr.univ_amu.iut.commun.view.ActionFicheEspece;
 import fr.univ_amu.iut.commun.view.ColonneBadge;
 import fr.univ_amu.iut.commun.view.DescripteurFiltre;
-import fr.univ_amu.iut.commun.view.GestionnaireColonnes;
 import fr.univ_amu.iut.commun.view.GestionnaireFiltres;
 import fr.univ_amu.iut.commun.view.GestionnaireVues;
 import fr.univ_amu.iut.commun.view.IndicateurBlocage;
@@ -41,7 +40,6 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
-import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
@@ -78,6 +76,10 @@ public class AnalyseController implements RafraichirAuRetour {
 
     /// Item « Fiche de l'espèce » du menu contextuel de [#tableEspeces], reconfiguré à chaque sélection.
     private MenuItem itemFicheEspece;
+
+    /// Sélecteur de colonnes des trois tables (extrait, #914/#994) : câble clic droit + ☰ et fournit
+    /// l'adaptateur qui capture/rejoue les colonnes dans les vues mémorisées.
+    private SelecteurColonnesAnalyse selecteurColonnes;
 
     /// État de la bascule Tableau ⇄ Carte (vue, pas de domaine) ; la carte elle-même est gérée par
     /// [CarteRepartition], installée **paresseusement** au premier affichage (`null` tant qu'on reste en
@@ -248,27 +250,19 @@ public class AnalyseController implements RafraichirAuRetour {
         tableEspeces.setItems(viewModel.especes());
         tableCarres.setItems(viewModel.carres());
 
-        // Sélecteur de colonnes sur les **trois** tables de l'analyse (EPIC #914). L'écran n'a qu'un seul ☰,
-        // mais deux tables maître (espèces/carrés, exclusives) + une table détail (observations) : chaque
-        // table porte donc son propre clic droit « Colonnes… » (celui des espèces y ajoute « Fiche de
-        // l'espèce », #848/#916, reconfiguré à chaque sélection plus bas), et le ☰ « outils » pilote la table
-        // maître **visible**. Les descripteurs (en-tête = libellé, colonne de tête = identité) sont figés ici
-        // pour que le ☰ et le clic droit règlent la même chose. Un clic droit sélectionne d'abord la ligne
-        // visée pour que la fiche porte bien sur elle.
+        // Sélecteur de colonnes des **trois** tables de l'analyse (EPIC #914), extrait dans
+        // SelecteurColonnesAnalyse : clic droit « Colonnes… » par table (celui des espèces reçoit en plus
+        // « Fiche de l'espèce », #848/#916, reconfiguré à chaque sélection plus bas), ☰ « outils » pilotant la
+        // table maître visible, et adaptateur pour la capture dans les vues mémorisées (#994). Un clic droit
+        // sélectionne d'abord la ligne visée pour que la fiche porte bien sur elle.
         itemFicheEspece = new MenuItem();
-        var colonnesEspeces = GestionnaireColonnes.colonnesParDefaut(tableEspeces);
-        var colonnesCarres = GestionnaireColonnes.colonnesParDefaut(tableCarres);
-        GestionnaireColonnes.installerClicDroit(tableEspeces, colonnesEspeces, itemFicheEspece);
-        GestionnaireColonnes.installerClicDroit(tableCarres, colonnesCarres);
-        GestionnaireColonnes.installerClicDroit(
-                tableObservations, GestionnaireColonnes.colonnesParDefaut(tableObservations));
-        MenuItem itemColonnesMaitre = new MenuItem("Colonnes…");
-        itemColonnesMaitre.setOnAction(e -> {
-            boolean parEspece = viewModel.regroupementProperty().get() == Regroupement.PAR_ESPECE;
-            GestionnaireColonnes.ouvrir(
-                    parEspece ? tableEspeces : tableCarres, parEspece ? colonnesEspeces : colonnesCarres, menuOutils);
-        });
-        menuOutils.getItems().addAll(new SeparatorMenuItem(), itemColonnesMaitre);
+        selecteurColonnes = new SelecteurColonnesAnalyse(
+                tableEspeces,
+                tableCarres,
+                tableObservations,
+                menuOutils,
+                () -> viewModel.regroupementProperty().get());
+        selecteurColonnes.installer(itemFicheEspece);
         tableEspeces.setRowFactory(tableau -> {
             TableRow<EspeceAgregee> ligne = new TableRow<>();
             ligne.setOnMousePressed(evenement -> {
@@ -295,9 +289,15 @@ public class AnalyseController implements RafraichirAuRetour {
                 viewModel.filtres(),
                 List.of(CriteresAnalyse.statut(), CriteresAnalyse.groupe(viewModel::groupesDisponibles)),
                 CriteresAnalyse.rechercheTexte());
-        // Onglets de vues mémorisées (#623) : vues par défaut (lecture seule) + vues de l'utilisateur.
+        // Onglets de vues mémorisées (#623) : vues par défaut (lecture seule) + vues de l'utilisateur. La vue
+        // capture aussi la disposition des colonnes des trois tables (#994), via l'adaptateur du sélecteur.
         GestionnaireVues.avecDialogue(
-                barreOnglets, gestionnaireFiltres, depotVues, FEATURE, CriteresAnalyse.vuesParDefaut());
+                barreOnglets,
+                gestionnaireFiltres,
+                depotVues,
+                FEATURE,
+                CriteresAnalyse.vuesParDefaut(),
+                selecteurColonnes.adaptateur());
 
         // Message d'export.
         var exportPresent = viewModel.messageProperty().isNotEmpty();

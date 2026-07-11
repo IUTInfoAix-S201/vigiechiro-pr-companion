@@ -4,7 +4,6 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.multibindings.Multibinder;
-import com.google.inject.multibindings.OptionalBinder;
 import fr.univ_amu.iut.commun.api.ClientGbif;
 import fr.univ_amu.iut.commun.model.DepotVues;
 import fr.univ_amu.iut.commun.model.Horloge;
@@ -14,7 +13,6 @@ import fr.univ_amu.iut.commun.model.SourceUniversellePreferee;
 import fr.univ_amu.iut.commun.model.Workspace;
 import fr.univ_amu.iut.commun.model.dao.VueSauvegardeeDao;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
-import fr.univ_amu.iut.commun.view.ActionConnexion;
 import fr.univ_amu.iut.commun.view.ActionMenu;
 import fr.univ_amu.iut.commun.view.ActionOuvrirReglages;
 import fr.univ_amu.iut.commun.view.ActionPurger;
@@ -27,8 +25,6 @@ import fr.univ_amu.iut.commun.view.Navigateur;
 import fr.univ_amu.iut.commun.view.OngletReglages;
 import fr.univ_amu.iut.commun.view.OuvreurDeLien;
 import fr.univ_amu.iut.commun.view.OuvreurDeLienSysteme;
-import fr.univ_amu.iut.commun.view.OuvrirConnexion;
-import fr.univ_amu.iut.commun.view.OuvrirConnexionAucun;
 import fr.univ_amu.iut.commun.view.ResolveurFiche;
 import fr.univ_amu.iut.commun.view.ResolveurFicheGbif;
 import fr.univ_amu.iut.commun.viewmodel.NavigationViewModel;
@@ -55,11 +51,6 @@ public class CommunModule extends AbstractModule {
         // Ouverture de liens externes (ex. coordonnées GPS -> OpenStreetMap). Singleton :
         // `App` y branche le HostServices une fois au démarrage (cf. App.start).
         bind(OuvreurDeLien.class).to(OuvreurDeLienSysteme.class).in(Singleton.class);
-        // Ouverture de la modale de connexion depuis le menu ☰ (#741). Défaut inerte : la feature
-        // `connexion` (ConnexionModule) fournit l'implémentation réelle via setBinding en app complète.
-        OptionalBinder.newOptionalBinder(binder(), OuvrirConnexion.class)
-                .setDefault()
-                .to(OuvrirConnexionAucun.class);
         // Préférence « source des fiches espèces » (#849) : singleton pour que le menu ☰ (qui la modifie)
         // et le constructeur de liens (qui la lit) partagent le même service persistant.
         bind(PreferenceSourceEspece.class).in(Singleton.class);
@@ -72,16 +63,15 @@ public class CommunModule extends AbstractModule {
         // thème/daltonien).
         Multibinder.newSetBinder(binder(), OngletReglages.class).addBinding().to(OngletReglagesGeneral.class);
         // Point d'extension « entrées du menu ☰ » (#930) : le MenuButton est bâti par le socle depuis
-        // `Set<ActionMenu>`. Le socle contribue les entrées historiques (sauvegarde / restauration /
-        // purge / source des fiches / réglages / connexion) ; les features en ajouteront via leur
-        // module. L'entrée « Connexion » sera déplacée dans sa feature en P2.2.
+        // `Set<ActionMenu>`. Le socle contribue les entrées transverses (sauvegarde / restauration /
+        // purge / source des fiches / réglages) ; les features en ajoutent via leur module (ex.
+        // l'entrée « Connexion » vient de `connexion`, #931).
         Multibinder<ActionMenu> actions = Multibinder.newSetBinder(binder(), ActionMenu.class);
         actions.addBinding().to(ActionSauvegarder.class);
         actions.addBinding().to(ActionRestaurer.class);
         actions.addBinding().to(ActionPurger.class);
         actions.addBinding().to(ActionSourceEspece.class);
         actions.addBinding().to(ActionOuvrirReglages.class);
-        actions.addBinding().to(ActionConnexion.class);
     }
 
     /// Résolveur de fiche espèce (#922) : convertit l'URL de recherche GBIF en URL de fiche en résolvant

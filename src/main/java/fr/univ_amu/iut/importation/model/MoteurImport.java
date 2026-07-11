@@ -126,6 +126,11 @@ final class MoteurImport {
         int nbOriginaux = originauxNuit.size();
         int totalEtapes = (conserverOriginaux ? nbOriginaux : 0) + nbOriginaux;
 
+        // Suivi par fichier (#947) : le plan de la nuit est annoncé AVANT toute écriture, une entrée par
+        // original (l'ordre du plan fixe les numéros 1..N que copies et transformations cibleront). En
+        // multi-nuits, chaque nuit replanifie la table.
+        ctx.suiviFichiers().planEtabli(nomsDes(originauxNuit));
+
         // Annulation (#146) : la copie et la transformation se font dans un dossier de session neuf ;
         // une annulation lève AnnulationImportException et on supprime la session partielle. Comme la
         // persistance est atomique en fin de course (O7), aucun passage n'est créé → pas de demi-état.
@@ -138,7 +143,14 @@ final class MoteurImport {
             // 1-2) Originaux à transformer : copie protégée + renommage R6 (mode conservation) OU lecture
             //      directe de la source avec nom R6 calculé (mode sans copie). Cf. PreparationOriginaux.
             sources = preparation.preparer(
-                    conserverOriginaux, originauxNuit, dossierBruts, prefixe, totalEtapes, progres, jeton);
+                    conserverOriginaux,
+                    originauxNuit,
+                    dossierBruts,
+                    prefixe,
+                    totalEtapes,
+                    progres,
+                    jeton,
+                    ctx.suiviFichiers());
             // Volume des originaux CONSERVÉS dans le workspace : en mode sans copie, rien n'est stocké
             // localement → 0, sinon M-Passage afficherait le volume de la source (carte SD) comme des
             // bruts purgeables alors qu'aucun bruts/ n'existe.
@@ -168,7 +180,8 @@ final class MoteurImport {
                     nbOriginaux,
                     totalEtapes,
                     progres,
-                    jeton);
+                    jeton,
+                    ctx.suiviFichiers());
             // Re-vérification après la phase de transformation : une annulation pendant la DERNIÈRE
             // transformation (postérieure à son propre point de contrôle) doit aussi stopper l'import.
             jeton.leverSiAnnule();
@@ -324,6 +337,13 @@ final class MoteurImport {
                 p.deposeLe(),
                 p.idPoint(),
                 p.idEnregistreur());
+    }
+
+    /// Noms de fichiers (sans chemin) des originaux, dans l'ordre du plan (numéros 1..N du suivi #947).
+    private static List<String> nomsDes(List<Path> originaux) {
+        return originaux.stream()
+                .map(original -> original.getFileName().toString())
+                .toList();
     }
 
     private static long volumeTotal(List<Path> fichiers) {

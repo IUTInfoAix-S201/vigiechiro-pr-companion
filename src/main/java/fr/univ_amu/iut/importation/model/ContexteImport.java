@@ -17,6 +17,7 @@ import java.nio.file.Path;
 /// @param conserverOriginaux `true` = copie protégée dans `bruts/` ; `false` = lecture en place (#…)
 /// @param ecraser `true` = remplacement d'un passage existant au même quadruplet (#214), jamais en multi-nuits
 /// @param jeton jeton d'annulation coopératif (#146)
+/// @param suiviFichiers suivi par fichier (#947), replanifié à chaque nuit ; [SuiviFichiers#inerte()] sans IHM
 record ContexteImport(
         RapportInspection rapport,
         JournalParse journal,
@@ -25,4 +26,5 @@ record ContexteImport(
         Long idPoint,
         boolean conserverOriginaux,
         boolean ecraser,
-        JetonAnnulation jeton) {}
+        JetonAnnulation jeton,
+        SuiviFichiers suiviFichiers) {}

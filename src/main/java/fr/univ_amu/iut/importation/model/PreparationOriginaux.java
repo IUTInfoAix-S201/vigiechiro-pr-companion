@@ -4,9 +4,12 @@ import fr.univ_amu.iut.commun.model.Prefixe;
 import fr.univ_amu.iut.commun.model.Progression;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.stream.IntStream;
 
 /// Détermine la liste des originaux à transformer selon le choix de **conservation** (#…), en
 /// découplant le chemin physiquement lu de son nom logique R6 (cf. [SourceOriginal]). Concern extrait
@@ -18,7 +21,9 @@ import java.util.function.Consumer;
 /// - **sans copie** : aucune écriture — les WAV de la source sont lus **en place** (R9, lecture seule),
 ///   avec leur nom R6 **calculé** ([Renommeur#nomApresRenommage]) ; `bruts/` n'est jamais créé.
 ///
-/// Dans les deux cas la sortie (noms des séquences produites en aval) est **identique**.
+/// Dans les deux cas la sortie (noms des séquences produites en aval) est **identique**, et chaque
+/// [SourceOriginal] porte son **numéro de plan** (1..N, ordre des originaux) pour le suivi par fichier
+/// ([SuiviFichiers], #947).
 final class PreparationOriginaux {
 
     private final CopieProtegee copie;
@@ -29,9 +34,10 @@ final class PreparationOriginaux {
         this.renommeur = Objects.requireNonNull(renommeur, "renommeur");
     }
 
-    /// Liste des originaux à transformer (chemin lu + nom logique R6). En mode conservation, copie
-    /// protégée dans `bruts/` puis renommage R6 (la lecture porte sur ces copies) ; en mode sans copie,
-    /// lecture directe de la source avec nom R6 calculé (aucun `bruts/`).
+    /// Liste des originaux à transformer (chemin lu + nom logique R6 + numéro de plan). En mode
+    /// conservation, copie protégée dans `bruts/` puis renommage R6 (la lecture porte sur ces copies) ;
+    /// en mode sans copie, lecture directe de la source avec nom R6 calculé (aucun `bruts/`, aucun
+    /// événement de copie sur `suivi`).
     List<SourceOriginal> preparer(
             boolean conserverOriginaux,
             List<Path> originaux,
@@ -39,39 +45,56 @@ final class PreparationOriginaux {
             Prefixe prefixe,
             int totalEtapes,
             Consumer<Progression> progres,
-            JetonAnnulation jeton) {
+            JetonAnnulation jeton,
+            SuiviFichiers suivi) {
         if (!conserverOriginaux) {
-            return originaux.stream()
-                    .map(source -> new SourceOriginal(
-                            source,
-                            Renommeur.nomApresRenommage(source.getFileName().toString(), prefixe)))
+            return IntStream.range(0, originaux.size())
+                    .mapToObj(i -> new SourceOriginal(
+                            originaux.get(i),
+                            Renommeur.nomApresRenommage(
+                                    originaux.get(i).getFileName().toString(), prefixe),
+                            i + 1))
                     .toList();
         }
-        copierOriginaux(originaux, dossierBruts, prefixe, totalEtapes, progres, jeton);
+        Map<String, Integer> numeroParNomR6 =
+                copierOriginaux(originaux, dossierBruts, prefixe, totalEtapes, progres, jeton, suivi);
+        // Le renommage rescanne `bruts/` : on réassocie chaque copie à son numéro de plan via son nom R6
+        // (calculé de façon déterministe à la copie), pour que le suivi par fichier cible la bonne ligne
+        // même si l'ordre du scan diffère de celui des originaux.
         return renommeur.renommer(dossierBruts, prefixe).stream()
-                .map(chemin -> new SourceOriginal(chemin, chemin.getFileName().toString()))
+                .map(chemin -> new SourceOriginal(
+                        chemin,
+                        chemin.getFileName().toString(),
+                        numeroParNomR6.getOrDefault(chemin.getFileName().toString(), 0)))
                 .toList();
     }
 
     /// Copie protégée (R9) des originaux vers `dossierBruts`, en émettant la progression « Copie X/N ·
-    /// fichier ». Vérifie l'annulation (#146) entre deux fichiers.
+    /// fichier » et les événements de copie du suivi par fichier (#947). Vérifie l'annulation (#146)
+    /// entre deux fichiers.
     ///
     /// **Reprise sécurisée (#231)** : un original n'est sauté que si une version renommée existe **et**
     /// que son empreinte SHA-256 est **identique à celle de la source SD** — contenu vérifié, pas
     /// seulement le nom ni la taille. Un fichier absent, périmé ou corrompu (même nom, session orpheline
     /// incohérente) est re-copié : on ne persiste jamais un agrégat sur des fichiers douteux. Sauter une
     /// copie **fidèle** évite au passage le conflit de renommage qu'une re-copie déclencherait.
-    private void copierOriginaux(
+    ///
+    /// @return le numéro de plan (1..N) de chaque copie, indexé par son nom R6
+    private Map<String, Integer> copierOriginaux(
             List<Path> originaux,
             Path dossierBruts,
             Prefixe prefixe,
             int totalEtapes,
             Consumer<Progression> progres,
-            JetonAnnulation jeton) {
+            JetonAnnulation jeton,
+            SuiviFichiers suivi) {
         int nbOriginaux = originaux.size();
+        Map<String, Integer> numeroParNomR6 = new LinkedHashMap<>();
         int indiceCopie = 0;
         for (Path original : originaux) {
             jeton.leverSiAnnule(); // arrêt au plus tôt, entre deux fichiers
+            int numero = indiceCopie + 1;
+            suivi.copieDemarree(numero);
             // Copie **directement au nom final** (R6) : pas d'état intermédiaire au nom d'origine, donc
             // aucun doublon ni conflit lors du renommage si une version renommée traînait déjà (reprise).
             Path cible = dossierBruts.resolve(
@@ -81,11 +104,14 @@ final class PreparationOriginaux {
             if (!dejaFidele) {
                 copie.copier(original, cible); // écrase une cible corrompue (REPLACE_EXISTING + vérif R9)
             }
+            numeroParNomR6.put(cible.getFileName().toString(), numero);
+            suivi.copieTerminee(numero);
             indiceCopie++;
             progres.accept(new Progression(
                     "Copie " + indiceCopie + "/" + nbOriginaux + " · " + original.getFileName()
                             + (dejaFidele ? " (déjà présent)" : ""),
                     (double) indiceCopie / totalEtapes));
         }
+        return numeroParNomR6;
     }
 }

@@ -575,11 +575,15 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
         if (source == null) {
             return ZonesStatut.VIDE;
         }
+        // Zone gauche = identité (#1025) : le passage ciblé (Carré · point · N°) s'il y en a un, sinon
+        // l'intitulé de la source (Références, Sons non identifiés…), pour aligner cet écran modèle sur la
+        // convention des autres (gauche = contexte).
+        var passage = source.contexteDuPassage();
+        String gauche = passage != null ? passage.identiteStatut() : source.titre();
         ComptageAudio comptage = viewModel.comptageProperty().get();
-        if (comptage.total() == 0) {
-            return ZonesStatut.centre("Aucune observation");
-        }
-        return ZonesStatut.centreEtDroite(comptage.total() + " observation(s)", comptage.progression());
+        String centre = comptage.total() == 0 ? "Aucune observation" : comptage.total() + " observation(s)";
+        String droite = comptage.total() == 0 ? "" : comptage.progression();
+        return new ZonesStatut(gauche, centre, droite);
     }
 
     @Override

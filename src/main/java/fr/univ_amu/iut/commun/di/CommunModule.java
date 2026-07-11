@@ -25,6 +25,7 @@ import fr.univ_amu.iut.commun.view.OuvrirConnexionAucun;
 import fr.univ_amu.iut.commun.view.ResolveurFiche;
 import fr.univ_amu.iut.commun.view.ResolveurFicheGbif;
 import fr.univ_amu.iut.commun.viewmodel.NavigationViewModel;
+import fr.univ_amu.iut.commun.viewmodel.OngletReglagesGeneral;
 import java.nio.file.Path;
 
 /// Module Guice du socle : fournit le [Workspace], la [SourceDeDonnees] et le socle IHM
@@ -58,10 +59,11 @@ public class CommunModule extends AbstractModule {
         // Fiche espèce (#922) : en production, résolution GBIF (recherche → fiche) hors du fil JavaFX.
         // Surchargent les défauts @ImplementedBy (identité + synchrone) réservés aux tests.
         bind(ExecuteurFiche.class).to(ExecuteurFicheAsynchrone.class).in(Singleton.class);
-        // Point d'extension « onglets de réglages » (#927) : déclaré même vide pour que
-        // `Set<OngletReglages>` soit toujours injectable (par l'écran Réglages et le menu ☰). Chaque
-        // feature y ajoutera son onglet via son propre module (P1.3), sans retoucher le socle.
-        Multibinder.newSetBinder(binder(), OngletReglages.class);
+        // Point d'extension « onglets de réglages » (#927) : `Set<OngletReglages>` est toujours
+        // injectable (écran Réglages + menu ☰), chaque feature y ajoutant son onglet via son module.
+        // Le socle contribue lui-même l'onglet « Général » (#928 : source des fiches espèces, puis
+        // thème/daltonien).
+        Multibinder.newSetBinder(binder(), OngletReglages.class).addBinding().to(OngletReglagesGeneral.class);
     }
 
     /// Résolveur de fiche espèce (#922) : convertit l'URL de recherche GBIF en URL de fiche en résolvant

@@ -170,7 +170,7 @@ public class MainController {
                 menu.sauvegarde(),
                 menu.purge(),
                 menu.connexion(),
-                menu.sourceEspece(),
+                menu.reactifs(),
                 this::fenetre,
                 navigateur::afficherAccueil);
 

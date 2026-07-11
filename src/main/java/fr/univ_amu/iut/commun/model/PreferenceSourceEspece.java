@@ -12,8 +12,9 @@ import java.util.Objects;
 /// **sans redémarrage**. Défaut : GBIF (comportement historique), donc aucune initialisation préalable.
 public final class PreferenceSourceEspece {
 
-    /// Clé du réglage persisté (cf. [Reglages]).
-    static final String CLE = "espece.source.wikipedia";
+    /// Clé du réglage persisté (cf. [Reglages]). Publique : l'onglet « Général » de l'écran Réglages
+    /// (#928) et l'item ☰ pointent la **même** clé pour rester synchronisés.
+    public static final String CLE = "espece.source.wikipedia";
 
     private final Reglages reglages;
 

@@ -3,6 +3,7 @@ package fr.univ_amu.iut.commun.view;
 import fr.univ_amu.iut.commun.model.PreferenceSourceEspece;
 import fr.univ_amu.iut.commun.persistence.ServicePurgeOriginaux;
 import fr.univ_amu.iut.commun.persistence.ServiceSauvegarde;
+import fr.univ_amu.iut.commun.viewmodel.ReglagesReactifs;
 import java.util.function.Supplier;
 import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.MenuButton;
@@ -30,7 +31,7 @@ final class MenuOutils {
             ServiceSauvegarde serviceSauvegarde,
             ServicePurgeOriginaux servicePurge,
             OuvrirConnexion connexion,
-            PreferenceSourceEspece preferenceSourceEspece,
+            ReglagesReactifs reactifs,
             Supplier<Window> fenetre,
             Runnable retourAccueil) {
         // Après une restauration/purge réussie, retour à l'accueil : un écran ouvert lirait sinon un état
@@ -40,12 +41,13 @@ final class MenuOutils {
         this.connexion = connexion;
         itemConnexion.setText(connexion.libelleMenu());
         menu.setOnShowing(evenement -> itemConnexion.setText(connexion.libelleMenu()));
-        // Préférence source des fiches espèces (#849) : état initial depuis le réglage persisté, puis
-        // mémorisation à chaque bascule (effet immédiat sur les prochaines fiches ouvertes).
-        itemSourceWikipedia.setSelected(preferenceSourceEspece.prefereWikipedia());
+        // Préférence source des fiches espèces (#849) : liée à la MÊME Property réactive que l'onglet
+        // « Général » de l'écran Réglages (#928), sur la clé [PreferenceSourceEspece#CLE]. Bascule dans
+        // le menu et bascule dans l'onglet restent ainsi synchronisées, et chaque changement est
+        // persisté (effet immédiat sur les prochaines fiches ouvertes).
         itemSourceWikipedia
                 .selectedProperty()
-                .addListener((obs, avant, apres) -> preferenceSourceEspece.definirPrefereWikipedia(apres));
+                .bindBidirectional(reactifs.proprieteBooleen(PreferenceSourceEspece.CLE, false));
     }
 
     void sauvegarder() {

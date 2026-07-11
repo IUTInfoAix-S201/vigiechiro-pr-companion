@@ -3,6 +3,7 @@ package fr.univ_amu.iut.importation.di;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
+import com.google.inject.multibindings.Multibinder;
 import com.google.inject.name.Named;
 import fr.univ_amu.iut.commun.model.CompteurValidations;
 import fr.univ_amu.iut.commun.model.Horloge;
@@ -11,6 +12,7 @@ import fr.univ_amu.iut.commun.model.Workspace;
 import fr.univ_amu.iut.commun.persistence.ServiceSauvegarde;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
 import fr.univ_amu.iut.commun.persistence.UniteDeTravail;
+import fr.univ_amu.iut.commun.view.OngletReglages;
 import fr.univ_amu.iut.commun.view.OuvrirImportation;
 import fr.univ_amu.iut.commun.viewmodel.NavigationViewModel;
 import fr.univ_amu.iut.importation.model.AnalyseurLogPR;
@@ -22,6 +24,7 @@ import fr.univ_amu.iut.importation.model.TransformationAudio;
 import fr.univ_amu.iut.importation.model.dao.AgregatImportDao;
 import fr.univ_amu.iut.importation.view.NavigationImportation;
 import fr.univ_amu.iut.importation.viewmodel.ImportationViewModel;
+import fr.univ_amu.iut.importation.viewmodel.OngletReglagesImport;
 import fr.univ_amu.iut.importation.viewmodel.PreferenceConservation;
 import fr.univ_amu.iut.passage.model.SynchronisationParticipation;
 import fr.univ_amu.iut.sites.model.ServiceSites;
@@ -53,6 +56,9 @@ public class ImportationModule extends AbstractModule {
     @Override
     protected void configure() {
         bind(OuvrirImportation.class).to(NavigationImportation.class);
+        // Onglet « Import » de l'écran Réglages (#928) : contribué au point d'extension du socle
+        // (`Multibinder<OngletReglages>`), sans que le socle connaisse cette feature.
+        Multibinder.newSetBinder(binder(), OngletReglages.class).addBinding().to(OngletReglagesImport.class);
     }
 
     @Provides

@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [1.187.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.186.0...v1.187.0) (2026-07-11)
+
+
+### Features
+
+* **statut:** barre de statut 3 zones pour Passage & Diagnostic ([#1022](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/1022)) ([#1068](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/1068)) ([38a7f1a](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/38a7f1a42f84e00c59e73bf08d5118196128fb2a))
+
 # [1.186.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.185.0...v1.186.0) (2026-07-11)
 
 

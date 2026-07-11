@@ -69,6 +69,25 @@ public class MaFeatureController {
 }
 ```
 
+!!! tip "Tables : densité uniforme et colonnes configurables"
+    Deux aides du socle
+    [`commun.view`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/tree/main/src/main/java/fr/univ_amu/iut/commun/view)
+    rendent une table cohérente avec le reste de l'application :
+
+    - **`TableDonnees.uniformiser(table)`** (ou `uniformiserNavigable`) : densité, `placeholder` et
+      habillage communs (#690).
+    - **`GestionnaireColonnes.installer(table, menu, colonnes)`** : offre « Colonnes… » (panneau
+      *masquer / réordonner* façon Notion) au **clic droit** de la table **et** dans un `MenuButton` ☰
+      « outils ». Décrivez les colonnes avec `colonnesParDefaut(table)` (en-tête = libellé, colonne de
+      tête = identité verrouillée) ou une `List<GestionnaireColonnes.Colonne>` à la main quand
+      l'identité est ailleurs (ex. Qualification) ou que les en-têtes sont des icônes.
+
+    Une action de clic droit propre à la vue (ex. « Fiche de l'espèce ») se **compose** :
+    `installer(table, menu, colonnes, itemAction)` la place **avant** « Colonnes… », sans l'écraser. Une
+    vue à **plusieurs tables** mais un **seul** ☰ (ex. Analyse : espèces/carrés/observations) câble
+    chaque table par `installerClicDroit(table, colonnes, …)` et fait pointer le ☰ vers la table active
+    via `GestionnaireColonnes.ouvrir(...)`.
+
 ## 5. Le module Guice (`di/`) + la racine
 
 Un module qui publie service/VM, puis on l'ajoute à la **racine de composition** :

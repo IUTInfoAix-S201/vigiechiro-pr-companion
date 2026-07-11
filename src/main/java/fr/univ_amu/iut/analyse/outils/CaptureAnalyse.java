@@ -14,6 +14,7 @@ import fr.univ_amu.iut.commun.outils.ApercuFx;
 import fr.univ_amu.iut.commun.outils.ModuleCaptureNavigationAudio;
 import fr.univ_amu.iut.commun.persistence.MigrationSchema;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
+import fr.univ_amu.iut.commun.view.GestionnaireColonnes;
 import fr.univ_amu.iut.passage.di.PassageModule;
 import fr.univ_amu.iut.sites.di.SitesModule;
 import fr.univ_amu.iut.validation.di.ValidationModule;
@@ -32,12 +33,17 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 
 /// Outil de capture/mesure, utilisable tel quel.
 ///
@@ -56,6 +62,12 @@ public final class CaptureAnalyse {
     private static final String NOCTULE = "Nyclei";
 
     private static final String MOLOSSE = "Tadten";
+
+    /// Ressource FXML de l'écran, chargée par chaque rendu (une scène neuve par PNG).
+    private static final String FXML_ANALYSE = "Analyse.fxml";
+
+    /// `fx:id` de la table maître (inventaire par espèce), atteinte après affichage.
+    private static final String ID_TABLE_ESPECES = "#tableEspeces";
 
     private CaptureAnalyse() {}
 
@@ -93,6 +105,7 @@ public final class CaptureAnalyse {
         rendre(injecteur, null, sortie.resolve("apercu-analyse.png"));
         rendre(injecteur, Regroupement.PAR_CARRE, sortie.resolve("apercu-analyse-carre.png"));
         rendreCarte(injecteur, sortie.resolve("apercu-analyse-carte.png"));
+        rendreColonnes(injecteur, sortie.resolve("apercu-analyse-colonnes.png"));
 
         System.out.println("Apercus ecrits dans " + sortie.toAbsolutePath());
     }
@@ -114,14 +127,45 @@ public final class CaptureAnalyse {
     /// mode Par espèce (regroupement nul), sélectionne la première espèce pour peupler le panneau détail.
     ///
     /// La sélection se fait **après l'affichage** (via [ApercuFx#capturerApresPreparation]) : le `SplitPane`
-    /// n'attache ses enfants au graphe de scène qu'une fois son skin appliqué, donc `lookup("#tableEspeces")`
+    /// n'attache ses enfants au graphe de scène qu'une fois son skin appliqué, donc `lookup(ID_TABLE_ESPECES)`
     /// renverrait `null` avant la première mise en page.
     private static void rendre(Injector injecteur, Regroupement regroupement, Path fichier) throws IOException {
-        FXMLLoader loader = new FXMLLoader(AnalyseController.class.getResource("Analyse.fxml"));
+        FXMLLoader loader = new FXMLLoader(AnalyseController.class.getResource(FXML_ANALYSE));
         loader.setControllerFactory(injecteur::getInstance);
         Parent vue = loader.load();
         Scene scene = new Scene(vue, 1080, 640);
         ApercuFx.capturerApresPreparation(scene, () -> preparer(vue, regroupement), fichier);
+    }
+
+    /// Rend l'écran par espèce avec le **panneau de sélection des colonnes ouvert** (`apercu-analyse-colonnes`,
+    /// EPIC #914). Le panneau est un `VBox` (issu de [GestionnaireColonnes#construirePanneau], rendu sans
+    /// `Popup` que le `snapshot` de scène ne capturerait pas) posé en surimpression en haut à droite, là où
+    /// s'ancre le ☰ « outils ». On joint palette + design **à la scène** : le panneau, frère de la vue, n'hérite
+    /// pas des feuilles chargées par le FXML sur la vue.
+    private static void rendreColonnes(Injector injecteur, Path fichier) throws IOException {
+        FXMLLoader loader = new FXMLLoader(AnalyseController.class.getResource(FXML_ANALYSE));
+        loader.setControllerFactory(injecteur::getInstance);
+        Parent vue = loader.load();
+        StackPane pile = new StackPane(vue);
+        Scene scene = new Scene(pile, 1080, 640);
+        scene.getStylesheets()
+                .addAll(
+                        GestionnaireColonnes.class.getResource("palette.css").toExternalForm(),
+                        GestionnaireColonnes.class.getResource("design.css").toExternalForm());
+        ApercuFx.capturerApresPreparation(
+                scene,
+                () -> {
+                    if (vue.lookup(ID_TABLE_ESPECES) instanceof TableView<?> table) {
+                        table.getSelectionModel().select(0);
+                        VBox panneau = GestionnaireColonnes.construirePanneau(
+                                table, GestionnaireColonnes.colonnesParDefaut(table));
+                        panneau.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
+                        StackPane.setAlignment(panneau, Pos.TOP_RIGHT);
+                        StackPane.setMargin(panneau, new Insets(70, 24, 0, 0));
+                        pile.getChildren().add(panneau);
+                    }
+                },
+                fichier);
     }
 
     /// Délai d'attente des tuiles OpenStreetMap avant la capture carte (best-effort, comme `multisite`) :
@@ -134,7 +178,7 @@ public final class CaptureAnalyse {
     /// démarre sinon pas (carte hidden → fond vide). Comme `multisite`, on laisse ensuite les tuiles OSM
     /// se peindre avant la capture (choroplèthe de richesse + légende, par-dessus le fond).
     private static void rendreCarte(Injector injecteur, Path fichier) throws IOException {
-        FXMLLoader loader = new FXMLLoader(AnalyseController.class.getResource("Analyse.fxml"));
+        FXMLLoader loader = new FXMLLoader(AnalyseController.class.getResource(FXML_ANALYSE));
         loader.setControllerFactory(injecteur::getInstance);
         Parent vue = loader.load();
         if (vue.lookup("#boutonCarte") instanceof Button bascule) {
@@ -150,7 +194,7 @@ public final class CaptureAnalyse {
                     if (vue.lookup("#champRecherche") instanceof TextField champ) {
                         champ.setText("Pipistrelle");
                     }
-                    if (vue.lookup("#tableEspeces") instanceof TableView<?> table
+                    if (vue.lookup(ID_TABLE_ESPECES) instanceof TableView<?> table
                             && !table.getItems().isEmpty()) {
                         table.getSelectionModel().select(0);
                     }
@@ -183,7 +227,7 @@ public final class CaptureAnalyse {
             @SuppressWarnings("unchecked")
             ComboBox<Regroupement> choix = (ComboBox<Regroupement>) combo;
             choix.getSelectionModel().select(regroupement);
-        } else if (regroupement == null && vue.lookup("#tableEspeces") instanceof TableView<?> table) {
+        } else if (regroupement == null && vue.lookup(ID_TABLE_ESPECES) instanceof TableView<?> table) {
             @SuppressWarnings("unchecked")
             TableView<EspeceAgregee> especes = (TableView<EspeceAgregee>) table;
             especes.getSelectionModel().select(0);

@@ -3,8 +3,10 @@ package fr.univ_amu.iut.commun.view;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import javafx.beans.property.BooleanProperty;
 import javafx.collections.FXCollections;
@@ -127,6 +129,50 @@ public final class GestionnaireColonnes {
                         GestionnaireColonnes.class.getResource("design.css").toExternalForm());
         Bounds ecran = ancre.localToScreen(ancre.getBoundsInLocal());
         popup.show(ancre, ecran.getMinX(), ecran.getMaxY());
+    }
+
+    /// **Décrit** la disposition courante des `colonnes` gérées de `table` (#994) : leurs libellés dans
+    /// l'**ordre d'affichage** actuel, avec leur **visibilité**. Miroir de [GestionnaireFiltres#decrire] pour
+    /// les colonnes ; le [DescripteurColonnes] obtenu est sérialisable (cf. [DescripteurColonnesJson]) et
+    /// rejouable par [#restaurer].
+    public static DescripteurColonnes decrire(TableView<?> table, List<Colonne> colonnes) {
+        List<Colonne> ordonnees = new ArrayList<>(colonnes);
+        ordonnees.sort(Comparator.comparingInt(c -> table.getColumns().indexOf(c.colonne())));
+        List<DescripteurColonnes.EtatColonne> etats = new ArrayList<>();
+        for (Colonne c : ordonnees) {
+            etats.add(
+                    new DescripteurColonnes.EtatColonne(c.libelle(), c.colonne().isVisible()));
+        }
+        return new DescripteurColonnes(etats);
+    }
+
+    /// **Rejoue** une disposition [DescripteurColonnes] sur les `colonnes` gérées de `table` (#994) : applique
+    /// la **visibilité** de chaque colonne retrouvée par son libellé (une colonne **verrouillée** reste
+    /// toujours affichée, quoi que dise le descripteur) puis rétablit l'**ordre** décrit. Tolérant aux
+    /// évolutions du modèle : une colonne du descripteur **disparue** (renommée/supprimée) est ignorée ; une
+    /// colonne gérée **absente** du descripteur (nouvelle) garde sa visibilité courante et se range après
+    /// les colonnes décrites. Les colonnes **non gérées** de la table ne bougent pas (via [#appliquerOrdre]).
+    public static void restaurer(TableView<?> table, List<Colonne> colonnes, DescripteurColonnes descripteur) {
+        Map<String, Colonne> parLibelle = new HashMap<>();
+        for (Colonne c : colonnes) {
+            parLibelle.put(c.libelle(), c);
+        }
+        List<TableColumn<?, ?>> ordre = new ArrayList<>();
+        Set<String> placees = new HashSet<>();
+        for (DescripteurColonnes.EtatColonne etat : descripteur.colonnes()) {
+            Colonne c = parLibelle.get(etat.libelle());
+            if (c == null || !placees.add(etat.libelle())) {
+                continue;
+            }
+            c.colonne().setVisible(c.visibiliteVerrouillee() || etat.visible());
+            ordre.add(c.colonne());
+        }
+        for (Colonne c : colonnes) {
+            if (!placees.contains(c.libelle())) {
+                ordre.add(c.colonne());
+            }
+        }
+        appliquerOrdre(table, ordre);
     }
 
     /// Construit le contenu du panneau (titre + liste réordonnable), sur l'**ordre courant** des colonnes

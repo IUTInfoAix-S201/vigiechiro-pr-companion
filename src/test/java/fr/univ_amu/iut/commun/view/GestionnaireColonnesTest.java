@@ -201,4 +201,93 @@ class GestionnaireColonnesTest {
                 .as("seule la colonne de tête est verrouillée")
                 .containsExactly("A");
     }
+
+    @Test
+    @DisplayName("decrire : reflète l'ordre d'affichage courant et la visibilité de chaque colonne")
+    void decrire_reflete_ordre_et_visibilite(FxRobot robot) {
+        AtomicReference<DescripteurColonnes> ref = new AtomicReference<>();
+        robot.interact(() -> {
+            TableView<String> table = tableAvec("A", "B", "C");
+            List<GestionnaireColonnes.Colonne> colonnes = List.of(
+                    new GestionnaireColonnes.Colonne(table.getColumns().get(0), "A", true),
+                    new GestionnaireColonnes.Colonne(table.getColumns().get(1), "B", false),
+                    new GestionnaireColonnes.Colonne(table.getColumns().get(2), "C", false));
+            table.getColumns().get(1).setVisible(false); // B masquée avant le réordonnancement
+            GestionnaireColonnes.appliquerOrdre(
+                    table,
+                    List.of(
+                            table.getColumns().get(2),
+                            table.getColumns().get(0),
+                            table.getColumns().get(1))); // ordre voulu : C, A, B
+            ref.set(GestionnaireColonnes.decrire(table, colonnes));
+        });
+
+        assertThat(ref.get().colonnes())
+                .extracting(DescripteurColonnes.EtatColonne::libelle)
+                .containsExactly("C", "A", "B");
+        assertThat(ref.get().colonnes())
+                .filteredOn(e -> !e.visible())
+                .extracting(DescripteurColonnes.EtatColonne::libelle)
+                .containsExactly("B");
+    }
+
+    @Test
+    @DisplayName("restaurer : rétablit l'ordre et la visibilité ; une colonne verrouillée reste affichée")
+    void restaurer_reordonne_et_respecte_le_verrou(FxRobot robot) {
+        AtomicReference<TableView<String>> ref = new AtomicReference<>();
+        robot.interact(() -> {
+            TableView<String> table = tableAvec("A", "B", "C");
+            List<GestionnaireColonnes.Colonne> colonnes = List.of(
+                    new GestionnaireColonnes.Colonne(table.getColumns().get(0), "A", true), // identité
+                    new GestionnaireColonnes.Colonne(table.getColumns().get(1), "B", false),
+                    new GestionnaireColonnes.Colonne(table.getColumns().get(2), "C", false));
+            DescripteurColonnes desc = new DescripteurColonnes(List.of(
+                    new DescripteurColonnes.EtatColonne("C", true),
+                    new DescripteurColonnes.EtatColonne("A", false), // masquer l'identité : doit être ignoré
+                    new DescripteurColonnes.EtatColonne("B", false)));
+            GestionnaireColonnes.restaurer(table, colonnes, desc);
+            ref.set(table);
+        });
+
+        assertThat(ref.get().getColumns()).extracting(TableColumn::getText).containsExactly("C", "A", "B");
+        assertThat(ref.get().getColumns().get(0).isVisible()).as("C visible").isTrue();
+        assertThat(ref.get().getColumns().get(1).isVisible())
+                .as("identité verrouillée : reste visible malgré le descripteur")
+                .isTrue();
+        assertThat(ref.get().getColumns().get(2).isVisible()).as("B masquée").isFalse();
+    }
+
+    @Test
+    @DisplayName("restaurer : ignore une colonne disparue et range une colonne nouvelle à la fin")
+    void restaurer_tolere_evolution_du_modele(FxRobot robot) {
+        AtomicReference<TableView<String>> ref = new AtomicReference<>();
+        robot.interact(() -> {
+            TableView<String> table = tableAvec("A", "B", "C");
+            List<GestionnaireColonnes.Colonne> colonnes = List.of(
+                    new GestionnaireColonnes.Colonne(table.getColumns().get(0), "A", false),
+                    new GestionnaireColonnes.Colonne(table.getColumns().get(1), "B", false),
+                    new GestionnaireColonnes.Colonne(table.getColumns().get(2), "C", false));
+            DescripteurColonnes desc = new DescripteurColonnes(List.of(
+                    new DescripteurColonnes.EtatColonne("C", true),
+                    new DescripteurColonnes.EtatColonne("DISPARUE", true), // inconnue : ignorée
+                    new DescripteurColonnes.EtatColonne("A", true))); // B absente du descripteur → à la fin
+            GestionnaireColonnes.restaurer(table, colonnes, desc);
+            ref.set(table);
+        });
+
+        assertThat(ref.get().getColumns()).extracting(TableColumn::getText).containsExactly("C", "A", "B");
+    }
+
+    @Test
+    @DisplayName("DescripteurColonnesJson : aller-retour JSON fidèle")
+    void json_colonnes_round_trip() {
+        DescripteurColonnes desc = new DescripteurColonnes(List.of(
+                new DescripteurColonnes.EtatColonne("Espèce", true),
+                new DescripteurColonnes.EtatColonne("Période", false)));
+
+        String json = DescripteurColonnesJson.serialiser(desc);
+
+        assertThat(json).contains("colonnes", "libelle", "visible");
+        assertThat(DescripteurColonnesJson.interpreter(json)).isEqualTo(desc);
+    }
 }

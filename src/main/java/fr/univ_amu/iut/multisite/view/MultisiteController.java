@@ -220,9 +220,15 @@ public class MultisiteController implements RafraichirAuRetour {
                         CriteresMultisite.verdict(),
                         CriteresMultisite.annee()),
                 CriteresMultisite.rechercheTexte());
-        // Onglets de vues mémorisées (#623) : vues par défaut (lecture seule) + vues de l'utilisateur.
+        // Onglets de vues mémorisées (#623) : vues par défaut (lecture seule) + vues de l'utilisateur. La vue
+        // capture aussi la disposition des colonnes du tableau (#994), via l'adaptateur mono-table.
         GestionnaireVues.avecDialogue(
-                barreOnglets, gestionnaireFiltres, depotVues, FEATURE, CriteresMultisite.vuesParDefaut());
+                barreOnglets,
+                gestionnaireFiltres,
+                depotVues,
+                FEATURE,
+                CriteresMultisite.vuesParDefaut(),
+                GestionnaireColonnes.adaptateurMonoTable("principale", tableLignes, this::colonnesLignes));
 
         choixTri.getItems().setAll(TriMultisite.values());
         choixTri.setConverter(Convertisseurs.parLibelle(tri -> tri == null ? "" : tri.libelle()));

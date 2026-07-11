@@ -1,6 +1,8 @@
 package fr.univ_amu.iut.sites.viewmodel;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import fr.univ_amu.iut.commun.model.HorlogeFigee;
 import fr.univ_amu.iut.commun.model.LienVigieChiro;
@@ -61,6 +63,20 @@ class SitesViewModelTest {
         HorlogeFigee horloge = new HorlogeFigee(JOUR_FIXE);
         service = new ServiceSites(siteDao, pointDao, passageDao, horloge);
         viewModel = new SitesViewModel(service, passageDao, horloge, liens, ID_USER);
+    }
+
+    @Test
+    @DisplayName("#795 : un échec de chargement des sites est routé vers messageErreur (au lieu d'être avalé)")
+    void erreur_de_chargement_surfacee() {
+        ServiceSites serviceKo = mock(ServiceSites.class);
+        when(serviceKo.listerSites(ID_USER)).thenThrow(new RuntimeException("base indisponible"));
+        SitesViewModel vm = new SitesViewModel(serviceKo, passageDao, new HorlogeFigee(JOUR_FIXE), liens, ID_USER);
+
+        vm.rafraichir();
+
+        assertThat(vm.messageErreurProperty().get())
+                .as("l'échec est surfacé au lieu de remonter non capturé")
+                .contains("base indisponible");
     }
 
     @Test

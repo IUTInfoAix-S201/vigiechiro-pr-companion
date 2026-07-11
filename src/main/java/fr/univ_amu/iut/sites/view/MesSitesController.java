@@ -68,6 +68,9 @@ public class MesSitesController implements ResumeStatut {
     @FXML
     private VBox etatVide;
 
+    @FXML
+    private Label lblErreur;
+
     @Inject
     public MesSitesController(SitesViewModel viewModel, NavigationSites navigation) {
         this.viewModel = Objects.requireNonNull(viewModel, "viewModel");
@@ -88,6 +91,10 @@ public class MesSitesController implements ResumeStatut {
         zoneListe.managedProperty().bind(viewModel.videProperty().not());
         etatVide.visibleProperty().bind(viewModel.videProperty());
         etatVide.managedProperty().bind(viewModel.videProperty());
+        // Erreur de chargement (#795) : rendue visible seulement quand un message est présent.
+        lblErreur.textProperty().bind(viewModel.messageErreurProperty());
+        lblErreur.visibleProperty().bind(viewModel.messageErreurProperty().isNotEmpty());
+        lblErreur.managedProperty().bind(viewModel.messageErreurProperty().isNotEmpty());
         viewModel.cartes().addListener((ListChangeListener<CarteSite>) changement -> reconstruire());
         viewModel.rafraichir();
     }

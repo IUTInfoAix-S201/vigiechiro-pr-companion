@@ -27,6 +27,10 @@
     <Button text="+ Nouveau site" styleClass="bouton-primaire" onAction="#nouveauSite"/>
   </HBox>
 
+  <!-- Erreur de chargement (#795) : affichée en rouge et masquée tant qu'il n'y a pas d'erreur (un échec
+       de lecture des sites restait auparavant silencieux). -->
+  <Label fx:id="lblErreur" styleClass="message-erreur" wrapText="true" visible="false" managed="false"/>
+
   <ScrollPane fx:id="zoneListe" fitToWidth="true" styleClass="zone-liste" VBox.vgrow="ALWAYS">
     <VBox fx:id="listeCartes" styleClass="liste-cartes" spacing="12.0"/>
   </ScrollPane>

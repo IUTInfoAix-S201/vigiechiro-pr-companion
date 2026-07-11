@@ -367,4 +367,49 @@ class RattachementViewModelTest {
 
         viewModel.pousserVersVigieChiro(); // no-op, ne lève pas
     }
+
+    // --- Phase 2b : tirer les métadonnées depuis la participation VigieChiro ---
+
+    @Test
+    @DisplayName("Phase 2b : tirerDepuisVigieChiro délègue puis rechargerApresTir recharge les champs")
+    void tirer_depuis_vigiechiro_recupere() {
+        SynchronisationParticipation sync = mock(SynchronisationParticipation.class);
+        RattachementViewModel avecSync = new RattachementViewModel(service, Optional.of(sync));
+        when(service.detailPassage(ID))
+                .thenReturn(detailMeteo(new MeteoReleve(9.0, 3.0, Vent.FORT, CouvertureNuageuse.DE_75_A_100)));
+        avecSync.ouvrirSur(ID, "040962", "A1");
+
+        boolean recupere = avecSync.tirerDepuisVigieChiro();
+        avecSync.rechargerApresTir(recupere);
+
+        assertThat(recupere).isTrue();
+        verify(sync).tirerDepuis(ID);
+        assertThat(avecSync.conditions().ventSaisieProperty().get()).isEqualTo(Vent.FORT);
+        assertThat(avecSync.messageErreurProperty().get()).contains("récupérées");
+    }
+
+    @Test
+    @DisplayName("Phase 2b : passage non lié → recupere=false + message d'aide")
+    void tirer_depuis_vigiechiro_non_lie() {
+        SynchronisationParticipation sync = mock(SynchronisationParticipation.class);
+        doThrow(new RegleMetierException("pas lié")).when(sync).tirerDepuis(ID);
+        RattachementViewModel avecSync = new RattachementViewModel(service, Optional.of(sync));
+        when(service.detailPassage(ID)).thenReturn(detailMeteo(MeteoReleve.VIDE));
+        avecSync.ouvrirSur(ID, "040962", "A1");
+
+        boolean recupere = avecSync.tirerDepuisVigieChiro();
+        avecSync.rechargerApresTir(recupere);
+
+        assertThat(recupere).isFalse();
+        assertThat(avecSync.messageErreurProperty().get()).contains("Aucune participation");
+    }
+
+    @Test
+    @DisplayName("Phase 2b : peutSynchroniser reflète la présence de la passerelle")
+    void peut_synchroniser() {
+        assertThat(viewModel.peutSynchroniser()).isFalse(); // @BeforeEach : Optional.empty()
+        assertThat(new RattachementViewModel(service, Optional.of(mock(SynchronisationParticipation.class)))
+                        .peutSynchroniser())
+                .isTrue();
+    }
 }

@@ -29,6 +29,13 @@
 
   <Label text="✏ Modifier le passage" styleClass="titre-page"/>
 
+  <!-- Tirer les métadonnées depuis la participation VigieChiro (cas « préparé sur le site web »).
+       Masqué hors connexion (visibilité pilotée par le controller selon la présence de la passerelle). -->
+  <HBox fx:id="ligneSyncVigieChiro" alignment="CENTER_LEFT">
+    <Button fx:id="boutonTirerVigieChiro" text="Synchroniser depuis VigieChiro"
+            styleClass="bouton-secondaire" onAction="#tirerDepuisVigieChiro"/>
+  </HBox>
+
   <!-- Rattachement : année + n° de passage (le site et le point ne changent pas). -->
   <Label text="Rattachement" styleClass="section-sous"/>
   <Label text="Corrige l'année et/ou le n° de passage. Le site et le point ne changent pas."

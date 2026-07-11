@@ -277,7 +277,7 @@ public class LotController implements EmplacementNavigation, ResumeStatut {
                 .managedProperty()
                 .bind(viewModel.raisonEspaceInsuffisantProperty().isNotEmpty());
         // Progression déterminée (#769) : barre + libellé « Compression X/N · ETA », visibles seulement
-        // pendant la génération hors-thread. La fraction et le libellé suivent le ProgressionLot du VM.
+        // pendant la génération hors-thread. La fraction et le libellé suivent le ProgressionOperation du VM.
         barreGeneration.progressProperty().bind(viewModel.progression().fractionProperty());
         barreGeneration.visibleProperty().bind(viewModel.generationEnCoursProperty());
         barreGeneration.managedProperty().bind(viewModel.generationEnCoursProperty());

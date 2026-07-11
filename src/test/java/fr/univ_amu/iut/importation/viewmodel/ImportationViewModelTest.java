@@ -13,6 +13,7 @@ import static org.mockito.Mockito.when;
 
 import fr.univ_amu.iut.commun.model.HorlogeFigee;
 import fr.univ_amu.iut.commun.model.Prefixe;
+import fr.univ_amu.iut.commun.model.Progression;
 import fr.univ_amu.iut.commun.model.Protocole;
 import fr.univ_amu.iut.commun.model.Reglages;
 import fr.univ_amu.iut.commun.model.RegleMetierException;
@@ -23,7 +24,6 @@ import fr.univ_amu.iut.importation.model.InspecteurDossier;
 import fr.univ_amu.iut.importation.model.JournalParse;
 import fr.univ_amu.iut.importation.model.LigneRapport;
 import fr.univ_amu.iut.importation.model.NuitAImporter;
-import fr.univ_amu.iut.importation.model.Progression;
 import fr.univ_amu.iut.importation.model.RapportImport;
 import fr.univ_amu.iut.importation.model.RapportInspection;
 import fr.univ_amu.iut.importation.model.ResultatImport;
@@ -609,27 +609,8 @@ class ImportationViewModelTest {
         assertThat(navigation.isNavigationVerrouillee()).isFalse();
     }
 
-    @Test
-    @DisplayName("#146 : LibelleProgression ajoute un temps restant estimé (et rien aux bornes)")
-    void eta_temps_restant() {
-        // À 25 % après 10 s écoulées, l'extrapolation linéaire donne ~30 s restantes.
-        assertThat(LibelleProgression.avecTempsRestant("Copie 5/20", 0.25, 10_000_000_000L))
-                .isEqualTo("Copie 5/20 · ~30 s restant");
-        // Aux bornes (0 %, 100 %, temps écoulé nul) : libellé inchangé, pas d'ETA absurde.
-        assertThat(LibelleProgression.avecTempsRestant("Copie 0/20", 0.0, 10_000_000_000L))
-                .isEqualTo("Copie 0/20");
-        assertThat(LibelleProgression.avecTempsRestant("Transformation 20/20", 1.0, 10_000_000_000L))
-                .isEqualTo("Transformation 20/20");
-        assertThat(LibelleProgression.avecTempsRestant("Copie 5/20", 0.25, 0L)).isEqualTo("Copie 5/20");
-    }
-
-    @Test
-    @DisplayName("#146 : formaterDuree en secondes puis minutes")
-    void formater_duree() {
-        assertThat(LibelleProgression.formaterDuree(45)).isEqualTo("~45 s");
-        assertThat(LibelleProgression.formaterDuree(60)).isEqualTo("~1 min");
-        assertThat(LibelleProgression.formaterDuree(90)).isEqualTo("~1 min 30 s");
-    }
+    // L'ETA (#146) est désormais portée par le socle ProgressionOperation (commun) et testée dans
+    // ProgressionOperationTest, avec la fusion des anciens LibelleProgression/ProgressionImport.
 
     // --- Import multi-nuits ---
 

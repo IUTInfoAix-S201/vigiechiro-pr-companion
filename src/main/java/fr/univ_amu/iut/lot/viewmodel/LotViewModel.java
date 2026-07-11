@@ -3,6 +3,7 @@ package fr.univ_amu.iut.lot.viewmodel;
 import fr.univ_amu.iut.commun.model.Progression;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.viewmodel.Formats;
+import fr.univ_amu.iut.commun.viewmodel.ProgressionOperation;
 import fr.univ_amu.iut.lot.model.ArchiveDepot;
 import fr.univ_amu.iut.lot.model.ControleCoherence;
 import fr.univ_amu.iut.lot.model.EtatLot;
@@ -78,7 +79,7 @@ public class LotViewModel {
 
     /// Progression déterminée de la génération des archives (#769) : fraction + libellé « Compression X/N »
     /// avec estimation du temps restant. Alimentée par le callback du service (relayé au fil JavaFX).
-    private final ProgressionLot progression = new ProgressionLot();
+    private final ProgressionOperation progression = new ProgressionOperation();
 
     public LotViewModel(ServiceLot service) {
         this.service = Objects.requireNonNull(service, "service");
@@ -206,7 +207,7 @@ public class LotViewModel {
 
     /// Suivi de progression de la génération des archives (#769) : fraction pour la barre déterminée +
     /// libellé « Compression X/N » avec estimation du temps restant, à lier dans la vue.
-    public ProgressionLot progression() {
+    public ProgressionOperation progression() {
         return progression;
     }
 

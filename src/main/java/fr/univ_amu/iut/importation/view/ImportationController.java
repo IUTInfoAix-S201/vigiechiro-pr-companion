@@ -1,6 +1,7 @@
 package fr.univ_amu.iut.importation.view;
 
 import com.google.inject.Inject;
+import fr.univ_amu.iut.commun.model.Progression;
 import fr.univ_amu.iut.commun.view.AuDepartEcran;
 import fr.univ_amu.iut.commun.view.GardeQuitter;
 import fr.univ_amu.iut.commun.view.IndicateurBlocage;
@@ -8,7 +9,6 @@ import fr.univ_amu.iut.importation.model.AnnulationImportException;
 import fr.univ_amu.iut.importation.model.EtatNommage;
 import fr.univ_amu.iut.importation.model.ExtracteurZip;
 import fr.univ_amu.iut.importation.model.JetonAnnulation;
-import fr.univ_amu.iut.importation.model.Progression;
 import fr.univ_amu.iut.importation.model.ResultatImport;
 import fr.univ_amu.iut.importation.model.ResultatImportMultiNuits;
 import fr.univ_amu.iut.importation.viewmodel.EtatImport;

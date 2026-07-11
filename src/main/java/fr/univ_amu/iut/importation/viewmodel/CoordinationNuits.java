@@ -1,8 +1,8 @@
 package fr.univ_amu.iut.importation.viewmodel;
 
+import fr.univ_amu.iut.commun.model.Progression;
 import fr.univ_amu.iut.importation.model.JetonAnnulation;
 import fr.univ_amu.iut.importation.model.NuitAImporter;
-import fr.univ_amu.iut.importation.model.Progression;
 import fr.univ_amu.iut.importation.model.ResultatImportMultiNuits;
 import fr.univ_amu.iut.importation.model.ServiceImport;
 import fr.univ_amu.iut.importation.viewmodel.ImportationViewModel.DemandeImportNuits;

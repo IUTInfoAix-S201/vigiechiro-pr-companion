@@ -1,6 +1,7 @@
 package fr.univ_amu.iut.importation.model;
 
 import fr.univ_amu.iut.commun.model.Prefixe;
+import fr.univ_amu.iut.commun.model.Progression;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;

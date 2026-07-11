@@ -2,11 +2,12 @@ package fr.univ_amu.iut.importation.viewmodel;
 
 import fr.univ_amu.iut.commun.model.Horloge;
 import fr.univ_amu.iut.commun.model.Prefixe;
+import fr.univ_amu.iut.commun.model.Progression;
 import fr.univ_amu.iut.commun.viewmodel.NavigationViewModel;
+import fr.univ_amu.iut.commun.viewmodel.ProgressionOperation;
 import fr.univ_amu.iut.importation.model.ExtracteurZip;
 import fr.univ_amu.iut.importation.model.JetonAnnulation;
 import fr.univ_amu.iut.importation.model.NuitAImporter;
-import fr.univ_amu.iut.importation.model.Progression;
 import fr.univ_amu.iut.importation.model.ResultatImport;
 import fr.univ_amu.iut.importation.model.ResultatImportMultiNuits;
 import fr.univ_amu.iut.importation.model.ServiceImport;
@@ -86,9 +87,9 @@ public class ImportationViewModel {
             new ReadOnlyObjectWrapper<>(this, "resultatNuits", null);
 
     /// Suivi de la **progression déterminée** de l'import en cours (#33/#146), extrait dans un collaborateur
-    /// dédié ([ProgressionImport]) : fraction `[0, 1]` + libellé d'étape avec ETA. La vue s'y lie via
+    /// dédié ([ProgressionOperation]) : fraction `[0, 1]` + libellé d'étape avec ETA. La vue s'y lie via
     /// [#progression()].
-    private final ProgressionImport progressionImport = new ProgressionImport();
+    private final ProgressionOperation progressionOperation = new ProgressionOperation();
 
     /// Pré-contrôle R5 proactif (#108) extrait dans un collaborateur dédié ([ControleNumeroPassage]) :
     /// signale qu'un n° de passage est déjà pris (bloque [#peutImporter()]) et propose le prochain libre.
@@ -221,9 +222,9 @@ public class ImportationViewModel {
 
     /// Suivi de la **progression** de l'import/décompression en cours (#33/#146) : la vue lie la barre à
     /// `progression().fractionProperty()` et le libellé à `progression().messageProperty()` ; le travail
-    /// hors-thread appelle `progression().appliquer(...)`. Extrait dans [ProgressionImport].
-    public ProgressionImport progression() {
-        return progressionImport;
+    /// hors-thread appelle `progression().appliquer(...)`. Extrait dans [ProgressionOperation].
+    public ProgressionOperation progression() {
+        return progressionOperation;
     }
 
     /// Recharge les sites de l'utilisateur courant (à l'ouverture de l'écran ou après création d'un
@@ -275,7 +276,7 @@ public class ImportationViewModel {
     /// lancer l'exécution en arrière-plan.
     public void marquerEnCours() {
         messageExecution.set("");
-        progressionImport.demarrer("Préparation…");
+        progressionOperation.demarrer("Préparation…");
         etat.set(EtatImport.EN_COURS);
         // Verrou de navigation (#54) : on ne doit pas quitter l'assistant tant que l'import tourne,
         // sinon son résultat (marquerTermine/marquerEchec) serait perdu en détachant la vue.
@@ -288,7 +289,7 @@ public class ImportationViewModel {
     /// source extraite est posée (réinitialisation pour nouveau dossier) ou via [#signalerSourceIllisible].
     public void marquerExtractionEnCours() {
         messageExecution.set("");
-        progressionImport.demarrer("Préparation de la décompression…");
+        progressionOperation.demarrer("Préparation de la décompression…");
         etat.set(EtatImport.EXTRACTION);
         // Verrou de navigation (#54) : on ne doit pas quitter l'assistant pendant la décompression, sinon
         // le fil d'arrière-plan continuerait d'écrire un gros temporaire et posterait des mutations
@@ -457,7 +458,7 @@ public class ImportationViewModel {
         resultat.set(null);
         resultatNuits.set(null);
         messageExecution.set("");
-        progressionImport.reinitialiser();
+        progressionOperation.reinitialiser();
         etat.set(EtatImport.ANNULE);
         navigation.setOperationCritique("");
         nettoyerTemporaireZip();
@@ -505,7 +506,7 @@ public class ImportationViewModel {
         resultat.set(null);
         resultatNuits.set(null);
         rejetsImport.clear(); // #155
-        progressionImport.reinitialiser();
+        progressionOperation.reinitialiser();
         messageExecution.set("");
         // Fin de toute opération longue : on lève le verrou de navigation posé par marquerExtractionEnCours
         // (#54). Appelé sur le chemin de succès (nouvelle source extraite posée) comme d'erreur

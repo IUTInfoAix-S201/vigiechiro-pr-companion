@@ -1,4 +1,4 @@
-package fr.univ_amu.iut.lot.viewmodel;
+package fr.univ_amu.iut.commun.viewmodel;
 
 import fr.univ_amu.iut.commun.model.Progression;
 import javafx.beans.property.ReadOnlyDoubleProperty;
@@ -6,13 +6,14 @@ import javafx.beans.property.ReadOnlyDoubleWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 
-/// Suivi de la **progression déterminée** de la génération des archives de dépôt (#769) : fraction
-/// `[0, 1]` pour la barre + libellé d'étape complété d'une **estimation du temps restant** (ETA).
+/// Suivi de la **progression déterminée** d'une opération longue : fraction `[0, 1]` pour la barre +
+/// libellé d'étape complété d'une **estimation du temps restant** (ETA). Socle **partagé** entre les
+/// features (import #33/#146, génération des archives de dépôt #769), qui dupliquaient chacune ce holder.
 ///
 /// L'estimation part du **début de l'opération** (posé par [#demarrer]) : sans référence temporelle,
 /// pas d'ETA (évite un temps restant aberrant calculé depuis l'origine de `System.nanoTime()`). VM
 /// agnostique de l'IHM (règle ArchUnit `viewmodel_sans_javafx_ui`) : seul `javafx.beans` est importé.
-public final class ProgressionLot {
+public final class ProgressionOperation {
 
     private final ReadOnlyDoubleWrapper fraction = new ReadOnlyDoubleWrapper(this, "fraction", 0.0);
     private final ReadOnlyStringWrapper message = new ReadOnlyStringWrapper(this, "message", "");
@@ -21,7 +22,7 @@ public final class ProgressionLot {
     private long debutNanos;
 
     /// Démarre le suivi : fraction à 0, libellé initial, et **pose la référence temporelle** de l'ETA.
-    /// À appeler sur le fil JavaFX au lancement de la génération.
+    /// À appeler sur le fil JavaFX au lancement de l'opération.
     public void demarrer(String messageInitial) {
         fraction.set(0.0);
         message.set(messageInitial);
@@ -31,9 +32,10 @@ public final class ProgressionLot {
     /// Applique un point de progression : met à jour la fraction et le libellé d'étape (complété de
     /// l'ETA). À appeler sur le fil JavaFX (le callback du service s'exécute hors-thread).
     ///
-    /// La compression étant **parallèle** (#814), les points de plusieurs archives peuvent arriver dans le
-    /// désordre ; on garde donc la fraction **monotone** ([Math#max]) pour que la barre n'avance jamais à
-    /// reculons (l'ETA se fonde sur cet avancement consolidé).
+    /// Quand le travail amont est **parallèle** (#814), les points de plusieurs unités peuvent arriver
+    /// dans le désordre ; on garde donc la fraction **monotone** ([Math#max]) pour que la barre n'avance
+    /// jamais à reculons (l'ETA se fonde sur cet avancement consolidé). Sans effet sur les opérations
+    /// séquentielles, dont les fractions croissent déjà.
     public void appliquer(Progression point) {
         long ecoule = debutNanos == 0L ? 0L : System.nanoTime() - debutNanos;
         double avancement = Math.max(fraction.get(), point.fraction());
@@ -52,7 +54,7 @@ public final class ProgressionLot {
         return fraction.getReadOnlyProperty();
     }
 
-    /// Libellé d'étape en cours (« Compression X/N », avec ETA).
+    /// Libellé d'étape en cours (« Copie X/N », « Compression X/N », avec ETA).
     public ReadOnlyStringProperty messageProperty() {
         return message.getReadOnlyProperty();
     }

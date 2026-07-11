@@ -149,7 +149,9 @@ public class PassageViewModel {
         return switch (statut) {
             case IMPORTE -> ActionRecommandee.AUCUNE;
             case TRANSFORME -> ActionRecommandee.VERIFIER;
-            case VERIFIE, PRET_A_DEPOSER -> ActionRecommandee.DEPOSER;
+            // « Dépôt en cours » (#980) : un dépôt interrompu se reprend depuis M-Lot → même mise en
+            // avant que « déposer » (la carte Lot porte la reprise).
+            case VERIFIE, PRET_A_DEPOSER, DEPOT_EN_COURS -> ActionRecommandee.DEPOSER;
             case DEPOSE -> ActionRecommandee.VALIDER;
         };
     }

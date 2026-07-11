@@ -61,7 +61,8 @@ Base : `https://vigiechiro.herokuapp.com/api/v1`. Auth : `Authorization: Basic b
 | GET | `/participations/{id}/donnees` | résultats Tadarida (paginé) — sert à l'import |
 | GET | `/taxons/liste` | référentiel taxons |
 | POST | `/sites/{id}/participations` | crée une participation |
-| POST | `/fichiers` puis `PUT` S3 signé puis POST `/fichiers/{id}` | téléverse un fichier (3 temps) |
+| PATCH | `/participations/{id}` (`If-Match: _etag`) | pousse météo/config depuis la modale du passage |
+| POST | `/fichiers` puis `PUT` S3 signé puis POST `/fichiers/{id}` | téléverse un fichier (3 temps, `PUT` **en flux**) |
 
 ### Objet `participation` (schéma canonique)
 
@@ -94,6 +95,33 @@ Base : `https://vigiechiro.herokuapp.com/api/v1`. Auth : `Authorization: Basic b
 
 Le `site` porte un tableau `localites` (chacune = un **point d'écoute** : `nom` + géométrie `Point`), plus
 `titre`, `protocole`, `grille_stoc`, `_etag`. Détail dans `src/test/resources/vigiechiro/site.schema.json`.
+
+## Cycle de vie d'une participation (EPIC #941)
+
+Le cycle est **naturel** depuis la refonte : la participation est **créée à l'import** (best-effort,
+si connecté et site rattaché), **synchronisée** depuis la modale « Modifier le passage » (push
+météo/micro à la validation, pull « Synchroniser depuis VigieChiro »), puis **réutilisée au dépôt**
+via le lien `ENTITE_PASSAGE` (créée en repli si l'import s'est fait hors connexion). La passerelle
+`SynchronisationParticipation` (feature `passage`) porte créer/pousser/tirer ; `DepotVigieChiro`
+(feature `lot`) ne fait que l'upload.
+
+### Dépôt reprenable par unité
+
+Le dépôt persiste son avancement **fichier par fichier** (table `depot_unite` : statut
+`a_deposer|en_cours|depose|echec`, id distant, raison d'échec). Statuts **honnêtes** du passage :
+« Dépôt en cours » dès le premier téléversement entamé, « Déposé » **seulement** quand toutes les
+unités sont en ligne. Une interruption laisse « Dépôt en cours » ; la tentative suivante ne
+re-téléverse que les unités non confirmées (« Retenter les échecs » dans M-Lot). Détail : moteur
+`lot/model/DepotVigieChiro`, suivi IHM `SuiviDepot` → table de dépôt (socle « suivi par unité »,
+cf. [Patterns](patterns.md)).
+
+### Verdicts des probes d'écriture (exécutées le 2026-07-11)
+
+- **ZIP (pilier B, #984)** : la plateforme **accepte** un `.zip` (déclaration, `PUT` S3
+  `application/zip`, finalisation). Reste à confirmer, au prochain dépôt réel, que son contenu est
+  **dézippé et traité** (`donnees()`) avant de basculer le dépôt sur les archives.
+- **PATCH `/sites/{id}`** : **HTTP 403** pour un observateur → le **push point→site est abandonné** ;
+  le pull (`RapprochementSites`, à la connexion) reste la seule direction de synchronisation des sites.
 
 !!! note "Faire évoluer le contrat"
     Quand notre compréhension change (nouveau champ, nouvel endpoint), on met à jour **le JSON Schema**

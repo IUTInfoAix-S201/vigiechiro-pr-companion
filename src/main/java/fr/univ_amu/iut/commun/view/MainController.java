@@ -15,12 +15,10 @@ import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
-import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.MenuButton;
-import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
@@ -53,11 +51,7 @@ public class MainController {
     private final RechercheGlobale recherche;
     private final OuvrirSite ouvrirSite;
     private final OuvrirPassage ouvrirPassage;
-    private final DependancesMenu menu;
-
-    /// Câblage du menu « ☰ » (sauvegarde/restauration, purge, connexion VigieChiro), initialisé dans
-    /// `initialize()` quand les `@FXML` du menu sont disponibles.
-    private MenuOutils menuOutilsActions;
+    private final Set<ActionMenu> actionsMenu;
 
     @FXML
     private BorderPane racine;
@@ -102,21 +96,10 @@ public class MainController {
     @FXML
     private TextField champRecherche;
 
-    /// Menu ☰ (outils) : son libellé de connexion est rafraîchi à chaque ouverture.
+    /// Menu ☰ (outils) : peuplé en code depuis `Set<ActionMenu>` (#930) ; libellés dynamiques
+    /// réévalués à chaque ouverture.
     @FXML
     private MenuButton menuOutils;
-
-    /// Entrée « Connexion VigieChiro » du menu ☰ (#741) : texte piloté par [OuvrirConnexion].
-    @FXML
-    private MenuItem itemConnexion;
-
-    /// Préférence « fiches espèces sur Wikipédia (sinon GBIF) » du menu ☰ (#849), câblée par [MenuOutils].
-    @FXML
-    private CheckMenuItem itemSourceWikipedia;
-
-    /// Entrée « Réglages » du menu ☰ (#927) : ouvre l'écran à onglets ; grisée s'il n'y a rien à régler.
-    @FXML
-    private MenuItem itemReglages;
 
     @FXML
     private VBox panneauResultats;
@@ -141,7 +124,7 @@ public class MainController {
             RechercheGlobale recherche,
             OuvrirSite ouvrirSite,
             OuvrirPassage ouvrirPassage,
-            DependancesMenu menu) {
+            Set<ActionMenu> actionsMenu) {
         this.navigation = navigation;
         this.navigateur = navigateur;
         this.activites = activites;
@@ -149,7 +132,7 @@ public class MainController {
         this.recherche = recherche;
         this.ouvrirSite = ouvrirSite;
         this.ouvrirPassage = ouvrirPassage;
-        this.menu = menu;
+        this.actionsMenu = actionsMenu;
     }
 
     /// Appelée par le `FXMLLoader` une fois les `@FXML` injectés. Câble les bindings.
@@ -161,23 +144,10 @@ public class MainController {
         // les libellés suivent NavigationViewModel.zonesStatut et la barre se masque quand tout est vide.
         BarreStatut.lier(barreStatut, piedGauche, piedCentre, piedDroite, navigation);
 
-        // Menu « ☰ » (outils) : sauvegarde/restauration de la base (#148), purge des originaux, et
-        // connexion VigieChiro (#741). Câblage regroupé dans MenuOutils pour garder ce controller compact.
-        menuOutilsActions = new MenuOutils(
-                menuOutils,
-                itemConnexion,
-                itemSourceWikipedia,
-                menu.sauvegarde(),
-                menu.purge(),
-                menu.connexion(),
-                menu.reactifs(),
-                this::fenetre,
-                navigateur::afficherAccueil);
-
-        // Réglages (#927) : ouvre l'écran à onglets auto-remplis. Grisé tant qu'aucune feature ne
-        // contribue de réglage affichable, pour ne pas mener à un écran vide (affordance, cf. #789).
-        itemReglages.setDisable(!menu.reglages().aDesReglages());
-        itemReglages.setOnAction(evenement -> menu.reglages().ouvrir());
+        // Menu « ☰ » (outils) : bâti depuis les ActionMenu contribuées (#930) — sauvegarde /
+        // restauration, purge, préférences, réglages, connexion — sans que ce controller connaisse
+        // chaque entrée. `this::fenetre` fournit la fenêtre propriétaire des dialogues au clic.
+        ConstructeurMenuOutils.peupler(menuOutils, actionsMenu, this::fenetre);
 
         // ← Retour (historique) : reste actif même pendant une opération critique — l'utilisateur est
         // averti à la sortie (cf. Navigateur#peutQuitter, #906) plutôt que bloqué en silence. Sa visibilité
@@ -253,30 +223,6 @@ public class MainController {
                         .put(new KeyCodeCombination(KeyCode.F, KeyCombination.CONTROL_DOWN), rechercheChrome::activer);
             }
         });
-    }
-
-    /// Menu « ☰ » → Sauvegarder la base : délègue à [MenuOutils] (#148).
-    @FXML
-    private void sauvegarderBase() {
-        menuOutilsActions.sauvegarder();
-    }
-
-    /// Menu « ☰ » → Restaurer une sauvegarde : délègue à [MenuOutils] (#148).
-    @FXML
-    private void restaurerBase() {
-        menuOutilsActions.restaurer();
-    }
-
-    /// Menu « ☰ » → Purger les originaux importés : délègue à [MenuOutils].
-    @FXML
-    private void purgerOriginaux() {
-        menuOutilsActions.purger();
-    }
-
-    /// Menu « ☰ » → Connexion VigieChiro : ouvre la modale (contrat socle [OuvrirConnexion], #741).
-    @FXML
-    private void ouvrirModaleConnexion() {
-        menuOutilsActions.ouvrirConnexion();
     }
 
     /// Fenêtre propriétaire des sélecteurs/alertes (ou `null` tant que la scène n'est pas attachée).

@@ -14,6 +14,13 @@ import fr.univ_amu.iut.commun.model.SourceUniversellePreferee;
 import fr.univ_amu.iut.commun.model.Workspace;
 import fr.univ_amu.iut.commun.model.dao.VueSauvegardeeDao;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
+import fr.univ_amu.iut.commun.view.ActionConnexion;
+import fr.univ_amu.iut.commun.view.ActionMenu;
+import fr.univ_amu.iut.commun.view.ActionOuvrirReglages;
+import fr.univ_amu.iut.commun.view.ActionPurger;
+import fr.univ_amu.iut.commun.view.ActionRestaurer;
+import fr.univ_amu.iut.commun.view.ActionSauvegarder;
+import fr.univ_amu.iut.commun.view.ActionSourceEspece;
 import fr.univ_amu.iut.commun.view.ExecuteurFiche;
 import fr.univ_amu.iut.commun.view.ExecuteurFicheAsynchrone;
 import fr.univ_amu.iut.commun.view.Navigateur;
@@ -64,6 +71,17 @@ public class CommunModule extends AbstractModule {
         // Le socle contribue lui-même l'onglet « Général » (#928 : source des fiches espèces, puis
         // thème/daltonien).
         Multibinder.newSetBinder(binder(), OngletReglages.class).addBinding().to(OngletReglagesGeneral.class);
+        // Point d'extension « entrées du menu ☰ » (#930) : le MenuButton est bâti par le socle depuis
+        // `Set<ActionMenu>`. Le socle contribue les entrées historiques (sauvegarde / restauration /
+        // purge / source des fiches / réglages / connexion) ; les features en ajouteront via leur
+        // module. L'entrée « Connexion » sera déplacée dans sa feature en P2.2.
+        Multibinder<ActionMenu> actions = Multibinder.newSetBinder(binder(), ActionMenu.class);
+        actions.addBinding().to(ActionSauvegarder.class);
+        actions.addBinding().to(ActionRestaurer.class);
+        actions.addBinding().to(ActionPurger.class);
+        actions.addBinding().to(ActionSourceEspece.class);
+        actions.addBinding().to(ActionOuvrirReglages.class);
+        actions.addBinding().to(ActionConnexion.class);
     }
 
     /// Résolveur de fiche espèce (#922) : convertit l'URL de recherche GBIF en URL de fiche en résolvant

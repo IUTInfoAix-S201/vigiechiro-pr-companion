@@ -165,6 +165,11 @@ public class QualificationController implements GardeQuitter, EmplacementNavigat
     @FXML
     private Label lblMessage;
 
+    /// Erreur de chargement / régénération de la sélection d'écoute (#795), branchée à
+    /// `selectionVm.messageProperty()` (jusqu'ici non affichée, donc avalée).
+    @FXML
+    private Label lblSelectionMessage;
+
     /// Confirmation de succès locale (#797) : « ✓ Verdict enregistré », visible tant que le verdict à
     /// l'écran correspond à l'état persisté (ENREGISTRE).
     @FXML
@@ -313,9 +318,7 @@ public class QualificationController implements GardeQuitter, EmplacementNavigat
         lblAvertissement
                 .managedProperty()
                 .bind(verdictVm.avertissementAJeterProperty().isNotEmpty());
-        lblMessage.textProperty().bind(verdictVm.messageProperty());
-        lblMessage.visibleProperty().bind(verdictVm.messageProperty().isNotEmpty());
-        lblMessage.managedProperty().bind(verdictVm.messageProperty().isNotEmpty());
+        lierMessagesErreur();
 
         // Confirmation de succès locale (#797) : le badge « ✓ Verdict enregistré » apparaît une fois le
         // verdict persisté et disparaît dès qu'une modification recrée un brouillon.
@@ -336,6 +339,17 @@ public class QualificationController implements GardeQuitter, EmplacementNavigat
         // setOnKeyPressed) pour coexister avec d'autres handlers, et limité à cette vue plutôt qu'à la
         // scène partagée du chrome. Les événements remontent depuis le nœud focalisé jusqu'à la racine.
         racine.addEventHandler(KeyEvent.KEY_PRESSED, this::gererRaccourci);
+    }
+
+    /// Branche les deux zones de message d'erreur de l'écran : le verdict (colonne droite) et la sélection
+    /// d'écoute (#795, colonne gauche, jusqu'ici non branchée) ; chacune n'apparaît qu'avec un message.
+    private void lierMessagesErreur() {
+        lblMessage.textProperty().bind(verdictVm.messageProperty());
+        lblMessage.visibleProperty().bind(verdictVm.messageProperty().isNotEmpty());
+        lblMessage.managedProperty().bind(verdictVm.messageProperty().isNotEmpty());
+        lblSelectionMessage.textProperty().bind(selectionVm.messageProperty());
+        lblSelectionMessage.visibleProperty().bind(selectionVm.messageProperty().isNotEmpty());
+        lblSelectionMessage.managedProperty().bind(selectionVm.messageProperty().isNotEmpty());
     }
 
     /// Ouvre l'écran sur le passage `passage` : les deux VM se synchronisent sur le même passage.

@@ -104,6 +104,11 @@
           </HBox>
         </VBox>
 
+        <!-- Erreur de chargement / régénération de la sélection d'écoute (#795) : jusqu'ici avalée
+             (messageProperty du ViewModel non branché) ; masquée tant qu'il n'y a pas d'erreur. -->
+        <Label fx:id="lblSelectionMessage" styleClass="message-erreur" wrapText="true"
+               visible="false" managed="false"/>
+
         <TableView fx:id="tableSequences" VBox.vgrow="ALWAYS" styleClass="table-sequences">
           <columns>
             <TableColumn fx:id="colPosition" text="N°" prefWidth="48.0"/>

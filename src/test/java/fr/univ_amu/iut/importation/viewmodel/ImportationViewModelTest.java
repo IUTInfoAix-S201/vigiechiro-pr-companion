@@ -707,6 +707,50 @@ class ImportationViewModelTest {
     }
 
     @Test
+    @DisplayName("Multi-nuits : la table SUIT le n° de passage saisi dans le formulaire (source unique)")
+    void multi_nuits_table_suit_le_numero_saisi() throws IOException {
+        Path multi = carteMultiNuits();
+        Site site = site(1L, "640380");
+        PointDEcoute point = point(10L, "A1", site.id());
+        when(serviceSites.listerPoints(site.id())).thenReturn(List.of(point));
+        when(serviceImport.inspecter(multi)).thenReturn(inspecteur.inspecter(multi));
+        when(serviceImport.prochainNumeroPassageLibre(10L, 2026)).thenReturn(4);
+        when(serviceImport.numeroPassageDejaUtilise(eq(10L), eq(2026), anyInt()))
+                .thenReturn(false);
+        viewModel.inspection().dossierSourceProperty().set(multi);
+        viewModel.inspecter();
+        viewModel.rattachement().siteSelectionneProperty().set(site);
+        viewModel.rattachement().pointSelectionneProperty().set(point);
+
+        // L'utilisateur remplace le n° de passage → la table renumérote consécutivement depuis ce n°.
+        viewModel.rattachement().numeroPassageProperty().set(7);
+
+        assertThat(viewModel.inspection().nuits())
+                .extracting(NuitVM::numeroPassagePropose)
+                .containsExactly(7, 8, 9);
+    }
+
+    @Test
+    @DisplayName("Le n° de passage est pré-rempli au prochain n° libre dès la sélection du point")
+    void numero_passage_pre_rempli_au_prochain_libre() {
+        Site site = site(1L, "640380");
+        PointDEcoute point = point(10L, "A1", site.id());
+        when(serviceSites.listerPoints(site.id())).thenReturn(List.of(point));
+        when(serviceImport.prochainNumeroPassageLibre(10L, 2026)).thenReturn(5);
+        when(serviceImport.numeroPassageDejaUtilise(eq(10L), eq(2026), anyInt()))
+                .thenReturn(false);
+
+        // Avant toute sélection : défaut 1 (aucun point → pas de pré-remplissage).
+        assertThat(viewModel.rattachement().numeroPassageProperty().get()).isEqualTo(1);
+
+        viewModel.rattachement().siteSelectionneProperty().set(site);
+        viewModel.rattachement().pointSelectionneProperty().set(point);
+
+        // À la sélection du point, le formulaire adopte le prochain n° libre (5) au lieu du défaut 1.
+        assertThat(viewModel.rattachement().numeroPassageProperty().get()).isEqualTo(5);
+    }
+
+    @Test
     @DisplayName("Multi-nuits : peutImporter est faux si aucune nuit n'est incluse")
     void multi_nuits_aucune_incluse_bloque() throws IOException {
         Path multi = carteMultiNuits();

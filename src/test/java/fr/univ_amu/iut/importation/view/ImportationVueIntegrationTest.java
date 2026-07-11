@@ -180,10 +180,11 @@ class ImportationVueIntegrationTest {
     }
 
     @Test
-    @DisplayName("#108 : un n° déjà pris affiche l'avertissement ; « Utiliser ce n° » corrige et le masque")
+    @DisplayName("#108 : saisir un n° déjà pris affiche l'avertissement ; « Utiliser ce n° » corrige et le masque")
     void doublon_affiche_avertissement_puis_bouton_corrige(FxRobot robot) {
-        // Un passage n° 1 existe déjà pour le point A1 (année courante) : le rattacher au n° 1 par défaut
-        // doit déclencher l'avertissement de doublon (pré-contrôle R5 #108).
+        // Un passage n° 1 existe déjà pour le point A1 (année courante). À la sélection du point, le n° est
+        // pré-rempli au prochain libre (2, source unique #…) : PAS d'avertissement au départ. C'est en
+        // SAISISSANT le n° 1 (déjà pris) que le pré-contrôle R5 (#108) doit se déclencher.
         semerPassageExistant(1);
 
         @SuppressWarnings("unchecked")
@@ -198,6 +199,16 @@ class ImportationVueIntegrationTest {
             comboSites.setValue(comboSites.getItems().get(0));
             comboPoints.setValue(comboPoints.getItems().get(0));
         });
+        WaitForAsyncUtils.waitForFxEvents();
+
+        // Pré-remplissage au prochain libre (2) → n° libre, aucun avertissement.
+        assertThat(champPassage.getText()).as("n° pré-rempli au prochain libre").isEqualTo("2");
+        assertThat(zone.isVisible())
+                .as("n° pré-rempli libre : aucun avertissement")
+                .isFalse();
+
+        // L'utilisateur saisit le n° 1, déjà pris → la zone d'avertissement s'affiche.
+        robot.interact(() -> champPassage.setText("1"));
         WaitForAsyncUtils.waitForFxEvents();
 
         assertThat(zone.isVisible())

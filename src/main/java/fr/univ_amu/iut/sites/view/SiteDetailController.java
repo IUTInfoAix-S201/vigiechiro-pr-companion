@@ -1,6 +1,7 @@
 package fr.univ_amu.iut.sites.view;
 
 import com.google.inject.Inject;
+import fr.univ_amu.iut.commun.model.DepotDispositionColonnes;
 import fr.univ_amu.iut.commun.model.Protocole;
 import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.commun.view.ColonneBadge;
@@ -83,6 +84,7 @@ public class SiteDetailController implements RafraichirAuRetour, ResumeStatut {
     private final OuvrirPassage ouvrirPassage;
     private final OuvrirImportation ouvrirImportation;
     private final OuvrirMultisite ouvrirMultisite;
+    private final DepotDispositionColonnes depotColonnes;
 
     /// Contexte du site (nom en zone gauche, commune/protocole en zone centre) déporté en barre de statut
     /// (#693) au lieu d'un en-tête titre/sous-titre.
@@ -158,12 +160,14 @@ public class SiteDetailController implements RafraichirAuRetour, ResumeStatut {
             NavigationSites navigation,
             OuvrirPassage ouvrirPassage,
             OuvrirImportation ouvrirImportation,
-            OuvrirMultisite ouvrirMultisite) {
+            OuvrirMultisite ouvrirMultisite,
+            DepotDispositionColonnes depotColonnes) {
         this.viewModel = Objects.requireNonNull(viewModel, "viewModel");
         this.navigation = Objects.requireNonNull(navigation, "navigation");
         this.ouvrirPassage = Objects.requireNonNull(ouvrirPassage, "ouvrirPassage");
         this.ouvrirImportation = Objects.requireNonNull(ouvrirImportation, "ouvrirImportation");
         this.ouvrirMultisite = Objects.requireNonNull(ouvrirMultisite, "ouvrirMultisite");
+        this.depotColonnes = Objects.requireNonNull(depotColonnes, "depotColonnes");
     }
 
     /// Charge le site à afficher (appelée par [NavigationSites] juste après le chargement FXML).
@@ -191,8 +195,9 @@ public class SiteDetailController implements RafraichirAuRetour, ResumeStatut {
     private void initialize() {
         // Densité/habillage de table uniformes (#690) + table navigable au double-clic (#792).
         TableDonnees.uniformiserNavigable(tablePassages);
-        // Sélecteur de colonnes (#921) : clic droit + ☰ « outils ».
-        GestionnaireColonnes.installer(tablePassages, menuOutils, colonnesPassages());
+        // Sélecteur de colonnes (#921) : clic droit + ☰ « outils » ; disposition retenue par écran (#994).
+        GestionnaireColonnes.installerEtPersister(
+                tablePassages, menuOutils, colonnesPassages(), depotColonnes, "sites", "principale");
         // Repli d'état vide des points d'écoute (#791) : le label prend la place du FlowPane (sans
         // placeholder) tant qu'aucune carte de point n'y est ajoutée. La liaison suit la liste vivante.
         var aucunPoint = Bindings.isEmpty(cartesPoints.getChildren());

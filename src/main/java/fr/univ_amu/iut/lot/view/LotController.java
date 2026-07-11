@@ -1,6 +1,7 @@
 package fr.univ_amu.iut.lot.view;
 
 import com.google.inject.Inject;
+import fr.univ_amu.iut.commun.model.DepotDispositionColonnes;
 import fr.univ_amu.iut.commun.model.Progression;
 import fr.univ_amu.iut.commun.view.EmplacementNavigation;
 import fr.univ_amu.iut.commun.view.EmplacementPassage;
@@ -75,6 +76,7 @@ public class LotController implements EmplacementNavigation, ResumeStatut {
     /// Ouvre le sous-dossier `depot/` dans le gestionnaire de fichiers du système (#251) : le dépôt étant
     /// manuel, on amène l'observateur au bon endroit. Abstrait pour rester testable (faux en tête).
     private final OuvreurDeLien ouvreurDeLien;
+    private final DepotDispositionColonnes depotColonnes;
 
     /// Contexte de navigation (passage + site), mémorisé pour reconstruire le fil d'Ariane du chrome.
     private ContextePassage contexte;
@@ -162,13 +164,15 @@ public class LotController implements EmplacementNavigation, ResumeStatut {
             NavigationViewModel navigation,
             OuvrirSite ouvrirSite,
             OuvrirPassage ouvrirPassage,
-            OuvreurDeLien ouvreurDeLien) {
+            OuvreurDeLien ouvreurDeLien,
+            DepotDispositionColonnes depotColonnes) {
         this.viewModel = Objects.requireNonNull(viewModel, "viewModel");
         this.depotViewModel = Objects.requireNonNull(depotViewModel, "depotViewModel");
         this.navigation = Objects.requireNonNull(navigation, "navigation");
         this.ouvrirSite = Objects.requireNonNull(ouvrirSite, "ouvrirSite");
         this.ouvrirPassage = Objects.requireNonNull(ouvrirPassage, "ouvrirPassage");
         this.ouvreurDeLien = Objects.requireNonNull(ouvreurDeLien, "ouvreurDeLien");
+        this.depotColonnes = Objects.requireNonNull(depotColonnes, "depotColonnes");
     }
 
     @Override
@@ -306,7 +310,13 @@ public class LotController implements EmplacementNavigation, ResumeStatut {
         // Sélecteur de colonnes (#918, EPIC #914) : clic droit + ☰ « outils » offrent « Colonnes… » sur la
         // table de suivi comme sur les autres vues tabulaires. `#` (identité) et « Progression » (l'état) sont
         // verrouillées ; « Fichiers » et « Taille » masquables.
-        GestionnaireColonnes.installer(tableArchives, menuOutils, TableSuiviArchives.configurer(tableArchives));
+        GestionnaireColonnes.installerEtPersister(
+                tableArchives,
+                menuOutils,
+                TableSuiviArchives.configurer(tableArchives),
+                depotColonnes,
+                "lot",
+                "principale");
         tableArchives.setItems(viewModel.suiviLignes().lignes());
 
         // Étape ③ : « Ouvrir le dossier » seulement quand les archives sont réellement prêtes (#259), pas

@@ -3,6 +3,7 @@ package fr.univ_amu.iut.analyse.view;
 import com.google.inject.Inject;
 import fr.univ_amu.iut.analyse.viewmodel.AnalyseViewModel;
 import fr.univ_amu.iut.analyse.viewmodel.Regroupement;
+import fr.univ_amu.iut.commun.model.DepotDispositionColonnes;
 import fr.univ_amu.iut.commun.model.DepotVues;
 import fr.univ_amu.iut.commun.model.EspeceIdentifiee;
 import fr.univ_amu.iut.commun.view.ActionFicheEspece;
@@ -69,6 +70,7 @@ public class AnalyseController implements RafraichirAuRetour {
     private final OuvrirPassage ouvrirPassage;
     private final OuvrirAudio ouvrirAudio;
     private final DepotVues depotVues;
+    private final DepotDispositionColonnes depotColonnes;
 
     /// Action réutilisable « Fiche de l'espèce » (#846) : configure l'item du menu contextuel de la table
     /// des espèces selon la ligne sélectionnée et ouvre la fiche dans le navigateur.
@@ -231,11 +233,13 @@ public class AnalyseController implements RafraichirAuRetour {
             OuvrirPassage ouvrirPassage,
             OuvrirAudio ouvrirAudio,
             DepotVues depotVues,
+            DepotDispositionColonnes depotColonnes,
             ActionFicheEspece actionFicheEspece) {
         this.viewModel = Objects.requireNonNull(viewModel, "viewModel");
         this.ouvrirPassage = Objects.requireNonNull(ouvrirPassage, "ouvrirPassage");
         this.ouvrirAudio = Objects.requireNonNull(ouvrirAudio, "ouvrirAudio");
         this.depotVues = Objects.requireNonNull(depotVues, "depotVues");
+        this.depotColonnes = Objects.requireNonNull(depotColonnes, "depotColonnes");
         this.actionFicheEspece = Objects.requireNonNull(actionFicheEspece, "actionFicheEspece");
     }
 
@@ -263,6 +267,7 @@ public class AnalyseController implements RafraichirAuRetour {
                 menuOutils,
                 () -> viewModel.regroupementProperty().get());
         selecteurColonnes.installer(itemFicheEspece);
+        selecteurColonnes.persister(depotColonnes, FEATURE);
         tableEspeces.setRowFactory(tableau -> {
             TableRow<EspeceAgregee> ligne = new TableRow<>();
             ligne.setOnMousePressed(evenement -> {

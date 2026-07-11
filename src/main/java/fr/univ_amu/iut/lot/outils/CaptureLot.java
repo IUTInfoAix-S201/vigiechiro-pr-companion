@@ -7,6 +7,7 @@ import com.google.inject.Provides;
 import com.google.inject.util.Modules;
 import fr.univ_amu.iut.commun.di.CommunModule;
 import fr.univ_amu.iut.commun.di.PersistenceModule;
+import fr.univ_amu.iut.commun.model.DepotDispositionColonnes;
 import fr.univ_amu.iut.commun.model.Horloge;
 import fr.univ_amu.iut.commun.model.HorlogeFigee;
 import fr.univ_amu.iut.commun.model.Prefixe;
@@ -206,7 +207,8 @@ public final class CaptureLot {
                         injecteur.getInstance(NavigationViewModel.class),
                         injecteur.getInstance(OuvrirSite.class),
                         injecteur.getInstance(OuvrirPassage.class),
-                        injecteur.getInstance(OuvreurDeLien.class))
+                        injecteur.getInstance(OuvreurDeLien.class),
+                        injecteur.getInstance(DepotDispositionColonnes.class))
                 : injecteur.getInstance(type));
         Parent vue = loader.load();
         LotController controleur = loader.getController();

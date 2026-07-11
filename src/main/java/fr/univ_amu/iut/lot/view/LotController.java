@@ -11,6 +11,7 @@ import fr.univ_amu.iut.commun.view.OuvrirPassage;
 import fr.univ_amu.iut.commun.view.OuvrirSite;
 import fr.univ_amu.iut.commun.view.ResumeStatut;
 import fr.univ_amu.iut.commun.viewmodel.ContextePassage;
+import fr.univ_amu.iut.commun.viewmodel.NavigationViewModel;
 import fr.univ_amu.iut.commun.viewmodel.ZonesStatut;
 import fr.univ_amu.iut.lot.model.ArchiveDepot;
 import fr.univ_amu.iut.lot.model.ArchivePlanifiee;
@@ -59,6 +60,11 @@ public class LotController implements EmplacementNavigation, ResumeStatut {
 
     private final LotViewModel viewModel;
     private final DepotViewModel depotViewModel;
+
+    /// Chrome : pour signaler une **opération critique** en cours (génération d'archives, dépôt) et faire
+    /// avertir avant de quitter/fermer (#906).
+    private final NavigationViewModel navigation;
+
     private final OuvrirSite ouvrirSite;
     private final OuvrirPassage ouvrirPassage;
 
@@ -146,11 +152,13 @@ public class LotController implements EmplacementNavigation, ResumeStatut {
     public LotController(
             LotViewModel viewModel,
             DepotViewModel depotViewModel,
+            NavigationViewModel navigation,
             OuvrirSite ouvrirSite,
             OuvrirPassage ouvrirPassage,
             OuvreurDeLien ouvreurDeLien) {
         this.viewModel = Objects.requireNonNull(viewModel, "viewModel");
         this.depotViewModel = Objects.requireNonNull(depotViewModel, "depotViewModel");
+        this.navigation = Objects.requireNonNull(navigation, "navigation");
         this.ouvrirSite = Objects.requireNonNull(ouvrirSite, "ouvrirSite");
         this.ouvrirPassage = Objects.requireNonNull(ouvrirPassage, "ouvrirPassage");
         this.ouvreurDeLien = Objects.requireNonNull(ouvreurDeLien, "ouvreurDeLien");
@@ -161,8 +169,29 @@ public class LotController implements EmplacementNavigation, ResumeStatut {
         return zonesStatut.getReadOnlyProperty();
     }
 
+    /// Reflète l'opération critique en cours du lot sur le chrome (#906) : génération d'archives, puis
+    /// dépôt, sinon rien. Un état non vide fait avertir le [fr.univ_amu.iut.commun.view.Navigateur] / `App`
+    /// avant une sortie d'écran ou une fermeture.
+    private void majOperationCritique() {
+        if (viewModel.generationEnCoursProperty().get()) {
+            navigation.setOperationCritique("la génération des archives");
+        } else if (depotViewModel.enCoursProperty().get()) {
+            navigation.setOperationCritique("le dépôt");
+        } else {
+            navigation.setOperationCritique("");
+        }
+    }
+
     @FXML
     private void initialize() {
+        // Opération critique en cours (#906) : la génération d'archives et le dépôt sont des tâches longues
+        // qu'on ne doit pas abandonner en silence. On pose leur libellé sur le chrome (qui avertit avant de
+        // quitter/fermer) et on l'efface à leur fin. Les écouteurs sont posés sur les propriétés des VM
+        // (durables), pas sur une liaison locale, pour que l'effacement survienne même après une sortie.
+        viewModel.generationEnCoursProperty().addListener((obs, avant, apres) -> majOperationCritique());
+        depotViewModel.enCoursProperty().addListener((obs, avant, apres) -> majOperationCritique());
+        majOperationCritique();
+
         // Statut du workflow déporté en zone centre de la barre de statut (#693), plus de sous-titre.
         zonesStatut.bind(Bindings.createObjectBinding(
                 () -> ZonesStatut.centre(viewModel.statutProperty().get()), viewModel.statutProperty()));

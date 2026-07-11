@@ -1,8 +1,8 @@
 package fr.univ_amu.iut.commun.viewmodel;
 
-import javafx.beans.property.BooleanProperty;
+import javafx.beans.binding.BooleanBinding;
+import javafx.beans.binding.BooleanExpression;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -36,12 +36,15 @@ public class NavigationViewModel {
     private final ObjectProperty<ZonesStatut> zonesStatut =
             new SimpleObjectProperty<>(this, "zonesStatut", ZONES_DEFAUT);
 
-    /// Verrou de navigation (#54) : `true` pendant une opération longue (ex. un import en cours) qui ne
-    /// doit pas être quittée. Le chrome lie le `disable` du lien « 🏠 Accueil » à cette propriété et le
-    /// [fr.univ_amu.iut.commun.view.Navigateur] neutralise le retour à l'accueil tant qu'elle est vraie.
-    /// La feature concernée la met à `true` au démarrage de l'opération et à `false` à sa fin.
-    private final BooleanProperty navigationVerrouillee =
-            new SimpleBooleanProperty(this, "navigationVerrouillee", false);
+    /// Libellé de l'**opération critique** en cours (« l'import », « la génération des archives », « le
+    /// dépôt »…), ou chaîne vide si aucune (#906, ex-#54). Une telle opération ne doit pas être interrompue
+    /// à la légère : sortir de l'écran ou fermer l'application demande confirmation (le
+    /// [fr.univ_amu.iut.commun.view.Navigateur] et `App` consultent ce libellé). La feature concernée pose
+    /// le libellé au démarrage de l'opération et le remet à vide à sa fin.
+    private final StringProperty operationCritique = new SimpleStringProperty(this, "operationCritique", "");
+
+    /// `true` tant qu'une opération critique est en cours, dérivé de [#operationCritiqueProperty].
+    private final BooleanBinding navigationVerrouillee = operationCritique.isNotEmpty();
 
     /// Propriété observable du titre de l'application affiché dans la barre haute.
     public StringProperty titreApplicationProperty() {
@@ -95,17 +98,29 @@ public class NavigationViewModel {
         zonesStatut.set(valeur);
     }
 
-    /// Propriété observable du verrou de navigation (#54) : `true` interdit de quitter l'écran courant.
-    public BooleanProperty navigationVerrouilleeProperty() {
+    /// Libellé de l'opération critique en cours (vide si aucune, #906). Sortir de l'écran ou fermer l'app
+    /// pendant qu'il est non vide déclenche une confirmation.
+    public StringProperty operationCritiqueProperty() {
+        return operationCritique;
+    }
+
+    public String operationCritique() {
+        return operationCritique.get();
+    }
+
+    /// Pose le libellé de l'opération critique en cours (au démarrage), ou l'efface (`""`/`null`, à la fin).
+    public void setOperationCritique(String libelle) {
+        operationCritique.set(libelle == null ? "" : libelle);
+    }
+
+    /// `true` tant qu'une opération critique est en cours (dérivé de [#operationCritiqueProperty]). Conservé
+    /// pour les consommateurs qui n'ont besoin que du booléen (#906, ex-#54).
+    public BooleanExpression navigationVerrouilleeProperty() {
         return navigationVerrouillee;
     }
 
     public boolean isNavigationVerrouillee() {
         return navigationVerrouillee.get();
-    }
-
-    public void setNavigationVerrouillee(boolean valeur) {
-        navigationVerrouillee.set(valeur);
     }
 
     /// Met à jour l'état de navigation en une étape : la vue courante et son libellé de fil

@@ -279,7 +279,7 @@ public class ImportationViewModel {
         etat.set(EtatImport.EN_COURS);
         // Verrou de navigation (#54) : on ne doit pas quitter l'assistant tant que l'import tourne,
         // sinon son résultat (marquerTermine/marquerEchec) serait perdu en détachant la vue.
-        navigation.setNavigationVerrouillee(true);
+        navigation.setOperationCritique("l'import");
     }
 
     /// Passe l'état à `EXTRACTION` (#139/#146) : la barre de progression apparaît immédiatement pendant la
@@ -293,7 +293,7 @@ public class ImportationViewModel {
         // Verrou de navigation (#54) : on ne doit pas quitter l'assistant pendant la décompression, sinon
         // le fil d'arrière-plan continuerait d'écrire un gros temporaire et posterait des mutations
         // Platform.runLater sur une vue détachée. Déverrouillé par reinitialiserExecution (fin ou erreur).
-        navigation.setNavigationVerrouillee(true);
+        navigation.setOperationCritique("l'import");
     }
 
     /// Résout la **source d'import** choisie (#139) : si `chemin` est un `.zip`, le décompresse vers un
@@ -416,7 +416,7 @@ public class ImportationViewModel {
         rejetsImport.setAll(resultatImport.rapport().rejetsFormates());
         resultatNuits.set(null); // import mono-nuit : pas de résultat agrégé
         etat.set(EtatImport.TERMINE);
-        navigation.setNavigationVerrouillee(false); // l'import est fini : on peut de nouveau naviguer (#54)
+        navigation.setOperationCritique(""); // l'import est fini : on peut de nouveau naviguer (#54)
         nettoyerTemporaireZip(); // les fichiers ont été copiés (R9) : le temporaire du zip n'est plus utile (#139)
     }
 
@@ -429,7 +429,7 @@ public class ImportationViewModel {
         messageExecution.set("");
         rejetsImport.setAll(resultatMultiNuits.rejetsFormates()); // rejets cumulés de toutes les nuits (#155)
         etat.set(EtatImport.TERMINE);
-        navigation.setNavigationVerrouillee(false); // l'import est fini : on peut de nouveau naviguer (#54)
+        navigation.setOperationCritique(""); // l'import est fini : on peut de nouveau naviguer (#54)
         nettoyerTemporaireZip();
     }
 
@@ -445,7 +445,7 @@ public class ImportationViewModel {
         resultatNuits.set(null);
         messageExecution.set(message);
         etat.set(EtatImport.ECHEC);
-        navigation.setNavigationVerrouillee(false); // l'import s'est arrêté : on déverrouille (#54)
+        navigation.setOperationCritique(""); // l'import s'est arrêté : on déverrouille (#54)
         nettoyerTemporaireZip(); // échec : on nettoie aussi le temporaire du zip (#139)
     }
 
@@ -459,7 +459,7 @@ public class ImportationViewModel {
         messageExecution.set("");
         progressionImport.reinitialiser();
         etat.set(EtatImport.ANNULE);
-        navigation.setNavigationVerrouillee(false);
+        navigation.setOperationCritique("");
         nettoyerTemporaireZip();
     }
 
@@ -510,7 +510,7 @@ public class ImportationViewModel {
         // Fin de toute opération longue : on lève le verrou de navigation posé par marquerExtractionEnCours
         // (#54). Appelé sur le chemin de succès (nouvelle source extraite posée) comme d'erreur
         // (signalerSourceIllisible). N'est jamais invoqué pendant un import EN_COURS (formulaire gelé).
-        navigation.setNavigationVerrouillee(false);
+        navigation.setOperationCritique("");
     }
 
     /// Ré-arme la préparation (`PRET`) dès qu'un champ du rattachement change après un import

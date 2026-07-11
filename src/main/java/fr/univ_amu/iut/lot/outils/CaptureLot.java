@@ -23,6 +23,7 @@ import fr.univ_amu.iut.commun.view.OuvrirPassage;
 import fr.univ_amu.iut.commun.view.OuvrirSite;
 import fr.univ_amu.iut.commun.viewmodel.ContextePassage;
 import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
+import fr.univ_amu.iut.commun.viewmodel.NavigationViewModel;
 import fr.univ_amu.iut.lot.di.LotModule;
 import fr.univ_amu.iut.lot.model.ArchiveDepot;
 import fr.univ_amu.iut.lot.model.ServiceLot;
@@ -194,6 +195,7 @@ public final class CaptureLot {
                 ? new LotController(
                         vm,
                         injecteur.getInstance(DepotViewModel.class),
+                        injecteur.getInstance(NavigationViewModel.class),
                         injecteur.getInstance(OuvrirSite.class),
                         injecteur.getInstance(OuvrirPassage.class),
                         injecteur.getInstance(OuvreurDeLien.class))

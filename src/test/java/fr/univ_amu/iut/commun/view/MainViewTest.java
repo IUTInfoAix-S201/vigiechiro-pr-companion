@@ -194,16 +194,16 @@ class MainViewTest {
     }
 
     @Test
-    @DisplayName("#54 : le ← Retour est grisé quand la navigation est verrouillée")
-    void retour_grise_si_navigation_verrouillee(FxRobot robot) {
+    @DisplayName(
+            "#906 : le ← Retour reste actif pendant une opération critique (on avertit à la sortie, pas de blocage dur)")
+    void retour_actif_pendant_operation_critique(FxRobot robot) {
         robot.interact(() -> navigateur.afficher(new Group(), "import", "Importer une nuit"));
         Button retour = robot.lookup("#boutonRetour").queryAs(Button.class);
         assertThat(retour.isDisabled()).isFalse();
 
-        robot.interact(() -> navigation.setNavigationVerrouillee(true));
-        assertThat(retour.isDisabled()).isTrue();
-
-        robot.interact(() -> navigation.setNavigationVerrouillee(false));
+        // Une opération critique ne grise plus le bouton (#906) : il reste cliquable et l'avertissement
+        // survient au clic (cf. Navigateur#peutQuitter), au lieu d'un blocage muet.
+        robot.interact(() -> navigation.setOperationCritique("l'import"));
         assertThat(retour.isDisabled()).isFalse();
     }
 

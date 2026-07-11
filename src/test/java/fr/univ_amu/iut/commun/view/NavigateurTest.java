@@ -162,23 +162,42 @@ class NavigateurTest {
     }
 
     @Test
-    @DisplayName("#54 : le verrou de navigation bloque retour et accueil")
-    void verrou_bloque_la_navigation() {
+    @DisplayName("#906 : une opération critique en cours avertit avant de quitter (refuser reste, accepter part)")
+    void operation_critique_avertit_avant_de_quitter() {
         NavigationViewModel navigation = new NavigationViewModel();
         Navigateur navigateur = navigateur(navigation, new Group());
         Parent ecran = new Group();
         navigateur.empiler(ecran, "import", "Importer une nuit", null);
+        navigation.setOperationCritique("l'import");
 
-        navigation.setNavigationVerrouillee(true);
+        // Refus de la confirmation : on reste sur l'écran (retour et accueil neutralisés).
+        navigateur.setConfirmateurQuitter(message -> false);
         navigateur.revenir();
         navigateur.afficherAccueil();
-
         assertThat(navigateur.getVueCentrale()).isSameAs(ecran);
         assertThat(navigation.vueCouranteProperty().get()).isEqualTo("import");
 
-        navigation.setNavigationVerrouillee(false);
+        // Confirmation : on peut partir malgré la tâche en cours (elle se poursuit en arrière-plan).
+        navigateur.setConfirmateurQuitter(message -> true);
         navigateur.afficherAccueil();
         assertThat(navigation.vueCouranteProperty().get()).isEqualTo("accueil");
+    }
+
+    @Test
+    @DisplayName("#906 : fermer l'app est confirmé si une opération critique est en cours")
+    void fermeture_confirmee_si_operation_critique() {
+        NavigationViewModel navigation = new NavigationViewModel();
+        Navigateur navigateur = navigateur(navigation, new Group());
+
+        // Rien en cours : la fermeture se poursuit sans question.
+        assertThat(navigateur.confirmerFermeture()).isTrue();
+
+        // Opération critique : refuser la confirmation annule la fermeture, l'accepter l'autorise.
+        navigation.setOperationCritique("le dépôt");
+        navigateur.setConfirmateurQuitter(message -> false);
+        assertThat(navigateur.confirmerFermeture()).isFalse();
+        navigateur.setConfirmateurQuitter(message -> true);
+        assertThat(navigateur.confirmerFermeture()).isTrue();
     }
 
     @Test

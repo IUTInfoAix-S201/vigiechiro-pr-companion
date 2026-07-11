@@ -13,7 +13,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javafx.animation.FadeTransition;
-import javafx.beans.binding.Bindings;
 import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -183,16 +182,11 @@ public class MainController {
                 this::fenetre,
                 navigateur::afficherAccueil);
 
-        // ← Retour (historique) : grisé pendant une opération longue (import en cours, #54) qu'on ne
-        // doit pas quitter. Sa visibilité (présent hors accueil) est gérée par rafraichirNavigation().
-        boutonRetour.disableProperty().bind(navigation.navigationVerrouilleeProperty());
-        // Explique le grisage (#789) sur l'enveloppe (un Button désactivé n'affiche pas de tooltip), qui
-        // suit la visibilité du bouton pour disparaître avec lui (accueil) sans laisser d'espace vide.
-        IndicateurBlocage.expliquer(
-                enveloppeRetour,
-                Bindings.when(navigation.navigationVerrouilleeProperty())
-                        .then("Navigation bloquée le temps de l'import en cours. Revenez une fois l'import terminé.")
-                        .otherwise("Revenir à l'écran précédent (Alt+←, Alt+Début pour l'accueil)."));
+        // ← Retour (historique) : reste actif même pendant une opération critique — l'utilisateur est
+        // averti à la sortie (cf. Navigateur#peutQuitter, #906) plutôt que bloqué en silence. Sa visibilité
+        // (présent hors accueil) est gérée par rafraichirNavigation() et suivie par l'enveloppe. Le tooltip
+        // rappelle l'action et les raccourcis (#796).
+        IndicateurBlocage.expliquer(enveloppeRetour, "Revenir à l'écran précédent (Alt+←, Alt+Début pour l'accueil).");
         enveloppeRetour.visibleProperty().bind(boutonRetour.visibleProperty());
         enveloppeRetour.managedProperty().bind(boutonRetour.managedProperty());
 

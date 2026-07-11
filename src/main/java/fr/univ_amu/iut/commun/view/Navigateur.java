@@ -173,9 +173,10 @@ public class Navigateur {
         rafraichirSommetAuRetour();
     }
 
-    /// Réaffiche l'accueil global (dépile tout). Neutralisé tant que la navigation est verrouillée (#54).
+    /// Réaffiche l'accueil global (dépile tout). Comme toute sortie d'écran, avertit si une opération
+    /// critique est en cours ou une saisie non enregistrée est en attente (#906/#54).
     public void afficherAccueil() {
-        if (accueil == null || navigation.isNavigationVerrouillee() || !peutQuitterCourant()) {
+        if (accueil == null || !peutQuitterCourant()) {
             return;
         }
         historique.setAll(accueil);
@@ -219,17 +220,33 @@ public class Navigateur {
     }
 
     private boolean peutQuitterCourant() {
-        if (navigation.isNavigationVerrouillee()) {
+        return peutQuitter("Une tâche est en cours (%s). Changer d'écran maintenant risque de la laisser"
+                + " dans un état incohérent. Quitter quand même ?");
+    }
+
+    /// Consulté avant de **fermer l'application** (`App.setOnCloseRequest`, #906) : si une opération
+    /// critique est en cours (import, génération d'archives, dépôt) ou une saisie non enregistrée est en
+    /// attente, demande confirmation. Renvoie `true` si la fermeture peut se poursuivre.
+    public boolean confirmerFermeture() {
+        return peutQuitter("Une tâche est en cours (%s). Fermer l'application l'interrompra et risque de"
+                + " laisser un état incohérent. Fermer quand même ?");
+    }
+
+    /// Cœur commun de « quitter l'écran » et « fermer l'app » : avertit (mais laisse passer si confirmé)
+    /// d'une opération critique en cours, puis d'une saisie non enregistrée (garde de l'écran courant).
+    /// `messageSiOperation` porte un `%s` où insérer le libellé de l'opération.
+    private boolean peutQuitter(String messageSiOperation) {
+        String operation = navigation.operationCritique();
+        if (!operation.isBlank() && !confirmateur.confirmer(messageSiOperation.formatted(operation))) {
             return false;
         }
         if (historique.isEmpty()) {
             return true;
         }
         GardeQuitter garde = historique.get(historique.size() - 1).garde();
-        if (garde != null && garde.aSaisieNonEnregistree()) {
-            return confirmateur.confirmer(garde.messageConfirmationQuitter());
-        }
-        return true;
+        return garde == null
+                || !garde.aSaisieNonEnregistree()
+                || confirmateur.confirmer(garde.messageConfirmationQuitter());
     }
 
     private void synchroniser() {

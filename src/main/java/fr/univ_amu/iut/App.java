@@ -4,6 +4,7 @@ import com.google.inject.Injector;
 import fr.univ_amu.iut.commun.di.RacineInjecteur;
 import fr.univ_amu.iut.commun.model.Workspace;
 import fr.univ_amu.iut.commun.persistence.MigrationSchema;
+import fr.univ_amu.iut.commun.view.Navigateur;
 import fr.univ_amu.iut.commun.view.OuvreurDeLienSysteme;
 import fr.univ_amu.iut.importation.model.ExtracteurZip;
 import fr.univ_amu.iut.passage.model.BackfillHorodatageCapture;
@@ -54,6 +55,17 @@ public class App extends Application {
 
         primaryStage.setScene(new Scene(root));
         primaryStage.setTitle("VigieChiro PR Companion");
+
+        // Garde-fou de fermeture (#906) : si une opération critique est en cours (import, génération
+        // d'archives, dépôt) ou une saisie non enregistrée est en attente, on demande confirmation avant de
+        // fermer — sinon la tâche serait interrompue en laissant un état incohérent.
+        Navigateur navigateur = injector.getInstance(Navigateur.class);
+        primaryStage.setOnCloseRequest(evenement -> {
+            if (!navigateur.confirmerFermeture()) {
+                evenement.consume();
+            }
+        });
+
         primaryStage.show();
     }
 

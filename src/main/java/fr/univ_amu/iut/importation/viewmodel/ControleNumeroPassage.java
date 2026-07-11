@@ -43,10 +43,29 @@ public final class ControleNumeroPassage {
     ControleNumeroPassage(ServiceImport serviceImport, RattachementImportViewModel rattachement) {
         this.serviceImport = Objects.requireNonNull(serviceImport, "serviceImport");
         this.rattachement = Objects.requireNonNull(rattachement, "rattachement");
-        // Recalcule le pré-contrôle dès qu'un champ déterminant du rattachement change.
-        rattachement.pointSelectionneProperty().addListener((obs, ancien, nouveau) -> verifier());
-        rattachement.anneeProperty().addListener((obs, ancien, nouveau) -> verifier());
+        // Sur changement de **contexte** (point / année) : pré-remplir le n° de passage avec le prochain
+        // libre (source unique #… : la table des nuits suit ce n°) puis re-contrôler. Sur simple saisie du
+        // n° : re-contrôler seulement.
+        rattachement.pointSelectionneProperty().addListener((obs, ancien, nouveau) -> surChangementContexte());
+        rattachement.anneeProperty().addListener((obs, ancien, nouveau) -> surChangementContexte());
         rattachement.numeroPassageProperty().addListener((obs, ancien, nouveau) -> verifier());
+        surChangementContexte(); // pré-remplissage initial si un point est déjà sélectionné (contexte)
+    }
+
+    /// Sur changement de point / année : recalcule le **prochain n° libre** et **pré-remplit** le n° de
+    /// passage du formulaire avec (source unique #… : la table des nuits suit ce n°), puis re-contrôle R5.
+    /// Le n° libre valant toujours ≥ 1 en production, le garde `>= 1` évite d'écraser le défaut quand aucun
+    /// point n'est encore sélectionné.
+    private void surChangementContexte() {
+        PointDEcoute point = rattachement.pointSelectionneProperty().get();
+        if (point != null) {
+            int libre = serviceImport.prochainNumeroPassageLibre(
+                    point.id(), rattachement.anneeProperty().get());
+            if (libre >= 1) {
+                rattachement.numeroPassageProperty().set(libre);
+            }
+        }
+        verifier();
     }
 
     /// Recalcule le pré-contrôle pour le rattachement courant. Sans point sélectionné ou avec un n° &lt; 1

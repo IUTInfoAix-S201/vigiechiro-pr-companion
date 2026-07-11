@@ -19,11 +19,11 @@ import javafx.collections.ListChangeListener;
 /// (Extract Class) sur le modèle de [ControleNumeroPassage] : l'orchestrateur reste mince (façade), ce
 /// collaborateur porte l'**auto-numérotation** des nuits et la préparation/exécution de la demande.
 ///
-/// Il **s'abonne lui-même** au rattachement (point / année) et à la table des nuits (ajout/retrait,
-/// (dé)coche) pour recalculer, à chaque changement, les n° de passage proposés : chaque nuit **incluse**
-/// (ordre des dates) reçoit un n° **consécutif** à partir du prochain n° libre du point. Il expose la
-/// **validité** de cette numérotation ([#numerotationValideProperty()]) que l'orchestrateur compose dans
-/// son `peutImporter`.
+/// Il **s'abonne lui-même** au rattachement (point / année / **n° de passage**) et à la table des nuits
+/// (ajout/retrait, (dé)coche) pour recalculer, à chaque changement, les n° de passage proposés : la table
+/// **suit le n° de passage du formulaire** (source unique #…), chaque nuit **incluse** (ordre des dates)
+/// recevant un n° **consécutif** à partir de ce n° saisi. Il expose la **validité** de cette numérotation
+/// ([#numerotationValideProperty()]) que l'orchestrateur compose dans son `peutImporter`.
 ///
 /// VM agnostique de l'IHM (règle ArchUnit `viewmodel_sans_javafx_ui`) : seuls `javafx.beans` et
 /// `javafx.collections` sont importés, jamais `javafx.scene`.
@@ -46,10 +46,12 @@ public final class CoordinationNuits {
         this.inspection = Objects.requireNonNull(inspection, "inspection");
         this.rattachement = Objects.requireNonNull(rattachement, "rattachement");
 
-        // Recalcul de la numérotation quand le rattachement change, quand la table des nuits est
+        // Recalcul de la numérotation quand le rattachement change (point / année / **n° de passage**,
+        // ce dernier étant la source unique dont la table suit la saisie #…), quand la table des nuits est
         // repeuplée (nouvelle inspection) et quand l'utilisateur (dé)coche une nuit.
         rattachement.pointSelectionneProperty().addListener((obs, ancien, nouveau) -> renumeroter());
         rattachement.anneeProperty().addListener((obs, ancien, nouveau) -> renumeroter());
+        rattachement.numeroPassageProperty().addListener((obs, ancien, nouveau) -> renumeroter());
         // `plusieursNuits` passe à `true` **après** le `setAll` de la table (donc après le déclenchement du
         // listener de liste ci-dessous) : sans cet abonnement, une carte multi-nuits inspectée alors que le
         // rattachement est déjà complet garderait des n° à « — » jusqu'à ce qu'on retouche le rattachement.
@@ -69,10 +71,10 @@ public final class CoordinationNuits {
         return numerotationValide.getReadOnlyProperty();
     }
 
-    /// Recalcule les **n° de passage proposés** : chaque nuit **incluse** (ordre des dates) reçoit un n°
-    /// **consécutif** à partir du prochain n° libre du point ; les nuits exclues repassent à 0. Met à jour
-    /// la validité (≥ 1 nuit incluse **et** tous les n° proposés libres, R5). Sans rattachement complet ou
-    /// hors multi-nuits, ne propose rien.
+    /// Recalcule les **n° de passage proposés** : la nuit **incluse** (ordre des dates) part du **n° de
+    /// passage saisi dans le formulaire** (source unique #…) et les suivantes reçoivent des n° **consécutifs**
+    /// ; les nuits exclues repassent à 0. Met à jour la validité (≥ 1 nuit incluse **et** tous les n° proposés
+    /// libres, R5). Sans rattachement complet ou hors multi-nuits, ne propose rien.
     private void renumeroter() {
         if (!inspection.plusieursNuits()) {
             numerotationValide.set(true); // non pertinent : le pré-contrôle mono-nuit (#108) fait foi
@@ -85,7 +87,7 @@ public final class CoordinationNuits {
         }
         Long idPoint = rattachement.idPointSelectionne();
         int annee = rattachement.prefixeCourant().annee();
-        int numero = serviceImport.prochainNumeroPassageLibre(idPoint, annee);
+        int numero = rattachement.numeroPassageProperty().get(); // base = n° du formulaire (la table le suit)
         int incluses = 0;
         boolean tousLibres = true;
         for (NuitVM nuit : inspection.nuits()) {

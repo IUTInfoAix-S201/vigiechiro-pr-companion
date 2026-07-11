@@ -90,7 +90,9 @@ class DiagnosticViewTest {
         assertThat(graphe.getData().get(1).getData()).hasSize(2); // humidité
         assertThat(anomalies.getItems()).hasSize(1);
         assertThat(evenements.getItems()).hasSize(1);
-        // L'enregistreur est déporté en barre de statut (#693) au lieu d'un label d'en-tête.
-        assertThat(controleur.zonesStatutProperty().get().centre()).isEqualTo("PR 1925492");
+        // Barre de statut 3 zones (#1022) : contexte du passage à gauche, matériel au centre.
+        var zones = controleur.zonesStatutProperty().get();
+        assertThat(zones.gauche()).isEqualTo("Carré 640380 · A1 · N° 2");
+        assertThat(zones.centre()).isEqualTo("PR 1925492");
     }
 }

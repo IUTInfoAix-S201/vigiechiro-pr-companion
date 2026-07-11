@@ -92,11 +92,25 @@ public class DiagnosticController implements EmplacementNavigation, ResumeStatut
         return zonesStatut.getReadOnlyProperty();
     }
 
+    /// Compose les 3 zones de la barre de statut (#1022) : identité du passage (gauche), matériel du
+    /// diagnostic (centre), et à droite l'**alerte prioritaire** — hors-nuit puis relevé climatique absent.
+    private ZonesStatut calculerZonesStatut() {
+        String gauche = contexte == null ? "" : contexte.identiteStatut();
+        String releveAbsent = viewModel.releveClimatiqueAbsentProperty().get() ? "⚠ Relevé climatique absent" : "";
+        String droite =
+                ZonesStatut.premierNonVide(viewModel.alerteHorsNuitProperty().get(), releveAbsent);
+        return new ZonesStatut(gauche, viewModel.enregistreurProperty().get(), droite);
+    }
+
     @FXML
     private void initialize() {
-        // L'enregistreur diagnostiqué est déporté en zone centre de la barre de statut (#693).
+        // Barre de statut 3 zones (#1022, EPIC #1016) : contexte du passage à gauche, matériel (enregistreur)
+        // au centre, alerte prioritaire à droite (hors-nuit > relevé climatique absent).
         zonesStatut.bind(Bindings.createObjectBinding(
-                () -> ZonesStatut.centre(viewModel.enregistreurProperty().get()), viewModel.enregistreurProperty()));
+                this::calculerZonesStatut,
+                viewModel.enregistreurProperty(),
+                viewModel.alerteHorsNuitProperty(),
+                viewModel.releveClimatiqueAbsentProperty()));
         lblResumeClimat.textProperty().bind(viewModel.resumeClimatProperty());
         lblTemperature
                 .textProperty()

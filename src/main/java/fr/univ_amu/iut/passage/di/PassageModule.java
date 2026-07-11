@@ -13,7 +13,9 @@ import fr.univ_amu.iut.commun.persistence.ServicePurgeOriginaux;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
 import fr.univ_amu.iut.commun.persistence.UniteDeTravail;
 import fr.univ_amu.iut.commun.view.OuvrirDiagnostic;
+import fr.univ_amu.iut.commun.view.OuvrirLot;
 import fr.univ_amu.iut.commun.view.OuvrirPassage;
+import fr.univ_amu.iut.commun.view.OuvrirVerification;
 import fr.univ_amu.iut.passage.model.FournisseurMeteo;
 import fr.univ_amu.iut.passage.model.MeteoOpenMeteo;
 import fr.univ_amu.iut.passage.model.MoteurWorkflowPassage;
@@ -80,10 +82,13 @@ public class PassageModule extends ModuleDeFeature {
         // le binding ; hors connexion, l'Optional reste vide (patron de DepotVigieChiro).
         OptionalBinder.newOptionalBinder(binder(), SynchronisationParticipation.class);
 
-        // Contrat de navigation vers M-Diagnostic : OptionalBinder VIDE (feature `diagnostic` désactivable,
-        // #1087). `DiagnosticModule` fait `setBinding` quand elle est active ; sinon l'Optional reste vide et
-        // PassageController masque la carte « Diagnostic ».
+        // Contrats de navigation vers M-Diagnostic, M-Qualification et M-Lot : OptionalBinder VIDE (features
+        // `diagnostic`, `qualification` et `lot` désactivables, #1087). Chaque module réel fait `setBinding`
+        // quand sa feature est active ; sinon l'Optional reste vide et PassageController masque la carte
+        // correspondante.
         OptionalBinder.newOptionalBinder(binder(), OuvrirDiagnostic.class);
+        OptionalBinder.newOptionalBinder(binder(), OuvrirLot.class);
+        OptionalBinder.newOptionalBinder(binder(), OuvrirVerification.class);
     }
 
     @Provides

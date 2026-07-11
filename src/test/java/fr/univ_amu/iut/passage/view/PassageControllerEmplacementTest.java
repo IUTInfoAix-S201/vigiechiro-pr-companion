@@ -8,7 +8,9 @@ import fr.univ_amu.iut.commun.model.Verdict;
 import fr.univ_amu.iut.commun.persistence.ServicePurgeOriginaux;
 import fr.univ_amu.iut.commun.view.Lieu;
 import fr.univ_amu.iut.commun.view.OuvrirDiagnostic;
+import fr.univ_amu.iut.commun.view.OuvrirLot;
 import fr.univ_amu.iut.commun.view.OuvrirSite;
+import fr.univ_amu.iut.commun.view.OuvrirVerification;
 import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
 import fr.univ_amu.iut.passage.model.DetailPassage;
 import fr.univ_amu.iut.passage.model.ServicePassage;
@@ -41,10 +43,10 @@ class PassageControllerEmplacementTest {
     private PassageController controller(PassageViewModel vm, OuvrirSite ouvrirSite) {
         return new PassageController(
                 vm,
-                idp -> {},
+                Optional.<OuvrirVerification>of(idp -> {}),
                 Optional.<OuvrirDiagnostic>of(idp -> {}),
                 idp -> {},
-                idp -> {},
+                Optional.<OuvrirLot>of(idp -> {}),
                 navigation,
                 ouvrirSite,
                 numeroCarre -> {},

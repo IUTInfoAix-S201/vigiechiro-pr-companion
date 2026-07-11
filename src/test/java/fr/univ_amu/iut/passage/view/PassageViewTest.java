@@ -80,6 +80,12 @@ class PassageViewTest {
                 OptionalBinder.newOptionalBinder(binder(), OuvrirDiagnostic.class)
                         .setBinding()
                         .toInstance(passage -> diagnosticOuvert.set(passage.idPassage()));
+                OptionalBinder.newOptionalBinder(binder(), OuvrirVerification.class)
+                        .setBinding()
+                        .toInstance(passage -> verificationOuverte.set(passage.idPassage()));
+                OptionalBinder.newOptionalBinder(binder(), OuvrirLot.class)
+                        .setBinding()
+                        .toInstance(passage -> depotOuvert.set(passage.idPassage()));
             }
 
             @Provides
@@ -88,18 +94,8 @@ class PassageViewTest {
             }
 
             @Provides
-            OuvrirVerification ouvrirVerification() {
-                return passage -> verificationOuverte.set(passage.idPassage());
-            }
-
-            @Provides
             OuvrirValidation ouvrirValidation() {
                 return passage -> validationOuverte.set(passage.idPassage());
-            }
-
-            @Provides
-            OuvrirLot ouvrirLot() {
-                return passage -> depotOuvert.set(passage.idPassage());
             }
 
             @Provides

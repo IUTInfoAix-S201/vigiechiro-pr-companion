@@ -41,19 +41,18 @@ import java.util.Optional;
 /// en isolation reste validé par `LotModuleTest` (injecteur local).
 public class LotModule extends ModuleDeFeature {
 
-    /// Identité de la feature. `COEUR` pour l'instant (feuille couplée au runtime via son contrat
-    /// `Ouvrir…` : la désactiver casserait l'écran consommateur) ; passera `OPTIONNELLE` une fois ce
-    /// contrat neutralisé (P3, #1064).
+    /// Identité de la feature. `OPTIONNELLE` (désactivable) : son contrat `OuvrirLot` est neutralisé chez
+    /// son consommateur (PassageController l'injecte en `Optional` et masque la carte si absent).
     @Override
     public Fonctionnalite fonctionnalite() {
-        return new Fonctionnalite("lot", "Lots de dépôt", Categorie.COEUR);
+        return new Fonctionnalite("lot", "Lots de dépôt", Categorie.OPTIONNELLE);
     }
 
     /// Fournit le contrat de navigation socle [OuvrirLot] : M-Passage l'injecte pour ouvrir la
     /// préparation/dépôt sans dépendre de la vue de cette feature (graphe de slices acyclique).
     @Override
     protected void configure() {
-        bind(OuvrirLot.class).to(NavigationLot.class);
+        OptionalBinder.newOptionalBinder(binder(), OuvrirLot.class).setBinding().to(NavigationLot.class);
         // Dépôt VigieChiro (#142) en liaison **optionnelle** : déclaré ici (défaut absent) pour que les
         // injecteurs partiels de la feature `lot` — notamment `CaptureLot`, sans `ConnexionModule` donc sans
         // client HTTP — résolvent `Optional<DepotVigieChiro>` à vide. La liaison réelle est posée par

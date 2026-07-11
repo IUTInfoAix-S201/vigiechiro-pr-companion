@@ -61,10 +61,10 @@ public class PassageController implements EmplacementNavigation, RafraichirAuRet
     private static final PseudoClass RECOMMANDEE = PseudoClass.getPseudoClass("recommandee");
 
     private final PassageViewModel viewModel;
-    private final OuvrirVerification ouvrirVerification;
+    private final Optional<OuvrirVerification> ouvrirVerification;
     private final Optional<OuvrirDiagnostic> ouvrirDiagnostic;
     private final OuvrirValidation ouvrirValidation;
-    private final OuvrirLot ouvrirLot;
+    private final Optional<OuvrirLot> ouvrirLot;
     private final NavigationPassage navigation;
     private final OuvrirSite ouvrirSite;
     private final OuvrirMultisite ouvrirMultisite;
@@ -142,10 +142,10 @@ public class PassageController implements EmplacementNavigation, RafraichirAuRet
     @Inject
     public PassageController(
             PassageViewModel viewModel,
-            OuvrirVerification ouvrirVerification,
+            Optional<OuvrirVerification> ouvrirVerification,
             Optional<OuvrirDiagnostic> ouvrirDiagnostic,
             OuvrirValidation ouvrirValidation,
-            OuvrirLot ouvrirLot,
+            Optional<OuvrirLot> ouvrirLot,
             NavigationPassage navigation,
             OuvrirSite ouvrirSite,
             OuvrirMultisite ouvrirMultisite,
@@ -215,6 +215,11 @@ public class PassageController implements EmplacementNavigation, RafraichirAuRet
         boutonVerifier
                 .disableProperty()
                 .bind(viewModel.verificationDisponibleProperty().not());
+        // « Vérifier » n'apparaît que si la feature `qualification` est activée (feature-flag #1087) : quand
+        // elle est coupée, le contrat est absent et la carte est retirée plutôt que laissée sans effet.
+        boolean verificationActive = ouvrirVerification.isPresent();
+        boutonVerifier.setVisible(verificationActive);
+        boutonVerifier.setManaged(verificationActive);
         // « Diagnostic » n'apparaît que si la feature `diagnostic` est activée (feature-flag #1087) : quand
         // elle est coupée, le contrat est absent et la carte est retirée plutôt que laissée sans effet.
         boolean diagnosticActif = ouvrirDiagnostic.isPresent();
@@ -222,6 +227,11 @@ public class PassageController implements EmplacementNavigation, RafraichirAuRet
         boutonDiagnostic.setManaged(diagnosticActif);
         boutonValidation.disableProperty().bind(viewModel.validationVerrouilleeProperty());
         boutonDepot.disableProperty().bind(viewModel.depotDisponibleProperty().not());
+        // « Préparer le dépôt » n'apparaît que si la feature `lot` est activée (feature-flag #1087) : quand
+        // elle est coupée, le contrat est absent et la carte est retirée plutôt que laissée sans effet.
+        boolean depotActif = ouvrirLot.isPresent();
+        boutonDepot.setVisible(depotActif);
+        boutonDepot.setManaged(depotActif);
         // Suppression gatée en amont (#789) : un passage déposé n'est pas supprimable (le service le refuse).
         // Plutôt que de laisser l'utilisateur découvrir le refus APRÈS la confirmation, on grise le bouton et
         // on explique le blocage par un tooltip posé sur l'enveloppe (un Button désactivé n'en affiche pas).
@@ -306,11 +316,12 @@ public class PassageController implements EmplacementNavigation, RafraichirAuRet
     }
 
     /// « Vérifier l'enregistrement » : ouvre M-Qualification sur ce passage via le contrat socle
-    /// [OuvrirVerification] (la feature `qualification` en fournit l'implémentation).
+    /// [OuvrirVerification] (implémenté par la feature `qualification`, **désactivable** : la carte
+    /// n'apparaît que si la feature est activée, cf. #1087).
     @FXML
     private void verifier() {
         // Le bouton n'est actif qu'après ouvrirSur (verificationDisponible) : idPassage est défini.
-        ouvrirVerification.ouvrir(contextePassage());
+        ouvrirVerification.ifPresent(ouvrir -> ouvrir.ouvrir(contextePassage()));
     }
 
     /// « Diagnostic matériel » : ouvre M-Diagnostic sur ce passage via le contrat socle
@@ -330,11 +341,12 @@ public class PassageController implements EmplacementNavigation, RafraichirAuRet
     }
 
     /// « Préparer le dépôt » : ouvre M-Lot sur ce passage via le contrat socle [OuvrirLot]
-    /// (implémenté par la feature `lot`). Le bouton n'est actif que dans la phase de dépôt (Vérifié
-    /// ou Prêt à déposer) : idPassage est alors défini.
+    /// (implémenté par la feature `lot`, **désactivable** : la carte n'apparaît que si la feature est
+    /// activée, cf. #1087). Le bouton n'est actif que dans la phase de dépôt (Vérifié ou Prêt à
+    /// déposer) : idPassage est alors défini.
     @FXML
     private void preparerDepot() {
-        ouvrirLot.ouvrir(contextePassage());
+        ouvrirLot.ifPresent(ouvrir -> ouvrir.ouvrir(contextePassage()));
     }
 
     /// Contexte de navigation transmis aux écrans enfants (identité + n° + site), pour qu'ils

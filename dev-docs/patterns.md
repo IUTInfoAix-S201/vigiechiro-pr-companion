@@ -335,6 +335,29 @@ une règle isolée, **testable sans persistance ni IHM** — objectif réutilisa
 
 ---
 
+## Table de suivi par unité (socle `commun`)
+
+**Le problème.** Trois opérations longues (génération d'archives #820, import par fichier #947, dépôt
+VigieChiro #983) doivent montrer l'avancement **de chaque unité de travail** (état coloré + barre),
+alimenté depuis des fils d'arrière-plan, parfois dans le désordre (travail parallèle).
+
+**La solution.** Un socle en trois couches, spécialisé par feature :
+
+- `commun.viewmodel` : `EtatUnite` (en attente / en cours / terminée / échec), `LigneSuivi` (ligne
+  observable extensible), `SuiviLignes<L>` (pilote générique, ciblage par numéro, tolérant aux
+  événements inconnus ou dans le désordre) ;
+- `commun.view` : `TableSuivi` (colonnes `#` / spécifiques / Progression, rangées colorées
+  `.ligne-suivi.etat-…` dans `design.css`) + `CelluleProgressionUnite` (barre vive ou icône + libellé,
+  raison d'échec en infobulle) ;
+- côté feature : une interface d'événements métier (`SuiviArchives`, `SuiviFichiers`, `SuiviDepot`,
+  chacune avec sa variante `inerte()`), un **relais** qui rejoue chaque événement sur le fil JavaFX
+  (`Platform.runLater`), et une spécialisation `SuiviLignesXxx extends SuiviLignes<LigneXxx>` qui
+  traduit les événements en mutations observables.
+
+**La règle.** Toute nouvelle opération longue « par unité » réutilise ce socle : définir l'interface
+d'événements (+ `inerte()`), la ligne et le pilote spécialisés, le relais fil JavaFX — jamais une
+table ad hoc.
+
 ## Unit of Work (`UniteDeTravail`)
 
 **Le problème.** Par défaut, chaque écriture DAO s'auto-commit. Mais « créer un passage **et** sa

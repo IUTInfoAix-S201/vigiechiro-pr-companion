@@ -1,7 +1,9 @@
 package fr.univ_amu.iut.lot.view;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -15,6 +17,7 @@ import fr.univ_amu.iut.commun.view.NavigationDeTestModule;
 import fr.univ_amu.iut.commun.view.OuvreurDeLien;
 import fr.univ_amu.iut.commun.viewmodel.ContextePassage;
 import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
+import fr.univ_amu.iut.lot.model.BilanDepot;
 import fr.univ_amu.iut.lot.model.DepotVigieChiro;
 import fr.univ_amu.iut.lot.model.EtatLot;
 import fr.univ_amu.iut.lot.model.ServiceLot;
@@ -22,6 +25,7 @@ import fr.univ_amu.iut.lot.viewmodel.DepotViewModel;
 import fr.univ_amu.iut.lot.viewmodel.LotViewModel;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -34,6 +38,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.api.FxRobot;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
+import org.testfx.util.WaitForAsyncUtils;
 
 /// Test d'intégration TestFX de l'écran **M-Lot** : chargement du FXML via Guice (avec un
 /// [ServiceLot] mocké), ouverture sur un passage Vérifié, vérification du câblage (statut, récap,
@@ -42,6 +47,7 @@ import org.testfx.framework.junit5.Start;
 class LotViewTest {
 
     private ServiceLot service;
+    private DepotVigieChiro depot;
     private LotController controleur;
 
     @Start
@@ -50,7 +56,7 @@ class LotViewTest {
         when(service.consulterLot(anyLong()))
                 .thenReturn(new EtatLot(StatutWorkflow.VERIFIE, "/ws/session-42", 2, 8192L, List.of(), null));
         // Dépôt présent (mock) → le bouton « Téléverser sur Vigie-Chiro » est visible (#142).
-        DepotVigieChiro depot = mock(DepotVigieChiro.class);
+        depot = mock(DepotVigieChiro.class);
         Injector injector = Guice.createInjector(
                 new AbstractModule() {
                     @Provides
@@ -106,5 +112,26 @@ class LotViewTest {
 
         assertThat(televerser.isVisible()).isTrue();
         assertThat(televerser.getText()).contains("Téléverser sur Vigie-Chiro");
+    }
+
+    @Test
+    @DisplayName("#982/#983 : le clic « Téléverser sur Vigie-Chiro » délègue au moteur reprenable et restitue le bilan")
+    void clic_televerser_delegue_au_moteur(FxRobot robot) throws Exception {
+        when(service.consulterLot(anyLong()))
+                .thenReturn(new EtatLot(StatutWorkflow.PRET_A_DEPOSER, "/ws/session-42", 2, 8192L, List.of(), null));
+        when(service.sequencesADeposer(42L)).thenReturn(List.of(java.nio.file.Path.of("/ws/a.wav")));
+        when(depot.deposer(eq(42L), any(), any(), any())).thenReturn(new BilanDepot("part-1", 1, List.of()));
+        robot.interact(() -> controleur.ouvrirSur(
+                new ContextePassage(42L, 2, new ContexteSite("640380", "A1", "Étang de la Tuilière"))));
+
+        robot.interact(() -> robot.lookup("#btnTeleverser").queryButton().fire());
+
+        // Le dépôt tourne sur un fil virtuel : on attend la restitution du bilan sur le fil JavaFX.
+        Label message = robot.lookup("#lblDepotMessage").queryAs(Label.class);
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> message.getText().contains("téléversé"));
+        WaitForAsyncUtils.waitForFxEvents();
+
+        verify(depot).deposer(eq(42L), any(), any(), any());
+        assertThat(message.getText()).contains("1 fichier(s) téléversé(s)");
     }
 }

@@ -32,21 +32,48 @@ sont neutralisées le temps de l'écriture (on ne risque pas de téléverser une
 Le tableau de suivi des archives laisse **choisir et réordonner ses colonnes** (clic droit ou menu ☰
 « outils ») : voir [Personnaliser les tableaux](../personnaliser-les-tableaux.md).
 
-## ③ Téléverser ces archives sur Vigie-Chiro
+## ③ Téléverser sur Vigie-Chiro
 
 ![Archives générées : la liste des ZIP s'affiche et « Ouvrir le dossier » s'active.](../assets/captures/apercu-lot-archives.png)
 
-Une fois les archives produites, la liste des `.zip` s'affiche et le bouton **« Ouvrir le dossier »**
-s'active : il ouvre directement le sous-dossier `depot/` dans le gestionnaire de fichiers, pour vous
-amener au bon endroit. Le **téléversement est manuel** (hors application) : vous déposez ces archives
-sur Vigie-Chiro depuis votre navigateur.
+Une fois les archives produites, deux chemins s'offrent à vous :
+
+- **Téléversement automatique** (application connectée à Vigie-Chiro) : le bouton
+  **« Téléverser sur Vigie-Chiro »** dépose la nuit directement — la participation est créée (ou
+  réutilisée si elle l'a été à l'import), puis chaque fichier est téléversé. Une **table de dépôt**
+  suit chaque fichier (en attente → en cours → déposé, ou échec avec la raison au survol), et la
+  **barre de statut** en bas de la fenêtre affiche l'avancement en continu, même quand vous faites
+  défiler l'écran.
+- **Téléversement manuel** (repli, sans connexion) : **« Ouvrir le dossier »** ouvre le sous-dossier
+  `depot/` dans le gestionnaire de fichiers, et vous déposez les archives sur Vigie-Chiro depuis votre
+  navigateur.
+
+### Un dépôt interrompu se reprend
+
+Le dépôt automatique est **reprenable** : une coupure réseau, une fermeture de l'application ou un
+échec partiel ne font **rien perdre**. Le passage prend le statut « **Dépôt en cours** » et, à la
+réouverture de l'écran, la table de dépôt réaffiche l'état exact de chaque fichier. Le bouton devient
+alors « **Retenter les échecs** » : seuls les fichiers manquants sont re-téléversés — jamais ceux déjà
+en ligne. Le passage ne devient « Déposé » que lorsque **tous** les fichiers sont en ligne.
 
 ## ④ Marquer le passage déposé
 
 ![L'état « Déposé » : toutes les étapes sont franchies.](../assets/captures/apercu-lot-depose.png)
 
-Une fois le téléversement terminé, « Marquer déposé » fait passer le passage au statut « Déposé » (ce
-qui déverrouille ensuite la validation Tadarida) et trace la date du dépôt.
+Cette étape ne concerne que le **téléversement manuel** : une fois vos archives déposées depuis le
+navigateur, « Marquer déposé » fait passer le passage au statut « Déposé » (ce qui déverrouille ensuite
+la validation Tadarida) et trace la date du dépôt. Avec le téléversement automatique, ce marquage est
+fait pour vous, à la fin d'un dépôt complet.
+
+## La barre de statut : l'état du lot en permanence
+
+L'écran est long ; la **barre de statut** du bas de fenêtre garde l'essentiel sous les yeux :
+
+- à **gauche**, le contexte (« Carré 640380 · A1 · N° 2 ») ;
+- au **centre**, le statut et le récapitulatif (« Prêt à déposer · 4806 séquences · 13,2 Go ») ;
+- à **droite**, l'état vivant : la progression du dépôt, sinon celle de la génération d'archives
+  (avec l'estimation du temps restant), sinon une alerte d'espace disque, sinon le bilan des archives
+  présentes (« 21 archive(s) · 5,9 Go dans depot/ »).
 
 ## Checklist de cohérence : ce qui bloque
 

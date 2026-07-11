@@ -102,8 +102,11 @@ mono-nuit est inchangé).
 
 ## Pendant l'import
 
-Une fois lancé, l'import affiche une **barre de progression** (copie puis transformation) et **gèle
-le formulaire** le temps de l'opération.
+Une fois lancé, l'import affiche une **barre de progression** (avec l'estimation du temps restant) et
+**gèle le formulaire** le temps de l'opération. En dessous, une **table de suivi par fichier** montre
+où en est chaque enregistrement : en attente, en cours (avec l'étape — copie puis transformation),
+terminé, ou **rejeté** avec la raison au survol. La copie et la transformation travaillent **en
+parallèle** sur plusieurs fichiers à la fois. En import multi-nuits, la table repart à chaque nuit.
 
 ![Import en cours : barre de progression, formulaire gelé.](../assets/captures/apercu-import-en-cours.png)
 

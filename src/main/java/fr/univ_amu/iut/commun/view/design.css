@@ -261,6 +261,13 @@
     -fx-background-color: -couleur-primaire-voile;
 }
 
+/* Une ligne selectionnee ET survolee garde le fond de selection : sinon le voile clair du survol se
+   superpose au texte clair de la selection (fond quasi blanc + texte blanc = illisible). Le curseur
+   main reste l'indice que la ligne est cliquable. */
+.table-navigable .table-row-cell:filled:selected:hover {
+    -fx-background-color: -fx-selection-bar;
+}
+
 /*
  * Badges de statut (#691) : pastilles de statut / verdict / fraîcheur, dont la couleur est DÉRIVÉE de la
  * donnée (la vue pose la classe sémantique). Migrés de sites.css et tokenisés (palette.css) pour une

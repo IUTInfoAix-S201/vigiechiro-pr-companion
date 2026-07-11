@@ -31,7 +31,6 @@ import fr.univ_amu.iut.commun.view.ResolveurFiche;
 import fr.univ_amu.iut.commun.view.ResolveurFicheGbif;
 import fr.univ_amu.iut.commun.viewmodel.NavigationViewModel;
 import fr.univ_amu.iut.commun.viewmodel.OngletReglagesGeneral;
-import java.nio.file.Path;
 
 /// Module Guice du socle : fournit le [Workspace], la [SourceDeDonnees] et le socle IHM
 /// (singletons).
@@ -97,8 +96,7 @@ public class CommunModule extends AbstractModule {
     @Provides
     @Singleton
     Workspace fournirWorkspace() {
-        String surcharge = System.getProperty("vigiechiro.workspace");
-        return surcharge != null ? new Workspace(Path.of(surcharge)) : Workspace.parDefaut();
+        return Workspace.resolu();
     }
 
     @Provides

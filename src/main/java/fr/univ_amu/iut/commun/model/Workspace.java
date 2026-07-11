@@ -38,6 +38,13 @@ public final class Workspace {
         return new Workspace(documents);
     }
 
+    /// Workspace **effectif** : surcharge `-Dvigiechiro.workspace` si la propriété système est
+    /// présente, sinon [#parDefaut()]. Point unique de résolution du workspace (socle + feature-flags).
+    public static Workspace resolu() {
+        String surcharge = System.getProperty("vigiechiro.workspace");
+        return surcharge != null ? new Workspace(Path.of(surcharge)) : parDefaut();
+    }
+
     /// Dossier racine du workspace.
     public Path racine() {
         return racine;

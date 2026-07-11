@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 
 import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
+import fr.univ_amu.iut.commun.viewmodel.EtatUnite;
 import fr.univ_amu.iut.lot.model.ArchiveDepot;
 import fr.univ_amu.iut.lot.model.ControleCoherence;
 import fr.univ_amu.iut.lot.model.EtatLot;
@@ -261,7 +262,7 @@ class LotViewModelTest {
         LigneArchive ligne = viewModel.suiviLignes().lignes().get(0);
         assertThat(ligne.numero()).isEqualTo(1);
         assertThat(ligne.nombreFichiers()).isEqualTo(2);
-        assertThat(ligne.etatProperty().get()).isEqualTo(EtatArchive.TERMINEE);
+        assertThat(ligne.etatProperty().get()).isEqualTo(EtatUnite.TERMINEE);
         assertThat(viewModel.messageProperty().get()).contains("1 archive");
         assertThat(viewModel.generationEnCoursProperty().get()).isFalse(); // état « en cours » levé en fin
     }

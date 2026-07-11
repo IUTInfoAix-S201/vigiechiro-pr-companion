@@ -499,3 +499,40 @@
 .ligne-colonne:hover {
     -fx-background-color: -couleur-primaire-voile;
 }
+
+/*
+ * Table de suivi par unité (socle #820/#946) : une ligne + une barre par unité de travail (archive de
+ * dépôt, fichier d'import…). La couleur de la LIGNE (fond + icône + libellé) suit l'état posé par
+ * TableSuivi : gris « en attente », indigo « en cours » (barre vive), vert « terminée », rouge
+ * « échec ». Rôles sémantiques repris de palette.css. Déplacée de lot.css vers cette feuille partagée
+ * lors de la généralisation du composant.
+ */
+.ligne-suivi.etat-attente .libelle-etat-unite,
+.ligne-suivi.etat-attente .icone-etat-unite {
+  -fx-text-fill: -couleur-texte-discret;
+  -fx-icon-color: -couleur-texte-discret;
+}
+
+.ligne-suivi.etat-cours {
+  -fx-background-color: -couleur-primaire-voile;
+}
+
+.ligne-suivi.etat-cours .progress-bar {
+  -fx-accent: -couleur-primaire;
+}
+
+.ligne-suivi.etat-terminee .libelle-etat-unite,
+.ligne-suivi.etat-terminee .icone-etat-unite {
+  -fx-text-fill: -couleur-succes;
+  -fx-icon-color: -couleur-succes;
+}
+
+.ligne-suivi.etat-echec {
+  -fx-background-color: -badge-danger-fond;
+}
+
+.ligne-suivi.etat-echec .libelle-etat-unite,
+.ligne-suivi.etat-echec .icone-etat-unite {
+  -fx-text-fill: -couleur-danger;
+  -fx-icon-color: -couleur-danger;
+}

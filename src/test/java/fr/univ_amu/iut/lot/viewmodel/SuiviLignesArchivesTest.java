@@ -2,6 +2,7 @@ package fr.univ_amu.iut.lot.viewmodel;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import fr.univ_amu.iut.commun.viewmodel.EtatUnite;
 import fr.univ_amu.iut.lot.model.ArchiveDepot;
 import fr.univ_amu.iut.lot.model.ArchivePlanifiee;
 import java.nio.file.Path;
@@ -24,7 +25,7 @@ class SuiviLignesArchivesTest {
         assertThat(suivi.lignes()).extracting(LigneArchive::numero).containsExactly(1, 2);
         assertThat(suivi.lignes()).extracting(LigneArchive::nombreFichiers).containsExactly(210, 208);
         assertThat(suivi.lignes()).allSatisfy(l -> {
-            assertThat(l.etatProperty().get()).isEqualTo(EtatArchive.EN_ATTENTE);
+            assertThat(l.etatProperty().get()).isEqualTo(EtatUnite.EN_ATTENTE);
             assertThat(l.fractionProperty().get()).isEqualTo(0.0);
             assertThat(l.tailleEstimee()).isTrue();
         });
@@ -38,14 +39,14 @@ class SuiviLignesArchivesTest {
         suivi.planifier(List.of(new ArchivePlanifiee(1, 4, 500_000L)));
 
         suivi.demarrer(1);
-        assertThat(ligne(suivi, 1).etatProperty().get()).isEqualTo(EtatArchive.EN_COURS);
+        assertThat(ligne(suivi, 1).etatProperty().get()).isEqualTo(EtatUnite.EN_COURS);
 
         suivi.progresser(1, 2, 4);
         assertThat(ligne(suivi, 1).fractionProperty().get()).isEqualTo(0.5);
 
         suivi.terminer(new ArchiveDepot(Path.of("Pass-1.zip"), 1, 480_000L, 4));
         LigneArchive l = ligne(suivi, 1);
-        assertThat(l.etatProperty().get()).isEqualTo(EtatArchive.TERMINEE);
+        assertThat(l.etatProperty().get()).isEqualTo(EtatUnite.TERMINEE);
         assertThat(l.fractionProperty().get()).isEqualTo(1.0);
         assertThat(l.tailleOctetsProperty().get()).isEqualTo(480_000L); // estimation remplacée par le réel
         assertThat(l.tailleEstimee()).isFalse();
@@ -66,9 +67,9 @@ class SuiviLignesArchivesTest {
         suivi.demarrer(1);
         suivi.progresser(1, 1, 3);
 
-        assertThat(ligne(suivi, 3).etatProperty().get()).isEqualTo(EtatArchive.TERMINEE);
-        assertThat(ligne(suivi, 1).etatProperty().get()).isEqualTo(EtatArchive.EN_COURS);
-        assertThat(ligne(suivi, 2).etatProperty().get()).isEqualTo(EtatArchive.EN_ATTENTE); // pas encore touchée
+        assertThat(ligne(suivi, 3).etatProperty().get()).isEqualTo(EtatUnite.TERMINEE);
+        assertThat(ligne(suivi, 1).etatProperty().get()).isEqualTo(EtatUnite.EN_COURS);
+        assertThat(ligne(suivi, 2).etatProperty().get()).isEqualTo(EtatUnite.EN_ATTENTE); // pas encore touchée
     }
 
     @Test
@@ -78,7 +79,7 @@ class SuiviLignesArchivesTest {
         suivi.planifier(List.of(new ArchivePlanifiee(1, 3, 300_000L)));
 
         suivi.echouer(1, "disque plein");
-        assertThat(ligne(suivi, 1).etatProperty().get()).isEqualTo(EtatArchive.ECHEC);
+        assertThat(ligne(suivi, 1).etatProperty().get()).isEqualTo(EtatUnite.ECHEC);
         assertThat(ligne(suivi, 1).raisonEchecProperty().get()).isEqualTo("disque plein");
 
         // Numéro inexistant : aucun effet, aucune exception.

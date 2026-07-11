@@ -304,10 +304,10 @@ class LotVueIntegrationTest {
         TableView<?> table = robot.lookup("#tableArchives").queryAs(TableView.class);
         assertThat(table.getItems()).hasSize(4);
         // Chaque état pose sa classe sur la ligne ; « en cours » affiche une barre de progression vive.
-        assertThat(robot.lookup(".ligne-archive.etat-attente").tryQuery()).isPresent();
-        assertThat(robot.lookup(".ligne-archive.etat-cours").tryQuery()).isPresent();
-        assertThat(robot.lookup(".ligne-archive.etat-terminee").tryQuery()).isPresent();
-        assertThat(robot.lookup(".ligne-archive.etat-echec").tryQuery()).isPresent();
+        assertThat(robot.lookup(".ligne-suivi.etat-attente").tryQuery()).isPresent();
+        assertThat(robot.lookup(".ligne-suivi.etat-cours").tryQuery()).isPresent();
+        assertThat(robot.lookup(".ligne-suivi.etat-terminee").tryQuery()).isPresent();
+        assertThat(robot.lookup(".ligne-suivi.etat-echec").tryQuery()).isPresent();
         assertThat(robot.lookup(".progress-bar").tryQuery()).isPresent();
     }
 

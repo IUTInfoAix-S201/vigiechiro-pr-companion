@@ -120,6 +120,29 @@ inventaire, qui n'aurait pas de sens sur une sélection hétérogène).
 
 ![Trois observations sélectionnées d'un coup dans la table : l'action (valider, corriger, référence) s'applique à tout le lot.](../assets/captures/apercu-sons-validation-lot.png)
 
+## Consulter la fiche d'une espèce
+
+En pleine revue, pour **lever un doute** sur une identification, le menu **☰ → Fiche de l'espèce** ouvre
+dans votre **navigateur** une fiche d'information sur la **proposition Tadarida** de la ligne
+sélectionnée. L'entrée s'**adapte à la sélection** : elle nomme l'espèce (par exemple « Fiche de l'espèce
+(Pipistrelle commune) ») et s'ouvre au clic. Pour une séquence **non identifiée** ou un pseudo-taxon
+(bruit), elle est **grisée** avec la mention « aucune fiche disponible ».
+
+![Le menu ☰ de Sons & validation, où « Fiche de l'espèce (Pipistrelle commune) » ouvre la fiche de la proposition Tadarida sélectionnée.](../assets/captures/apercu-fiche-espece.png)
+
+La **source** de la fiche dépend du taxon :
+
+- **chauves-souris** : la fiche descriptive du **Plan National d'Actions Chiroptères** (en français) ;
+- **autres taxons** (oiseaux, orthoptères…) : une source **universelle** par nom scientifique, **GBIF**
+  par défaut ou **Wikipédia FR** au choix.
+
+Ce choix se règle une fois pour toutes dans le **☰ du bandeau** (en haut à droite de la fenêtre), via la
+case **« Fiches espèces sur Wikipédia (sinon GBIF) »** : décochée (le défaut), les fiches hors
+chauves-souris s'ouvrent sur GBIF ; cochée, sur Wikipédia FR. Le réglage est **mémorisé** d'une session à
+l'autre.
+
+![Le menu ☰ du bandeau : la case « Fiches espèces sur Wikipédia (sinon GBIF) » choisit la source des fiches hors chauves-souris.](../assets/captures/apercu-fiche-espece-source.png)
+
 ## Validation d'un passage (Tadarida)
 
 Ouvert sur un **passage** (accessible **après le dépôt** : Vigie-Chiro renvoie les résultats

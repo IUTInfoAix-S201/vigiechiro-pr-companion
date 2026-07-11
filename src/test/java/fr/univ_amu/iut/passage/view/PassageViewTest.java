@@ -134,11 +134,11 @@ class PassageViewTest {
     void affiche_l_identite(FxRobot robot) {
         Label statut = robot.lookup("#lblStatut").queryAs(Label.class);
 
-        // Le contexte (carré / point / N°) est déporté en zone gauche de la barre de statut (#693).
-        assertThat(controleur.zonesStatutProperty().get().gauche())
-                .contains("640380")
-                .contains("A1")
-                .contains("N° 2");
+        // Barre de statut 3 zones (#1022) : contexte à gauche, statut (+ verdict) au centre, volumétrie à droite.
+        var zones = controleur.zonesStatutProperty().get();
+        assertThat(zones.gauche()).contains("640380").contains("A1").contains("N° 2");
+        assertThat(zones.centre()).as("statut + verdict saisi").contains("Vérifié");
+        assertThat(zones.droite()).as("nombre de séquences").isEqualTo("30 séquence(s)");
         assertThat(statut.getText()).isEqualTo("Vérifié");
     }
 

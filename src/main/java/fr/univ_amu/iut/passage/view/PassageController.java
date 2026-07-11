@@ -162,12 +162,27 @@ public class PassageController implements EmplacementNavigation, RafraichirAuRet
         return zonesStatut.getReadOnlyProperty();
     }
 
+    /// Compose les 3 zones de la barre de statut (#1022) : identité (gauche), statut et — s'il est saisi —
+    /// verdict (centre), nombre de séquences de la nuit (droite, vide tant que rien n'est chargé).
+    private ZonesStatut calculerZonesStatut() {
+        String statut = libelleStatut(viewModel.statutProperty().get());
+        Verdict verdict = viewModel.verdictProperty().get();
+        String centre = verdict == null || verdict == Verdict.A_VERIFIER ? statut : statut + " · " + verdict.libelle();
+        int sequences = viewModel.nombreSequencesProperty().get();
+        String droite = sequences == 0 ? "" : sequences + " séquence(s)";
+        return new ZonesStatut(viewModel.titreContexteProperty().get(), centre, droite);
+    }
+
     @FXML
     private void initialize() {
-        // Contexte du passage (carré / point / numéro) déporté en zone gauche de la barre de statut (#693).
+        // Barre de statut 3 zones (#1022, EPIC #1016) : identité à gauche, statut (+ verdict) au centre,
+        // volumétrie de la nuit à droite. Le contexte n'est plus la seule zone renseignée.
         zonesStatut.bind(Bindings.createObjectBinding(
-                () -> new ZonesStatut(viewModel.titreContexteProperty().get(), "", ""),
-                viewModel.titreContexteProperty()));
+                this::calculerZonesStatut,
+                viewModel.titreContexteProperty(),
+                viewModel.statutProperty(),
+                viewModel.verdictProperty(),
+                viewModel.nombreSequencesProperty()));
         lblPlageHoraire.textProperty().bind(viewModel.plageHoraireProperty());
         lblEnregistreur.textProperty().bind(viewModel.enregistreurProperty());
         lblStatut

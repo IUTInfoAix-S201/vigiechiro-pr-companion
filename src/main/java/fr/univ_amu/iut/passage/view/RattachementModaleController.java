@@ -22,6 +22,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
@@ -80,6 +81,12 @@ public class RattachementModaleController {
     private Button boutonRecupererMeteo;
 
     @FXML
+    private HBox ligneSyncVigieChiro;
+
+    @FXML
+    private Button boutonTirerVigieChiro;
+
+    @FXML
     private ComboBox<PositionMicro> champPosition;
 
     @FXML
@@ -133,6 +140,12 @@ public class RattachementModaleController {
         ValidationFormulaire.marquerInvalide(spinnerNumero, numeroValide.not());
 
         lierConditions();
+
+        // « Synchroniser depuis VigieChiro » n'apparaît que si l'observateur est connecté (passerelle
+        // disponible) : inutile de proposer un tir hors connexion.
+        boolean peutSynchroniser = viewModel.peutSynchroniser();
+        ligneSyncVigieChiro.setVisible(peutSynchroniser);
+        ligneSyncVigieChiro.setManaged(peutSynchroniser);
     }
 
     /// Lie les champs des conditions de dépôt (météo + matériel du micro) au sous-ViewModel
@@ -231,6 +244,21 @@ public class RattachementModaleController {
             Platform.runLater(() -> {
                 viewModel.conditions().appliquerMeteoRecuperee(releve);
                 boutonRecupererMeteo.setDisable(false);
+            });
+        });
+    }
+
+    /// « Synchroniser depuis VigieChiro » : **tire** les métadonnées de la participation (réseau) en **tâche
+    /// de fond** (thread virtuel), puis **recharge** les champs météo/micro et affiche le message sur le fil
+    /// JavaFX via [Platform#runLater] — même patron que « Récupérer la météo ».
+    @FXML
+    private void tirerDepuisVigieChiro() {
+        boutonTirerVigieChiro.setDisable(true);
+        Thread.ofVirtual().name("tirer-participation").start(() -> {
+            boolean recupere = viewModel.tirerDepuisVigieChiro();
+            Platform.runLater(() -> {
+                viewModel.rechargerApresTir(recupere);
+                boutonTirerVigieChiro.setDisable(false);
             });
         });
     }

@@ -130,6 +130,42 @@ public class RattachementViewModel {
         });
     }
 
+    /// **Tire** les métadonnées (météo / micro) de la participation VigieChiro vers le passage local (cas
+    /// « participation préparée sur le site web »). À appeler **hors du fil JavaFX** (réseau) ; ne touche
+    /// aucun contrôle (VM pur). Renvoie `true` si des données ont été récupérées (passerelle présente +
+    /// passage lié + succès), `false` sinon (best-effort, silencieux).
+    public boolean tirerDepuisVigieChiro() {
+        if (idPassage == null || synchronisation.isEmpty()) {
+            return false;
+        }
+        try {
+            synchronisation.get().tirerDepuis(idPassage);
+            return true;
+        } catch (RegleMetierException nonLie) {
+            return false;
+        }
+    }
+
+    /// Recharge les champs météo/micro depuis la base **après un tir** (à exécuter sur le fil JavaFX) et
+    /// publie un message : confirmation si des données ont été récupérées, aide sinon.
+    public void rechargerApresTir(boolean recupere) {
+        if (idPassage == null) {
+            return;
+        }
+        if (recupere) {
+            conditions.charger(idPassage, service.detailPassage(idPassage).meteo());
+            messageErreur.set("Métadonnées récupérées depuis VigieChiro.");
+        } else {
+            messageErreur.set("Aucune participation VigieChiro liée à ce passage (ou hors connexion).");
+        }
+    }
+
+    /// `true` si la synchronisation VigieChiro est disponible (observateur connecté) : la vue n'affiche
+    /// l'action « Synchroniser depuis VigieChiro » que dans ce cas.
+    public boolean peutSynchroniser() {
+        return synchronisation.isPresent();
+    }
+
     private void majRecap() {
         if (carre == null) {
             recap.set("");

@@ -9,9 +9,11 @@ import fr.univ_amu.iut.commun.view.OuvreurDeLienSysteme;
 import fr.univ_amu.iut.importation.model.ExtracteurZip;
 import fr.univ_amu.iut.passage.model.BackfillHorodatageCapture;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.stage.Stage;
 
 /// Point d'entrée JavaFX du SAÉ 2.01 - VigieChiro PR Companion.
@@ -24,6 +26,18 @@ public class App extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
+        // Filet global (#795) : une exception non capturée (fil JavaFX ou tâche de fond) était jusqu'ici
+        // perdue en console. On la signale désormais à l'utilisateur par une alerte, sur le fil JavaFX.
+        Thread.setDefaultUncaughtExceptionHandler((fil, erreur) -> {
+            erreur.printStackTrace();
+            Platform.runLater(() -> {
+                Alert alerte = new Alert(Alert.AlertType.ERROR);
+                alerte.setHeaderText("Une erreur inattendue est survenue");
+                alerte.setContentText(String.valueOf(erreur.getMessage()));
+                alerte.showAndWait();
+            });
+        });
+
         Injector injector = RacineInjecteur.creer();
 
         // Garantit que le schéma existe avant le premier accès à la base (migration idempotente).

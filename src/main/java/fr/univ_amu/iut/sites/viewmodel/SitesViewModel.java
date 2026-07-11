@@ -47,6 +47,7 @@ public class SitesViewModel {
     private final ObservableList<CarteSite> cartes = FXCollections.observableArrayList();
     private final ReadOnlyStringWrapper sousTitre = new ReadOnlyStringWrapper(this, "sousTitre", "");
     private final ReadOnlyBooleanWrapper vide = new ReadOnlyBooleanWrapper(this, "vide", true);
+    private final ReadOnlyStringWrapper messageErreur = new ReadOnlyStringWrapper(this, "messageErreur", "");
 
     public SitesViewModel(
             ServiceSites service,
@@ -76,25 +77,38 @@ public class SitesViewModel {
         return vide.getReadOnlyProperty();
     }
 
+    /// Message d'erreur de chargement, vide quand tout va bien (#795) : un échec de lecture des sites
+    /// (base indisponible…) y est routé au lieu d'être avalé, pour que la vue puisse l'afficher.
+    public ReadOnlyStringProperty messageErreurProperty() {
+        return messageErreur.getReadOnlyProperty();
+    }
+
     /// Recharge les sites de l'utilisateur courant et recompose toutes les cartes + le sous-titre.
     public void rafraichir() {
-        LocalDate aujourdhui = horloge.aujourdhui();
-        int annee = aujourdhui.getYear();
-        // Statut plateforme de chaque site (#728/#718), lu une fois pour tout le lot : présent dans les
-        // correspondances = « enregistré » ; correspondance verrouillée = « verrouillé » (dépôt possible).
-        Map<String, String> sitesEnregistres = liens.tous(LienVigieChiro.ENTITE_SITE);
-        Set<String> sitesVerrouilles = liens.verrouilles(LienVigieChiro.ENTITE_SITE);
-        List<CarteSite> recomposees = new ArrayList<>();
-        int totalPassagesAnnee = 0;
-        for (Site site : service.listerSites(idUtilisateur)) {
-            StatutPlateforme statut = statutPlateforme(String.valueOf(site.id()), sitesEnregistres, sitesVerrouilles);
-            CarteSite carte = construireCarte(site, aujourdhui, annee, statut);
-            totalPassagesAnnee += carte.passagesDeLAnnee();
-            recomposees.add(carte);
+        try {
+            LocalDate aujourdhui = horloge.aujourdhui();
+            int annee = aujourdhui.getYear();
+            // Statut plateforme de chaque site (#728/#718), lu une fois pour tout le lot : présent dans les
+            // correspondances = « enregistré » ; correspondance verrouillée = « verrouillé » (dépôt possible).
+            Map<String, String> sitesEnregistres = liens.tous(LienVigieChiro.ENTITE_SITE);
+            Set<String> sitesVerrouilles = liens.verrouilles(LienVigieChiro.ENTITE_SITE);
+            List<CarteSite> recomposees = new ArrayList<>();
+            int totalPassagesAnnee = 0;
+            for (Site site : service.listerSites(idUtilisateur)) {
+                StatutPlateforme statut =
+                        statutPlateforme(String.valueOf(site.id()), sitesEnregistres, sitesVerrouilles);
+                CarteSite carte = construireCarte(site, aujourdhui, annee, statut);
+                totalPassagesAnnee += carte.passagesDeLAnnee();
+                recomposees.add(carte);
+            }
+            cartes.setAll(recomposees);
+            vide.set(recomposees.isEmpty());
+            sousTitre.set(composerSousTitre(recomposees.size(), totalPassagesAnnee, annee));
+            messageErreur.set("");
+        } catch (RuntimeException echec) {
+            // Sans ce filet, l'échec remontait non capturé et l'écran restait muet (#795).
+            messageErreur.set("Impossible de charger vos sites : " + echec.getMessage());
         }
-        cartes.setAll(recomposees);
-        vide.set(recomposees.isEmpty());
-        sousTitre.set(composerSousTitre(recomposees.size(), totalPassagesAnnee, annee));
     }
 
     /// Crée un site pour l'utilisateur courant (bouton « + Nouveau site ») puis rafraîchit la liste.

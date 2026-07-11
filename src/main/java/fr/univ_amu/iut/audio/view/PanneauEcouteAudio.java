@@ -2,6 +2,7 @@ package fr.univ_amu.iut.audio.view;
 
 import fr.nedjar.vigiechiro.audio.AudioView;
 import fr.univ_amu.iut.audio.viewmodel.AudioViewModel;
+import fr.univ_amu.iut.commun.viewmodel.ReglagesReactifs;
 import fr.univ_amu.iut.validation.model.LigneObservationAudio;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.TableColumn;
@@ -24,10 +25,11 @@ final class PanneauEcouteAudio {
             TableView<LigneObservationAudio> table,
             TableColumn<LigneObservationAudio, String> colFme,
             TableColumn<LigneObservationAudio, String> colFreqTerminale,
-            MenuButton menuActions) {
+            MenuButton menuActions,
+            ReglagesReactifs reactifs) {
         ConfigurationAudioView.installer(audioView, viewModel.cheminAudioCourantProperty());
         RepereCriAudio.installer(audioView, viewModel.selectionProperty());
         MetriquesAcoustiquesAudio.installer(audioView, viewModel.selectionProperty(), table, colFme, colFreqTerminale);
-        LecteurAudio.installer(audioView, menuActions);
+        LecteurAudio.installer(audioView, menuActions, reactifs);
     }
 }

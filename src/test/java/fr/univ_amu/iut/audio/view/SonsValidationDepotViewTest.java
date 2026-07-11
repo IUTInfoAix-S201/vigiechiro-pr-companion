@@ -13,10 +13,16 @@ import fr.univ_amu.iut.audio.viewmodel.AudioViewModel;
 import fr.univ_amu.iut.audio.viewmodel.ImportVigieChiroViewModel;
 import fr.univ_amu.iut.bibliotheque.model.ServiceBibliotheque;
 import fr.univ_amu.iut.commun.model.DepotVues;
+import fr.univ_amu.iut.commun.model.Reglages;
+import fr.univ_amu.iut.commun.model.Workspace;
+import fr.univ_amu.iut.commun.model.dao.ReglagesDao;
+import fr.univ_amu.iut.commun.persistence.MigrationSchema;
+import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
 import fr.univ_amu.iut.commun.view.NavigationDeTestModule;
 import fr.univ_amu.iut.commun.view.OuvreurDeLien;
 import fr.univ_amu.iut.commun.viewmodel.ContextePassage;
 import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
+import fr.univ_amu.iut.commun.viewmodel.ReglagesReactifs;
 import fr.univ_amu.iut.commun.viewmodel.SourceObservations;
 import fr.univ_amu.iut.validation.model.BilanImport;
 import fr.univ_amu.iut.validation.model.ImportVigieChiro;
@@ -40,18 +46,25 @@ import javafx.stage.Stage;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.testfx.api.FxRobot;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
 
 /// Glisser-déposer d'un CSV Tadarida sur la vue audio ouverte sur un **passage** (workflow) : le dépôt
 /// d'un fichier délègue à l'import du ViewModel (alternative au `FileChooser`) et le bandeau de retour
-/// confirme le succès. Services mockés, pas de base de données.
+/// confirme le succès. Services métier mockés ; seule une base `app_setting` jetable sert aux
+/// préférences de lecture (#1006).
 @ExtendWith(ApplicationExtension.class)
 class SonsValidationDepotViewTest {
 
     private ServiceValidation service;
     private SonsValidationController controleur;
+
+    /// Base jetable pour les seules préférences (`app_setting`) : les options de lecture du menu ☰ (#1006)
+    /// passent par `ReglagesReactifs`. Le reste de la vue reste mocké.
+    @TempDir
+    Path dossierReglages;
 
     @Start
     void start(Stage stage) throws Exception {
@@ -94,6 +107,15 @@ class SonsValidationDepotViewTest {
                     @Provides
                     OuvreurDeLien ouvreurDeLien() {
                         return url -> {};
+                    }
+
+                    // Réglages réactifs (#1006) : les options de lecture du menu ☰ y sont liées. Base
+                    // app_setting jetable et migrée, sinon la lecture du réglage échoue au chargement.
+                    @Provides
+                    ReglagesReactifs reglagesReactifs() {
+                        SourceDeDonnees source = new SourceDeDonnees(new Workspace(dossierReglages));
+                        new MigrationSchema(source).migrer();
+                        return new ReglagesReactifs(new Reglages(new ReglagesDao(source)));
                     }
                 },
                 new NavigationDeTestModule());

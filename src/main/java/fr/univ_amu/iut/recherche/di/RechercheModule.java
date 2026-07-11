@@ -1,9 +1,9 @@
 package fr.univ_amu.iut.recherche.di;
 
-import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
+import fr.univ_amu.iut.commun.di.ModuleDeFeature;
 import fr.univ_amu.iut.commun.model.RechercheGlobale;
 import fr.univ_amu.iut.multisite.model.ServiceMultisite;
 import fr.univ_amu.iut.recherche.model.ServiceRechercheGlobale;
@@ -14,7 +14,7 @@ import fr.univ_amu.iut.validation.model.ServiceValidation;
 /// du socle, assemblée à partir des services des features `sites`, `multisite` et `validation` (espèces,
 /// #323) et de l'identité de l'utilisateur courant (publiée par `SitesModule`). Le chrome
 /// (`MainController`) consomme le contrat du socle sans connaître cette implémentation.
-public class RechercheModule extends AbstractModule {
+public class RechercheModule extends ModuleDeFeature {
 
     @Provides
     @Singleton

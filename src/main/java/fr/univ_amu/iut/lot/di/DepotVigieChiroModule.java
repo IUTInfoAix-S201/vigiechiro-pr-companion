@@ -1,6 +1,5 @@
 package fr.univ_amu.iut.lot.di;
 
-import com.google.inject.AbstractModule;
 import com.google.inject.Key;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
@@ -8,6 +7,7 @@ import com.google.inject.multibindings.OptionalBinder;
 import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 import fr.univ_amu.iut.commun.api.ClientVigieChiro;
+import fr.univ_amu.iut.commun.di.ModuleDeFeature;
 import fr.univ_amu.iut.lot.model.DepotVigieChiro;
 import fr.univ_amu.iut.passage.model.SynchronisationParticipation;
 
@@ -22,7 +22,7 @@ import fr.univ_amu.iut.passage.model.SynchronisationParticipation;
 /// La liaison de l'optional vise une **clé qualifiée** (`@Named`) plutôt que `DepotVigieChiro` directement,
 /// pour éviter que la cible ne se référence elle-même (`RecursiveBinding` / double binding avec le
 /// `@Provides`).
-public class DepotVigieChiroModule extends AbstractModule {
+public class DepotVigieChiroModule extends ModuleDeFeature {
 
     private static final String QUALIFIANT = "vigiechiro";
 

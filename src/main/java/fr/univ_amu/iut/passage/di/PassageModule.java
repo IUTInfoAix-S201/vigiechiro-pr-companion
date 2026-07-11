@@ -1,17 +1,15 @@
 package fr.univ_amu.iut.passage.di;
 
-import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
-import com.google.inject.multibindings.Multibinder;
 import com.google.inject.multibindings.OptionalBinder;
+import fr.univ_amu.iut.commun.di.ModuleDeFeature;
 import fr.univ_amu.iut.commun.model.CoordonneesPoint;
 import fr.univ_amu.iut.commun.model.Horloge;
 import fr.univ_amu.iut.commun.model.ReferentielPoint;
 import fr.univ_amu.iut.commun.persistence.ServicePurgeOriginaux;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
 import fr.univ_amu.iut.commun.persistence.UniteDeTravail;
-import fr.univ_amu.iut.commun.view.IndicateurAccueil;
 import fr.univ_amu.iut.commun.view.OuvrirPassage;
 import fr.univ_amu.iut.passage.model.FournisseurMeteo;
 import fr.univ_amu.iut.passage.model.MeteoOpenMeteo;
@@ -44,7 +42,7 @@ import java.util.Optional;
 ///
 /// **Non installé** dans `RacineInjecteur` à ce stade : l'intégration des features dans la racine
 /// de composition est faite en phase 3.
-public class PassageModule extends AbstractModule {
+public class PassageModule extends ModuleDeFeature {
 
     /// Fournit le contrat de navigation socle [OuvrirPassage] : `sites` (M-Site-detail) l'injecte
     /// pour ouvrir M-Passage sans dépendre du `view` de cette feature.
@@ -52,7 +50,7 @@ public class PassageModule extends AbstractModule {
     protected void configure() {
         bind(OuvrirPassage.class).to(NavigationPassage.class);
         // Compteur du tableau de bord d'accueil : nombre de passages.
-        Multibinder.newSetBinder(binder(), IndicateurAccueil.class).addBinding().to(IndicateurPassages.class);
+        indicateur(IndicateurPassages.class);
         // Port socle CoordonneesPoint (#547) : cette feature CONSOMME le GPS d'un point (pré-remplissage
         // météo) mais ne peut pas dépendre de `sites` (cycle). Elle pose donc un défaut no-op ; l'app
         // complète installe SitesModule, dont le `setBinding` fournit l'implémentation réelle. Les

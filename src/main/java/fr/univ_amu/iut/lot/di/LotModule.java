@@ -1,9 +1,9 @@
 package fr.univ_amu.iut.lot.di;
 
-import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.multibindings.OptionalBinder;
+import fr.univ_amu.iut.commun.di.ModuleDeFeature;
 import fr.univ_amu.iut.commun.model.Horloge;
 import fr.univ_amu.iut.commun.view.OuvrirLot;
 import fr.univ_amu.iut.lot.model.CompacteurDepot;
@@ -36,7 +36,7 @@ import java.util.Optional;
 /// **Intégration** : ce module est installé dans `RacineInjecteur` (la racine de composition
 /// de l'application), ce qui rend `ServiceLot` résoluble par l'injecteur applicatif. Le câblage
 /// en isolation reste validé par `LotModuleTest` (injecteur local).
-public class LotModule extends AbstractModule {
+public class LotModule extends ModuleDeFeature {
 
     /// Fournit le contrat de navigation socle [OuvrirLot] : M-Passage l'injecte pour ouvrir la
     /// préparation/dépôt sans dépendre de la vue de cette feature (graphe de slices acyclique).

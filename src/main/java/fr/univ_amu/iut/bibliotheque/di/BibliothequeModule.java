@@ -1,9 +1,9 @@
 package fr.univ_amu.iut.bibliotheque.di;
 
-import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import fr.univ_amu.iut.bibliotheque.model.ServiceBibliotheque;
+import fr.univ_amu.iut.commun.di.ModuleDeFeature;
 import fr.univ_amu.iut.passage.model.dao.SequenceDao;
 import fr.univ_amu.iut.validation.model.dao.ObservationDao;
 
@@ -20,7 +20,7 @@ import fr.univ_amu.iut.validation.model.dao.ObservationDao;
 /// **sans annotation d'injection** (objet Java ordinaire, instanciable à la main dans les tests). Les DAO
 /// inter-feature sont reçus en lecture seule (sens autorisé `bibliotheque → validation` et `bibliotheque →
 /// passage`, graphe acyclique). Installé dans `RacineInjecteur`.
-public class BibliothequeModule extends AbstractModule {
+public class BibliothequeModule extends ModuleDeFeature {
 
     @Provides
     @Singleton

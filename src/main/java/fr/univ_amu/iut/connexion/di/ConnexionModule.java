@@ -1,15 +1,14 @@
 package fr.univ_amu.iut.connexion.di;
 
-import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.multibindings.Multibinder;
 import fr.univ_amu.iut.commun.api.ClientVigieChiro;
 import fr.univ_amu.iut.commun.api.FournisseurToken;
 import fr.univ_amu.iut.commun.api.RapprochementVigieChiro;
+import fr.univ_amu.iut.commun.di.ModuleDeFeature;
 import fr.univ_amu.iut.commun.model.Horloge;
 import fr.univ_amu.iut.commun.model.Workspace;
-import fr.univ_amu.iut.commun.view.ActionMenu;
 import fr.univ_amu.iut.connexion.model.StockageConnexion;
 import fr.univ_amu.iut.connexion.view.ActionConnexion;
 import fr.univ_amu.iut.connexion.viewmodel.ConnexionViewModel;
@@ -20,7 +19,7 @@ import java.util.Set;
 /// - le [ClientVigieChiro] (paquet `commun.api`) construit sur ce fournisseur de token ;
 /// - l'entrée « Connexion » du menu ☰ via une contribution [ActionMenu] (#931), sans que `commun`
 ///   connaisse la feature.
-public class ConnexionModule extends AbstractModule {
+public class ConnexionModule extends ModuleDeFeature {
 
     @Override
     protected void configure() {
@@ -29,7 +28,7 @@ public class ConnexionModule extends AbstractModule {
         // Entrée « Se connecter à VigieChiro… » du menu ☰ (#741/#931) : contribuée au point d'extension
         // du socle (`Multibinder<ActionMenu>`), sans que le socle connaisse la connexion. Remplace
         // l'ancien contrat `OuvrirConnexion` + défaut inerte, qui n'existaient que pour cette entrée.
-        Multibinder.newSetBinder(binder(), ActionMenu.class).addBinding().to(ActionConnexion.class);
+        actionMenu(ActionConnexion.class);
         // Déclare le point d'extension de rapprochement (#728). Vide ici : les features taxons/sites y
         // contribuent leurs rapprocheurs. Déclaré même sans contributeur pour que `ConnexionViewModel`
         // reçoive un Set (éventuellement vide) quand seule `connexion` est chargée (outil de capture).

@@ -1,12 +1,10 @@
 package fr.univ_amu.iut.multisite.di;
 
-import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
-import com.google.inject.multibindings.Multibinder;
 import com.google.inject.name.Named;
+import fr.univ_amu.iut.commun.di.ModuleDeFeature;
 import fr.univ_amu.iut.commun.model.Horloge;
-import fr.univ_amu.iut.commun.view.ActiviteAccueil;
 import fr.univ_amu.iut.commun.view.OuvrirMultisite;
 import fr.univ_amu.iut.multisite.model.ServiceMultisite;
 import fr.univ_amu.iut.multisite.view.ActiviteMultisite;
@@ -24,14 +22,14 @@ import fr.univ_amu.iut.sites.model.dao.SiteDao;
 /// garder les couches `model.dao` et `model` **indépendantes du framework**
 /// d'injection : DAO et service restent de simples objets réutilisables (objectif réutilisation
 /// O6). C'est ce module qui sait les assembler.
-public class MultisiteModule extends AbstractModule {
+public class MultisiteModule extends ModuleDeFeature {
 
     /// Enregistre la carte d'accueil de la feature dans le point d'extension du socle (le
     /// `MainController` la découvre via `Set<ActiviteAccueil>` sans que `commun` dépende de
     /// `multisite`).
     @Override
     protected void configure() {
-        Multibinder.newSetBinder(binder(), ActiviteAccueil.class).addBinding().to(ActiviteMultisite.class);
+        activite(ActiviteMultisite.class);
         // Contrat socle « voir sur la carte » : les autres features renvoient vers la carte multi-sites.
         bind(OuvrirMultisite.class).to(NavigationMultisite.class);
     }

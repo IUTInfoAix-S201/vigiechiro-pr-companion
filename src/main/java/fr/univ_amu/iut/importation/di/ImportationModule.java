@@ -1,10 +1,9 @@
 package fr.univ_amu.iut.importation.di;
 
-import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
-import com.google.inject.multibindings.Multibinder;
 import com.google.inject.name.Named;
+import fr.univ_amu.iut.commun.di.ModuleDeFeature;
 import fr.univ_amu.iut.commun.model.CompteurValidations;
 import fr.univ_amu.iut.commun.model.Horloge;
 import fr.univ_amu.iut.commun.model.Reglages;
@@ -12,7 +11,6 @@ import fr.univ_amu.iut.commun.model.Workspace;
 import fr.univ_amu.iut.commun.persistence.ServiceSauvegarde;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
 import fr.univ_amu.iut.commun.persistence.UniteDeTravail;
-import fr.univ_amu.iut.commun.view.OngletReglages;
 import fr.univ_amu.iut.commun.view.OuvrirImportation;
 import fr.univ_amu.iut.commun.viewmodel.NavigationViewModel;
 import fr.univ_amu.iut.importation.model.AnalyseurLogPR;
@@ -47,7 +45,7 @@ import java.util.Optional;
 /// **Installé** dans `RacineInjecteur` (la racine de composition de l'application) :
 /// [ServiceImport] est donc résoluble par l'injecteur applicatif. Le câblage en isolation reste
 /// validé par `ImportationModuleTest` (injecteur local socle + passage + importation).
-public class ImportationModule extends AbstractModule {
+public class ImportationModule extends ModuleDeFeature {
 
     /// L'import est une **action contextuelle** (la nuit d'un site précis) : pas de carte d'accueil. Le
     /// point d'entrée est la fiche d'un site, qui ouvre l'import pré-rattaché via le contrat socle
@@ -56,9 +54,9 @@ public class ImportationModule extends AbstractModule {
     @Override
     protected void configure() {
         bind(OuvrirImportation.class).to(NavigationImportation.class);
-        // Onglet « Import » de l'écran Réglages (#928) : contribué au point d'extension du socle
-        // (`Multibinder<OngletReglages>`), sans que le socle connaisse cette feature.
-        Multibinder.newSetBinder(binder(), OngletReglages.class).addBinding().to(OngletReglagesImport.class);
+        // Onglet « Import » de l'écran Réglages (#928) : contribué au point d'extension du socle,
+        // sans que le socle connaisse cette feature.
+        ongletReglages(OngletReglagesImport.class);
     }
 
     @Provides

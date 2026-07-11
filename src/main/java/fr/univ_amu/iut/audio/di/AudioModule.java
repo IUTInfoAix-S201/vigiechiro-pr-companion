@@ -1,15 +1,13 @@
 package fr.univ_amu.iut.audio.di;
 
-import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
-import com.google.inject.multibindings.Multibinder;
 import com.google.inject.multibindings.OptionalBinder;
 import fr.univ_amu.iut.audio.view.AccueilSonsReference;
 import fr.univ_amu.iut.audio.view.NavigationAudio;
 import fr.univ_amu.iut.audio.viewmodel.AudioViewModel;
 import fr.univ_amu.iut.audio.viewmodel.ImportVigieChiroViewModel;
 import fr.univ_amu.iut.bibliotheque.model.ServiceBibliotheque;
-import fr.univ_amu.iut.commun.view.ActiviteAccueil;
+import fr.univ_amu.iut.commun.di.ModuleDeFeature;
 import fr.univ_amu.iut.commun.view.OuvrirAudio;
 import fr.univ_amu.iut.validation.model.ImportVigieChiro;
 import fr.univ_amu.iut.validation.model.MarquageDouteux;
@@ -30,12 +28,12 @@ import java.util.Optional;
 /// (qui fournissent ses services). Enregistre la carte d'accueil [AccueilSonsReference] (« Sons de
 /// référence ») dans le `Multibinder<ActiviteAccueil>` du socle : elle ouvre la vue audio sur la source
 /// `References` (elle remplace l'ancienne carte « Bibliothèque de sons »).
-public class AudioModule extends AbstractModule {
+public class AudioModule extends ModuleDeFeature {
 
     @Override
     protected void configure() {
         bind(OuvrirAudio.class).to(NavigationAudio.class);
-        Multibinder.newSetBinder(binder(), ActiviteAccueil.class).addBinding().to(AccueilSonsReference.class);
+        activite(AccueilSonsReference.class);
         // Import VigieChiro (axe 4.2) en liaison **optionnelle** : déclaré à vide ici pour que les injecteurs
         // partiels de capture (sans `connexion`, donc sans client HTTP) résolvent `Optional<ImportVigieChiro>`
         // à vide. La liaison réelle est posée par `ImportVigieChiroModule` (injecteur applicatif complet).

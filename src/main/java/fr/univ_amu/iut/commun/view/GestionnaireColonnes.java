@@ -53,6 +53,21 @@ public final class GestionnaireColonnes {
     /// affichée (case cochée et désactivée) mais peut tout de même être déplacée.
     public record Colonne(TableColumn<?, ?> colonne, String libelle, boolean visibiliteVerrouillee) {}
 
+    /// Descripteurs « par défaut » d'une table : chaque colonne prend son **en-tête** comme libellé, et la
+    /// **première** colonne (au moment de l'appel) est traitée comme l'**identité** (visibilité verrouillée).
+    /// Raccourci pour les tables dont l'en-tête est déjà le libellé voulu et dont l'identité est la colonne de
+    /// tête ; à appeler **une fois** (typiquement à l'initialisation) pour figer l'identité avant tout
+    /// réordonnancement. Les tables à colonnes-icônes, à libellé distinct de l'en-tête ou à identité ailleurs
+    /// que la première colonne fournissent leur liste à la main.
+    public static List<Colonne> colonnesParDefaut(TableView<?> table) {
+        List<Colonne> colonnes = new ArrayList<>();
+        List<? extends TableColumn<?, ?>> cols = table.getColumns();
+        for (int i = 0; i < cols.size(); i++) {
+            colonnes.add(new Colonne(cols.get(i), cols.get(i).getText(), i == 0));
+        }
+        return colonnes;
+    }
+
     /// Câble le menu contextuel (clic droit) de `table` et ajoute un item « Colonnes… » au menu `menu`
     /// (☰) ; les deux ouvrent le panneau de gestion des `colonnes`.
     public static void installer(TableView<?> table, MenuButton menu, List<Colonne> colonnes) {
@@ -65,15 +80,22 @@ public final class GestionnaireColonnes {
     /// instance distincte (un [MenuItem] n'appartient qu'à un seul menu) ancrée sur son propre point.
     public static void installer(
             TableView<?> table, MenuButton menu, List<Colonne> colonnes, MenuItem... itemsClicDroit) {
+        installerClicDroit(table, colonnes, itemsClicDroit);
+        menu.getItems().add(new SeparatorMenuItem());
+        menu.getItems().add(itemColonnes(table, colonnes, menu));
+    }
+
+    /// Câble **uniquement** le menu contextuel (clic droit) de `table` : `itemsClicDroit` (actions propres à
+    /// la vue, ex. « Fiche de l'espèce »), un séparateur, puis « Colonnes… ». À utiliser quand une vue a
+    /// **plusieurs** tables mais un seul ☰ (ex. Analyse : inventaire espèces/carrés + observations) : chaque
+    /// table reçoit son clic droit, et le ☰ pilote la table voulue en appelant directement [#ouvrir].
+    public static void installerClicDroit(TableView<?> table, List<Colonne> colonnes, MenuItem... itemsClicDroit) {
         List<MenuItem> itemsContexte = new ArrayList<>(Arrays.asList(itemsClicDroit));
         if (!itemsContexte.isEmpty()) {
             itemsContexte.add(new SeparatorMenuItem());
         }
         itemsContexte.add(itemColonnes(table, colonnes, table));
         table.setContextMenu(new ContextMenu(itemsContexte.toArray(new MenuItem[0])));
-
-        menu.getItems().add(new SeparatorMenuItem());
-        menu.getItems().add(itemColonnes(table, colonnes, menu));
     }
 
     /// Un item « Colonnes… » qui ouvre le panneau ancré sous `ancre` (la table pour le clic droit, le ☰

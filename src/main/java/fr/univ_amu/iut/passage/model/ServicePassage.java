@@ -101,7 +101,7 @@ public class ServicePassage {
     }
 
     /// Projection de lecture pour l'écran **M-Passage** : le passage `idPassage` et les agrégats de
-    /// sa session (volumes, durée audible, nombre de séquences). Sans jointure `sites` : le contexte
+    /// sa session (volumes, durée enregistrée, nombre de séquences). Sans jointure `sites` : le contexte
     /// site (carré, code point) est fourni à la vue par la navigation.
     ///
     /// @throws RegleMetierException si le passage est introuvable
@@ -113,7 +113,7 @@ public class ServicePassage {
         Optional<SessionDEnregistrement> session = sessionDao.trouverParPassage(idPassage);
         List<SequenceDEcoute> sequences =
                 session.map(s -> sequenceDao.findBySession(s.id())).orElseGet(List::of);
-        double dureeAudible = sequences.stream()
+        double dureeEnregistree = sequences.stream()
                 .map(SequenceDEcoute::dureeSecondes)
                 .filter(Objects::nonNull)
                 .mapToDouble(Double::doubleValue)
@@ -131,7 +131,7 @@ public class ServicePassage {
                 session.map(SessionDEnregistrement::volumeOriginauxOctets).orElse(0L),
                 session.map(SessionDEnregistrement::volumeSequencesOctets).orElse(0L),
                 sequences.size(),
-                dureeAudible,
+                dureeEnregistree,
                 MeteoPassage.lire(passage.donneesMeteo()));
     }
 

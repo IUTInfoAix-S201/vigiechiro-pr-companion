@@ -22,7 +22,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 /// ViewModel de l'écran pivot **M-Passage** : fiche d'identité d'un passage, **stepper** de statut
-/// workflow et statistiques (volumes, durée audible, nombre de séquences).
+/// workflow et statistiques (volumes, durée enregistrée, nombre de séquences).
 ///
 /// Ouvert sur un `idPassage` + un [ContexteSite] (carré/code/nom fournis par la navigation, pour
 /// éviter une dépendance `passage → sites`). Le calcul passe par la projection
@@ -40,7 +40,7 @@ public class PassageViewModel {
     private final ReadOnlyObjectWrapper<Verdict> verdict = new ReadOnlyObjectWrapper<>(this, "verdict");
     private final ReadOnlyStringWrapper volumeBruts = new ReadOnlyStringWrapper(this, "volumeBruts", "");
     private final ReadOnlyStringWrapper volumeTransformes = new ReadOnlyStringWrapper(this, "volumeTransformes", "");
-    private final ReadOnlyStringWrapper dureeAudible = new ReadOnlyStringWrapper(this, "dureeAudible", "");
+    private final ReadOnlyStringWrapper dureeEnregistree = new ReadOnlyStringWrapper(this, "dureeEnregistree", "");
     private final ReadOnlyIntegerWrapper nombreSequences = new ReadOnlyIntegerWrapper(this, "nombreSequences", 0);
     private final ObservableList<EtapeWorkflow> etapes = FXCollections.observableArrayList();
     private final ReadOnlyBooleanWrapper verificationDisponible =
@@ -125,7 +125,7 @@ public class PassageViewModel {
         verdict.set(detail.verdict());
         volumeBruts.set(Formats.octetsLisibles(detail.volumeOriginauxOctets()));
         volumeTransformes.set(Formats.octetsLisibles(detail.volumeSequencesOctets()));
-        dureeAudible.set(Formats.dureeLisible(detail.dureeAudibleSecondes()));
+        dureeEnregistree.set(Formats.dureeLisible(detail.dureeEnregistreeSecondes()));
         nombreSequences.set(detail.nombreSequences());
         etapes.setAll(construireEtapes(detail.statut()));
         verificationDisponible.set(detail.statut().ordinal() >= StatutWorkflow.TRANSFORME.ordinal());
@@ -164,7 +164,7 @@ public class PassageViewModel {
         verdict.set(null);
         volumeBruts.set("");
         volumeTransformes.set("");
-        dureeAudible.set("");
+        dureeEnregistree.set("");
         nombreSequences.set(0);
         numeroPassage = 0;
         etapes.clear();
@@ -240,9 +240,9 @@ public class PassageViewModel {
         return volumeTransformes.getReadOnlyProperty();
     }
 
-    /// Durée audible cumulée, formatée (`Xh Ymin` ou `X min Y s`).
-    public ReadOnlyStringProperty dureeAudibleProperty() {
-        return dureeAudible.getReadOnlyProperty();
+    /// Durée enregistrée cumulée, formatée (`Xh Ymin` ou `X min Y s`).
+    public ReadOnlyStringProperty dureeEnregistreeProperty() {
+        return dureeEnregistree.getReadOnlyProperty();
     }
 
     /// Nombre de séquences d'écoute de la session.

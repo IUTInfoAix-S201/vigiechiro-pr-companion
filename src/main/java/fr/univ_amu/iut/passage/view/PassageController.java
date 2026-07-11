@@ -104,7 +104,7 @@ public class PassageController implements EmplacementNavigation, RafraichirAuRet
     private Label lblVolTransformes;
 
     @FXML
-    private Label lblDureeAudible;
+    private Label lblDureeEnregistree;
 
     @FXML
     private Label lblNbSequences;
@@ -205,7 +205,7 @@ public class PassageController implements EmplacementNavigation, RafraichirAuRet
         // Résumé de la nuit (stats) + cartes d'actions.
         lblVolBruts.textProperty().bind(viewModel.volumeBrutsProperty());
         lblVolTransformes.textProperty().bind(viewModel.volumeTransformesProperty());
-        lblDureeAudible.textProperty().bind(viewModel.dureeAudibleProperty());
+        lblDureeEnregistree.textProperty().bind(viewModel.dureeEnregistreeProperty());
         lblNbSequences.textProperty().bind(viewModel.nombreSequencesProperty().asString());
 
         boutonVerifier

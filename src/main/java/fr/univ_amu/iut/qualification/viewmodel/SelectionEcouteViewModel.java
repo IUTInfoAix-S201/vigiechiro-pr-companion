@@ -143,8 +143,8 @@ public class SelectionEcouteViewModel {
         titreContexte.set(quadruplet + " (" + contexte.annee() + ")");
         plageHoraire.set(contexte.date() + "  " + contexte.heureDebut() + " → " + contexte.heureFin());
         volumetrie.set(contexte.sequencesTotales()
-                + " séquences · durée audible "
-                + Formats.dureeLisible(contexte.dureeAudibleSecondes()));
+                + " séquences · durée enregistrée "
+                + Formats.dureeLisible(contexte.dureeEnregistreeSecondes()));
         filAriane.set("‹ Mes sites › " + quadruplet + " › Vérifier l'enregistrement");
         contexteSite = new ContexteSite(contexte.numeroCarre(), contexte.codePoint(), contexte.nomSite());
     }
@@ -180,7 +180,7 @@ public class SelectionEcouteViewModel {
         return plageHoraire.getReadOnlyProperty();
     }
 
-    /// Volumétrie de la nuit (`N séquences · durée audible Xh Ymin`).
+    /// Volumétrie de la nuit (`N séquences · durée enregistrée Xh Ymin`).
     public ReadOnlyStringProperty volumetrieProperty() {
         return volumetrie.getReadOnlyProperty();
     }

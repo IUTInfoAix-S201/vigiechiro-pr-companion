@@ -42,7 +42,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 /// Tests d'intégration de [ServicePassage#detailPassage] sur une base SQLite jetable (`@TempDir` +
-/// [MigrationSchema]). Vérifie l'agrégation du passage et de sa session (volumes, durée audible,
+/// [MigrationSchema]). Vérifie l'agrégation du passage et de sa session (volumes, durée enregistrée,
 /// nombre de séquences), **sans jointure `sites`** (carré/code fournis par la navigation).
 class ServicePassageDetailTest {
 
@@ -134,7 +134,7 @@ class ServicePassageDetailTest {
         assertThat(detail.volumeOriginauxOctets()).isEqualTo(4096L);
         assertThat(detail.volumeSequencesOctets()).isEqualTo(1024L);
         assertThat(detail.nombreSequences()).isEqualTo(2);
-        assertThat(detail.dureeAudibleSecondes()).isEqualTo(12.5);
+        assertThat(detail.dureeEnregistreeSecondes()).isEqualTo(12.5);
     }
 
     @Test
@@ -147,7 +147,7 @@ class ServicePassageDetailTest {
         assertThat(detail.nombreSequences()).isZero();
         assertThat(detail.volumeOriginauxOctets()).isZero();
         assertThat(detail.volumeSequencesOctets()).isZero();
-        assertThat(detail.dureeAudibleSecondes()).isZero();
+        assertThat(detail.dureeEnregistreeSecondes()).isZero();
     }
 
     @Test

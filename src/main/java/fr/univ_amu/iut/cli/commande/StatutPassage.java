@@ -96,8 +96,8 @@ public final class StatutPassage implements Callable<Integer> {
         ligne(
                 texte,
                 "Séquences",
-                detail.nombreSequences() + " (durée audible " + Formats.dureeLisible(detail.dureeAudibleSecondes())
-                        + ")");
+                detail.nombreSequences() + " (durée enregistrée "
+                        + Formats.dureeLisible(detail.dureeEnregistreeSecondes()) + ")");
         ligne(texte, "Météo", meteoLisible(detail.meteo()));
         ligne(
                 texte,
@@ -149,7 +149,7 @@ public final class StatutPassage implements Callable<Integer> {
         objet.put("volumeOriginauxOctets", detail.volumeOriginauxOctets());
         objet.put("volumeSequencesOctets", detail.volumeSequencesOctets());
         objet.put("nombreSequences", detail.nombreSequences());
-        objet.put("dureeAudibleSecondes", detail.dureeAudibleSecondes());
+        objet.put("dureeEnregistreeSecondes", detail.dureeEnregistreeSecondes());
         objet.put("resultatsTadarida", tadarida.isPresent());
         objet.put(
                 "cheminResultatsTadarida",

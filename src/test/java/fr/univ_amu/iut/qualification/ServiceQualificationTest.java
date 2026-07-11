@@ -360,7 +360,7 @@ class ServiceQualificationTest {
         assertThat(contexte.date()).isEqualTo("2026-06-20");
         assertThat(contexte.heureDebut()).isEqualTo("20:00:00");
         assertThat(contexte.sequencesTotales()).isEqualTo(20);
-        assertThat(contexte.dureeAudibleSecondes()).isEqualTo(100.0); // 20 × 5,0 s
+        assertThat(contexte.dureeEnregistreeSecondes()).isEqualTo(100.0); // 20 × 5,0 s
         assertThat(contexte.statut()).isEqualTo(StatutWorkflow.TRANSFORME);
         assertThat(contexte.verdict()).isNull();
     }

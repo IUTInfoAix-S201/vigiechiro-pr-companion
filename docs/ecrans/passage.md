@@ -15,7 +15,7 @@ De haut en bas :
 - **Bandeau d'identité** : date et plage horaire, enregistreur, **statut** et **verdict**.
 - **Statut du workflow** : une frise qui situe la nuit dans sa progression
   (Importé, Transformé, Vérifié, Prêt à déposer, Déposé).
-- **Résumé de la nuit** : volumes (bruts et transformés), durée audible, nombre de séquences.
+- **Résumé de la nuit** : volumes (bruts et transformés), durée enregistrée, nombre de séquences.
 - **Cartes d'actions** : Vérifier l'enregistrement, Diagnostic matériel, Préparer le dépôt et
   Sons & validation. Une seule carte est mise en avant : la **prochaine action recommandée**.
 

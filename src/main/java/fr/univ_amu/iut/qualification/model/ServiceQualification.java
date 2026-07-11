@@ -197,7 +197,7 @@ public class ServiceQualification {
                 .trouverParPassage(idPassage)
                 .map(session -> sequenceDao.findBySession(session.id()))
                 .orElseGet(List::of);
-        double dureeAudible = sequences.stream()
+        double dureeEnregistree = sequences.stream()
                 .map(SequenceDEcoute::dureeSecondes)
                 .filter(Objects::nonNull)
                 .mapToDouble(Double::doubleValue)
@@ -212,7 +212,7 @@ public class ServiceQualification {
                 passage.heureDebut(),
                 passage.heureFin(),
                 sequences.size(),
-                dureeAudible,
+                dureeEnregistree,
                 passage.statutWorkflow(),
                 passage.verdictVerification());
     }

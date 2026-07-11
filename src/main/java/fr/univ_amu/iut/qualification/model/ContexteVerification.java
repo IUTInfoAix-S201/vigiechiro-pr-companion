@@ -5,7 +5,7 @@ import fr.univ_amu.iut.commun.model.Verdict;
 
 /// Contexte d'en-tête d'un passage à vérifier (bandeau de M-Qualification) : identité (carré du
 /// site, code du point, n° de passage, année, date, plage horaire), volumétrie de la nuit
-/// (séquences totales, durée audible) et état courant (statut workflow, verdict éventuel).
+/// (séquences totales, durée enregistrée) et état courant (statut workflow, verdict éventuel).
 ///
 /// Projection de lecture pure produite par [ServiceQualification#chargerContexte] : immuable, sans
 /// dépendance JavaFX (consommée par la couche viewmodel).
@@ -19,7 +19,7 @@ import fr.univ_amu.iut.commun.model.Verdict;
 /// @param heureDebut heure de début déclarée
 /// @param heureFin heure de fin déclarée
 /// @param sequencesTotales nombre total de séquences d'écoute de la nuit
-/// @param dureeAudibleSecondes durée audible cumulée des séquences (secondes)
+/// @param dureeEnregistreeSecondes durée enregistrée cumulée des séquences (secondes)
 /// @param statut statut workflow courant du passage
 /// @param verdict verdict de vérification (`null` tant qu'aucun verdict n'est posé)
 public record ContexteVerification(
@@ -32,6 +32,6 @@ public record ContexteVerification(
         String heureDebut,
         String heureFin,
         int sequencesTotales,
-        double dureeAudibleSecondes,
+        double dureeEnregistreeSecondes,
         StatutWorkflow statut,
         Verdict verdict) {}

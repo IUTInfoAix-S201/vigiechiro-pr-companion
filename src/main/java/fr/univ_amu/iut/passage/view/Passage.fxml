@@ -91,8 +91,8 @@
           <Label fx:id="lblVolTransformes" styleClass="carte-stat-valeur"/>
         </VBox>
         <VBox spacing="2.0" styleClass="carte-stat" maxWidth="Infinity" HBox.hgrow="ALWAYS">
-          <Label text="DURÉE AUDIBLE" styleClass="carte-stat-libelle"/>
-          <Label fx:id="lblDureeAudible" styleClass="carte-stat-valeur"/>
+          <Label text="DURÉE ENREGISTRÉE" styleClass="carte-stat-libelle"/>
+          <Label fx:id="lblDureeEnregistree" styleClass="carte-stat-valeur"/>
         </VBox>
         <VBox spacing="2.0" styleClass="carte-stat" maxWidth="Infinity" HBox.hgrow="ALWAYS">
           <Label text="SÉQUENCES" styleClass="carte-stat-libelle"/>

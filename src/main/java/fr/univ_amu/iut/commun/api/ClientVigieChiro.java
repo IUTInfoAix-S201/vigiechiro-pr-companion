@@ -32,6 +32,9 @@ public final class ClientVigieChiro {
     private static final Duration DELAI_UPLOAD = Duration.ofSeconds(120);
     /// Type de média JSON des échanges avec le backend Eve (`Accept` et `Content-Type`).
     private static final String TYPE_JSON = "application/json";
+
+    /// Préfixe de chemin de l'API des participations (`GET .../donnees`, `GET .../#id`, `PATCH .../#id`).
+    private static final String CHEMIN_PARTICIPATIONS = "/participations/";
     /// Garde-fou de pagination (`GET …/donnees`) : une participation a des milliers de fichiers, jamais
     /// des centaines de milliers ; on plafonne le nombre de pages pour éviter toute boucle.
     private static final int PAGES_MAX = 500;
@@ -86,7 +89,7 @@ public final class ClientVigieChiro {
     /// concurrent-sûr), dates, météo, configuration matérielle et état du traitement Tadarida. Vide si non
     /// connecté, indisponible, ou participation inconnue.
     public Optional<ParticipationDetail> participation(String id) {
-        return get("/participations/" + id).flatMap(ParticipationsVigieChiro::detail);
+        return get(CHEMIN_PARTICIPATIONS + id).flatMap(ParticipationsVigieChiro::detail);
     }
 
     /// Résultats Tadarida d'une participation (`GET /participations/#id/donnees`, #719, axe 4.2) : les
@@ -97,7 +100,7 @@ public final class ClientVigieChiro {
         List<DonneeVigieChiro> tout = new ArrayList<>();
         for (int page = 1; page <= PAGES_MAX; page++) {
             Optional<String> corps =
-                    get("/participations/" + participationId + "/donnees?max_results=1000&page=" + page);
+                    get(CHEMIN_PARTICIPATIONS + participationId + "/donnees?max_results=1000&page=" + page);
             if (corps.isEmpty()) {
                 break; // non connecté / erreur : on renvoie ce qui a déjà été récupéré
             }
@@ -141,7 +144,7 @@ public final class ClientVigieChiro {
     /// refus doit être expliqué. Prérequis : `etag` courant (sinon `412 Precondition Failed`).
     public ResultatParticipation modifierParticipation(String id, String etag, ParticipationADeposer miseAJour) {
         Optional<ReponseHttp> reponse =
-                ecrire("PATCH", "/participations/" + id, RequetesVigieChiro.miseAJourParticipation(miseAJour), etag);
+                ecrire("PATCH", CHEMIN_PARTICIPATIONS + id, RequetesVigieChiro.miseAJourParticipation(miseAJour), etag);
         if (reponse.isEmpty()) {
             return ResultatParticipation.echouee("VigieChiro injoignable (non connecté, ou réseau indisponible).");
         }

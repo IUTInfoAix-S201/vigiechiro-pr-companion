@@ -18,6 +18,7 @@ import fr.univ_amu.iut.passage.model.MeteoOpenMeteo;
 import fr.univ_amu.iut.passage.model.MoteurWorkflowPassage;
 import fr.univ_amu.iut.passage.model.ReprefixeurSession;
 import fr.univ_amu.iut.passage.model.ServicePassage;
+import fr.univ_amu.iut.passage.model.SynchronisationParticipation;
 import fr.univ_amu.iut.passage.model.dao.EnregistrementOriginalDao;
 import fr.univ_amu.iut.passage.model.dao.EnregistreurDao;
 import fr.univ_amu.iut.passage.model.dao.JournalDuCapteurDao;
@@ -66,6 +67,11 @@ public class PassageModule extends AbstractModule {
         OptionalBinder.newOptionalBinder(binder(), ReferentielPoint.class)
                 .setDefault()
                 .toInstance(idPoint -> Optional.empty());
+
+        // Passerelle SynchronisationParticipation (axe 4) : OptionalBinder VIDE (ni défaut ni binding). Le
+        // module réel SynchronisationParticipationModule (chargé par RacineInjecteur avec la connexion) pose
+        // le binding ; hors connexion, l'Optional reste vide (patron de DepotVigieChiro).
+        OptionalBinder.newOptionalBinder(binder(), SynchronisationParticipation.class);
     }
 
     @Provides

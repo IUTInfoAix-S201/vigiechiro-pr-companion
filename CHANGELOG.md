@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [1.172.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.171.0...v1.172.0) (2026-07-11)
+
+
+### Features
+
+* **reglages:** contrats d'extension + service typé + couche réactive (P1.1) ([#944](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/944)) ([e6c643a](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/e6c643a7c8c512b6bee4208e9d0d04b1569c6c4d)), closes [#923](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/923)
+
 # [1.171.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.170.1...v1.171.0) (2026-07-11)
 
 

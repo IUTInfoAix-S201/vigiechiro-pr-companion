@@ -43,4 +43,16 @@ public final class Formats {
     public static String temperatureLisible(Double celsius) {
         return celsius == null ? "—" : String.format(Locale.FRANCE, "%.1f °C", celsius);
     }
+
+    /// Durée d'une **séquence** : `%.1f s` en locale FR (virgule décimale), ou `—` si non renseignée
+    /// (`null`, corrige le NPE latent du formateur privé qu'elle remplace). Distincte de [#dureeLisible]
+    /// (durées **cumulées**, « X min Y s » / « X h Y min ») et du formateur de la feature audio
+    /// `FormatLigneAudio` (durées de **cris** sub-secondes, format ms/s adaptatif) : trois besoins
+    /// d'affichage **assumés** — deux partagés ici, un spécialisé côté audio (non fusionné à dessein).
+    ///
+    /// @param secondes durée en secondes, ou `null`
+    /// @return libellé d'affichage
+    public static String dureeSecondes(Double secondes) {
+        return secondes == null ? "—" : String.format(Locale.FRANCE, "%.1f s", secondes);
+    }
 }

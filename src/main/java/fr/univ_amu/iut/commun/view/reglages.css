@@ -1,0 +1,98 @@
+/*
+ * reglages.css — mise en page de l'écran « Réglages » (#1005).
+ *
+ * Jointe à EcranReglages.fxml après palette.css / base.css : ne fait que styliser les styleClass
+ * déjà posés par EcranReglagesController / ControleursReglages (aucun changement de structure).
+ */
+
+.ecran-reglages {
+    -fx-background-color: -couleur-fond;
+}
+
+/* Entête : léger bandeau indigo clair, titre + sous-titre. */
+.ecran-reglages-entete {
+    -fx-padding: 22 28 18 28;
+    -fx-spacing: 4;
+    -fx-background-color: -couleur-primaire-voile;
+    -fx-border-color: transparent transparent -couleur-primaire-fond transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.ecran-reglages-titre {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -couleur-primaire-sombre;
+}
+
+.ecran-reglages-sous-titre {
+    -fx-font-size: 13px;
+    -fx-text-fill: -couleur-texte-discret;
+}
+
+/* Onglets : barre d'onglets aérée, contenu sur le fond de l'écran. */
+.onglets-reglages {
+    -fx-background-color: transparent;
+}
+
+.onglets-reglages .tab-header-area {
+    -fx-padding: 8 20 0 20;
+}
+
+.onglets-reglages .tab-content-area {
+    -fx-background-color: transparent;
+}
+
+.onglet-reglages-defilement {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+    -fx-padding: 0;
+}
+
+.onglet-reglages-defilement > .viewport {
+    -fx-background-color: transparent;
+}
+
+/* Formulaire : une colonne aérée, largeur bornée pour la lisibilité. */
+.formulaire-reglages {
+    -fx-padding: 22 28 22 28;
+    -fx-spacing: 18;
+    -fx-max-width: 620;
+}
+
+/* Une ligne = libellé au-dessus de son contrôle (les cases portent déjà leur libellé). */
+.reglage-ligne {
+    -fx-spacing: 6;
+}
+
+.reglage-libelle {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -couleur-texte;
+}
+
+.reglage-controle {
+    -fx-font-size: 13px;
+}
+
+/* Largeur homogène des champs saisissables ; la case à cocher garde sa largeur naturelle. */
+.reglage-controle.text-field,
+.reglage-controle.combo-box,
+.reglage-controle.spinner {
+    -fx-pref-width: 320;
+    -fx-max-width: 320;
+}
+
+.reglage-controle.check-box {
+    -fx-text-fill: -couleur-texte;
+}
+
+/* État vide (aucune feature ne contribue encore d'onglet). */
+.reglages-vide {
+    -fx-padding: 40;
+    -fx-alignment: center;
+}
+
+.reglages-vide-message {
+    -fx-font-size: 14px;
+    -fx-text-fill: -couleur-texte-discret;
+}

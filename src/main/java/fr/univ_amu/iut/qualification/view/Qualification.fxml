@@ -159,6 +159,11 @@
         <Label fx:id="lblAvertissement" styleClass="avertissement" wrapText="true"/>
         <Label fx:id="lblMessage" styleClass="message-erreur" wrapText="true"/>
 
+        <!-- Légende des raccourcis clavier (#796) : câblés (gererRaccourci) mais indécouvrables sans
+             cette aide visible. -->
+        <Label styleClass="section-sous" wrapText="true"
+               text="Raccourcis clavier : O vérifié · D douteux · J à jeter · Espace écouter · Entrée enregistrer"/>
+
         <HBox alignment="CENTER_RIGHT">
           <!-- Enveloppe : un Button désactivé n'affiche pas de Tooltip, on le pose sur ce StackPane (#789). -->
           <StackPane fx:id="enveloppeEnregistrer">

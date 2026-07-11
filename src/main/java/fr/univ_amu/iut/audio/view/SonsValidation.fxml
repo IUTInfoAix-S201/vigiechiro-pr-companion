@@ -147,6 +147,10 @@
           <Button fx:id="btnReference" onAction="#basculerReference"/>
         </StackPane>
       </HBox>
+      <!-- Légende des raccourcis de revue au clavier (#796) : câblés (RevueClavier) mais indécouvrables
+           sans cette aide visible. -->
+      <Label styleClass="section-sous" wrapText="true"
+             text="Raccourcis clavier : Entrée valider · R référence · D douteux · N suivant à revoir"/>
     </VBox>
 
   </SplitPane>

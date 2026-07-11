@@ -134,6 +134,17 @@ class QualificationViewTest {
     }
 
     @Test
+    @DisplayName("#1021 : barre de statut 3 zones (identité gauche, statut+volumétrie centre, progression droite)")
+    void barre_de_statut_3_zones(FxRobot robot) {
+        var zones = controleur.zonesStatutProperty().get();
+        assertThat(zones.gauche()).isEqualTo("Carré 640380 · A1 · N° 2");
+        assertThat(zones.centre()).as("statut + volumétrie").contains("séquences");
+        assertThat(zones.droite())
+                .as("progression d'écoute (pas d'anomalie ici)")
+                .contains("écoutées");
+    }
+
+    @Test
     @DisplayName("#798 : « Régénérer » demande confirmation quand une progression d'écoute serait perdue")
     void regenerer_confirme_avant_de_perdre_la_progression(FxRobot robot) {
         // Progression d'écoute > 0 : une séquence marquée écoutée (sans quoi il n'y a rien à perdre).

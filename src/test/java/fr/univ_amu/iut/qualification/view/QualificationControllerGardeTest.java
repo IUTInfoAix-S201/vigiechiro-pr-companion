@@ -2,6 +2,7 @@ package fr.univ_amu.iut.qualification.view;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import fr.univ_amu.iut.commun.model.DispositionColonnesEnMemoire;
 import fr.univ_amu.iut.commun.model.Verdict;
 import fr.univ_amu.iut.commun.view.OuvrirSite;
 import fr.univ_amu.iut.qualification.model.ServiceQualification;
@@ -39,8 +40,12 @@ class QualificationControllerGardeTest {
     void garde_reflete_le_verdict_brouillon() {
         QualificationViewModel verdictVm = new QualificationViewModel(service);
         SelectionEcouteViewModel selectionVm = new SelectionEcouteViewModel(service);
-        QualificationController controller =
-                new QualificationController(verdictVm, selectionVm, (idPassage, contexte) -> {}, ouvrirSiteNeutre());
+        QualificationController controller = new QualificationController(
+                verdictVm,
+                selectionVm,
+                (idPassage, contexte) -> {},
+                ouvrirSiteNeutre(),
+                new DispositionColonnesEnMemoire());
 
         assertThat(controller.aSaisieNonEnregistree()).isFalse();
 
@@ -54,8 +59,12 @@ class QualificationControllerGardeTest {
     void garde_se_rearme_si_commentaire_modifie_apres_enregistrement() {
         QualificationViewModel verdictVm = new QualificationViewModel(service);
         SelectionEcouteViewModel selectionVm = new SelectionEcouteViewModel(service);
-        QualificationController controller =
-                new QualificationController(verdictVm, selectionVm, (idPassage, contexte) -> {}, ouvrirSiteNeutre());
+        QualificationController controller = new QualificationController(
+                verdictVm,
+                selectionVm,
+                (idPassage, contexte) -> {},
+                ouvrirSiteNeutre(),
+                new DispositionColonnesEnMemoire());
 
         verdictVm.choisirVerdict(Verdict.OK);
         verdictVm.enregistrer();
@@ -73,8 +82,12 @@ class QualificationControllerGardeTest {
     void garde_se_rearme_si_verdict_change_apres_enregistrement() {
         QualificationViewModel verdictVm = new QualificationViewModel(service);
         SelectionEcouteViewModel selectionVm = new SelectionEcouteViewModel(service);
-        QualificationController controller =
-                new QualificationController(verdictVm, selectionVm, (idPassage, contexte) -> {}, ouvrirSiteNeutre());
+        QualificationController controller = new QualificationController(
+                verdictVm,
+                selectionVm,
+                (idPassage, contexte) -> {},
+                ouvrirSiteNeutre(),
+                new DispositionColonnesEnMemoire());
 
         verdictVm.choisirVerdict(Verdict.OK);
         verdictVm.enregistrer();

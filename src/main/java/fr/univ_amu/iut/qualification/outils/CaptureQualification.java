@@ -5,6 +5,7 @@ import com.google.inject.Injector;
 import fr.nedjar.vigiechiro.audio.AudioView;
 import fr.univ_amu.iut.commun.di.CommunModule;
 import fr.univ_amu.iut.commun.di.PersistenceModule;
+import fr.univ_amu.iut.commun.model.DepotDispositionColonnes;
 import fr.univ_amu.iut.commun.model.Prefixe;
 import fr.univ_amu.iut.commun.model.Protocole;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
@@ -118,7 +119,11 @@ public final class CaptureQualification {
         FXMLLoader loader = new FXMLLoader(CaptureQualification.class.getResource(QUALIF_FXML));
         loader.setControllerFactory(type -> type == QualificationController.class
                 ? new QualificationController(
-                        verdictVm, selectionVm, (id, contexte) -> {}, injecteur.getInstance(OuvrirSite.class))
+                        verdictVm,
+                        selectionVm,
+                        (id, contexte) -> {},
+                        injecteur.getInstance(OuvrirSite.class),
+                        injecteur.getInstance(DepotDispositionColonnes.class))
                 : injecteur.getInstance(type));
         Parent vue = loader.load();
         QualificationController controleur = loader.getController();

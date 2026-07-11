@@ -1,6 +1,7 @@
 package fr.univ_amu.iut.analyse.view;
 
 import fr.univ_amu.iut.analyse.viewmodel.Regroupement;
+import fr.univ_amu.iut.commun.model.DepotDispositionColonnes;
 import fr.univ_amu.iut.commun.view.AdaptateurColonnes;
 import fr.univ_amu.iut.commun.view.DescripteurColonnes;
 import fr.univ_amu.iut.commun.view.GestionnaireColonnes;
@@ -68,6 +69,14 @@ final class SelecteurColonnesAnalyse {
         MenuItem itemColonnes = new MenuItem("Colonnes…");
         itemColonnes.setOnAction(e -> ouvrirMaitre());
         menuOutils.getItems().addAll(new SeparatorMenuItem(), itemColonnes);
+    }
+
+    /// Rend la disposition des trois tables **persistante par écran** (#994, couche « défaut par écran ») :
+    /// chaque table est retenue sous sa propre clé (`especes` / `carres` / `observations`).
+    void persister(DepotDispositionColonnes depot, String feature) {
+        GestionnaireColonnes.persister(tableEspeces, colonnesEspeces, depot, feature, ESPECES);
+        GestionnaireColonnes.persister(tableCarres, colonnesCarres, depot, feature, CARRES);
+        GestionnaireColonnes.persister(tableObservations, colonnesObservations, depot, feature, OBSERVATIONS);
     }
 
     private void ouvrirMaitre() {

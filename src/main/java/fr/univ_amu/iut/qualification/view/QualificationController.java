@@ -2,6 +2,7 @@ package fr.univ_amu.iut.qualification.view;
 
 import com.google.inject.Inject;
 import fr.nedjar.vigiechiro.audio.AudioView;
+import fr.univ_amu.iut.commun.model.DepotDispositionColonnes;
 import fr.univ_amu.iut.commun.model.MethodeSelection;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.model.Verdict;
@@ -67,6 +68,7 @@ public class QualificationController implements GardeQuitter, EmplacementNavigat
     private final SelectionEcouteViewModel selectionVm;
     private final OuvrirPassage ouvrirPassage;
     private final OuvrirSite ouvrirSite;
+    private final DepotDispositionColonnes depotColonnes;
 
     /// Contexte de navigation (passage + site), mémorisé pour reconstruire le fil d'Ariane du chrome.
     private ContextePassage contexte;
@@ -191,11 +193,13 @@ public class QualificationController implements GardeQuitter, EmplacementNavigat
             QualificationViewModel verdictVm,
             SelectionEcouteViewModel selectionVm,
             OuvrirPassage ouvrirPassage,
-            OuvrirSite ouvrirSite) {
+            OuvrirSite ouvrirSite,
+            DepotDispositionColonnes depotColonnes) {
         this.verdictVm = Objects.requireNonNull(verdictVm, "verdictVm");
         this.selectionVm = Objects.requireNonNull(selectionVm, "selectionVm");
         this.ouvrirPassage = Objects.requireNonNull(ouvrirPassage, "ouvrirPassage");
         this.ouvrirSite = Objects.requireNonNull(ouvrirSite, "ouvrirSite");
+        this.depotColonnes = Objects.requireNonNull(depotColonnes, "depotColonnes");
     }
 
     /// Garde de navigation : un verdict a été **choisi mais pas encore enregistré** (brouillon). Quitter
@@ -215,8 +219,9 @@ public class QualificationController implements GardeQuitter, EmplacementNavigat
     private void initialize() {
         // Densite et habillage de table uniformes (#690).
         TableDonnees.uniformiser(tableSequences);
-        // Sélecteur de colonnes (#920) : clic droit + ☰ « outils ».
-        GestionnaireColonnes.installer(tableSequences, menuOutils, colonnesSequences());
+        // Sélecteur de colonnes (#920) : clic droit + ☰ « outils » ; disposition retenue par écran (#994).
+        GestionnaireColonnes.installerEtPersister(
+                tableSequences, menuOutils, colonnesSequences(), depotColonnes, "qualification", "principale");
         // Bandeau : identité de la nuit (VM sélection) + statut/verdict persistés (VM verdict).
         lblTitreContexte.textProperty().bind(selectionVm.titreContexteProperty());
         lblPlageHoraire.textProperty().bind(selectionVm.plageHoraireProperty());

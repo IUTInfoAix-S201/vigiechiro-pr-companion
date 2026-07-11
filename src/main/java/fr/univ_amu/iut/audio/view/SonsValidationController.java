@@ -6,6 +6,7 @@ import fr.univ_amu.iut.audio.viewmodel.AudioViewModel;
 import fr.univ_amu.iut.audio.viewmodel.ComptageAudio;
 import fr.univ_amu.iut.audio.viewmodel.ImportVigieChiroViewModel;
 import fr.univ_amu.iut.audio.viewmodel.OngletReglagesAudio;
+import fr.univ_amu.iut.commun.model.DepotDispositionColonnes;
 import fr.univ_amu.iut.commun.model.DepotVues;
 import fr.univ_amu.iut.commun.model.EspeceIdentifiee;
 import fr.univ_amu.iut.commun.view.ActionFicheEspece;
@@ -72,6 +73,7 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
     private final OuvrirAnalyse ouvrirAnalyse;
     private final OuvrirMultisite ouvrirMultisite;
     private final DepotVues depotVues;
+    private final DepotDispositionColonnes depotColonnes;
 
     /// Action réutilisable « Fiche de l'espèce » (#846) : configure l'item du menu ☰ selon la ligne
     /// sélectionnée et ouvre la fiche dans le navigateur.
@@ -261,6 +263,7 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
             OuvrirMultisite ouvrirMultisite,
             MemoireRevueAudio memoire,
             DepotVues depotVues,
+            DepotDispositionColonnes depotColonnes,
             ActionFicheEspece actionFicheEspece,
             ReglagesReactifs reactifs) {
         this.viewModel = Objects.requireNonNull(viewModel, "viewModel");
@@ -271,6 +274,7 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
         this.ouvrirMultisite = Objects.requireNonNull(ouvrirMultisite, "ouvrirMultisite");
         this.memoire = Objects.requireNonNull(memoire, "memoire");
         this.depotVues = Objects.requireNonNull(depotVues, "depotVues");
+        this.depotColonnes = Objects.requireNonNull(depotColonnes, "depotColonnes");
         this.actionFicheEspece = Objects.requireNonNull(actionFicheEspece, "actionFicheEspece");
         this.reactifs = Objects.requireNonNull(reactifs, "reactifs");
     }
@@ -452,7 +456,8 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
         // Gestion des colonnes (afficher/masquer + réordonner par glisser) : menu contextuel (clic droit)
         // et item « Colonnes… » du ☰ ouvrent le même panneau. La proposition Tadarida, colonne d'identité,
         // reste toujours affichée (visibilité verrouillée) mais peut être déplacée comme les autres.
-        GestionnaireColonnes.installer(tableObservations, menuActions, colonnesTableAudio());
+        GestionnaireColonnes.installerEtPersister(
+                tableObservations, menuActions, colonnesTableAudio(), depotColonnes, FEATURE, "principale");
     }
 
     /// Colonnes de la table audio proposées au sélecteur (#916), partagées entre le câblage `installer` et la

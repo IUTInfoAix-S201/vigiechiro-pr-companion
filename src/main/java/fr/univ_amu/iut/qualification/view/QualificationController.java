@@ -18,6 +18,7 @@ import fr.univ_amu.iut.commun.view.OuvrirSite;
 import fr.univ_amu.iut.commun.view.ResumeStatut;
 import fr.univ_amu.iut.commun.view.TableDonnees;
 import fr.univ_amu.iut.commun.viewmodel.ContextePassage;
+import fr.univ_amu.iut.commun.viewmodel.Formats;
 import fr.univ_amu.iut.commun.viewmodel.ZonesStatut;
 import fr.univ_amu.iut.qualification.model.GenerateurSelection;
 import fr.univ_amu.iut.qualification.model.SequenceEnSelection;
@@ -25,7 +26,6 @@ import fr.univ_amu.iut.qualification.viewmodel.EtatVerdict;
 import fr.univ_amu.iut.qualification.viewmodel.QualificationViewModel;
 import fr.univ_amu.iut.qualification.viewmodel.SelectionEcouteViewModel;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.function.Predicate;
 import javafx.beans.binding.Bindings;
@@ -277,8 +277,8 @@ public class QualificationController implements GardeQuitter, EmplacementNavigat
                 c -> new ReadOnlyStringWrapper(Integer.toString(c.getValue().position() + 1)));
         colFichier.setCellValueFactory(
                 c -> new ReadOnlyStringWrapper(c.getValue().sequence().nomFichier()));
-        colDuree.setCellValueFactory(c ->
-                new ReadOnlyStringWrapper(formatDuree(c.getValue().sequence().dureeSecondes())));
+        colDuree.setCellValueFactory(c -> new ReadOnlyStringWrapper(
+                Formats.dureeSecondes(c.getValue().sequence().dureeSecondes())));
         colEcoute.setCellValueFactory(
                 c -> new ReadOnlyStringWrapper(c.getValue().ecoutee() ? "✓" : "○"));
         tableSequences
@@ -541,11 +541,7 @@ public class QualificationController implements GardeQuitter, EmplacementNavigat
         return "Fichier "
                 + ligne.sequence().nomFichier()
                 + " · durée "
-                + formatDuree(ligne.sequence().dureeSecondes())
+                + Formats.dureeSecondes(ligne.sequence().dureeSecondes())
                 + (ligne.ecoutee() ? " · ✓ écoutée" : " · ○ non écoutée");
-    }
-
-    private static String formatDuree(double secondes) {
-        return String.format(Locale.FRANCE, "%.1f s", secondes);
     }
 }

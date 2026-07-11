@@ -34,6 +34,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.input.KeyCode;
 import javafx.stage.Stage;
@@ -195,6 +196,18 @@ class QualificationViewTest {
 
         assertThat(titre.getText()).contains("640380").contains("A1");
         assertThat(table.getItems()).hasSize(3);
+    }
+
+    @Test
+    @DisplayName("#1053 : la colonne « Durée » affiche la durée formatée (Formats.dureeSecondes)")
+    void colonne_duree_affiche_la_duree_formatee(FxRobot robot) {
+        TableView<?> table = robot.lookup("#tableSequences").queryAs(TableView.class);
+        TableColumn<?, ?> colDuree = table.getColumns().stream()
+                .filter(c -> "Durée".equals(c.getText()))
+                .findFirst()
+                .orElseThrow();
+        // Les séquences seedées durent 5,0 s (cf. lignes()) : le formateur partagé rend « 5,0 s » (FR).
+        assertThat(colDuree.getCellData(0)).isEqualTo("5,0 s");
     }
 
     @Test

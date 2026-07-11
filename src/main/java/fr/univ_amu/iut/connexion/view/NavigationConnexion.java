@@ -3,7 +3,6 @@ package fr.univ_amu.iut.connexion.view;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
-import fr.univ_amu.iut.commun.view.OuvrirConnexion;
 import fr.univ_amu.iut.connexion.model.StockageConnexion;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -14,15 +13,15 @@ import javafx.scene.Scene;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
-/// Façade d'ouverture de la **modale « Connexion VigieChiro »** (#727/#741). Implémente le contrat
-/// socle [OuvrirConnexion] : le menu ☰ du chrome ouvre la modale et affiche l'état de connexion sans
-/// que `commun` dépende de la feature.
+/// Façade d'ouverture de la **modale « Connexion VigieChiro »** (#727/#741). Utilisée par l'entrée de
+/// menu [ActionConnexion] de la feature (#931) : le menu ☰ du chrome ouvre la modale et affiche l'état
+/// de connexion, sans que `commun` dépende de la feature.
 ///
 /// Charge le FXML avec la `controllerFactory` Guice (comme les autres modales du projet) et l'affiche
 /// en fenêtre modale applicative, **sans propriétaire** : la modale est déclenchée depuis le menu, hors
 /// de tout contexte de fenêtre.
 @Singleton
-public final class NavigationConnexion implements OuvrirConnexion {
+public final class NavigationConnexion {
 
     private final Injector injector;
     private final StockageConnexion stockage;
@@ -34,7 +33,6 @@ public final class NavigationConnexion implements OuvrirConnexion {
     }
 
     /// Ouvre la modale de connexion (non bloquante).
-    @Override
     public void ouvrir() {
         FXMLLoader loader = new FXMLLoader(NavigationConnexion.class.getResource("ConnexionModale.fxml"));
         loader.setControllerFactory(injector::getInstance);
@@ -52,7 +50,6 @@ public final class NavigationConnexion implements OuvrirConnexion {
 
     /// Libellé de l'entrée de menu selon l'état stocké (sans réseau) : identité si connecté, invite
     /// sinon. Emoji cohérent avec les autres entrées du menu ☰ (💾 / ↩ / 🧹).
-    @Override
     public String libelleMenu() {
         return stockage.profil()
                 .map(profil -> "✅ VigieChiro : "

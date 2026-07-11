@@ -14,6 +14,7 @@ import fr.univ_amu.iut.commun.outils.ApercuFx;
 import fr.univ_amu.iut.commun.outils.ModuleCaptureNavigationAudio;
 import fr.univ_amu.iut.commun.persistence.MigrationSchema;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
+import fr.univ_amu.iut.commun.view.GestionnaireColonnes;
 import fr.univ_amu.iut.passage.di.PassageModule;
 import fr.univ_amu.iut.sites.di.SitesModule;
 import fr.univ_amu.iut.validation.di.ValidationModule;
@@ -32,12 +33,17 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 
 /// Outil de capture/mesure, utilisable tel quel.
 ///
@@ -93,6 +99,7 @@ public final class CaptureAnalyse {
         rendre(injecteur, null, sortie.resolve("apercu-analyse.png"));
         rendre(injecteur, Regroupement.PAR_CARRE, sortie.resolve("apercu-analyse-carre.png"));
         rendreCarte(injecteur, sortie.resolve("apercu-analyse-carte.png"));
+        rendreColonnes(injecteur, sortie.resolve("apercu-analyse-colonnes.png"));
 
         System.out.println("Apercus ecrits dans " + sortie.toAbsolutePath());
     }
@@ -122,6 +129,37 @@ public final class CaptureAnalyse {
         Parent vue = loader.load();
         Scene scene = new Scene(vue, 1080, 640);
         ApercuFx.capturerApresPreparation(scene, () -> preparer(vue, regroupement), fichier);
+    }
+
+    /// Rend l'écran par espèce avec le **panneau de sélection des colonnes ouvert** (`apercu-analyse-colonnes`,
+    /// EPIC #914). Le panneau est un `VBox` (issu de [GestionnaireColonnes#construirePanneau], rendu sans
+    /// `Popup` que le `snapshot` de scène ne capturerait pas) posé en surimpression en haut à droite, là où
+    /// s'ancre le ☰ « outils ». On joint palette + design **à la scène** : le panneau, frère de la vue, n'hérite
+    /// pas des feuilles chargées par le FXML sur la vue.
+    private static void rendreColonnes(Injector injecteur, Path fichier) throws IOException {
+        FXMLLoader loader = new FXMLLoader(AnalyseController.class.getResource("Analyse.fxml"));
+        loader.setControllerFactory(injecteur::getInstance);
+        Parent vue = loader.load();
+        StackPane pile = new StackPane(vue);
+        Scene scene = new Scene(pile, 1080, 640);
+        scene.getStylesheets()
+                .addAll(
+                        GestionnaireColonnes.class.getResource("palette.css").toExternalForm(),
+                        GestionnaireColonnes.class.getResource("design.css").toExternalForm());
+        ApercuFx.capturerApresPreparation(
+                scene,
+                () -> {
+                    if (vue.lookup("#tableEspeces") instanceof TableView<?> table) {
+                        table.getSelectionModel().select(0);
+                        VBox panneau = GestionnaireColonnes.construirePanneau(
+                                table, GestionnaireColonnes.colonnesParDefaut(table));
+                        panneau.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
+                        StackPane.setAlignment(panneau, Pos.TOP_RIGHT);
+                        StackPane.setMargin(panneau, new Insets(70, 24, 0, 0));
+                        pile.getChildren().add(panneau);
+                    }
+                },
+                fichier);
     }
 
     /// Délai d'attente des tuiles OpenStreetMap avant la capture carte (best-effort, comme `multisite`) :

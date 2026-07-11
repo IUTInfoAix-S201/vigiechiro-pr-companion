@@ -130,8 +130,10 @@ public final class GestionnaireColonnes {
     }
 
     /// Construit le contenu du panneau (titre + liste réordonnable), sur l'**ordre courant** des colonnes
-    /// dans la table. Extrait pour être testable sans fenêtre flottante.
-    static VBox construirePanneau(TableView<?> table, List<Colonne> colonnes) {
+    /// dans la table. Public (et non plus seulement `ouvert` par [#ouvrir]) pour être **rendu sans fenêtre
+    /// flottante** : par les tests et par les outils de capture d'écran (le `Popup` n'est pas capturé par le
+    /// `snapshot` de scène ; on rend donc directement ce `VBox`).
+    public static VBox construirePanneau(TableView<?> table, List<Colonne> colonnes) {
         List<Colonne> ordonnees = new ArrayList<>(colonnes);
         ordonnees.sort(Comparator.comparingInt(c -> table.getColumns().indexOf(c.colonne())));
 

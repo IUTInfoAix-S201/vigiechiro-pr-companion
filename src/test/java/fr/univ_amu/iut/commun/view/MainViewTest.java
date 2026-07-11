@@ -296,15 +296,29 @@ class MainViewTest {
     }
 
     @Test
-    @DisplayName("#144 : une recherche sans correspondance n'affiche pas la liste déroulante")
-    void recherche_sans_resultat_garde_la_liste_fermee(FxRobot robot) {
+    @DisplayName("#795 : une recherche sans correspondance affiche « Aucun résultat » (liste plus cachée)")
+    void recherche_sans_resultat_affiche_placeholder(FxRobot robot) {
         TextField champ = robot.lookup("#champRecherche").queryAs(TextField.class);
         VBox panneau = robot.lookup("#panneauResultats").queryAs(VBox.class);
+        ListView<?> liste = robot.lookup("#listeResultats").queryAs(ListView.class);
 
         robot.interact(() -> champ.setText("zzz-introuvable"));
         attendreRecherche();
 
-        assertThat(panneau.isVisible()).isFalse();
+        // Auparavant le panneau disparaissait (état vide muet) : il reste désormais visible avec le
+        // placeholder « Aucun résultat ». Une recherche vidée, elle, referme bien le panneau.
+        assertThat(panneau.isVisible())
+                .as("le panneau reste visible pour signaler l'absence de résultat (#795)")
+                .isTrue();
+        assertThat(liste.getItems()).isEmpty();
+        assertThat(liste.getPlaceholder()).isInstanceOf(Label.class);
+        assertThat(((Label) liste.getPlaceholder()).getText()).contains("Aucun résultat");
+
+        robot.interact(() -> champ.setText(""));
+        attendreRecherche();
+        assertThat(panneau.isVisible())
+                .as("champ vidé → plus de recherche active → panneau refermé")
+                .isFalse();
     }
 
     @Test

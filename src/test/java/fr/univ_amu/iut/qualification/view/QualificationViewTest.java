@@ -1,6 +1,8 @@
 package fr.univ_amu.iut.qualification.view;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -59,10 +61,11 @@ class QualificationViewTest {
 
     private QualificationController controleur;
     private SelectionEcouteViewModel selectionVm;
+    private ServiceQualification service;
 
     @Start
     void start(Stage stage) throws Exception {
-        ServiceQualification service = mock(ServiceQualification.class);
+        service = mock(ServiceQualification.class);
         when(service.precheck(anyLong())).thenReturn(new PreCheckNuit.Diagnostic(Feu.VERT, Feu.ORANGE, Feu.VERT));
         when(service.chargerContexte(anyLong()))
                 .thenReturn(new ContexteVerification(
@@ -155,6 +158,22 @@ class QualificationViewTest {
         assertThat(selectionVm.progressionProperty().get())
                 .as("refus → la sélection n'est pas régénérée (progression conservée)")
                 .isEqualTo(progressionAvant);
+    }
+
+    @Test
+    @DisplayName("#795 : une erreur de (re)génération de la sélection est affichée, plus avalée")
+    void erreur_selection_est_affichee(FxRobot robot) {
+        // La régénération échoue côté service : le message doit apparaître (progression à 0 → pas de
+        // confirmation à ce stade, la régénération part directement).
+        when(service.creerSelection(anyLong(), any(), anyInt()))
+                .thenThrow(new RuntimeException("échec de régénération"));
+
+        robot.clickOn("#boutonRegenerer");
+        WaitForAsyncUtils.waitForFxEvents();
+
+        Label message = robot.lookup("#lblSelectionMessage").queryAs(Label.class);
+        assertThat(message.isVisible()).isTrue();
+        assertThat(message.getText()).contains("échec de régénération");
     }
 
     @Test

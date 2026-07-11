@@ -55,6 +55,9 @@ final class RechercheChrome {
     /// Installe la cellule, les écouteurs de saisie/clavier/souris et la fermeture automatique.
     void configurer() {
         liste.setCellFactory(vue -> new CelluleResultat());
+        // Recherche active mais sans correspondance : la liste montre « Aucun résultat » plutôt que de
+        // rester vide et invisible (#795).
+        liste.setPlaceholder(new Label("Aucun résultat"));
         // Anti-rebond : chaque frappe redémarre le minuteur ; la recherche ne part qu'après une pause.
         champ.textProperty().addListener((obs, ancien, texte) -> {
             antiRebond.setOnFinished(evenement -> majResultats(texte));
@@ -102,12 +105,12 @@ final class RechercheChrome {
     private void majResultats(String texte) {
         List<ResultatRecherche> resultats = recherche.rechercher(texte);
         liste.getItems().setAll(resultats);
-        boolean aDesResultats = !resultats.isEmpty();
-        panneau.setVisible(aDesResultats);
-        panneau.setManaged(aDesResultats);
-        if (aDesResultats) {
-            liste.getSelectionModel().clearSelection();
-        }
+        // Panneau visible dès qu'une recherche est active (texte non vide), même sans résultat : la liste
+        // affiche alors son placeholder « Aucun résultat » (#795) au lieu de disparaître silencieusement.
+        boolean rechercheActive = !texte.isBlank();
+        panneau.setVisible(rechercheActive);
+        panneau.setManaged(rechercheActive);
+        liste.getSelectionModel().clearSelection();
     }
 
     /// Ferme la liste **et invalide la navigation** : on vide les résultats et la sélection pour qu'aucune

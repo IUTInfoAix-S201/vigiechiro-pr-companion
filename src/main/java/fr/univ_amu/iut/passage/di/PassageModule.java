@@ -201,7 +201,8 @@ public class PassageModule extends AbstractModule {
     /// ViewModel de la modale « Modifier le rattachement » (E2.S8). **Non-singleton** : un VM frais
     /// par ouverture de modale.
     @Provides
-    RattachementViewModel fournirRattachementViewModel(ServicePassage service) {
-        return new RattachementViewModel(service);
+    RattachementViewModel fournirRattachementViewModel(
+            ServicePassage service, Optional<SynchronisationParticipation> synchronisation) {
+        return new RattachementViewModel(service, synchronisation);
     }
 }

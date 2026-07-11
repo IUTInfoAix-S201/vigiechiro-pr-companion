@@ -205,9 +205,18 @@ public class RattachementModaleController {
     @FXML
     private void appliquer() {
         if (viewModel.appliquer()) {
+            pousserVersVigieChiro();
             apresSucces.run();
             fermer();
         }
+    }
+
+    /// Après un enregistrement **local** réussi, **pousse** les métadonnées (météo/micro/dates) vers la
+    /// participation VigieChiro en **tâche de fond** (réseau, hors fil JavaFX), comme « Récupérer la météo » :
+    /// best-effort et silencieux (le ViewModel avale un passage non encore lié à une participation). La modale
+    /// se ferme sans attendre le réseau.
+    private void pousserVersVigieChiro() {
+        Thread.ofVirtual().name("push-participation").start(viewModel::pousserVersVigieChiro);
     }
 
     /// « Récupérer la météo » (#547) : l'appel Open-Meteo est **réseau**, donc lancé en **tâche de fond**

@@ -62,7 +62,7 @@ class RattachementModaleViewTest {
         Injector injector = Guice.createInjector(new AbstractModule() {
             @Provides
             RattachementViewModel viewModel() {
-                return new RattachementViewModel(service);
+                return new RattachementViewModel(service, java.util.Optional.empty());
             }
         });
         FXMLLoader loader = new FXMLLoader(RattachementModaleController.class.getResource("RattachementModale.fxml"));

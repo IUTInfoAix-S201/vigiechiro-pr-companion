@@ -1,9 +1,12 @@
 package fr.univ_amu.iut.passage.viewmodel;
 
 import fr.univ_amu.iut.commun.model.Prefixe;
+import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.passage.model.DetailPassage;
 import fr.univ_amu.iut.passage.model.ServicePassage;
+import fr.univ_amu.iut.passage.model.SynchronisationParticipation;
 import java.util.Objects;
+import java.util.Optional;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
@@ -20,6 +23,11 @@ import javafx.beans.property.SimpleIntegerProperty;
 public class RattachementViewModel {
 
     private final ServicePassage service;
+
+    /// Passerelle VigieChiro (axe 4), **optionnelle** : présente dans l'app complète (connexion). Sert à
+    /// **pousser** les métadonnées du passage vers sa participation à la validation ([#pousserVersVigieChiro]).
+    private final Optional<SynchronisationParticipation> synchronisation;
+
     private final IntegerProperty annee = new SimpleIntegerProperty(this, "annee");
     private final IntegerProperty numeroPassage = new SimpleIntegerProperty(this, "numeroPassage");
     private final ReadOnlyStringWrapper recap = new ReadOnlyStringWrapper(this, "recap", "");
@@ -37,8 +45,9 @@ public class RattachementViewModel {
     private int numeroActuel;
     private int nombreSequences;
 
-    public RattachementViewModel(ServicePassage service) {
+    public RattachementViewModel(ServicePassage service, Optional<SynchronisationParticipation> synchronisation) {
         this.service = Objects.requireNonNull(service, "service");
+        this.synchronisation = Objects.requireNonNull(synchronisation, "synchronisation");
         this.conditions = new SaisiePassageConditions(service, messageErreur);
         annee.addListener((observable, avant, apres) -> majRecap());
         numeroPassage.addListener((observable, avant, apres) -> majRecap());
@@ -101,6 +110,24 @@ public class RattachementViewModel {
             return false;
         }
         return valider();
+    }
+
+    /// Pousse les métadonnées du passage (météo / micro / dates) vers sa **participation VigieChiro** (PATCH),
+    /// **au mieux** : silencieux si le passage n'est pas (encore) lié à une participation (import hors-ligne →
+    /// les métadonnées partiront au dépôt) ou si l'API est indisponible. À appeler **hors du fil JavaFX**
+    /// (réseau) ; ne touche aucun contrôle (VM pur). Idempotent — rappelable après chaque validation.
+    public void pousserVersVigieChiro() {
+        if (idPassage == null) {
+            return;
+        }
+        synchronisation.ifPresent(sync -> {
+            try {
+                sync.pousserVers(idPassage);
+            } catch (RegleMetierException nonLie) {
+                // Passage pas encore lié à une participation, ou participation introuvable : best-effort ;
+                // les métadonnées seront envoyées au dépôt (création à ce moment-là). Silencieux.
+            }
+        });
     }
 
     private void majRecap() {

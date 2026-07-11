@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -18,6 +19,7 @@ import fr.univ_amu.iut.passage.model.MaterielMicro;
 import fr.univ_amu.iut.passage.model.MeteoReleve;
 import fr.univ_amu.iut.passage.model.PositionMicro;
 import fr.univ_amu.iut.passage.model.ServicePassage;
+import fr.univ_amu.iut.passage.model.SynchronisationParticipation;
 import fr.univ_amu.iut.passage.model.Vent;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -43,7 +45,7 @@ class RattachementViewModelTest {
 
     @BeforeEach
     void preparer() {
-        viewModel = new RattachementViewModel(service);
+        viewModel = new RattachementViewModel(service, Optional.empty());
     }
 
     private static DetailPassage detail(int numero, int annee, int nombreSequences) {
@@ -327,5 +329,42 @@ class RattachementViewModelTest {
         assertThat(ok).isFalse();
         assertThat(viewModel.messageErreurProperty().get()).contains("invalide");
         verify(service, never()).modifierRattachement(any(), any());
+    }
+
+    // --- Phase 2 : pousser les métadonnées vers la participation VigieChiro (à la validation) ---
+
+    @Test
+    @DisplayName("Phase 2 : pousserVersVigieChiro délègue à la passerelle pour le passage ouvert")
+    void pousser_vers_vigiechiro_delegue() {
+        SynchronisationParticipation sync = mock(SynchronisationParticipation.class);
+        RattachementViewModel avecSync = new RattachementViewModel(service, Optional.of(sync));
+        when(service.detailPassage(ID)).thenReturn(detail(1, 2026, 30));
+        avecSync.ouvrirSur(ID, "040962", "A1");
+
+        avecSync.pousserVersVigieChiro();
+
+        verify(sync).pousserVers(ID);
+    }
+
+    @Test
+    @DisplayName("Phase 2 : passage non lié (RegleMetierException) → push silencieux, ne lève pas")
+    void pousser_vers_vigiechiro_silencieux_si_non_lie() {
+        SynchronisationParticipation sync = mock(SynchronisationParticipation.class);
+        when(sync.pousserVers(ID)).thenThrow(new RegleMetierException("pas encore lié"));
+        RattachementViewModel avecSync = new RattachementViewModel(service, Optional.of(sync));
+        when(service.detailPassage(ID)).thenReturn(detail(1, 2026, 30));
+        avecSync.ouvrirSur(ID, "040962", "A1");
+
+        avecSync.pousserVersVigieChiro(); // best-effort : n'échoue pas
+        verify(sync).pousserVers(ID);
+    }
+
+    @Test
+    @DisplayName("Phase 2 : sans passerelle (hors connexion) → pousserVersVigieChiro ne fait rien")
+    void pousser_vers_vigiechiro_sans_passerelle() {
+        when(service.detailPassage(ID)).thenReturn(detail(1, 2026, 30));
+        viewModel.ouvrirSur(ID, "040962", "A1"); // viewModel construit avec Optional.empty()
+
+        viewModel.pousserVersVigieChiro(); // no-op, ne lève pas
     }
 }

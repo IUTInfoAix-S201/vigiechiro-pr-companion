@@ -24,7 +24,8 @@ import org.testfx.framework.junit5.ApplicationExtension;
 /// Synchro **live** entre l'item ☰ « source des fiches espèces » et la case de l'onglet « Général »
 /// de l'écran Réglages (#928) : tous deux liés à la MÊME Property réactive (clé
 /// [PreferenceSourceEspece#CLE]), une bascule d'un côté se reflète de l'autre et persiste. Reproduit
-/// fidèlement la liaison de [MenuOutils] et le contrôle bâti par [ControleursReglages].
+/// fidèlement la liaison de l'item ☰ ([ActionSourceEspece]) et le contrôle bâti par
+/// [ControleursReglages].
 @ExtendWith(ApplicationExtension.class)
 class SynchronisationReglagesTest {
 

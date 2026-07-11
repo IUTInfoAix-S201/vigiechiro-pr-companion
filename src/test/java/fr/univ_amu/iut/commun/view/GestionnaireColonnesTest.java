@@ -187,4 +187,18 @@ class GestionnaireColonnesTest {
         assertThat(items.get(1)).isInstanceOf(SeparatorMenuItem.class);
         assertThat(items.get(2).getText()).isEqualTo("Colonnes…");
     }
+
+    @Test
+    @DisplayName("colonnesParDefaut : en-tête = libellé, la colonne de tête est l'identité verrouillée")
+    void colonnesParDefaut_premiere_colonne_est_identite(FxRobot robot) {
+        AtomicReference<List<GestionnaireColonnes.Colonne>> ref = new AtomicReference<>();
+        robot.interact(() -> ref.set(GestionnaireColonnes.colonnesParDefaut(tableAvec("A", "B", "C"))));
+
+        assertThat(ref.get()).extracting(GestionnaireColonnes.Colonne::libelle).containsExactly("A", "B", "C");
+        assertThat(ref.get())
+                .filteredOn(GestionnaireColonnes.Colonne::visibiliteVerrouillee)
+                .extracting(c -> c.colonne().getText())
+                .as("seule la colonne de tête est verrouillée")
+                .containsExactly("A");
+    }
 }

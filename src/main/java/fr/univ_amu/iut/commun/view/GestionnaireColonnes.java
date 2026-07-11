@@ -53,6 +53,21 @@ public final class GestionnaireColonnes {
     /// affichée (case cochée et désactivée) mais peut tout de même être déplacée.
     public record Colonne(TableColumn<?, ?> colonne, String libelle, boolean visibiliteVerrouillee) {}
 
+    /// Descripteurs « par défaut » d'une table : chaque colonne prend son **en-tête** comme libellé, et la
+    /// **première** colonne (au moment de l'appel) est traitée comme l'**identité** (visibilité verrouillée).
+    /// Raccourci pour les tables dont l'en-tête est déjà le libellé voulu et dont l'identité est la colonne de
+    /// tête ; à appeler **une fois** (typiquement à l'initialisation) pour figer l'identité avant tout
+    /// réordonnancement. Les tables à colonnes-icônes, à libellé distinct de l'en-tête ou à identité ailleurs
+    /// que la première colonne fournissent leur liste à la main.
+    public static List<Colonne> colonnesParDefaut(TableView<?> table) {
+        List<Colonne> colonnes = new ArrayList<>();
+        List<? extends TableColumn<?, ?>> cols = table.getColumns();
+        for (int i = 0; i < cols.size(); i++) {
+            colonnes.add(new Colonne(cols.get(i), cols.get(i).getText(), i == 0));
+        }
+        return colonnes;
+    }
+
     /// Câble le menu contextuel (clic droit) de `table` et ajoute un item « Colonnes… » au menu `menu`
     /// (☰) ; les deux ouvrent le panneau de gestion des `colonnes`.
     public static void installer(TableView<?> table, MenuButton menu, List<Colonne> colonnes) {

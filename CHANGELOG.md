@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [1.175.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.174.0...v1.175.0) (2026-07-11)
+
+
+### Features
+
+* **import:** table de suivi par fichier dans M-Import (1e-B) ([#968](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/968)) ([d7e1f8f](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/d7e1f8ff091ea5631a14883c7e108942ead9d545)), closes [#947](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/947) [#33](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/33) [#820](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/820) [#231](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/231) [#155](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/155) [#12](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/12) [#947](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/947) [#946](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/946) [#155](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/155) [#12](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/12) [#820](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/820)
+
 # [1.174.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v1.173.0...v1.174.0) (2026-07-11)
 
 

@@ -43,6 +43,14 @@ Sélectionnez une observation, puis :
 - **« Ouvrir le passage → »** (ou un double-clic sur la ligne) ouvre l'écran du passage concerné pour en
   voir le contexte complet.
 
+## Consulter la fiche d'une espèce
+
+Un **clic droit** sur une espèce de l'inventaire propose **« Fiche de l'espèce »** : elle ouvre dans votre
+**navigateur** la fiche d'information de l'espèce, pratique pour vérifier un critère avant de trancher une
+identification. Comme dans [Sons & validation](validation.md#consulter-la-fiche-dune-espece), la source
+s'adapte au taxon : **Plan National d'Actions Chiroptères** pour les chauves-souris, **GBIF** ou
+**Wikipédia FR** (selon le réglage du menu ☰ du bandeau) pour les autres.
+
 ## La carte de répartition
 
 Le bouton **« 🗺️ Carte »** bascule la zone du haut entre le **tableau** et une **carte**. Par défaut, la

@@ -1,8 +1,8 @@
 package fr.univ_amu.iut.qualification.di;
 
-import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
+import fr.univ_amu.iut.commun.di.ModuleDeFeature;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
 import fr.univ_amu.iut.commun.persistence.UniteDeTravail;
 import fr.univ_amu.iut.commun.view.OuvrirVerification;
@@ -34,7 +34,7 @@ import fr.univ_amu.iut.sites.model.dao.SiteDao;
 /// `sites` ([PointDao], [SiteDao], pour le préfixe R6) et l'[UniteDeTravail] du socle. Le
 /// sens des dépendances (`qualification → passage`, `qualification → sites`) reste acyclique
 /// (contrôlé par `ArchitectureTest`).
-public class QualificationModule extends AbstractModule {
+public class QualificationModule extends ModuleDeFeature {
 
     /// Fournit le contrat de navigation socle [OuvrirVerification] : l'écran M-Passage l'injecte
     /// pour ouvrir M-Qualification sans dépendre de cette feature (évite le cycle

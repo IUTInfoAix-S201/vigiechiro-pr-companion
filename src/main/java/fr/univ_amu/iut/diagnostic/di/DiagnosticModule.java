@@ -1,8 +1,8 @@
 package fr.univ_amu.iut.diagnostic.di;
 
-import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
+import fr.univ_amu.iut.commun.di.ModuleDeFeature;
 import fr.univ_amu.iut.commun.model.Horloge;
 import fr.univ_amu.iut.commun.view.OuvrirDiagnostic;
 import fr.univ_amu.iut.diagnostic.model.ServiceDiagnostic;
@@ -25,7 +25,7 @@ import fr.univ_amu.iut.sites.model.dao.PointDao;
 /// [DiagnosticViewModel] (non-singleton) et le contrat socle [OuvrirDiagnostic] (implémenté par
 /// [NavigationDiagnostic]), que `passage` (M-Passage) injecte pour ouvrir le diagnostic sans
 /// dépendre du `view` de cette feature.
-public class DiagnosticModule extends AbstractModule {
+public class DiagnosticModule extends ModuleDeFeature {
 
     /// Fournit le contrat de navigation socle [OuvrirDiagnostic] : M-Passage l'injecte pour ouvrir
     /// l'écran de diagnostic sans dépendre de cette feature (évite le cycle `passage ↔ diagnostic`).

@@ -1,12 +1,12 @@
 package fr.univ_amu.iut.sites.di;
 
-import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.multibindings.Multibinder;
 import com.google.inject.multibindings.OptionalBinder;
 import com.google.inject.name.Named;
 import fr.univ_amu.iut.commun.api.RapprochementVigieChiro;
+import fr.univ_amu.iut.commun.di.ModuleDeFeature;
 import fr.univ_amu.iut.commun.model.CoordonneesPoint;
 import fr.univ_amu.iut.commun.model.Horloge;
 import fr.univ_amu.iut.commun.model.ReferentielPoint;
@@ -14,8 +14,6 @@ import fr.univ_amu.iut.commun.model.Utilisateur;
 import fr.univ_amu.iut.commun.model.dao.LienVigieChiroDao;
 import fr.univ_amu.iut.commun.model.dao.UtilisateurDao;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
-import fr.univ_amu.iut.commun.view.ActiviteAccueil;
-import fr.univ_amu.iut.commun.view.IndicateurAccueil;
 import fr.univ_amu.iut.commun.view.OuvrirSite;
 import fr.univ_amu.iut.passage.model.dao.PassageDao;
 import fr.univ_amu.iut.sites.model.RapprochementSites;
@@ -44,17 +42,16 @@ import java.util.UUID;
 /// [fr.univ_amu.iut.sites.view.NavigationSites] ne sont **pas** déclarés ici : ils suivent le
 /// patron du socle (constructeur `@Inject` instancié par la `controllerFactory` Guice du
 /// `FXMLLoader`), exactement comme `MainController`.
-public class SitesModule extends AbstractModule {
+public class SitesModule extends ModuleDeFeature {
 
     /// Enregistre la carte d'accueil de la feature dans le point d'extension du socle. Le
     /// `MainController` la découvre via `Set<ActiviteAccueil>` sans que `commun` dépende de `sites`.
     @Override
     protected void configure() {
-        Multibinder.newSetBinder(binder(), ActiviteAccueil.class).addBinding().to(ActiviteMesSites.class);
+        activite(ActiviteMesSites.class);
         // Compteurs du tableau de bord d'accueil (sites + points d'écoute).
-        Multibinder<IndicateurAccueil> indicateurs = Multibinder.newSetBinder(binder(), IndicateurAccueil.class);
-        indicateurs.addBinding().to(IndicateurSites.class);
-        indicateurs.addBinding().to(IndicateurPoints.class);
+        indicateur(IndicateurSites.class);
+        indicateur(IndicateurPoints.class);
         // Contrat socle : permet à d'autres écrans (M-Passage) de rendre « Mes sites » / « Carré N »
         // cliquables dans leur fil d'Ariane sans dépendre du `view` de sites.
         bind(OuvrirSite.class).to(NavigationSites.class);

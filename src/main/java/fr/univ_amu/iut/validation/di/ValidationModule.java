@@ -1,16 +1,15 @@
 package fr.univ_amu.iut.validation.di;
 
-import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.multibindings.Multibinder;
 import fr.univ_amu.iut.commun.api.RapprochementVigieChiro;
+import fr.univ_amu.iut.commun.di.ModuleDeFeature;
 import fr.univ_amu.iut.commun.model.CompteurValidations;
 import fr.univ_amu.iut.commun.model.Horloge;
 import fr.univ_amu.iut.commun.model.dao.LienVigieChiroDao;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
 import fr.univ_amu.iut.commun.persistence.UniteDeTravail;
-import fr.univ_amu.iut.commun.view.IndicateurAccueil;
 import fr.univ_amu.iut.commun.view.OuvrirValidation;
 import fr.univ_amu.iut.passage.model.dao.SequenceDao;
 import fr.univ_amu.iut.passage.model.dao.SessionDao;
@@ -41,7 +40,7 @@ import fr.univ_amu.iut.validation.viewmodel.IndicateurObservations;
 /// [SequenceDao], pour raccrocher les observations à leurs séquences) et l'[Horloge] du socle. Le
 /// sens des dépendances (`validation → passage`) reste acyclique (contrôlé par
 /// `ArchitectureTest`).
-public class ValidationModule extends AbstractModule {
+public class ValidationModule extends ModuleDeFeature {
 
     /// Fournit le contrat de navigation socle [OuvrirValidation] : M-Passage l'injecte pour ouvrir la
     /// validation Tadarida sans dépendre de la vue de cette feature (graphe de slices acyclique).
@@ -52,7 +51,7 @@ public class ValidationModule extends AbstractModule {
         // `importation` (écrasement) pour leurs confirmations destructives.
         bind(CompteurValidations.class).to(ServiceValidation.class);
         // Compteur du tableau de bord d'accueil : nombre d'observations.
-        Multibinder.newSetBinder(binder(), IndicateurAccueil.class).addBinding().to(IndicateurObservations.class);
+        indicateur(IndicateurObservations.class);
         // Rapprochement du référentiel taxons avec VigieChiro (#728), invoqué à la connexion.
         Multibinder.newSetBinder(binder(), RapprochementVigieChiro.class)
                 .addBinding()

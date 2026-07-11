@@ -1,6 +1,5 @@
 package fr.univ_amu.iut.audio.di;
 
-import com.google.inject.AbstractModule;
 import com.google.inject.Key;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
@@ -8,6 +7,7 @@ import com.google.inject.multibindings.OptionalBinder;
 import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 import fr.univ_amu.iut.commun.api.ClientVigieChiro;
+import fr.univ_amu.iut.commun.di.ModuleDeFeature;
 import fr.univ_amu.iut.commun.model.dao.LienVigieChiroDao;
 import fr.univ_amu.iut.validation.model.ImportVigieChiro;
 import fr.univ_amu.iut.validation.model.ServiceValidation;
@@ -22,7 +22,7 @@ import fr.univ_amu.iut.validation.model.ServiceValidation;
 ///
 /// L'optional vise une **clé qualifiée** (`@Named`) pour éviter l'auto-référence (`RecursiveBinding` /
 /// double binding avec le `@Provides`), comme `lot/di/DepotVigieChiroModule`.
-public class ImportVigieChiroModule extends AbstractModule {
+public class ImportVigieChiroModule extends ModuleDeFeature {
 
     private static final String QUALIFIANT = "vigiechiro";
 

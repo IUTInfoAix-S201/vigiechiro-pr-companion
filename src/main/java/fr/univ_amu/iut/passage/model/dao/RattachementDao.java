@@ -56,7 +56,7 @@ public class RattachementDao {
         }
         reprefixerTable(
                 cx,
-                "SELECT id, file_path FROM original_recording WHERE session_id = ?",
+                "SELECT id, file_path, file_name FROM original_recording WHERE session_id = ?",
                 "UPDATE original_recording SET file_path = ?, file_name = ? WHERE id = ?",
                 idSession,
                 true,
@@ -66,7 +66,7 @@ public class RattachementDao {
                 nouveauPrefixe);
         reprefixerTable(
                 cx,
-                "SELECT id, file_path FROM listening_sequence WHERE session_id = ?",
+                "SELECT id, file_path, file_name FROM listening_sequence WHERE session_id = ?",
                 "UPDATE listening_sequence SET file_path = ?, file_name = ? WHERE id = ?",
                 idSession,
                 true,
@@ -106,9 +106,12 @@ public class RattachementDao {
                 nouveauPrefixe);
     }
 
-    /// Recalcule, pour chaque ligne sélectionnée par `selectSql` (paramètre = `cle`), le `file_path`
-    /// via [ReprefixeurSession#cheminApres] et l'écrit avec `updateSql`. `avecNom` ajoute le
-    /// `file_name` (basename du nouveau chemin). Les chemins inchangés (hors session) sont ignorés.
+    /// Recalcule, pour chaque ligne sélectionnée par `selectSql` (paramètre = `cle`), le `file_path` **physique**
+    /// via [ReprefixeurSession#cheminApres] et, si `avecNom`, le `file_name` **logique** via [#reprefixerNom].
+    /// Les deux sont indépendants : un fichier référencé **hors session** (import sans copie, brut sur la carte
+    /// SD, jamais déplacé) garde son `file_path`, mais son **nom logique** doit tout de même suivre le nouveau
+    /// préfixe (#…). La ligne n'est mise à jour que si le chemin **ou** le nom change (`selectSql` doit alors lire
+    /// `id, file_path[, file_name]`).
     private static void reprefixerTable(
             Connection cx,
             String selectSql,
@@ -120,25 +123,30 @@ public class RattachementDao {
             String ancienPrefixe,
             String nouveauPrefixe)
             throws SQLException {
-        Map<Long, String> chemins = new LinkedHashMap<>();
+        Map<Long, String[]> lignes = new LinkedHashMap<>();
         try (PreparedStatement ps = cx.prepareStatement(selectSql)) {
             ps.setLong(1, cle);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    chemins.put(rs.getLong(1), rs.getString(2));
+                    lignes.put(rs.getLong(1), new String[] {rs.getString(2), avecNom ? rs.getString(3) : null});
                 }
             }
         }
         try (PreparedStatement ps = cx.prepareStatement(updateSql)) {
-            for (Map.Entry<Long, String> ligne : chemins.entrySet()) {
-                String nouveau = ReprefixeurSession.cheminApres(
-                        ligne.getValue(), ancienneRacine, nouvelleRacine, ancienPrefixe, nouveauPrefixe);
-                if (nouveau.equals(ligne.getValue())) {
-                    continue; // chemin externe à la session : non déplacé sur disque, donc inchangé
+            for (Map.Entry<Long, String[]> ligne : lignes.entrySet()) {
+                String ancienChemin = ligne.getValue()[0];
+                String nouveauChemin = ReprefixeurSession.cheminApres(
+                        ancienChemin, ancienneRacine, nouvelleRacine, ancienPrefixe, nouveauPrefixe);
+                String ancienNom = ligne.getValue()[1];
+                String nouveauNom = avecNom ? reprefixerNom(ancienNom, ancienPrefixe, nouveauPrefixe) : null;
+                boolean cheminChange = !nouveauChemin.equals(ancienChemin);
+                boolean nomChange = avecNom && !nouveauNom.equals(ancienNom);
+                if (!cheminChange && !nomChange) {
+                    continue; // rien à réconcilier (chemin et nom déjà à jour)
                 }
-                ps.setString(1, nouveau);
+                ps.setString(1, nouveauChemin);
                 if (avecNom) {
-                    ps.setString(2, Path.of(nouveau).getFileName().toString());
+                    ps.setString(2, nouveauNom);
                     ps.setLong(3, ligne.getKey());
                 } else {
                     ps.setLong(2, ligne.getKey());
@@ -146,5 +154,16 @@ public class RattachementDao {
                 ps.executeUpdate();
             }
         }
+    }
+
+    /// Re-préfixage **logique** d'un nom de fichier : remplace le préfixe de tête `ancienPrefixe` par
+    /// `nouveauPrefixe`. Indépendant du chemin physique — nécessaire pour les fichiers **hors session** (bruts
+    /// référencés sur la carte SD, jamais renommés) dont le `file_name` est un nom logique préfixé. Sans effet
+    /// si le nom ne porte pas l'ancien préfixe (déjà réconcilié, ou nom non conforme laissé tel quel).
+    private static String reprefixerNom(String nom, String ancienPrefixe, String nouveauPrefixe) {
+        if (nom == null || !nom.startsWith(ancienPrefixe)) {
+            return nom;
+        }
+        return nouveauPrefixe + nom.substring(ancienPrefixe.length());
     }
 }

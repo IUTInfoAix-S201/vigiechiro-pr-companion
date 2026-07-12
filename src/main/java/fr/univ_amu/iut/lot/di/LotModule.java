@@ -7,6 +7,7 @@ import fr.univ_amu.iut.commun.di.Categorie;
 import fr.univ_amu.iut.commun.di.Fonctionnalite;
 import fr.univ_amu.iut.commun.di.ModuleDeFeature;
 import fr.univ_amu.iut.commun.model.Horloge;
+import fr.univ_amu.iut.commun.model.Reglages;
 import fr.univ_amu.iut.commun.view.OuvrirLot;
 import fr.univ_amu.iut.lot.model.CompacteurDepot;
 import fr.univ_amu.iut.lot.model.DepotVigieChiro;
@@ -16,6 +17,7 @@ import fr.univ_amu.iut.lot.model.dao.DepotUniteDao;
 import fr.univ_amu.iut.lot.view.NavigationLot;
 import fr.univ_amu.iut.lot.viewmodel.DepotViewModel;
 import fr.univ_amu.iut.lot.viewmodel.LotViewModel;
+import fr.univ_amu.iut.lot.viewmodel.OngletReglagesDepot;
 import fr.univ_amu.iut.passage.model.MoteurWorkflowPassage;
 import fr.univ_amu.iut.passage.model.dao.EnregistrementOriginalDao;
 import fr.univ_amu.iut.passage.model.dao.JournalDuCapteurDao;
@@ -58,6 +60,8 @@ public class LotModule extends ModuleDeFeature {
         // client HTTP — résolvent `Optional<DepotVigieChiro>` à vide. La liaison réelle est posée par
         // `DepotVigieChiroModule` (chargé seulement dans l'injecteur applicatif complet).
         OptionalBinder.newOptionalBinder(binder(), DepotVigieChiro.class);
+        // Onglet « Dépôt » de l’écran Réglages (#1047) : plafond des archives.
+        ongletReglages(OngletReglagesDepot.class);
     }
 
     @Provides
@@ -74,17 +78,16 @@ public class LotModule extends ModuleDeFeature {
                 siteDao, pointDao, sessionDao, originalDao, sequenceDao, journalDao, releveDao);
     }
 
-    /// Compacteur d'archives de dépôt (#110). **Réglage applicatif** : le plafond (en Mo, base 1000) est
-    /// surchargeable via la propriété système `vigiechiro.depot.taille-max-mo` (même mécanisme que
-    /// `vigiechiro.workspace`) ; à défaut, 700 Mo (contrainte Tadarida).
-    @Provides
-    @Singleton
-    CompacteurDepot fournirCompacteurDepot() {
+    /// Plafond (octets) des archives de dépôt (#110, #1047), par priorité : propriété système
+    /// `vigiechiro.depot.taille-max-mo` (tests/outils), sinon le réglage persisté de l’écran
+    /// Réglages, sinon 700 Mo (contrainte plateforme). Relu à **chaque génération** d’archives
+    /// (fournisseur dans [ServiceLot]) : un changement de réglage s’applique sans redémarrage.
+    static long plafondArchiveOctets(Reglages reglages) {
         String surcharge = System.getProperty("vigiechiro.depot.taille-max-mo");
-        if (surcharge == null || surcharge.isBlank()) {
-            return new CompacteurDepot();
-        }
-        return new CompacteurDepot(Long.parseLong(surcharge.trim()) * 1000 * 1000);
+        long plafondMo = surcharge != null && !surcharge.isBlank()
+                ? Long.parseLong(surcharge.trim())
+                : reglages.lireEntier(OngletReglagesDepot.CLE_TAILLE_MAX, OngletReglagesDepot.DEFAUT_TAILLE_MAX_MO);
+        return plafondMo * 1000 * 1000;
     }
 
     @Provides
@@ -96,10 +99,17 @@ public class LotModule extends ModuleDeFeature {
             VerificationCoherence verification,
             MoteurWorkflowPassage moteurWorkflow,
             Horloge horloge,
-            CompacteurDepot compacteur,
+            Reglages reglages,
             DepotUniteDao depotUnites) {
         return new ServiceLot(
-                passageDao, sessionDao, sequenceDao, verification, moteurWorkflow, horloge, compacteur, depotUnites);
+                passageDao,
+                sessionDao,
+                sequenceDao,
+                verification,
+                moteurWorkflow,
+                horloge,
+                () -> new CompacteurDepot(plafondArchiveOctets(reglages)),
+                depotUnites);
     }
 
     /// ViewModel de M-Lot. **Non-singleton** (un VM frais par chargement FXML).

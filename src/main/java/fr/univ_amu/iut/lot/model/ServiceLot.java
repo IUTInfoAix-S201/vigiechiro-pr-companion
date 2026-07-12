@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /// Service métier de la feature `lot` : prépare et trace le dépôt d'un passage sur
 /// Vigie-Chiro (parcours P4, épopée E4). Suit le patron du service de référence
@@ -58,10 +59,10 @@ public class ServiceLot {
     private final MoteurWorkflowPassage moteurWorkflow;
     private final Horloge horloge;
 
-    /// Compacteur des archives de dépôt (#110). **Reçu par constructeur** pour que son plafond soit un
-    /// réglage applicatif (alimenté par [fr.univ_amu.iut.lot.di.LotModule] depuis une propriété système),
-    /// pas une valeur codée en dur dans le chemin métier.
-    private final CompacteurDepot compacteur;
+    /// Compacteur des archives de dépôt (#110). **Fournisseur** (et non instance) pour que son plafond
+    /// soit relu à chaque génération : le réglage de l’écran Réglages (#1047) ou la propriété système,
+    /// assemblés par [fr.univ_amu.iut.lot.di.LotModule], s’appliquent sans redémarrage.
+    private final Supplier<CompacteurDepot> compacteur;
     private final DepotUniteDao depotUnites;
 
     public ServiceLot(
@@ -71,7 +72,7 @@ public class ServiceLot {
             VerificationCoherence verification,
             MoteurWorkflowPassage moteurWorkflow,
             Horloge horloge,
-            CompacteurDepot compacteur,
+            Supplier<CompacteurDepot> compacteur,
             DepotUniteDao depotUnites) {
         this.passageDao = Objects.requireNonNull(passageDao, "passageDao");
         this.sessionDao = Objects.requireNonNull(sessionDao, "sessionDao");
@@ -92,7 +93,7 @@ public class ServiceLot {
 
     /// Plafond de taille (octets) appliqué à chaque archive de dépôt (#110), pour l'affichage du réglage.
     public long plafondArchiveOctets() {
-        return compacteur.tailleMaxOctets();
+        return compacteur.get().tailleMaxOctets();
     }
 
     /// Chemins des **séquences transformées** (5 s) d'un passage, à téléverser sur VigieChiro (#142) : ce
@@ -236,7 +237,9 @@ public class ServiceLot {
                 .map(s -> Path.of(s.cheminFichier()))
                 .map(p -> p.isAbsolute() ? p : racineSession.resolve(p))
                 .toList();
-        return compacteur.compacter(fichiers, prefixe, repertoireDepot.dossier(session.cheminRacine()), progres, suivi);
+        return compacteur
+                .get()
+                .compacter(fichiers, prefixe, repertoireDepot.dossier(session.cheminRacine()), progres, suivi);
     }
 
     /// Espace disque **disponible** (octets) sur le système de fichiers de la session, pour anticiper (avant

@@ -102,7 +102,7 @@ class ServiceLotTest {
                 verification,
                 new MoteurWorkflowPassage(),
                 horloge,
-                new CompacteurDepot(),
+                CompacteurDepot::new,
                 new DepotUniteDao(source));
     }
 

@@ -13,6 +13,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import fr.univ_amu.iut.commun.api.ClientVigieChiro;
+import fr.univ_amu.iut.commun.api.DonneeVigieChiro;
 import fr.univ_amu.iut.commun.api.FichierSigne;
 import fr.univ_amu.iut.commun.api.ResultatParticipation;
 import fr.univ_amu.iut.commun.model.HorlogeFigee;
@@ -243,6 +244,69 @@ class DepotVigieChiroTest {
                 .isInstanceOf(RegleMetierException.class)
                 .hasMessageContaining("introuvable");
         verify(client, never()).creerFichier(anyString());
+    }
+
+    @Test
+    @DisplayName("#1046 pré-vol : participation liée ≠ passage (point/nuit) → refus dur, ni plan ni téléversement")
+    void prevol_refuse_participation_discordante(@TempDir Path dossier) throws IOException {
+        Path a = fichier(dossier, "a.wav");
+        when(participations.participationDe(idPassage)).thenReturn(Optional.of("part-1"));
+        when(participations.ecartsAvecDistant(idPassage))
+                .thenReturn(List.of("nuit du 2026-04-22 en local, du 2026-04-23 sur la participation"));
+
+        assertThatThrownBy(() -> depot.deposer(idPassage, List.of(a)))
+                .isInstanceOf(RegleMetierException.class)
+                .hasMessageContaining("ne correspond pas")
+                .hasMessageContaining("2026-04-23"); // l'écart précis est remonté, pas un message générique
+        verify(client, never()).creerFichier(anyString());
+        assertThat(depotUnites.parPassage(idPassage)).isEmpty();
+        assertThat(statutPassage()).isEqualTo(StatutWorkflow.PRET_A_DEPOSER);
+    }
+
+    @Test
+    @DisplayName("#1046 réconciliation : un WAV déjà traité côté serveur (titre sans extension) n'est pas re-téléversé")
+    void reconciliation_marque_les_wav_deja_traites(@TempDir Path dossier) throws IOException {
+        Path dejaEnLigne = fichier(dossier, "seq_000.wav");
+        Path restant = fichier(dossier, "seq_001.wav");
+        when(participations.participationDe(idPassage)).thenReturn(Optional.of("part-1"));
+        when(client.donnees("part-1")).thenReturn(List.of(new DonneeVigieChiro("seq_000", List.of())));
+        armerUploadOk();
+
+        BilanDepot bilan = depot.deposer(idPassage, List.of(dejaEnLigne, restant));
+
+        verify(client, never()).creerFichier("seq_000.wav");
+        verify(client).creerFichier("seq_001.wav");
+        assertThat(bilan.deposees()).isEqualTo(1); // « cette fois-ci » : la réconciliation n'en fait pas partie
+        assertThat(depotUnites.toutesDeposees(idPassage)).isTrue();
+        assertThat(statutPassage()).isEqualTo(StatutWorkflow.DEPOSE);
+    }
+
+    @Test
+    @DisplayName("#1046 réconciliation : tout est déjà en ligne → « Déposé » sans aucun téléversement")
+    void reconciliation_complete_bascule_depose(@TempDir Path dossier) throws IOException {
+        Path a = fichier(dossier, "seq_000.wav");
+        when(participations.participationDe(idPassage)).thenReturn(Optional.of("part-1"));
+        when(client.donnees("part-1")).thenReturn(List.of(new DonneeVigieChiro("seq_000", List.of())));
+
+        BilanDepot bilan = depot.deposer(idPassage, List.of(a));
+
+        assertThat(bilan.deposees()).isZero();
+        assertThat(bilan.estComplet()).isTrue();
+        verify(client, never()).creerFichier(anyString());
+        assertThat(statutPassage()).isEqualTo(StatutWorkflow.DEPOSE);
+    }
+
+    @Test
+    @DisplayName("#1046 réconciliation : une archive ZIP homonyme n'est jamais appariée (contenu inconnu localement)")
+    void reconciliation_ignore_les_zip(@TempDir Path dossier) throws IOException {
+        Path archive = fichier(dossier, "Car-1.zip");
+        when(participations.participationDe(idPassage)).thenReturn(Optional.of("part-1"));
+        when(client.donnees("part-1")).thenReturn(List.of(new DonneeVigieChiro("Car-1", List.of())));
+        armerUploadOk();
+
+        depot.deposer(idPassage, List.of(archive));
+
+        verify(client).creerFichier("Car-1.zip"); // téléversée malgré le titre homonyme côté serveur
     }
 
     private StatutWorkflow statutPassage() {

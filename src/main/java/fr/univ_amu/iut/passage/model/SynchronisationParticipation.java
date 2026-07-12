@@ -11,6 +11,11 @@ import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.commun.model.dao.LienVigieChiroDao;
 import fr.univ_amu.iut.passage.model.dao.MaterielMicroDao;
 import fr.univ_amu.iut.passage.model.dao.PassageDao;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -99,6 +104,52 @@ public final class SynchronisationParticipation {
         passageDao.update(avecMeteo(passage, MeteoPassage.definirReleve(passage.donneesMeteo(), fusion)));
         if (distant.configuration() != null && !distant.configuration().isEmpty()) {
             materielDao.definir(CorrespondanceParticipation.microDepuis(idPassage, distant.configuration()));
+        }
+    }
+
+    /// Écarts entre le passage local et la **participation liée** côté VigieChiro (« la bonne nuit au
+    /// bon endroit », pré-vol du dépôt #1046) : compare le **point** (code localité) et la **nuit**
+    /// (date UTC de `date_debut` — le mappeur pousse la date du passage telle quelle en UTC). Liste de
+    /// messages lisibles, vide si tout concorde **ou** si aucune participation n'est liée (rien à
+    /// vérifier : une création est correcte par construction). Ne compare pas météo/config : la
+    /// synchronisation de la modale les gère.
+    public List<String> ecartsAvecDistant(Long idPassage) {
+        Optional<String> objectid = participationDe(idPassage);
+        if (objectid.isEmpty()) {
+            return List.of();
+        }
+        Passage passage = chargerPassage(idPassage);
+        InfosPoint point = infosPoint(passage);
+        Optional<ParticipationDetail> distant = client.participation(objectid.get());
+        if (distant.isEmpty()) {
+            return List.of("participation liée injoignable (" + objectid.get()
+                    + ") : hors connexion, ou participation disparue côté VigieChiro");
+        }
+        List<String> ecarts = new ArrayList<>();
+        if (!point.code().equals(distant.get().point())) {
+            ecarts.add("point d'écoute « " + point.code() + " » en local, « "
+                    + distant.get().point() + " » sur la participation");
+        }
+        Optional<LocalDate> nuitDistante = nuitDistante(distant.get());
+        if (nuitDistante.isEmpty()) {
+            ecarts.add("date de début absente ou illisible sur la participation");
+        } else if (passage.dateEnregistrement() != null
+                && !nuitDistante.get().toString().equals(passage.dateEnregistrement())) {
+            ecarts.add("nuit du " + passage.dateEnregistrement() + " en local, du " + nuitDistante.get()
+                    + " sur la participation");
+        }
+        return List.copyOf(ecarts);
+    }
+
+    /// Date UTC du `date_debut` distant (ISO `+00:00`), vide si absent ou illisible.
+    private static Optional<LocalDate> nuitDistante(ParticipationDetail distant) {
+        if (distant.dateDebut() == null || distant.dateDebut().isBlank()) {
+            return Optional.empty();
+        }
+        try {
+            return Optional.of(OffsetDateTime.parse(distant.dateDebut()).toLocalDate());
+        } catch (DateTimeParseException illisible) {
+            return Optional.empty();
         }
     }
 

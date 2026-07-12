@@ -144,6 +144,76 @@ class SynchronisationParticipationTest {
         assertThat(sync.participationDe(42L)).contains("part-1");
     }
 
+    @Test
+    @DisplayName("ecartsAvecDistant : passage non lié → rien à vérifier (liste vide, aucun appel réseau)")
+    void ecarts_non_lie() {
+        when(liens.objectidPour(LienVigieChiro.ENTITE_PASSAGE, "42")).thenReturn(Optional.empty());
+
+        assertThat(sync.ecartsAvecDistant(42L)).isEmpty();
+        verify(client, never()).participation(anyString());
+    }
+
+    @Test
+    @DisplayName("ecartsAvecDistant : même point, même nuit (date UTC de date_debut) → aucun écart")
+    void ecarts_concordants() {
+        armerLienEtDistant(detail("part-1", "Z41", "2026-07-03T19:00:00+00:00"));
+
+        assertThat(sync.ecartsAvecDistant(42L)).isEmpty();
+    }
+
+    @Test
+    @DisplayName("ecartsAvecDistant : point différent → écart nommant les deux codes")
+    void ecarts_point_different() {
+        armerLienEtDistant(detail("part-1", "Z12", "2026-07-03T19:00:00+00:00"));
+
+        assertThat(sync.ecartsAvecDistant(42L))
+                .singleElement()
+                .asString()
+                .contains("Z41")
+                .contains("Z12");
+    }
+
+    @Test
+    @DisplayName("ecartsAvecDistant : nuit différente → écart nommant les deux dates")
+    void ecarts_nuit_differente() {
+        armerLienEtDistant(detail("part-1", "Z41", "2026-07-04T19:00:00+00:00"));
+
+        assertThat(sync.ecartsAvecDistant(42L))
+                .singleElement()
+                .asString()
+                .contains("2026-07-03")
+                .contains("2026-07-04");
+    }
+
+    @Test
+    @DisplayName("ecartsAvecDistant : participation liée injoignable → écart explicite (pas un silence)")
+    void ecarts_distant_injoignable() {
+        armerPassageEtPoint();
+        when(liens.objectidPour(LienVigieChiro.ENTITE_PASSAGE, "42")).thenReturn(Optional.of("part-1"));
+        when(client.participation("part-1")).thenReturn(Optional.empty());
+
+        assertThat(sync.ecartsAvecDistant(42L)).singleElement().asString().contains("injoignable");
+    }
+
+    @Test
+    @DisplayName("ecartsAvecDistant : date_debut absente ou illisible → écart explicite")
+    void ecarts_date_illisible() {
+        armerLienEtDistant(detail("part-1", "Z41", "pas-une-date"));
+
+        assertThat(sync.ecartsAvecDistant(42L)).singleElement().asString().contains("illisible");
+    }
+
+    private void armerLienEtDistant(ParticipationDetail distant) {
+        armerPassageEtPoint();
+        when(liens.objectidPour(LienVigieChiro.ENTITE_PASSAGE, "42")).thenReturn(Optional.of("part-1"));
+        when(client.participation("part-1")).thenReturn(Optional.of(distant));
+    }
+
+    /// Participation distante minimale pour le pré-vol (météo/config sans objet ici).
+    private static ParticipationDetail detail(String id, String point, String dateDebut) {
+        return new ParticipationDetail(id, "e1", point, dateDebut, null, null, Map.of(), "FINI");
+    }
+
     private void armerPassageEtPoint() {
         when(passageDao.findById(42L)).thenReturn(Optional.of(passage(null)));
         when(referentielPoint.pour(7L)).thenReturn(Optional.of(new InfosPoint("Z41", 7L)));

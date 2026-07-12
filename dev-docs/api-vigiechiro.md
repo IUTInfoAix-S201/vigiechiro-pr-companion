@@ -115,6 +115,22 @@ re-téléverse que les unités non confirmées (« Retenter les échecs » dans 
 `lot/model/DepotVigieChiro`, suivi IHM `SuiviDepot` → table de dépôt (socle « suivi par unité »,
 cf. [Patterns](patterns.md)).
 
+### Réconciliation avec le serveur avant dépôt (#1046)
+
+Deux garde-fous s'exécutent au début de chaque dépôt (IHM et CLI) :
+
+- **Pré-vol « la bonne nuit au bon endroit »** : la participation liée est relue
+  (`GET /participations/{id}`) et comparée au passage local — même **point** (code localité) et même
+  **nuit** (date UTC de `date_debut` : le mappeur pousse la date du passage telle quelle en UTC).
+  Tout écart (point différent, nuit différente, participation injoignable) **refuse le dépôt** avec
+  le détail, avant toute écriture. Porté par `SynchronisationParticipation.ecartsAvecDistant`.
+- **Réconciliation des unités** : les titres de `donnees` (nom du WAV **sans extension**) marquent
+  `depose` les unités WAV **déjà traitées** côté plateforme, qui ne seront jamais re-téléversées.
+  Limites : `donnees` n'existe qu'**après traitement** (un fichier téléversé mais pas encore traité
+  sera re-téléversé, sans conséquence) ; les archives **ZIP ne sont pas appariables** par titre
+  (contenu inconnu localement) ; il n'existe **aucun inventaire lisible des uploads**
+  (`GET /fichiers` et `GET /participations/{id}/fichiers` → 403, cf. § récupération).
+
 ### Verdicts des probes d'écriture (exécutées le 2026-07-11)
 
 - **ZIP (pilier B, #984)** : la plateforme **accepte** un `.zip` (déclaration, `PUT` S3

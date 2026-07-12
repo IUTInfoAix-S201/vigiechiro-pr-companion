@@ -13,12 +13,14 @@ import fr.univ_amu.iut.passage.model.SynchronisationParticipation;
 import fr.univ_amu.iut.passage.model.dao.PassageDao;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.BooleanSupplier;
 
 /// **Dépôt d'une nuit** (un passage) sur l'API VigieChiro (#142), **reprenable par unité** (#982) :
@@ -80,10 +82,15 @@ public final class DepotVigieChiro {
 
         String participationId =
                 participations.participationDe(idPassage).orElseGet(() -> creerParticipation(idPassage));
+        // Pré-vol (#1046) : la participation (liée ou fraîchement créée) doit correspondre au passage —
+        // même point, même nuit. Refus explicite sinon : on ne poste jamais « la mauvaise nuit au
+        // mauvais endroit » (participations héritées du bug de date, rattachement manuel erroné…).
+        verifierCorrespondance(idPassage);
 
         Map<String, Path> fichiersParIdentifiant = parIdentifiant(fichiers);
         depotUnites.synchroniserPlan(idPassage, plan(idPassage, fichiersParIdentifiant));
         suivi.planEtabli(depotUnites.parPassage(idPassage));
+        reconcilierAvecServeur(idPassage, participationId, suivi);
 
         List<DepotUnite> restantes = depotUnites.restantes(idPassage);
         if (!restantes.isEmpty()) {
@@ -177,6 +184,50 @@ public final class DepotVigieChiro {
         return passageDao
                 .findById(idPassage)
                 .orElseThrow(() -> new RegleMetierException("Passage introuvable : " + idPassage));
+    }
+
+    /// Pré-vol du dépôt (#1046) : refuse si la participation liée ne correspond pas au passage local
+    /// (point, nuit) — le détail des écarts est remonté tel quel (IHM et CLI l'affichent).
+    private void verifierCorrespondance(Long idPassage) {
+        List<String> ecarts = participations.ecartsAvecDistant(idPassage);
+        if (!ecarts.isEmpty()) {
+            throw new RegleMetierException("Dépôt refusé, la participation liée ne correspond pas au passage : "
+                    + String.join(" ; ", ecarts)
+                    + ". Vérifiez le rattachement (modale « Modifier le passage », synchronisation) avant de"
+                    + " déposer.");
+        }
+    }
+
+    /// Réconciliation serveur (#1046) : marque `depose` les unités WAV dont le contenu est **déjà
+    /// traité** côté plateforme (titre de `donnees` = nom de fichier **sans extension**), pour ne jamais
+    /// les re-téléverser. Limites (documentées) : `donnees` n'existe qu'après traitement — un fichier
+    /// téléversé mais pas encore traité reste invisible et sera re-téléversé (idempotent côté
+    /// plateforme) ; une archive ZIP n'est pas appariable par titre (contenu inconnu localement).
+    private void reconcilierAvecServeur(Long idPassage, String participationId, SuiviDepot suivi) {
+        List<DepotUnite> restantes = depotUnites.restantes(idPassage);
+        if (restantes.isEmpty()) {
+            return;
+        }
+        Set<String> titresTraites = new HashSet<>();
+        for (var donnee : client.donnees(participationId)) {
+            titresTraites.add(donnee.titre());
+        }
+        if (titresTraites.isEmpty()) {
+            return;
+        }
+        for (DepotUnite unite : restantes) {
+            if (unite.type() == TypeDepotUnite.WAV && titresTraites.contains(sansExtension(unite.identifiantUnite()))) {
+                depotUnites.mettreAJour(
+                        unite.id(), StatutDepotUnite.DEPOSE, unite.fichierIdDistant(), null, maintenant());
+                suivi.uniteDeposee(depotUnites.findById(unite.id()).orElse(unite));
+            }
+        }
+    }
+
+    /// Nom de fichier sans son extension (les titres de `donnees` sont les noms de WAV sans `.wav`).
+    private static String sansExtension(String nom) {
+        int point = nom.lastIndexOf('.');
+        return point <= 0 ? nom : nom.substring(0, point);
     }
 
     /// Crée la participation (repli lazy quand elle n'a pas été créée à l'import) et renvoie son id, ou lève

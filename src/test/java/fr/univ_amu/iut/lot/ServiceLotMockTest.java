@@ -74,7 +74,7 @@ class ServiceLotMockTest {
                 verification,
                 new MoteurWorkflowPassage(),
                 new HorlogeFigee(LocalDate.of(2026, 5, 31)),
-                new CompacteurDepot(),
+                CompacteurDepot::new,
                 mock(DepotUniteDao.class));
         when(passageDao.findById(1L)).thenReturn(Optional.of(passageAJeter(1L)));
 

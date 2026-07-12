@@ -7,7 +7,9 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import fr.univ_amu.iut.commun.model.Horloge;
 import fr.univ_amu.iut.commun.model.HorlogeFigee;
+import fr.univ_amu.iut.commun.model.Reglages;
 import fr.univ_amu.iut.commun.model.Workspace;
+import fr.univ_amu.iut.commun.model.dao.ReglagesDao;
 import fr.univ_amu.iut.commun.persistence.MigrationSchema;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
 import fr.univ_amu.iut.lot.di.LotModule;
@@ -59,6 +61,8 @@ class LotModuleTest {
                 bind(DepotUniteDao.class).toInstance(new DepotUniteDao(source));
                 bind(MoteurWorkflowPassage.class).toInstance(new MoteurWorkflowPassage());
                 bind(Horloge.class).toInstance(new HorlogeFigee(LocalDate.of(2026, 5, 31)));
+                // ServiceLot lit désormais le plafond d’archive dans les réglages (#1047).
+                bind(Reglages.class).toInstance(new Reglages(new ReglagesDao(source)));
             }
         });
 

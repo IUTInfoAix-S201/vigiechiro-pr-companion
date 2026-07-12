@@ -111,6 +111,14 @@
           <Tooltip text="Termine le fichier en cours puis s'arrête. Le passage reste « Dépôt en cours » : reprendre le dépôt ne renverra que les fichiers manquants."/>
         </tooltip>
       </Button>
+      <!-- Réinitialiser le dépôt (#984) : efface le suivi local pour forcer un nouveau téléversement.
+           Visible dès qu'un plan de dépôt existe (câblé par le contrôleur). -->
+      <Button fx:id="btnReinitialiserDepot" text="🔄 Réinitialiser le dépôt"
+              styleClass="bouton-secondaire" onAction="#reinitialiserDepot" visible="false" managed="false">
+        <tooltip>
+          <Tooltip text="Efface le suivi local de dépôt pour permettre un nouveau téléversement. Les archives ZIP sur disque et la participation VigieChiro sont conservées."/>
+        </tooltip>
+      </Button>
     </HBox>
     <Label fx:id="lblDepotMessage" styleClass="section-sous" wrapText="true"/>
     <!-- Table de dépôt (#983) : une ligne par unité téléversée (état persisté depot_unite #981),

@@ -127,6 +127,16 @@ public class DepotViewModel {
         participationLiee.set(depot.map(d -> d.participationLiee(idPassage)).orElse(false));
     }
 
+    /// Réinitialise le dépôt du passage (#984) : efface son plan de dépôt (via [ServiceLot]) et le ramène
+    /// à « Prêt à déposer » pour permettre un nouveau téléversement, puis recharge la table (plan vidé).
+    /// À appeler sur le fil JavaFX.
+    public void reinitialiser(Long idPassage) {
+        Objects.requireNonNull(idPassage, PARAM_ID_PASSAGE);
+        service.reinitialiserDepot(idPassage);
+        rehydrater(idPassage);
+        message.set("Dépôt réinitialisé : vous pouvez re-téléverser la nuit.");
+    }
+
     /// Table de dépôt observable (#983) : lignes à lier à la `TableView`, drapeau « reste à reprendre »
     /// pour basculer le bouton en « Retenter les échecs ».
     public SuiviLignesDepot suiviLignes() {

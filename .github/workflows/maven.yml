@@ -51,7 +51,27 @@ jobs:
         # module-info cassé. Détecte les régressions de shade que la compilation ne voit pas.
         run: |
           set -euo pipefail
-          jar=$(ls target/vigiechiro-*.jar | grep -v original | head -1)
+          jar=$(ls target/vigiechiro-*-shaded.jar | head -1)
           echo "Fat-jar : $jar"
           java --enable-native-access=ALL-UNNAMED -cp "$jar" fr.univ_amu.iut.cli.Cli --help | tee sortie-smoke.txt
           grep -q "Usage: vigiechiro" sortie-smoke.txt
+
+      - name: Idempotence du packaging (2e build sans clean)
+        # Le packaging doit être reproductible : un 2e `package` SANS `clean` ne doit pas re-shader le
+        # fat-jar. Garde-fou contre une régression de la séparation thin/fat (#1188/#1189) — sans elle,
+        # le shade consommait sa propre sortie (`original-*.jar` gonflé, fat-jar qui grossit). On vérifie :
+        # taille du fat-jar stable, aucun `original-*.jar`, jar principal resté MINCE.
+        run: |
+          set -euo pipefail
+          fat=$(ls target/vigiechiro-*-shaded.jar | head -1)
+          mince=$(ls target/vigiechiro-*.jar | grep -v shaded | head -1)
+          avant=$(stat -c%s "$fat")
+          ./mvnw -q -B -DskipTests package --file pom.xml
+          apres=$(stat -c%s "$fat")
+          tailleMince=$(stat -c%s "$mince")
+          echo "fat-jar : ${avant} -> ${apres} o | jar mince : ${tailleMince} o"
+          test "${avant}" = "${apres}"                          # fat-jar stable (pas de double-shade)
+          if ls target/original-*.jar >/dev/null 2>&1; then
+            echo "original-*.jar présent : shade a remplacé l'artefact principal !" && exit 1
+          fi
+          test "${tailleMince}" -lt 6000000                     # le jar principal doit rester mince (< 6 Mo)

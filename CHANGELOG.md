@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [2.7.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v2.6.0...v2.7.0) (2026-07-12)
+
+
+### Features
+
+* **passage:** interdire le renommage d un passage déposé (issue B, EPIC [#1154](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/1154)) ([#1168](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/1168)) ([0aa6301](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/0aa6301449feca1196678e52f63765907685fd9f)), closes [#1134](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/1134) [#789](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/789)
+
 # [2.6.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v2.5.0...v2.6.0) (2026-07-12)
 
 

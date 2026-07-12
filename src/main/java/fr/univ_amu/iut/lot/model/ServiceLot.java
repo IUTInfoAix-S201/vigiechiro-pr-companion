@@ -223,6 +223,22 @@ public class ServiceLot {
         return depose;
     }
 
+    /// **Réinitialise le dépôt** d'un passage (#984) : supprime son plan `depot_unite` pour forcer un
+    /// nouveau téléversement (dépôt orphelin d'avant le rattachement `lien_participation`, ou reprise à
+    /// zéro), et le ramène à [StatutWorkflow#PRET_A_DEPOSER] s'il était « Déposé » / « Dépôt en cours ».
+    /// Les archives sur disque (`depot/`) et le lien de participation sont **conservés** : le re-dépôt
+    /// réutilise la même participation.
+    public void reinitialiserDepot(Long idPassage) {
+        Passage passage = chargerPassage(idPassage);
+        depotUnites.supprimerPlan(idPassage);
+        if (passage.statutWorkflow() == StatutWorkflow.DEPOSE
+                || passage.statutWorkflow() == StatutWorkflow.DEPOT_EN_COURS) {
+            // Réinitialisation délibérée : le moteur interdit les transitions arrière, on repose donc le
+            // statut directement (retour à « Prêt à déposer », dépôt effacé, date de dépôt réinitialisée).
+            passageDao.update(avecStatutEtDepot(passage, StatutWorkflow.PRET_A_DEPOSER, null));
+        }
+    }
+
     /// Génère les **archives ZIP de dépôt** (#110) du passage : les séquences d'écoute (R8) sont
     /// scindées en archives `<préfixe>-N.zip` ≤ 700 Mo ([CompacteurDepot]), écrites dans un sous-dossier
     /// `depot/` de la session. Le préfixe est le nom du dossier de session (R22 : dossier = préfixe R6).

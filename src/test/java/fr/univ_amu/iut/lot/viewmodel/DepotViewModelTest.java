@@ -217,6 +217,19 @@ class DepotViewModelTest {
     }
 
     @Test
+    @DisplayName("#984 : reinitialiser délègue à ServiceLot, vide la table et informe")
+    void reinitialiser_efface_et_informe() {
+        when(service.unitesDepot(ID_PASSAGE)).thenReturn(List.of()); // après reset : plan vidé
+        DepotViewModel vm = new DepotViewModel(service, Optional.of(depot));
+
+        vm.reinitialiser(ID_PASSAGE);
+
+        verify(service).reinitialiserDepot(ID_PASSAGE);
+        assertThat(vm.suiviLignes().lignes()).isEmpty();
+        assertThat(vm.messageProperty().get()).contains("réinitialisé");
+    }
+
+    @Test
     @DisplayName("cycle d'état IHM : en cours → bilan complet / partiel / échec")
     void cycle_etat_ihm() {
         DepotViewModel vm = new DepotViewModel(service, Optional.of(depot));

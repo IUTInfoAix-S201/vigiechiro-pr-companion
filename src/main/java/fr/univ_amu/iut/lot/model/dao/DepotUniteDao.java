@@ -106,6 +106,13 @@ public class DepotUniteDao extends DaoGenerique<DepotUnite, Long> {
         return !parPassage(passageId).isEmpty() && restantes(passageId).isEmpty();
     }
 
+    /// Supprime **tout le plan de dépôt** d'un passage (#984) : « réinitialiser le dépôt » pour forcer un
+    /// nouveau téléversement (ex. dépôt orphelin d'avant le rattachement `lien_participation`, ou reprise
+    /// à zéro). Les archives sur disque (`depot/`) ne sont pas touchées.
+    public void supprimerPlan(Long passageId) {
+        executerMaj("DELETE FROM depot_unite WHERE passage_id = ?", passageId);
+    }
+
     /// Pose (ou complète) le **plan de dépôt** du passage, de façon **idempotente** :
     ///
     /// - une unité du plan déjà suivie (même `identifiant_unite`) est **conservée telle quelle**

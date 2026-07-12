@@ -18,13 +18,11 @@ import fr.univ_amu.iut.commun.viewmodel.NavigationViewModel;
 import fr.univ_amu.iut.commun.viewmodel.ZonesStatut;
 import fr.univ_amu.iut.lot.model.ArchiveDepot;
 import fr.univ_amu.iut.lot.model.ArchivePlanifiee;
-import fr.univ_amu.iut.lot.model.BilanDepot;
 import fr.univ_amu.iut.lot.model.ControleCoherence;
 import fr.univ_amu.iut.lot.model.StatutControle;
 import fr.univ_amu.iut.lot.model.SuiviArchives;
 import fr.univ_amu.iut.lot.viewmodel.DepotViewModel;
 import fr.univ_amu.iut.lot.viewmodel.EtapeDepot;
-import fr.univ_amu.iut.lot.viewmodel.FormatsLot;
 import fr.univ_amu.iut.lot.viewmodel.LigneArchive;
 import fr.univ_amu.iut.lot.viewmodel.LigneDepot;
 import fr.univ_amu.iut.lot.viewmodel.LotViewModel;
@@ -34,6 +32,7 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.binding.Bindings;
@@ -78,6 +77,9 @@ public class LotController implements EmplacementNavigation, ResumeStatut {
     /// manuel, on amène l'observateur au bon endroit. Abstrait pour rester testable (faux en tête).
     private final OuvreurDeLien ouvreurDeLien;
     private final DepotDispositionColonnes depotColonnes;
+
+    /// Calcul des 3 zones de la barre de statut (#823), extrait de ce contrôleur pour la cohésion (#984).
+    private final ZonesStatutLot zonesStatutLot;
 
     /// Contexte de navigation (passage + site), mémorisé pour reconstruire le fil d'Ariane du chrome.
     private ContextePassage contexte;
@@ -159,6 +161,9 @@ public class LotController implements EmplacementNavigation, ResumeStatut {
     private Button btnSupprimerArchives;
 
     @FXML
+    private Button btnReinitialiserDepot;
+
+    @FXML
     private Label lblMessage;
 
     @Inject
@@ -177,6 +182,7 @@ public class LotController implements EmplacementNavigation, ResumeStatut {
         this.ouvrirPassage = Objects.requireNonNull(ouvrirPassage, "ouvrirPassage");
         this.ouvreurDeLien = Objects.requireNonNull(ouvreurDeLien, "ouvreurDeLien");
         this.depotColonnes = Objects.requireNonNull(depotColonnes, "depotColonnes");
+        this.zonesStatutLot = new ZonesStatutLot(viewModel, depotViewModel, () -> contexte);
     }
 
     @Override
@@ -211,7 +217,7 @@ public class LotController implements EmplacementNavigation, ResumeStatut {
         // Barre de statut 3 zones (#823) : gauche = contexte du passage, centre = statut + récap, droite =
         // état vivant (par priorité : dépôt en cours > génération > espace insuffisant > bilan archives).
         zonesStatut.bind(Bindings.createObjectBinding(
-                this::calculerZonesStatut,
+                zonesStatutLot::calculer,
                 viewModel.statutProperty(),
                 viewModel.recapProperty(),
                 viewModel.generationEnCoursProperty(),
@@ -473,15 +479,10 @@ public class LotController implements EmplacementNavigation, ResumeStatut {
     /// participation » du web, une fois la nuit déposée. Même patron que le dépôt (fil virtuel + résultat
     /// via `Platform.runLater`).
     private void lancerParticipation() {
-        Long idPassage = contexte.idPassage();
-        Thread.ofVirtual().name("compute-vigiechiro").start(() -> {
-            try {
-                boolean accepte = depotViewModel.lancerTraitement(idPassage);
-                Platform.runLater(() -> depotViewModel.restituerLancement(accepte));
-            } catch (RuntimeException echec) {
-                Platform.runLater(() -> depotViewModel.echec(echec.getMessage()));
-            }
-        });
+        executerEnFond(
+                "compute-vigiechiro",
+                () -> depotViewModel.lancerTraitement(contexte.idPassage()),
+                depotViewModel::restituerLancement);
     }
 
     /// Lance la génération des archives **hors fil JavaFX** (#251) : l'opération peut être longue sur une
@@ -514,62 +515,29 @@ public class LotController implements EmplacementNavigation, ResumeStatut {
     private void televerserVigieChiro() {
         Long idPassage = contexte.idPassage();
         depotViewModel.marquerEnCours();
-        Thread.ofVirtual().name("depot-vigiechiro").start(() -> {
-            try {
-                BilanDepot bilan =
-                        depotViewModel.televerser(idPassage, new RelaisSuiviDepot(depotViewModel.suiviLignes()));
-                Platform.runLater(() -> {
+        executerEnFond(
+                "depot-vigiechiro",
+                () -> depotViewModel.televerser(idPassage, new RelaisSuiviDepot(depotViewModel.suiviLignes())),
+                bilan -> {
                     depotViewModel.appliquerBilan(bilan);
-                    // Statut honnête (#982) : le moteur de dépôt a déjà posé « Dépôt en cours » ou
-                    // « Déposé » (jamais « Déposé » sur un dépôt partiel — l'ancien appel inconditionnel
-                    // à deposer() était le bug). On recharge l'état pour refléter le statut réel.
+                    // Statut honnête (#982) : le moteur a déjà posé le bon statut (jamais « Déposé » sur un
+                    // dépôt partiel) ; on recharge l'état pour le refléter.
                     viewModel.ouvrirSur(idPassage);
                 });
+    }
+
+    /// Exécute `travail` **hors du fil JavaFX** (fil virtuel), puis applique `succes` — ou l'erreur via
+    /// [DepotViewModel#echec] — **sur le fil JavaFX** (#984). Patron partagé par le téléversement et le
+    /// lancement du traitement (même squelette « en cours → runLater résultat / erreur »).
+    private <T> void executerEnFond(String nom, Supplier<T> travail, Consumer<T> succes) {
+        Thread.ofVirtual().name(nom).start(() -> {
+            try {
+                T resultat = travail.get();
+                Platform.runLater(() -> succes.accept(resultat));
             } catch (RuntimeException echec) {
                 Platform.runLater(() -> depotViewModel.echec(echec.getMessage()));
             }
         });
-    }
-
-    /// Compose les trois zones de la barre de statut (#823). Le contexte (zone gauche) n'est pas
-    /// observable : il est posé par [#ouvrirSur] avant le rechargement du ViewModel, dont les propriétés
-    /// (statut…) déclenchent le recalcul.
-    private ZonesStatut calculerZonesStatut() {
-        return new ZonesStatut(contexteGauche(), centreStatutRecap(), droiteEtatVivant());
-    }
-
-    private String contexteGauche() {
-        return contexte == null ? "" : contexte.identiteStatut();
-    }
-
-    private String centreStatutRecap() {
-        String statut = viewModel.statutProperty().get();
-        String recap = viewModel.recapProperty().get();
-        if (recap == null || recap.isBlank()) {
-            return statut;
-        }
-        return statut == null || statut.isBlank() ? recap : statut + " · " + recap;
-    }
-
-    /// Zone droite = **état vivant**, une seule information à la fois, par priorité décroissante :
-    /// progression du dépôt (#982), progression de génération (#769, ETA comprise), espace insuffisant,
-    /// bilan des archives présentes au repos (#805).
-    private String droiteEtatVivant() {
-        if (depotViewModel.enCoursProperty().get()) {
-            var suivi = depotViewModel.suiviLignes();
-            return FormatsLot.libelleDepotEnCours(
-                    suivi.deposeesProperty().get(),
-                    suivi.enCoursProperty().get(),
-                    suivi.echecsProperty().get(),
-                    suivi.totalProperty().get());
-        }
-        if (viewModel.generationEnCoursProperty().get()) {
-            return viewModel.progression().messageProperty().get();
-        }
-        if (!viewModel.espaceDepotSuffisantProperty().get()) {
-            return viewModel.raisonEspaceInsuffisantProperty().get();
-        }
-        return FormatsLot.bilanArchives(viewModel.suiviLignes().lignes());
     }
 
     /// Câble la table de dépôt (#983) : lignes persistées (`depot_unite` #981) + événements du moteur
@@ -584,6 +552,10 @@ public class LotController implements EmplacementNavigation, ResumeStatut {
         var depotEntame = Bindings.isNotEmpty(depotViewModel.suiviLignes().lignes());
         tableDepot.visibleProperty().bind(depotEntame);
         tableDepot.managedProperty().bind(depotEntame);
+        // « Réinitialiser le dépôt » (#984) : visible dès qu'un plan existe, désactivé pendant un dépôt.
+        btnReinitialiserDepot.visibleProperty().bind(depotEntame);
+        btnReinitialiserDepot.managedProperty().bind(depotEntame);
+        btnReinitialiserDepot.disableProperty().bind(depotViewModel.enCoursProperty());
         btnTeleverser
                 .textProperty()
                 .bind(Bindings.when(depotViewModel.suiviLignes().resteAReprendreProperty())
@@ -658,6 +630,19 @@ public class LotController implements EmplacementNavigation, ResumeStatut {
         if (confirmateur.test("Supprimer définitivement les archives ZIP de dépôt du dossier « depot/ » ?\n\n"
                 + "Elles ont déjà été téléversées sur Vigie-Chiro et pourront être régénérées si besoin.")) {
             viewModel.supprimerArchives();
+        }
+    }
+
+    /// Réinitialise le dépôt (#984) : efface le suivi local pour permettre un nouveau téléversement (ex.
+    /// dépôt orphelin d'avant le rattachement `lien_participation`). Confirmation ([#confirmateur],
+    /// injectable). Recharge la table (plan vidé) et l'état du passage (retour « Prêt à déposer »).
+    @FXML
+    private void reinitialiserDepot() {
+        if (confirmateur.test("Réinitialiser le dépôt de cette nuit ?\n\n"
+                + "Le suivi local est effacé pour permettre un nouveau téléversement ; les archives ZIP"
+                + " sur disque et la participation VigieChiro sont conservées.")) {
+            depotViewModel.reinitialiser(contexte.idPassage());
+            viewModel.ouvrirSur(contexte.idPassage());
         }
     }
 

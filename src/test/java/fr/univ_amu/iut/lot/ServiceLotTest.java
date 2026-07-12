@@ -17,9 +17,11 @@ import fr.univ_amu.iut.commun.persistence.MigrationSchema;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
 import fr.univ_amu.iut.lot.model.ArchiveDepot;
 import fr.univ_amu.iut.lot.model.CompacteurDepot;
+import fr.univ_amu.iut.lot.model.DepotUnite;
 import fr.univ_amu.iut.lot.model.EtatLot;
 import fr.univ_amu.iut.lot.model.Lot;
 import fr.univ_amu.iut.lot.model.ServiceLot;
+import fr.univ_amu.iut.lot.model.TypeDepotUnite;
 import fr.univ_amu.iut.lot.model.VerificationCoherence;
 import fr.univ_amu.iut.lot.model.dao.DepotUniteDao;
 import fr.univ_amu.iut.passage.model.EnregistrementOriginal;
@@ -361,6 +363,25 @@ class ServiceLotTest {
         assertThat(fichiers)
                 .singleElement()
                 .satisfies(p -> assertThat(p.toString()).startsWith("transformes/"));
+    }
+
+    @Test
+    @DisplayName("#984 : reinitialiserDepot efface le plan et ramène « Déposé » à « Prêt à déposer »")
+    void reinitialiser_depot_efface_et_reprepare() {
+        Passage passage = creerPassage(Verdict.OK);
+        creerSessionCoherente(passage.id());
+        service.preparerLot(passage.id()); // → Prêt à déposer
+        DepotUniteDao depotUnites = new DepotUniteDao(new SourceDeDonnees(new Workspace(dossier)));
+        depotUnites.synchroniserPlan(
+                passage.id(),
+                List.of(DepotUnite.aDeposer(passage.id(), "Car-1.zip", TypeDepotUnite.ZIP, "2026-07-01T00:00:00")));
+        service.marquerDepose(passage.id()); // → Déposé
+
+        service.reinitialiserDepot(passage.id());
+
+        assertThat(depotUnites.parPassage(passage.id())).isEmpty();
+        assertThat(passageDao.findById(passage.id()).orElseThrow().statutWorkflow())
+                .isEqualTo(StatutWorkflow.PRET_A_DEPOSER);
     }
 
     @Test

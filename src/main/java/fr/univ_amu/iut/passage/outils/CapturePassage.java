@@ -4,6 +4,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import fr.univ_amu.iut.commun.di.CommunModule;
 import fr.univ_amu.iut.commun.di.PersistenceModule;
+import fr.univ_amu.iut.commun.model.PortailVigieChiro;
 import fr.univ_amu.iut.commun.model.Prefixe;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.model.Utilisateur;
@@ -153,7 +154,9 @@ public final class CapturePassage {
                         injecteur.getInstance(NavigationPassage.class),
                         ouvrirSiteNeutre(),
                         numeroCarre -> {},
-                        idp -> 0)
+                        idp -> 0,
+                        injecteur.getInstance(PortailVigieChiro.class),
+                        url -> {})
                 : injecteur.getInstance(type));
         Parent vue = loader.load();
         PassageController controleur = loader.getController();

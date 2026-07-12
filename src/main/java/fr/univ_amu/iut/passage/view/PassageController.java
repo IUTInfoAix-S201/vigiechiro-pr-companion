@@ -2,6 +2,7 @@ package fr.univ_amu.iut.passage.view;
 
 import com.google.inject.Inject;
 import fr.univ_amu.iut.commun.model.CompteurValidations;
+import fr.univ_amu.iut.commun.model.PortailVigieChiro;
 import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.model.Verdict;
@@ -9,6 +10,7 @@ import fr.univ_amu.iut.commun.view.EmplacementNavigation;
 import fr.univ_amu.iut.commun.view.EmplacementPassage;
 import fr.univ_amu.iut.commun.view.IndicateurBlocage;
 import fr.univ_amu.iut.commun.view.Lieu;
+import fr.univ_amu.iut.commun.view.OuvreurDeLien;
 import fr.univ_amu.iut.commun.view.OuvrirDiagnostic;
 import fr.univ_amu.iut.commun.view.OuvrirLot;
 import fr.univ_amu.iut.commun.view.OuvrirMultisite;
@@ -31,6 +33,7 @@ import java.util.Optional;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.ListChangeListener;
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
@@ -69,8 +72,15 @@ public class PassageController implements EmplacementNavigation, RafraichirAuRet
     private final OuvrirSite ouvrirSite;
     private final OuvrirMultisite ouvrirMultisite;
     private final CompteurValidations compteurValidations;
+    private final PortailVigieChiro portail;
+    private final OuvreurDeLien ouvreurDeLien;
     private Long idPassage;
     private ContexteSite contexte;
+
+    /// URL de la participation liée sur le portail (#1124), vide tant que le passage n’est pas lié.
+    /// Rafraîchie à chaque [#ouvrirSur] / retour : un lien posé entre-temps (import connecté, dépôt)
+    /// est vu au retour sur l’écran.
+    private final SimpleStringProperty lienParticipation = new SimpleStringProperty(this, "lienParticipation", "");
 
     /// Contexte du passage (carré / point / numéro), déporté en zone gauche de la barre de statut (#693)
     /// au lieu d'un titre d'en-tête redondant avec le fil d'Ariane.
@@ -131,6 +141,12 @@ public class PassageController implements EmplacementNavigation, RafraichirAuRet
     @FXML
     private Button boutonSupprimer;
 
+    @FXML
+    private Button boutonOuvrirPortail;
+
+    @FXML
+    private StackPane enveloppeOuvrirPortail;
+
     /// Enveloppe (non désactivée) du bouton « Supprimer » : porte le tooltip expliquant le blocage sur un
     /// passage déposé (un Button désactivé n'affiche pas de tooltip). Cf. [IndicateurBlocage].
     @FXML
@@ -149,7 +165,9 @@ public class PassageController implements EmplacementNavigation, RafraichirAuRet
             NavigationPassage navigation,
             OuvrirSite ouvrirSite,
             OuvrirMultisite ouvrirMultisite,
-            CompteurValidations compteurValidations) {
+            CompteurValidations compteurValidations,
+            PortailVigieChiro portail,
+            OuvreurDeLien ouvreurDeLien) {
         this.viewModel = Objects.requireNonNull(viewModel, "viewModel");
         this.ouvrirVerification = Objects.requireNonNull(ouvrirVerification, "ouvrirVerification");
         this.ouvrirDiagnostic = Objects.requireNonNull(ouvrirDiagnostic, "ouvrirDiagnostic");
@@ -159,6 +177,8 @@ public class PassageController implements EmplacementNavigation, RafraichirAuRet
         this.ouvrirSite = Objects.requireNonNull(ouvrirSite, "ouvrirSite");
         this.ouvrirMultisite = Objects.requireNonNull(ouvrirMultisite, "ouvrirMultisite");
         this.compteurValidations = Objects.requireNonNull(compteurValidations, "compteurValidations");
+        this.portail = Objects.requireNonNull(portail, "portail");
+        this.ouvreurDeLien = Objects.requireNonNull(ouvreurDeLien, "ouvreurDeLien");
     }
 
     @Override
@@ -238,6 +258,15 @@ public class PassageController implements EmplacementNavigation, RafraichirAuRet
         boutonSupprimer
                 .disableProperty()
                 .bind(viewModel.suppressionPossibleProperty().not());
+        // « Voir la participation » (#1124) : actif seulement quand le passage est lié à une participation ;
+        // désactivé, il documente ce qui manque (affordance #789) plutôt que de disparaître.
+        boutonOuvrirPortail.disableProperty().bind(lienParticipation.isEmpty());
+        IndicateurBlocage.expliquer(
+                enveloppeOuvrirPortail,
+                Bindings.when(lienParticipation.isNotEmpty())
+                        .then("Ouvre la participation liée sur le portail Vigie-Chiro (navigateur).")
+                        .otherwise("Ce passage n'est pas encore lié à une participation VigieChiro :"
+                                + " elle est créée à l'import (connecté) ou au premier dépôt."));
         IndicateurBlocage.expliquer(
                 enveloppeSupprimer,
                 Bindings.when(viewModel.suppressionPossibleProperty())
@@ -280,6 +309,7 @@ public class PassageController implements EmplacementNavigation, RafraichirAuRet
         this.idPassage = idPassage;
         this.contexte = contexte;
         viewModel.ouvrirSur(idPassage, contexte);
+        lienParticipation.set(portail.pageParticipation(idPassage).orElse(""));
     }
 
     /// Rechargé par le [fr.univ_amu.iut.commun.view.Navigateur] quand on **revient** sur ce passage
@@ -290,6 +320,7 @@ public class PassageController implements EmplacementNavigation, RafraichirAuRet
     public void rafraichirAuRetour() {
         if (idPassage != null) {
             viewModel.ouvrirSur(idPassage, contexte);
+            lienParticipation.set(portail.pageParticipation(idPassage).orElse(""));
         }
     }
 
@@ -438,6 +469,16 @@ public class PassageController implements EmplacementNavigation, RafraichirAuRet
     }
 
     /// « Voir sur la carte » : ouvre la vue multi-sites centrée/surlignée sur le carré de ce passage.
+    /// Ouvre la participation liée sur le portail Vigie-Chiro (#1124) — vérification visuelle du
+    /// rattachement (« la bonne nuit au bon endroit ») avant ou après un dépôt.
+    @FXML
+    private void ouvrirSurVigieChiro() {
+        String lien = lienParticipation.get();
+        if (lien != null && !lien.isBlank()) {
+            ouvreurDeLien.ouvrir(lien);
+        }
+    }
+
     @FXML
     private void voirSurCarte() {
         if (contexte != null) {

@@ -30,6 +30,11 @@
       <HBox styleClass="entete-actions" alignment="CENTER_RIGHT">
         <Button fx:id="boutonVoirCarte" text="🗺 Voir sur la carte"
                 styleClass="bouton-secondaire" onAction="#voirSurCarte"/>
+        <!-- Enveloppe (#789) : le tooltip d'explication doit survivre à la désactivation du bouton. -->
+        <StackPane fx:id="enveloppeOuvrirPortail">
+          <Button fx:id="boutonOuvrirPortail" text="🌐 Voir la participation"
+                  styleClass="bouton-secondaire" onAction="#ouvrirSurVigieChiro"/>
+        </StackPane>
         <Button fx:id="boutonRattachement" text="✏ Modifier le passage"
                 styleClass="bouton-secondaire" onAction="#modifierRattachement"/>
         <Button fx:id="boutonAnnulerDepot" text="↩ Annuler le dépôt"

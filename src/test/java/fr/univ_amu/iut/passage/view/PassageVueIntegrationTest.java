@@ -11,9 +11,11 @@ import com.google.inject.Injector;
 import com.google.inject.Provides;
 import com.google.inject.multibindings.OptionalBinder;
 import fr.univ_amu.iut.commun.model.CompteurValidations;
+import fr.univ_amu.iut.commun.model.PortailVigieChiro;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.model.Verdict;
 import fr.univ_amu.iut.commun.persistence.ServicePurgeOriginaux;
+import fr.univ_amu.iut.commun.view.OuvreurDeLien;
 import fr.univ_amu.iut.commun.view.OuvrirDiagnostic;
 import fr.univ_amu.iut.commun.view.OuvrirLot;
 import fr.univ_amu.iut.commun.view.OuvrirMultisite;
@@ -302,6 +304,16 @@ class PassageVueIntegrationTest {
             @Provides
             CompteurValidations compteurValidations() {
                 return idPassage -> 0;
+            }
+
+            @Provides
+            PortailVigieChiro portail() {
+                return mock(PortailVigieChiro.class);
+            }
+
+            @Provides
+            OuvreurDeLien ouvreurDeLien() {
+                return url -> {};
             }
         });
         FXMLLoader loader = new FXMLLoader(PassageController.class.getResource("Passage.fxml"));

@@ -3,14 +3,10 @@ package fr.univ_amu.iut.audio.view;
 import com.google.inject.Inject;
 import fr.nedjar.vigiechiro.audio.AudioView;
 import fr.univ_amu.iut.audio.viewmodel.AudioViewModel;
-import fr.univ_amu.iut.audio.viewmodel.ComptageAudio;
 import fr.univ_amu.iut.audio.viewmodel.ImportVigieChiroViewModel;
-import fr.univ_amu.iut.audio.viewmodel.OngletReglagesAudio;
 import fr.univ_amu.iut.commun.view.EmplacementNavigation;
-import fr.univ_amu.iut.commun.view.EmplacementPassage;
 import fr.univ_amu.iut.commun.view.GestionnaireColonnes;
 import fr.univ_amu.iut.commun.view.GestionnaireFiltres;
-import fr.univ_amu.iut.commun.view.GestionnaireVues;
 import fr.univ_amu.iut.commun.view.IndicateurOccupation;
 import fr.univ_amu.iut.commun.view.Lieu;
 import fr.univ_amu.iut.commun.view.OuvrirAnalyse;
@@ -281,28 +277,34 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
         this.reactifs = Objects.requireNonNull(reactifs, "reactifs");
     }
 
+    /// Colonnes injectées par le FXML, regroupées ([ColonnesAudio.Colonnes]) : construites une fois,
+    /// partagées entre le câblage initial et l'adaptation à la source.
+    private ColonnesAudio.Colonnes colonnes;
+
+    /// Items du ☰ pilotés par le workflow / la source, regroupés ([MenuAudio.Items]).
+    private MenuAudio.Items itemsMenu;
+
     /// Câble les colonnes de la table (valeur, cellules, comparateurs de tri). Le détail vit dans
     /// [ColonnesAudio] (unité cohésive extraite pour garder ce contrôleur sous le seuil de God Class) ; on
     /// lui passe les colonnes injectées par le FXML, regroupées.
     private void configurerColonnes() {
-        ColonnesAudio.configurer(
-                new ColonnesAudio.Colonnes(
-                        colTadarida,
-                        colProba,
-                        colFrequence,
-                        colDebut,
-                        colDuree,
-                        colObservateur,
-                        colFichier,
-                        colPassage,
-                        colCarre,
-                        colPoint,
-                        colDate,
-                        colHeure,
-                        colStatut,
-                        colReference,
-                        colCommentaire),
-                viewModel.actions()::commenter);
+        colonnes = new ColonnesAudio.Colonnes(
+                colTadarida,
+                colProba,
+                colFrequence,
+                colDebut,
+                colDuree,
+                colObservateur,
+                colFichier,
+                colPassage,
+                colCarre,
+                colPoint,
+                colDate,
+                colHeure,
+                colStatut,
+                colReference,
+                colCommentaire);
+        ColonnesAudio.configurer(colonnes, viewModel.actions()::commenter);
     }
 
     @FXML
@@ -349,36 +351,17 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
             }
         });
 
-        // Barre de filtres « à la Notion » (#470/#471) : recherche texte permanente + « + Filtre » + puces,
-        // pilotant les filtres composables du view-model. Catalogue de critères : statut et groupe taxon.
-        gestionnaireFiltres = new GestionnaireFiltres<>(
-                champRecherche,
-                menuAjoutFiltre,
-                pucesFiltres,
-                viewModel.filtres(),
-                List.of(
-                        CriteresAudio.statut(),
-                        CriteresAudio.groupe(viewModel::observationsFiltrees),
-                        CriteresAudio.taxon(viewModel::observationsFiltrees),
-                        CriteresAudio.references(),
-                        CriteresAudio.douteux(),
-                        CriteresAudio.nonIdentifie(),
-                        CriteresAudio.probabilite(),
-                        CriteresAudio.heure(viewModel::plageNuitParDefaut)),
-                CriteresAudio.rechercheTexte());
-        // Mémoire de session (#484) : restaure le tri et l'état des filtres de la dernière ouverture, et les
-        // re-mémorise à la fermeture. Placée après le gestionnaire de filtres (dont elle restitue l'état).
-        memoire.installer(tableObservations, gestionnaireFiltres);
-        // Onglets de vues mémorisées (#623) : enregistrent/rejouent l'état de la barre de filtres. Trois vues
-        // par défaut en lecture seule (« Tout », « À valider », « Chiroptères ») : au chargement, « Tout » (sans
-        // filtre) est active, d'où toujours un contexte modifiable, sans masquer d'observations.
-        GestionnaireVues.avecDialogue(
-                barreOnglets,
-                gestionnaireFiltres,
+        // Barre de filtres « à la Notion » (#470/#471), mémoire de session (#484) et onglets de vues
+        // mémorisées (#623) : assemblage délégué à FiltresVuesAudio, qui rend le gestionnaire (gardé pour
+        // les navigations ciblées et le transport des filtres vers l'analyse).
+        gestionnaireFiltres = FiltresVuesAudio.installer(
+                new FiltresVuesAudio.Barre(champRecherche, menuAjoutFiltre, pucesFiltres, barreOnglets),
+                tableObservations,
+                viewModel,
+                memoire,
                 appuis.depotVues(),
                 FEATURE,
-                CriteresAudio.vuesParDefaut(),
-                GestionnaireColonnes.adaptateurMonoTable("principale", tableObservations, this::colonnesTableAudio));
+                this::colonnesTableAudio);
 
         zonesStatut.bind(Bindings.createObjectBinding(this::zonesStatutCourantes, viewModel.comptageProperty()));
 
@@ -409,38 +392,18 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
                 btnDouteux,
                 enveloppeDouteux);
 
-        // Workflow Tadarida (source ParPassage) : toujours actif ; « Importer » tant qu'aucun résultat,
-        // « Réimporter » (remplacement après confirmation) une fois un jeu chargé.
-        itemImporter
-                .textProperty()
-                .bind(Bindings.when(viewModel.resultatsDisponiblesProperty())
-                        .then("🔁 Réimporter un CSV Tadarida…")
-                        .otherwise("📥 Importer un CSV Tadarida…"));
-        // Import VigieChiro (axe 4.2) : câblage (libellé Importer/Réimporter, désactivation, restitution)
-        // délégué à ImportVigieChiroUI. Sa visibilité (workflow + connexion) est gérée dans adapterAffichage.
-        ImportVigieChiroUI.cabler(itemImporterVigieChiro, lblImportVigieChiro, importVigieChiro, viewModel);
-        itemExporterVu
-                .disableProperty()
-                .bind(viewModel.resultatsDisponiblesProperty().not());
-        // Export des observations affichées : possible dès qu'il y a au moins une ligne (toutes sources).
-        itemExporterObservations.disableProperty().bind(Bindings.isEmpty(viewModel.observationsFiltrees()));
-        // Un MenuItem désactivé n'accueille pas de tooltip : pour cet item toujours visible, on surface la
-        // cause du grisage dans son libellé (#789), qui n'apparaît que lorsqu'il est effectivement grisé
-        // (aucune observation à exporter). L'item « Exporter _Vu » est, lui, masqué hors workflow Tadarida
-        // (le menu montre alors « Importer un CSV Tadarida »), donc pas de libellé dynamique dessus.
-        itemExporterObservations
-                .textProperty()
-                .bind(Bindings.when(Bindings.isEmpty(viewModel.observationsFiltrees()))
-                        .then("📤 Exporter les observations (CSV)… (aucune observation à exporter)")
-                        .otherwise("📤 Exporter les observations (CSV)…"));
-        // Inclure (ou non) la colonne validation_mode dans l'export _Vu (R24). Persisté (#1006) : le VM
-        // (recréé à chaque chargement) suit le réglage partagé avec l'onglet « Audio », puis la case du ☰
-        // suit le VM. Ordre important pour l'initialisation depuis la valeur persistée.
-        viewModel
-                .inclureModeProperty()
-                .bindBidirectional(reactifs.proprieteBooleen(
-                        OngletReglagesAudio.CLE_INCLURE_MODE, OngletReglagesAudio.DEFAUT_INCLURE_MODE));
-        itemInclureMode.selectedProperty().bindBidirectional(viewModel.inclureModeProperty());
+        // Items du ☰ pilotés par le workflow / la source : bindings une fois pour toutes dans MenuAudio
+        // (libellés Importer/Réimporter, exports, case validation_mode persistée #1006/R24).
+        itemsMenu = new MenuAudio.Items(
+                itemImporter,
+                itemImporterVigieChiro,
+                lblImportVigieChiro,
+                itemInclureMode,
+                itemExporterVu,
+                itemExporterObservations,
+                itemExporterBiblio,
+                itemOuvrirVigieChiro);
+        MenuAudio.cabler(itemsMenu, viewModel, importVigieChiro, reactifs);
 
         // État vide : placeholder gris superposé à la table, réservé au seul « aucune observation… ».
         var listeVide = Bindings.isEmpty(viewModel.observationsFiltrees());
@@ -529,26 +492,11 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
                 erreur -> viewModel.signalerErreur(source, erreur));
     }
 
-    /// Adapte l'affichage à la source : colonnes de contexte masquées si la source est un unique passage,
-    /// et **items** du menu « ☰ » propres à la source. Le menu ☰ lui-même reste toujours affiché : il porte
-    /// désormais le choix des colonnes, pertinent pour toutes les sources.
+    /// Adapte l'affichage à la source : colonnes de contexte masquées si la source est un unique passage
+    /// ([ColonnesAudio#adapterAuContexte]) et items du menu « ☰ » propres à la source ([MenuAudio#adapter]).
     private void adapterAffichage(SourceObservations source) {
-        boolean passageUnique = source.cibleUnPassageUnique();
-        colPassage.setVisible(!passageUnique);
-        colCarre.setVisible(!passageUnique);
-        colPoint.setVisible(!passageUnique);
-        // La date d'enregistrement est constante au sein d'un passage (une nuit) : inutile en source unique.
-        colDate.setVisible(!passageUnique);
-
-        boolean workflow = source.permetWorkflowTadarida();
-        itemImporter.setVisible(workflow);
-        // Import VigieChiro : workflow Tadarida **et** application connectée (indisponible en capture).
-        itemImporterVigieChiro.setVisible(workflow && importVigieChiro.disponible());
-        itemInclureMode.setVisible(workflow);
-        itemExporterVu.setVisible(workflow);
-        itemExporterBiblio.setVisible(source.permetExportBibliotheque());
-        // « Ouvrir les données sur Vigie-Chiro » (#1124) : détail dans ActionDonneesVigieChiro.
-        actionsMenu.donneesVigieChiro().adapter(itemOuvrirVigieChiro, source);
+        ColonnesAudio.adapterAuContexte(colonnes, source.cibleUnPassageUnique());
+        MenuAudio.adapter(itemsMenu, source, importVigieChiro, actionsMenu.donneesVigieChiro());
     }
 
     private void selectionnerObservation(Long idObservation) {
@@ -561,49 +509,15 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
         }
     }
 
-    /// Emplacement dans le fil d'Ariane, **piloté par la source** : pour `ParPassage`, on reconstruit les
-    /// ancêtres site/passage (retour au passage via les contrats socle, comme l'ancienne validation) ;
-    /// pour `References` (et, à terme, les autres sources atteintes depuis un écran parent) l'écran est
-    /// autonome (segment courant seul).
+    /// Emplacement dans le fil d'Ariane, **piloté par la source**. Détail dans [ChromeAudio].
     @Override
     public List<Lieu> emplacement() {
-        // ParPassage cible un passage : ascendance site › passage › écran (retour au passage).
-        var contextePassage = source.contexteDuPassage();
-        if (contextePassage != null) {
-            return EmplacementPassage.emplacementEnfant(contextePassage, ouvrirSite, ouvrirPassage, source.titre());
-        }
-        if (source instanceof SourceObservations.ParEspece) {
-            // Accueil › Espèces & observations › Écoute : [espèce] — le segment analyse rouvre l'écran, sauf
-            // si la feature `analyse` est désactivable et coupée (#1087) : le segment ne fait alors rien.
-            return List.of(
-                    Lieu.vers("Espèces & observations", () -> ouvrirAnalyse.ifPresent(OuvrirAnalyse::ouvrir)),
-                    Lieu.courant(source.titre()));
-        }
-        if (source instanceof SourceObservations.ParPassages) {
-            // Accueil › Carte & passages › Écoute : lot — le segment multisite rouvre la vue agrégée.
-            return List.of(
-                    Lieu.vers("Carte & passages", () -> ouvrirMultisite.ouvrirSurCarre(null)),
-                    Lieu.courant(source.titre()));
-        }
-        return List.of(Lieu.courant(source.titre()));
+        return ChromeAudio.emplacement(source, ouvrirSite, ouvrirPassage, ouvrirAnalyse, ouvrirMultisite);
     }
 
-    /// Zones de la **barre de statut** : le total d'observations en **centre**, l'avancement de la revue à
-    /// **droite** (« N observation(s) » · « X / N revues »). La gauche reste au défaut du chrome (identité).
-    /// Sans le nom d'écran (déjà porté par le fil d'Ariane).
+    /// Zones de la **barre de statut**, dérivées de la source et du comptage. Détail dans [ChromeAudio].
     private ZonesStatut zonesStatutCourantes() {
-        if (source == null) {
-            return ZonesStatut.VIDE;
-        }
-        // Zone gauche = identité (#1025) : le passage ciblé (Carré · point · N°) s'il y en a un, sinon
-        // l'intitulé de la source (Références, Sons non identifiés…), pour aligner cet écran modèle sur la
-        // convention des autres (gauche = contexte).
-        var passage = source.contexteDuPassage();
-        String gauche = passage != null ? passage.identiteStatut() : source.titre();
-        ComptageAudio comptage = viewModel.comptageProperty().get();
-        String centre = comptage.total() == 0 ? "Aucune observation" : comptage.total() + " observation(s)";
-        String droite = comptage.total() == 0 ? "" : comptage.progression();
-        return new ZonesStatut(gauche, centre, droite);
+        return ChromeAudio.zonesStatut(source, viewModel.comptageProperty().get());
     }
 
     @Override
@@ -630,10 +544,6 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
     private void basculerDouteux() {
         actionsSelection.basculerDouteux();
     }
-
-    /// L'espèce ciblée par « Fiche de l'espèce » : la **proposition Tadarida** de la ligne (code + nom
-    /// latin + nom vernaculaire). Le nom latin (#897) permet le repli GBIF/Wikipédia pour les taxons hors
-    /// PNA (oiseaux, orthoptères…) ; les chiroptères passent, eux, par la fiche PNA (résolue par le code).
 
     /// « 🗺 Voir sur la carte » (#476) : rouvre l'analyse « Espèces & observations » directement sur la
     /// **carte de répartition**, en y transportant les filtres courants. Le socle ne rejoue que les critères

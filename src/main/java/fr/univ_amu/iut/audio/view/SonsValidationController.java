@@ -7,7 +7,6 @@ import fr.univ_amu.iut.audio.viewmodel.ImportVigieChiroViewModel;
 import fr.univ_amu.iut.commun.view.EmplacementNavigation;
 import fr.univ_amu.iut.commun.view.GestionnaireColonnes;
 import fr.univ_amu.iut.commun.view.GestionnaireFiltres;
-import fr.univ_amu.iut.commun.view.GestionnaireVues;
 import fr.univ_amu.iut.commun.view.IndicateurOccupation;
 import fr.univ_amu.iut.commun.view.Lieu;
 import fr.univ_amu.iut.commun.view.OuvrirAnalyse;
@@ -352,36 +351,17 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
             }
         });
 
-        // Barre de filtres « à la Notion » (#470/#471) : recherche texte permanente + « + Filtre » + puces,
-        // pilotant les filtres composables du view-model. Catalogue de critères : statut et groupe taxon.
-        gestionnaireFiltres = new GestionnaireFiltres<>(
-                champRecherche,
-                menuAjoutFiltre,
-                pucesFiltres,
-                viewModel.filtres(),
-                List.of(
-                        CriteresAudio.statut(),
-                        CriteresAudio.groupe(viewModel::observationsFiltrees),
-                        CriteresAudio.taxon(viewModel::observationsFiltrees),
-                        CriteresAudio.references(),
-                        CriteresAudio.douteux(),
-                        CriteresAudio.nonIdentifie(),
-                        CriteresAudio.probabilite(),
-                        CriteresAudio.heure(viewModel::plageNuitParDefaut)),
-                CriteresAudio.rechercheTexte());
-        // Mémoire de session (#484) : restaure le tri et l'état des filtres de la dernière ouverture, et les
-        // re-mémorise à la fermeture. Placée après le gestionnaire de filtres (dont elle restitue l'état).
-        memoire.installer(tableObservations, gestionnaireFiltres);
-        // Onglets de vues mémorisées (#623) : enregistrent/rejouent l'état de la barre de filtres. Trois vues
-        // par défaut en lecture seule (« Tout », « À valider », « Chiroptères ») : au chargement, « Tout » (sans
-        // filtre) est active, d'où toujours un contexte modifiable, sans masquer d'observations.
-        GestionnaireVues.avecDialogue(
-                barreOnglets,
-                gestionnaireFiltres,
+        // Barre de filtres « à la Notion » (#470/#471), mémoire de session (#484) et onglets de vues
+        // mémorisées (#623) : assemblage délégué à FiltresVuesAudio, qui rend le gestionnaire (gardé pour
+        // les navigations ciblées et le transport des filtres vers l'analyse).
+        gestionnaireFiltres = FiltresVuesAudio.installer(
+                new FiltresVuesAudio.Barre(champRecherche, menuAjoutFiltre, pucesFiltres, barreOnglets),
+                tableObservations,
+                viewModel,
+                memoire,
                 appuis.depotVues(),
                 FEATURE,
-                CriteresAudio.vuesParDefaut(),
-                GestionnaireColonnes.adaptateurMonoTable("principale", tableObservations, this::colonnesTableAudio));
+                this::colonnesTableAudio);
 
         zonesStatut.bind(Bindings.createObjectBinding(this::zonesStatutCourantes, viewModel.comptageProperty()));
 

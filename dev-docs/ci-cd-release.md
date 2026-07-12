@@ -73,6 +73,10 @@ Chaque installeur embarque son **runtime** (jpackage, profil `-Pinstaller`) : l'
 ./mvnw -Pinstaller -Djpackage.type=deb -DskipTests verify   # ou dmg / msi selon l'OS
 ```
 
+Le shade attache le fat-jar sous le **classifier `shaded`** (`vigiechiro-*-shaded.jar`, #1188) : l'artefact
+principal `vigiechiro-*.jar` reste **mince**. jpackage empaquette donc le `-shaded`, et le packaging est
+**idempotent** (le shade ne re-traite jamais sa propre sortie ; garde-fou d'idempotence dans `maven.yml`).
+
 !!! note "Le type de commit pilote la version"
     `fix:` → patch, `feat:` → minor, `BREAKING CHANGE` → major. Le `[skip ci]` du commit de CHANGELOG
     évite que la release se redéclenche en boucle. Détails de conventions :

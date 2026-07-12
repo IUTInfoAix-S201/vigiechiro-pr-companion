@@ -146,9 +146,12 @@ final class GraineSonsValidation {
                         };
                     }
 
+                    // OuvrirAnalyse (#1087, feature `analyse` désactivable) : le controller l'injecte en
+                    // Optional ; ce module n'inclut pas AnalyseModule (ni son OptionalBinder vide via
+                    // AudioModule, non plus inclus), donc on fournit directement l'Optional peuplé (no-op).
                     @Provides
-                    OuvrirAnalyse ouvrirAnalyse() {
-                        return (filtres, afficherCarte) -> {};
+                    Optional<OuvrirAnalyse> ouvrirAnalyse() {
+                        return Optional.of((filtres, afficherCarte) -> {});
                     }
 
                     @Provides

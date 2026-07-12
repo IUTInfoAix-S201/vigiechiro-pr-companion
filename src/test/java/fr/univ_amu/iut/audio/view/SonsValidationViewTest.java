@@ -15,6 +15,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Provides;
+import com.google.inject.multibindings.OptionalBinder;
 import com.google.inject.util.Modules;
 import fr.nedjar.vigiechiro.audio.AudioView;
 import fr.univ_amu.iut.audio.viewmodel.AudioViewModel;
@@ -191,12 +192,16 @@ class SonsValidationViewTest {
                         return new ReglagesReactifs(new Reglages(new ReglagesDao(source)));
                     }
                 },
-                // Le socle de navigation est neutre par défaut ; on remplace OuvrirAnalyse par un mock pour
-                // vérifier l'appel « Voir sur la carte » (#476).
+                // Le socle de navigation est neutre par défaut (OptionalBinder VIDE simulé par un no-op côté
+                // NavigationDeTestModule, #1087) ; on remplace ce setBinding par un mock pour vérifier l'appel
+                // « Voir sur la carte » (#476). Même slot OptionalBinder que la base : Modules.override le
+                // remplace proprement, sans binding OuvrirAnalyse en double.
                 Modules.override(new NavigationDeTestModule()).with(new AbstractModule() {
-                    @Provides
-                    OuvrirAnalyse ouvrirAnalyse() {
-                        return ouvrirAnalyse;
+                    @Override
+                    protected void configure() {
+                        OptionalBinder.newOptionalBinder(binder(), OuvrirAnalyse.class)
+                                .setBinding()
+                                .toInstance(ouvrirAnalyse);
                     }
                 }));
         FXMLLoader loader = new FXMLLoader(SonsValidationController.class.getResource("SonsValidation.fxml"));

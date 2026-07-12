@@ -11,6 +11,7 @@ import fr.univ_amu.iut.bibliotheque.model.ServiceBibliotheque;
 import fr.univ_amu.iut.commun.di.Categorie;
 import fr.univ_amu.iut.commun.di.Fonctionnalite;
 import fr.univ_amu.iut.commun.di.ModuleDeFeature;
+import fr.univ_amu.iut.commun.view.OuvrirAnalyse;
 import fr.univ_amu.iut.commun.view.OuvrirAudio;
 import fr.univ_amu.iut.validation.model.ImportVigieChiro;
 import fr.univ_amu.iut.validation.model.MarquageDouteux;
@@ -50,6 +51,10 @@ public class AudioModule extends ModuleDeFeature {
         // partiels de capture (sans `connexion`, donc sans client HTTP) résolvent `Optional<ImportVigieChiro>`
         // à vide. La liaison réelle est posée par `ImportVigieChiroModule` (injecteur applicatif complet).
         OptionalBinder.newOptionalBinder(binder(), ImportVigieChiro.class);
+        // Contrat de retour vers l'analyse : OptionalBinder VIDE (feature `analyse` désactivable, #1087).
+        // `AnalyseModule` fait `setBinding` quand elle est active ; sinon SonsValidationController masque
+        // « Voir sur la carte » et le segment de fil d'Ariane « Espèces & observations ».
+        OptionalBinder.newOptionalBinder(binder(), OuvrirAnalyse.class);
     }
 
     // ViewModel non-singleton (cf. analyse / multisite) : un VM frais par chargement d'écran, pour éviter

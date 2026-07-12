@@ -226,6 +226,12 @@
     -fx-text-fill: #a93226;
 }
 
+/* Résultat de la synchronisation à la demande (#1045) : même gabarit que .message-erreur, en vert. */
+.message-synchro {
+    -fx-font-size: 12px;
+    -fx-text-fill: -couleur-succes;
+}
+
 /* .champ-invalide déplacée dans commun/view/design.css (#790) : patron de validation transverse. */
 
 /* Carte-outil de saisie GPS de la modale point (#153) : cadre discret, coins arrondis. */

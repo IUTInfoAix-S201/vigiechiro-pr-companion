@@ -1,5 +1,6 @@
 package fr.univ_amu.iut.sites.viewmodel;
 
+import fr.univ_amu.iut.commun.api.RapportSynchro;
 import fr.univ_amu.iut.commun.model.Horloge;
 import fr.univ_amu.iut.commun.model.LienVigieChiro;
 import fr.univ_amu.iut.commun.model.Protocole;
@@ -9,12 +10,14 @@ import fr.univ_amu.iut.passage.model.dao.PassageDao;
 import fr.univ_amu.iut.sites.model.PointDEcoute;
 import fr.univ_amu.iut.sites.model.ServiceSites;
 import fr.univ_amu.iut.sites.model.Site;
+import fr.univ_amu.iut.sites.model.SynchronisationSites;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javafx.beans.property.ReadOnlyBooleanProperty;
@@ -43,23 +46,58 @@ public class SitesViewModel {
     private final Horloge horloge;
     private final LienVigieChiroDao liens;
     private final String idUtilisateur;
+    private final Optional<SynchronisationSites> synchronisation;
 
     private final ObservableList<CarteSite> cartes = FXCollections.observableArrayList();
     private final ReadOnlyStringWrapper sousTitre = new ReadOnlyStringWrapper(this, "sousTitre", "");
     private final ReadOnlyBooleanWrapper vide = new ReadOnlyBooleanWrapper(this, "vide", true);
     private final ReadOnlyStringWrapper messageErreur = new ReadOnlyStringWrapper(this, "messageErreur", "");
+    private final ReadOnlyStringWrapper messageSynchro = new ReadOnlyStringWrapper(this, "messageSynchro", "");
 
     public SitesViewModel(
             ServiceSites service,
             PassageDao passageDao,
             Horloge horloge,
             LienVigieChiroDao liens,
-            String idUtilisateur) {
+            String idUtilisateur,
+            Optional<SynchronisationSites> synchronisation) {
         this.service = Objects.requireNonNull(service, "service");
         this.passageDao = Objects.requireNonNull(passageDao, "passageDao");
         this.horloge = Objects.requireNonNull(horloge, "horloge");
         this.liens = Objects.requireNonNull(liens, "liens");
         this.idUtilisateur = Objects.requireNonNull(idUtilisateur, "idUtilisateur");
+        this.synchronisation = Objects.requireNonNull(synchronisation, "synchronisation");
+    }
+
+    /// `true` quand la synchronisation à la demande est disponible (app complète). `false` → la vue
+    /// masque le bouton, patron de la modale passage (#937).
+    public boolean peutSynchroniser() {
+        return synchronisation.isPresent();
+    }
+
+    /// Rejoue le pull des sites depuis VigieChiro (#1045). À appeler **hors du fil JavaFX** (réseau +
+    /// écritures base) ; best-effort, sémantique conservatrice de [SynchronisationSites] (jamais
+    /// d’écrasement local). Vide si la passerelle est absente ou n’a rien récupéré.
+    public Optional<RapportSynchro> synchroniserDepuisVigieChiro() {
+        return synchronisation.flatMap(SynchronisationSites::synchroniser);
+    }
+
+    /// À rappeler **sur le fil JavaFX** après [#synchroniserDepuisVigieChiro()] : recharge les cartes
+    /// (le pull a pu créer des sites) puis pose le message de résultat, jamais un silence (#937).
+    public void rechargerApresSynchro(Optional<RapportSynchro> rapport) {
+        rafraichir();
+        messageSynchro.set(rapport.map(SitesViewModel::messageDe)
+                .orElse("Aucun site distant récupéré (hors connexion, ou aucun site sur VigieChiro)."));
+    }
+
+    /// Message de résultat de la synchronisation à la demande, vide tant qu’aucune n’a eu lieu.
+    public ReadOnlyStringProperty messageSynchroProperty() {
+        return messageSynchro.getReadOnlyProperty();
+    }
+
+    private static String messageDe(RapportSynchro rapport) {
+        String sites = rapport.nombre() > 1 ? " sites synchronisés" : " site synchronisé";
+        return rapport.nombre() + sites + " depuis VigieChiro.";
     }
 
     /// Liste observable des cartes de sites, alimentée par [#rafraichir()].

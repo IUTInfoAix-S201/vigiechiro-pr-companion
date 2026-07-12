@@ -23,13 +23,19 @@
     En-tête réduit à son slot d'actions (#693) : le titre « Mes sites de suivi » est redondant avec le
     fil d'Ariane et le résumé (« N sites déclarés… ») est déporté en barre de statut par le controller.
   -->
-  <HBox styleClass="entete-actions" alignment="CENTER_RIGHT">
+  <HBox styleClass="entete-actions" alignment="CENTER_RIGHT" spacing="8.0">
+    <!-- Synchronisation à la demande (#1045) : masqué quand la passerelle VigieChiro est absente. -->
+    <Button fx:id="btnSyncVigieChiro" text="Synchroniser depuis VigieChiro" styleClass="bouton-secondaire"
+            onAction="#synchroniserVigieChiro"/>
     <Button text="+ Nouveau site" styleClass="bouton-primaire" onAction="#nouveauSite"/>
   </HBox>
 
   <!-- Erreur de chargement (#795) : affichée en rouge et masquée tant qu'il n'y a pas d'erreur (un échec
        de lecture des sites restait auparavant silencieux). -->
   <Label fx:id="lblErreur" styleClass="message-erreur" wrapText="true" visible="false" managed="false"/>
+
+  <!-- Résultat de la synchronisation à la demande (#1045), masqué tant qu'aucune n'a eu lieu. -->
+  <Label fx:id="lblSynchro" styleClass="message-synchro" wrapText="true" visible="false" managed="false"/>
 
   <ScrollPane fx:id="zoneListe" fitToWidth="true" styleClass="zone-liste" VBox.vgrow="ALWAYS">
     <VBox fx:id="listeCartes" styleClass="liste-cartes" spacing="12.0"/>

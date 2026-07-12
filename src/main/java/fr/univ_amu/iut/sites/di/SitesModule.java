@@ -21,6 +21,7 @@ import fr.univ_amu.iut.commun.view.OuvrirSite;
 import fr.univ_amu.iut.passage.model.dao.PassageDao;
 import fr.univ_amu.iut.sites.model.RapprochementSites;
 import fr.univ_amu.iut.sites.model.ServiceSites;
+import fr.univ_amu.iut.sites.model.SynchronisationSites;
 import fr.univ_amu.iut.sites.model.dao.PointDao;
 import fr.univ_amu.iut.sites.model.dao.SiteDao;
 import fr.univ_amu.iut.sites.view.ActiviteMesSites;
@@ -30,6 +31,7 @@ import fr.univ_amu.iut.sites.viewmodel.IndicateurSites;
 import fr.univ_amu.iut.sites.viewmodel.PointEditViewModel;
 import fr.univ_amu.iut.sites.viewmodel.SiteDetailViewModel;
 import fr.univ_amu.iut.sites.viewmodel.SitesViewModel;
+import java.util.Optional;
 import java.util.UUID;
 
 /// Module Guice de la feature `sites` : fournit ses DAO à partir de la [SourceDeDonnees]
@@ -80,6 +82,10 @@ public class SitesModule extends ModuleDeFeature {
         // désactivable, #1087). `ImportationModule` fait `setBinding` quand elle est active ; sinon
         // l'Optional reste vide et SiteDetailController masque le bouton « Importer une nuit ».
         OptionalBinder.newOptionalBinder(binder(), OuvrirImportation.class);
+        // Synchronisation des sites à la demande (#1045) : OptionalBinder VIDE, patron de
+        // SynchronisationParticipation (#937). SynchronisationSitesModule fait `setBinding` dans
+        // l’app complète ; sinon l’Optional reste vide et M-Sites masque le bouton.
+        OptionalBinder.newOptionalBinder(binder(), SynchronisationSites.class);
         // Rapprochement des sites locaux avec VigieChiro (#728), invoqué à la connexion.
         Multibinder.newSetBinder(binder(), RapprochementVigieChiro.class)
                 .addBinding()
@@ -147,8 +153,9 @@ public class SitesModule extends ModuleDeFeature {
             PassageDao passageDao,
             Horloge horloge,
             LienVigieChiroDao liens,
-            @Named("idUtilisateurCourant") String idUtilisateur) {
-        return new SitesViewModel(service, passageDao, horloge, liens, idUtilisateur);
+            @Named("idUtilisateurCourant") String idUtilisateur,
+            Optional<SynchronisationSites> synchronisation) {
+        return new SitesViewModel(service, passageDao, horloge, liens, idUtilisateur, synchronisation);
     }
 
     @Provides

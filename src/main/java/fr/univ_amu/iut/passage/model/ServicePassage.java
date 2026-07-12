@@ -1,32 +1,29 @@
 package fr.univ_amu.iut.passage.model;
 
 import fr.univ_amu.iut.commun.model.Alerte;
-import fr.univ_amu.iut.commun.model.CoordonneesPoint;
 import fr.univ_amu.iut.commun.model.Horloge;
-import fr.univ_amu.iut.commun.model.PositionGeo;
-import fr.univ_amu.iut.commun.model.Prefixe;
 import fr.univ_amu.iut.commun.model.Protocole;
 import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.commun.model.ResultatVerification;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.model.Verdict;
-import fr.univ_amu.iut.commun.persistence.UniteDeTravail;
-import fr.univ_amu.iut.passage.model.dao.MaterielMicroDao;
 import fr.univ_amu.iut.passage.model.dao.PassageDao;
-import fr.univ_amu.iut.passage.model.dao.RattachementDao;
 import fr.univ_amu.iut.passage.model.dao.SequenceDao;
 import fr.univ_amu.iut.passage.model.dao.SessionDao;
 import java.nio.file.Path;
 import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-/// Service métier transverse de la feature `passage` : création d'un passage, vérifications de
-/// protocole (R3/R4), pilotage du workflow et pose du verdict. Calqué sur le service de référence
-/// `ServiceSites` (cf. SERVICE-CONVENTIONS).
+/// Service métier central de la feature `passage` : lecture/détail d'un passage, création,
+/// vérifications de protocole (R3/R4/R5), pilotage du workflow et pose du verdict. Calqué sur le
+/// service de référence `ServiceSites` (cf. SERVICE-CONVENTIONS).
+///
+/// Les responsabilités voisines vivent dans leurs services dédiés (#1192) : les **conditions de la
+/// nuit** (météo, matériel du micro) dans [ServiceConditionsPassage], le **rattachement rétroactif**
+/// (re-préfixage disque + base) dans [ServiceRattachement]. La règle R5, partagée avec le
+/// rattachement, vit dans [UniciteQuadruplet].
 ///
 /// Principes repris du patron :
 ///
@@ -55,44 +52,25 @@ public class ServicePassage {
     /// Nom du paramètre `idPassage` (messages `requireNonNull`).
     private static final String ID_PASSAGE = "idPassage";
 
-    /// Préfixe du message d'erreur « passage introuvable ».
-    private static final String PASSAGE_INTROUVABLE = "Passage introuvable : ";
-
     private final PassageDao passageDao;
     private final MoteurWorkflowPassage moteur;
     private final Horloge horloge;
     private final SessionDao sessionDao;
     private final SequenceDao sequenceDao;
-    private final ReprefixeurSession reprefixeur;
-    private final UniteDeTravail uniteDeTravail;
-    private final RattachementDao rattachementDao;
-    private final MaterielMicroDao materielDao;
-    private final CoordonneesPoint coordonnees;
-    private final FournisseurMeteo fournisseurMeteo;
+    private final UniciteQuadruplet unicite;
 
     public ServicePassage(
             PassageDao passageDao,
             MoteurWorkflowPassage moteur,
             Horloge horloge,
             SessionDao sessionDao,
-            SequenceDao sequenceDao,
-            ReprefixeurSession reprefixeur,
-            UniteDeTravail uniteDeTravail,
-            RattachementDao rattachementDao,
-            MaterielMicroDao materielDao,
-            CoordonneesPoint coordonnees,
-            FournisseurMeteo fournisseurMeteo) {
+            SequenceDao sequenceDao) {
         this.passageDao = Objects.requireNonNull(passageDao, "passageDao");
         this.moteur = Objects.requireNonNull(moteur, "moteur");
         this.horloge = Objects.requireNonNull(horloge, "horloge");
         this.sessionDao = Objects.requireNonNull(sessionDao, "sessionDao");
         this.sequenceDao = Objects.requireNonNull(sequenceDao, "sequenceDao");
-        this.reprefixeur = Objects.requireNonNull(reprefixeur, "reprefixeur");
-        this.uniteDeTravail = Objects.requireNonNull(uniteDeTravail, "uniteDeTravail");
-        this.rattachementDao = Objects.requireNonNull(rattachementDao, "rattachementDao");
-        this.materielDao = Objects.requireNonNull(materielDao, "materielDao");
-        this.coordonnees = Objects.requireNonNull(coordonnees, "coordonnees");
-        this.fournisseurMeteo = Objects.requireNonNull(fournisseurMeteo, "fournisseurMeteo");
+        this.unicite = new UniciteQuadruplet(passageDao);
     }
 
     /// Nombre total de passages (compteur du tableau de bord d'accueil).
@@ -106,10 +84,7 @@ public class ServicePassage {
     ///
     /// @throws RegleMetierException si le passage est introuvable
     public DetailPassage detailPassage(Long idPassage) {
-        Objects.requireNonNull(idPassage, ID_PASSAGE);
-        Passage passage = passageDao
-                .findById(idPassage)
-                .orElseThrow(() -> new RegleMetierException(PASSAGE_INTROUVABLE + idPassage));
+        Passage passage = charger(idPassage);
         Optional<SessionDEnregistrement> session = sessionDao.trouverParPassage(idPassage);
         List<SequenceDEcoute> sequences =
                 session.map(s -> sequenceDao.findBySession(s.id())).orElseGet(List::of);
@@ -153,114 +128,10 @@ public class ServicePassage {
         sessionDao.trouverParPassage(idPassage).ifPresent(s -> sessionDao.marquerOriginauxPurges(s.id()));
     }
 
-    /// Renseigne (ou efface, avec `null`) la **température en début de nuit** (°C) d'un passage (#106) :
-    /// donnée **optionnelle**, jamais bloquante. Stockée dans `passage.weather_data` via [MeteoPassage].
-    ///
-    /// @param idPassage passage cible
-    /// @param temperatureDebutNuit température en °C, ou `null` pour effacer
-    /// @return le passage mis à jour
-    public Passage definirTemperatureDebutNuit(Long idPassage, Double temperatureDebutNuit) {
-        Objects.requireNonNull(idPassage, ID_PASSAGE);
-        Passage passage = passageDao
-                .findById(idPassage)
-                .orElseThrow(() -> new RegleMetierException(PASSAGE_INTROUVABLE + idPassage));
-        Passage modifie = avecDonneesMeteo(passage, MeteoPassage.definir(passage.donneesMeteo(), temperatureDebutNuit));
-        passageDao.update(modifie);
-        return modifie;
-    }
-
-    /// Renseigne le **relevé météo complet** d'un passage (température début/fin, vent, couverture
-    /// nuageuse ; #106 étendu) : données **optionnelles** stockées dans `passage.weather_data` via
-    /// [MeteoPassage]. Chaque grandeur `null` du relevé efface sa clé ; les autres clés sont préservées.
-    ///
-    /// @param idPassage passage cible
-    /// @param releve relevé météo (grandeurs optionnelles ; `null` par grandeur = effacer)
-    /// @return le passage mis à jour
-    public Passage definirMeteo(Long idPassage, MeteoReleve releve) {
-        Objects.requireNonNull(idPassage, ID_PASSAGE);
-        Passage passage = passageDao
-                .findById(idPassage)
-                .orElseThrow(() -> new RegleMetierException(PASSAGE_INTROUVABLE + idPassage));
-        Passage modifie = avecDonneesMeteo(passage, MeteoPassage.definirReleve(passage.donneesMeteo(), releve));
-        passageDao.update(modifie);
-        return modifie;
-    }
-
-    /// Copie `passage` en ne changeant que ses données météo sérialisées (colonne `weather_data`),
-    /// factorisée par les deux points d'entrée météo ci-dessus.
-    private static Passage avecDonneesMeteo(Passage passage, String donneesMeteo) {
-        return new Passage(
-                passage.id(),
-                passage.numeroPassage(),
-                passage.annee(),
-                passage.dateEnregistrement(),
-                passage.heureDebut(),
-                passage.heureFin(),
-                passage.parametresAcquisition(),
-                passage.statutWorkflow(),
-                passage.verdictVerification(),
-                passage.commentaire(),
-                donneesMeteo,
-                passage.deposeLe(),
-                passage.idPoint(),
-                passage.idEnregistreur());
-    }
-
-    /// Matériel du micro déployé pour le passage `idPassage` (position sol/canopée, hauteur de fixation,
-    /// type ; métadonnées de dépôt VigieChiro). Renvoie un [MaterielMicro#vide] si rien n'a été saisi —
-    /// jamais `null`. Le n° de série du détecteur n'est pas ici (il vit sur l'enregistreur du passage).
-    public MaterielMicro materiel(Long idPassage) {
-        Objects.requireNonNull(idPassage, ID_PASSAGE);
-        return materielDao.pour(idPassage);
-    }
-
-    /// Enregistre le **matériel du micro** d'un passage (ou **efface** la ligne si le relevé est vide),
-    /// dans la table `passage_equipment`. Le passage lui-même n'est pas modifié. Le `materiel` porte son
-    /// `idPassage`.
-    ///
-    /// @param materiel matériel saisi (grandeurs optionnelles), rattaché à son passage
-    public void definirMateriel(MaterielMicro materiel) {
-        Objects.requireNonNull(materiel, "materiel");
-        materielDao.definir(materiel);
-    }
-
-    /// Tente de **récupérer la météo** de la nuit d'un passage via le [FournisseurMeteo] (Open-Meteo),
-    /// pour pré-remplir le relevé : au **GPS du point** (obtenu via le port socle [CoordonneesPoint],
-    /// implémenté par `sites`, pour éviter un cycle passage ↔ sites) et aux **heures de début/fin**
-    /// du passage. **Jamais bloquant** : [Optional#empty()] si le point n'a pas de GPS, si les
-    /// horodatages sont illisibles, ou si le service est indisponible (hors-ligne).
-    ///
-    /// ⚠️ **Opération réseau** : à appeler **hors du fil JavaFX** (l'IHM la lance en tâche de fond).
-    ///
-    /// @param idPassage passage cible
-    /// @return le relevé météo récupéré (grandeurs éventuellement partielles), ou vide
-    public Optional<MeteoReleve> recupererMeteo(Long idPassage) {
-        Objects.requireNonNull(idPassage, ID_PASSAGE);
-        Passage passage = passageDao
-                .findById(idPassage)
-                .orElseThrow(() -> new RegleMetierException(PASSAGE_INTROUVABLE + idPassage));
-        Optional<PositionGeo> position = coordonnees.pour(passage.idPoint());
-        if (position.isEmpty()) {
-            return Optional.empty();
-        }
-        PositionGeo point = position.get();
-        try {
-            return fournisseurMeteo.pour(
-                    point.latitude(),
-                    point.longitude(),
-                    LocalDate.parse(passage.dateEnregistrement()),
-                    LocalTime.parse(passage.heureDebut()),
-                    LocalTime.parse(passage.heureFin()));
-        } catch (DateTimeParseException horodatageInvalide) {
-            return Optional.empty();
-        }
-    }
-
     /// Crée un passage à l'état initial [StatutWorkflow#IMPORTE], sans verdict.
     ///
     /// - R5 (dur) : refuse si le quadruplet `(point, année, n° de passage)` existe déjà —
-    /// pré-vérifié via [PassageDao#trouverParPointAnneePassage] (filet : contrainte `UNIQUE` du
-    /// schéma).
+    /// pré-vérifié via [UniciteQuadruplet] (filet : contrainte `UNIQUE` du schéma).
     /// - Année : déduite de la date d'enregistrement. Si `dateEnregistrement` est `null`, on prend
     /// la date du jour de l'[Horloge] (déterministe en test).
     ///
@@ -283,7 +154,7 @@ public class ServicePassage {
         Objects.requireNonNull(idPoint, "idPoint");
         LocalDate date = dateEnregistrement != null ? dateEnregistrement : horloge.aujourdhui();
         int annee = date.getYear();
-        exigerQuadrupletUnique(idPoint, annee, numeroPassage); // R5
+        unicite.exiger(idPoint, annee, numeroPassage); // R5
         Passage aCreer = new Passage(
                 null,
                 numeroPassage,
@@ -471,10 +342,7 @@ public class ServicePassage {
     ///
     /// @throws RegleMetierException si le passage est introuvable ou déjà déposé
     public void supprimer(Long idPassage) {
-        Objects.requireNonNull(idPassage, ID_PASSAGE);
-        Passage passage = passageDao
-                .findById(idPassage)
-                .orElseThrow(() -> new RegleMetierException(PASSAGE_INTROUVABLE + idPassage));
+        Passage passage = charger(idPassage);
         if (passage.statutWorkflow() == StatutWorkflow.DEPOSE) {
             throw new RegleMetierException("Suppression refusée : un passage déposé ne peut pas être supprimé.");
         }
@@ -492,10 +360,7 @@ public class ServicePassage {
     ///
     /// @throws RegleMetierException si le passage est introuvable ou n'est **pas** déposé
     public Passage annulerDepot(Long idPassage) {
-        Objects.requireNonNull(idPassage, ID_PASSAGE);
-        Passage passage = passageDao
-                .findById(idPassage)
-                .orElseThrow(() -> new RegleMetierException(PASSAGE_INTROUVABLE + idPassage));
+        Passage passage = charger(idPassage);
         if (passage.statutWorkflow() != StatutWorkflow.DEPOSE) {
             throw new RegleMetierException(
                     "Annulation du dépôt impossible : le passage n'est pas déposé (statut actuel : « "
@@ -521,94 +386,11 @@ public class ServicePassage {
         return misAJour;
     }
 
-    /// Modifie rétroactivement le rattachement d'un passage (E2.S8) : nouvelle année et/ou n° de
-    /// passage, **même site/point**. Le préfixe `Car<carré>-<année>-Pass<n>-<point>` change : tous
-    /// les fichiers de la nuit (dossier, originaux, séquences) sont re-renommés.
-    ///
-    /// Ordre (atomicité best-effort base/disque) : (1) contrôle **R5** du nouveau quadruplet ;
-    /// (2) re-préfixage **disque** ([ReprefixeurSession], rollback interne) ; (3) transaction
-    /// **base** ([UniteDeTravail]) du quadruplet et des chemins (session, originaux, séquences,
-    /// journal, relevé — [RattachementDao]). Si la transaction échoue, le disque est **remis dans
-    /// son état initial** (compensation) avant que l'erreur ne soit propagée.
-    ///
-    /// Le carré et le code point (inchangés) sont fournis par l'appelant via `nouveau` (le `model` ne
-    /// dépend pas de `sites`) ; l'ancien préfixe est reconstruit depuis l'année/n° courants.
-    ///
-    /// Un passage **déposé** (ou en cours de dépôt) n'est plus renommable : son nom est l'identité de
-    /// ses fichiers côté serveur (renommer après dépôt divergerait de la plateforme). Il faut d'abord
-    /// [#annulerDepot].
-    ///
-    /// @param nouveau préfixe cible (même carré/point, nouvelle année et/ou n° de passage)
-    /// @throws RegleMetierException si le passage est introuvable, déjà déposé, ou si le nouveau
-    ///     quadruplet existe déjà
-    public void modifierRattachement(Long idPassage, Prefixe nouveau) {
+    private Passage charger(Long idPassage) {
         Objects.requireNonNull(idPassage, ID_PASSAGE);
-        Objects.requireNonNull(nouveau, "nouveau");
-        Passage passage = passageDao
+        return passageDao
                 .findById(idPassage)
-                .orElseThrow(() -> new RegleMetierException(PASSAGE_INTROUVABLE + idPassage));
-        if (passage.statutWorkflow() == StatutWorkflow.DEPOSE
-                || passage.statutWorkflow() == StatutWorkflow.DEPOT_EN_COURS) {
-            throw new RegleMetierException(
-                    "Renommage refusé : un passage déposé (ou en cours de dépôt) ne peut plus être renommé."
-                            + " Annulez d'abord le dépôt.");
-        }
-        Prefixe ancien = new Prefixe(nouveau.carre(), passage.annee(), passage.numeroPassage(), nouveau.codePoint());
-        if (ancien.equals(nouveau)) {
-            return; // ni l'année ni le n° de passage n'ont changé : rien à faire
-        }
-        exigerQuadrupletUnique(passage.idPoint(), nouveau.annee(), nouveau.numeroPassage());
-
-        Optional<SessionDEnregistrement> session = sessionDao.trouverParPassage(idPassage);
-        Long idSession = session.map(SessionDEnregistrement::id).orElse(null);
-        Path ancienneRacine = session.map(s -> Path.of(s.cheminRacine())).orElse(null);
-        // Une session en base implique un dossier sur disque : on le re-préfixe ([ReprefixeurSession]
-        // échoue, avant toute écriture base, si le dossier est absent ou la cible occupée). Seul un
-        // passage sans session du tout (jamais importé) saute l'étape disque.
-        Path nouvelleRacine = ancienneRacine == null ? null : reprefixeur.reprefixer(ancienneRacine, ancien, nouveau);
-
-        try {
-            uniteDeTravail.executer(cx -> {
-                rattachementDao.majQuadruplet(cx, idPassage, nouveau.annee(), nouveau.numeroPassage());
-                if (idSession != null) {
-                    rattachementDao.reprefixerChemins(
-                            cx,
-                            idPassage,
-                            idSession,
-                            ancienneRacine,
-                            nouvelleRacine,
-                            ancien.prefixeFichier(),
-                            nouveau.prefixeFichier());
-                }
-            });
-        } catch (RuntimeException echec) {
-            if (nouvelleRacine != null) {
-                compenser(nouvelleRacine, nouveau, ancien, echec);
-            }
-            throw echec;
-        }
-    }
-
-    /// Remet le dossier de session dans son état initial après un échec de la transaction base ; une
-    /// erreur de compensation est rattachée à l'erreur d'origine plutôt que de la masquer.
-    private void compenser(Path nouvelleRacine, Prefixe nouveau, Prefixe ancien, RuntimeException origine) {
-        try {
-            reprefixeur.reprefixer(nouvelleRacine, nouveau, ancien);
-        } catch (RuntimeException echecCompensation) {
-            origine.addSuppressed(echecCompensation);
-        }
-    }
-
-    private void exigerQuadrupletUnique(Long idPoint, int annee, int numeroPassage) {
-        if (passageDao
-                .trouverParPointAnneePassage(idPoint, annee, numeroPassage)
-                .isPresent()) {
-            throw new RegleMetierException("Un passage n°"
-                    + numeroPassage
-                    + " existe déjà pour ce point en "
-                    + annee
-                    + " (le quadruplet point/année/n° de passage doit être unique).");
-        }
+                .orElseThrow(() -> new RegleMetierException("Passage introuvable : " + idPassage));
     }
 
     private static boolean estLeMemePassage(Passage a, Passage b) {

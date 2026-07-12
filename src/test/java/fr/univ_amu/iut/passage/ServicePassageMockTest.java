@@ -13,18 +13,16 @@ import fr.univ_amu.iut.commun.model.HorlogeFigee;
 import fr.univ_amu.iut.commun.model.PositionGeo;
 import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
-import fr.univ_amu.iut.commun.persistence.UniteDeTravail;
 import fr.univ_amu.iut.passage.model.CouvertureNuageuse;
 import fr.univ_amu.iut.passage.model.FournisseurMeteo;
 import fr.univ_amu.iut.passage.model.MeteoReleve;
 import fr.univ_amu.iut.passage.model.MoteurWorkflowPassage;
 import fr.univ_amu.iut.passage.model.Passage;
-import fr.univ_amu.iut.passage.model.ReprefixeurSession;
+import fr.univ_amu.iut.passage.model.ServiceConditionsPassage;
 import fr.univ_amu.iut.passage.model.ServicePassage;
 import fr.univ_amu.iut.passage.model.Vent;
 import fr.univ_amu.iut.passage.model.dao.MaterielMicroDao;
 import fr.univ_amu.iut.passage.model.dao.PassageDao;
-import fr.univ_amu.iut.passage.model.dao.RattachementDao;
 import fr.univ_amu.iut.passage.model.dao.SequenceDao;
 import fr.univ_amu.iut.passage.model.dao.SessionDao;
 import java.time.LocalDate;
@@ -53,12 +51,6 @@ class ServicePassageMockTest {
     private SequenceDao sequenceDao;
 
     @Mock
-    private UniteDeTravail uniteDeTravail;
-
-    @Mock
-    private RattachementDao rattachementDao;
-
-    @Mock
     private CoordonneesPoint coordonnees;
 
     @Mock
@@ -73,13 +65,12 @@ class ServicePassageMockTest {
                 new MoteurWorkflowPassage(),
                 new HorlogeFigee(LocalDate.of(2026, 6, 20)),
                 sessionDao,
-                sequenceDao,
-                new ReprefixeurSession(),
-                uniteDeTravail,
-                rattachementDao,
-                materielDao,
-                coordonnees,
-                fournisseurMeteo);
+                sequenceDao);
+    }
+
+    /// Conditions de la nuit (météo), extraites de ServicePassage (#1192).
+    private ServiceConditionsPassage conditions() {
+        return new ServiceConditionsPassage(passageDao, materielDao, coordonnees, fournisseurMeteo);
     }
 
     @Test
@@ -146,7 +137,7 @@ class ServicePassageMockTest {
         when(fournisseurMeteo.pour(43.4, -1.5, LocalDate.of(2026, 6, 20), LocalTime.of(21, 30), LocalTime.of(5, 15)))
                 .thenReturn(Optional.of(attendu));
 
-        assertThat(service().recupererMeteo(7L)).contains(attendu);
+        assertThat(conditions().recupererMeteo(7L)).contains(attendu);
     }
 
     @Test
@@ -155,7 +146,7 @@ class ServicePassageMockTest {
         when(passageDao.findById(7L)).thenReturn(Optional.of(passageNuit(7L)));
         when(coordonnees.pour(1L)).thenReturn(Optional.empty());
 
-        assertThat(service().recupererMeteo(7L)).isEmpty();
+        assertThat(conditions().recupererMeteo(7L)).isEmpty();
         verifyNoInteractions(fournisseurMeteo);
     }
 

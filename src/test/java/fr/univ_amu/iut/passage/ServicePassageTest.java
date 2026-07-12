@@ -22,10 +22,10 @@ import fr.univ_amu.iut.passage.model.Passage;
 import fr.univ_amu.iut.passage.model.ReprefixeurSession;
 import fr.univ_amu.iut.passage.model.SequenceDEcoute;
 import fr.univ_amu.iut.passage.model.ServicePassage;
+import fr.univ_amu.iut.passage.model.ServiceRattachement;
 import fr.univ_amu.iut.passage.model.SessionDEnregistrement;
 import fr.univ_amu.iut.passage.model.dao.EnregistrementOriginalDao;
 import fr.univ_amu.iut.passage.model.dao.EnregistreurDao;
-import fr.univ_amu.iut.passage.model.dao.MaterielMicroDao;
 import fr.univ_amu.iut.passage.model.dao.PassageDao;
 import fr.univ_amu.iut.passage.model.dao.RattachementDao;
 import fr.univ_amu.iut.passage.model.dao.SequenceDao;
@@ -38,7 +38,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
-import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -62,6 +61,7 @@ class ServicePassageTest {
 
     private SourceDeDonnees source;
     private ServicePassage service;
+    private ServiceRattachement rattachement;
     private PassageDao passageDao;
     private Long idPoint;
 
@@ -82,13 +82,13 @@ class ServicePassageTest {
                 new MoteurWorkflowPassage(),
                 new HorlogeFigee(JOUR_FIXE),
                 new SessionDao(source),
-                new SequenceDao(source),
+                new SequenceDao(source));
+        rattachement = new ServiceRattachement(
+                passageDao,
+                new SessionDao(source),
                 new ReprefixeurSession(),
                 new UniteDeTravail(source),
-                new RattachementDao(),
-                new MaterielMicroDao(source),
-                idPoint -> Optional.empty(),
-                (lat, lon, jour, debut, fin) -> Optional.empty());
+                new RattachementDao());
     }
 
     /// Construit un passage candidat (non persisté) pour les vérifications R3/R4.
@@ -481,7 +481,7 @@ class ServicePassageTest {
     void modifier_rattachement_renomme_et_met_a_jour() throws IOException {
         long id = seederNuit(2026, 1);
 
-        service.modifierRattachement(id, new Prefixe("040962", 2026, 2, "A1"));
+        rattachement.modifierRattachement(id, new Prefixe("040962", 2026, 2, "A1"));
 
         assertThat(dossier.resolve("Car040962-2026-Pass1-A1")).doesNotExist();
         Path nouvelle = dossier.resolve("Car040962-2026-Pass2-A1");
@@ -501,7 +501,7 @@ class ServicePassageTest {
         long id = seederNuit(2026, 1);
         seederNuit(2026, 2); // occupe le quadruplet cible
 
-        assertThatThrownBy(() -> service.modifierRattachement(id, new Prefixe("040962", 2026, 2, "A1")))
+        assertThatThrownBy(() -> rattachement.modifierRattachement(id, new Prefixe("040962", 2026, 2, "A1")))
                 .isInstanceOf(RegleMetierException.class);
         assertThat(dossier.resolve("Car040962-2026-Pass1-A1")).exists(); // source intacte
         assertThat(passageDao.findById(id).orElseThrow().numeroPassage()).isEqualTo(1);
@@ -512,7 +512,7 @@ class ServicePassageTest {
     void modifier_rattachement_sans_changement_est_neutre() throws IOException {
         long id = seederNuit(2026, 1);
 
-        service.modifierRattachement(id, new Prefixe("040962", 2026, 1, "A1"));
+        rattachement.modifierRattachement(id, new Prefixe("040962", 2026, 1, "A1"));
 
         assertThat(dossier.resolve("Car040962-2026-Pass1-A1")).exists();
         assertThat(passageDao.findById(id).orElseThrow().numeroPassage()).isEqualTo(1);
@@ -526,7 +526,7 @@ class ServicePassageTest {
                 .insert(new SessionDEnregistrement(
                         null, dossier.resolve("Car040962-2026-Pass1-A1").toString(), 0L, 0L, id));
 
-        assertThatThrownBy(() -> service.modifierRattachement(id, new Prefixe("040962", 2026, 2, "A1")))
+        assertThatThrownBy(() -> rattachement.modifierRattachement(id, new Prefixe("040962", 2026, 2, "A1")))
                 .isInstanceOf(java.io.UncheckedIOException.class);
         assertThat(passageDao.findById(id).orElseThrow().numeroPassage()).isEqualTo(1);
     }
@@ -550,7 +550,7 @@ class ServicePassageTest {
                 idPoint,
                 SERIE));
 
-        assertThatThrownBy(() -> service.modifierRattachement(depose.id(), new Prefixe("040962", 2026, 2, "A1")))
+        assertThatThrownBy(() -> rattachement.modifierRattachement(depose.id(), new Prefixe("040962", 2026, 2, "A1")))
                 .isInstanceOf(RegleMetierException.class)
                 .hasMessageContaining("Renommage refusé");
         assertThat(passageDao.findById(depose.id()).orElseThrow().numeroPassage())
@@ -577,7 +577,7 @@ class ServicePassageTest {
                 idPoint,
                 SERIE));
 
-        assertThatThrownBy(() -> service.modifierRattachement(enCours.id(), new Prefixe("040962", 2026, 2, "A1")))
+        assertThatThrownBy(() -> rattachement.modifierRattachement(enCours.id(), new Prefixe("040962", 2026, 2, "A1")))
                 .isInstanceOf(RegleMetierException.class)
                 .hasMessageContaining("Renommage refusé");
     }

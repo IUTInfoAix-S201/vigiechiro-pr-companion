@@ -12,21 +12,20 @@ import fr.univ_amu.iut.commun.model.Workspace;
 import fr.univ_amu.iut.commun.model.dao.UtilisateurDao;
 import fr.univ_amu.iut.commun.persistence.MigrationSchema;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
-import fr.univ_amu.iut.commun.persistence.UniteDeTravail;
 import fr.univ_amu.iut.passage.model.DetailPassage;
 import fr.univ_amu.iut.passage.model.EnregistrementOriginal;
 import fr.univ_amu.iut.passage.model.Enregistreur;
+import fr.univ_amu.iut.passage.model.MeteoReleve;
 import fr.univ_amu.iut.passage.model.MoteurWorkflowPassage;
 import fr.univ_amu.iut.passage.model.Passage;
-import fr.univ_amu.iut.passage.model.ReprefixeurSession;
 import fr.univ_amu.iut.passage.model.SequenceDEcoute;
+import fr.univ_amu.iut.passage.model.ServiceConditionsPassage;
 import fr.univ_amu.iut.passage.model.ServicePassage;
 import fr.univ_amu.iut.passage.model.SessionDEnregistrement;
 import fr.univ_amu.iut.passage.model.dao.EnregistrementOriginalDao;
 import fr.univ_amu.iut.passage.model.dao.EnregistreurDao;
 import fr.univ_amu.iut.passage.model.dao.MaterielMicroDao;
 import fr.univ_amu.iut.passage.model.dao.PassageDao;
-import fr.univ_amu.iut.passage.model.dao.RattachementDao;
 import fr.univ_amu.iut.passage.model.dao.SequenceDao;
 import fr.univ_amu.iut.passage.model.dao.SessionDao;
 import fr.univ_amu.iut.sites.model.PointDEcoute;
@@ -53,6 +52,7 @@ class ServicePassageDetailTest {
     Path dossier;
 
     private ServicePassage service;
+    private ServiceConditionsPassage conditions;
     private PassageDao passageDao;
     private SessionDao sessionDao;
     private EnregistrementOriginalDao originalDao;
@@ -79,10 +79,9 @@ class ServicePassageDetailTest {
                 new MoteurWorkflowPassage(),
                 new HorlogeFigee(LocalDate.of(2026, 6, 22)),
                 sessionDao,
-                sequenceDao,
-                new ReprefixeurSession(),
-                new UniteDeTravail(source),
-                new RattachementDao(),
+                sequenceDao);
+        conditions = new ServiceConditionsPassage(
+                passageDao,
                 new MaterielMicroDao(source),
                 idPoint -> Optional.empty(),
                 (lat, lon, jour, debut, fin) -> Optional.empty());
@@ -159,17 +158,17 @@ class ServicePassageDetailTest {
                 .as("température non renseignée par défaut")
                 .isNull();
 
-        service.definirTemperatureDebutNuit(passage.id(), 8.5);
+        conditions.definirMeteo(passage.id(), new MeteoReleve(8.5, null, null, null));
         assertThat(service.detailPassage(passage.id()).meteo().temperatureDebutNuit())
                 .isEqualTo(8.5);
 
-        service.definirTemperatureDebutNuit(passage.id(), null); // saisie vide → effacement
+        conditions.definirMeteo(passage.id(), MeteoReleve.VIDE); // saisie vide → effacement
         assertThat(service.detailPassage(passage.id()).meteo().temperatureDebutNuit())
                 .isNull();
     }
 
     @Test
-    @DisplayName("#106 : definirTemperatureDebutNuit préserve les autres clés météo de weather_data")
+    @DisplayName("#106 : definirMeteo préserve les autres clés météo de weather_data")
     void temperature_preserve_les_autres_cles() {
         Passage passage = passageDao.insert(new Passage(
                 null,
@@ -187,7 +186,7 @@ class ServicePassageDetailTest {
                 idPoint,
                 SERIE));
 
-        service.definirTemperatureDebutNuit(passage.id(), 8.5);
+        conditions.definirMeteo(passage.id(), new MeteoReleve(8.5, null, null, null));
 
         String meteo = passageDao.findById(passage.id()).orElseThrow().donneesMeteo();
         assertThat(meteo).contains("\"hygro\":80").contains("\"tempDebut\":8.5");

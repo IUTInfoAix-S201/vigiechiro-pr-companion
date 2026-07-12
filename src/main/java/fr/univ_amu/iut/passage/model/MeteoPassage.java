@@ -46,16 +46,6 @@ public final class MeteoPassage {
                 lireCouverture(champs.get(CLE_COUVERTURE)));
     }
 
-    /// Met à jour la **température de début de nuit** dans `donneesMeteoExistant` en **préservant les
-    /// autres clés** : `null` efface la clé. Renvoie le nouvel objet JSON, ou `null` s'il devient vide.
-    ///
-    /// @throws IllegalArgumentException si `temperature` n'est pas finie (NaN/Infini)
-    public static String definir(String donneesMeteoExistant, Double temperature) {
-        Map<String, String> champs = ObjetJson.lire(donneesMeteoExistant);
-        poser(champs, CLE_TEMPERATURE, temperature);
-        return ObjetJson.ecrire(champs);
-    }
-
     /// Écrit un **relevé complet** dans `donneesMeteoExistant` en **préservant les clés inconnues** :
     /// chaque grandeur `null` efface sa clé, chaque grandeur renseignée la (re)pose. Renvoie le nouvel
     /// objet JSON, ou `null` s'il devient vide.

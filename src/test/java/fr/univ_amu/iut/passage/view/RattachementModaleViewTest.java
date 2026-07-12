@@ -15,7 +15,9 @@ import fr.univ_amu.iut.passage.model.CouvertureNuageuse;
 import fr.univ_amu.iut.passage.model.DetailPassage;
 import fr.univ_amu.iut.passage.model.MaterielMicro;
 import fr.univ_amu.iut.passage.model.PositionMicro;
+import fr.univ_amu.iut.passage.model.ServiceConditionsPassage;
 import fr.univ_amu.iut.passage.model.ServicePassage;
+import fr.univ_amu.iut.passage.model.ServiceRattachement;
 import fr.univ_amu.iut.passage.model.Vent;
 import fr.univ_amu.iut.passage.viewmodel.RattachementViewModel;
 import java.util.ArrayList;
@@ -71,7 +73,11 @@ class RattachementModaleViewTest {
         Injector injector = Guice.createInjector(new AbstractModule() {
             @Provides
             RattachementViewModel viewModel() {
-                viewModel = new RattachementViewModel(service, Optional.empty());
+                viewModel = new RattachementViewModel(
+                        service,
+                        mock(ServiceRattachement.class),
+                        mock(ServiceConditionsPassage.class),
+                        Optional.empty());
                 return viewModel;
             }
         });

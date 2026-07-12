@@ -3,7 +3,9 @@ package fr.univ_amu.iut.passage.viewmodel;
 import fr.univ_amu.iut.commun.model.Prefixe;
 import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.passage.model.DetailPassage;
+import fr.univ_amu.iut.passage.model.ServiceConditionsPassage;
 import fr.univ_amu.iut.passage.model.ServicePassage;
+import fr.univ_amu.iut.passage.model.ServiceRattachement;
 import fr.univ_amu.iut.passage.model.SynchronisationParticipation;
 import java.util.Objects;
 import java.util.Optional;
@@ -19,10 +21,11 @@ import javafx.beans.property.SimpleIntegerProperty;
 /// éditables ([#anneeProperty], [#numeroPassageProperty]), un **récapitulatif** réactif des
 /// conséquences ([#recapProperty] : « X → Y, N séquences renommées ») et un message d'erreur. Le
 /// carré et le code point (inchangés) sont fournis par la navigation : le `model`/`viewmodel` ne
-/// dépend pas de `sites`. [#valider] délègue à [ServicePassage#modifierRattachement].
+/// dépend pas de `sites`. [#valider] délègue à [ServiceRattachement#modifierRattachement].
 public class RattachementViewModel {
 
     private final ServicePassage service;
+    private final ServiceRattachement rattachement;
 
     /// Passerelle VigieChiro (axe 4), **optionnelle** : présente dans l'app complète (connexion). Sert à
     /// **pousser** les métadonnées du passage vers sa participation à la validation ([#pousserVersVigieChiro]).
@@ -45,10 +48,15 @@ public class RattachementViewModel {
     private int numeroActuel;
     private int nombreSequences;
 
-    public RattachementViewModel(ServicePassage service, Optional<SynchronisationParticipation> synchronisation) {
+    public RattachementViewModel(
+            ServicePassage service,
+            ServiceRattachement rattachement,
+            ServiceConditionsPassage conditionsPassage,
+            Optional<SynchronisationParticipation> synchronisation) {
         this.service = Objects.requireNonNull(service, "service");
         this.synchronisation = Objects.requireNonNull(synchronisation, "synchronisation");
-        this.conditions = new SaisiePassageConditions(service, messageErreur);
+        this.rattachement = Objects.requireNonNull(rattachement, "rattachement");
+        this.conditions = new SaisiePassageConditions(conditionsPassage, messageErreur);
         annee.addListener((observable, avant, apres) -> majRecap());
         numeroPassage.addListener((observable, avant, apres) -> majRecap());
     }
@@ -90,7 +98,8 @@ public class RattachementViewModel {
             return false;
         }
         try {
-            service.modifierRattachement(idPassage, new Prefixe(carre, annee.get(), numeroPassage.get(), codePoint));
+            rattachement.modifierRattachement(
+                    idPassage, new Prefixe(carre, annee.get(), numeroPassage.get(), codePoint));
             messageErreur.set("");
             return true;
         } catch (RuntimeException echec) {

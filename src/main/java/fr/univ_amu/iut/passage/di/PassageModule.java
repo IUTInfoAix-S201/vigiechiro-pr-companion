@@ -20,7 +20,9 @@ import fr.univ_amu.iut.passage.model.FournisseurMeteo;
 import fr.univ_amu.iut.passage.model.MeteoOpenMeteo;
 import fr.univ_amu.iut.passage.model.MoteurWorkflowPassage;
 import fr.univ_amu.iut.passage.model.ReprefixeurSession;
+import fr.univ_amu.iut.passage.model.ServiceConditionsPassage;
 import fr.univ_amu.iut.passage.model.ServicePassage;
+import fr.univ_amu.iut.passage.model.ServiceRattachement;
 import fr.univ_amu.iut.passage.model.SynchronisationParticipation;
 import fr.univ_amu.iut.passage.model.dao.EnregistrementOriginalDao;
 import fr.univ_amu.iut.passage.model.dao.EnregistreurDao;
@@ -187,25 +189,31 @@ public class PassageModule extends ModuleDeFeature {
             MoteurWorkflowPassage moteur,
             Horloge horloge,
             SessionDao sessionDao,
-            SequenceDao sequenceDao,
-            ReprefixeurSession reprefixeur,
-            UniteDeTravail uniteDeTravail,
-            RattachementDao rattachementDao,
+            SequenceDao sequenceDao) {
+        return new ServicePassage(passageDao, moteur, horloge, sessionDao, sequenceDao);
+    }
+
+    /// Conditions de la nuit (météo #106/#697, matériel du micro #543), extraites de ServicePassage (#1192).
+    @Provides
+    @Singleton
+    ServiceConditionsPassage fournirServiceConditionsPassage(
+            PassageDao passageDao,
             MaterielMicroDao materielDao,
             CoordonneesPoint coordonnees,
             FournisseurMeteo fournisseurMeteo) {
-        return new ServicePassage(
-                passageDao,
-                moteur,
-                horloge,
-                sessionDao,
-                sequenceDao,
-                reprefixeur,
-                uniteDeTravail,
-                rattachementDao,
-                materielDao,
-                coordonnees,
-                fournisseurMeteo);
+        return new ServiceConditionsPassage(passageDao, materielDao, coordonnees, fournisseurMeteo);
+    }
+
+    /// Rattachement rétroactif (E2.S8), extrait de ServicePassage (#1192).
+    @Provides
+    @Singleton
+    ServiceRattachement fournirServiceRattachement(
+            PassageDao passageDao,
+            SessionDao sessionDao,
+            ReprefixeurSession reprefixeur,
+            UniteDeTravail uniteDeTravail,
+            RattachementDao rattachementDao) {
+        return new ServiceRattachement(passageDao, sessionDao, reprefixeur, uniteDeTravail, rattachementDao);
     }
 
     /// ViewModel de l'écran M-Passage. **Non-singleton** (un VM frais par chargement FXML, comme les
@@ -219,7 +227,10 @@ public class PassageModule extends ModuleDeFeature {
     /// par ouverture de modale.
     @Provides
     RattachementViewModel fournirRattachementViewModel(
-            ServicePassage service, Optional<SynchronisationParticipation> synchronisation) {
-        return new RattachementViewModel(service, synchronisation);
+            ServicePassage service,
+            ServiceRattachement rattachement,
+            ServiceConditionsPassage conditions,
+            Optional<SynchronisationParticipation> synchronisation) {
+        return new RattachementViewModel(service, rattachement, conditions, synchronisation);
     }
 }

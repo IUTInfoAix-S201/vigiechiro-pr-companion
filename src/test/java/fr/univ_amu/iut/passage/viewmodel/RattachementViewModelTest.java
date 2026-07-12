@@ -18,7 +18,9 @@ import fr.univ_amu.iut.passage.model.DetailPassage;
 import fr.univ_amu.iut.passage.model.MaterielMicro;
 import fr.univ_amu.iut.passage.model.MeteoReleve;
 import fr.univ_amu.iut.passage.model.PositionMicro;
+import fr.univ_amu.iut.passage.model.ServiceConditionsPassage;
 import fr.univ_amu.iut.passage.model.ServicePassage;
+import fr.univ_amu.iut.passage.model.ServiceRattachement;
 import fr.univ_amu.iut.passage.model.SynchronisationParticipation;
 import fr.univ_amu.iut.passage.model.Vent;
 import java.io.IOException;
@@ -41,11 +43,17 @@ class RattachementViewModelTest {
     @Mock
     private ServicePassage service;
 
+    @Mock
+    ServiceRattachement rattachement;
+
+    @Mock
+    ServiceConditionsPassage conditionsPassage;
+
     private RattachementViewModel viewModel;
 
     @BeforeEach
     void preparer() {
-        viewModel = new RattachementViewModel(service, Optional.empty());
+        viewModel = new RattachementViewModel(service, rattachement, conditionsPassage, Optional.empty());
     }
 
     private static DetailPassage detail(int numero, int annee, int nombreSequences) {
@@ -120,7 +128,7 @@ class RattachementViewModelTest {
         boolean ok = viewModel.valider();
 
         assertThat(ok).isTrue();
-        verify(service).modifierRattachement(ID, new Prefixe("040962", 2026, 2, "A1"));
+        verify(rattachement).modifierRattachement(ID, new Prefixe("040962", 2026, 2, "A1"));
     }
 
     @Test
@@ -130,7 +138,7 @@ class RattachementViewModelTest {
         viewModel.ouvrirSur(ID, "040962", "A1");
         viewModel.numeroPassageProperty().set(2);
         doThrow(new RegleMetierException("R5 : un passage n°2 existe déjà"))
-                .when(service)
+                .when(rattachement)
                 .modifierRattachement(eq(ID), any());
 
         boolean ok = viewModel.valider();
@@ -150,7 +158,7 @@ class RattachementViewModelTest {
 
         assertThat(ok).isFalse();
         assertThat(viewModel.messageErreurProperty().get()).contains("numéro de passage");
-        verify(service, never()).modifierRattachement(any(), any());
+        verify(rattachement, never()).modifierRattachement(any(), any());
     }
 
     @Test
@@ -160,7 +168,7 @@ class RattachementViewModelTest {
         viewModel.ouvrirSur(ID, "040962", "A1");
         viewModel.numeroPassageProperty().set(2);
         doThrow(new UncheckedIOException("Déplacement du dossier impossible", new IOException()))
-                .when(service)
+                .when(rattachement)
                 .modifierRattachement(eq(ID), any());
 
         boolean ok = viewModel.valider();
@@ -203,7 +211,7 @@ class RattachementViewModelTest {
 
         assertThat(viewModel.conditions().enregistrerMeteo()).isTrue();
 
-        verify(service).definirMeteo(ID, new MeteoReleve(9.0, null, Vent.FAIBLE, null));
+        verify(conditionsPassage).definirMeteo(ID, new MeteoReleve(9.0, null, Vent.FAIBLE, null));
         assertThat(viewModel.messageErreurProperty().get()).isEmpty();
     }
 
@@ -217,14 +225,14 @@ class RattachementViewModelTest {
         assertThat(viewModel.conditions().enregistrerMeteo()).isFalse();
 
         assertThat(viewModel.messageErreurProperty().get()).contains("invalide");
-        verify(service, never()).definirMeteo(any(), any());
+        verify(conditionsPassage, never()).definirMeteo(any(), any());
     }
 
     @Test
     @DisplayName("dépôt : ouvrirSur pré-remplit les champs matériel depuis le passage")
     void materiel_affiche() {
         when(service.detailPassage(ID)).thenReturn(detailMeteo(MeteoReleve.VIDE));
-        when(service.materiel(ID)).thenReturn(new MaterielMicro(ID, PositionMicro.CANOPEE, 4.0, "SMX-U1"));
+        when(conditionsPassage.materiel(ID)).thenReturn(new MaterielMicro(ID, PositionMicro.CANOPEE, 4.0, "SMX-U1"));
         viewModel.ouvrirSur(ID, "040962", "A1");
         assertThat(viewModel.conditions().positionSaisieProperty().get()).isEqualTo(PositionMicro.CANOPEE);
         assertThat(viewModel.conditions().hauteurSaisieProperty().get()).isEqualTo("4.0");
@@ -242,7 +250,7 @@ class RattachementViewModelTest {
 
         assertThat(viewModel.conditions().enregistrerMateriel()).isTrue();
 
-        verify(service).definirMateriel(new MaterielMicro(ID, PositionMicro.SOL, 2.5, "Micro interne"));
+        verify(conditionsPassage).definirMateriel(new MaterielMicro(ID, PositionMicro.SOL, 2.5, "Micro interne"));
         assertThat(viewModel.messageErreurProperty().get()).isEmpty();
     }
 
@@ -256,7 +264,7 @@ class RattachementViewModelTest {
         assertThat(viewModel.conditions().enregistrerMateriel()).isFalse();
 
         assertThat(viewModel.messageErreurProperty().get()).contains("invalide");
-        verify(service, never()).definirMateriel(any());
+        verify(conditionsPassage, never()).definirMateriel(any());
     }
 
     @Test
@@ -264,7 +272,7 @@ class RattachementViewModelTest {
     void recuperer_meteo_delegue_au_service() {
         when(service.detailPassage(ID)).thenReturn(detailMeteo(MeteoReleve.VIDE));
         viewModel.ouvrirSur(ID, "040962", "A1");
-        when(service.recupererMeteo(ID))
+        when(conditionsPassage.recupererMeteo(ID))
                 .thenReturn(Optional.of(new MeteoReleve(9.0, 3.0, Vent.FAIBLE, CouvertureNuageuse.DE_25_A_50)));
 
         assertThat(viewModel.conditions().recupererMeteo())
@@ -311,9 +319,9 @@ class RattachementViewModelTest {
         boolean ok = viewModel.appliquer();
 
         assertThat(ok).isTrue();
-        verify(service).definirMeteo(ID, new MeteoReleve(9.0, null, null, null));
-        verify(service).definirMateriel(new MaterielMicro(ID, PositionMicro.SOL, null, null));
-        verify(service).modifierRattachement(ID, new Prefixe("040962", 2026, 2, "A1"));
+        verify(conditionsPassage).definirMeteo(ID, new MeteoReleve(9.0, null, null, null));
+        verify(conditionsPassage).definirMateriel(new MaterielMicro(ID, PositionMicro.SOL, null, null));
+        verify(rattachement).modifierRattachement(ID, new Prefixe("040962", 2026, 2, "A1"));
     }
 
     @Test
@@ -328,7 +336,7 @@ class RattachementViewModelTest {
 
         assertThat(ok).isFalse();
         assertThat(viewModel.messageErreurProperty().get()).contains("invalide");
-        verify(service, never()).modifierRattachement(any(), any());
+        verify(rattachement, never()).modifierRattachement(any(), any());
     }
 
     // --- Phase 2 : pousser les métadonnées vers la participation VigieChiro (à la validation) ---
@@ -337,7 +345,8 @@ class RattachementViewModelTest {
     @DisplayName("Phase 2 : pousserVersVigieChiro délègue à la passerelle pour le passage ouvert")
     void pousser_vers_vigiechiro_delegue() {
         SynchronisationParticipation sync = mock(SynchronisationParticipation.class);
-        RattachementViewModel avecSync = new RattachementViewModel(service, Optional.of(sync));
+        RattachementViewModel avecSync =
+                new RattachementViewModel(service, rattachement, conditionsPassage, Optional.of(sync));
         when(service.detailPassage(ID)).thenReturn(detail(1, 2026, 30));
         avecSync.ouvrirSur(ID, "040962", "A1");
 
@@ -351,7 +360,8 @@ class RattachementViewModelTest {
     void pousser_vers_vigiechiro_silencieux_si_non_lie() {
         SynchronisationParticipation sync = mock(SynchronisationParticipation.class);
         when(sync.pousserVers(ID)).thenThrow(new RegleMetierException("pas encore lié"));
-        RattachementViewModel avecSync = new RattachementViewModel(service, Optional.of(sync));
+        RattachementViewModel avecSync =
+                new RattachementViewModel(service, rattachement, conditionsPassage, Optional.of(sync));
         when(service.detailPassage(ID)).thenReturn(detail(1, 2026, 30));
         avecSync.ouvrirSur(ID, "040962", "A1");
 
@@ -374,7 +384,8 @@ class RattachementViewModelTest {
     @DisplayName("Phase 2b : tirerDepuisVigieChiro délègue puis rechargerApresTir recharge les champs")
     void tirer_depuis_vigiechiro_recupere() {
         SynchronisationParticipation sync = mock(SynchronisationParticipation.class);
-        RattachementViewModel avecSync = new RattachementViewModel(service, Optional.of(sync));
+        RattachementViewModel avecSync =
+                new RattachementViewModel(service, rattachement, conditionsPassage, Optional.of(sync));
         when(service.detailPassage(ID))
                 .thenReturn(detailMeteo(new MeteoReleve(9.0, 3.0, Vent.FORT, CouvertureNuageuse.DE_75_A_100)));
         avecSync.ouvrirSur(ID, "040962", "A1");
@@ -393,7 +404,8 @@ class RattachementViewModelTest {
     void tirer_depuis_vigiechiro_non_lie() {
         SynchronisationParticipation sync = mock(SynchronisationParticipation.class);
         doThrow(new RegleMetierException("pas lié")).when(sync).tirerDepuis(ID);
-        RattachementViewModel avecSync = new RattachementViewModel(service, Optional.of(sync));
+        RattachementViewModel avecSync =
+                new RattachementViewModel(service, rattachement, conditionsPassage, Optional.of(sync));
         when(service.detailPassage(ID)).thenReturn(detailMeteo(MeteoReleve.VIDE));
         avecSync.ouvrirSur(ID, "040962", "A1");
 
@@ -408,7 +420,11 @@ class RattachementViewModelTest {
     @DisplayName("Phase 2b : peutSynchroniser reflète la présence de la passerelle")
     void peut_synchroniser() {
         assertThat(viewModel.peutSynchroniser()).isFalse(); // @BeforeEach : Optional.empty()
-        assertThat(new RattachementViewModel(service, Optional.of(mock(SynchronisationParticipation.class)))
+        assertThat(new RattachementViewModel(
+                                service,
+                                rattachement,
+                                conditionsPassage,
+                                Optional.of(mock(SynchronisationParticipation.class)))
                         .peutSynchroniser())
                 .isTrue();
     }

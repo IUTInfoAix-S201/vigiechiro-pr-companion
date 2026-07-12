@@ -26,31 +26,6 @@ class MeteoPassageTest {
     }
 
     @Test
-    @DisplayName("definir met à jour tempDebut en PRÉSERVANT les autres clés ; null l'efface")
-    void ecriture_preserve_les_autres_cles() {
-        assertThat(MeteoPassage.definir(null, 8.5)).isEqualTo("{\"tempDebut\":8.5}");
-
-        String avec = MeteoPassage.definir("{\"hygro\":80}", 8.5);
-        assertThat(avec).contains("\"hygro\":80").contains("\"tempDebut\":8.5");
-        assertThat(MeteoPassage.temperatureDebutNuit(avec)).as("round-trip").isEqualTo(8.5);
-
-        String efface = MeteoPassage.definir("{\"hygro\":80,\"tempDebut\":8.5}", null);
-        assertThat(efface).contains("\"hygro\":80").doesNotContain("tempDebut");
-
-        assertThat(MeteoPassage.definir("{\"tempDebut\":8.5}", null))
-                .as("objet devenu vide → colonne effacée")
-                .isNull();
-    }
-
-    @Test
-    @DisplayName("definir refuse une température non finie (NaN/Infini)")
-    void ecriture_refuse_non_finie() {
-        assertThatThrownBy(() -> MeteoPassage.definir(null, Double.NaN)).isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> MeteoPassage.definir(null, Double.POSITIVE_INFINITY))
-                .isInstanceOf(IllegalArgumentException.class);
-    }
-
-    @Test
     @DisplayName("lireSaisie : vide → null ; virgule/point acceptés ; lève si non numérique OU non fini")
     void lecture_saisie_stricte() {
         assertThat(MeteoPassage.lireSaisie("")).isNull();

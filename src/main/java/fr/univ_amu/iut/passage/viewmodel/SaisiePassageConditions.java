@@ -5,7 +5,7 @@ import fr.univ_amu.iut.passage.model.MaterielMicro;
 import fr.univ_amu.iut.passage.model.MeteoPassage;
 import fr.univ_amu.iut.passage.model.MeteoReleve;
 import fr.univ_amu.iut.passage.model.PositionMicro;
-import fr.univ_amu.iut.passage.model.ServicePassage;
+import fr.univ_amu.iut.passage.model.ServiceConditionsPassage;
 import fr.univ_amu.iut.passage.model.Vent;
 import java.util.Optional;
 import javafx.beans.property.ObjectProperty;
@@ -18,16 +18,16 @@ import javafx.beans.property.StringProperty;
 /// [PassageViewModel] pour garder chaque ViewModel focalisé :
 ///
 /// - le **relevé météo** (température début/fin, vent, couverture nuageuse ; #106 étendu), enregistré
-///   d'un bloc via [ServicePassage#definirMeteo] ;
+///   d'un bloc via [ServiceConditionsPassage#definirMeteo] ;
 /// - le **matériel du micro** (position sol/canopée, hauteur de fixation, type), enregistré d'un bloc via
-///   [ServicePassage#definirMateriel].
+///   [ServiceConditionsPassage#definirMateriel].
 ///
 /// Chaque grandeur est **optionnelle** (vide = effacer). Une saisie non numérique publie un message
 /// d'erreur **partagé** avec l'écran (la même ligne de message que [PassageViewModel]), sans rien
 /// modifier. VM agnostique de l'IHM (`javafx.beans` uniquement).
 public class SaisiePassageConditions {
 
-    private final ServicePassage service;
+    private final ServiceConditionsPassage service;
     private final ReadOnlyStringWrapper message;
     private Long idPassage;
 
@@ -41,7 +41,7 @@ public class SaisiePassageConditions {
     private final StringProperty hauteurSaisie = new SimpleStringProperty(this, "hauteurSaisie", "");
     private final StringProperty typeMicroSaisie = new SimpleStringProperty(this, "typeMicroSaisie", "");
 
-    SaisiePassageConditions(ServicePassage service, ReadOnlyStringWrapper message) {
+    SaisiePassageConditions(ServiceConditionsPassage service, ReadOnlyStringWrapper message) {
         this.service = service;
         this.message = message;
     }

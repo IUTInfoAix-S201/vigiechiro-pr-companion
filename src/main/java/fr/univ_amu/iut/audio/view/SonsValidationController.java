@@ -631,10 +631,6 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
         actionsSelection.basculerDouteux();
     }
 
-    /// L'espèce ciblée par « Fiche de l'espèce » : la **proposition Tadarida** de la ligne (code + nom
-    /// latin + nom vernaculaire). Le nom latin (#897) permet le repli GBIF/Wikipédia pour les taxons hors
-    /// PNA (oiseaux, orthoptères…) ; les chiroptères passent, eux, par la fiche PNA (résolue par le code).
-
     /// « 🗺 Voir sur la carte » (#476) : rouvre l'analyse « Espèces & observations » directement sur la
     /// **carte de répartition**, en y transportant les filtres courants. Le socle ne rejoue que les critères
     /// que l'analyse connaît (statut, groupe) et la recherche texte ; les filtres propres à l'audio (proba,

@@ -1,6 +1,5 @@
 package fr.univ_amu.iut.lot.viewmodel;
 
-import fr.univ_amu.iut.commun.viewmodel.EtatUnite;
 import fr.univ_amu.iut.commun.viewmodel.SuiviLignes;
 import fr.univ_amu.iut.lot.model.DepotUnite;
 import java.util.ArrayList;
@@ -31,6 +30,14 @@ public final class SuiviLignesDepot extends SuiviLignes<LigneDepot> {
 
     private final ReadOnlyIntegerWrapper total = new ReadOnlyIntegerWrapper(this, "total", 0);
 
+    /// Unités **en cours** de téléversement (compteur honnête #984) : avec le dépôt parallèle, jusqu'à 5
+    /// simultanément.
+    private final ReadOnlyIntegerWrapper enCours = new ReadOnlyIntegerWrapper(this, "enCours", 0);
+
+    /// Unités **en échec** du dépôt courant (compteur honnête #984) : rendues visibles pour ne plus
+    /// masquer un dépôt qui n'avance pas — la barre ne comptait auparavant que les succès.
+    private final ReadOnlyIntegerWrapper echecs = new ReadOnlyIntegerWrapper(this, "echecs", 0);
+
     /// Pose (ou re-pose) la table depuis l'état **persisté** des unités : chaque statut de `depot_unite`
     /// est traduit en état de ligne (à déposer → en attente ; en cours interrompu → en attente, il sera
     /// re-tenté ; déposé → terminée ; échec → échec avec sa raison en infobulle).
@@ -58,6 +65,7 @@ public final class SuiviLignesDepot extends SuiviLignes<LigneDepot> {
     /// Le téléversement de l'unité `identifiant` commence (ligne « en cours »).
     public void demarree(String identifiant) {
         parIdentifiant(identifiant).ifPresent(LigneDepot::demarrer);
+        recalculerReste();
     }
 
     /// L'unité `identifiant` est téléversée et finalisée (ligne « terminée »).
@@ -101,11 +109,33 @@ public final class SuiviLignesDepot extends SuiviLignes<LigneDepot> {
         return total.getReadOnlyProperty();
     }
 
+    /// Unités en cours de téléversement du plan courant (compteur honnête #984).
+    public ReadOnlyIntegerProperty enCoursProperty() {
+        return enCours.getReadOnlyProperty();
+    }
+
+    /// Unités en échec du plan courant (compteur honnête #984).
+    public ReadOnlyIntegerProperty echecsProperty() {
+        return echecs.getReadOnlyProperty();
+    }
+
     private void recalculerReste() {
-        long terminees = lignes().stream()
-                .filter(ligne -> ligne.etatProperty().get() == EtatUnite.TERMINEE)
-                .count();
-        deposees.set((int) terminees);
+        int terminees = 0;
+        int enCoursN = 0;
+        int echecsN = 0;
+        for (LigneDepot ligne : lignes()) {
+            switch (ligne.etatProperty().get()) {
+                case TERMINEE -> terminees++;
+                case EN_COURS -> enCoursN++;
+                case ECHEC -> echecsN++;
+                case EN_ATTENTE -> {
+                    /* planifiée, pas encore traitée */
+                }
+            }
+        }
+        deposees.set(terminees);
+        enCours.set(enCoursN);
+        echecs.set(echecsN);
         total.set(lignes().size());
         resteAReprendre.set(!lignes().isEmpty() && terminees < lignes().size());
     }

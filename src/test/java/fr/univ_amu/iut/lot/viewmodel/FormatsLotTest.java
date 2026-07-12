@@ -53,4 +53,14 @@ class FormatsLotTest {
                 .contains("Dépôt VigieChiro entamé")
                 .contains("reprise");
     }
+
+    @Test
+    @DisplayName("#984 : libelleDepotEnCours — compteur honnête déposées / en cours / échecs, masqués si nuls")
+    void libelle_depot_en_cours_honnete() {
+        assertThat(FormatsLot.libelleDepotEnCours(0, 0, 0, 0)).isEqualTo("Dépôt en préparation…");
+        // En cours et échecs nuls : pas de bruit, seulement le déposé/total.
+        assertThat(FormatsLot.libelleDepotEnCours(3, 0, 0, 21)).isEqualTo("Dépôt : 3/21 déposé(s)");
+        assertThat(FormatsLot.libelleDepotEnCours(3, 5, 1, 21))
+                .isEqualTo("Dépôt : 3/21 déposé(s) · 5 en cours · 1 échec(s)");
+    }
 }

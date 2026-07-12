@@ -103,4 +103,13 @@ class ClientVigieChiroTest {
     private static ParticipationADeposer participationMinimale() {
         return new ParticipationADeposer("Z41", "2026-07-03T19:00:00Z", "2026-07-04T04:00:00Z", null, null, null);
     }
+
+    @Test
+    @DisplayName("journalTraitement : sans token ou hors ligne → vide, sans lever (#1132)")
+    void journal_traitement_degrade_proprement() {
+        assertThat(new ClientVigieChiro("http://localhost:1", SANS_TOKEN).journalTraitement("6a49"))
+                .isEmpty();
+        assertThat(new ClientVigieChiro("http://localhost:1", TOKEN_ABC).journalTraitement("6a49"))
+                .isEmpty();
+    }
 }

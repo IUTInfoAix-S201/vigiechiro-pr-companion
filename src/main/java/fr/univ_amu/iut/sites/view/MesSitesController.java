@@ -1,6 +1,7 @@
 package fr.univ_amu.iut.sites.view;
 
 import com.google.inject.Inject;
+import fr.univ_amu.iut.commun.api.RapportSynchro;
 import fr.univ_amu.iut.commun.model.Protocole;
 import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.commun.view.ResumeStatut;
@@ -11,6 +12,7 @@ import fr.univ_amu.iut.sites.viewmodel.CarteSite;
 import fr.univ_amu.iut.sites.viewmodel.SitesViewModel;
 import java.util.Objects;
 import java.util.Optional;
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -21,6 +23,7 @@ import javafx.scene.AccessibleRole;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
@@ -72,6 +75,12 @@ public class MesSitesController implements ResumeStatut {
     @FXML
     private Label lblErreur;
 
+    @FXML
+    private Button btnSyncVigieChiro;
+
+    @FXML
+    private Label lblSynchro;
+
     @Inject
     public MesSitesController(SitesViewModel viewModel, NavigationSites navigation) {
         this.viewModel = Objects.requireNonNull(viewModel, "viewModel");
@@ -96,8 +105,31 @@ public class MesSitesController implements ResumeStatut {
         lblErreur.textProperty().bind(viewModel.messageErreurProperty());
         lblErreur.visibleProperty().bind(viewModel.messageErreurProperty().isNotEmpty());
         lblErreur.managedProperty().bind(viewModel.messageErreurProperty().isNotEmpty());
+        // Synchronisation à la demande (#1045) : bouton masqué quand la passerelle est absente (#937),
+        // message de résultat rendu visible seulement quand il est présent.
+        boolean peutSynchroniser = viewModel.peutSynchroniser();
+        btnSyncVigieChiro.setVisible(peutSynchroniser);
+        btnSyncVigieChiro.setManaged(peutSynchroniser);
+        lblSynchro.textProperty().bind(viewModel.messageSynchroProperty());
+        lblSynchro.visibleProperty().bind(viewModel.messageSynchroProperty().isNotEmpty());
+        lblSynchro.managedProperty().bind(viewModel.messageSynchroProperty().isNotEmpty());
         viewModel.cartes().addListener((ListChangeListener<CarteSite>) changement -> reconstruire());
         viewModel.rafraichir();
+    }
+
+    /// Action « Synchroniser depuis VigieChiro » (#1045) : pull best-effort hors du fil JavaFX,
+    /// patron de la modale passage (#937 : thread virtuel + bouton désactivé + retour via
+    /// `Platform.runLater`).
+    @FXML
+    private void synchroniserVigieChiro() {
+        btnSyncVigieChiro.setDisable(true);
+        Thread.ofVirtual().name("sync-sites").start(() -> {
+            Optional<RapportSynchro> rapport = viewModel.synchroniserDepuisVigieChiro();
+            Platform.runLater(() -> {
+                viewModel.rechargerApresSynchro(rapport);
+                btnSyncVigieChiro.setDisable(false);
+            });
+        });
     }
 
     /// Action des boutons « + Nouveau site » (bandeau et état vide).

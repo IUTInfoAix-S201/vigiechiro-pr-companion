@@ -16,6 +16,12 @@ proposé sur chaque carte, et **+ Nouveau site** en haut à droite.
 Le badge de fraîcheur passe du **vert** (dernier passage récent) à l'**orange** (plus ancien), au
 **gris** (aucun passage). Un clic sur une carte ouvre le **détail du site**.
 
+Le bouton **Synchroniser depuis VigieChiro** (en haut à droite) récupère à la demande vos sites et
+points déclarés sur le portail : les sites manquants sont créés localement, ceux déjà présents sont
+simplement reliés - vos données locales ne sont **jamais écrasées**. C'est la même synchronisation
+que celle exécutée automatiquement à la connexion ; un message sous le bandeau récapitule ce qui a
+été récupéré (ou signale qu'il n'y avait rien à récupérer, par exemple hors connexion).
+
 ### Premier lancement
 
 À la toute première ouverture, aucun site n'est déclaré : l'écran vous guide vers la création de

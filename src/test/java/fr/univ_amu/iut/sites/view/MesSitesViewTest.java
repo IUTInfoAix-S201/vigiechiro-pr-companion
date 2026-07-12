@@ -18,6 +18,7 @@ import java.util.List;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
@@ -74,6 +75,16 @@ class MesSitesViewTest {
     @AfterEach
     void nettoyerWorkspace() {
         System.clearProperty("vigiechiro.workspace");
+    }
+
+    @Test
+    @DisplayName("#1045 : le bouton « Synchroniser depuis VigieChiro » est visible dans l'app complète")
+    void bouton_synchro_visible(FxRobot robot) {
+        Button bouton = robot.lookup("#btnSyncVigieChiro").queryAs(Button.class);
+
+        assertThat(bouton.isVisible())
+                .as("app complète : la passerelle est liée, le bouton est offert")
+                .isTrue();
     }
 
     @Test

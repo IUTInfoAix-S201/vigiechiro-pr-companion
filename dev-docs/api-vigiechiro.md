@@ -139,7 +139,9 @@ Deux garde-fous s'exécutent au début de chaque dépôt (IHM et CLI) :
   valider que **notre chemin d'upload** (API directe) produit le même résultat : option expérimentale
   `deposer-vigiechiro --archives` (#1043), essai prévu sur une vraie nuit.
 - **PATCH `/sites/{id}`** : **HTTP 403** pour un observateur → le **push point→site est abandonné** ;
-  le pull (`RapprochementSites`, à la connexion) reste la seule direction de synchronisation des sites.
+  le pull (`RapprochementSites`) reste la seule direction de synchronisation des sites — exécuté à la
+  connexion, et rejouable **à la demande** depuis M-Sites (« Synchroniser depuis VigieChiro », #1045,
+  passerelle `SynchronisationSites` activée par `OptionalBinder`).
 
 ### Méthodes autorisées et récupération (exploration du 2026-07-11, lecture seule)
 

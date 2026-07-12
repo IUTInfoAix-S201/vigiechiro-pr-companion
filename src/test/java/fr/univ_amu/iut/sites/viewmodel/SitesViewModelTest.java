@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import fr.univ_amu.iut.commun.api.RapportSynchro;
 import fr.univ_amu.iut.commun.model.HorlogeFigee;
 import fr.univ_amu.iut.commun.model.LienVigieChiro;
 import fr.univ_amu.iut.commun.model.Protocole;
@@ -22,10 +23,12 @@ import fr.univ_amu.iut.passage.model.dao.PassageDao;
 import fr.univ_amu.iut.sites.model.PointDEcoute;
 import fr.univ_amu.iut.sites.model.ServiceSites;
 import fr.univ_amu.iut.sites.model.Site;
+import fr.univ_amu.iut.sites.model.SynchronisationSites;
 import fr.univ_amu.iut.sites.model.dao.PointDao;
 import fr.univ_amu.iut.sites.model.dao.SiteDao;
 import java.nio.file.Path;
 import java.time.LocalDate;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -62,7 +65,48 @@ class SitesViewModelTest {
         liens = new LienVigieChiroDao(source);
         HorlogeFigee horloge = new HorlogeFigee(JOUR_FIXE);
         service = new ServiceSites(siteDao, pointDao, passageDao, horloge);
-        viewModel = new SitesViewModel(service, passageDao, horloge, liens, ID_USER);
+        viewModel = new SitesViewModel(service, passageDao, horloge, liens, ID_USER, Optional.empty());
+    }
+
+    @Test
+    @DisplayName("#1045 : passerelle absente → synchronisation indisponible, appel sans effet ni erreur")
+    void synchro_indisponible() {
+        assertThat(viewModel.peutSynchroniser()).isFalse();
+        assertThat(viewModel.synchroniserDepuisVigieChiro()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("#1045 : la synchronisation recharge les cartes (sites créés par le pull) et pose le message")
+    void synchro_recharge_et_message() {
+        SynchronisationSites sync = mock(SynchronisationSites.class);
+        when(sync.synchroniser()).thenAnswer(invocation -> {
+            // Le pull crée un site local (comportement réel de RapprochementSites) : le rechargement doit le voir.
+            service.creerSite("640380", "Étang de Berre", Protocole.STANDARD, null, ID_USER);
+            return Optional.of(new RapportSynchro("sites", 3));
+        });
+        SitesViewModel vm =
+                new SitesViewModel(service, passageDao, new HorlogeFigee(JOUR_FIXE), liens, ID_USER, Optional.of(sync));
+
+        assertThat(vm.peutSynchroniser()).isTrue();
+        vm.rechargerApresSynchro(vm.synchroniserDepuisVigieChiro());
+
+        assertThat(vm.cartes())
+                .as("le rechargement voit le site créé par le pull")
+                .hasSize(1);
+        assertThat(vm.messageSynchroProperty().get()).isEqualTo("3 sites synchronisés depuis VigieChiro.");
+    }
+
+    @Test
+    @DisplayName("#1045 : rien récupéré (hors connexion, aucun site distant) → message explicite, pas un silence")
+    void synchro_sans_resultat() {
+        SynchronisationSites sync = mock(SynchronisationSites.class);
+        when(sync.synchroniser()).thenReturn(Optional.empty());
+        SitesViewModel vm =
+                new SitesViewModel(service, passageDao, new HorlogeFigee(JOUR_FIXE), liens, ID_USER, Optional.of(sync));
+
+        vm.rechargerApresSynchro(vm.synchroniserDepuisVigieChiro());
+
+        assertThat(vm.messageSynchroProperty().get()).contains("Aucun site distant");
     }
 
     @Test
@@ -70,7 +114,8 @@ class SitesViewModelTest {
     void erreur_de_chargement_surfacee() {
         ServiceSites serviceKo = mock(ServiceSites.class);
         when(serviceKo.listerSites(ID_USER)).thenThrow(new RuntimeException("base indisponible"));
-        SitesViewModel vm = new SitesViewModel(serviceKo, passageDao, new HorlogeFigee(JOUR_FIXE), liens, ID_USER);
+        SitesViewModel vm = new SitesViewModel(
+                serviceKo, passageDao, new HorlogeFigee(JOUR_FIXE), liens, ID_USER, Optional.empty());
 
         vm.rafraichir();
 

@@ -8,8 +8,6 @@ import fr.univ_amu.iut.audio.viewmodel.ImportVigieChiroViewModel;
 import fr.univ_amu.iut.audio.viewmodel.OngletReglagesAudio;
 import fr.univ_amu.iut.commun.model.DepotDispositionColonnes;
 import fr.univ_amu.iut.commun.model.DepotVues;
-import fr.univ_amu.iut.commun.model.EspeceIdentifiee;
-import fr.univ_amu.iut.commun.view.ActionFicheEspece;
 import fr.univ_amu.iut.commun.view.EmplacementNavigation;
 import fr.univ_amu.iut.commun.view.EmplacementPassage;
 import fr.univ_amu.iut.commun.view.GestionnaireColonnes;
@@ -78,7 +76,7 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
 
     /// Action réutilisable « Fiche de l'espèce » (#846) : configure l'item du menu ☰ selon la ligne
     /// sélectionnée et ouvre la fiche dans le navigateur.
-    private final ActionFicheEspece actionFicheEspece;
+    private final ActionsMenuAudio actionsMenu;
 
     /// Mémoire de session (tri, #484) : conserve l'état de la table entre deux ouvertures de la vue.
     private final MemoireRevueAudio memoire;
@@ -134,6 +132,9 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
 
     @FXML
     private MenuItem itemImporterVigieChiro;
+
+    @FXML
+    private MenuItem itemOuvrirVigieChiro;
 
     @FXML
     private Label lblImportVigieChiro;
@@ -265,7 +266,7 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
             MemoireRevueAudio memoire,
             DepotVues depotVues,
             DepotDispositionColonnes depotColonnes,
-            ActionFicheEspece actionFicheEspece,
+            ActionsMenuAudio actionsMenu,
             ReglagesReactifs reactifs) {
         this.viewModel = Objects.requireNonNull(viewModel, "viewModel");
         this.importVigieChiro = Objects.requireNonNull(importVigieChiro, "importVigieChiro");
@@ -276,7 +277,7 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
         this.memoire = Objects.requireNonNull(memoire, "memoire");
         this.depotVues = Objects.requireNonNull(depotVues, "depotVues");
         this.depotColonnes = Objects.requireNonNull(depotColonnes, "depotColonnes");
-        this.actionFicheEspece = Objects.requireNonNull(actionFicheEspece, "actionFicheEspece");
+        this.actionsMenu = Objects.requireNonNull(actionsMenu, "actionsMenu");
         this.reactifs = Objects.requireNonNull(reactifs, "reactifs");
     }
 
@@ -329,11 +330,11 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
         tableObservations.getSelectionModel().selectedItemProperty().addListener((obs, ancienne, nouvelle) -> {
             viewModel.selectionProperty().set(nouvelle);
             // « Fiche de l'espèce » (#847) : cible la proposition Tadarida de la ligne sélectionnée.
-            actionFicheEspece.configurer(itemFicheEspece, especeDe(nouvelle));
+            actionsMenu.configurerFiche(itemFicheEspece, nouvelle);
         });
         // État initial de l'item « Fiche de l'espèce » avant toute sélection (désactivé, libellé explicatif).
-        actionFicheEspece.configurer(
-                itemFicheEspece, especeDe(tableObservations.getSelectionModel().getSelectedItem()));
+        actionsMenu.configurerFiche(
+                itemFicheEspece, tableObservations.getSelectionModel().getSelectedItem());
         // Resynchronisation **VM → table** : après un Valider/Corriger, charger() reconstruit la liste avec
         // de nouvelles instances de record (statut/taxon changés), ce qui vide la surbrillance de la table
         // alors que le VM restaure la sélection par identifiant. On réaligne la ligne surlignée sur la
@@ -536,6 +537,8 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
         itemInclureMode.setVisible(workflow);
         itemExporterVu.setVisible(workflow);
         itemExporterBiblio.setVisible(source.permetExportBibliotheque());
+        // « Ouvrir les données sur Vigie-Chiro » (#1124) : détail dans ActionDonneesVigieChiro.
+        actionsMenu.donneesVigieChiro().adapter(itemOuvrirVigieChiro, source);
     }
 
     private void selectionnerObservation(Long idObservation) {
@@ -621,12 +624,6 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
     /// L'espèce ciblée par « Fiche de l'espèce » : la **proposition Tadarida** de la ligne (code + nom
     /// latin + nom vernaculaire). Le nom latin (#897) permet le repli GBIF/Wikipédia pour les taxons hors
     /// PNA (oiseaux, orthoptères…) ; les chiroptères passent, eux, par la fiche PNA (résolue par le code).
-    /// `null` (aucune ligne sélectionnée) → espèce vide, item désactivé.
-    private static EspeceIdentifiee especeDe(LigneObservationAudio ligne) {
-        return ligne == null
-                ? new EspeceIdentifiee(null, null, null)
-                : new EspeceIdentifiee(ligne.taxonTadarida(), ligne.latinTadarida(), ligne.nomTadarida());
-    }
 
     /// « 🗺 Voir sur la carte » (#476) : rouvre l'analyse « Espèces & observations » directement sur la
     /// **carte de répartition**, en y transportant les filtres courants. Le socle ne rejoue que les critères
@@ -636,6 +633,13 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
     @FXML
     private void voirSurCarte() {
         ouvrirAnalyse.ifPresent(ouvrir -> ouvrir.ouvrir(gestionnaireFiltres.decrire(), true));
+    }
+
+    /// Ouvre la page des données (observations Tadarida) de la participation liée au passage courant
+    /// sur le portail Vigie-Chiro (#1124). Détail dans [ActionDonneesVigieChiro].
+    @FXML
+    private void ouvrirDonneesVigieChiro() {
+        actionsMenu.donneesVigieChiro().ouvrir(source);
     }
 
     /// « Importer / Réimporter un CSV Tadarida » : sélecteur de fichier natif (ouverture) puis

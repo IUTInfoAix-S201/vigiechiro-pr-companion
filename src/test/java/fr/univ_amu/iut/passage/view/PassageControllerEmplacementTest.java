@@ -1,8 +1,10 @@
 package fr.univ_amu.iut.passage.view;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import fr.univ_amu.iut.commun.model.PortailVigieChiro;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.model.Verdict;
 import fr.univ_amu.iut.commun.persistence.ServicePurgeOriginaux;
@@ -50,7 +52,9 @@ class PassageControllerEmplacementTest {
                 navigation,
                 ouvrirSite,
                 numeroCarre -> {},
-                idp -> 0);
+                idp -> 0,
+                mock(PortailVigieChiro.class),
+                url -> {});
     }
 
     @Test

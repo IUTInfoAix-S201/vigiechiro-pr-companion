@@ -11,9 +11,11 @@ import com.google.inject.Injector;
 import com.google.inject.Provides;
 import com.google.inject.multibindings.OptionalBinder;
 import fr.univ_amu.iut.commun.model.CompteurValidations;
+import fr.univ_amu.iut.commun.model.PortailVigieChiro;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.model.Verdict;
 import fr.univ_amu.iut.commun.persistence.ServicePurgeOriginaux;
+import fr.univ_amu.iut.commun.view.OuvreurDeLien;
 import fr.univ_amu.iut.commun.view.OuvrirDiagnostic;
 import fr.univ_amu.iut.commun.view.OuvrirLot;
 import fr.univ_amu.iut.commun.view.OuvrirMultisite;
@@ -24,6 +26,9 @@ import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
 import fr.univ_amu.iut.passage.model.DetailPassage;
 import fr.univ_amu.iut.passage.model.ServicePassage;
 import fr.univ_amu.iut.passage.viewmodel.PassageViewModel;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -52,6 +57,8 @@ class PassageViewTest {
     private final AtomicReference<Long> validationOuverte = new AtomicReference<>();
     private final AtomicReference<Long> depotOuvert = new AtomicReference<>();
     private final AtomicReference<String> carteFocalisee = new AtomicReference<>();
+    private final PortailVigieChiro portail = mock(PortailVigieChiro.class);
+    private final List<String> urlsOuvertes = new ArrayList<>();
     private PassageController controleur;
 
     @Start
@@ -117,6 +124,17 @@ class PassageViewTest {
             @Provides
             CompteurValidations compteurValidations() {
                 return idPassage -> 0;
+            }
+
+            // « Voir la participation » (#1124) : portail factice piloté par le test, navigateur enregistré.
+            @Provides
+            PortailVigieChiro portail() {
+                return portail;
+            }
+
+            @Provides
+            OuvreurDeLien ouvreurDeLien() {
+                return urlsOuvertes::add;
             }
         });
         FXMLLoader loader = new FXMLLoader(PassageController.class.getResource("Passage.fxml"));
@@ -247,5 +265,30 @@ class PassageViewTest {
         assertThat(carteFocalisee.get())
                 .as("ouvre le multi-sites centré sur le carré du contexte (640380)")
                 .isEqualTo("640380");
+    }
+
+    @Test
+    @DisplayName("#1124 : passage non lié → « Voir la participation » visible mais désactivé")
+    void participation_non_liee_bouton_desactive(FxRobot robot) {
+        Button bouton = robot.lookup("#boutonOuvrirPortail").queryAs(Button.class);
+
+        assertThat(bouton.isVisible()).isTrue();
+        assertThat(bouton.isDisabled())
+                .as("non lié : désactivé avec explication, jamais masqué")
+                .isTrue();
+    }
+
+    @Test
+    @DisplayName("#1124 : passage lié → le bouton ouvre la participation dans le navigateur")
+    void participation_liee_ouvre_le_portail(FxRobot robot) {
+        when(portail.pageParticipation(ID_PASSAGE))
+                .thenReturn(Optional.of("https://vigiechiro.herokuapp.com/#/participations/6a4961f5"));
+        robot.interact(() -> controleur.rafraichirAuRetour());
+
+        Button bouton = robot.lookup("#boutonOuvrirPortail").queryAs(Button.class);
+        assertThat(bouton.isDisabled()).isFalse();
+        robot.interact(bouton::fire);
+
+        assertThat(urlsOuvertes).containsExactly("https://vigiechiro.herokuapp.com/#/participations/6a4961f5");
     }
 }

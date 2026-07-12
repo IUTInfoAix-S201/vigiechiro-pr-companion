@@ -13,6 +13,7 @@ import fr.univ_amu.iut.audio.viewmodel.AudioViewModel;
 import fr.univ_amu.iut.audio.viewmodel.ImportVigieChiroViewModel;
 import fr.univ_amu.iut.bibliotheque.model.ServiceBibliotheque;
 import fr.univ_amu.iut.commun.model.DepotVues;
+import fr.univ_amu.iut.commun.model.PortailVigieChiro;
 import fr.univ_amu.iut.commun.model.Reglages;
 import fr.univ_amu.iut.commun.model.Workspace;
 import fr.univ_amu.iut.commun.model.dao.ReglagesDao;
@@ -107,6 +108,12 @@ class SonsValidationDepotViewTest {
                     @Provides
                     OuvreurDeLien ouvreurDeLien() {
                         return url -> {};
+                    }
+
+                    // « Ouvrir les données sur Vigie-Chiro » (#1124) : portail factice (aucun lien posé).
+                    @Provides
+                    PortailVigieChiro portail() {
+                        return mock(PortailVigieChiro.class);
                     }
 
                     // Réglages réactifs (#1006) : les options de lecture du menu ☰ y sont liées. Base

@@ -22,6 +22,7 @@ import fr.univ_amu.iut.audio.viewmodel.AudioViewModel;
 import fr.univ_amu.iut.audio.viewmodel.ImportVigieChiroViewModel;
 import fr.univ_amu.iut.bibliotheque.model.ServiceBibliotheque;
 import fr.univ_amu.iut.commun.model.DepotVues;
+import fr.univ_amu.iut.commun.model.PortailVigieChiro;
 import fr.univ_amu.iut.commun.model.Reglages;
 import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.commun.model.VueSauvegardee;
@@ -181,6 +182,12 @@ class SonsValidationViewTest {
                     @Provides
                     OuvreurDeLien ouvreurDeLien() {
                         return urlsFiche::add;
+                    }
+
+                    // « Ouvrir les données sur Vigie-Chiro » (#1124) : portail factice (aucun lien posé).
+                    @Provides
+                    PortailVigieChiro portail() {
+                        return mock(PortailVigieChiro.class);
                     }
 
                     // Réglages réactifs (#1006) : les options de lecture (auto-lecture / boucle) du menu ☰ y
@@ -799,5 +806,17 @@ class SonsValidationViewTest {
                 .filter(c -> id.equals(c.getId()))
                 .findFirst()
                 .orElseThrow();
+    }
+
+    @Test
+    @DisplayName("#1124 : source sans passage (références) → « Ouvrir les données sur Vigie-Chiro » masqué")
+    void item_portail_masque_hors_passage(FxRobot robot) {
+        MenuButton menu = robot.lookup("#menuActions").queryAs(MenuButton.class);
+        MenuItem item = menu.getItems().stream()
+                .filter(i -> "itemOuvrirVigieChiro".equals(i.getId()))
+                .findFirst()
+                .orElseThrow();
+
+        assertThat(item.isVisible()).isFalse();
     }
 }

@@ -221,6 +221,8 @@ public class LotController implements EmplacementNavigation, ResumeStatut {
                 viewModel.suiviLignes().lignes(),
                 depotViewModel.enCoursProperty(),
                 depotViewModel.suiviLignes().deposeesProperty(),
+                depotViewModel.suiviLignes().enCoursProperty(),
+                depotViewModel.suiviLignes().echecsProperty(),
                 depotViewModel.suiviLignes().totalProperty()));
         // Étape ③ : la cible du téléversement est le sous-dossier depot/ (archives ZIP), pas la session.
         lblCheminDepot.textProperty().bind(viewModel.cheminDepotProperty());
@@ -516,11 +518,12 @@ public class LotController implements EmplacementNavigation, ResumeStatut {
     /// bilan des archives présentes au repos (#805).
     private String droiteEtatVivant() {
         if (depotViewModel.enCoursProperty().get()) {
-            int total = depotViewModel.suiviLignes().totalProperty().get();
-            return total == 0
-                    ? "Dépôt en préparation…"
-                    : "Dépôt " + depotViewModel.suiviLignes().deposeesProperty().get() + "/" + total
-                            + " fichier(s) téléversé(s)";
+            var suivi = depotViewModel.suiviLignes();
+            return FormatsLot.libelleDepotEnCours(
+                    suivi.deposeesProperty().get(),
+                    suivi.enCoursProperty().get(),
+                    suivi.echecsProperty().get(),
+                    suivi.totalProperty().get());
         }
         if (viewModel.generationEnCoursProperty().get()) {
             return viewModel.progression().messageProperty().get();

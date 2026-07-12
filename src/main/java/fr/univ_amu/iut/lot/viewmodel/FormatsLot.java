@@ -10,6 +10,8 @@ import java.util.Locale;
 /// dépendance JavaFX : directement testable.
 public final class FormatsLot {
 
+    private static final String SEPARATEUR = " · ";
+
     private FormatsLot() {}
 
     /// Alerte « espace disque insuffisant » (gigaoctets base 1000) affichée AVANT génération (#…) : volume
@@ -43,6 +45,23 @@ public final class FormatsLot {
                 .mapToLong(ligne -> ligne.tailleOctetsProperty().get())
                 .sum();
         return archives.size() + " archive(s) · " + Formats.octetsLisibles(octets) + " dans depot/";
+    }
+
+    /// Libellé « vivant » d'un dépôt VigieChiro **en cours** (#984) : compteur **honnête** déposées / en
+    /// cours / échecs sur le total, pour ne plus laisser croire à un dépôt figé quand seuls les succès
+    /// étaient comptés (le dépôt parallèle met plusieurs unités « en cours » à la fois).
+    public static String libelleDepotEnCours(int deposees, int enCours, int echecs, int total) {
+        if (total == 0) {
+            return "Dépôt en préparation…";
+        }
+        StringBuilder libelle = new StringBuilder("Dépôt : " + deposees + "/" + total + " déposé(s)");
+        if (enCours > 0) {
+            libelle.append(SEPARATEUR).append(enCours).append(" en cours");
+        }
+        if (echecs > 0) {
+            libelle.append(SEPARATEUR).append(echecs).append(" échec(s)");
+        }
+        return libelle.toString();
     }
 
     /// Message d'état contextuel du dépôt (déposé, dépôt entamé, cohérence à corriger, lot préparé, ou vide).

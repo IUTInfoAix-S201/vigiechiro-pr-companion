@@ -62,6 +62,33 @@ class SuiviLignesDepotTest {
     }
 
     @Test
+    @DisplayName("#984 : compteur honnête — déposées / en cours / échecs / total suivent les états des lignes")
+    void compteurs_honnetes_suivent_les_etats() {
+        SuiviLignesDepot suivi = new SuiviLignesDepot();
+        suivi.planifier(List.of(
+                unite(1L, "a.zip", StatutDepotUnite.A_DEPOSER, null),
+                unite(2L, "b.zip", StatutDepotUnite.A_DEPOSER, null),
+                unite(3L, "c.zip", StatutDepotUnite.A_DEPOSER, null)));
+        assertThat(suivi.totalProperty().get()).isEqualTo(3);
+        assertThat(suivi.deposeesProperty().get()).isZero();
+        assertThat(suivi.enCoursProperty().get()).isZero();
+        assertThat(suivi.echecsProperty().get()).isZero();
+
+        suivi.demarree("a.zip");
+        suivi.demarree("b.zip");
+        assertThat(suivi.enCoursProperty().get())
+                .as("2 unités en vol (dépôt parallèle)")
+                .isEqualTo(2);
+
+        suivi.deposee("a.zip");
+        suivi.echouee("b.zip", "HTTP 503");
+        assertThat(suivi.deposeesProperty().get()).isEqualTo(1);
+        assertThat(suivi.echecsProperty().get()).isEqualTo(1);
+        assertThat(suivi.enCoursProperty().get()).as("plus rien en vol").isZero();
+        assertThat(suivi.totalProperty().get()).isEqualTo(3);
+    }
+
+    @Test
     @DisplayName("resteAReprendre : faux sans plan, vrai avec du reste, faux quand tout est déposé")
     void reste_a_reprendre_suit_les_lignes() {
         SuiviLignesDepot suivi = new SuiviLignesDepot();

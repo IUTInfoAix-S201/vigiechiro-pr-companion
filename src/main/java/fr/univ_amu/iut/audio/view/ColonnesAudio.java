@@ -83,7 +83,11 @@ final class ColonnesAudio {
                         FormatLigneAudio.libelleStatut(c.getValue().statut())));
         // Statut de revue affiché en pastille (badge unifié #686, comme multisite/analyse/fiche site) :
         // couleur dérivée du statut de la ligne, jamais stockée. Le libellé (texte) vient du value factory.
-        col.statut().setCellFactory(colonne -> ColonneBadge.cellule(ligne -> ColonneBadge.classe(ligne.statut())));
+        // Le mapping statut → classe CSS reste côté feature (FormatLigneAudio), le socle ColonneBadge ne
+        // connaît que les types de commun.model (sinon commun → validation = cycle d'architecture).
+        col.statut()
+                .setCellFactory(
+                        colonne -> ColonneBadge.cellule(ligne -> FormatLigneAudio.classeBadgeStatut(ligne.statut())));
 
         // Colonnes dont l'affichage est une chaîne à préfixe/suffixe numérique : même comparateur numérique
         // (sinon « 100 % » précèderait « 83 % » et « N°10 » « N°2 »). Le statut a son propre ordre de revue.

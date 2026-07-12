@@ -100,4 +100,15 @@ class FormatLigneAudioTest {
         assertThat(FormatLigneAudio.positionColonne(0.5)).isEqualTo("0,50 s");
         assertThat(FormatLigneAudio.positionColonne(null)).isEqualTo("—");
     }
+
+    @Test
+    @DisplayName("Classe badge du statut : badge-observation-<nom> (À revoir / Validée / Corrigée)")
+    void classe_badge_statut() {
+        assertThat(FormatLigneAudio.classeBadgeStatut(StatutObservation.NON_TOUCHEE))
+                .isEqualTo("badge-observation-non_touchee");
+        assertThat(FormatLigneAudio.classeBadgeStatut(StatutObservation.VALIDEE))
+                .isEqualTo("badge-observation-validee");
+        assertThat(FormatLigneAudio.classeBadgeStatut(StatutObservation.CORRIGEE))
+                .isEqualTo("badge-observation-corrigee");
+    }
 }

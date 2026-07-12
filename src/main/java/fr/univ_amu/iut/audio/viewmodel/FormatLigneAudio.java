@@ -120,6 +120,15 @@ public final class FormatLigneAudio {
         };
     }
 
+    /// Classe CSS du badge de statut de revue (`badge-observation-…`) pour la colonne « Statut » : la
+    /// couleur est dérivée du statut, jamais stockée (pendant de [#libelleStatut]). Le mapping vit côté
+    /// feature audio, pas dans le socle `ColonneBadge` : `commun` ne doit pas dépendre d'un enum de feature
+    /// (`StatutObservation` vit dans `validation.model`), sous peine de cycle d'architecture. Convention
+    /// identique à `Fraicheur.classeBadge` / `LignePassage::statutClasseCss`.
+    public static String classeBadgeStatut(StatutObservation statut) {
+        return "badge-observation-" + statut.name().toLowerCase(Locale.ROOT);
+    }
+
     private static String proba(Double probabilite) {
         return probabilite == null ? NON_RENSEIGNE : Math.round(probabilite * 100) + " %";
     }

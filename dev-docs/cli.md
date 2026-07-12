@@ -58,6 +58,7 @@ un **puits** (aucune feature ne dépend de lui), donc le graphe reste acyclique.
 | `exporter-lot` | `--passage <id>` | P4 | `ServiceLot` |
 | `deposer` | `--passage <id>` | P8 | `ServiceLot.preparerLot` + `marquerDepose` (marquage **manuel**) |
 | `deposer-vigiechiro` | `--passage <id> [--token <jeton>] [--archives]` | #1043 | `DepotVigieChiro.deposer` (moteur **reprenable** #982 ; `--archives` = les ZIP `depot/` au lieu des WAV, expérimental #984) |
+| `verifier-depot-vigiechiro` | `--passage <id> [--token <jeton>]` | #1132 | `VerificationDepot.verifier` (lecture seule : journal de traitement + titres des `donnees` vs plan `depot_unite` ; `0` ssi tout est retrouvé) |
 | `exporter-vu` | `--passage <id> --sortie <fichier>` | P7 | `ServiceValidation` |
 | `exporter-observations` | `--passage <id> --sortie <fichier>` | #149 | `ServiceValidation.lignesAudioDuPassage` + `ExportObservationsCsv` |
 | `--help` / `-h`, `--version` / `-V`, ou aucun argument | — | — | — |

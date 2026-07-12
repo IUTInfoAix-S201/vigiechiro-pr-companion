@@ -13,6 +13,7 @@ import fr.univ_amu.iut.commun.di.ModuleDeFeature;
 import fr.univ_amu.iut.commun.model.Horloge;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
 import fr.univ_amu.iut.lot.model.DepotVigieChiro;
+import fr.univ_amu.iut.lot.model.VerificationDepot;
 import fr.univ_amu.iut.lot.model.dao.DepotUniteDao;
 import fr.univ_amu.iut.passage.model.MoteurWorkflowPassage;
 import fr.univ_amu.iut.passage.model.SynchronisationParticipation;
@@ -44,6 +45,10 @@ public class DepotVigieChiroModule extends ModuleDeFeature {
         OptionalBinder.newOptionalBinder(binder(), DepotVigieChiro.class)
                 .setBinding()
                 .to(Key.get(DepotVigieChiro.class, Names.named(QUALIFIANT)));
+        // Vérification a posteriori d’un dépôt (#1132) : même montage, consommée par la CLI.
+        OptionalBinder.newOptionalBinder(binder(), VerificationDepot.class)
+                .setBinding()
+                .to(Key.get(VerificationDepot.class, Names.named(QUALIFIANT)));
     }
 
     /// DAO du suivi de dépôt par unité (#981) : plan et avancement persistés du dépôt reprenable (#982).
@@ -53,6 +58,16 @@ public class DepotVigieChiroModule extends ModuleDeFeature {
     @Singleton
     DepotUniteDao fournirDepotUniteDao(SourceDeDonnees source) {
         return new DepotUniteDao(source);
+    }
+
+    @Provides
+    @Singleton
+    @Named(QUALIFIANT)
+    VerificationDepot fournirVerificationDepot(
+            @Named(QUALIFIANT) SynchronisationParticipation participations,
+            ClientVigieChiro client,
+            DepotUniteDao depotUnites) {
+        return new VerificationDepot(participations, client, depotUnites);
     }
 
     @Provides

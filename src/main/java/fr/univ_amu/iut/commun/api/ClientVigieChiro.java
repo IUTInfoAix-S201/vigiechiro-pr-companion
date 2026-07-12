@@ -117,6 +117,19 @@ public final class ClientVigieChiro {
         return tout;
     }
 
+    /// **Journal de traitement** d’une participation (#1132) : le serveur y trace l’ingestion —
+    /// archives extraites avec inventaire (`Archive contained: {'audio/wav': N}`), chaque fichier
+    /// passé à Tadarida. Chaîne : `GET /participations/#id` → document `logs` → `GET
+    /// /fichiers/#id/acces` → URL S3 signée, téléchargée **sans** en-tête d’authentification. Vide si
+    /// non connecté, participation inconnue, ou journal pas encore disponible (traitement pas lancé).
+    public Optional<String> journalTraitement(String participationId) {
+        return get(CHEMIN_PARTICIPATIONS + participationId)
+                .flatMap(JournalVigieChiro::idJournal)
+                .flatMap(idFichier -> get("/fichiers/" + idFichier + "/acces"))
+                .flatMap(JournalVigieChiro::urlSignee)
+                .flatMap(this::telechargerSansAuthentification);
+    }
+
     // ---------------------------------------------------------------------------------------------
     // Écritures (dépôt d'une nuit, #142) : création de participation + upload de fichiers vers S3
     // ---------------------------------------------------------------------------------------------
@@ -278,6 +291,22 @@ public final class ClientVigieChiro {
                     .header("Accept", TYPE_JSON)
                     .GET()
                     .build();
+            HttpResponse<String> reponse = client.send(requete, HttpResponse.BodyHandlers.ofString());
+            return reponse.statusCode() == 200 ? Optional.of(reponse.body()) : Optional.empty();
+        } catch (InterruptedException interrompu) {
+            Thread.currentThread().interrupt();
+            return Optional.empty();
+        } catch (RuntimeException | IOException indisponible) {
+            return Optional.empty();
+        }
+    }
+
+    /// Télécharge une URL S3 **signée** (#1132) : aucun en-tête `Authorization` (S3 refuse une
+    /// authentification surnuméraire, la signature de l’URL fait foi). Vide hors `200` ou hors ligne.
+    private Optional<String> telechargerSansAuthentification(String url) {
+        try {
+            HttpRequest requete =
+                    HttpRequest.newBuilder(URI.create(url)).timeout(DELAI).GET().build();
             HttpResponse<String> reponse = client.send(requete, HttpResponse.BodyHandlers.ofString());
             return reponse.statusCode() == 200 ? Optional.of(reponse.body()) : Optional.empty();
         } catch (InterruptedException interrompu) {

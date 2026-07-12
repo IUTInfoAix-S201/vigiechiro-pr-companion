@@ -128,8 +128,27 @@ Deux garde-fous s'exécutent au début de chaque dépôt (IHM et CLI) :
   `depose` les unités WAV **déjà traitées** côté plateforme, qui ne seront jamais re-téléversées.
   Limites : `donnees` n'existe qu'**après traitement** (un fichier téléversé mais pas encore traité
   sera re-téléversé, sans conséquence) ; les archives **ZIP ne sont pas appariables** par titre
-  (contenu inconnu localement) ; il n'existe **aucun inventaire lisible des uploads**
-  (`GET /fichiers` et `GET /participations/{id}/fichiers` → 403, cf. § récupération).
+  (contenu inconnu localement) ; il n'existe **aucun inventaire lisible des uploads avant
+  traitement** (`GET /fichiers` et `GET /participations/{id}/fichiers` → 403) — mais **après**
+  traitement, le journal (§ ci-dessous) en fournit un complet.
+
+### Journal de traitement d'une participation (#1132)
+
+Le serveur trace le traitement de chaque participation dans un journal texte, accessible avec le
+token en trois requêtes :
+
+1. `GET /participations/{id}` → champ **`logs`** = document `fichiers` (`_id`, `disponible`) ;
+2. `GET /fichiers/{logs._id}/acces` → `{"s3_signed_url": …}` (ou `302` avec `?redirection=true`) ;
+3. `GET` de l'URL signée, **sans** en-tête `Authorization` (la signature de l'URL fait foi, un
+   en-tête surnuméraire est refusé par S3).
+
+Contenu observé (participation canonique `6a4961f5…`, ~1 Mo) : extraction de chaque archive avec
+**inventaire** (`Archive contained: {'application/zip': 1, 'audio/wav': N}` — somme = 4806, le
+compte exact des `donnees`), **chaque WAV nommé** dans la sortie TadaridaD, suppression des zips de
+S3 après extraction, TadaridaD en **expansion x10**. C'est la **vérification a posteriori** d'un
+dépôt — la seule capable de vérifier un dépôt en **ZIP** — portée par `ClientVigieChiro
+.journalTraitement`, `lot/model/VerificationDepot` et la commande CLI `verifier-depot-vigiechiro`.
+Même limite que `donnees` : le journal n'existe qu'après le passage du pipeline serveur.
 
 ### Verdicts des probes d'écriture (exécutées le 2026-07-11)
 
@@ -137,7 +156,8 @@ Deux garde-fous s'exécutent au début de chaque dépôt (IHM et CLI) :
   `application/zip`, finalisation) **et l'ingère** : la participation canonique `6a4961f5…` a été
   déposée **en zip via le site web** et ses 4806 `donnees` listent les WAV individuellement. Reste à
   valider que **notre chemin d'upload** (API directe) produit le même résultat : option expérimentale
-  `deposer-vigiechiro --archives` (#1043), essai prévu sur une vraie nuit.
+  `deposer-vigiechiro --archives` (#1043), essai prévu sur une vraie nuit — verdict à lire avec
+  `verifier-depot-vigiechiro` (journal de traitement, § ci-dessus).
 - **PATCH `/sites/{id}`** : **HTTP 403** pour un observateur → le **push point→site est abandonné** ;
   le pull (`RapprochementSites`) reste la seule direction de synchronisation des sites — exécuté à la
   connexion, et rejouable **à la demande** depuis M-Sites (« Synchroniser depuis VigieChiro », #1045,

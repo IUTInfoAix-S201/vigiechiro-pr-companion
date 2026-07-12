@@ -173,6 +173,25 @@ class RattachementDaoTest {
     }
 
     @Test
+    @DisplayName("Import sans copie : le nom logique d'un original hors session (carte SD) suit le nouveau préfixe")
+    void reprefixe_le_nom_logique_d_un_original_hors_session() {
+        // Original référencé sur une « carte SD » : chemin EXTERNE à la session (non déplaçable sur disque),
+        // mais nom logique préfixé Pass1 en base. Régression du contrôle de préfixe M-Lot après renumérotation.
+        String cheminSd = dossier.resolve("sd-72CA").resolve("PaRec_brut.wav").toString();
+        long idExterne = originalDao
+                .insert(new EnregistrementOriginal(
+                        null, ANCIEN + "-PaRec_brut.wav", cheminSd, 5.0, 384000, null, idSession))
+                .id();
+
+        uniteDeTravail.executer(cx -> dao.reprefixerChemins(
+                cx, idPassage, idSession, racine, dossier.resolve(NOUVEAU), ANCIEN + "-", NOUVEAU + "-"));
+
+        EnregistrementOriginal relu = originalDao.findById(idExterne).orElseThrow();
+        assertThat(relu.nomFichier()).isEqualTo(NOUVEAU + "-PaRec_brut.wav"); // nom logique re-préfixé Pass2
+        assertThat(relu.cheminFichier()).isEqualTo(cheminSd); // chemin SD inchangé (aucune copie)
+    }
+
+    @Test
     @DisplayName("Ne réécrit pas le CSV Tadarida importé depuis un chemin externe à la session")
     void preserve_un_csv_tadarida_externe() {
         String externe = "/tmp/export/" + ANCIEN + "-resultats.csv"; // hors de la racine de session

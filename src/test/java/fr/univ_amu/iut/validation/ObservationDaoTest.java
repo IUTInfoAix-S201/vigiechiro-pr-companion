@@ -16,6 +16,8 @@ import fr.univ_amu.iut.validation.model.ObservationAnalyse;
 import fr.univ_amu.iut.validation.model.ObservationEspece;
 import fr.univ_amu.iut.validation.model.StatutObservation;
 import fr.univ_amu.iut.validation.model.dao.ObservationDao;
+import fr.univ_amu.iut.validation.model.dao.ProjectionsAnalyseDao;
+import fr.univ_amu.iut.validation.model.dao.ProjectionsAudioDao;
 import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -29,7 +31,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/// CRUD du [ObservationDao] + contraintes. Vérifie en particulier les **trois** FK distinctes
+/// CRUD du [ObservationDao] + contraintes, et projections des DAO extraits (#1193) sur la même
+/// fixture (la chaîne de FK semée est identique, la dupliquer par DAO n'apporterait rien). Vérifie en particulier les
+/// **trois** FK distinctes
 /// vers `taxon` (`taxon_tadarida` obligatoire, `taxon_other_tadarida` et `taxon_observer`
 /// optionnels), l'insertion en lot transactionnelle et la cascade depuis les résultats parents.
 /// Les taxons fil rouge et pseudo-taxons sont déjà semés par `V02`.
@@ -44,6 +48,8 @@ class ObservationDaoTest {
 
     private SourceDeDonnees source;
     private ObservationDao dao;
+    private ProjectionsAnalyseDao analyse;
+    private ProjectionsAudioDao audio;
     private long idSequence;
     private long idResultats;
     private long idPassage;
@@ -86,6 +92,8 @@ class ObservationDaoTest {
                     idPassage);
         }
         dao = new ObservationDao(source);
+        analyse = new ProjectionsAnalyseDao(source);
+        audio = new ProjectionsAudioDao(source);
     }
 
     private Observation observationComplete() {
@@ -139,7 +147,7 @@ class ObservationDaoTest {
                 .as("marqué douteux → persisté")
                 .isTrue();
         // La projection audio (LigneObservationAudio) reflète aussi le drapeau (colonne is_doubtful).
-        assertThat(dao.lignesAudioDuPassage(idPassage))
+        assertThat(audio.lignesAudioDuPassage(idPassage))
                 .filteredOn(ligne -> inseree.id().equals(ligne.idObservation()))
                 .singleElement()
                 .satisfies(ligne -> assertThat(ligne.douteux()).isTrue());
@@ -341,7 +349,7 @@ class ObservationDaoTest {
                 observation("Pippip", null), // Pippip à nouveau, MÊME passage → dédupliqué (DISTINCT)
                 observation("noise", null))); // pseudo-taxon bruit → exclu
 
-        List<EspeceObservee> especes = dao.especesObserveesParUtilisateur("u-1");
+        List<EspeceObservee> especes = analyse.especesObserveesParUtilisateur("u-1");
 
         assertThat(especes)
                 .extracting(EspeceObservee::code)
@@ -364,7 +372,7 @@ class ObservationDaoTest {
     void especes_observees_autre_utilisateur_vide() {
         dao.insert(observationComplete());
 
-        assertThat(dao.especesObserveesParUtilisateur("autre")).isEmpty();
+        assertThat(analyse.especesObserveesParUtilisateur("autre")).isEmpty();
     }
 
     // --- Inventaire transverse (#analyse) ---
@@ -383,7 +391,7 @@ class ObservationDaoTest {
     void observations_analyse_enrichies() {
         semerTroisStatuts();
 
-        List<ObservationAnalyse> observations = dao.observationsAnalyse("u-1");
+        List<ObservationAnalyse> observations = analyse.observationsAnalyse("u-1");
 
         // Espèce retenue = COALESCE(observateur, tadarida) ; statut dérivé ; contexte carré/point/passage/année.
         assertThat(observations)
@@ -414,19 +422,7 @@ class ObservationDaoTest {
     void observations_analyse_autre_utilisateur_vide() {
         semerTroisStatuts();
 
-        assertThat(dao.observationsAnalyse("autre")).isEmpty();
-    }
-
-    @Test
-    @DisplayName("#audio : referencesDeLUtilisateur ne renvoie que les is_reference de l'utilisateur")
-    void references_de_l_utilisateur() {
-        dao.insert(observationComplete()); // is_reference = true
-        dao.insert(observation("Nyclei", null)); // is_reference = false
-
-        assertThat(dao.referencesDeLUtilisateur("u-1"))
-                .singleElement()
-                .satisfies(observation -> assertThat(observation.reference()).isTrue());
-        assertThat(dao.referencesDeLUtilisateur("autre")).isEmpty();
+        assertThat(analyse.observationsAnalyse("autre")).isEmpty();
     }
 
     @Test
@@ -435,7 +431,7 @@ class ObservationDaoTest {
         dao.insert(observationComplete()); // Pippip validé, is_reference, commentaire « signal net », 45 kHz
         dao.insert(observation("Nyclei", null)); // non touchée
 
-        List<LigneObservationAudio> lignes = dao.lignesAudioDuPassage(idPassage);
+        List<LigneObservationAudio> lignes = audio.lignesAudioDuPassage(idPassage);
 
         assertThat(lignes).hasSize(2).allSatisfy(ligne -> {
             assertThat(ligne.idPassage()).isEqualTo(idPassage);
@@ -484,7 +480,7 @@ class ObservationDaoTest {
         // pour un tri chronologique correct, pas seulement 00:15.
         new SequenceDao(source).majHorodatage(idSequence, LocalDateTime.of(2026, 4, 23, 0, 15, 0));
 
-        assertThat(dao.lignesAudioDuPassage(idPassage))
+        assertThat(audio.lignesAudioDuPassage(idPassage))
                 .isNotEmpty()
                 .allSatisfy(
                         ligne -> assertThat(ligne.heureCapture()).isEqualTo(LocalDateTime.of(2026, 4, 23, 0, 15, 0)));
@@ -496,11 +492,11 @@ class ObservationDaoTest {
         dao.insert(observationComplete()); // is_reference = true
         dao.insert(observation("Nyclei", null)); // is_reference = false
 
-        assertThat(dao.lignesAudioReferences("u-1")).singleElement().satisfies(ligne -> {
+        assertThat(audio.lignesAudioReferences("u-1")).singleElement().satisfies(ligne -> {
             assertThat(ligne.reference()).isTrue();
             assertThat(ligne.taxonTadarida()).isEqualTo("Pippip");
         });
-        assertThat(dao.lignesAudioReferences("autre")).isEmpty();
+        assertThat(audio.lignesAudioReferences("autre")).isEmpty();
     }
 
     @Test
@@ -509,7 +505,7 @@ class ObservationDaoTest {
         // La séquence du fixture n'a aucune observation : c'est une séquence « non identifiée » à écouter.
         new SequenceDao(source).majHorodatage(idSequence, LocalDateTime.of(2026, 4, 22, 22, 30, 0));
 
-        assertThat(dao.lignesAudioNonIdentifiees(idPassage)).singleElement().satisfies(ligne -> {
+        assertThat(audio.lignesAudioNonIdentifiees(idPassage)).singleElement().satisfies(ligne -> {
             assertThat(ligne.idObservation()).as("aucune observation").isNull();
             assertThat(ligne.idSequence()).isEqualTo(idSequence);
             assertThat(ligne.taxonTadarida()).isNull();
@@ -528,7 +524,7 @@ class ObservationDaoTest {
     void lignes_audio_non_identifiees_exclut_les_sequences_observees() {
         dao.insert(observationComplete()); // identifie la séquence du fixture
 
-        assertThat(dao.lignesAudioNonIdentifiees(idPassage)).isEmpty();
+        assertThat(audio.lignesAudioNonIdentifiees(idPassage)).isEmpty();
     }
 
     /// Observation **manuelle** de la séquence du fixture : taxon observateur `observateur`, **sans**
@@ -569,7 +565,7 @@ class ObservationDaoTest {
     void lignes_audio_non_identifiees_montre_l_observation_manuelle() {
         long idObs = dao.insert(observationManuelle("Pippip")).id();
 
-        assertThat(dao.lignesAudioNonIdentifiees(idPassage)).singleElement().satisfies(ligne -> {
+        assertThat(audio.lignesAudioNonIdentifiees(idPassage)).singleElement().satisfies(ligne -> {
             assertThat(ligne.idSequence()).isEqualTo(idSequence);
             assertThat(ligne.idObservation()).isEqualTo(idObs);
             assertThat(ligne.taxonTadarida()).isNull();
@@ -610,13 +606,13 @@ class ObservationDaoTest {
                 second[2],
                 false)); // passage 2
 
-        List<LigneObservationAudio> lignes = dao.lignesAudioDesPassages(List.of(idPassage, second[0]));
+        List<LigneObservationAudio> lignes = audio.lignesAudioDesPassages(List.of(idPassage, second[0]));
 
         assertThat(lignes)
                 .hasSize(2)
                 .extracting(LigneObservationAudio::idPassage)
                 .containsExactlyInAnyOrder(idPassage, second[0]);
-        assertThat(dao.lignesAudioDesPassages(List.of())).isEmpty();
+        assertThat(audio.lignesAudioDesPassages(List.of())).isEmpty();
     }
 
     @Test
@@ -625,10 +621,10 @@ class ObservationDaoTest {
         dao.insert(observationValidee("Pippip"));
         dao.insert(observation("Nyclei", null));
 
-        assertThat(dao.lignesAudioDeLEspece("u-1", "Pippip", null))
+        assertThat(audio.lignesAudioDeLEspece("u-1", "Pippip", null))
                 .singleElement()
                 .satisfies(ligne -> assertThat(ligne.taxonTadarida()).isEqualTo("Pippip"));
-        assertThat(dao.lignesAudioDeLEspece("u-1", "Pippip", StatutObservation.NON_TOUCHEE))
+        assertThat(audio.lignesAudioDeLEspece("u-1", "Pippip", StatutObservation.NON_TOUCHEE))
                 .isEmpty();
     }
 
@@ -638,7 +634,7 @@ class ObservationDaoTest {
         // Proposée Nyclei par Tadarida, mais corrigée en Pippip par l'observateur (R16).
         dao.insert(observation("Nyclei", "Pippip"));
 
-        assertThat(dao.lignesAudioDeLEspece("u-1", "Pippip", null))
+        assertThat(audio.lignesAudioDeLEspece("u-1", "Pippip", null))
                 .as("retrouvée sous l'espèce corrigée, pas sous la proposition Tadarida")
                 .singleElement()
                 .satisfies(ligne -> {
@@ -646,7 +642,7 @@ class ObservationDaoTest {
                     assertThat(ligne.taxonTadarida()).isEqualTo("Nyclei");
                     assertThat(ligne.statut()).isEqualTo(StatutObservation.CORRIGEE);
                 });
-        assertThat(dao.lignesAudioDeLEspece("u-1", "Nyclei", null))
+        assertThat(audio.lignesAudioDeLEspece("u-1", "Nyclei", null))
                 .as("plus rattachée à la proposition Tadarida d'origine")
                 .isEmpty();
     }
@@ -657,11 +653,11 @@ class ObservationDaoTest {
         dao.insert(observation("noise", null)); // bruit : exclu des espèces, mais à réécouter
         dao.insert(observationValidee("Pippip"));
 
-        assertThat(dao.lignesAudioDuPassage(idPassage))
+        assertThat(audio.lignesAudioDuPassage(idPassage))
                 .as("la revue audio porte sur TOUT le passage, pseudo-taxons compris")
                 .extracting(LigneObservationAudio::taxonTadarida)
                 .containsExactlyInAnyOrder("noise", "Pippip");
-        assertThat(dao.especesObserveesParUtilisateur("u-1"))
+        assertThat(analyse.especesObserveesParUtilisateur("u-1"))
                 .as("garde-fou : les espèces observées, elles, excluent les pseudo-taxons")
                 .extracting(EspeceObservee::code)
                 .doesNotContain("noise");
@@ -692,7 +688,7 @@ class ObservationDaoTest {
                 second[2],
                 false));
 
-        List<LigneObservationAudio> lignes = dao.lignesAudioDesPassages(List.of(idPassage, second[0]));
+        List<LigneObservationAudio> lignes = audio.lignesAudioDesPassages(List.of(idPassage, second[0]));
 
         assertThat(lignes)
                 .as("date croissante (juin avant juillet), puis id croissant dans le passage de juin")
@@ -729,7 +725,7 @@ class ObservationDaoTest {
                 idResultats2,
                 false));
 
-        List<ObservationEspece> detail = dao.observationsDeLEspece("u-1", "Pippip", null);
+        List<ObservationEspece> detail = analyse.observationsDeLEspece("u-1", "Pippip", null);
 
         assertThat(detail)
                 .as("les deux observations de Pippip, une par passage")
@@ -744,9 +740,9 @@ class ObservationDaoTest {
             assertThat(observation.idSequence()).isPositive();
         });
         // Filtre statut : aucune Pippip non touchée ; périmètre par utilisateur respecté.
-        assertThat(dao.observationsDeLEspece("u-1", "Pippip", StatutObservation.NON_TOUCHEE))
+        assertThat(analyse.observationsDeLEspece("u-1", "Pippip", StatutObservation.NON_TOUCHEE))
                 .isEmpty();
-        assertThat(dao.observationsDeLEspece("autre", "Pippip", null)).isEmpty();
+        assertThat(analyse.observationsDeLEspece("autre", "Pippip", null)).isEmpty();
     }
 
     /// Sème un **second passage** (autre nuit, même point A1) avec sa séquence et ses résultats.

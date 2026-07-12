@@ -15,9 +15,11 @@ import fr.univ_amu.iut.commun.view.OuvrirAnalyse;
 import fr.univ_amu.iut.commun.view.OuvrirAudio;
 import fr.univ_amu.iut.validation.model.ImportVigieChiro;
 import fr.univ_amu.iut.validation.model.MarquageDouteux;
+import fr.univ_amu.iut.validation.model.PlageNuitPassage;
 import fr.univ_amu.iut.validation.model.RevueEnLot;
 import fr.univ_amu.iut.validation.model.ServiceValidation;
 import fr.univ_amu.iut.validation.model.ValidationManuelle;
+import fr.univ_amu.iut.validation.model.dao.ProjectionsAudioDao;
 import java.util.Optional;
 
 /// Module Guice de la feature `audio` (vue audio unifiée « Sons & validation »).
@@ -62,11 +64,20 @@ public class AudioModule extends ModuleDeFeature {
     @Provides
     AudioViewModel fournirAudioViewModel(
             ServiceValidation validation,
+            ProjectionsAudioDao projectionsAudio,
+            PlageNuitPassage plageNuitPassage,
             ValidationManuelle validationManuelle,
             MarquageDouteux marquageDouteux,
             RevueEnLot revueEnLot,
             ServiceBibliotheque bibliotheque) {
-        return new AudioViewModel(validation, validationManuelle, marquageDouteux, revueEnLot, bibliotheque);
+        return new AudioViewModel(
+                validation,
+                projectionsAudio,
+                plageNuitPassage,
+                validationManuelle,
+                marquageDouteux,
+                revueEnLot,
+                bibliotheque);
     }
 
     /// ViewModel dédié de l'**import VigieChiro** (axe 4.2), séparé de [AudioViewModel] (concern distinct, et

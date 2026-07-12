@@ -94,8 +94,12 @@ class ServiceValidationMockTest {
                 new ParserCsvTadarida(),
                 new ExportVuCsv(),
                 uniteDeTravail,
-                new HorlogeFigee(LocalDate.of(2026, 5, 31)),
-                new PlageNuitPassage(passageDao, coordonnees));
+                new HorlogeFigee(LocalDate.of(2026, 5, 31)));
+    }
+
+    /// Calcul de plage nuit (#549), sorti de ServiceValidation avec les projections audio (#1193).
+    private PlageNuitPassage plageNuit() {
+        return new PlageNuitPassage(passageDao, coordonnees);
     }
 
     private static Passage passageAix() {
@@ -221,15 +225,6 @@ class ServiceValidationMockTest {
     }
 
     @Test
-    @DisplayName("references : façade qui délègue au DAO la liste des observations de référence")
-    void references_delegue_au_dao() {
-        when(observationDao.referencesDeLUtilisateur("u-1")).thenReturn(List.of(observation("Pippip", null, null)));
-
-        assertThat(service().references("u-1")).hasSize(1);
-        verify(observationDao).referencesDeLUtilisateur("u-1");
-    }
-
-    @Test
     @DisplayName("cheminAudio : résout le WAV transformé (R22) de la séquence (E7.S3)")
     void chemin_audio_resout_le_wav() {
         when(sequenceDao.findById(10L))
@@ -255,7 +250,7 @@ class ServiceValidationMockTest {
         when(coordonnees.pour(5L)).thenReturn(Optional.of(new PositionGeo(43.529, 5.447)));
 
         // Aix, nuit du 20 juin 2026 : coucher ~21:23 (heure 21), lever ~05:58 (heure 5).
-        assertThat(service().plageNuitParDefaut(1L)).contains(new PlageNuit(21, 5));
+        assertThat(plageNuit().pour(1L)).contains(new PlageNuit(21, 5));
     }
 
     @Test
@@ -264,7 +259,7 @@ class ServiceValidationMockTest {
         when(passageDao.findById(1L)).thenReturn(Optional.of(passageAix()));
         when(coordonnees.pour(5L)).thenReturn(Optional.empty());
 
-        assertThat(service().plageNuitParDefaut(1L)).isEmpty();
+        assertThat(plageNuit().pour(1L)).isEmpty();
     }
 
     @Test
@@ -272,7 +267,7 @@ class ServiceValidationMockTest {
     void plage_nuit_passage_introuvable_est_vide() {
         when(passageDao.findById(1L)).thenReturn(Optional.empty());
 
-        assertThat(service().plageNuitParDefaut(1L)).isEmpty();
+        assertThat(plageNuit().pour(1L)).isEmpty();
     }
 
     @Test

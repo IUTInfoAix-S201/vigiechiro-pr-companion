@@ -8,10 +8,12 @@ import fr.univ_amu.iut.validation.model.BilanImport;
 import fr.univ_amu.iut.validation.model.LigneObservationAudio;
 import fr.univ_amu.iut.validation.model.MarquageDouteux;
 import fr.univ_amu.iut.validation.model.ModeRevue;
+import fr.univ_amu.iut.validation.model.PlageNuitPassage;
 import fr.univ_amu.iut.validation.model.RevueEnLot;
 import fr.univ_amu.iut.validation.model.ServiceValidation;
 import fr.univ_amu.iut.validation.model.Taxon;
 import fr.univ_amu.iut.validation.model.ValidationManuelle;
+import fr.univ_amu.iut.validation.model.dao.ProjectionsAudioDao;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
@@ -107,12 +109,14 @@ public class AudioViewModel {
 
     public AudioViewModel(
             ServiceValidation service,
+            ProjectionsAudioDao projectionsAudio,
+            PlageNuitPassage plageNuitPassage,
             ValidationManuelle validationManuelle,
             MarquageDouteux marquageDouteux,
             RevueEnLot revueEnLot,
             ServiceBibliotheque bibliotheque) {
         this.service = Objects.requireNonNull(service, "service");
-        this.resolveur = new ResolveurSourceAudio(service);
+        this.resolveur = new ResolveurSourceAudio(service, projectionsAudio, plageNuitPassage);
         this.exporteur = new ExporteurAudio(service, bibliotheque);
         this.actions = new ActionsRevueAudio(
                 service,

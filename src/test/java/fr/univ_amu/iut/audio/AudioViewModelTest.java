@@ -19,12 +19,14 @@ import fr.univ_amu.iut.validation.model.BilanImport;
 import fr.univ_amu.iut.validation.model.LigneObservationAudio;
 import fr.univ_amu.iut.validation.model.MarquageDouteux;
 import fr.univ_amu.iut.validation.model.ModeRevue;
+import fr.univ_amu.iut.validation.model.PlageNuitPassage;
 import fr.univ_amu.iut.validation.model.ResultatsIdentification;
 import fr.univ_amu.iut.validation.model.RevueEnLot;
 import fr.univ_amu.iut.validation.model.ServiceValidation;
 import fr.univ_amu.iut.validation.model.StatutObservation;
 import fr.univ_amu.iut.validation.model.Taxon;
 import fr.univ_amu.iut.validation.model.ValidationManuelle;
+import fr.univ_amu.iut.validation.model.dao.ProjectionsAudioDao;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
@@ -46,6 +48,12 @@ class AudioViewModelTest {
     ServiceValidation service;
 
     @Mock
+    ProjectionsAudioDao projections;
+
+    @Mock
+    PlageNuitPassage plageNuitPassage;
+
+    @Mock
     ValidationManuelle validationManuelle;
 
     @Mock
@@ -61,7 +69,8 @@ class AudioViewModelTest {
             new ContextePassage(7L, 1, new ContexteSite("640380", "A1", "Mon site"));
 
     private AudioViewModel vm() {
-        return new AudioViewModel(service, validationManuelle, marquageDouteux, revueEnLot, bibliotheque);
+        return new AudioViewModel(
+                service, projections, plageNuitPassage, validationManuelle, marquageDouteux, revueEnLot, bibliotheque);
     }
 
     private static LigneObservationAudio ligne(
@@ -108,7 +117,7 @@ class AudioViewModelTest {
         void charger_appliquer_signaler_separes() {
             when(service.taxonsDisponibles()).thenReturn(List.of(new Taxon("Pippip", "Pipistrellus", null, 1L)));
             when(service.resultatsDuPassage(7L)).thenReturn(Optional.of(100L));
-            when(service.lignesAudioDuPassage(7L))
+            when(projections.lignesAudioDuPassage(7L))
                     .thenReturn(List.of(ligne(1, 10, "Pippip", null, StatutObservation.NON_TOUCHEE, false)));
             AudioViewModel vm = vm();
 
@@ -133,7 +142,7 @@ class AudioViewModelTest {
         void ouvrir_charge_passage() {
             when(service.taxonsDisponibles()).thenReturn(List.of(new Taxon("Pippip", "Pipistrellus", null, 1L)));
             when(service.resultatsDuPassage(7L)).thenReturn(Optional.of(100L));
-            when(service.lignesAudioDuPassage(7L))
+            when(projections.lignesAudioDuPassage(7L))
                     .thenReturn(List.of(ligne(1, 10, "Pippip", null, StatutObservation.NON_TOUCHEE, false)));
 
             AudioViewModel vm = vm();
@@ -152,7 +161,7 @@ class AudioViewModelTest {
             when(service.taxonsDisponibles()).thenReturn(List.of());
             when(service.resultatsDuPassage(7L)).thenReturn(Optional.empty());
             LigneObservationAudio l = ligne(1, 10, "Pippip", null, StatutObservation.NON_TOUCHEE, false);
-            when(service.lignesAudioDuPassage(7L)).thenReturn(List.of(l));
+            when(projections.lignesAudioDuPassage(7L)).thenReturn(List.of(l));
             when(service.cheminAudio(10L)).thenReturn(Optional.of(Path.of("/ws/transformes/a.wav")));
 
             AudioViewModel vm = vm();
@@ -171,7 +180,7 @@ class AudioViewModelTest {
             when(service.resultatsDuPassage(7L)).thenReturn(Optional.of(100L));
             LigneObservationAudio avant = ligne(1, 10, "Pippip", null, StatutObservation.NON_TOUCHEE, false);
             LigneObservationAudio apres = ligne(1, 10, "Pippip", "Pippip", StatutObservation.VALIDEE, false);
-            when(service.lignesAudioDuPassage(7L)).thenReturn(List.of(avant), List.of(apres));
+            when(projections.lignesAudioDuPassage(7L)).thenReturn(List.of(avant), List.of(apres));
 
             AudioViewModel vm = vm();
             vm.ouvrirSur(source());
@@ -190,7 +199,7 @@ class AudioViewModelTest {
             when(service.taxonsDisponibles()).thenReturn(List.of());
             when(service.resultatsDuPassage(7L)).thenReturn(Optional.empty());
             LigneObservationAudio l = ligne(1, 10, "Pippip", null, StatutObservation.NON_TOUCHEE, false);
-            when(service.lignesAudioDuPassage(7L)).thenReturn(List.of(l));
+            when(projections.lignesAudioDuPassage(7L)).thenReturn(List.of(l));
 
             AudioViewModel vm = vm();
             vm.ouvrirSur(source());
@@ -206,7 +215,7 @@ class AudioViewModelTest {
             when(service.taxonsDisponibles()).thenReturn(List.of());
             when(service.resultatsDuPassage(7L)).thenReturn(Optional.empty());
             LigneObservationAudio l = ligne(1, 10, "Pippip", null, StatutObservation.NON_TOUCHEE, false);
-            when(service.lignesAudioDuPassage(7L)).thenReturn(List.of(l));
+            when(projections.lignesAudioDuPassage(7L)).thenReturn(List.of(l));
 
             AudioViewModel vm = vm();
             vm.ouvrirSur(source());
@@ -215,7 +224,7 @@ class AudioViewModelTest {
             assertThat(vm.actions().commenter(1L, "beau cri")).isTrue();
             verify(service).commenter(1L, "beau cri");
             // Rechargement post-action : la source est relue une 2e fois (1re à l'ouverture).
-            verify(service, times(2)).lignesAudioDuPassage(7L);
+            verify(projections, times(2)).lignesAudioDuPassage(7L);
         }
 
         @Test
@@ -224,7 +233,7 @@ class AudioViewModelTest {
             when(service.taxonsDisponibles()).thenReturn(List.of());
             when(service.resultatsDuPassage(7L)).thenReturn(Optional.empty());
             // Passage vide à l'ouverture, puis 1 observation après l'import (table rechargée).
-            when(service.lignesAudioDuPassage(7L))
+            when(projections.lignesAudioDuPassage(7L))
                     .thenReturn(List.of(), List.of(ligne(1, 10, "Pippip", null, StatutObservation.NON_TOUCHEE, false)));
             // Bilan d'import : 1 importée, rien d'ignoré, aucun taxon hors référentiel.
             when(service.importer(7L, Path.of("obs.csv")))
@@ -248,7 +257,7 @@ class AudioViewModelTest {
         void importer_echoue_retour_erreur() {
             when(service.taxonsDisponibles()).thenReturn(List.of());
             when(service.resultatsDuPassage(7L)).thenReturn(Optional.empty());
-            when(service.lignesAudioDuPassage(7L)).thenReturn(List.of());
+            when(projections.lignesAudioDuPassage(7L)).thenReturn(List.of());
             when(service.importer(7L, Path.of("obs.csv")))
                     .thenThrow(new RegleMetierException("Séquence d'écoute introuvable en base pour « seq »."));
 
@@ -265,7 +274,7 @@ class AudioViewModelTest {
         void importer_refuse_si_deja_importe() {
             when(service.taxonsDisponibles()).thenReturn(List.of());
             when(service.resultatsDuPassage(7L)).thenReturn(Optional.of(100L)); // un jeu existe déjà
-            when(service.lignesAudioDuPassage(7L)).thenReturn(List.of());
+            when(projections.lignesAudioDuPassage(7L)).thenReturn(List.of());
 
             AudioViewModel vm = vm();
             vm.ouvrirSur(source());
@@ -280,7 +289,7 @@ class AudioViewModelTest {
         void reimporter_remplace() {
             when(service.taxonsDisponibles()).thenReturn(List.of());
             when(service.resultatsDuPassage(7L)).thenReturn(Optional.of(100L)); // un jeu existe déjà
-            when(service.lignesAudioDuPassage(7L))
+            when(projections.lignesAudioDuPassage(7L))
                     .thenReturn(List.of(ligne(1, 10, "Pippip", null, StatutObservation.NON_TOUCHEE, false)));
             // Bilan de réimport : 2 validations observateur réattachées, 1 perdue (observation disparue).
             when(service.reimporter(7L, Path.of("neuf.csv")))
@@ -318,7 +327,7 @@ class AudioViewModelTest {
         @DisplayName("ouvrirSur charge le lot et masque le workflow Tadarida ; l'import est ignoré")
         void ouvrir_charge_lot() {
             when(service.taxonsDisponibles()).thenReturn(List.of());
-            when(service.lignesAudioDesPassages(List.of(7L, 8L)))
+            when(projections.lignesAudioDesPassages(List.of(7L, 8L)))
                     .thenReturn(List.of(ligne(1, 10, "Pippip", null, StatutObservation.NON_TOUCHEE, false)));
 
             AudioViewModel vm = vm();
@@ -340,7 +349,7 @@ class AudioViewModelTest {
         @DisplayName("ouvrirSur convertit le filtre de statut texte et délègue à lignesAudioDeLEspece")
         void ouvrir_filtre_statut() {
             when(service.taxonsDisponibles()).thenReturn(List.of());
-            when(service.lignesAudioDeLEspece("u-1", "Pippip", StatutObservation.NON_TOUCHEE))
+            when(projections.lignesAudioDeLEspece("u-1", "Pippip", StatutObservation.NON_TOUCHEE))
                     .thenReturn(List.of(ligne(1, 10, "Pippip", null, StatutObservation.NON_TOUCHEE, false)));
 
             AudioViewModel vm = vm();
@@ -348,19 +357,19 @@ class AudioViewModelTest {
 
             assertThat(vm.observationsFiltrees()).hasSize(1);
             assertThat(vm.source().permetWorkflowTadarida()).isFalse();
-            verify(service).lignesAudioDeLEspece("u-1", "Pippip", StatutObservation.NON_TOUCHEE);
+            verify(projections).lignesAudioDeLEspece("u-1", "Pippip", StatutObservation.NON_TOUCHEE);
         }
 
         @Test
         @DisplayName("statut null = toutes les observations de l'espèce")
         void ouvrir_sans_filtre() {
             when(service.taxonsDisponibles()).thenReturn(List.of());
-            when(service.lignesAudioDeLEspece("u-1", "Pippip", null)).thenReturn(List.of());
+            when(projections.lignesAudioDeLEspece("u-1", "Pippip", null)).thenReturn(List.of());
 
             AudioViewModel vm = vm();
             vm.ouvrirSur(new SourceObservations.ParEspece("u-1", "Pippip", null, "Pipistrelle commune"));
 
-            verify(service).lignesAudioDeLEspece("u-1", "Pippip", null);
+            verify(projections).lignesAudioDeLEspece("u-1", "Pippip", null);
             assertThat(vm.messageProperty().get()).isNotBlank();
         }
     }
@@ -373,7 +382,7 @@ class AudioViewModelTest {
         @DisplayName("ouvrirSur charge les références et active l'export bibliothèque")
         void ouvrir_charge_references() {
             when(service.taxonsDisponibles()).thenReturn(List.of());
-            when(service.lignesAudioReferences("u-1"))
+            when(projections.lignesAudioReferences("u-1"))
                     .thenReturn(List.of(ligne(1, 10, "Pippip", "Pippip", StatutObservation.VALIDEE, true)));
 
             AudioViewModel vm = vm();
@@ -388,7 +397,7 @@ class AudioViewModelTest {
         @DisplayName("exporterBibliotheque délègue au service bibliothèque et rapporte le bilan")
         void exporter_bibliotheque() {
             when(service.taxonsDisponibles()).thenReturn(List.of());
-            when(service.lignesAudioReferences("u-1")).thenReturn(List.of());
+            when(projections.lignesAudioReferences("u-1")).thenReturn(List.of());
             ExportBiblioSons export = org.mockito.Mockito.mock(ExportBiblioSons.class);
             when(bibliotheque.exporterBibliotheque()).thenReturn(export);
             when(export.exporterVers(Path.of("/sortie"))).thenReturn(3);
@@ -408,7 +417,7 @@ class AudioViewModelTest {
             when(service.taxonsDisponibles()).thenReturn(List.of());
             LigneObservationAudio ligne = ligne(1, 10, "Pippip", "Pippip", StatutObservation.VALIDEE, true);
             // La ligne est référencée au départ, puis quitte le corpus au rechargement (liste vide).
-            when(service.lignesAudioReferences("u-1")).thenReturn(List.of(ligne), List.of());
+            when(projections.lignesAudioReferences("u-1")).thenReturn(List.of(ligne), List.of());
             when(service.cheminAudio(10L)).thenReturn(Optional.of(Path.of("/ws/p.wav")));
 
             AudioViewModel vm = vm();
@@ -429,7 +438,7 @@ class AudioViewModelTest {
         void basculer_reference_retire() {
             when(service.taxonsDisponibles()).thenReturn(List.of());
             LigneObservationAudio l = ligne(1, 10, "Pippip", "Pippip", StatutObservation.VALIDEE, true);
-            when(service.lignesAudioReferences("u-1")).thenReturn(List.of(l));
+            when(projections.lignesAudioReferences("u-1")).thenReturn(List.of(l));
 
             AudioViewModel vm = vm();
             vm.ouvrirSur(new SourceObservations.References("u-1"));
@@ -448,7 +457,7 @@ class AudioViewModelTest {
         @DisplayName("corriger vers la proposition Tadarida est refusé (c'est une validation)")
         void corriger_vers_tadarida_refuse() {
             when(service.taxonsDisponibles()).thenReturn(List.of());
-            when(service.lignesAudioReferences("u-1")).thenReturn(List.of());
+            when(projections.lignesAudioReferences("u-1")).thenReturn(List.of());
             LigneObservationAudio l = ligne(1, 10, "Pippip", null, StatutObservation.NON_TOUCHEE, false);
 
             AudioViewModel vm = vm();
@@ -466,7 +475,7 @@ class AudioViewModelTest {
         @DisplayName("Filtre composable : restreint les lignes ET les compteurs suivent le sous-ensemble (#470)")
         void filtre_suit_le_sous_ensemble() {
             when(service.taxonsDisponibles()).thenReturn(List.of());
-            when(service.lignesAudioReferences("u-1"))
+            when(projections.lignesAudioReferences("u-1"))
                     .thenReturn(List.of(
                             ligne(1, 10, "Pippip", "Pippip", StatutObservation.VALIDEE, true),
                             ligne(2, 11, "Nyclei", null, StatutObservation.NON_TOUCHEE, false)));
@@ -490,7 +499,7 @@ class AudioViewModelTest {
         @DisplayName("Filtre qui masque tout : l'indice d'état vide distingue « filtres » de « source vide » (#506)")
         void filtre_masque_tout_message_dedie() {
             when(service.taxonsDisponibles()).thenReturn(List.of());
-            when(service.lignesAudioReferences("u-1"))
+            when(projections.lignesAudioReferences("u-1"))
                     .thenReturn(List.of(ligne(1, 10, "Pippip", "Pippip", StatutObservation.VALIDEE, true)));
 
             AudioViewModel vm = vm();
@@ -512,7 +521,7 @@ class AudioViewModelTest {
         @DisplayName("#479 : validerLot délègue à RevueEnLot, recharge et rapporte le nombre + un retour de succès")
         void valider_lot_delegue_et_rapporte() {
             when(service.taxonsDisponibles()).thenReturn(List.of());
-            when(service.lignesAudioReferences("u-1"))
+            when(projections.lignesAudioReferences("u-1"))
                     .thenReturn(List.of(ligne(1, 10, "Pippip", "Pippip", StatutObservation.VALIDEE, true)));
             when(revueEnLot.valider(List.of(1L, 2L))).thenReturn(2);
 
@@ -522,7 +531,7 @@ class AudioViewModelTest {
             assertThat(vm.actions().validerLot(List.of(1L, 2L))).isEqualTo(2);
             verify(revueEnLot).valider(List.of(1L, 2L));
             // Rechargement post-lot (2e lecture) + retour de succès « N validée(s) ».
-            verify(service, times(2)).lignesAudioReferences("u-1");
+            verify(projections, times(2)).lignesAudioReferences("u-1");
             assertThat(vm.retourProperty().get().texte()).contains("2 observation(s) validée(s)");
             assertThat(vm.retourProperty().get().severite()).isEqualTo(RetourOperation.Severite.SUCCES);
         }
@@ -531,7 +540,7 @@ class AudioViewModelTest {
         @DisplayName("#479 : basculerReferenceLot délègue à RevueEnLot (marquer/retirer) et rapporte le nombre")
         void basculer_reference_lot_delegue() {
             when(service.taxonsDisponibles()).thenReturn(List.of());
-            when(service.lignesAudioReferences("u-1")).thenReturn(List.of());
+            when(projections.lignesAudioReferences("u-1")).thenReturn(List.of());
             when(revueEnLot.marquerReference(List.of(3L, 4L), true)).thenReturn(2);
 
             AudioViewModel vm = vm();

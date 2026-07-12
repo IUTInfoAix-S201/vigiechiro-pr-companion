@@ -8,8 +8,10 @@ import fr.univ_amu.iut.commun.viewmodel.ContextePassage;
 import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
 import fr.univ_amu.iut.commun.viewmodel.SourceObservations;
 import fr.univ_amu.iut.validation.model.LigneObservationAudio;
+import fr.univ_amu.iut.validation.model.PlageNuitPassage;
 import fr.univ_amu.iut.validation.model.ServiceValidation;
 import fr.univ_amu.iut.validation.model.StatutObservation;
+import fr.univ_amu.iut.validation.model.dao.ProjectionsAudioDao;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,17 +31,18 @@ class ResolveurSourceAudioTest {
     @Test
     @DisplayName("ParPassage fusionne obs. Tadarida + séquences non identifiées, sans doublon de l'obs. manuelle")
     void par_passage_fusionne_sans_doublon() {
-        ServiceValidation service = mock(ServiceValidation.class);
+        ProjectionsAudioDao projections = mock(ProjectionsAudioDao.class);
         // Observations du passage : une vraie proposition Tadarida + une observation MANUELLE (taxon Tadarida nul).
         LigneObservationAudio tadarida = ligne(100L, 11L, "pippip", StatutObservation.NON_TOUCHEE);
         LigneObservationAudio manuelle = ligne(200L, 12L, null, StatutObservation.CORRIGEE);
-        when(service.lignesAudioDuPassage(ID_PASSAGE)).thenReturn(List.of(tadarida, manuelle));
+        when(projections.lignesAudioDuPassage(ID_PASSAGE)).thenReturn(List.of(tadarida, manuelle));
         // Séquences non identifiées : une pas encore validée (id d'observation nul) + la même séquence manuelle.
         LigneObservationAudio nonValidee = ligne(null, 13L, null, StatutObservation.NON_TOUCHEE);
-        when(service.lignesAudioNonIdentifiees(ID_PASSAGE)).thenReturn(List.of(nonValidee, manuelle));
+        when(projections.lignesAudioNonIdentifiees(ID_PASSAGE)).thenReturn(List.of(nonValidee, manuelle));
 
-        List<LigneObservationAudio> lignes =
-                new ResolveurSourceAudio(service).lignes(new SourceObservations.ParPassage(CONTEXTE));
+        List<LigneObservationAudio> lignes = new ResolveurSourceAudio(
+                        mock(ServiceValidation.class), projections, mock(PlageNuitPassage.class))
+                .lignes(new SourceObservations.ParPassage(CONTEXTE));
 
         // La Tadarida est gardée ; l'obs. manuelle n'apparaît qu'UNE fois (via les non identifiées, filtrée de la
         // branche Tadarida) ; la séquence non validée est présente.

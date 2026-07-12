@@ -28,10 +28,12 @@ import fr.univ_amu.iut.commun.viewmodel.SourceObservations;
 import fr.univ_amu.iut.validation.model.BilanImport;
 import fr.univ_amu.iut.validation.model.ImportVigieChiro;
 import fr.univ_amu.iut.validation.model.MarquageDouteux;
+import fr.univ_amu.iut.validation.model.PlageNuitPassage;
 import fr.univ_amu.iut.validation.model.ResultatsIdentification;
 import fr.univ_amu.iut.validation.model.RevueEnLot;
 import fr.univ_amu.iut.validation.model.ServiceValidation;
 import fr.univ_amu.iut.validation.model.ValidationManuelle;
+import fr.univ_amu.iut.validation.model.dao.ProjectionsAudioDao;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.List;
@@ -60,6 +62,7 @@ import org.testfx.framework.junit5.Start;
 class SonsValidationDepotViewTest {
 
     private ServiceValidation service;
+    private ProjectionsAudioDao projections;
     private SonsValidationController controleur;
 
     /// Base jetable pour les seules préférences (`app_setting`) : les options de lecture du menu ☰ (#1006)
@@ -70,11 +73,12 @@ class SonsValidationDepotViewTest {
     @Start
     void start(Stage stage) throws Exception {
         service = mock(ServiceValidation.class);
+        projections = mock(ProjectionsAudioDao.class);
         ServiceBibliotheque bibliotheque = mock(ServiceBibliotheque.class);
         when(service.taxonsDisponibles()).thenReturn(List.of());
         // Passage sans résultats à l'ouverture (import permis).
         when(service.resultatsDuPassage(7L)).thenReturn(Optional.empty());
-        when(service.lignesAudioDuPassage(7L)).thenReturn(List.of());
+        when(projections.lignesAudioDuPassage(7L)).thenReturn(List.of());
         // L'import déposé renvoie un bilan (1 observation importée).
         when(service.importer(7L, Path.of("obs.csv")))
                 .thenReturn(new BilanImport(
@@ -86,6 +90,8 @@ class SonsValidationDepotViewTest {
                     AudioViewModel viewModel() {
                         return new AudioViewModel(
                                 service,
+                                projections,
+                                mock(PlageNuitPassage.class),
                                 mock(ValidationManuelle.class),
                                 mock(MarquageDouteux.class),
                                 mock(RevueEnLot.class),

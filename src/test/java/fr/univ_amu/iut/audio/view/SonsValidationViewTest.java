@@ -39,11 +39,13 @@ import fr.univ_amu.iut.commun.viewmodel.SourceObservations;
 import fr.univ_amu.iut.commun.viewmodel.ZonesStatut;
 import fr.univ_amu.iut.validation.model.LigneObservationAudio;
 import fr.univ_amu.iut.validation.model.MarquageDouteux;
+import fr.univ_amu.iut.validation.model.PlageNuitPassage;
 import fr.univ_amu.iut.validation.model.RevueEnLot;
 import fr.univ_amu.iut.validation.model.ServiceValidation;
 import fr.univ_amu.iut.validation.model.StatutObservation;
 import fr.univ_amu.iut.validation.model.Taxon;
 import fr.univ_amu.iut.validation.model.ValidationManuelle;
+import fr.univ_amu.iut.validation.model.dao.ProjectionsAudioDao;
 import java.io.File;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
@@ -94,6 +96,7 @@ import org.testfx.util.WaitForAsyncUtils;
 class SonsValidationViewTest {
 
     private ServiceValidation service;
+    private ProjectionsAudioDao projections;
     private RevueEnLot revueEnLot;
     private DepotVues depotVues;
     private OuvrirAnalyse ouvrirAnalyse;
@@ -140,11 +143,12 @@ class SonsValidationViewTest {
     @Start
     void start(Stage stage) throws Exception {
         service = mock(ServiceValidation.class);
+        projections = mock(ProjectionsAudioDao.class);
         revueEnLot = mock(RevueEnLot.class);
         ServiceBibliotheque bibliotheque = mock(ServiceBibliotheque.class);
         when(service.taxonsDisponibles())
                 .thenReturn(List.of(new Taxon("Nyclei", "Nyctalus leisleri", "Noctule de Leisler", 1L)));
-        when(service.lignesAudioReferences("u-1"))
+        when(projections.lignesAudioReferences("u-1"))
                 .thenReturn(List.of(
                         ligne(1, 10, "Pippip", "Pippip", "Pipistrelle commune", "Pipistrelle commune"),
                         ligne(2, 11, "Nyclei", "Nyclei", "Noctule de Leisler", "Noctule de Leisler")));
@@ -162,6 +166,8 @@ class SonsValidationViewTest {
                     AudioViewModel viewModel() {
                         return new AudioViewModel(
                                 service,
+                                projections,
+                                mock(PlageNuitPassage.class),
                                 mock(ValidationManuelle.class),
                                 mock(MarquageDouteux.class),
                                 revueEnLot,
@@ -448,7 +454,7 @@ class SonsValidationViewTest {
 
         // Le rechargement post-action renvoie la même observation (id=1) mais **modifiée** (nouvelle
         // instance de record, non égale à l'ancienne) : sans resync, la table perdrait sa surbrillance.
-        when(service.lignesAudioReferences("u-1"))
+        when(projections.lignesAudioReferences("u-1"))
                 .thenReturn(List.of(
                         ligne(1, 10, "Pippip", "Nyclei", "Noctule de Leisler", "Pipistrelle commune"),
                         ligne(2, 11, "Nyclei", "Nyclei", "Noctule de Leisler", "Noctule de Leisler")));

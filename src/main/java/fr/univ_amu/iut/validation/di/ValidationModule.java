@@ -18,13 +18,13 @@ import fr.univ_amu.iut.passage.model.dao.SessionDao;
 import fr.univ_amu.iut.validation.model.ExportVuCsv;
 import fr.univ_amu.iut.validation.model.MarquageDouteux;
 import fr.univ_amu.iut.validation.model.ParserCsvTadarida;
-import fr.univ_amu.iut.validation.model.PlageNuitPassage;
 import fr.univ_amu.iut.validation.model.RapprochementTaxons;
 import fr.univ_amu.iut.validation.model.ServiceValidation;
 import fr.univ_amu.iut.validation.model.ValidationManuelle;
 import fr.univ_amu.iut.validation.model.dao.GroupeTaxonomiqueDao;
 import fr.univ_amu.iut.validation.model.dao.ObservationDao;
 import fr.univ_amu.iut.validation.model.dao.ProjectionsAnalyseDao;
+import fr.univ_amu.iut.validation.model.dao.ProjectionsAudioDao;
 import fr.univ_amu.iut.validation.model.dao.ResultatsIdentificationDao;
 import fr.univ_amu.iut.validation.model.dao.TaxonDao;
 import fr.univ_amu.iut.validation.view.NavigationValidation;
@@ -108,6 +108,12 @@ public class ValidationModule extends ModuleDeFeature {
 
     @Provides
     @Singleton
+    ProjectionsAudioDao fournirProjectionsAudioDao(SourceDeDonnees source) {
+        return new ProjectionsAudioDao(source);
+    }
+
+    @Provides
+    @Singleton
     ValidationManuelle fournirValidationManuelle(ObservationDao observationDao, TaxonDao taxonDao) {
         return new ValidationManuelle(observationDao, taxonDao);
     }
@@ -141,8 +147,7 @@ public class ValidationModule extends ModuleDeFeature {
             ParserCsvTadarida parser,
             ExportVuCsv export,
             UniteDeTravail uniteDeTravail,
-            Horloge horloge,
-            PlageNuitPassage plageNuitPassage) {
+            Horloge horloge) {
         return new ServiceValidation(
                 resultatsDao,
                 observationDao,
@@ -152,7 +157,6 @@ public class ValidationModule extends ModuleDeFeature {
                 parser,
                 export,
                 uniteDeTravail,
-                horloge,
-                plageNuitPassage);
+                horloge);
     }
 }

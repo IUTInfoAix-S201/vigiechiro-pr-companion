@@ -4,7 +4,6 @@ import fr.univ_amu.iut.commun.api.DonneeVigieChiro;
 import fr.univ_amu.iut.commun.model.CompteurValidations;
 import fr.univ_amu.iut.commun.model.Horloge;
 import fr.univ_amu.iut.commun.model.ModeValidation;
-import fr.univ_amu.iut.commun.model.PlageNuit;
 import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.commun.persistence.UniteDeTravail;
 import fr.univ_amu.iut.passage.model.SequenceDEcoute;
@@ -76,7 +75,6 @@ public class ServiceValidation implements CompteurValidations {
     private final ExportVuCsv export;
     private final UniteDeTravail uniteDeTravail;
     private final Horloge horloge;
-    private final PlageNuitPassage plageNuitPassage;
     private final PreservationValidations preservation;
 
     public ServiceValidation(
@@ -88,8 +86,7 @@ public class ServiceValidation implements CompteurValidations {
             ParserCsvTadarida parser,
             ExportVuCsv export,
             UniteDeTravail uniteDeTravail,
-            Horloge horloge,
-            PlageNuitPassage plageNuitPassage) {
+            Horloge horloge) {
         this.resultatsDao = Objects.requireNonNull(resultatsDao, "resultatsDao");
         this.observationDao = Objects.requireNonNull(observationDao, "observationDao");
         this.taxonDao = Objects.requireNonNull(taxonDao, "taxonDao");
@@ -99,7 +96,6 @@ public class ServiceValidation implements CompteurValidations {
         this.export = Objects.requireNonNull(export, "export");
         this.uniteDeTravail = Objects.requireNonNull(uniteDeTravail, "uniteDeTravail");
         this.horloge = Objects.requireNonNull(horloge, "horloge");
-        this.plageNuitPassage = Objects.requireNonNull(plageNuitPassage, "plageNuitPassage");
         this.preservation = new PreservationValidations(resultatsDao, observationDao);
     }
 
@@ -110,46 +106,6 @@ public class ServiceValidation implements CompteurValidations {
     /// Nombre total d'observations (compteur du tableau de bord d'accueil).
     public long compterObservations() {
         return observationDao.compter();
-    }
-
-    // ---------------------------------------------------------------------------------------------
-    // Vue audio unifiée (#audio) : projections LigneObservationAudio par source, façades sur le DAO
-    // ---------------------------------------------------------------------------------------------
-
-    /// Lignes audio d'**un passage** (source `ParPassage` de la vue audio unifiée).
-    public List<LigneObservationAudio> lignesAudioDuPassage(Long idPassage) {
-        return observationDao.lignesAudioDuPassage(idPassage);
-    }
-
-    /// Lignes audio d'**un lot de passages** (source `ParPassages`, multisite filtré).
-    public List<LigneObservationAudio> lignesAudioDesPassages(List<Long> idPassages) {
-        return observationDao.lignesAudioDesPassages(idPassages);
-    }
-
-    /// Plage **nuit** par défaut du filtre « Heure » de la vue audio pour un passage (#549) : délègue
-    /// au calcul dédié [PlageNuitPassage] (coucher/lever du soleil au point). Vide si indisponible
-    /// (passage introuvable, sans date, sans GPS, jour/nuit polaire) : l'appelant retombe sur 21 h → 6 h.
-    public Optional<PlageNuit> plageNuitParDefaut(Long idPassage) {
-        return plageNuitPassage.pour(idPassage);
-    }
-
-    /// Lignes audio d'**une espèce** d'un utilisateur (source `ParEspece`), filtre `statut` optionnel.
-    public List<LigneObservationAudio> lignesAudioDeLEspece(
-            String idUtilisateur, String codeEspece, StatutObservation statut) {
-        return observationDao.lignesAudioDeLEspece(idUtilisateur, codeEspece, statut);
-    }
-
-    /// Lignes audio du **corpus de référence** d'un utilisateur (source `References`).
-    public List<LigneObservationAudio> lignesAudioReferences(String idUtilisateur) {
-        return observationDao.lignesAudioReferences(idUtilisateur);
-    }
-
-    /// Lignes audio des **séquences non identifiées** d'un passage : les enregistrements présents sur disque
-    /// mais **sans observation Tadarida**, à écouter pour les valider manuellement. Réunies aux observations
-    /// Tadarida du passage dans la vue « Sons & validation » (source `ParPassage`), où elles forment la vue
-    /// « Sons non identifiés ».
-    public List<LigneObservationAudio> lignesAudioNonIdentifiees(Long idPassage) {
-        return observationDao.lignesAudioNonIdentifiees(idPassage);
     }
 
     /// Identifiant du jeu de résultats Tadarida d'un passage (`null` si aucun import), pour activer

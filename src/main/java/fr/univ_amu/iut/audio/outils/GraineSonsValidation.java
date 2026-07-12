@@ -41,11 +41,13 @@ import fr.univ_amu.iut.passage.model.dao.SessionDao;
 import fr.univ_amu.iut.validation.di.ValidationModule;
 import fr.univ_amu.iut.validation.model.MarquageDouteux;
 import fr.univ_amu.iut.validation.model.Observation;
+import fr.univ_amu.iut.validation.model.PlageNuitPassage;
 import fr.univ_amu.iut.validation.model.ResultatsIdentification;
 import fr.univ_amu.iut.validation.model.RevueEnLot;
 import fr.univ_amu.iut.validation.model.ServiceValidation;
 import fr.univ_amu.iut.validation.model.ValidationManuelle;
 import fr.univ_amu.iut.validation.model.dao.ObservationDao;
+import fr.univ_amu.iut.validation.model.dao.ProjectionsAudioDao;
 import fr.univ_amu.iut.validation.model.dao.ResultatsIdentificationDao;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -118,12 +120,20 @@ final class GraineSonsValidation {
                     @Provides
                     AudioViewModel viewModel(
                             ServiceValidation validation,
+                            ProjectionsAudioDao projectionsAudio,
+                            PlageNuitPassage plageNuitPassage,
                             ValidationManuelle validationManuelle,
                             MarquageDouteux marquageDouteux,
                             RevueEnLot revueEnLot,
                             ServiceBibliotheque bibliotheque) {
                         return new AudioViewModel(
-                                validation, validationManuelle, marquageDouteux, revueEnLot, bibliotheque);
+                                validation,
+                                projectionsAudio,
+                                plageNuitPassage,
+                                validationManuelle,
+                                marquageDouteux,
+                                revueEnLot,
+                                bibliotheque);
                     }
 
                     // Import VigieChiro indisponible en capture (aucune connexion) : VM à dépôt vide.

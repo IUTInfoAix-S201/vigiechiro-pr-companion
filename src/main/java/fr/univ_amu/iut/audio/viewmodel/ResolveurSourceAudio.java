@@ -4,16 +4,19 @@ import fr.univ_amu.iut.commun.model.PlageNuit;
 import fr.univ_amu.iut.commun.viewmodel.ContextePassage;
 import fr.univ_amu.iut.commun.viewmodel.SourceObservations;
 import fr.univ_amu.iut.validation.model.LigneObservationAudio;
+import fr.univ_amu.iut.validation.model.PlageNuitPassage;
 import fr.univ_amu.iut.validation.model.ServiceValidation;
 import fr.univ_amu.iut.validation.model.StatutObservation;
+import fr.univ_amu.iut.validation.model.dao.ProjectionsAudioDao;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-/// Résout une [SourceObservations] (descripteur de provenance) en données concrètes via
-/// [ServiceValidation] : la liste des [LigneObservationAudio] à écouter, l'identifiant du jeu de
-/// résultats (pour l'export `_Vu`), le passage unique (pour l'import), et le message d'état d'un
+/// Résout une [SourceObservations] (descripteur de provenance) en données concrètes : la liste des
+/// [LigneObservationAudio] à écouter (via la projection dédiée [ProjectionsAudioDao], #1193),
+/// l'identifiant du jeu de résultats (pour l'export `_Vu`, via [ServiceValidation]), la plage nuit du
+/// filtre « Heure » ([PlageNuitPassage]), le passage unique (pour l'import), et le message d'état d'un
 /// ensemble vide.
 ///
 /// Sort du [AudioViewModel] le **dépiautage des variantes de source** (accès aux champs des records
@@ -23,19 +26,24 @@ import java.util.stream.Stream;
 final class ResolveurSourceAudio {
 
     private final ServiceValidation service;
+    private final ProjectionsAudioDao projections;
+    private final PlageNuitPassage plageNuitPassage;
 
-    ResolveurSourceAudio(ServiceValidation service) {
+    ResolveurSourceAudio(
+            ServiceValidation service, ProjectionsAudioDao projections, PlageNuitPassage plageNuitPassage) {
         this.service = Objects.requireNonNull(service, "service");
+        this.projections = Objects.requireNonNull(projections, "projections");
+        this.plageNuitPassage = Objects.requireNonNull(plageNuitPassage, "plageNuitPassage");
     }
 
     /// Lignes audio de l'ensemble décrit par `source`.
     List<LigneObservationAudio> lignes(SourceObservations source) {
         return switch (source) {
             case SourceObservations.ParPassage s -> lignesDuPassage(s.contexte().idPassage());
-            case SourceObservations.ParPassages s -> service.lignesAudioDesPassages(s.idPassages());
+            case SourceObservations.ParPassages s -> projections.lignesAudioDesPassages(s.idPassages());
             case SourceObservations.ParEspece s ->
-                service.lignesAudioDeLEspece(s.idUtilisateur(), s.codeEspece(), statutDe(s.statut()));
-            case SourceObservations.References s -> service.lignesAudioReferences(s.idUtilisateur());
+                projections.lignesAudioDeLEspece(s.idUtilisateur(), s.codeEspece(), statutDe(s.statut()));
+            case SourceObservations.References s -> projections.lignesAudioReferences(s.idUtilisateur());
         };
     }
 
@@ -47,8 +55,8 @@ final class ResolveurSourceAudio {
     /// la nullité de `taxonTadarida` — le prédicat même de la vue « Sons non identifiés ».
     private List<LigneObservationAudio> lignesDuPassage(Long idPassage) {
         Stream<LigneObservationAudio> tadarida =
-                service.lignesAudioDuPassage(idPassage).stream().filter(ligne -> ligne.taxonTadarida() != null);
-        Stream<LigneObservationAudio> nonIdentifiees = service.lignesAudioNonIdentifiees(idPassage).stream();
+                projections.lignesAudioDuPassage(idPassage).stream().filter(ligne -> ligne.taxonTadarida() != null);
+        Stream<LigneObservationAudio> nonIdentifiees = projections.lignesAudioNonIdentifiees(idPassage).stream();
         return Stream.concat(tadarida, nonIdentifiees).toList();
     }
 
@@ -57,7 +65,7 @@ final class ResolveurSourceAudio {
     /// contexte), le filtre retombant alors sur son défaut fixe 21 h → 6 h.
     Optional<PlageNuit> plageNuit(SourceObservations source) {
         ContextePassage contexte = source.contexteDuPassage();
-        return contexte == null ? Optional.empty() : service.plageNuitParDefaut(contexte.idPassage());
+        return contexte == null ? Optional.empty() : plageNuitPassage.pour(contexte.idPassage());
     }
 
     /// Identifiant du jeu de résultats Tadarida, connu seulement pour `ParPassage` (`null` sinon).

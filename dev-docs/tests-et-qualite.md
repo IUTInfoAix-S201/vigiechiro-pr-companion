@@ -25,11 +25,11 @@ référence structurée ; le repo-root garde un mémo
     d'erreur inexpliquée alors que le code semble correct, **relancer avec `clean`**. Cas typiques :
 
     - **suppression ou renommage** d'une classe/méthode : l'ancien `.class` reste dans `target/` ;
-    - **changement de dépendances** (`pom.xml`) ;
-    - **rejouer `package` ou `-Pinstaller`** sans `clean` : le fat-jar déjà shadé est re-shadé
-      par-dessus lui-même (des dizaines de warnings « overlapping classes » trompeurs).
+    - **changement de dépendances** (`pom.xml`).
 
-    La CI part **toujours** d'un checkout propre : ce piège est purement **local**.
+    La CI part **toujours** d'un checkout propre : ce piège est purement **local**. Le cas du
+    **packaging** est réglé depuis #1188 : le fat-jar est attaché sous le classifier `shaded`, le shade
+    ne re-traite plus sa propre sortie (packaging **idempotent**, garde-fou en CI).
 
 ## IHM testée en *headless* (sans X11 ni xvfb)
 

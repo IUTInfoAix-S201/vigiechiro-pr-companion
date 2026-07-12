@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [2.11.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v2.10.0...v2.11.0) (2026-07-12)
+
+
+### Features
+
+* **audit:** audit en ligne des points d écoute (issue K, EPIC [#1154](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/1154)) ([#1217](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/1217)) ([0a910b1](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/0a910b19a16fbf3a56b6d3fe9e99ca7f710d9607)), closes [#1178](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/1178) [#1132](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/1132) [#1178](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/1178) [#1178](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/1178)
+
 # [2.10.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v2.9.1...v2.10.0) (2026-07-12)
 
 

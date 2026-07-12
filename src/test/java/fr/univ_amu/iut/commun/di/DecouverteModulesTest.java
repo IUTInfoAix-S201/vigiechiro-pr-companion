@@ -52,6 +52,7 @@ class DecouverteModulesTest {
     @AfterEach
     void nettoyer() {
         System.clearProperty("vigiechiro.features.desactivees");
+        System.clearProperty("vigiechiro.features.analyse");
         System.clearProperty("vigiechiro.features.diagnostic");
         System.clearProperty("vigiechiro.features.importation");
         System.clearProperty("vigiechiro.features.import-vigiechiro");
@@ -158,6 +159,20 @@ class DecouverteModulesTest {
                 .map(module -> module.getClass().getSimpleName())
                 .toList();
         assertThat(noms).doesNotContain("DiagnosticModule");
+
+        assertThatCode(RacineInjecteur::creer).doesNotThrowAnyException();
+    }
+
+    @Test
+    @DisplayName("la feuille analyse (désormais OPTIONNELLE) est désactivable et l'injecteur se construit")
+    void feuille_analyse_desactivable(@TempDir Path tmp) {
+        System.setProperty("vigiechiro.workspace", tmp.toString());
+        System.setProperty("vigiechiro.features.analyse", "off");
+
+        List<String> noms = RacineInjecteur.modules().stream()
+                .map(module -> module.getClass().getSimpleName())
+                .toList();
+        assertThat(noms).doesNotContain("AnalyseModule");
 
         assertThatCode(RacineInjecteur::creer).doesNotThrowAnyException();
     }

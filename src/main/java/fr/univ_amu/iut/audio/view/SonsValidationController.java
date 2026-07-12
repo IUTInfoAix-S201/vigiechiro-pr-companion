@@ -32,6 +32,7 @@ import java.io.File;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -70,7 +71,7 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
     private final ImportVigieChiroViewModel importVigieChiro;
     private final OuvrirSite ouvrirSite;
     private final OuvrirPassage ouvrirPassage;
-    private final OuvrirAnalyse ouvrirAnalyse;
+    private final Optional<OuvrirAnalyse> ouvrirAnalyse;
     private final OuvrirMultisite ouvrirMultisite;
     private final DepotVues depotVues;
     private final DepotDispositionColonnes depotColonnes;
@@ -259,7 +260,7 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
             ImportVigieChiroViewModel importVigieChiro,
             OuvrirSite ouvrirSite,
             OuvrirPassage ouvrirPassage,
-            OuvrirAnalyse ouvrirAnalyse,
+            Optional<OuvrirAnalyse> ouvrirAnalyse,
             OuvrirMultisite ouvrirMultisite,
             MemoireRevueAudio memoire,
             DepotVues depotVues,
@@ -308,6 +309,9 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
         // Densite et habillage de table uniformes (#690).
         TableDonnees.uniformiser(tableObservations);
         configurerColonnes();
+
+        // « Voir sur la carte » rouvre l'analyse : masqué si la feature `analyse` est coupée (#1087).
+        itemVoirCarte.setVisible(ouvrirAnalyse.isPresent());
 
         // Rendre les en-têtes cliquables réellement triants : la table est alimentée par une FilteredList
         // (non triable en place) ; on l'enveloppe dans une SortedList dont le comparateur suit celui de la
@@ -556,8 +560,11 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
             return EmplacementPassage.emplacementEnfant(contextePassage, ouvrirSite, ouvrirPassage, source.titre());
         }
         if (source instanceof SourceObservations.ParEspece) {
-            // Accueil › Espèces & observations › Écoute : [espèce] — le segment analyse rouvre l'écran.
-            return List.of(Lieu.vers("Espèces & observations", ouvrirAnalyse::ouvrir), Lieu.courant(source.titre()));
+            // Accueil › Espèces & observations › Écoute : [espèce] — le segment analyse rouvre l'écran, sauf
+            // si la feature `analyse` est désactivable et coupée (#1087) : le segment ne fait alors rien.
+            return List.of(
+                    Lieu.vers("Espèces & observations", () -> ouvrirAnalyse.ifPresent(OuvrirAnalyse::ouvrir)),
+                    Lieu.courant(source.titre()));
         }
         if (source instanceof SourceObservations.ParPassages) {
             // Accueil › Carte & passages › Écoute : lot — le segment multisite rouvre la vue agrégée.
@@ -624,10 +631,11 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
     /// « 🗺 Voir sur la carte » (#476) : rouvre l'analyse « Espèces & observations » directement sur la
     /// **carte de répartition**, en y transportant les filtres courants. Le socle ne rejoue que les critères
     /// que l'analyse connaît (statut, groupe) et la recherche texte ; les filtres propres à l'audio (proba,
-    /// références, espèce, heure) sont ignorés.
+    /// références, espèce, heure) sont ignorés. Neutralisé si la feature `analyse` est désactivable et
+    /// coupée (#1087) : l'item est alors masqué (cf. `initialize()`), ce handler n'est pas déclenché.
     @FXML
     private void voirSurCarte() {
-        ouvrirAnalyse.ouvrir(gestionnaireFiltres.decrire(), true);
+        ouvrirAnalyse.ifPresent(ouvrir -> ouvrir.ouvrir(gestionnaireFiltres.decrire(), true));
     }
 
     /// « Importer / Réimporter un CSV Tadarida » : sélecteur de fichier natif (ouverture) puis

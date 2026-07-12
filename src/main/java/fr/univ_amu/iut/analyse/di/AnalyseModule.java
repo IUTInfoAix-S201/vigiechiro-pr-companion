@@ -2,6 +2,7 @@ package fr.univ_amu.iut.analyse.di;
 
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
+import com.google.inject.multibindings.OptionalBinder;
 import com.google.inject.name.Named;
 import fr.univ_amu.iut.analyse.model.ServiceAnalyse;
 import fr.univ_amu.iut.analyse.view.ActiviteAnalyse;
@@ -19,12 +20,11 @@ import fr.univ_amu.iut.validation.model.dao.ObservationDao;
 /// l'assemblage inter-modules est résolu par `RacineInjecteur`.
 public class AnalyseModule extends ModuleDeFeature {
 
-    /// Identité de la feature. `COEUR` pour l'instant (feuille couplée au runtime via son contrat
-    /// `Ouvrir…` : la désactiver casserait l'écran consommateur) ; passera `OPTIONNELLE` une fois ce
-    /// contrat neutralisé (P3, #1064).
+    /// Identité de la feature. `OPTIONNELLE` (désactivable) : son contrat `OuvrirAnalyse` est neutralisé
+    /// chez son consommateur (SonsValidationController l'injecte en `Optional` et masque les points d'entrée).
     @Override
     public Fonctionnalite fonctionnalite() {
-        return new Fonctionnalite("analyse", "Analyse des observations", Categorie.COEUR);
+        return new Fonctionnalite("analyse", "Analyse des observations", Categorie.OPTIONNELLE);
     }
 
     @Override
@@ -32,7 +32,9 @@ public class AnalyseModule extends ModuleDeFeature {
         activite(ActiviteAnalyse.class);
         // Contrat socle de retour vers l'analyse (segment cliquable du fil d'Ariane de la vue audio
         // ouverte sur une source ParEspece).
-        bind(OuvrirAnalyse.class).to(NavigationAnalyse.class);
+        OptionalBinder.newOptionalBinder(binder(), OuvrirAnalyse.class)
+                .setBinding()
+                .to(NavigationAnalyse.class);
     }
 
     @Provides

@@ -11,6 +11,9 @@ import fr.univ_amu.iut.commun.model.dao.UtilisateurDao;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -85,5 +88,57 @@ class ServiceSauvegardeTest {
     @DisplayName("Le dossier de sauvegarde par défaut est <workspace>/sauvegardes")
     void dossier_par_defaut() {
         assertThat(service.dossierParDefaut()).isEqualTo(workspaceDir.resolve("sauvegardes"));
+    }
+
+    @Test
+    @DisplayName("Sauvegarde complète : base + dossiers de session copiés dans un dossier horodaté")
+    void sauvegarde_complete_copie_base_et_dossiers() throws IOException {
+        utilisateurDao.insert(new Utilisateur("u1", "Alice"));
+        seederSession("Car040962-2026-Pass1-A1");
+        Path destination = workspaceDir.resolve("mes-sauvegardes");
+
+        Path backup = service.sauvegarderComplet(destination);
+
+        assertThat(backup).isDirectory().hasParent(destination);
+        assertThat(backup.resolve("base").resolve("vigiechiro.db")).isRegularFile();
+        assertThat(backup.resolve("sessions")
+                        .resolve("Car040962-2026-Pass1-A1")
+                        .resolve("transformes")
+                        .resolve("seq.wav"))
+                .exists();
+    }
+
+    @Test
+    @DisplayName("Restauration complète : base et dossiers de session remis en l'état sauvegardé")
+    void restauration_complete_remet_base_et_dossiers() throws IOException {
+        utilisateurDao.insert(new Utilisateur("u1", "Alice"));
+        Path racineSession = seederSession("Car040962-2026-Pass1-A1");
+        Path backup = service.sauvegarderComplet(workspaceDir.resolve("mes-sauvegardes"));
+
+        // Altérations APRÈS la sauvegarde : un second utilisateur en base et le fichier de session supprimé.
+        utilisateurDao.insert(new Utilisateur("u2", "Bob"));
+        Files.delete(racineSession.resolve("transformes").resolve("seq.wav"));
+
+        service.restaurerComplet(backup);
+
+        assertThat(utilisateurDao.findAll()).extracting(Utilisateur::localId).containsExactly("u1");
+        assertThat(racineSession.resolve("transformes").resolve("seq.wav")).exists();
+    }
+
+    /// Crée `<workspace>/<nom>/transformes/seq.wav` et une ligne `recording_session` pointant sur ce dossier
+    /// (FK désactivées : seul `root_path` importe pour la sauvegarde complète).
+    private Path seederSession(String nom) throws IOException {
+        Path racine = workspaceDir.resolve(nom);
+        Files.createDirectories(racine.resolve("transformes"));
+        Files.writeString(racine.resolve("transformes").resolve("seq.wav"), "audio");
+        try (Connection cx = source.getConnection();
+                Statement st = cx.createStatement()) {
+            st.execute("PRAGMA foreign_keys = OFF");
+            st.execute("INSERT INTO recording_session(root_path, originals_total_bytes, sequences_total_bytes,"
+                    + " passage_id) VALUES ('" + racine.toString().replace("'", "''") + "', 0, 0, 1)");
+        } catch (SQLException echec) {
+            throw new IOException(echec);
+        }
+        return racine;
     }
 }

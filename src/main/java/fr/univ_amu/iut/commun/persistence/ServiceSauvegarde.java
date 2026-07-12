@@ -2,6 +2,7 @@ package fr.univ_amu.iut.commun.persistence;
 
 import com.google.inject.Inject;
 import fr.univ_amu.iut.commun.model.Horloge;
+import fr.univ_amu.iut.commun.model.Workspace;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -11,7 +12,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Stream;
 import org.sqlite.SQLiteDataSource;
 
 /// **Sauvegarde et restauration** de la base SQLite (#148) : la base concentre tout le travail
@@ -32,8 +36,11 @@ import org.sqlite.SQLiteDataSource;
 public class ServiceSauvegarde {
 
     private static final String PREFIXE = "vigiechiro-sauvegarde-";
+    private static final String PREFIXE_COMPLET = "vigiechiro-sauvegarde-complete-";
     private static final String EXTENSION = ".db";
     private static final String SUFFIXE_FILET = ".avant-restauration";
+    private static final String SOUS_DOSSIER_BASE = "base";
+    private static final String SOUS_DOSSIER_SESSIONS = "sessions";
     private static final DateTimeFormatter HORODATAGE = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss");
 
     private final SourceDeDonnees source;
@@ -137,5 +144,107 @@ public class ServiceSauvegarde {
     /// Littéral chaîne SQL à partir d'un chemin (apostrophes doublées) pour l'ordre `VACUUM INTO`.
     private static String litteralSql(Path chemin) {
         return "'" + chemin.toString().replace("'", "''") + "'";
+    }
+
+    /// **Sauvegarde complète** : base **et** dossiers de session (audio brut/transformé), prérequis d'un
+    /// reset sûr (#1142). Contrairement à [#sauvegarder] (base seule, routine), produit un **dossier**
+    /// `vigiechiro-sauvegarde-complete-AAAAMMJJ-HHMMSS/` contenant `base/vigiechiro.db` (instantané cohérent
+    /// via `VACUUM INTO`) et `sessions/<dossier>/` (copie de chaque `recording_session.root_path` présent).
+    /// Action **délibérée** (l'audio peut peser plusieurs Go) : à lancer avant un reset, hors opération
+    /// concurrente.
+    ///
+    /// @return le dossier de sauvegarde créé
+    public Path sauvegarderComplet(Path dossierDestination) {
+        Objects.requireNonNull(dossierDestination, "dossierDestination");
+        try {
+            Path racineBackup = dossierLibreComplet(dossierDestination);
+            Path base = Files.createDirectories(racineBackup.resolve(SOUS_DOSSIER_BASE))
+                    .resolve(Workspace.FICHIER_BASE);
+            try (Connection cx = source.getConnection();
+                    Statement st = cx.createStatement()) {
+                st.execute("VACUUM INTO " + litteralSql(base));
+            }
+            Path dossierSessions = Files.createDirectories(racineBackup.resolve(SOUS_DOSSIER_SESSIONS));
+            for (Path racineSession : racinesSessions()) {
+                if (Files.isDirectory(racineSession)) {
+                    copierRecursif(
+                            racineSession,
+                            dossierSessions.resolve(racineSession.getFileName().toString()));
+                }
+            }
+            return racineBackup;
+        } catch (IOException | SQLException echec) {
+            throw new DataAccessException("Sauvegarde complète impossible vers " + dossierDestination, echec);
+        }
+    }
+
+    /// Restaure une **sauvegarde complète** produite par [#sauvegarderComplet] : remet la base (via
+    /// [#restaurer] : vérification, filet de sécurité, migration) **puis** recopie les dossiers de session
+    /// sauvegardés à la racine du workspace (écrasement). Action délibérée, hors opération concurrente.
+    ///
+    /// @throws IllegalArgumentException si le dossier ou sa base sont introuvables
+    public void restaurerComplet(Path dossierBackup) {
+        Objects.requireNonNull(dossierBackup, "dossierBackup");
+        restaurer(dossierBackup.resolve(SOUS_DOSSIER_BASE).resolve(Workspace.FICHIER_BASE));
+        Path dossierSessions = dossierBackup.resolve(SOUS_DOSSIER_SESSIONS);
+        if (!Files.isDirectory(dossierSessions)) {
+            return;
+        }
+        Path racineWorkspace = source.workspace().racine();
+        try (Stream<Path> sessions = Files.list(dossierSessions)) {
+            for (Path sessionSauvegardee : (Iterable<Path>) sessions::iterator) {
+                if (Files.isDirectory(sessionSauvegardee)) {
+                    copierRecursif(
+                            sessionSauvegardee,
+                            racineWorkspace.resolve(
+                                    sessionSauvegardee.getFileName().toString()));
+                }
+            }
+        } catch (IOException echec) {
+            throw new DataAccessException(
+                    "Restauration des dossiers de session impossible depuis " + dossierBackup, echec);
+        }
+    }
+
+    /// Racines des sessions d'enregistrement (`recording_session.root_path`), lues directement : ce service
+    /// socle sauvegarde la base dans son ensemble, connaître ses tables lui revient.
+    private List<Path> racinesSessions() throws SQLException {
+        List<Path> racines = new ArrayList<>();
+        try (Connection cx = source.getConnection();
+                Statement st = cx.createStatement();
+                ResultSet rs = st.executeQuery(
+                        "SELECT DISTINCT root_path FROM recording_session WHERE root_path IS NOT NULL")) {
+            while (rs.next()) {
+                racines.add(Path.of(rs.getString(1)));
+            }
+        }
+        return racines;
+    }
+
+    /// Premier dossier de sauvegarde complète libre (horodaté, suffixé `-1`, `-2`… en cas de collision).
+    private Path dossierLibreComplet(Path dossier) throws IOException {
+        Files.createDirectories(dossier);
+        String base = PREFIXE_COMPLET + HORODATAGE.format(horloge.maintenant());
+        Path candidat = dossier.resolve(base);
+        int suffixe = 1;
+        while (Files.exists(candidat)) {
+            candidat = dossier.resolve(base + "-" + suffixe++);
+        }
+        return Files.createDirectories(candidat);
+    }
+
+    /// Copie récursive d'une arborescence (`origine` → `cible`), en écrasant les fichiers existants.
+    private static void copierRecursif(Path origine, Path cible) throws IOException {
+        try (Stream<Path> arbre = Files.walk(origine)) {
+            for (Path chemin : (Iterable<Path>) arbre::iterator) {
+                Path destination = cible.resolve(origine.relativize(chemin).toString());
+                if (Files.isDirectory(chemin)) {
+                    Files.createDirectories(destination);
+                } else {
+                    Files.createDirectories(destination.getParent());
+                    Files.copy(chemin, destination, StandardCopyOption.REPLACE_EXISTING);
+                }
+            }
+        }
     }
 }

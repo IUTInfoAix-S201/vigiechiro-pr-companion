@@ -3,6 +3,7 @@ package fr.univ_amu.iut.validation.model;
 import fr.univ_amu.iut.commun.api.ClientVigieChiro;
 import fr.univ_amu.iut.commun.api.DonneeVigieChiro;
 import fr.univ_amu.iut.commun.api.ParticipationVigieChiro;
+import fr.univ_amu.iut.commun.api.ReponseApi;
 import fr.univ_amu.iut.commun.api.Traitement;
 import fr.univ_amu.iut.commun.api.TraitementVigieChiro;
 import fr.univ_amu.iut.commun.model.LienVigieChiro;
@@ -77,7 +78,19 @@ public class ImportVigieChiro {
                 .orElseThrow(() -> new RegleMetierException("Ce passage n'est rattaché à aucune participation"
                         + " VigieChiro. Déposez-le d'abord sur VigieChiro (ou rattachez-le à une participation"
                         + " existante)."));
-        List<DonneeVigieChiro> donnees = client.donnees(participationId);
+        List<DonneeVigieChiro> donnees =
+                switch (client.donnees(participationId)) {
+                    case ReponseApi.Succes<List<DonneeVigieChiro>>(List<DonneeVigieChiro> liste) -> liste;
+                    case ReponseApi.NonConnecte<List<DonneeVigieChiro>> nonConnecte ->
+                        throw new RegleMetierException("Non connecté à VigieChiro : collez un jeton"
+                                + " (menu ☰ > Se connecter à VigieChiro) avant d'importer les observations.");
+                    case ReponseApi.Injoignable<List<DonneeVigieChiro>>(String cause) ->
+                        throw new RegleMetierException("VigieChiro est injoignable (" + cause
+                                + ") : les observations n'ont pas pu être lues. Vérifiez le réseau et réessayez.");
+                    case ReponseApi.Refuse<List<DonneeVigieChiro>>(int statut, String corps) ->
+                        throw new RegleMetierException("VigieChiro a refusé la lecture des observations (HTTP " + statut
+                                + " : " + corps + "). C'est probablement un défaut de l'application : signalez-le.");
+                };
         if (donnees.isEmpty()) {
             throw new RegleMetierException(pourquoiRienAImporter(participationId));
         }
@@ -90,11 +103,18 @@ public class ImportVigieChiro {
     /// indisponible »), laissant l'observateur sans rien à faire de cette information.
     ///
     /// On relit donc l'état du traitement (#1260) et on rend la vraie raison, avec le geste qui va avec.
+    /// On arrive ici après une lecture **réussie** des `donnees` : la plateforme répond. Si la relecture
+    /// de l'état échoue malgré tout juste après, on le dit tel quel, sans deviner.
     private String pourquoiRienAImporter(String participationId) {
-        Traitement traitement = this.traitement.etat(participationId);
+        Traitement traitement =
+                this.traitement.etat(participationId).enOptionnel().orElse(null);
+        if (traitement == null) {
+            return "VigieChiro ne renvoie aucune observation pour cette participation, et l'état du"
+                    + " traitement n'a pas pu être relu. Réessayez dans un instant.";
+        }
         if (traitement.estInconnu()) {
-            return "L'analyse n'a jamais été lancée sur VigieChiro pour cette nuit (ou la plateforme est"
-                    + " injoignable). Lancez-la depuis « Préparer le dépôt », étape ④.";
+            return "L'analyse n'a jamais été lancée sur VigieChiro pour cette nuit."
+                    + " Lancez-la depuis « Préparer le dépôt », étape ④.";
         }
         return switch (traitement.etat()) {
             case PLANIFIE ->

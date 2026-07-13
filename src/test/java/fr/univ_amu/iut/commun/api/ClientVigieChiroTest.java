@@ -34,15 +34,24 @@ class ClientVigieChiroTest {
     }
 
     @Test
-    @DisplayName("taxons / mesSites / donnees sans token → listes vides, sans toucher le réseau")
+    @DisplayName("taxons / mesSites sans token → listes vides ; participation / donnees → NonConnecte (#1284)")
     void listes_sans_token_sont_vides() {
         ClientVigieChiro client = new ClientVigieChiro("http://localhost:1/api/v1", SANS_TOKEN);
 
         assertThat(client.taxons()).isEmpty();
         assertThat(client.mesSites()).isEmpty();
         assertThat(client.mesParticipations()).isEmpty();
-        assertThat(client.participation("6a49")).isEmpty();
-        assertThat(client.donnees("6a49")).isEmpty();
+        assertThat(client.participation("6a49")).isInstanceOf(ReponseApi.NonConnecte.class);
+        assertThat(client.donnees("6a49")).isInstanceOf(ReponseApi.NonConnecte.class);
+    }
+
+    @Test
+    @DisplayName("participation / donnees hors-ligne → Injoignable, plus jamais un faux « vide » (#1284)")
+    void lectures_triees_hors_ligne() {
+        ClientVigieChiro client = new ClientVigieChiro("http://localhost:1/api/v1", TOKEN_ABC);
+
+        assertThat(client.participation("6a49")).isInstanceOf(ReponseApi.Injoignable.class);
+        assertThat(client.donnees("6a49")).isInstanceOf(ReponseApi.Injoignable.class);
     }
 
     @Test

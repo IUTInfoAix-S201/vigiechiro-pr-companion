@@ -62,7 +62,8 @@ public final class VerificationDepot {
         Set<String> nomsDuJournal =
                 journal.map(VerificationDepot::nomsDeFichiers).orElseGet(Set::of);
         Set<String> titresDonnees = new HashSet<>();
-        for (DonneeVigieChiro donnee : client.donnees(participationId)) {
+        for (DonneeVigieChiro donnee :
+                client.donnees(participationId).enOptionnel().orElseGet(List::of)) {
             titresDonnees.add(donnee.titre());
         }
 

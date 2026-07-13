@@ -141,7 +141,7 @@ class ContratApiVigieChiroLiveTest {
         ClientVigieChiro client = new ClientVigieChiro(baseUrl, () -> Optional.of(token));
         String id = client.mesParticipations().getFirst().id();
 
-        ParticipationDetail detail = client.participation(id).orElseThrow();
+        ParticipationDetail detail = client.participation(id).enOptionnel().orElseThrow();
 
         assertThat(detail.etag())
                 .as("_etag présent (requis en If-Match pour un futur PATCH)")
@@ -155,7 +155,8 @@ class ContratApiVigieChiroLiveTest {
         ClientVigieChiro client = new ClientVigieChiro(baseUrl, () -> Optional.of(token));
         String id = client.mesParticipations().getFirst().id();
 
-        Traitement traitement = client.participation(id).orElseThrow().traitement();
+        Traitement traitement =
+                client.participation(id).enOptionnel().orElseThrow().traitement();
 
         // Une participation jamais calculée n'a pas de bloc traitement : c'est un cas légitime, pas un
         // échec. En revanche, s'il y en a un, le parseur doit en reconnaître l'état — un état inconnu
@@ -221,7 +222,7 @@ class ContratApiVigieChiroLiveTest {
                 .as("premier compute sur une participation jamais calculée : le serveur accepte")
                 .isEqualTo(IssueLancement.ACCEPTE);
 
-        assertThat(traitement.etat(participationId).etat())
+        assertThat(traitement.etat(participationId).enOptionnel().orElseThrow().etat())
                 .as("le compute a posé un traitement (PLANIFIE, ou déjà EN_COURS si un worker a été prompt)")
                 .isIn(EtatTraitement.PLANIFIE, EtatTraitement.EN_COURS);
 

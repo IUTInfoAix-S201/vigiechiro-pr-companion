@@ -65,8 +65,10 @@ public final class ClientVigieChiro {
     /// paginée, et un observateur peut dépasser une page de participations.
     public List<SiteVigieChiro> mesSites() {
         Map<String, SiteVigieChiro> parId = new LinkedHashMap<>();
-        for (SiteVigieChiro site :
-                PaginationEve.parcourir(PAGES_MAX, this::pageParticipations, ParticipationsVigieChiro::sites)) {
+        for (SiteVigieChiro site : PaginationEve.parcourir(
+                        PAGES_MAX, this::pageParticipations, ParticipationsVigieChiro::sites)
+                .enOptionnel()
+                .orElseGet(List::of)) {
             parId.putIfAbsent(site.id(), site);
         }
         return List.copyOf(parId.values());
@@ -76,30 +78,35 @@ public final class ClientVigieChiro {
     /// site, pour rattacher à la main un passage à une participation existante (import de résultats sans
     /// dépôt-app préalable). Liste vide si non connecté / indisponible. **Toutes pages** (#1150).
     public List<ParticipationVigieChiro> mesParticipations() {
-        return PaginationEve.parcourir(PAGES_MAX, this::pageParticipations, ParticipationsVigieChiro::participations);
+        return PaginationEve.parcourir(PAGES_MAX, this::pageParticipations, ParticipationsVigieChiro::participations)
+                .enOptionnel()
+                .orElseGet(List::of);
     }
 
-    /// Corps JSON de la page `page` de `GET /moi/participations` : source commune des sites et des
-    /// participations, parcourue **toutes pages confondues** via [PaginationEve] (#1150).
-    private Optional<String> pageParticipations(int page) {
-        return get(CHEMIN_MOI_PARTICIPATIONS + PaginationEve.requete(page));
+    /// Corps JSON **trié** de la page `page` de `GET /moi/participations` : source commune des sites et
+    /// des participations, parcourue **toutes pages confondues** via [PaginationEve] (#1150).
+    private ReponseApi<String> pageParticipations(int page) {
+        return transport.lire(CHEMIN_MOI_PARTICIPATIONS + PaginationEve.requete(page));
     }
 
     /// Participation **détaillée** (`GET /participations/#id`, axe 4) : `_etag` (pour un `PATCH` `If-Match`
-    /// concurrent-sûr), dates, météo, configuration matérielle et état du traitement Tadarida. Vide si non
-    /// connecté, indisponible, ou participation inconnue.
-    public Optional<ParticipationDetail> participation(String id) {
-        return get(CHEMIN_PARTICIPATIONS + id).flatMap(ParticipationsVigieChiro::detail);
+    /// concurrent-sûr), dates, météo, configuration matérielle et état du traitement Tadarida. Issue
+    /// **triée** (#1284) : une participation inconnue revient en `Refuse(404)`, une panne en
+    /// `Injoignable`, l'absence de jeton en `NonConnecte` — plus jamais un même « vide ».
+    public ReponseApi<ParticipationDetail> participation(String id) {
+        return transport.lire(CHEMIN_PARTICIPATIONS + id).lireAvec(ParticipationsVigieChiro::detail);
     }
 
     /// Résultats Tadarida d'une participation (`GET /participations/#id/donnees`, #719, axe 4.2) : les
-    /// fichiers et leurs observations, **toutes pages confondues**. Liste vide si non connecté /
-    /// indisponible. La réponse Eve est paginée ; on parcourt les pages (grande taille demandée) jusqu'à
-    /// une page vide.
-    public List<DonneeVigieChiro> donnees(String participationId) {
+    /// fichiers et leurs observations, **toutes pages confondues** (la réponse Eve est paginée ; on
+    /// parcourt jusqu'à une page vide). Issue **triée** (#1284) et pagination **tout-ou-rien** : une
+    /// panne en cours de parcours rend l'issue, jamais un préfixe silencieux. Un `Succes` à liste vide
+    /// signifie réellement « le serveur n'a pas (encore) de résultats » (#1264).
+    public ReponseApi<List<DonneeVigieChiro>> donnees(String participationId) {
         return PaginationEve.parcourir(
                 PAGES_MAX,
-                page -> get(CHEMIN_PARTICIPATIONS + participationId + "/donnees" + PaginationEve.requete(page)),
+                page -> transport.lire(
+                        CHEMIN_PARTICIPATIONS + participationId + "/donnees" + PaginationEve.requete(page)),
                 DonneesVigieChiro::donnees);
     }
 

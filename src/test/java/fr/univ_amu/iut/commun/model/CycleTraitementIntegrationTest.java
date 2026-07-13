@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 import fr.univ_amu.iut.commun.api.ClientVigieChiro;
 import fr.univ_amu.iut.commun.api.EtatTraitement;
 import fr.univ_amu.iut.commun.api.ParticipationDetail;
+import fr.univ_amu.iut.commun.api.ReponseApi;
 import fr.univ_amu.iut.commun.api.Traitement;
 import fr.univ_amu.iut.commun.api.TraitementVigieChiro;
 import fr.univ_amu.iut.commun.model.dao.LienVigieChiroDao;
@@ -25,7 +26,6 @@ import fr.univ_amu.iut.sites.model.dao.SiteDao;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.Map;
-import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -138,7 +138,7 @@ class CycleTraitementIntegrationTest {
     /// Le serveur répond ce bloc `traitement` sur `GET /participations/{id}` — parsé pour de vrai.
     private void serveurRepond(Traitement traitement) {
         when(client.participation(PARTICIPATION))
-                .thenReturn(Optional.of(
+                .thenReturn(ReponseApi.succes(
                         new ParticipationDetail(PARTICIPATION, "e1", "Z41", null, null, null, Map.of(), traitement)));
     }
 }

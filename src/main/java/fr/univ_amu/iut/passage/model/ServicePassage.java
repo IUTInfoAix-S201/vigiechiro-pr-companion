@@ -125,7 +125,9 @@ public class ServicePassage {
     /// effet.
     public void marquerOriginauxPurges(Long idPassage) {
         Objects.requireNonNull(idPassage, ID_PASSAGE);
-        sessionDao.trouverParPassage(idPassage).ifPresent(s -> sessionDao.marquerOriginauxPurges(s.id()));
+        sessionDao
+                .trouverParPassage(idPassage)
+                .ifPresent(s -> sessionDao.marquerOriginauxPurges(s.id(), horloge.maintenant()));
     }
 
     /// Crée un passage à l'état initial [StatutWorkflow#IMPORTE], sans verdict.

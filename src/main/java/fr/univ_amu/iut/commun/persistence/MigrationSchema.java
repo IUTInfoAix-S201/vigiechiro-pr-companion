@@ -50,7 +50,8 @@ public class MigrationSchema {
         "V21__observation_ancrage_certitude.sql",
         "V22__participation_traitement.sql",
         "V23__empreintes_fichiers.sql",
-        "V24__archivage_passage.sql"
+        "V24__archivage_passage.sql",
+        "V25__purge_originaux_declaree.sql"
     };
 
     private static final String DOSSIER = "/db/migration/";

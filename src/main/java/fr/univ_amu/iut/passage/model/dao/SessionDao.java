@@ -24,7 +24,8 @@ public class SessionDao extends DaoGenerique<SessionDEnregistrement, Long> {
             lireLongNullable(rs, "originals_total_bytes"),
             lireLongNullable(rs, "sequences_total_bytes"),
             rs.getLong("passage_id"),
-            lireHorodatage(rs, "archived_at"));
+            lireHorodatage(rs, "archived_at"),
+            lireHorodatage(rs, "originals_purged_at"));
 
     /// Lit une colonne `INTEGER` nullable en [Long], en préservant le `null`.
     private static Long lireLongNullable(ResultSet rs, String colonne) throws SQLException {
@@ -63,11 +64,15 @@ public class SessionDao extends DaoGenerique<SessionDEnregistrement, Long> {
         return queryUnique("SELECT * FROM recording_session WHERE passage_id = ?", MAPPER, idPassage);
     }
 
-    /// Met à **zéro** le volume des originaux (`originals_total_bytes`) d'une session, après purge de ses
-    /// `bruts/` : la fiche du passage reflète alors que les originaux ne sont plus conservés (l'écoute et
-    /// la validation s'appuient sur les séquences transformées, inchangées).
-    public void marquerOriginauxPurges(Long idSession) {
-        executerMaj("UPDATE recording_session SET originals_total_bytes = 0 WHERE id = ?", idSession);
+    /// Déclare la purge des `bruts/` d'une session (#1303) : met le volume des originaux à **zéro**
+    /// (la fiche du passage reflète que les originaux ne sont plus conservés) et pose le marqueur
+    /// **explicite** `originals_purged_at` : c'est le fait déclaré qui fait taire le contrôle
+    /// d'existence des originaux dans l'audit, plus une heuristique de volume.
+    public void marquerOriginauxPurges(Long idSession, LocalDateTime horodatage) {
+        executerMaj(
+                "UPDATE recording_session SET originals_total_bytes = 0, originals_purged_at = ? WHERE id = ?",
+                horodatage == null ? null : horodatage.toString(),
+                idSession);
     }
 
     /// Met à **zéro** le volume des séquences (`sequences_total_bytes`) d'une session, après purge de
@@ -90,22 +95,27 @@ public class SessionDao extends DaoGenerique<SessionDEnregistrement, Long> {
     public SessionDEnregistrement insert(SessionDEnregistrement session) {
         long id = insererEtRecupererCle(
                 "INSERT INTO recording_session"
-                        + " (root_path, originals_total_bytes, sequences_total_bytes, passage_id, archived_at)"
-                        + " VALUES (?, ?, ?, ?, ?)",
+                        + " (root_path, originals_total_bytes, sequences_total_bytes, passage_id, archived_at,"
+                        + " originals_purged_at)"
+                        + " VALUES (?, ?, ?, ?, ?, ?)",
                 session.cheminRacine(),
                 session.volumeOriginauxOctets(),
                 session.volumeSequencesOctets(),
                 session.idPassage(),
                 session.horodatageArchivage() == null
                         ? null
-                        : session.horodatageArchivage().toString());
+                        : session.horodatageArchivage().toString(),
+                session.horodatagePurgeOriginaux() == null
+                        ? null
+                        : session.horodatagePurgeOriginaux().toString());
         return new SessionDEnregistrement(
                 id,
                 session.cheminRacine(),
                 session.volumeOriginauxOctets(),
                 session.volumeSequencesOctets(),
                 session.idPassage(),
-                session.horodatageArchivage());
+                session.horodatageArchivage(),
+                session.horodatagePurgeOriginaux());
     }
 
     @Override
@@ -113,7 +123,7 @@ public class SessionDao extends DaoGenerique<SessionDEnregistrement, Long> {
         executerMaj(
                 "UPDATE recording_session SET"
                         + " root_path = ?, originals_total_bytes = ?, sequences_total_bytes = ?, passage_id = ?,"
-                        + " archived_at = ?"
+                        + " archived_at = ?, originals_purged_at = ?"
                         + " WHERE id = ?",
                 session.cheminRacine(),
                 session.volumeOriginauxOctets(),
@@ -122,6 +132,9 @@ public class SessionDao extends DaoGenerique<SessionDEnregistrement, Long> {
                 session.horodatageArchivage() == null
                         ? null
                         : session.horodatageArchivage().toString(),
+                session.horodatagePurgeOriginaux() == null
+                        ? null
+                        : session.horodatagePurgeOriginaux().toString(),
                 session.id());
     }
 }

@@ -20,24 +20,47 @@ import java.time.LocalDateTime;
 ///     ne l'a jamais fait. C'est le **geste volontaire** qui est enregistré, pas un état observé :
 ///     la disponibilité réelle de l'audio reste calculée sur disque (`DisponibiliteAudio`, #1298),
 ///     et c'est ce marqueur qui distingue un passage archivé d'un passage corrompu (#1303)
+/// @param horodatagePurgeOriginaux moment où les **bruts** de la session ont été purgés
+///     volontairement (#1303 : même mécanisme déclaré que l'archivage, en remplacement de
+///     l'heuristique `volume == 0`), `null` s'ils ne l'ont jamais été
 public record SessionDEnregistrement(
         Long id,
         String cheminRacine,
         Long volumeOriginauxOctets,
         Long volumeSequencesOctets,
         Long idPassage,
-        LocalDateTime horodatageArchivage) {
+        LocalDateTime horodatageArchivage,
+        LocalDateTime horodatagePurgeOriginaux) {
 
-    /// Constructeur de **compatibilité** (sans horodatage d'archivage) : préserve les appels
-    /// antérieurs à #1300 (le marqueur vaut `null`, posé uniquement par l'archivage). Voir
-    /// [#horodatageArchivage].
+    /// Constructeur de **compatibilité** (sans horodatage d'archivage ni de purge) : préserve les
+    /// appels antérieurs à #1300 (les marqueurs valent `null`, posés uniquement par l'archivage et
+    /// la purge). Voir [#horodatageArchivage] et [#horodatagePurgeOriginaux].
     public SessionDEnregistrement(
             Long id, String cheminRacine, Long volumeOriginauxOctets, Long volumeSequencesOctets, Long idPassage) {
-        this(id, cheminRacine, volumeOriginauxOctets, volumeSequencesOctets, idPassage, null);
+        this(id, cheminRacine, volumeOriginauxOctets, volumeSequencesOctets, idPassage, null, null);
+    }
+
+    /// Constructeur de **compatibilité** (sans horodatage de purge des originaux) : préserve les
+    /// appels antérieurs à #1303. Voir [#horodatagePurgeOriginaux].
+    public SessionDEnregistrement(
+            Long id,
+            String cheminRacine,
+            Long volumeOriginauxOctets,
+            Long volumeSequencesOctets,
+            Long idPassage,
+            LocalDateTime horodatageArchivage) {
+        this(id, cheminRacine, volumeOriginauxOctets, volumeSequencesOctets, idPassage, horodatageArchivage, null);
     }
 
     /// Le passage a-t-il été **archivé volontairement** (audio purgé pour libérer l'espace, #1300) ?
     public boolean archivee() {
         return horodatageArchivage != null;
+    }
+
+    /// Les bruts de la session ont-ils été **purgés volontairement** (#1303) ? Fait déclaré : c'est
+    /// lui qui fait taire le contrôle d'existence des originaux dans l'audit, plus l'heuristique de
+    /// volume.
+    public boolean originauxPurges() {
+        return horodatagePurgeOriginaux != null;
     }
 }

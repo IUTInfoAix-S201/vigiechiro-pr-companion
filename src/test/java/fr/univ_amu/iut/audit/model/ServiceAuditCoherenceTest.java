@@ -251,15 +251,34 @@ class ServiceAuditCoherenceTest {
     }
 
     @Test
-    @DisplayName("Originaux purgés (volume 0, fichiers absents) : aucun constat sur les originaux")
+    @DisplayName("#1303 : purge des originaux déclarée (marqueur posé) : aucun constat sur les originaux")
     void originaux_purges_aucun_constat() throws IOException {
         Long idPassage = creerSessionCoherente(1);
-        // Purge : volume des originaux à 0 (les lignes subsistent), puis suppression des fichiers bruts.
+        // Purge déclarée : marqueur explicite + volume à 0 (les lignes subsistent), fichiers supprimés.
         Long idSession = sessionDao.trouverParPassage(idPassage).orElseThrow().id();
-        sessionDao.marquerOriginauxPurges(idSession);
+        sessionDao.marquerOriginauxPurges(idSession, java.time.LocalDateTime.of(2026, 7, 13, 20, 0));
         Files.delete(racineSession.resolve("bruts").resolve(NOM_ORIGINAL));
 
         assertThat(service.auditerPassage(idPassage).sain()).isTrue();
+    }
+
+    @Test
+    @DisplayName("#1303 : volume à zéro SANS marqueur : les bruts manquants restent une erreur (fini l'heuristique)")
+    void volume_zero_sans_marqueur_reste_une_erreur() throws IOException {
+        Long idPassage = creerSessionCoherente(1);
+        Long idSession = sessionDao.trouverParPassage(idPassage).orElseThrow().id();
+        SessionDEnregistrement session = sessionDao.findById(idSession).orElseThrow();
+        // Volume erroné à 0 sans geste déclaré : la disparition des bruts reste un vrai problème.
+        sessionDao.update(new SessionDEnregistrement(
+                session.id(), session.cheminRacine(), 0L, session.volumeSequencesOctets(), session.idPassage()));
+        Files.delete(racineSession.resolve("bruts").resolve(NOM_ORIGINAL));
+
+        List<ConstatAudit> constats = service.auditerPassage(idPassage).constats();
+
+        assertThat(constats).singleElement().satisfies(c -> {
+            assertThat(c.severite()).isEqualTo(SeveriteConstat.ERREUR);
+            assertThat(c.categorie()).isEqualTo(CategorieConstat.DISQUE_MANQUANT);
+        });
     }
 
     @Test

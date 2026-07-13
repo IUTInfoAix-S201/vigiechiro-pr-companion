@@ -91,6 +91,47 @@ class ImportVigieChiroTest {
     }
 
     @Test
+    @DisplayName("#1277 rejoué : un refus serveur (422) devient un message avec statut et corps, pas une liste vide")
+    void refus_serveur_expose_statut_et_corps() {
+        // La panne d'origine : max_results=1000 → 422, que le transport taisait. L'import affichait
+        // « Aucun résultat Tadarida disponible » avec 4806 observations sur le serveur.
+        when(liens.objectidPour(LienVigieChiro.ENTITE_PASSAGE, "42")).thenReturn(Optional.of(PARTICIPATION));
+        when(client.donnees(PARTICIPATION)).thenReturn(ReponseApi.refuse(422, "max_results depasse"));
+
+        assertThatThrownBy(() -> importateur.importer(ID_PASSAGE, false))
+                .isInstanceOf(RegleMetierException.class)
+                .hasMessageContaining("refusé")
+                .hasMessageContaining("422")
+                .hasMessageContaining("max_results depasse");
+        aucunImport();
+    }
+
+    @Test
+    @DisplayName("#1284 : plateforme injoignable (délai) → message actionnable, pas « aucun résultat »")
+    void injoignable_dit_injoignable() {
+        when(liens.objectidPour(LienVigieChiro.ENTITE_PASSAGE, "42")).thenReturn(Optional.of(PARTICIPATION));
+        when(client.donnees(PARTICIPATION)).thenReturn(ReponseApi.injoignable("délai d'attente dépassé"));
+
+        assertThatThrownBy(() -> importateur.importer(ID_PASSAGE, false))
+                .isInstanceOf(RegleMetierException.class)
+                .hasMessageContaining("injoignable")
+                .hasMessageContaining("délai d'attente dépassé");
+        aucunImport();
+    }
+
+    @Test
+    @DisplayName("#1284 : non connecté → on demande le jeton, sans parler de panne")
+    void non_connecte_demande_le_jeton() {
+        when(liens.objectidPour(LienVigieChiro.ENTITE_PASSAGE, "42")).thenReturn(Optional.of(PARTICIPATION));
+        when(client.donnees(PARTICIPATION)).thenReturn(ReponseApi.nonConnecte());
+
+        assertThatThrownBy(() -> importateur.importer(ID_PASSAGE, false))
+                .isInstanceOf(RegleMetierException.class)
+                .hasMessageContaining("jeton");
+        aucunImport();
+    }
+
+    @Test
     @DisplayName("#1264 : analyse EN COURS → on le dit, et on ne parle plus d'erreur (il n'y a qu'à attendre)")
     void rien_a_importer_car_analyse_en_cours() {
         // Le serveur répond « 200, liste vide » tant que le calcul tourne : ce n'est pas une panne, c'est un

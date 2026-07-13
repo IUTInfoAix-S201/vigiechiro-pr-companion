@@ -306,6 +306,7 @@ class ServiceValidationMockTest {
 
         // Titre sans extension (comme l'API) ; le rattachement compare sans l'extension .wav.
         List<DonneeVigieChiro> donnees = List.of(new DonneeVigieChiro(
+                "d1",
                 "Car130711-Z41_000",
                 List.of(new ObservationVigieChiro("Pipkuh", 0.99, 44.0, 0.8, 4.7, "noise", null, null))));
 

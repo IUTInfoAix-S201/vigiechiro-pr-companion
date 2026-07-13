@@ -27,7 +27,7 @@ final class DonneesVigieChiro {
             JsonObject donnee = element.getAsJsonObject();
             String titre = ReponsesVigieChiro.texte(donnee, "titre");
             if (titre != null) {
-                donnees.add(new DonneeVigieChiro(titre, observations(donnee)));
+                donnees.add(new DonneeVigieChiro(ReponsesVigieChiro.texte(donnee, "_id"), titre, observations(donnee)));
             }
         }
         return donnees;

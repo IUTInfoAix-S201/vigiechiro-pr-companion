@@ -32,6 +32,11 @@ Récupérer un token : sur le site VigieChiro connecté, exécuter le marque-pag
 
     # + probes d'écriture (POST/PATCH/upload, sur une participation « banc d'essai ») :
     ./mvnw -Papi-live test -Dvigiechiro.token=XXXX -Dvigiechiro.write=true
+
+    # + probes des corrections (#1203) : exigent EN PLUS la participation banc d'essai,
+    # car une correction posée ne se retire pas (cf. § Écriture des corrections) :
+    ./mvnw -Papi-live test -Dvigiechiro.token=XXXX -Dvigiechiro.write=true \
+        -Dvigiechiro.participationEssai=<id-participation>
     ```
 
     Sans `-Dvigiechiro.token`, la suite se **skippe** proprement (aucun échec accidentel).
@@ -128,13 +133,68 @@ Points vérifiés en réel (reconnaissance #1135, 2026-07-12, lecture seule) :
   complet embarqué**, pas un simple objectid) et `tadarida_taxon_autre` (liste rangée `{taxon, probabilite}`) ;
 - **aucun champ `observateur_*`** n'est présent tant qu'aucune correction n'a été poussée.
 
-!!! warning "Ancrage d'une correction (#723 / #1139)"
-    Les observations n'ayant pas d'`_id`, une correction se cible par le couple **(`donnee._id`, indice dans
-    `observations`)**, pas par un identifiant d'observation. Le modèle `PATCH /donnees/{id}/observations/
-    {id_observation}` du périmètre initial de #723 est donc à revoir : l'observation n'est pas une ressource
-    REST autonome. À trancher lors de l'ancrage (#1139) : soit un `PATCH` de la **donnée** avec son tableau
-    `observations` mis à jour (`If-Match: _etag`), soit une sous-ressource **positionnelle** si Eve l'expose.
-    Le taxon à envoyer est un **objectid** (cf. mapping code ↔ objectid #717).
+## Écriture des corrections (spike #1203, prérequis de #723)
+
+Contrat établi le 2026-07-13 par **lecture statique du backend** (`Scille/vigiechiro-api`,
+`resources/donnees.py` + `xin/resource.py`, master du 2026-06-09), puis **confirmé en réel le jour
+même** par les sondes `#1203` de `ContratApiVigieChiroLiveTest` : lecture (3 sondes) et écriture
+(2 probes opt-in, sur la participation banc d'essai `6a50f790aede4b981b7942be` : PATCH positionnel
+`200` + relecture conforme, verdicts négatifs `422` et `403` observés).
+L'hypothèse initiale de l'issue (« PATCH de la donnée avec le tableau `observations` réémis, le plus
+probable ») était **fausse** : cette voie est réservée à l'admin. La route positionnelle existe.
+
+**La route** : `PATCH /donnees/{donnee_id}/observations/{index}` : l'**indice dans le tableau
+`observations` est l'identifiant** de l'observation (`404` si hors bornes).
+
+```http
+PATCH /donnees/6a4fcaa2842983a29ba25363/observations/0
+{ "observateur_taxon": "5526cd5a…", "observateur_probabilite": "SUR" }
+```
+
+Règles imposées par le handler (`donnees.py`, `edit_observation`) :
+
+- **rôle `Observateur` + propriétaire de la donnée uniquement** pour `observateur_*` (`403` sinon) ;
+  `validateur_taxon` / `validateur_probabilite` sont réservés Administrateur / Validateur (→ #724) ;
+- **`observateur_probabilite` est une énumération `SUR | PROBABLE | POSSIBLE`**, pas un flottant, et
+  elle est **obligatoire dès que `observateur_taxon` est envoyé** (`422` sinon). **Arbitrage tranché
+  (2026-07-13)** : deux notions distinctes, **aucune conversion**. Le `Double` local
+  (`Observation.probObservateur`) est la confiance **Tadarida** (recopiée à la validation un-clic,
+  héritage du format `_Vu`) ; l'énumération est la **certitude déclarée manuellement** par
+  l'observateur au moment de sa revue, **vide par défaut**, en miroir du site web (listes « Taxon
+  observateur » + « Confiance observateur » + bouton OK, rien de prérempli). #1139 ajoute le champ
+  local correspondant ; seules les observations avec taxon **et** certitude saisis sont poussables ;
+- **`observateur_taxon` est un objectid** (`relation('taxons')`, cast `ObjectId(...)`). Le mapping
+  code ↔ objectid existe : `vigiechiro_link` / `ENTITE_TAXON` (`RapprochementTaxons`). Un taxon local
+  **hors référentiel** (sans lien) n'est pas poussable : cas normal à afficher, pas une erreur ;
+- tout autre champ dans le corps → `422 unknown field` ;
+- **pas d'`If-Match`** : le handler ne lit pas cet en-tête (la concurrence est gérée en interne par
+  relecture-`$set`). Au passage, le handler `PATCH /participations/{id}` ne le lit pas non plus :
+  notre client l'envoie par convention Eve, sans effet réel ;
+- **pas d'annulation** : la route ne fait que du `$set`. Une correction posée se **remplace** mais ne
+  se **retire** pas : d'où la règle « participation banc d'essai explicite » des probes.
+
+!!! warning "Durabilité : un re-compute efface les corrections"
+    Une **relance du traitement supprime toutes les `donnees`** de la participation avant de recalculer
+    (`task_participation.py:726-731`, consigné par #1260). Les corrections poussées **ne survivent
+    donc pas** à un re-compute : la conception de #723 doit en tenir compte (re-pousser après
+    recalcul, ou verrouiller la relance quand des corrections existent).
+
+Effets de bord et leviers :
+
+- chaque `PATCH` déclenche la régénération du **bilan** de la participation
+  (`participation_generate_bilan.delay_singleton`), sauf paramètre `?no_bilan=<vrai>` : levier de
+  traitement par lot pour #723 (n'omettre le bilan que sur les rafales, jamais sur le dernier envoi) ;
+- l'**ancrage local** (#1139) est le couple (`donnee._id`, indice) : le `_id` de la donnée est
+  désormais exposé au parsing (`DonneeVigieChiro.id`) ; côté lecture, `observateur_probabilite`
+  revenant en **chaîne**, le parseur actuel (`getAsDouble`) la ramène silencieusement à `null` : à
+  reprendre dans #1139 ;
+- **asymétrie écriture/lecture vérifiée en réel** : on écrit `observateur_taxon` en objectid, on le
+  relit **embarqué complet** (objet taxon avec `_id`, `libelle_court`, `libelle_long`, `parents`),
+  exactement comme `tadarida_taxon` : le parseur actuel (`codeTaxon`) lit donc déjà son
+  `libelle_court` ;
+- routes voisines découvertes : `PUT /donnees/{id}/observations/{index}/messages` (fils de
+  discussion : le spike #724 a déjà sa réponse côté API) et `GET /donnees/{id}/fichiers?wav=true`
+  (fichiers rattachés à une donnée, croise le repli audio #1244).
 
 ## Cycle de vie d'une participation (EPIC #941)
 
@@ -248,7 +308,9 @@ Sondé via `OPTIONS` (en-tête `Allow`) avec un token d'observateur — **aucune
 | `/sites/{id}` | `GET, PATCH, DELETE…` | PATCH réel → **403** : `Allow` reflète le **schéma Eve**, pas l'autorisation par rôle. Écriture/suppression réservées (MNHN/propriétaire) |
 | `/moi/participations` | `GET` seul | lecture seule, **paginée** (`_meta.total` fiable) |
 | `/fichiers` (collection) | `POST, GET…` | `GET` réel → **403** : on peut créer des fichiers, pas les relire |
-| `/participations/{id}/donnees` | `GET, POST` | GET = résultats Tadarida (import) ; POST vraisemblablement réservé au pipeline serveur |
+| `/participations/{id}/donnees` | `GET, POST` | GET = résultats Tadarida (import) ; POST **ouvert au propriétaire** (vérifié #1203 : création d'une donnée avec observations, `201`) |
+| `/donnees/{id}` | `GET, PATCH` | GET direct OK (vérifié #1203) ; PATCH du tableau `observations` = **403 pour l'observateur** (réservé admin) |
+| `/donnees/{id}/observations/{index}` | `PATCH` (vérifié `200` en réel) | **la** route des corrections (#1203) : l'indice du tableau est l'identifiant ; cf. § Écriture des corrections |
 
 **Ce qui est récupérable depuis la plateforme** (restauration possible, cf. issue dédiée) :
 

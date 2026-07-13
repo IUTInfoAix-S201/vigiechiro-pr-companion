@@ -65,7 +65,7 @@ class VerificationDepotTest {
         when(participations.participationDe(42L)).thenReturn(Optional.of("part-1"));
         when(depotUnites.parPassage(42L))
                 .thenReturn(List.of(unite("seq_000.wav", TypeDepotUnite.WAV), unite("Car-1.zip", TypeDepotUnite.ZIP)));
-        when(client.donnees("part-1")).thenReturn(List.of(new DonneeVigieChiro("seq_000", List.of())));
+        when(client.donnees("part-1")).thenReturn(List.of(new DonneeVigieChiro("d1", "seq_000", List.of())));
 
         BilanVerification bilan = verification.verifier(42L);
 

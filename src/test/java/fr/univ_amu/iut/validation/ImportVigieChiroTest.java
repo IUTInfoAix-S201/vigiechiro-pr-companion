@@ -53,7 +53,7 @@ class ImportVigieChiroTest {
     @Test
     @DisplayName("importer : résout la participation rattachée, récupère les donnees et importe")
     void importer_de_bout_en_bout() {
-        List<DonneeVigieChiro> donnees = List.of(new DonneeVigieChiro("Car-Z41_000", List.of(observation())));
+        List<DonneeVigieChiro> donnees = List.of(new DonneeVigieChiro("d1", "Car-Z41_000", List.of(observation())));
         BilanImport attendu = new BilanImport(null, 1, 0, 0);
         when(liens.objectidPour(LienVigieChiro.ENTITE_PASSAGE, "42")).thenReturn(Optional.of(PARTICIPATION));
         when(client.donnees(PARTICIPATION)).thenReturn(donnees);

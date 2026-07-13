@@ -11,7 +11,8 @@ import org.junit.jupiter.api.Test;
 class DonneesVigieChiroTest {
 
     @Test
-    @DisplayName("donnees : titre + observations Tadarida (taxon, proba, freq, temps, alternative)")
+    @DisplayName("donnees : _id (ancrage #1203) + titre + observations Tadarida (taxon, proba, freq, temps,"
+            + " alternative)")
     void donnees_fichier_et_observations() {
         // Forme réelle (extrait de GET /participations/#id/donnees).
         String corps = "{\"_items\":[{\"_id\":\"d1\","
@@ -26,6 +27,9 @@ class DonneesVigieChiroTest {
 
         assertThat(donnees).hasSize(1);
         DonneeVigieChiro donnee = donnees.getFirst();
+        assertThat(donnee.id())
+                .as("le _id de la donnée est l'ancrage d'une correction (PATCH positionnel, #1203)")
+                .isEqualTo("d1");
         assertThat(donnee.titre()).isEqualTo("Car130711-2026-Pass1-Z41-PaRec_20260703_220529_000");
         assertThat(donnee.observations())
                 .containsExactly(
@@ -39,12 +43,15 @@ class DonneesVigieChiroTest {
         String corps = "{\"_items\":["
                 + "{\"_id\":\"d1\",\"observations\":[{\"tadarida_taxon\":{\"libelle_court\":\"Pipkuh\"}}]}," // sans
                 // titre
-                + "{\"_id\":\"d2\",\"titre\":\"F\",\"observations\":[{\"frequence_mediane\":40.0}]}]}"; // obs sans
-        // taxon
+                + "{\"titre\":\"F\",\"observations\":[{\"frequence_mediane\":40.0}]}]}"; // obs sans
+        // taxon, donnée sans _id
 
         List<DonneeVigieChiro> donnees = DonneesVigieChiro.donnees(corps);
 
         assertThat(donnees).singleElement().satisfies(donnee -> {
+            assertThat(donnee.id())
+                    .as("donnée sans _id : lisible quand même (mais non adressable pour une correction)")
+                    .isNull();
             assertThat(donnee.titre()).isEqualTo("F");
             assertThat(donnee.observations()).isEmpty();
         });

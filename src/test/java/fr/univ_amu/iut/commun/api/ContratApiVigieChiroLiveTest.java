@@ -12,6 +12,7 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import io.restassured.RestAssured;
 import io.restassured.specification.RequestSpecification;
 import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -39,8 +40,10 @@ import org.junit.jupiter.api.Test;
 /// partagés (`src/test/resources/vigiechiro/*.schema.json`), validés ici et réutilisés par la collection
 /// Postman (une seule source de vérité, pas de contrat dupliqué).
 ///
-/// Ce fichier ne couvre que le **mode lecture** (idempotent, sûr). Les contrats d'**écriture** (POST/PATCH,
-/// probes ZIP et site) arrivent en mode opt-in `-Dvigiechiro.write=true`.
+/// Ce fichier couvre d'abord le **mode lecture** (idempotent, sûr). Les contrats d'**écriture** (POST/PATCH :
+/// probes ZIP, site et corrections d'observations) sont opt-in `-Dvigiechiro.write=true` ; les probes de
+/// corrections (#1203) exigent en plus une participation **banc d'essai** explicitement désignée
+/// (`-Dvigiechiro.participationEssai=<id>`), car une correction posée ne se retire pas.
 @Tag("api-live")
 @DisplayName("Contrat API VigieChiro (live, lecture) — documentation vivante du schéma")
 class ContratApiVigieChiroLiveTest {
@@ -257,5 +260,229 @@ class ContratApiVigieChiroLiveTest {
         } catch (java.io.IOException impossible) {
             throw new IllegalStateException("Construction du zip d'essai impossible", impossible);
         }
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // CONTRAT D'ÉCRITURE DES CORRECTIONS (#1203, prérequis de #723) : sondes en lecture (sans risque)
+    // puis probes en écriture (opt-in). Verdicts établis par lecture statique du backend
+    // (donnees.py, 2026-07-13), que ces sondes confirment en réel : route positionnelle
+    // PATCH /donnees/{id}/observations/{index}, probabilité en énumération SUR|PROBABLE|POSSIBLE,
+    // taxon en objectid, propriétaire seul, pas d'If-Match exigé.
+    // ---------------------------------------------------------------------------------------------
+
+    @Test
+    @DisplayName("GET /donnees/{id} : la donnée est adressable directement par son _id (ancrage des"
+            + " corrections, #1203)")
+    void donnee_adressable_par_son_id() {
+        String idDonnee = idPremiereDonnee();
+
+        api().when()
+                .get("/donnees/{id}", idDonnee)
+                .then()
+                .statusCode(200)
+                .body("_id", org.hamcrest.Matchers.equalTo(idDonnee));
+    }
+
+    @Test
+    @DisplayName("Dérive client : DonneesVigieChiro lit le _id des donnees réelles (sans lui, aucune"
+            + " correction n'est adressable)")
+    void parseur_lit_l_id_des_donnees_reelles() {
+        String corps = api().when()
+                .get("/participations/{id}/donnees?max_results=1", participationTraitee())
+                .then()
+                .statusCode(200)
+                .extract()
+                .asString();
+
+        List<DonneeVigieChiro> donnees = DonneesVigieChiro.donnees(corps);
+
+        assertThat(donnees).as("au moins une donnée lue sur la page").isNotEmpty();
+        assertThat(donnees.getFirst().id()).as("_id de la donnée parsé").isNotNull();
+    }
+
+    @Test
+    @DisplayName("OPTIONS /donnees/{id}/observations/0 : la route positionnelle existe, l'index du tableau"
+            + " EST l'identifiant de l'observation (Allow contient PATCH ; rappel : Allow reflète le"
+            + " schéma, pas le rôle)")
+    void route_positionnelle_annoncee() {
+        String allow = api().when()
+                .options("/donnees/{id}/observations/0", idPremiereDonnee())
+                .then()
+                .statusCode(200)
+                .extract()
+                .header("Allow");
+
+        assertThat(allow).as("Allow de la route positionnelle").contains("PATCH");
+    }
+
+    @Test
+    @DisplayName("PROBE #1203 : PATCH /donnees/{id}/observations/{index} en auto-validation inoffensive"
+            + " (observateur_taxon = taxon Tadarida, probabilite SUR) puis relecture. ATTENTION : une"
+            + " correction posée ne se retire pas (la route ne fait que du $set) : banc d'essai seulement")
+    void probe_patch_correction_observation() {
+        supposerEcritureAutorisee();
+        CibleCorrection cible = cibleCorrection();
+
+        // Sans en-tête If-Match, délibérément : le handler backend n'en lit pas (contrairement à la
+        // convention Eve des participations). Un 428/412 ici serait un verdict à consigner.
+        api().contentType("application/json")
+                .body(Map.of("observateur_taxon", cible.idTaxon(), "observateur_probabilite", "SUR"))
+                .when()
+                .patch("/donnees/{id}/observations/0", cible.idDonnee())
+                .then()
+                .statusCode(200);
+
+        var relue = api().when()
+                .get("/donnees/{id}", cible.idDonnee())
+                .then()
+                .statusCode(200)
+                .extract();
+        assertThat(relue.<String>path("observations[0].observateur_probabilite"))
+                .as("probabilité observateur relue : énumération SUR|PROBABLE|POSSIBLE, pas un flottant")
+                .isEqualTo("SUR");
+        assertThat(relue.<Object>path("observations[0].observateur_taxon"))
+                .as("taxon observateur relu (consigner sa forme exacte : objectid brut ou objet embarqué)")
+                .isNotNull();
+    }
+
+    @Test
+    @DisplayName("PROBE #1203 (verdicts négatifs) : taxon sans probabilité = 422 (champ obligatoire) ;"
+            + " PATCH du tableau observations complet = 403 (réservé admin)")
+    void probe_verdicts_negatifs_corrections() {
+        supposerEcritureAutorisee();
+        CibleCorrection cible = cibleCorrection();
+
+        int sansProbabilite = api().contentType("application/json")
+                .body(Map.of("observateur_taxon", cible.idTaxon()))
+                .when()
+                .patch("/donnees/{id}/observations/0", cible.idDonnee())
+                .then()
+                .extract()
+                .statusCode();
+        assertThat(sansProbabilite)
+                .as("observateur_probabilite est obligatoire dès que observateur_taxon est envoyé")
+                .isEqualTo(422);
+
+        // Quasi no-op : renvoyer le tableau observations TEL QUE LU. Attendu : 403 avant toute écriture
+        // (le tableau complet est réservé à l'admin, « in fact script »). Même si un backend différent
+        // l'acceptait, le corps étant celui que le serveur vient de renvoyer, le contenu resterait le sien.
+        List<Map<String, Object>> observations = api().when()
+                .get("/donnees/{id}", cible.idDonnee())
+                .then()
+                .statusCode(200)
+                .extract()
+                .path("observations");
+        int tableauComplet = api().contentType("application/json")
+                .body(Map.of("observations", observations))
+                .when()
+                .patch("/donnees/{id}", cible.idDonnee())
+                .then()
+                .extract()
+                .statusCode();
+        assertThat(tableauComplet)
+                .as("PATCH /donnees/{id} avec observations : refusé à l'observateur (le contrat de #723"
+                        + " passe par la route positionnelle, pas par le tableau complet)")
+                .isEqualTo(403);
+    }
+
+    /// Une observation corrigeable du banc d'essai : les probes d'écriture exigent une participation
+    /// **explicitement désignée** (`-Dvigiechiro.participationEssai=<id>`), jamais une participation
+    /// réelle prise au hasard : une correction posée est définitive.
+    private record CibleCorrection(String idDonnee, String idTaxon) {}
+
+    private static CibleCorrection cibleCorrection() {
+        String participation = System.getProperty("vigiechiro.participationEssai");
+        assumeTrue(
+                participation != null && !participation.isBlank(),
+                "Probe corrections ignorée : fournir -Dvigiechiro.participationEssai=<participation banc"
+                        + " d'essai>.");
+        CibleCorrection existante = chercherCible(participation);
+        return existante != null ? existante : creerCible(participation);
+    }
+
+    /// Première donnée avec observation du banc d'essai, ou `null` s'il n'en a pas (encore).
+    private static CibleCorrection chercherCible(String participation) {
+        var reponse = api().when()
+                .get("/participations/{id}/donnees?max_results=100", participation)
+                .then()
+                .statusCode(200)
+                .extract();
+        String filtre = "_items.find { it.observations }";
+        String idDonnee = reponse.path(filtre + "._id");
+        return idDonnee == null
+                ? null
+                : new CibleCorrection(idDonnee, reponse.path(filtre + ".observations[0].tadarida_taxon._id"));
+    }
+
+    /// Banc d'essai vide : la cible est **créée** avec une observation Tadarida factice sur un taxon réel
+    /// du référentiel. Vérifie au passage un contrat de plus : `POST /participations/{id}/donnees` est
+    /// ouvert au **propriétaire** (`create_donnee`), pas seulement au pipeline serveur.
+    private static CibleCorrection creerCible(String participation) {
+        String idTaxon = api().when()
+                .get("/taxons?max_results=1")
+                .then()
+                .statusCode(200)
+                .extract()
+                .path("_items[0]._id");
+        assumeTrue(idTaxon != null, "Référentiel taxons illisible : impossible de fabriquer la cible.");
+
+        String idDonnee = api().contentType("application/json")
+                .body(Map.of(
+                        "commentaire",
+                        "banc d'essai du contrat d'écriture des corrections (#1203)",
+                        "observations",
+                        List.of(Map.of(
+                                "temps_debut", 0.0,
+                                "temps_fin", 5.0,
+                                "frequence_mediane", 44.0,
+                                "tadarida_taxon", idTaxon,
+                                "tadarida_probabilite", 0.5))))
+                .when()
+                .post("/participations/{id}/donnees", participation)
+                .then()
+                .statusCode(201)
+                .extract()
+                .path("_id");
+        return new CibleCorrection(idDonnee, idTaxon);
+    }
+
+    /// Participation de l'observateur ayant déjà des résultats Tadarida : le banc d'essai d'abord s'il
+    /// est fourni (et non vide), sinon la première trouvée en balayant la première page. Les `donnees`
+    /// n'existent qu'après traitement serveur : skip (assume) si rien n'a encore été calculé.
+    private static String participationTraitee() {
+        String essai = System.getProperty("vigiechiro.participationEssai");
+        List<String> candidates = new ArrayList<>();
+        if (essai != null && !essai.isBlank()) {
+            candidates.add(essai);
+        }
+        candidates.addAll(api().when()
+                .get("/moi/participations")
+                .then()
+                .statusCode(200)
+                .extract()
+                .path("_items._id"));
+        for (String participation : candidates) {
+            String idDonnee = api().when()
+                    .get("/participations/{id}/donnees?max_results=1", participation)
+                    .then()
+                    .statusCode(200)
+                    .extract()
+                    .path("_items[0]._id");
+            if (idDonnee != null) {
+                return participation;
+            }
+        }
+        assumeTrue(false, "Aucune participation traitée (aucune donnée) : relancer après un premier compute.");
+        throw new IllegalStateException("inatteignable : assumeTrue vient d'interrompre le test");
+    }
+
+    /// `_id` de la première donnée de [#participationTraitee].
+    private static String idPremiereDonnee() {
+        return api().when()
+                .get("/participations/{id}/donnees?max_results=1", participationTraitee())
+                .then()
+                .statusCode(200)
+                .extract()
+                .path("_items[0]._id");
     }
 }

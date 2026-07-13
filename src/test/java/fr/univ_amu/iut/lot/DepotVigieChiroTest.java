@@ -373,7 +373,7 @@ class DepotVigieChiroTest {
         Path dejaEnLigne = fichier(dossier, "seq_000.wav");
         Path restant = fichier(dossier, "seq_001.wav");
         when(participations.participationDe(idPassage)).thenReturn(Optional.of("part-1"));
-        when(client.donnees("part-1")).thenReturn(List.of(new DonneeVigieChiro("seq_000", List.of())));
+        when(client.donnees("part-1")).thenReturn(List.of(new DonneeVigieChiro("d1", "seq_000", List.of())));
         armerUploadOk();
 
         BilanDepot bilan = depot.deposer(idPassage, List.of(dejaEnLigne, restant));
@@ -390,7 +390,7 @@ class DepotVigieChiroTest {
     void reconciliation_complete_bascule_depose(@TempDir Path dossier) throws IOException {
         Path a = fichier(dossier, "seq_000.wav");
         when(participations.participationDe(idPassage)).thenReturn(Optional.of("part-1"));
-        when(client.donnees("part-1")).thenReturn(List.of(new DonneeVigieChiro("seq_000", List.of())));
+        when(client.donnees("part-1")).thenReturn(List.of(new DonneeVigieChiro("d1", "seq_000", List.of())));
 
         BilanDepot bilan = depot.deposer(idPassage, List.of(a));
 
@@ -405,7 +405,7 @@ class DepotVigieChiroTest {
     void reconciliation_ignore_les_zip(@TempDir Path dossier) throws IOException {
         Path archive = fichier(dossier, "Car-1.zip");
         when(participations.participationDe(idPassage)).thenReturn(Optional.of("part-1"));
-        when(client.donnees("part-1")).thenReturn(List.of(new DonneeVigieChiro("Car-1", List.of())));
+        when(client.donnees("part-1")).thenReturn(List.of(new DonneeVigieChiro("d1", "Car-1", List.of())));
         armerUploadOk();
 
         depot.deposer(idPassage, List.of(archive));

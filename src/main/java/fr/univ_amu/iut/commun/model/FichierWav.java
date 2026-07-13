@@ -1,4 +1,4 @@
-package fr.univ_amu.iut.importation.model;
+package fr.univ_amu.iut.commun.model;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -27,7 +27,7 @@ import java.util.Arrays;
 /// @param frequenceEchantillonnageHz fréquence d'échantillonnage en Hz
 /// @param bitsParEchantillon profondeur en bits (16 attendu)
 /// @param donneesPcm octets PCM bruts (le chunk `data`, sans en-tête)
-record FichierWav(int nombreCanaux, int frequenceEchantillonnageHz, int bitsParEchantillon, byte[] donneesPcm) {
+public record FichierWav(int nombreCanaux, int frequenceEchantillonnageHz, int bitsParEchantillon, byte[] donneesPcm) {
 
     private static final int TAILLE_ENTETE = 44;
     private static final short FORMAT_PCM = 1;
@@ -45,22 +45,22 @@ record FichierWav(int nombreCanaux, int frequenceEchantillonnageHz, int bitsParE
     private static final long TAILLE_DATA_INCONNUE = 0xFFFFFFFFL;
 
     /// Octets par trame (échantillon multi-canal) : `canaux * bits/8`.
-    int octetsParTrame() {
+    public int octetsParTrame() {
         return nombreCanaux * (bitsParEchantillon / 8);
     }
 
     /// Nombre de trames contenues dans [#donneesPcm].
-    long nombreTrames() {
+    public long nombreTrames() {
         return (long) donneesPcm.length / octetsParTrame();
     }
 
     /// Durée en secondes du signal porté par ce fichier (trames / fréquence).
-    double dureeSecondes() {
+    public double dureeSecondes() {
         return nombreTrames() / (double) frequenceEchantillonnageHz;
     }
 
     /// Lit un fichier WAV PCM depuis le disque.
-    static FichierWav lire(Path fichier) throws IOException {
+    public static FichierWav lire(Path fichier) throws IOException {
         byte[] o = Files.readAllBytes(fichier);
         if (o.length < 12 || !tag(o, 0, TAG_RIFF) || !tag(o, 8, TAG_WAVE)) {
             throw new IOException("Fichier WAV invalide (en-tête RIFF/WAVE absent) : " + fichier);
@@ -122,7 +122,7 @@ record FichierWav(int nombreCanaux, int frequenceEchantillonnageHz, int bitsParE
 
     /// Écrit un WAV canonique (en-tête 44 octets) avec la fréquence et le format donnés, en copiant
     /// **tels quels** les octets `pcm[offset, offset+longueur)`.
-    static void ecrire(
+    public static void ecrire(
             Path fichier,
             int nombreCanaux,
             int frequenceEchantillonnageHz,

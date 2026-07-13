@@ -1,5 +1,6 @@
 package fr.univ_amu.iut.validation.model;
 
+import fr.univ_amu.iut.commun.model.CertitudeObservateur;
 import fr.univ_amu.iut.commun.model.ModeValidation;
 
 /// Observation : une ligne du fichier de résultats Tadarida, soumise à validation (C13, table
@@ -17,6 +18,11 @@ import fr.univ_amu.iut.commun.model.ModeValidation;
 /// [ModeValidation#NON_VALIDE]). Les colonnes numériques optionnelles (`REAL` / `INTEGER`
 /// nullable) sont des types wrapper, `null` si absentes.
 ///
+/// Depuis #1139, l'observation porte aussi son **ancrage plateforme** (couple `idDonneeVigieChiro`
+/// + `indiceVigieChiro`, cible du `PATCH /donnees/{id}/observations/{index}` du contrat #1203) et la
+/// **certitude observateur** ([CertitudeObservateur], déclaration manuelle à la revue, distincte de
+/// `probObservateur` qui reste la confiance numérique Tadarida recopiée à la validation).
+///
 /// @param id clé technique, `null` avant insertion
 /// @param idSequence séquence d'écoute source (FK → `listening_sequence.id`, obligatoire)
 /// @param debutS temps de début dans la séquence en secondes (optionnel)
@@ -26,13 +32,21 @@ import fr.univ_amu.iut.commun.model.ModeValidation;
 /// @param probTadarida probabilité Tadarida dans `[0,1]` (optionnelle)
 /// @param taxonAutreTadarida code de la 2e proposition Tadarida (FK → `taxon.code`, optionnel)
 /// @param taxonObservateur code saisi par l'observateur (FK → `taxon.code`, optionnel)
-/// @param probObservateur probabilité saisie par l'observateur dans `[0,1]` (optionnelle)
+/// @param probObservateur probabilité numérique `[0,1]` héritée du format `_Vu` : confiance Tadarida
+///     recopiée à la validation, **pas** une certitude d'observateur (optionnelle)
 /// @param commentaire commentaire libre de l'observateur (optionnel)
 /// @param reference marquée comme référence dans la bibliothèque de sons (défaut `false`)
 /// @param modeValidation mode de validation (R24 : manuel / auto / non validé)
 /// @param idResultats résultats d'identification agrégateurs (FK → `identification_results.id`)
-/// @param douteux marquée « douteuse / à repasser » par l'observateur (#160, défaut `false`) ; ajouté en
-///     **dernier** composant pour préserver l'arité historique du record
+/// @param douteux marquée « douteuse / à repasser » par l'observateur (#160, défaut `false`)
+/// @param idDonneeVigieChiro `_id` Eve de la donnée serveur dont cette observation est un
+///     sous-document (#1139) ; `null` hors import VigieChiro. Jamais préservé au ré-import : il
+///     vient frais du serveur (un re-compute régénère les `_id`)
+/// @param indiceVigieChiro indice **brut** de l'observation dans le tableau `observations` de sa
+///     donnée côté serveur (#1139) : l'identifiant positionnel du `PATCH` ; `null` hors import
+/// @param certitudeObservateur certitude déclarée manuellement à la revue (#1139), `null` = non
+///     renseignée (vide par défaut, jamais dérivée d'une probabilité) ; les trois derniers composants
+///     sont ajoutés en **queue** pour préserver l'ordre historique du record
 public record Observation(
         Long id,
         Long idSequence,
@@ -48,7 +62,10 @@ public record Observation(
         boolean reference,
         ModeValidation modeValidation,
         Long idResultats,
-        boolean douteux) {
+        boolean douteux,
+        String idDonneeVigieChiro,
+        Integer indiceVigieChiro,
+        CertitudeObservateur certitudeObservateur) {
 
     /// Copie de cette observation avec un **commentaire** différent (tous les autres champs inchangés) :
     /// évite de réénumérer les composants du record à chaque mise à jour mono-champ côté service. Le
@@ -71,7 +88,10 @@ public record Observation(
                 reference,
                 modeValidation,
                 idResultats,
-                douteux);
+                douteux,
+                idDonneeVigieChiro,
+                indiceVigieChiro,
+                certitudeObservateur);
     }
 
     /// Copie de cette observation avec l'archivage en **référence** modifié (tous les autres champs
@@ -92,7 +112,10 @@ public record Observation(
                 reference,
                 modeValidation,
                 idResultats,
-                douteux);
+                douteux,
+                idDonneeVigieChiro,
+                indiceVigieChiro,
+                certitudeObservateur);
     }
 
     /// Copie de cette observation avec le drapeau **douteux** (#160) modifié (tous les autres champs
@@ -113,7 +136,10 @@ public record Observation(
                 reference,
                 modeValidation,
                 idResultats,
-                douteux);
+                douteux,
+                idDonneeVigieChiro,
+                indiceVigieChiro,
+                certitudeObservateur);
     }
 
     /// Copie de cette observation avec le **triplet observateur** (taxon retenu, probabilité, mode de
@@ -135,6 +161,34 @@ public record Observation(
                 reference,
                 mode,
                 idResultats,
-                douteux);
+                douteux,
+                idDonneeVigieChiro,
+                indiceVigieChiro,
+                certitudeObservateur);
+    }
+
+    /// Copie de cette observation avec la **certitude observateur** (#1139) modifiée (tous les autres
+    /// champs inchangés). `null` = « non renseignée » : la certitude est une déclaration manuelle,
+    /// jamais posée par défaut ni dérivée d'une probabilité.
+    public Observation avecCertitude(CertitudeObservateur certitude) {
+        return new Observation(
+                id,
+                idSequence,
+                debutS,
+                finS,
+                frequenceMedianeKHz,
+                taxonTadarida,
+                probTadarida,
+                taxonAutreTadarida,
+                taxonObservateur,
+                probObservateur,
+                commentaire,
+                reference,
+                modeValidation,
+                idResultats,
+                douteux,
+                idDonneeVigieChiro,
+                indiceVigieChiro,
+                certitude);
     }
 }

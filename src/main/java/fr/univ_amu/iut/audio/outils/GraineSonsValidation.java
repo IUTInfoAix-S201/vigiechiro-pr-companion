@@ -312,7 +312,10 @@ final class GraineSonsValidation {
                 true,
                 ModeValidation.MANUEL,
                 idResultats,
-                false);
+                false,
+                null,
+                null,
+                null);
     }
 
     /// Insère en SQL brut un site et son point d'écoute (cibles de clé étrangère du passage), sans les DAO

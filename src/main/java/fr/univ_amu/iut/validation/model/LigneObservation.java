@@ -1,5 +1,6 @@
 package fr.univ_amu.iut.validation.model;
 
+import fr.univ_amu.iut.commun.model.CertitudeObservateur;
 import fr.univ_amu.iut.commun.model.ModeValidation;
 
 /// Projection d'une **ligne** du CSV Tadarida, avant persistance (résultat de
@@ -23,6 +24,10 @@ import fr.univ_amu.iut.commun.model.ModeValidation;
 ///   d'un fichier Brut ou d'une ligne non touchée, R17).
 /// - `frequenceMedianeKHz` : [Integer] (la colonne `median_freq_khz` est `INTEGER`) ; un éventuel
 ///   `"153.0"` du CSV est arrondi à l'entier le plus proche.
+/// - `idDonneeVigieChiro` / `indiceVigieChiro` : **ancrage plateforme** (#1139), renseigné
+///   uniquement par l'import VigieChiro (`ConversionDonneesVigieChiro`) ; `null` pour un CSV.
+/// - `certitudeObservateur` : certitude déclarée (#1139), lue du serveur ou du jeton
+///   `SUR|PROBABLE|POSSIBLE` d'un CSV `_Vu` ; `null` = non renseignée.
 ///
 /// @param nomSequence nom de fichier de la séquence d'écoute source (sans clé technique)
 /// @param debutS temps de début dans la séquence en secondes (optionnel)
@@ -32,8 +37,11 @@ import fr.univ_amu.iut.commun.model.ModeValidation;
 /// @param probTadarida probabilité Tadarida dans `[0,1]` (optionnelle)
 /// @param taxonAutreTadarida 2e proposition Tadarida, brute (optionnelle, parfois multi-valuée)
 /// @param taxonObservateur code saisi par l'observateur (optionnel, R15/R16)
-/// @param probObservateur probabilité saisie par l'observateur (optionnelle)
+/// @param probObservateur probabilité numérique observateur (optionnelle, héritage `_Vu`)
 /// @param modeValidation mode de validation (R24 : manuel / auto / non validé)
+/// @param idDonneeVigieChiro `_id` Eve de la donnée serveur source (optionnel, import VigieChiro)
+/// @param indiceVigieChiro indice brut dans le tableau `observations` serveur (optionnel)
+/// @param certitudeObservateur certitude déclarée par l'observateur (optionnelle)
 public record LigneObservation(
         String nomSequence,
         Double debutS,
@@ -44,4 +52,7 @@ public record LigneObservation(
         String taxonAutreTadarida,
         String taxonObservateur,
         Double probObservateur,
-        ModeValidation modeValidation) {}
+        ModeValidation modeValidation,
+        String idDonneeVigieChiro,
+        Integer indiceVigieChiro,
+        CertitudeObservateur certitudeObservateur) {}

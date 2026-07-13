@@ -208,7 +208,10 @@ public final class GenerateurJeuDeDonnees {
                     false,
                     ModeValidation.NON_VALIDE,
                     resultats.id(),
-                    false));
+                    false,
+                    null,
+                    null,
+                    null));
         }
         return new ObservationDao(source).insererTout(observations);
     }

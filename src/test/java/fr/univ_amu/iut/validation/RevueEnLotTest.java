@@ -91,7 +91,10 @@ class RevueEnLotTest {
                         false,
                         ModeValidation.NON_VALIDE,
                         idResultats,
-                        false))
+                        false,
+                        null,
+                        null,
+                        null))
                 .id();
     }
 

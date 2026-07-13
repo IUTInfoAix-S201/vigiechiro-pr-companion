@@ -295,7 +295,10 @@ public class ServiceValidation implements CompteurValidations {
                     false,
                     ligne.modeValidation(),
                     idResultats,
-                    false));
+                    false,
+                    ligne.idDonneeVigieChiro(),
+                    ligne.indiceVigieChiro(),
+                    ligne.certitudeObservateur()));
         }
         return aInserer;
     }
@@ -488,7 +491,10 @@ public class ServiceValidation implements CompteurValidations {
                     o.taxonAutreTadarida(),
                     o.taxonObservateur(),
                     o.probObservateur(),
-                    o.modeValidation()));
+                    o.modeValidation(),
+                    o.idDonneeVigieChiro(),
+                    o.indiceVigieChiro(),
+                    o.certitudeObservateur()));
         }
         return lignes;
     }

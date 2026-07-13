@@ -75,11 +75,14 @@ final class PreservationValidations {
         return reattachees.size();
     }
 
-    /// Une observation « validée » par l'observateur : elle porte un taxon corrigé, un marquage référence
-    /// ou un commentaire. Ce sont les décisions humaines à préserver au fil des réimports (les champs
-    /// purement Tadarida, eux, sont recalculés à chaque import).
+    /// Une observation « validée » par l'observateur : elle porte un taxon corrigé, un marquage référence,
+    /// un commentaire ou une certitude saisie (#1139). Ce sont les décisions humaines à préserver au fil
+    /// des réimports (les champs purement Tadarida, eux, sont recalculés à chaque import).
     private static boolean estValidee(Observation observation) {
-        return observation.reference() || observation.commentaire() != null || observation.taxonObservateur() != null;
+        return observation.reference()
+                || observation.commentaire() != null
+                || observation.taxonObservateur() != null
+                || observation.certitudeObservateur() != null;
     }
 
     private static CleObservation cleDe(Observation observation) {
@@ -87,8 +90,11 @@ final class PreservationValidations {
                 observation.idSequence(), observation.taxonTadarida(), observation.debutS(), observation.finS());
     }
 
-    /// Copie `neuve` en y réinjectant les cinq champs de validation observateur de `ancienne` : taxon
-    /// observateur, probabilité observateur, commentaire, référence et mode de validation.
+    /// Copie `neuve` en y réinjectant les champs de **décision humaine** de `ancienne` : taxon
+    /// observateur, probabilité observateur, commentaire, référence, mode de validation, douteux et
+    /// certitude (#1139). L'**ancrage plateforme** (`idDonneeVigieChiro`, `indiceVigieChiro`), lui,
+    /// reste celui de `neuve` : il vient frais du serveur à chaque import (un re-compute régénère les
+    /// `_id`), l'ancien serait périmé.
     private static Observation avecValidation(Observation neuve, Observation ancienne) {
         return new Observation(
                 neuve.id(),
@@ -105,7 +111,10 @@ final class PreservationValidations {
                 ancienne.reference(),
                 ancienne.modeValidation(),
                 neuve.idResultats(),
-                ancienne.douteux());
+                ancienne.douteux(),
+                neuve.idDonneeVigieChiro(),
+                neuve.indiceVigieChiro(),
+                ancienne.certitudeObservateur());
     }
 
     /// Clé d'appariement d'une observation entre deux imports : même séquence, même taxon Tadarida et même

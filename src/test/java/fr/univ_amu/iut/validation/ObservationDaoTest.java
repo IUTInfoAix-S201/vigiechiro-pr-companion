@@ -112,7 +112,48 @@ class ObservationDaoTest {
                 true,
                 ModeValidation.MANUEL,
                 idResultats,
-                false);
+                false,
+                null,
+                null,
+                null);
+    }
+
+    @Test
+    @DisplayName("Ancrage plateforme + certitude (#1139) : insérés, relus et modifiables (V21)")
+    void ancrage_et_certitude_font_l_aller_retour() {
+        Observation avecAncrage = new Observation(
+                null,
+                idSequence,
+                0.5,
+                3.2,
+                45,
+                "Pippip",
+                0.92,
+                null,
+                "Pippip",
+                null,
+                null,
+                false,
+                ModeValidation.MANUEL,
+                idResultats,
+                false,
+                "6a4fcaa2842983a29ba25363",
+                12,
+                fr.univ_amu.iut.commun.model.CertitudeObservateur.PROBABLE);
+
+        Observation inseree = dao.insert(avecAncrage);
+        Observation relue = dao.findById(inseree.id()).orElseThrow();
+
+        assertThat(relue.idDonneeVigieChiro()).isEqualTo("6a4fcaa2842983a29ba25363");
+        assertThat(relue.indiceVigieChiro())
+                .as("l'indice brut serveur est la cible du PATCH positionnel (#1203)")
+                .isEqualTo(12);
+        assertThat(relue.certitudeObservateur()).isEqualTo(fr.univ_amu.iut.commun.model.CertitudeObservateur.PROBABLE);
+
+        dao.update(relue.avecCertitude(fr.univ_amu.iut.commun.model.CertitudeObservateur.SUR));
+        assertThat(dao.findById(inseree.id()).orElseThrow().certitudeObservateur())
+                .as("avecCertitude + update persiste le nouveau jeton")
+                .isEqualTo(fr.univ_amu.iut.commun.model.CertitudeObservateur.SUR);
     }
 
     @Test
@@ -176,7 +217,10 @@ class ObservationDaoTest {
                 false,
                 ModeValidation.NON_VALIDE,
                 idResultats,
-                false);
+                false,
+                null,
+                null,
+                null);
 
         Observation relu = dao.findById(dao.insert(minimale).id()).orElseThrow();
 
@@ -210,7 +254,10 @@ class ObservationDaoTest {
                 false,
                 ModeValidation.NON_VALIDE,
                 idResultats,
-                false);
+                false,
+                null,
+                null,
+                null);
 
         assertThatThrownBy(() -> dao.insert(orphelin))
                 .as("FK taxon_tadarida doit refuser un code absent")
@@ -235,7 +282,10 @@ class ObservationDaoTest {
                 false,
                 ModeValidation.NON_VALIDE,
                 idResultats,
-                false);
+                false,
+                null,
+                null,
+                null);
 
         assertThatThrownBy(() -> dao.insert(orphelin))
                 .as("FK taxon_other_tadarida doit refuser un code absent")
@@ -260,7 +310,10 @@ class ObservationDaoTest {
                 false,
                 ModeValidation.NON_VALIDE,
                 idResultats,
-                false);
+                false,
+                null,
+                null,
+                null);
 
         assertThatThrownBy(() -> dao.insert(orphelin))
                 .as("FK taxon_observer doit refuser un code absent")
@@ -285,7 +338,10 @@ class ObservationDaoTest {
                 false,
                 ModeValidation.NON_VALIDE,
                 idResultats,
-                false);
+                false,
+                null,
+                null,
+                null);
 
         assertThatThrownBy(() -> dao.insert(orphelin))
                 .as("FK sequence_id doit refuser une séquence absente")
@@ -545,7 +601,10 @@ class ObservationDaoTest {
                 false,
                 ModeValidation.MANUEL,
                 null,
-                false);
+                false,
+                null,
+                null,
+                null);
     }
 
     @Test
@@ -604,7 +663,10 @@ class ObservationDaoTest {
                 false,
                 ModeValidation.NON_VALIDE,
                 second[2],
-                false)); // passage 2
+                false,
+                null,
+                null,
+                null)); // passage 2
 
         List<LigneObservationAudio> lignes = audio.lignesAudioDesPassages(List.of(idPassage, second[0]));
 
@@ -686,7 +748,10 @@ class ObservationDaoTest {
                 false,
                 ModeValidation.NON_VALIDE,
                 second[2],
-                false));
+                false,
+                null,
+                null,
+                null));
 
         List<LigneObservationAudio> lignes = audio.lignesAudioDesPassages(List.of(idPassage, second[0]));
 
@@ -723,7 +788,10 @@ class ObservationDaoTest {
                 false,
                 ModeValidation.MANUEL,
                 idResultats2,
-                false));
+                false,
+                null,
+                null,
+                null));
 
         List<ObservationEspece> detail = analyse.observationsDeLEspece("u-1", "Pippip", null);
 
@@ -799,7 +867,10 @@ class ObservationDaoTest {
                 false,
                 ModeValidation.MANUEL,
                 idResultats,
-                false);
+                false,
+                null,
+                null,
+                null);
     }
 
     private Observation observation(String codeTadarida, String codeObservateur) {
@@ -818,7 +889,10 @@ class ObservationDaoTest {
                 false,
                 ModeValidation.NON_VALIDE,
                 idResultats,
-                false);
+                false,
+                null,
+                null,
+                null);
     }
 
     private Observation avecTaxon(String codeTadarida) {
@@ -837,7 +911,10 @@ class ObservationDaoTest {
                 false,
                 ModeValidation.NON_VALIDE,
                 idResultats,
-                false);
+                false,
+                null,
+                null,
+                null);
     }
 
     private static long insererCle(Connection cx, String sql, Object... params) throws SQLException {

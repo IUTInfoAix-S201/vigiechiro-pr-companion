@@ -338,6 +338,9 @@ class ServiceValidationTest {
         // Correction de l'observation seqB (Pippip → Nyclei) et marquage référence de l'observation seqC.
         service.corriger(observationCiblee(idAncien, "Pippip", 1.0).id(), "Nyclei", 0.95);
         service.marquerReference(observationCiblee(idAncien, "Nyclei", 0.0).id(), true);
+        // Certitude saisie (#1139) : une décision humaine de plus, préservée comme les autres.
+        Observation avantReimport = observationCiblee(idAncien, "Pippip", 1.0);
+        observationDao.update(avantReimport.avecCertitude(fr.univ_amu.iut.commun.model.CertitudeObservateur.PROBABLE));
 
         BilanImport bilan = service.reimporter(idPassage, ecrireBrut());
 
@@ -348,6 +351,9 @@ class ServiceValidationTest {
         Observation correction = observationCiblee(bilan.idResultats(), "Pippip", 1.0);
         assertThat(correction.taxonObservateur()).isEqualTo("Nyclei");
         assertThat(correction.modeValidation()).isEqualTo(ModeValidation.MANUEL);
+        assertThat(correction.certitudeObservateur())
+                .as("la certitude saisie survit au réimport (#1139)")
+                .isEqualTo(fr.univ_amu.iut.commun.model.CertitudeObservateur.PROBABLE);
         assertThat(observationCiblee(bilan.idResultats(), "Nyclei", 0.0).reference())
                 .isTrue();
     }

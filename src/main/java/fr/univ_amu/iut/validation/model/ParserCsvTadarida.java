@@ -1,5 +1,6 @@
 package fr.univ_amu.iut.validation.model;
 
+import fr.univ_amu.iut.commun.model.CertitudeObservateur;
 import fr.univ_amu.iut.commun.model.LecteurCsv;
 import fr.univ_amu.iut.commun.model.ModeValidation;
 import java.io.IOException;
@@ -109,6 +110,9 @@ public final class ParserCsvTadarida {
             if (nom == null) {
                 continue; // ligne vide (saut final, ligne blanche) : pas une observation
             }
+            // La colonne « observateur_probabilite » d'un _Vu porte un nombre (héritage) ou le jeton
+            // SUR|PROBABLE|POSSIBLE (certitude, #1139) : les deux lectures sont tolérantes et
+            // exclusives, chacune rend null quand la cellule est de l'autre forme.
             observations.add(new LigneObservation(
                     nom,
                     nombre(cellule(ligne, index.get(COL_DEBUT))),
@@ -119,7 +123,10 @@ public final class ParserCsvTadarida {
                     texte(cellule(ligne, index.get(COL_TAXON_AUTRE))),
                     texte(cellule(ligne, index.get(COL_TAXON_OBSERVATEUR))),
                     probabilite(cellule(ligne, index.get(COL_PROB_OBSERVATEUR))),
-                    mode(cellule(ligne, index.get(COL_MODE_VALIDATION)))));
+                    mode(cellule(ligne, index.get(COL_MODE_VALIDATION))),
+                    null, // pas d'ancrage plateforme dans un CSV
+                    null,
+                    CertitudeObservateur.depuisTexte(texte(cellule(ligne, index.get(COL_PROB_OBSERVATEUR))))));
         }
         return new ResultatParseTadarida(format, observations);
     }

@@ -1,5 +1,6 @@
 package fr.univ_amu.iut.validation.model.dao;
 
+import fr.univ_amu.iut.commun.model.CertitudeObservateur;
 import fr.univ_amu.iut.commun.model.ModeValidation;
 import fr.univ_amu.iut.commun.persistence.DaoGenerique;
 import fr.univ_amu.iut.commun.persistence.DataAccessException;
@@ -30,13 +31,15 @@ public class ObservationDao extends DaoGenerique<Observation, Long> {
     private static final String SQL_INSERT = "INSERT INTO observation"
             + " (sequence_id, start_time_s, end_time_s, median_freq_khz, taxon_tadarida,"
             + " prob_tadarida, taxon_other_tadarida, taxon_observer, prob_observer, user_comment,"
-            + " is_reference, validation_mode, results_id, is_doubtful)"
-            + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            + " is_reference, validation_mode, results_id, is_doubtful,"
+            + " vigiechiro_data_id, vigiechiro_obs_index, observer_certainty)"
+            + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
     private static final String SQL_UPDATE = "UPDATE observation SET sequence_id = ?, start_time_s = ?,"
             + " end_time_s = ?, median_freq_khz = ?, taxon_tadarida = ?, prob_tadarida = ?,"
             + " taxon_other_tadarida = ?, taxon_observer = ?, prob_observer = ?, user_comment = ?,"
-            + " is_reference = ?, validation_mode = ?, results_id = ?, is_doubtful = ? WHERE id = ?";
+            + " is_reference = ?, validation_mode = ?, results_id = ?, is_doubtful = ?,"
+            + " vigiechiro_data_id = ?, vigiechiro_obs_index = ?, observer_certainty = ? WHERE id = ?";
 
     /// Mapper de l'entité (lecture `SELECT *` de la table), sur les lectures nullables partagées
     /// de [FragmentsSqlObservation].
@@ -55,7 +58,10 @@ public class ObservationDao extends DaoGenerique<Observation, Long> {
             rs.getInt(FragmentsSqlObservation.COL_IS_REFERENCE) != 0,
             ModeValidation.parLibelle(rs.getString("validation_mode")),
             FragmentsSqlObservation.longNullable(rs, "results_id"), // null : observation manuelle
-            rs.getInt(FragmentsSqlObservation.COL_IS_DOUBTFUL) != 0);
+            rs.getInt(FragmentsSqlObservation.COL_IS_DOUBTFUL) != 0,
+            rs.getString("vigiechiro_data_id"),
+            FragmentsSqlObservation.entierNullable(rs, "vigiechiro_obs_index"),
+            CertitudeObservateur.depuisTexte(rs.getString("observer_certainty")));
 
     public ObservationDao(SourceDeDonnees source) {
         super(source);
@@ -116,7 +122,10 @@ public class ObservationDao extends DaoGenerique<Observation, Long> {
                 observation.reference(),
                 observation.modeValidation(),
                 observation.idResultats(),
-                observation.douteux());
+                observation.douteux(),
+                observation.idDonneeVigieChiro(),
+                observation.indiceVigieChiro(),
+                observation.certitudeObservateur());
     }
 
     /// Variante transactionnelle : insère le lot sur la `connexion` fournie, sans gérer le
@@ -208,7 +217,12 @@ public class ObservationDao extends DaoGenerique<Observation, Long> {
             observation.reference() ? 1 : 0,
             observation.modeValidation().libelle(),
             observation.idResultats(),
-            observation.douteux() ? 1 : 0
+            observation.douteux() ? 1 : 0,
+            observation.idDonneeVigieChiro(),
+            observation.indiceVigieChiro(),
+            observation.certitudeObservateur() == null
+                    ? null
+                    : observation.certitudeObservateur().jeton()
         };
     }
 }

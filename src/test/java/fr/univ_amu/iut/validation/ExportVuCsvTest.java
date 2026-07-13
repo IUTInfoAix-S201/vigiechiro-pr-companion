@@ -21,16 +21,29 @@ class ExportVuCsvTest {
 
     private static LigneObservation nonTouchee() {
         return new LigneObservation(
-                "seq_000", 0.3, 3.9, 153, "noise", 0.93, null, null, null, ModeValidation.NON_VALIDE);
+                "seq_000", 0.3, 3.9, 153, "noise", 0.93, null, null, null, ModeValidation.NON_VALIDE, null, null, null);
     }
 
     private static LigneObservation validee() {
-        return new LigneObservation("seq_001", 0.4, 4.8, 45, "Pippip", 0.8, null, "Pippip", 0.8, ModeValidation.MANUEL);
+        return new LigneObservation(
+                "seq_001", 0.4, 4.8, 45, "Pippip", 0.8, null, "Pippip", 0.8, ModeValidation.MANUEL, null, null, null);
     }
 
     private static LigneObservation corrigee() {
         return new LigneObservation(
-                "seq_002", 1.0, 2.0, 30, "Nyclei", 0.5, "Pippip", "Tadten", 0.9, ModeValidation.MANUEL);
+                "seq_002",
+                1.0,
+                2.0,
+                30,
+                "Nyclei",
+                0.5,
+                "Pippip",
+                "Tadten",
+                0.9,
+                ModeValidation.MANUEL,
+                null,
+                null,
+                null);
     }
 
     @Test
@@ -100,8 +113,8 @@ class ExportVuCsvTest {
     @Test
     @DisplayName("R24 : la colonne validation_mode optionnelle trace manuel / auto / vide")
     void r24_colonne_validation_mode() {
-        LigneObservation auto =
-                new LigneObservation("seq_003", 0.0, 5.0, 60, "Pippip", 0.7, null, "Pippip", 0.7, ModeValidation.AUTO);
+        LigneObservation auto = new LigneObservation(
+                "seq_003", 0.0, 5.0, 60, "Pippip", 0.7, null, "Pippip", 0.7, ModeValidation.AUTO, null, null, null);
 
         List<List<String>> lignes = lecteur.lire(export.versChaine(List.of(nonTouchee(), validee(), auto), true));
 

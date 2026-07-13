@@ -319,7 +319,10 @@ public final class CaptureAnalyse {
                 false,
                 ModeValidation.MANUEL,
                 idResultats,
-                false);
+                false,
+                null,
+                null,
+                null);
     }
 
     private static Observation nonTouchee(String codeTadarida, long idSequence, long idResultats) {
@@ -338,7 +341,10 @@ public final class CaptureAnalyse {
                 false,
                 ModeValidation.NON_VALIDE,
                 idResultats,
-                false);
+                false,
+                null,
+                null,
+                null);
     }
 
     private static Observation corrigee(
@@ -358,7 +364,10 @@ public final class CaptureAnalyse {
                 false,
                 ModeValidation.MANUEL,
                 idResultats,
-                false);
+                false,
+                null,
+                null,
+                null);
     }
 
     private static long insererCle(Connection cx, String sql, Object... params) throws SQLException {

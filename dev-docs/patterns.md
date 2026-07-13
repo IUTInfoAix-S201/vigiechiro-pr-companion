@@ -375,9 +375,38 @@ bloqué. Le patron correct (thread virtuel → travail → `Platform.runLater`) 
   cours » (`enCoursProperty`, styles `.occupation-*` dans `design.css`), et pilote un `ExecuteurTache`
   via `occuper(libellé, travail, succès, échec)`. Le voile capte les clics le temps du traitement.
 
+**Opérations longues « riches » (#1252).** Pour les traitements qui diffusent leur avancement ou
+s'annulent, le socle étend `ExecuteurTache` sans toucher aux écrans déjà migrés :
+
+- **progression déterminée** : `relaisProgression(application)` fabrique le `Consumer<Progression>` à
+  passer au service ; chaque point revient sur le fil JavaFX (immédiat en test). Pour tout autre
+  événement de suivi (table par unité, cf. section précédente), `surFilJavaFx()` fournit l'`Executor`
+  du fil JavaFX - les relais de suivi n'ont plus à recopier `Platform.runLater` ;
+- **annulation coopérative** : le **jeton appartient à l'appelant** (`commun.model.JetonAnnulation`,
+  câblé sur le bouton « Annuler » de l'écran). Deux styles au choix du travail : `leverSiAnnule()`
+  lève `OperationAnnuleeException`, que la surcharge `executer(travail, succès, annule, échec)`
+  conclut par le callback `annule` (jamais par `échec`) ; ou bien le moteur lit `estAnnule()` /
+  `jeton::estAnnule` et **rend un bilan partiel honnête** par le chemin de succès (patron du dépôt
+  #1044 : jamais d'unité fantôme, la reprise ne renvoie que le manquant). Jamais d'interruption
+  brutale de thread ;
+- **désactivation d'un bouton pendant la tâche** : pas d'API dédiée, un binding suffit -
+  `bouton.disableProperty().bind(occupation.enCoursProperty())` (patron posé par #1254 sur M-Audit).
+  Plus jamais de `setDisable(true/false)` posé à la main autour de l'appel.
+
+**Testabilité de l'annulation en synchrone.** L'exécuteur synchrone n'empêche pas de tester
+l'annulation : le jeton appartenant à l'appelant, le test l'**annule avant de déclencher**
+l'opération et vérifie l'arrêt propre au premier point de contrôle (callback `annule`, ni succès ni
+échec) - c'est le contrat coopératif qui est testé, la simultanéité réelle relevant de l'E2E.
+
 **La règle.** Toute opération longue d'un écran passe par `IndicateurOccupation` (l'échec est routé
 vers le filet d'erreurs de l'écran, #795) — jamais un `Thread.ofVirtual()` + `runLater` recopié à la
-main. Le déport écran par écran est suivi dans l'EPIC #793.
+main, y compris pour la progression et l'annulation (surcharges ci-dessus). Le déport écran par
+écran est suivi dans l'EPIC #793.
+
+**Piège capture (#1278).** Les outils de capture doivent lier les exécuteurs **synchrones**
+(`ModuleCaptureCommun`) : `ApercuFx` snapshotte immédiatement, l'asynchrone de production capturerait
+le voile « Chargement… » à la place du contenu. Le garde-fou `CablageInjecteursCaptureTest` casse la
+CI si un injecteur de capture résout un exécuteur asynchrone.
 
 ## Écrans de données : densité, badge, filtres (socle design partagé)
 

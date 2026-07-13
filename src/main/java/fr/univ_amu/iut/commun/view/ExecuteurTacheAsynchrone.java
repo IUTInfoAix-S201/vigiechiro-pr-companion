@@ -1,5 +1,6 @@
 package fr.univ_amu.iut.commun.view;
 
+import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import javafx.application.Platform;
@@ -19,5 +20,12 @@ public final class ExecuteurTacheAsynchrone implements ExecuteurTache {
                 Platform.runLater(() -> echec.accept(erreur));
             }
         });
+    }
+
+    /// Chaque événement émis par le travail (progression, suivi) est reposté sur le fil JavaFX, dans
+    /// l'ordre de soumission (garantie [Platform#runLater]).
+    @Override
+    public Executor surFilJavaFx() {
+        return Platform::runLater;
     }
 }

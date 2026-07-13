@@ -1,12 +1,12 @@
 package fr.univ_amu.iut.audio.view;
 
 import fr.univ_amu.iut.audio.viewmodel.PublicationCorrectionsViewModel;
+import fr.univ_amu.iut.commun.view.Confirmateur;
 import fr.univ_amu.iut.commun.view.ConfirmationNavigation;
 import fr.univ_amu.iut.commun.view.ExecuteurTache;
 import fr.univ_amu.iut.commun.viewmodel.ContextePassage;
 import fr.univ_amu.iut.commun.viewmodel.SourceObservations;
 import fr.univ_amu.iut.validation.model.TriPublication;
-import java.util.function.Predicate;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 
@@ -16,8 +16,8 @@ import javafx.scene.control.MenuItem;
 ///
 /// La publication écrit vers l'extérieur et ne s'annule pas côté plateforme : elle passe par une
 /// **confirmation récapitulative** construite sur le tri du service (rien n'est envoyé avant
-/// l'accord). Le confirmateur est **injectable** (paramètre, défaut [ConfirmationNavigation]) : un
-/// `Alert.showAndWait` en dur figerait les tests headless.
+/// l'accord). Le confirmateur est **injectable** (contrat neutre [Confirmateur] du socle, #1013 ;
+/// défaut [ConfirmationNavigation]) : un `Alert.showAndWait` en dur figerait les tests headless.
 final class PublicationCorrectionsUI {
 
     private PublicationCorrectionsUI() {}
@@ -34,7 +34,7 @@ final class PublicationCorrectionsUI {
     /// confirmation récapitulative, envoi hors fil, bilan restitué. Sans passage ciblé, ne fait rien.
     static void lancer(
             PublicationCorrectionsViewModel publication, SourceObservations source, ExecuteurTache executeur) {
-        lancer(publication, source, executeur, new ConfirmationNavigation()::confirmer);
+        lancer(publication, source, executeur, new ConfirmationNavigation());
     }
 
     /// Variante à confirmateur **injectable** (tests headless : un stub remplace la boîte de dialogue).
@@ -42,7 +42,7 @@ final class PublicationCorrectionsUI {
             PublicationCorrectionsViewModel publication,
             SourceObservations source,
             ExecuteurTache executeur,
-            Predicate<String> confirmateur) {
+            Confirmateur confirmateur) {
         ContextePassage contexte = source.contexteDuPassage();
         if (contexte == null) {
             return;
@@ -62,14 +62,14 @@ final class PublicationCorrectionsUI {
             Long idPassage,
             TriPublication tri,
             ExecuteurTache executeur,
-            Predicate<String> confirmateur) {
+            Confirmateur confirmateur) {
         if (tri.publiables().isEmpty()) {
             publication.echec("Rien à publier : " + ecarts(tri)
                     + ". Déclarez la certitude des observations corrigées, ou réimportez depuis"
                     + " VigieChiro pour les ancrer.");
             return;
         }
-        if (!confirmateur.test(recapitulatif(tri))) {
+        if (!confirmateur.confirmer(recapitulatif(tri))) {
             publication.echec(""); // annulé : on efface l'état « en cours »
             return;
         }

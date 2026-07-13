@@ -1,0 +1,17 @@
+-- V24 - Marqueur explicite d'archivage d'un passage (#1300, EPIC #1297).
+--
+-- Un passage archive est un passage dont l'audio local a ete supprime VOLONTAIREMENT pour liberer
+-- de l'espace : observations et verifications restent consultables, l'ecoute redevient possible en
+-- reimportant les fichiers (#1302). La colonne enregistre le GESTE (horodatage ISO du moment ou
+-- l'utilisateur a archive), pas un etat observe : la disponibilite reelle de l'audio reste calculee
+-- sur disque (DisponibiliteAudio, #1298).
+--
+-- Pourquoi un marqueur explicite plutot qu'une heuristique : le precedent des bruts
+-- (volume_originaux_octets = 0, cf. originauxPurges) est une DEDUCTION, pas une declaration. Pour
+-- distinguer un passage archive d'un passage CORROMPU (fichiers disparus sans geste volontaire,
+-- #1303 et #1348), l'audit a besoin d'un fait declare : NULL = jamais archive, toute disparition
+-- est alors un vrai probleme a signaler.
+--
+-- NB : aucun point-virgule dans ces commentaires. Le decoupeur de MigrationSchema coupe les
+-- instructions sur CHAQUE point-virgule, commentaires compris - un « ; » ici casse la migration.
+ALTER TABLE recording_session ADD COLUMN archived_at TEXT;

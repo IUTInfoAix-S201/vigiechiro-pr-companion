@@ -20,7 +20,6 @@ class ClientVigieChiroTest {
     void moi_sans_token_est_vide() {
         ClientVigieChiro client = new ClientVigieChiro("http://localhost:1", SANS_TOKEN);
 
-        assertThat(client.get("/moi")).isEmpty();
         assertThat(client.moi()).isInstanceOf(ReponseApi.NonConnecte.class);
     }
 
@@ -29,7 +28,6 @@ class ClientVigieChiroTest {
     void moi_hors_ligne_est_vide() {
         ClientVigieChiro client = new ClientVigieChiro("http://localhost:1/api/v1", TOKEN_ABC);
 
-        assertThat(client.get("/moi")).isEmpty();
         assertThat(client.moi()).isInstanceOf(ReponseApi.Injoignable.class);
     }
 
@@ -59,7 +57,6 @@ class ClientVigieChiroTest {
     void ecritures_sans_token() {
         ClientVigieChiro client = new ClientVigieChiro("http://localhost:1/api/v1", SANS_TOKEN);
 
-        assertThat(client.post("/fichiers", "{}")).isEmpty();
         assertThat(client.creerParticipation("site1", participationMinimale()).id())
                 .isEmpty();
         assertThat(client.creerParticipation("site1", participationMinimale()).echec())
@@ -68,8 +65,8 @@ class ClientVigieChiroTest {
                         .id())
                 .isEmpty();
         assertThat(client.creerFichier("Car130711-2026-Pass1-Z41_000.wav", "p1"))
-                .isEmpty();
-        assertThat(client.finaliserFichier("f1")).isFalse();
+                .isInstanceOf(ReponseApi.NonConnecte.class);
+        assertThat(client.finaliserFichier("f1")).isInstanceOf(ReponseApi.NonConnecte.class);
     }
 
     @Test
@@ -85,8 +82,8 @@ class ClientVigieChiroTest {
                         .id())
                 .isEmpty();
         assertThat(client.creerFichier("Car130711-2026-Pass1-Z41_000.wav", "p1"))
-                .isEmpty();
-        assertThat(client.finaliserFichier("f1")).isFalse();
+                .isInstanceOf(ReponseApi.Injoignable.class);
+        assertThat(client.finaliserFichier("f1")).isInstanceOf(ReponseApi.Injoignable.class);
     }
 
     @Test
@@ -103,12 +100,12 @@ class ClientVigieChiroTest {
     }
 
     @Test
-    @DisplayName("journalTraitement : sans token ou hors ligne → vide, sans lever (#1132)")
+    @DisplayName("journalTraitement : sans token → NonConnecte, hors ligne → Injoignable (#1284)")
     void journal_traitement_degrade_proprement() {
         assertThat(new ClientVigieChiro("http://localhost:1", SANS_TOKEN).journalTraitement("6a49"))
-                .isEmpty();
+                .isInstanceOf(ReponseApi.NonConnecte.class);
         assertThat(new ClientVigieChiro("http://localhost:1", TOKEN_ABC).journalTraitement("6a49"))
-                .isEmpty();
+                .isInstanceOf(ReponseApi.Injoignable.class);
     }
 
     @Test

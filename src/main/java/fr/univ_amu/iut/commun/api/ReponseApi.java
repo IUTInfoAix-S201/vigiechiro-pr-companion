@@ -41,6 +41,16 @@ public sealed interface ReponseApi<T> {
                     .<ReponseApi<U>>map(ReponseApi::succes)
                     .orElseGet(() -> ReponseApi.injoignable(REPONSE_ILLISIBLE));
         }
+
+        @Override
+        public <U> ReponseApi<U> puis(Function<T, ReponseApi<U>> suite) {
+            return suite.apply(valeur);
+        }
+
+        @Override
+        public Optional<String> echec() {
+            return Optional.empty();
+        }
     }
 
     /// Aucun jeton : l'appel n'a **pas eu lieu**. C'est le silence légitime du mode hors connexion,
@@ -59,6 +69,16 @@ public sealed interface ReponseApi<T> {
         @Override
         public <U> ReponseApi<U> lireAvec(Function<T, Optional<U>> lecture) {
             return new NonConnecte<>();
+        }
+
+        @Override
+        public <U> ReponseApi<U> puis(Function<T, ReponseApi<U>> suite) {
+            return new NonConnecte<>();
+        }
+
+        @Override
+        public Optional<String> echec() {
+            return Optional.of("non connecté à VigieChiro (aucun jeton).");
         }
     }
 
@@ -85,6 +105,16 @@ public sealed interface ReponseApi<T> {
         public <U> ReponseApi<U> lireAvec(Function<T, Optional<U>> lecture) {
             return new Injoignable<>(cause);
         }
+
+        @Override
+        public <U> ReponseApi<U> puis(Function<T, ReponseApi<U>> suite) {
+            return new Injoignable<>(cause);
+        }
+
+        @Override
+        public Optional<String> echec() {
+            return Optional.of("VigieChiro injoignable : " + cause + ".");
+        }
     }
 
     /// Le serveur a **répondu non** (statut hors 2xx) : l'information existe, on la garde. Le corps
@@ -108,6 +138,16 @@ public sealed interface ReponseApi<T> {
         public <U> ReponseApi<U> lireAvec(Function<T, Optional<U>> lecture) {
             return new Refuse<>(statut, corps);
         }
+
+        @Override
+        public <U> ReponseApi<U> puis(Function<T, ReponseApi<U>> suite) {
+            return new Refuse<>(statut, corps);
+        }
+
+        @Override
+        public Optional<String> echec() {
+            return Optional.of("HTTP " + statut + " : " + corps);
+        }
     }
 
     /// Cause d'un `200` que nos parseurs ne savent pas lire : un portail captif ou un mandataire qui
@@ -126,6 +166,14 @@ public sealed interface ReponseApi<T> {
     /// lecteur ne comprend pas devient [Injoignable] ([#REPONSE_ILLISIBLE]) ; toute autre issue
     /// traverse inchangée.
     <U> ReponseApi<U> lireAvec(Function<T, Optional<U>> lecture);
+
+    /// Enchaîne un appel qui **dépend** du succès du précédent (chaîne du journal de traitement,
+    /// #1132) : la suite n'est tentée que sur un succès, toute autre issue traverse inchangée.
+    <U> ReponseApi<U> puis(Function<T, ReponseApi<U>> suite);
+
+    /// La cause d'échec **en clair** (vocabulaire unique des messages : « non connecté... »,
+    /// « VigieChiro injoignable : ... », « HTTP n : corps »), ou vide si succès.
+    Optional<String> echec();
 
     static <T> ReponseApi<T> succes(T valeur) {
         return new Succes<>(valeur);

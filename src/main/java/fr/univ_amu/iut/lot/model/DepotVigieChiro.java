@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -329,17 +328,25 @@ public final class DepotVigieChiro {
     /// l'issue : l'id distant du fichier créé, ou la raison de l'échec de l'étape fautive.
     private Televersement televerser(Path fichier, String participationId, DoubleConsumer progression) {
         String titre = fichier.getFileName().toString();
-        Optional<FichierSigne> signe = client.creerFichier(titre, participationId);
-        if (signe.isEmpty()) {
-            return Televersement.echec("déclaration du fichier refusée par VigieChiro");
+        // #1284 : chaque étape échoue avec sa cause exacte (non connecté / injoignable / HTTP n),
+        // plus jamais un « refusé par VigieChiro » générique quand c'était le réseau.
+        ReponseApi<FichierSigne> declaration = client.creerFichier(titre, participationId);
+        if (!(declaration instanceof ReponseApi.Succes<FichierSigne>(FichierSigne signe))) {
+            return Televersement.echec("déclaration du fichier : " + causeDe(declaration));
         }
-        if (!client.televerserVersS3(signe.get().urlSignee(), fichier, mime(titre), progression)) {
+        if (!client.televerserVersS3(signe.urlSignee(), fichier, mime(titre), progression)) {
             return Televersement.echec("téléversement S3 refusé (réseau ou fichier illisible)");
         }
-        if (!client.finaliserFichier(signe.get().id())) {
-            return Televersement.echec("finalisation refusée par VigieChiro");
+        ReponseApi<String> finalisation = client.finaliserFichier(signe.id());
+        if (finalisation.echec().isPresent()) {
+            return Televersement.echec("finalisation : " + causeDe(finalisation));
         }
-        return Televersement.reussi(signe.get().id());
+        return Televersement.reussi(signe.id());
+    }
+
+    /// Cause d'échec en clair d'une étape du téléversement (vocabulaire unique [ReponseApi#echec()]).
+    private static String causeDe(ReponseApi<?> reponse) {
+        return reponse.echec().orElse("issue inattendue");
     }
 
     /// Issue d'un téléversement unitaire : l'id distant en cas de succès, la raison sinon.

@@ -9,6 +9,7 @@ import fr.univ_amu.iut.commun.di.ModuleDeFeature;
 import fr.univ_amu.iut.commun.model.CoordonneesPoint;
 import fr.univ_amu.iut.commun.model.Horloge;
 import fr.univ_amu.iut.commun.model.ReferentielPoint;
+import fr.univ_amu.iut.commun.model.Workspace;
 import fr.univ_amu.iut.commun.persistence.ServicePurgeOriginaux;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
 import fr.univ_amu.iut.commun.persistence.UniteDeTravail;
@@ -21,6 +22,7 @@ import fr.univ_amu.iut.passage.model.MeteoOpenMeteo;
 import fr.univ_amu.iut.passage.model.MoteurWorkflowPassage;
 import fr.univ_amu.iut.passage.model.ReprefixeurSession;
 import fr.univ_amu.iut.passage.model.ServiceConditionsPassage;
+import fr.univ_amu.iut.passage.model.ServiceDisponibiliteAudio;
 import fr.univ_amu.iut.passage.model.ServicePassage;
 import fr.univ_amu.iut.passage.model.ServiceRattachement;
 import fr.univ_amu.iut.passage.model.SynchronisationParticipation;
@@ -145,6 +147,15 @@ public class PassageModule extends ModuleDeFeature {
     @Singleton
     ReleveClimatiqueDao fournirReleveClimatiqueDao(SourceDeDonnees source) {
         return new ReleveClimatiqueDao(source);
+    }
+
+    /// Disponibilité de l'audio local d'un passage (#1298) : singleton, le cache par passage est
+    /// partagé par tous les consommateurs (écoute, audit, archivage).
+    @Provides
+    @Singleton
+    ServiceDisponibiliteAudio fournirServiceDisponibiliteAudio(
+            SessionDao sessionDao, SequenceDao sequenceDao, Workspace workspace) {
+        return new ServiceDisponibiliteAudio(sessionDao, sequenceDao, workspace);
     }
 
     /// Moteur (pur) des transitions de workflow d'un passage.

@@ -1,4 +1,4 @@
-package fr.univ_amu.iut.importation.model;
+package fr.univ_amu.iut.commun.model;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,7 +11,7 @@ import java.util.HexFormat;
 /// Calcul d'empreintes **SHA-256** (hexadécimal minuscule) sur des fichiers ou des tableaux
 /// d'octets.
 ///
-/// Deux usages dans la feature import :
+/// Deux usages historiques dans la feature import :
 ///
 /// - **R9 (copie protégée)** : on hash chaque fichier de la carte SD avant et après la copie pour
 /// prouver que la source n'a pas été modifiée (et que la copie est fidèle).

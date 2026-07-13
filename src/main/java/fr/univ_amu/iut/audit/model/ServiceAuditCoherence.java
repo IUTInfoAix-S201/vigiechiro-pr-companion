@@ -119,7 +119,7 @@ public class ServiceAuditCoherence {
                     SeveriteConstat.INFO,
                     CategorieConstat.SESSION_ABSENTE,
                     passage.id(),
-                    "passage " + passage.id(),
+                    ciblePassage(passage.id()),
                     "Aucune session d'enregistrement : passage jamais importé."));
             return constats;
         }
@@ -145,6 +145,13 @@ public class ServiceAuditCoherence {
     /// Vérifie l'existence de tous les fichiers persistés du passage en **un balayage groupé**
     /// ([PresenceFichiers] : un accès disque par dossier, pas par fichier), puis émet les constats
     /// dans le même ordre qu'avant l'extraction du noyau (#1298).
+    ///
+    /// **Passage archivé** (#1348, #1300) : l'audio (séquences + originaux) a été supprimé
+    /// **volontairement**, marqueur explicite à l'appui : le contrôler fichier par fichier
+    /// produirait des milliers d'erreurs fantômes. Il est remplacé par **un seul constat**
+    /// [SeveriteConstat#INFO] ([CategorieConstat#AUDIO_ARCHIVE]) ; le journal, le relevé et les
+    /// résultats Tadarida, eux, **survivent** à l'archivage : leur absence reste un vrai problème,
+    /// contrôlé comme avant.
     private void controleExistence(
             List<ConstatAudit> constats,
             Passage passage,
@@ -155,24 +162,39 @@ public class ServiceAuditCoherence {
             Optional<ReleveClimatique> releve,
             Optional<ResultatsIdentification> resultats) {
         Long idPassage = passage.id();
-        boolean originauxAudites = !originauxPurges(session);
+        boolean audioAudite = !session.archivee();
+        boolean originauxAudites = audioAudite && !originauxPurges(session);
         List<String> chemins = new ArrayList<>();
         if (originauxAudites) {
             originaux.forEach(o -> chemins.add(o.cheminFichier()));
         }
-        sequences.forEach(s -> chemins.add(s.cheminFichier()));
+        if (audioAudite) {
+            sequences.forEach(s -> chemins.add(s.cheminFichier()));
+        }
         journal.ifPresent(j -> chemins.add(j.cheminFichier()));
         releve.ifPresent(r -> chemins.add(r.cheminFichier()));
         resultats.ifPresent(r -> chemins.add(r.cheminFichier()));
         Map<String, Presence> presences = presenceFichiers.evaluer(chemins);
 
+        if (session.archivee()) {
+            constats.add(new ConstatAudit(
+                    SeveriteConstat.INFO,
+                    CategorieConstat.AUDIO_ARCHIVE,
+                    idPassage,
+                    ciblePassage(idPassage),
+                    "Passage archivé le " + session.horodatageArchivage().toLocalDate() + " : l'audio de ses "
+                            + sequences.size()
+                            + " séquence(s) n'est plus conservé localement (réactivable par réimport)."));
+        }
         if (originauxAudites) {
             for (EnregistrementOriginal original : originaux) {
                 signalerAbsence(constats, idPassage, original.cheminFichier(), SeveriteConstat.ERREUR, presences);
             }
         }
-        for (SequenceDEcoute sequence : sequences) {
-            signalerAbsence(constats, idPassage, sequence.cheminFichier(), SeveriteConstat.ERREUR, presences);
+        if (audioAudite) {
+            for (SequenceDEcoute sequence : sequences) {
+                signalerAbsence(constats, idPassage, sequence.cheminFichier(), SeveriteConstat.ERREUR, presences);
+            }
         }
         journal.ifPresent(
                 j -> signalerAbsence(constats, idPassage, j.cheminFichier(), SeveriteConstat.ERREUR, presences));
@@ -218,7 +240,7 @@ public class ServiceAuditCoherence {
                     SeveriteConstat.ERREUR,
                     CategorieConstat.PREFIXE_NON_CONFORME,
                     passage.id(),
-                    "passage " + passage.id(),
+                    ciblePassage(passage.id()),
                     "Préfixe attendu incalculable : point d'écoute ou site introuvable."));
             return;
         }
@@ -302,6 +324,11 @@ public class ServiceAuditCoherence {
 
     private boolean originauxPurges(SessionDEnregistrement session) {
         return session.volumeOriginauxOctets() != null && session.volumeOriginauxOctets() == 0L;
+    }
+
+    /// Cible « passage <id> » d'un constat qui porte sur le passage entier (pas sur un fichier précis).
+    private static String ciblePassage(Long idPassage) {
+        return "passage " + idPassage;
     }
 
     private static String normaliser(Path chemin) {

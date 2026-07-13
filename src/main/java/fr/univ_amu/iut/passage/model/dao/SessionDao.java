@@ -6,6 +6,7 @@ import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
 import fr.univ_amu.iut.passage.model.SessionDEnregistrement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 /// DAO de l'entité [SessionDEnregistrement] (table `recording_session`).
@@ -22,12 +23,20 @@ public class SessionDao extends DaoGenerique<SessionDEnregistrement, Long> {
             rs.getString("root_path"),
             lireLongNullable(rs, "originals_total_bytes"),
             lireLongNullable(rs, "sequences_total_bytes"),
-            rs.getLong("passage_id"));
+            rs.getLong("passage_id"),
+            lireHorodatage(rs, "archived_at"));
 
     /// Lit une colonne `INTEGER` nullable en [Long], en préservant le `null`.
     private static Long lireLongNullable(ResultSet rs, String colonne) throws SQLException {
         Object valeur = rs.getObject(colonne);
         return valeur == null ? null : ((Number) valeur).longValue();
+    }
+
+    /// Lit une colonne `TEXT` ISO-8601 nullable en [LocalDateTime] (image d'`archived_at`), `null` si
+    /// absente.
+    private static LocalDateTime lireHorodatage(ResultSet rs, String colonne) throws SQLException {
+        String valeur = rs.getString(colonne);
+        return valeur == null ? null : LocalDateTime.parse(valeur);
     }
 
     public SessionDao(SourceDeDonnees source) {
@@ -61,34 +70,51 @@ public class SessionDao extends DaoGenerique<SessionDEnregistrement, Long> {
         executerMaj("UPDATE recording_session SET originals_total_bytes = 0 WHERE id = ?", idSession);
     }
 
+    /// Pose le marqueur **explicite** d'archivage (#1300) : enregistre le geste volontaire, ce qui
+    /// distingue un passage archivé d'un passage corrompu aux yeux de l'audit (#1303, #1348).
+    public void marquerArchivee(Long idSession, LocalDateTime horodatage) {
+        executerMaj(
+                "UPDATE recording_session SET archived_at = ? WHERE id = ?",
+                horodatage == null ? null : horodatage.toString(),
+                idSession);
+    }
+
     @Override
     public SessionDEnregistrement insert(SessionDEnregistrement session) {
         long id = insererEtRecupererCle(
                 "INSERT INTO recording_session"
-                        + " (root_path, originals_total_bytes, sequences_total_bytes, passage_id)"
-                        + " VALUES (?, ?, ?, ?)",
+                        + " (root_path, originals_total_bytes, sequences_total_bytes, passage_id, archived_at)"
+                        + " VALUES (?, ?, ?, ?, ?)",
                 session.cheminRacine(),
                 session.volumeOriginauxOctets(),
                 session.volumeSequencesOctets(),
-                session.idPassage());
+                session.idPassage(),
+                session.horodatageArchivage() == null
+                        ? null
+                        : session.horodatageArchivage().toString());
         return new SessionDEnregistrement(
                 id,
                 session.cheminRacine(),
                 session.volumeOriginauxOctets(),
                 session.volumeSequencesOctets(),
-                session.idPassage());
+                session.idPassage(),
+                session.horodatageArchivage());
     }
 
     @Override
     public void update(SessionDEnregistrement session) {
         executerMaj(
                 "UPDATE recording_session SET"
-                        + " root_path = ?, originals_total_bytes = ?, sequences_total_bytes = ?, passage_id = ?"
+                        + " root_path = ?, originals_total_bytes = ?, sequences_total_bytes = ?, passage_id = ?,"
+                        + " archived_at = ?"
                         + " WHERE id = ?",
                 session.cheminRacine(),
                 session.volumeOriginauxOctets(),
                 session.volumeSequencesOctets(),
                 session.idPassage(),
+                session.horodatageArchivage() == null
+                        ? null
+                        : session.horodatageArchivage().toString(),
                 session.id());
     }
 }

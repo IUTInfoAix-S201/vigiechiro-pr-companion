@@ -169,6 +169,53 @@ class ServiceAuditCoherenceTest {
     }
 
     @Test
+    @DisplayName("#1348 : passage archivé (marqueur posé) : un seul constat INFO, zéro erreur")
+    void passage_archive_un_seul_constat_informatif() throws IOException {
+        Long idPassage = creerSessionCoherente(1);
+        supprimerAudio();
+        Long idSession = sessionDao.trouverParPassage(idPassage).orElseThrow().id();
+        sessionDao.marquerArchivee(idSession, java.time.LocalDateTime.of(2026, 7, 13, 18, 30));
+
+        RapportAudit rapport = service.auditerPassage(idPassage);
+
+        assertThat(rapport.aDesErreurs())
+                .as("archivé volontairement n'est pas corrompu : code de sortie CLI 0")
+                .isFalse();
+        assertThat(rapport.constats()).singleElement().satisfies(c -> {
+            assertThat(c.severite()).isEqualTo(SeveriteConstat.INFO);
+            assertThat(c.categorie()).isEqualTo(CategorieConstat.AUDIO_ARCHIVE);
+            assertThat(c.detail()).contains("archivé").contains("2 séquence(s)");
+        });
+    }
+
+    @Test
+    @DisplayName("#1348 : archivé n'exempte que l'audio : un journal manquant reste une erreur")
+    void passage_archive_journal_manquant_reste_une_erreur() throws IOException {
+        Long idPassage = creerSessionCoherente(1);
+        supprimerAudio();
+        Files.delete(racineSession.resolve("LogPR" + SERIE + ".txt"));
+        Long idSession = sessionDao.trouverParPassage(idPassage).orElseThrow().id();
+        sessionDao.marquerArchivee(idSession, java.time.LocalDateTime.of(2026, 7, 13, 18, 30));
+
+        RapportAudit rapport = service.auditerPassage(idPassage);
+
+        assertThat(rapport.aDesErreurs())
+                .as("le journal survit à l'archivage : son absence est un vrai problème")
+                .isTrue();
+        assertThat(rapport.constats())
+                .extracting(ConstatAudit::categorie)
+                .containsExactlyInAnyOrder(CategorieConstat.AUDIO_ARCHIVE, CategorieConstat.DISQUE_MANQUANT);
+    }
+
+    /// Supprime tout l'audio de la session cohérente (les 2 séquences et le brut) : l'état d'un
+    /// passage réellement archivé (#1300).
+    private void supprimerAudio() throws IOException {
+        Files.delete(racineSession.resolve("transformes").resolve(PREFIXE.nommerSequence(NOM_ORIGINAL, 0)));
+        Files.delete(racineSession.resolve("transformes").resolve(PREFIXE.nommerSequence(NOM_ORIGINAL, 1)));
+        Files.delete(racineSession.resolve("bruts").resolve(NOM_ORIGINAL));
+    }
+
+    @Test
     @DisplayName("Fichier parasite dans transformes/ : orphelin ; rien sous depot/")
     void fichier_parasite_orphelin_mais_pas_depot() throws IOException {
         Long idPassage = creerSessionCoherente(1);

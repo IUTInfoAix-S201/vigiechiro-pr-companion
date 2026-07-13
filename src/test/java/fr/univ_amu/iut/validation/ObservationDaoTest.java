@@ -157,6 +157,43 @@ class ObservationDaoTest {
     }
 
     @Test
+    @DisplayName("revuesDuPassage (#723) : les observations revues du passage, ancrage et certitude compris ;"
+            + " les non revues sont écartées")
+    void revues_du_passage() {
+        // Revue (taxon observateur posé), avec ancrage + certitude : le vivier de la publication.
+        dao.insert(new Observation(
+                null,
+                idSequence,
+                0.5,
+                3.2,
+                45,
+                "Pippip",
+                0.92,
+                null,
+                "Nyclei",
+                null,
+                null,
+                false,
+                ModeValidation.MANUEL,
+                idResultats,
+                false,
+                "6a4fcaa2842983a29ba25363",
+                4,
+                fr.univ_amu.iut.commun.model.CertitudeObservateur.SUR));
+        // Non revue (aucun taxon observateur) : hors du vivier.
+        dao.insert(observationComplete().avecObservateur(null, null, ModeValidation.NON_VALIDE));
+
+        List<Observation> revues = dao.revuesDuPassage(idPassage);
+
+        assertThat(revues).singleElement().satisfies(revue -> {
+            assertThat(revue.taxonObservateur()).isEqualTo("Nyclei");
+            assertThat(revue.idDonneeVigieChiro()).isEqualTo("6a4fcaa2842983a29ba25363");
+            assertThat(revue.indiceVigieChiro()).isEqualTo(4);
+            assertThat(revue.certitudeObservateur()).isEqualTo(fr.univ_amu.iut.commun.model.CertitudeObservateur.SUR);
+        });
+    }
+
+    @Test
     @DisplayName("Insérer attribue un id et rend l'observation relisible (3 taxons, mode, référence)")
     void inserer_attribue_un_id_et_rend_l_observation_relisible() {
         Observation insere = dao.insert(observationComplete());

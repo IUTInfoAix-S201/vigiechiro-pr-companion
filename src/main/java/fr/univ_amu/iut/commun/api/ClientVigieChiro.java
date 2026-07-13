@@ -1,5 +1,6 @@
 package fr.univ_amu.iut.commun.api;
 
+import fr.univ_amu.iut.commun.model.CertitudeObservateur;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -146,17 +147,14 @@ public final class ClientVigieChiro {
     public ResultatParticipation creerParticipation(String siteId, ParticipationADeposer participation) {
         Optional<ReponseHttp> reponse =
                 postDetaille("/sites/" + siteId + "/participations", RequetesVigieChiro.participation(participation));
-        if (reponse.isEmpty()) {
-            return ResultatParticipation.echouee("VigieChiro injoignable (non connecté, ou réseau indisponible).");
+        String echec = echecDe(reponse);
+        if (echec != null) {
+            return ResultatParticipation.echouee(echec);
         }
-        ReponseHttp r = reponse.get();
-        if (!estSucces(r.statut())) {
-            return ResultatParticipation.echouee("HTTP " + r.statut() + " — " + r.corps());
-        }
-        return ReponsesVigieChiro.idCree(r.corps())
+        String corps = reponse.orElseThrow().corps();
+        return ReponsesVigieChiro.idCree(corps)
                 .map(ResultatParticipation::reussie)
-                .orElseGet(
-                        () -> ResultatParticipation.echouee("réponse acceptée mais sans identifiant : " + r.corps()));
+                .orElseGet(() -> ResultatParticipation.echouee("réponse acceptée mais sans identifiant : " + corps));
     }
 
     /// **Met à jour** une participation existante (`PATCH /participations/#id`, axe 4) : n'émet que les
@@ -165,16 +163,23 @@ public final class ClientVigieChiro {
     /// [#participation]. Renvoie l'`_id` en cas de succès, ou le **détail de l'échec** (statut + corps) — un
     /// refus doit être expliqué. Prérequis : `etag` courant (sinon `412 Precondition Failed`).
     public ResultatParticipation modifierParticipation(String id, String etag, ParticipationADeposer miseAJour) {
-        Optional<ReponseHttp> reponse =
-                ecrire("PATCH", CHEMIN_PARTICIPATIONS + id, RequetesVigieChiro.miseAJourParticipation(miseAJour), etag);
-        if (reponse.isEmpty()) {
-            return ResultatParticipation.echouee("VigieChiro injoignable (non connecté, ou réseau indisponible).");
-        }
-        ReponseHttp r = reponse.get();
-        if (!estSucces(r.statut())) {
-            return ResultatParticipation.echouee("HTTP " + r.statut() + " — " + r.corps());
-        }
-        return ResultatParticipation.reussie(id);
+        String echec = echecDe(ecrire(
+                "PATCH", CHEMIN_PARTICIPATIONS + id, RequetesVigieChiro.miseAJourParticipation(miseAJour), etag));
+        return echec == null ? ResultatParticipation.reussie(id) : ResultatParticipation.echouee(echec);
+    }
+
+    /// **Publie une correction d'observation** (`PATCH /donnees/#id/observations/#indice`, #723,
+    /// contrat #1203) : pose le taxon observateur (**objectid**) et la certitude sur le sous-document
+    /// **positionnel** `indice` de la donnée (une observation serveur n'a pas d'`_id` propre). Pas
+    /// d'`If-Match` : le handler serveur n'en lit pas. `bilan` à `false` ajoute `?no_bilan=true` (le
+    /// serveur ne régénère pas le bilan de la participation : levier de rafale, ne mettre `true` que
+    /// sur le **dernier** envoi d'un lot). Un `HTTP 404` signale un **ancrage périmé** (la donnée a
+    /// été régénérée par un re-compute) ; tout refus revient détaillé (statut + corps).
+    public ResultatCorrection corrigerObservation(
+            String donneeId, int indice, String objectidTaxon, CertitudeObservateur certitude, boolean bilan) {
+        String chemin = "/donnees/" + donneeId + "/observations/" + indice + (bilan ? "" : "?no_bilan=true");
+        String echec = echecDe(ecrire("PATCH", chemin, RequetesVigieChiro.correction(objectidTaxon, certitude), null));
+        return echec == null ? ResultatCorrection.reussie() : ResultatCorrection.echouee(echec);
     }
 
     /// Déclare un **fichier** à téléverser (`POST /fichiers`, étape 1/3) : renvoie son `_id` et l'URL S3
@@ -281,6 +286,20 @@ public final class ClientVigieChiro {
         } catch (RuntimeException | IOException indisponible) {
             return Optional.empty();
         }
+    }
+
+    /// Cause d'échec commune des écritures quand l'API n'a pas pu être jointe (pas de token, réseau).
+    private static final String INJOIGNABLE = "VigieChiro injoignable (non connecté, ou réseau indisponible).";
+
+    /// Triage **commun des écritures** : la cause d'échec exploitable (injoignable, ou `HTTP <statut> :
+    /// <corps>` du refus), ou `null` si la réponse est un succès 2xx. Une écriture refusée doit être
+    /// expliquée à l'utilisateur, jamais réduite à un booléen opaque.
+    private static String echecDe(Optional<ReponseHttp> reponse) {
+        if (reponse.isEmpty()) {
+            return INJOIGNABLE;
+        }
+        ReponseHttp r = reponse.get();
+        return estSucces(r.statut()) ? null : "HTTP " + r.statut() + " : " + r.corps();
     }
 
     /// Statut HTTP de **succès** (2xx) : Eve renvoie `200` (finalisation) ou `201` (création), S3 `200`.

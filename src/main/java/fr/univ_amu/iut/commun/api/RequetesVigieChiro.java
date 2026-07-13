@@ -4,6 +4,7 @@ import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
+import fr.univ_amu.iut.commun.model.CertitudeObservateur;
 import java.util.Map;
 
 /// Construction des **corps JSON des écritures** VigieChiro (#142) : pendant en écriture de
@@ -47,6 +48,14 @@ final class RequetesVigieChiro {
     /// Corps de finalisation `POST /fichiers/#id` : aucun champ requis (accusé de fin d'upload).
     static String finalisation() {
         return CORPS_VIDE;
+    }
+
+    /// Corps de `PATCH /donnees/#id/observations/#index` (#723, contrat #1203) : le taxon observateur en
+    /// **objectid** (mapping `vigiechiro_link`) et la certitude en jeton `SUR|PROBABLE|POSSIBLE`. Les deux
+    /// champs vont toujours ensemble : le serveur exige la probabilité dès que le taxon est envoyé
+    /// (`422` sinon).
+    static String correction(String objectidTaxon, CertitudeObservateur certitude) {
+        return GSON.toJson(Map.of("observateur_taxon", objectidTaxon, "observateur_probabilite", certitude.jeton()));
     }
 
     /// Corps de `POST /participations/#id/compute` (lancement du traitement, #984) : aucun champ requis,

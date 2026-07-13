@@ -92,6 +92,21 @@ public class ObservationDao extends DaoGenerique<Observation, Long> {
         return query("SELECT * FROM observation WHERE sequence_id = ? ORDER BY start_time_s", MAPPER, idSequence);
     }
 
+    /// Observations **revues** d'un passage (taxon observateur posé), avec leur ancrage plateforme et
+    /// leur certitude : le vivier de la **publication des corrections** (#723) ; le service classe
+    /// ensuite poussables / à compléter / sans ancrage. La chaîne `observation → séquence → session`
+    /// suffit (pas besoin du site). Tri par id (stable, ordre d'import).
+    public List<Observation> revuesDuPassage(Long idPassage) {
+        return query(
+                "SELECT o.* FROM observation o"
+                        + " JOIN listening_sequence ls ON o.sequence_id = ls.id"
+                        + " JOIN recording_session rs ON ls.session_id = rs.id"
+                        + " WHERE rs.passage_id = ? AND o.taxon_observer IS NOT NULL"
+                        + " ORDER BY o.id",
+                MAPPER,
+                idPassage);
+    }
+
     /// L'**observation manuelle** d'une séquence (celle sans jeu de résultats Tadarida, `results_id IS
     /// NULL`), ou vide s'il n'y en a pas encore. Sert à la validation manuelle : mettre à jour l'existante
     /// plutôt qu'en créer une seconde. (Au plus une par séquence, garantie par le service.)

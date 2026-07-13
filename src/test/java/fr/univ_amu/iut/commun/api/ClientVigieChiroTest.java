@@ -114,4 +114,19 @@ class ClientVigieChiroTest {
         assertThat(new ClientVigieChiro("http://localhost:1", TOKEN_ABC).journalTraitement("6a49"))
                 .isEmpty();
     }
+
+    @Test
+    @DisplayName("corrigerObservation (#723) : sans token ou hors ligne → échec EXPLIQUÉ, sans lever")
+    void correction_degrade_proprement() {
+        ResultatCorrection sansToken = new ClientVigieChiro("http://localhost:1", SANS_TOKEN)
+                .corrigerObservation("6a4f", 0, "5526", fr.univ_amu.iut.commun.model.CertitudeObservateur.SUR, true);
+        ResultatCorrection horsLigne = new ClientVigieChiro("http://localhost:1", TOKEN_ABC)
+                .corrigerObservation("6a4f", 0, "5526", fr.univ_amu.iut.commun.model.CertitudeObservateur.SUR, false);
+
+        // Une écriture refusée est expliquée (jamais un booléen opaque) : le message sert le bilan.
+        assertThat(sansToken.estReussie()).isFalse();
+        assertThat(sansToken.echec()).contains("injoignable");
+        assertThat(horsLigne.estReussie()).isFalse();
+        assertThat(horsLigne.echec()).contains("injoignable");
+    }
 }

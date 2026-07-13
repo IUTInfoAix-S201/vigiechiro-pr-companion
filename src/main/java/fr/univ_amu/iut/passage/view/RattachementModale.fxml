@@ -31,9 +31,14 @@
 
   <!-- Tirer les métadonnées depuis la participation VigieChiro (cas « préparé sur le site web »).
        Masqué hors connexion (visibilité pilotée par le controller selon la présence de la passerelle). -->
-  <HBox fx:id="ligneSyncVigieChiro" alignment="CENTER_LEFT">
+  <HBox fx:id="ligneSyncVigieChiro" alignment="CENTER_LEFT" spacing="8.0">
     <Button fx:id="boutonTirerVigieChiro" text="Synchroniser depuis VigieChiro"
             styleClass="bouton-secondaire" onAction="#tirerDepuisVigieChiro"/>
+    <!-- Importer les observations analysées par Vigie-Chiro (#1264) : visible seulement si la nuit est
+         rattachée à une participation. Si l'analyse n'est pas terminée, le clic répond POURQUOI (analyse
+         en cours, jamais lancée, en échec…) plutôt que d'échouer sans rien dire. -->
+    <Button fx:id="boutonImporterObservations" text="Importer les observations"
+            styleClass="bouton-secondaire" onAction="#importerObservations"/>
   </HBox>
 
   <!-- Rattachement : année + n° de passage (le site et le point ne changent pas). -->

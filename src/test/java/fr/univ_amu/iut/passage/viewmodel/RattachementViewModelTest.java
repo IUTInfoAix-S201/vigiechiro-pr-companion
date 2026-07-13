@@ -9,6 +9,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import fr.univ_amu.iut.commun.model.ImportObservations;
 import fr.univ_amu.iut.commun.model.Prefixe;
 import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
@@ -53,7 +54,8 @@ class RattachementViewModelTest {
 
     @BeforeEach
     void preparer() {
-        viewModel = new RattachementViewModel(service, rattachement, conditionsPassage, Optional.empty());
+        viewModel =
+                new RattachementViewModel(service, rattachement, conditionsPassage, Optional.empty(), Optional.empty());
     }
 
     private static DetailPassage detail(int numero, int annee, int nombreSequences) {
@@ -345,8 +347,8 @@ class RattachementViewModelTest {
     @DisplayName("Phase 2 : pousserVersVigieChiro délègue à la passerelle pour le passage ouvert")
     void pousser_vers_vigiechiro_delegue() {
         SynchronisationParticipation sync = mock(SynchronisationParticipation.class);
-        RattachementViewModel avecSync =
-                new RattachementViewModel(service, rattachement, conditionsPassage, Optional.of(sync));
+        RattachementViewModel avecSync = new RattachementViewModel(
+                service, rattachement, conditionsPassage, Optional.of(sync), Optional.empty());
         when(service.detailPassage(ID)).thenReturn(detail(1, 2026, 30));
         avecSync.ouvrirSur(ID, "040962", "A1");
 
@@ -360,8 +362,8 @@ class RattachementViewModelTest {
     void pousser_vers_vigiechiro_silencieux_si_non_lie() {
         SynchronisationParticipation sync = mock(SynchronisationParticipation.class);
         when(sync.pousserVers(ID)).thenThrow(new RegleMetierException("pas encore lié"));
-        RattachementViewModel avecSync =
-                new RattachementViewModel(service, rattachement, conditionsPassage, Optional.of(sync));
+        RattachementViewModel avecSync = new RattachementViewModel(
+                service, rattachement, conditionsPassage, Optional.of(sync), Optional.empty());
         when(service.detailPassage(ID)).thenReturn(detail(1, 2026, 30));
         avecSync.ouvrirSur(ID, "040962", "A1");
 
@@ -384,8 +386,8 @@ class RattachementViewModelTest {
     @DisplayName("Phase 2b : tirerDepuisVigieChiro délègue puis rechargerApresTir recharge les champs")
     void tirer_depuis_vigiechiro_recupere() {
         SynchronisationParticipation sync = mock(SynchronisationParticipation.class);
-        RattachementViewModel avecSync =
-                new RattachementViewModel(service, rattachement, conditionsPassage, Optional.of(sync));
+        RattachementViewModel avecSync = new RattachementViewModel(
+                service, rattachement, conditionsPassage, Optional.of(sync), Optional.empty());
         when(service.detailPassage(ID))
                 .thenReturn(detailMeteo(new MeteoReleve(9.0, 3.0, Vent.FORT, CouvertureNuageuse.DE_75_A_100)));
         avecSync.ouvrirSur(ID, "040962", "A1");
@@ -404,8 +406,8 @@ class RattachementViewModelTest {
     void tirer_depuis_vigiechiro_non_lie() {
         SynchronisationParticipation sync = mock(SynchronisationParticipation.class);
         doThrow(new RegleMetierException("pas lié")).when(sync).tirerDepuis(ID);
-        RattachementViewModel avecSync =
-                new RattachementViewModel(service, rattachement, conditionsPassage, Optional.of(sync));
+        RattachementViewModel avecSync = new RattachementViewModel(
+                service, rattachement, conditionsPassage, Optional.of(sync), Optional.empty());
         when(service.detailPassage(ID)).thenReturn(detailMeteo(MeteoReleve.VIDE));
         avecSync.ouvrirSur(ID, "040962", "A1");
 
@@ -424,8 +426,51 @@ class RattachementViewModelTest {
                                 service,
                                 rattachement,
                                 conditionsPassage,
-                                Optional.of(mock(SynchronisationParticipation.class)))
+                                Optional.of(mock(SynchronisationParticipation.class)),
+                                Optional.empty())
                         .peutSynchroniser())
                 .isTrue();
+    }
+
+    @Test
+    @DisplayName(
+            "#1264 : « Importer les observations » n'a de sens que si la nuit est RATTACHÉE à une" + " participation")
+    void peut_importer_seulement_si_rattache() {
+        ImportObservations importObservations = mock(ImportObservations.class);
+        when(service.detailPassage(ID)).thenReturn(detail(1, 2026, 30));
+        RattachementViewModel vm = new RattachementViewModel(
+                service, rattachement, conditionsPassage, Optional.empty(), Optional.of(importObservations));
+        vm.ouvrirSur(ID, "640380", "Z1");
+
+        when(importObservations.estRattache(ID)).thenReturn(true);
+        assertThat(vm.peutImporter()).isTrue();
+
+        when(importObservations.estRattache(ID)).thenReturn(false);
+        assertThat(vm.peutImporter())
+                .as("nuit non déposée : il n'y a rien à importer, l'action n'a pas lieu d'être")
+                .isFalse();
+
+        assertThat(viewModel.peutImporter())
+                .as("hors connexion (import absent) : pas d'action non plus")
+                .isFalse();
+    }
+
+    @Test
+    @DisplayName("#1264 : importer restitue le compte rendu — ou LA RAISON quand il n'y a rien à importer")
+    void importer_restitue_le_compte_rendu_ou_la_raison() {
+        ImportObservations importObservations = mock(ImportObservations.class);
+        when(service.detailPassage(ID)).thenReturn(detail(1, 2026, 30));
+        RattachementViewModel vm = new RattachementViewModel(
+                service, rattachement, conditionsPassage, Optional.empty(), Optional.of(importObservations));
+        vm.ouvrirSur(ID, "640380", "Z1");
+        when(importObservations.importer(ID, false)).thenReturn("42 observation(s).");
+
+        assertThat(vm.importerObservations()).isEqualTo("42 observation(s).");
+
+        // Un refus n'est pas un incident : c'est une réponse, et elle dit quoi faire (#1264).
+        when(importObservations.importer(ID, false))
+                .thenThrow(new RegleMetierException("L'analyse est en cours sur VigieChiro."));
+
+        assertThat(vm.importerObservations()).contains("L'analyse est en cours");
     }
 }

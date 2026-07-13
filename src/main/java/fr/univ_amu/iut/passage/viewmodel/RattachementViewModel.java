@@ -1,5 +1,6 @@
 package fr.univ_amu.iut.passage.viewmodel;
 
+import fr.univ_amu.iut.commun.model.ImportObservations;
 import fr.univ_amu.iut.commun.model.Prefixe;
 import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.passage.model.DetailPassage;
@@ -31,6 +32,9 @@ public class RattachementViewModel {
     /// **pousser** les métadonnées du passage vers sa participation à la validation ([#pousserVersVigieChiro]).
     private final Optional<SynchronisationParticipation> synchronisation;
 
+    /// Import des observations (#1264), via le port du socle : absent hors connexion.
+    private final Optional<ImportObservations> importObservations;
+
     private final IntegerProperty annee = new SimpleIntegerProperty(this, "annee");
     private final IntegerProperty numeroPassage = new SimpleIntegerProperty(this, "numeroPassage");
     private final ReadOnlyStringWrapper recap = new ReadOnlyStringWrapper(this, "recap", "");
@@ -52,9 +56,11 @@ public class RattachementViewModel {
             ServicePassage service,
             ServiceRattachement rattachement,
             ServiceConditionsPassage conditionsPassage,
-            Optional<SynchronisationParticipation> synchronisation) {
+            Optional<SynchronisationParticipation> synchronisation,
+            Optional<ImportObservations> importObservations) {
         this.service = Objects.requireNonNull(service, "service");
         this.synchronisation = Objects.requireNonNull(synchronisation, "synchronisation");
+        this.importObservations = Objects.requireNonNull(importObservations, "importObservations");
         this.rattachement = Objects.requireNonNull(rattachement, "rattachement");
         this.conditions = new SaisiePassageConditions(conditionsPassage, messageErreur);
         annee.addListener((observable, avant, apres) -> majRecap());
@@ -173,6 +179,34 @@ public class RattachementViewModel {
     /// l'action « Synchroniser depuis VigieChiro » que dans ce cas.
     public boolean peutSynchroniser() {
         return synchronisation.isPresent();
+    }
+
+    /// `true` si l'action **« Importer les observations »** a lieu d'être (#1264) : l'import est disponible
+    /// (observateur connecté) **et** la nuit est rattachée à une participation. Sinon, il n'y a rien à
+    /// importer — et l'action n'apparaît pas plutôt que d'apparaître inerte.
+    public boolean peutImporter() {
+        return idPassage != null
+                && importObservations.isPresent()
+                && importObservations.get().estRattache(idPassage);
+    }
+
+    /// Importe les observations de la nuit depuis Vigie-Chiro. **Bloquant** (réseau) : à appeler **hors du
+    /// fil JavaFX**. Renvoie le compte rendu à afficher — ou, s'il n'y a rien à importer, **la raison**
+    /// (analyse jamais lancée, en cours, en échec…), que l'import sait désormais donner (#1264).
+    public String importerObservations() {
+        try {
+            return importObservations
+                    .orElseThrow(() -> new RegleMetierException("Import VigieChiro indisponible dans ce contexte."))
+                    .importer(idPassage, false);
+        } catch (RegleMetierException rien) {
+            // Le refus n'est pas un incident : c'est une réponse, et elle dit quoi faire.
+            return rien.getMessage();
+        }
+    }
+
+    /// Publie le compte rendu de l'import (à exécuter **sur le fil JavaFX**).
+    public void restituerImport(String compteRendu) {
+        messageErreur.set(compteRendu);
     }
 
     /// `true` si appliquer le rattachement courant **renommera effectivement** les séquences sur le disque

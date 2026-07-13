@@ -77,3 +77,20 @@ Si une nuit a été rattachée par erreur (mauvaise année ou mauvais numéro de
 **Modifier le rattachement** ouvre une fenêtre permettant de corriger ces informations.
 
 ![La fenêtre de modification du rattachement : année et numéro de passage.](../assets/captures/apercu-passage-rattachement.png)
+
+### Importer les observations depuis Vigie-Chiro
+
+Quand la nuit a été **déposée sur Vigie-Chiro**, cette même fenêtre propose **« Importer les
+observations »** : la plateforme ayant analysé les sons, ce bouton rapatrie les identifications
+Tadarida sans passer par un fichier CSV.
+
+Si l'analyse n'est pas terminée, l'application vous dit **pourquoi** il n'y a rien à importer :
+
+- elle **n'a jamais été lancée** : lancez-la depuis « Préparer le dépôt » (étape ④) ;
+- elle est **planifiée** ou **en cours** : il n'y a qu'à patienter (comptez plusieurs dizaines de
+  minutes), le suivi étant affiché dans « Préparer le dépôt » ;
+- elle a **échoué** : le motif renvoyé par la plateforme est indiqué ;
+- elle est **terminée mais ne renvoie aucune observation** : c'est anormal, vérifiez que les fichiers
+  sont bien arrivés (« Vérifier le dépôt »).
+
+Le même import reste disponible depuis « Sons & validation » (menu ☰).

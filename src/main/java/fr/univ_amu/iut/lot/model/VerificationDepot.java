@@ -2,6 +2,7 @@ package fr.univ_amu.iut.lot.model;
 
 import fr.univ_amu.iut.commun.api.ClientVigieChiro;
 import fr.univ_amu.iut.commun.api.DonneeVigieChiro;
+import fr.univ_amu.iut.commun.api.ReponseApi;
 import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.lot.model.dao.DepotUniteDao;
 import fr.univ_amu.iut.passage.model.SynchronisationParticipation;
@@ -58,14 +59,28 @@ public final class VerificationDepot {
                     + " l’application ?) : rien à comparer.");
         }
 
-        Optional<String> journal = client.journalTraitement(participationId);
+        // #1284 : « vérification impossible » n'est plus rendu comme « tout manquant ». Hors ligne ou
+        // sur refus, on lève : le dépôt n'est ni confirmé ni infirmé.
+        ReponseApi<Optional<String>> lectureJournal = client.journalTraitement(participationId);
+        if (!(lectureJournal instanceof ReponseApi.Succes<Optional<String>>(Optional<String> journal))) {
+            throw new RegleMetierException("Vérification impossible ("
+                    + lectureJournal.echec().orElse("issue inattendue")
+                    + ") : le dépôt n'est ni confirmé ni infirmé. Réessayez plus tard.");
+        }
         Set<String> nomsDuJournal =
                 journal.map(VerificationDepot::nomsDeFichiers).orElseGet(Set::of);
         Set<String> titresDonnees = new HashSet<>();
-        for (DonneeVigieChiro donnee :
-                client.donnees(participationId).enOptionnel().orElseGet(List::of)) {
-            titresDonnees.add(donnee.titre());
+        ReponseApi<List<DonneeVigieChiro>> lectureDonnees = client.donnees(participationId);
+        if (lectureDonnees instanceof ReponseApi.Succes<List<DonneeVigieChiro>>(List<DonneeVigieChiro> donnees)) {
+            for (DonneeVigieChiro donnee : donnees) {
+                titresDonnees.add(donnee.titre());
+            }
+        } else if (journal.isEmpty()) {
+            throw new RegleMetierException("Vérification impossible : pas encore de journal de traitement,"
+                    + " et les observations n'ont pas pu être lues ("
+                    + lectureDonnees.echec().orElse("issue inattendue") + "). Réessayez plus tard.");
         }
+        // Journal présent mais donnees illisibles : le journal seul fait foi (recoupement dégradé).
 
         List<String> retrouvees = new ArrayList<>();
         List<String> manquantes = new ArrayList<>();

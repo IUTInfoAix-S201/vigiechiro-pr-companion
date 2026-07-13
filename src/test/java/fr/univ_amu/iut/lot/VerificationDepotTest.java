@@ -44,6 +44,8 @@ class VerificationDepotTest {
         // Par défaut : le serveur répond et n'a encore aucune donnée (Mockito ne fabrique pas de
         // ReponseApi tout seul, contrairement aux List d'avant #1284).
         when(client.donnees(org.mockito.ArgumentMatchers.anyString())).thenReturn(ReponseApi.succes(List.of()));
+        when(client.journalTraitement(org.mockito.ArgumentMatchers.anyString()))
+                .thenReturn(ReponseApi.succes(Optional.empty()));
         verification = new VerificationDepot(participations, client, depotUnites);
     }
 
@@ -53,7 +55,7 @@ class VerificationDepotTest {
         when(participations.participationDe(42L)).thenReturn(Optional.of("part-1"));
         when(depotUnites.parPassage(42L))
                 .thenReturn(List.of(unite("seq_000.wav", TypeDepotUnite.WAV), unite("Car-1.zip", TypeDepotUnite.ZIP)));
-        when(client.journalTraitement("part-1")).thenReturn(Optional.of(JOURNAL));
+        when(client.journalTraitement("part-1")).thenReturn(ReponseApi.succes(Optional.of(JOURNAL)));
 
         BilanVerification bilan = verification.verifier(42L);
 
@@ -81,6 +83,21 @@ class VerificationDepotTest {
                 .containsExactly("Car-1.zip");
         assertThat(bilan.estComplet()).isFalse();
         assertThat(bilan.nombreDonnees()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("#1284 : hors ligne → « vérification impossible », plus jamais un faux « tout manquant »")
+    void verification_impossible_hors_ligne() {
+        // Avant, une panne rendait journal vide + donnees vides : chaque unité passait « manquante »,
+        // et un dépôt parfaitement sain ressemblait à un dépôt perdu.
+        when(participations.participationDe(42L)).thenReturn(Optional.of("part-1"));
+        when(depotUnites.parPassage(42L)).thenReturn(List.of(unite("seq_000.wav", TypeDepotUnite.WAV)));
+        when(client.journalTraitement("part-1")).thenReturn(ReponseApi.injoignable("délai d’attente dépassé"));
+
+        assertThatThrownBy(() -> verification.verifier(42L))
+                .isInstanceOf(RegleMetierException.class)
+                .hasMessageContaining("Vérification impossible")
+                .hasMessageContaining("injoignable");
     }
 
     @Test

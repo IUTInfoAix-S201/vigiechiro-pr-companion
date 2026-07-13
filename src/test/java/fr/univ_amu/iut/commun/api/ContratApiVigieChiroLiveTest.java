@@ -253,7 +253,8 @@ class ContratApiVigieChiroLiveTest {
         supposerEcritureAutorisee();
         ClientVigieChiro client = new ClientVigieChiro(baseUrl, () -> Optional.of(token));
 
-        Optional<FichierSigne> signe = client.creerFichier("Car000000-2026-Pass1-Z0-probe.zip", "probe");
+        Optional<FichierSigne> signe = client.creerFichier("Car000000-2026-Pass1-Z0-probe.zip", "probe")
+                .enOptionnel();
         assertThat(signe)
                 .as("déclaration d'un .zip : refusée = verdict immédiat (les .zip ne sont pas des titres"
                         + " valides), le dépôt reste en WAV")
@@ -262,7 +263,7 @@ class ContratApiVigieChiroLiveTest {
         boolean televerse = client.televerserVersS3(signe.get().urlSignee(), zipDEssai(), "application/zip");
         assertThat(televerse).as("PUT S3 du zip (mime signé application/zip)").isTrue();
 
-        boolean finalise = client.finaliserFichier(signe.get().id());
+        boolean finalise = client.finaliserFichier(signe.get().id()).echec().isEmpty();
         assertThat(finalise)
                 .as("finalisation du zip : true = la plateforme ACCEPTE un zip comme fichier de"
                         + " participation. Vérifier ensuite à la main (après traitement Tadarida) que"

@@ -16,10 +16,10 @@ import java.util.function.DoubleConsumer;
 /// HTTP et le tri des issues à [TransportVigieChiro] (#1284), la lecture des réponses JSON à
 /// [ReponsesVigieChiro] et consorts (fonctions pures, testables sans réseau).
 ///
-/// **Dégradation propre** (historique, en cours de résorption par #1284) : les lectures convertissent
-/// encore toute issue non-succès en [Optional#empty()] / liste vide via [ReponseApi#enOptionnel()] ;
-/// aucune exception ne remonte à l'IHM. Les endpoints basculent un à un vers [ReponseApi] pour que
-/// leurs appelants distinguent enfin non connecté / injoignable / refusé.
+/// Depuis #1284, **tous les endpoints parlent [ReponseApi]** : non connecté / injoignable /
+/// refusé(statut, corps) / succès, sans jamais lever vers l'IHM. La « dégradation propre »
+/// historique (tout échec devenait un même vide) a disparu ; là où le silence reste voulu, c'est
+/// l'appelant qui le choisit explicitement via [ReponseApi#enOptionnel()].
 public final class ClientVigieChiro {
 
     private static final String URL_DEFAUT = "https://vigiechiro.herokuapp.com/api/v1";
@@ -117,14 +117,22 @@ public final class ClientVigieChiro {
     /// **Journal de traitement** d'une participation (#1132) : le serveur y trace l'ingestion —
     /// archives extraites avec inventaire (`Archive contained: {'audio/wav': N}`), chaque fichier
     /// passé à Tadarida. Chaîne : `GET /participations/#id` → document `logs` → `GET
-    /// /fichiers/#id/acces` → URL S3 signée, téléchargée **sans** en-tête d'authentification. Vide si
-    /// non connecté, participation inconnue, ou journal pas encore disponible (traitement pas lancé).
-    public Optional<String> journalTraitement(String participationId) {
-        return get(CHEMIN_PARTICIPATIONS + participationId)
-                .flatMap(JournalVigieChiro::idJournal)
-                .flatMap(idFichier -> get("/fichiers/" + idFichier + "/acces"))
-                .flatMap(JournalVigieChiro::urlSignee)
-                .flatMap(url -> transport.telecharger(url).enOptionnel());
+    /// /fichiers/#id/acces` → URL S3 signée, téléchargée **sans** en-tête d'authentification.
+    ///
+    /// Issue **triée** (#1284) : `Succes(Optional.empty())` signifie « le serveur répond, et le
+    /// journal n'existe pas (encore) » (traitement jamais lancé) — à ne plus confondre avec une panne
+    /// ou un refus, qui gardent leur cause (la vérification d'un dépôt hors ligne n'est plus un faux
+    /// « tout manquant »).
+    public ReponseApi<Optional<String>> journalTraitement(String participationId) {
+        return transport
+                .lire(CHEMIN_PARTICIPATIONS + participationId)
+                .puis(corps -> JournalVigieChiro.idJournal(corps)
+                        .map(idFichier -> transport
+                                .lire("/fichiers/" + idFichier + "/acces")
+                                .lireAvec(JournalVigieChiro::urlSignee)
+                                .puis(transport::telecharger)
+                                .transformer(Optional::of))
+                        .orElseGet(() -> ReponseApi.succes(Optional.empty())));
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -175,11 +183,12 @@ public final class ClientVigieChiro {
     }
 
     /// Déclare un **fichier** à téléverser (`POST /fichiers`, étape 1/3) : renvoie son `_id` et l'URL S3
-    /// pré-signée ([FichierSigne]), ou vide. Le mime n'est pas transmis (déduit de l'extension du titre) ;
-    /// le titre doit respecter la convention de nommage VigieChiro (`Car…-Pass…`).
-    public Optional<FichierSigne> creerFichier(String titre, String participationId) {
-        return post("/fichiers", RequetesVigieChiro.fichier(titre, participationId))
-                .flatMap(ReponsesVigieChiro::fichierSigne);
+    /// pré-signée ([FichierSigne]), issue **triée** (#1284) pour un message de dépôt exploitable. Le
+    /// mime n'est pas transmis (déduit de l'extension du titre) ; le titre doit respecter la
+    /// convention de nommage VigieChiro (`Car…-Pass…`).
+    public ReponseApi<FichierSigne> creerFichier(String titre, String participationId) {
+        return poster("/fichiers", RequetesVigieChiro.fichier(titre, participationId))
+                .lireAvec(ReponsesVigieChiro::fichierSigne);
     }
 
     /// **PUT** des octets vers l'**URL S3 pré-signée** (étape 2/3) : hors API VigieChiro (aucun en-tête
@@ -203,43 +212,25 @@ public final class ClientVigieChiro {
         return transport.deposerVersS3(urlSignee, () -> CorpsFichierAvecProgression.depuis(fichier, progression), mime);
     }
 
-    /// Finalise un fichier téléversé (`POST /fichiers/#id`, étape 3/3) : `true` si accepté, `false` sinon.
-    public boolean finaliserFichier(String fichierId) {
-        return post("/fichiers/" + fichierId, RequetesVigieChiro.finalisation()).isPresent();
+    /// Finalise un fichier téléversé (`POST /fichiers/#id`, étape 3/3), issue **triée** (#1284) : un
+    /// refus revient avec son statut et son corps, une panne avec sa cause.
+    public ReponseApi<String> finaliserFichier(String fichierId) {
+        return poster("/fichiers/" + fichierId, RequetesVigieChiro.finalisation());
     }
 
     // Le traitement serveur (lancer le compute, lire son etat) vit dans TraitementVigieChiro :
     // le client transporte, il ne decide pas de ce qu'un refus veut dire (#1261).
-    /// **POST authentifié** d'un corps JSON sur `chemin` : renvoie le corps de la réponse si 2xx, vide
-    /// sinon (pas de token, refus, autre statut, réseau indisponible). Pendant en écriture de [#get].
-    Optional<String> post(String chemin, String corpsJson) {
-        return poster(chemin, corpsJson).enOptionnel();
-    }
-
-    /// Variante **triée** de [#post] : renvoie l'issue complète ([ReponseApi]), y compris le statut et
-    /// le corps d'un refus, pour construire un message d'erreur exploitable (ex. la création de
-    /// participation, le lancement d'un traitement #1261).
+    /// **POST authentifié** d'un corps JSON sur `chemin`, issue **triée** ([ReponseApi]) : statut et
+    /// corps d'un refus conservés, pour un message d'erreur exploitable (création de participation,
+    /// lancement d'un traitement #1261).
     ReponseApi<String> poster(String chemin, String corpsJson) {
         return transport.ecrire("POST", chemin, corpsJson, null);
     }
 
-    /// Triage **commun des écritures** : la cause d'échec exploitable, ou `null` si la réponse est un
-    /// succès 2xx. Une écriture refusée doit être expliquée à l'utilisateur, jamais réduite à un booléen
-    /// opaque — et depuis #1284, « non connecté » ne se déguise plus en panne réseau.
+    /// Triage **commun des écritures** : la cause d'échec exploitable ([ReponseApi#echec()], le
+    /// vocabulaire unique des messages), ou `null` si la réponse est un succès 2xx. Une écriture
+    /// refusée doit être expliquée à l'utilisateur, jamais réduite à un booléen opaque.
     private static String echecDe(ReponseApi<String> reponse) {
-        return switch (reponse) {
-            case ReponseApi.Succes<String> succes -> null;
-            case ReponseApi.NonConnecte<String> nonConnecte -> "non connecté à VigieChiro (aucun jeton).";
-            case ReponseApi.Injoignable<String>(String cause) -> "VigieChiro injoignable : " + cause + ".";
-            case ReponseApi.Refuse<String>(int statut, String corps) -> "HTTP " + statut + " : " + corps;
-        };
-    }
-
-    /// **GET authentifié** sur `chemin` (relatif à la base) : renvoie le corps de la réponse si 2xx,
-    /// vide dans tous les autres cas (pas de token, refus, réseau indisponible). Adaptateur historique
-    /// de [TransportVigieChiro#lire] : les endpoints qui l'utilisent encore basculent un à un vers
-    /// [ReponseApi] (#1284).
-    Optional<String> get(String chemin) {
-        return transport.lire(chemin).enOptionnel();
+        return reponse.echec().orElse(null);
     }
 }

@@ -1,6 +1,7 @@
 package fr.univ_amu.iut.lot.viewmodel;
 
 import fr.univ_amu.iut.commun.api.ResultatLancement;
+import fr.univ_amu.iut.commun.model.JetonAnnulation;
 import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.lot.model.BilanDepot;
 import fr.univ_amu.iut.lot.model.DepotVigieChiro;
@@ -10,7 +11,6 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicBoolean;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
@@ -35,10 +35,12 @@ public class DepotViewModel {
     /// fichiers).
     private final ReadOnlyBooleanWrapper enCours = new ReadOnlyBooleanWrapper(this, "enCours", false);
 
-    /// Annulation coopérative (#1044) : le drapeau atomique est **lu par le moteur hors fil JavaFX**
-    /// (entre deux fichiers) ; la propriété observable alimente l'IHM (bouton « Annulation… »). Posés au
-    /// fil JavaFX par [#demanderAnnulation()], réarmés par [#marquerEnCours()].
-    private final AtomicBoolean annulation = new AtomicBoolean(false);
+    /// Annulation coopérative (#1044, harmonisée #1315) : le [JetonAnnulation] du socle est **lu par le
+    /// moteur hors fil JavaFX** (entre deux fichiers, style « retour partiel » via `jeton::estAnnule`) ;
+    /// la propriété observable alimente l'IHM (bouton « Annulation… »). Posés au fil JavaFX par
+    /// [#demanderAnnulation()], réarmés (jeton neuf) par [#marquerEnCours()] avant le lancement du
+    /// travail en arrière-plan.
+    private JetonAnnulation jeton = new JetonAnnulation();
 
     private final ReadOnlyBooleanWrapper annulationDemandee =
             new ReadOnlyBooleanWrapper(this, "annulationDemandee", false);
@@ -90,7 +92,7 @@ public class DepotViewModel {
         // Dépôt ZIP par défaut (#984), comme le web : une archive = une unité. Repli WAV seulement si le
         // disque ne permet pas de créer les archives ; sinon invitation à générer d'abord (étape 2).
         List<Path> fichiers = service.fichiersDepotParDefaut(idPassage);
-        return depotVigieChiro.deposer(idPassage, fichiers, annulation::get, suivi);
+        return depotVigieChiro.deposer(idPassage, fichiers, jeton::estAnnule, suivi);
     }
 
     /// Lance le **traitement serveur** (compute, #984) de la participation liée au passage : équivalent
@@ -159,7 +161,8 @@ public class DepotViewModel {
     /// Signale le **début** du téléversement (au fil JavaFX, avant de lancer [#televerser] en arrière-plan).
     public void marquerEnCours() {
         message.set("Téléversement en cours… (cela peut prendre quelques minutes sur une grosse nuit).");
-        annulation.set(false);
+        // Le jeton du socle est volontairement à usage unique : réarmer = repartir d'un jeton neuf.
+        jeton = new JetonAnnulation();
         annulationDemandee.set(false);
         enCours.set(true);
     }
@@ -168,7 +171,7 @@ public class DepotViewModel {
     /// vol puis s'arrête (jamais d'arrêt au milieu d'un fichier — aucune unité fantôme). Le passage reste
     /// « Dépôt en cours », « Reprendre le dépôt » ne renverra que les fichiers manquants. Au fil JavaFX.
     public void demanderAnnulation() {
-        annulation.set(true);
+        jeton.annuler();
         annulationDemandee.set(true);
     }
 

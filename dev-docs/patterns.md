@@ -399,6 +399,11 @@ bloqué. Le patron correct (thread virtuel → travail → `Platform.runLater`) 
 - `IndicateurOccupation` : superpose sur un `StackPane` hôte un voile + roue + libellé « … en
   cours » (`enCoursProperty`, styles `.occupation-*` dans `design.css`), et pilote un `ExecuteurTache`
   via `occuper(libellé, travail, succès, échec)`. Le voile capte les clics le temps du traitement.
+- `OccupationChrome` (#1215) : la déclinaison **chrome entier** pour les traitements du menu « ☰ »
+  qui ne concernent aucun écran (sauvegarde / restauration de la base, purge des originaux) : voile
+  sur la racine de la fenêtre, et **opération critique (#906) posée le temps du travail** (fermer
+  l'application en pleine copie déclenche l'avertissement du socle). Installée par le
+  `MainController`, consommée par injection dans les `ActionMenu`.
 
 **Opérations longues « riches » (#1252).** Pour les traitements qui diffusent leur avancement ou
 s'annulent, le socle étend `ExecuteurTache` sans toucher aux écrans déjà migrés :
@@ -426,7 +431,8 @@ l'opération et vérifie l'arrêt propre au premier point de contrôle (callback
 **La règle.** Toute opération longue d'un écran passe par `IndicateurOccupation` (l'échec est routé
 vers le filet d'erreurs de l'écran, #795) — jamais un `Thread.ofVirtual()` + `runLater` recopié à la
 main, y compris pour la progression et l'annulation (surcharges ci-dessus). Le déport écran par
-écran est suivi dans l'EPIC #793.
+écran (EPIC #793 puis reliquat #1316) est **terminé** : plus aucun `Thread.ofVirtual` ne vit hors du
+socle, tout nouvel écran naît avec ce patron.
 
 **Piège capture (#1278).** Les outils de capture doivent lier les exécuteurs **synchrones**
 (`ModuleCaptureCommun`) : `ApercuFx` snapshotte immédiatement, l'asynchrone de production capturerait

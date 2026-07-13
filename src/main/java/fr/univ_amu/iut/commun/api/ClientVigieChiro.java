@@ -43,10 +43,10 @@ public final class ClientVigieChiro {
     private static final String CHEMIN_PARTICIPATIONS = "/participations/";
     /// Chemin des participations de l'observateur courant (source des sites et des participations).
     private static final String CHEMIN_MOI_PARTICIPATIONS = "/moi/participations";
-    /// Suffixe de requête pour la pagination Eve (grande taille de page + n° de page).
-    private static final String REQUETE_PAGINATION = "?max_results=1000&page=";
     /// Garde-fou de pagination (`GET …/donnees`) : une participation a des milliers de fichiers, jamais
-    /// des centaines de milliers ; on plafonne le nombre de pages pour éviter toute boucle.
+    /// des centaines de milliers ; on plafonne le nombre de pages pour éviter toute boucle. À
+    /// [PaginationEve#TAILLE_PAGE] éléments par page, 500 pages couvrent 50 000 éléments (une nuit en
+    /// compte ~5 000).
     private static final int PAGES_MAX = 500;
 
     private final String baseUrl;
@@ -101,7 +101,7 @@ public final class ClientVigieChiro {
     /// Corps JSON de la page `page` de `GET /moi/participations` : source commune des sites et des
     /// participations, parcourue **toutes pages confondues** via [PaginationEve] (#1150).
     private Optional<String> pageParticipations(int page) {
-        return get(CHEMIN_MOI_PARTICIPATIONS + REQUETE_PAGINATION + page);
+        return get(CHEMIN_MOI_PARTICIPATIONS + PaginationEve.requete(page));
     }
 
     /// Participation **détaillée** (`GET /participations/#id`, axe 4) : `_etag` (pour un `PATCH` `If-Match`
@@ -118,7 +118,7 @@ public final class ClientVigieChiro {
     public List<DonneeVigieChiro> donnees(String participationId) {
         return PaginationEve.parcourir(
                 PAGES_MAX,
-                page -> get(CHEMIN_PARTICIPATIONS + participationId + "/donnees" + REQUETE_PAGINATION + page),
+                page -> get(CHEMIN_PARTICIPATIONS + participationId + "/donnees" + PaginationEve.requete(page)),
                 DonneesVigieChiro::donnees);
     }
 

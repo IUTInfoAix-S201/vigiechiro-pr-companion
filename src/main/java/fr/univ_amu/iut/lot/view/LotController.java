@@ -31,9 +31,9 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
-import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -78,8 +78,9 @@ public class LotController implements EmplacementNavigation, ResumeStatut {
     private final OuvreurDeLien ouvreurDeLien;
     private final DepotDispositionColonnes depotColonnes;
 
-    /// Socle « travail lourd hors fil JavaFX » (#1014) : le dépôt et le compute passent par lui plutôt
-    /// que par un `Thread.ofVirtual()` maison — l'IHM ne gèle pas, et les tests sont **synchrones**.
+    /// Socle « travail lourd hors fil JavaFX » (#1014, étendu #1252) : les trois flux de l'écran
+    /// (compute, génération d'archives, dépôt) passent par lui plutôt que par un `Thread.ofVirtual()`
+    /// maison — l'IHM ne gèle pas, et les tests sont **synchrones** (#1253).
     private final ExecuteurTache executeur;
 
     /// Calcul des 3 zones de la barre de statut (#823), extrait de ce contrôleur pour la cohésion (#984).
@@ -482,10 +483,8 @@ public class LotController implements EmplacementNavigation, ResumeStatut {
     }
 
     /// Lance le traitement serveur (compute, #984) **hors fil JavaFX** : équivalent « Lancer la
-    /// participation » du web, une fois la nuit déposée. Confié au socle [ExecuteurTache] (#1014) : c'est
-    /// un travail **court, non annulable, sans progression** (un appel, un verdict) — le cas d'usage exact
-    /// du socle, qui le rend en prime **déterministe en test**. Le dépôt, lui, garde son propre fil
-    /// (cf. [#televerserVigieChiro]).
+    /// participation » du web, une fois la nuit déposée. Confié au socle [ExecuteurTache] (#1014) : un
+    /// travail **court, non annulable, sans progression** (un appel, un verdict), déterministe en test.
     private void lancerParticipation() {
         executeur.executer(
                 () -> depotViewModel.lancerTraitement(contexte.idPassage()),
@@ -493,55 +492,48 @@ public class LotController implements EmplacementNavigation, ResumeStatut {
                 erreur -> depotViewModel.echec(erreur.getMessage()));
     }
 
-    /// Lance la génération des archives **hors fil JavaFX** (#251) : l'opération peut être longue sur une
-    /// grosse nuit, on ne fige pas l'IHM. L'état « en cours » est posé sur le fil JavaFX, le calcul tourne
-    /// sur un fil virtuel, puis le résultat (succès ou échec) est appliqué via `Platform.runLater`.
+    /// Lance la génération des archives **hors fil JavaFX** (#251) via le socle étendu (#1252/#1253) :
+    /// l'opération peut être longue sur une grosse nuit, on ne fige pas l'IHM. L'état « en cours » est
+    /// posé sur le fil JavaFX, la progression (#769) et le suivi par archive (#820) reviennent par les
+    /// relais du socle, puis le résultat (succès ou échec) est appliqué sur le fil JavaFX.
     @FXML
     private void genererArchives() {
         viewModel.marquerGenerationEnCours();
-        // Callback de progression (#769) : le service l'appelle hors-thread, on relaie chaque point au fil
-        // JavaFX pour mettre à jour la barre globale + l'estimation de durée.
+        // Progression (#769) : le service l'appelle hors-thread, chaque point est relayé au fil JavaFX
+        // (barre globale + estimation de durée).
         Consumer<Progression> progres =
-                point -> Platform.runLater(() -> viewModel.progression().appliquer(point));
+                executeur.relaisProgression(point -> viewModel.progression().appliquer(point));
         // Suivi par archive (#820) : anime la table ligne par ligne (plan → en cours → terminée / échec).
         SuiviArchives suivi = relaisSuiviTable();
-        Thread.ofVirtual().name("archives-depot-vigiechiro").start(() -> {
-            try {
-                var produites = viewModel.calculerArchivesDepot(progres, suivi);
-                Platform.runLater(() -> viewModel.appliquerGeneration(produites));
-            } catch (RuntimeException echec) {
-                Platform.runLater(() -> viewModel.echecGeneration(echec.getMessage()));
-            }
-        });
+        executeur.executer(
+                () -> viewModel.calculerArchivesDepot(progres, suivi),
+                viewModel::appliquerGeneration,
+                erreur -> viewModel.echecGeneration(erreur.getMessage()));
     }
 
-    /// Téléverse la nuit sur VigieChiro **hors fil JavaFX** (#142), étape ③ automatisée : même patron que
-    /// la génération d'archives (état « en cours » posé au fil JavaFX, dépôt sur un fil virtuel, résultat
-    /// via `Platform.runLater`). Les statuts (« Dépôt en cours » / « Déposé ») sont posés par le moteur
-    /// reprenable (#982) ; l'IHM ne fait que les restituer.
+    /// Téléverse la nuit sur VigieChiro **hors fil JavaFX** (#142), étape ③ automatisée, via le socle
+    /// étendu (#1252/#1253) : même patron que la génération d'archives. Les statuts (« Dépôt en cours » /
+    /// « Déposé ») sont posés par le moteur reprenable (#982) ; l'IHM ne fait que les restituer.
     ///
-    /// **Pourquoi pas le socle [ExecuteurTache]** (contrairement au compute, § [#lancerParticipation]) :
-    /// le dépôt est **long, annulable et diffuse sa progression**. L'annulation (#1044) arrive de l'IHM
-    /// *pendant* qu'il tourne, ce qui exige une vraie concurrence — or le socle s'exécute **synchronement
-    /// en test**, ce qui bloquerait le fil JavaFX et rendrait le clic « Annuler » impossible. Le socle vise
-    /// les travaux courts « lancer → résultat », pas les opérations qu'on interrompt en vol.
+    /// L'**annulation** (#1044) reste coopérative **côté ViewModel**, style « retour partiel » :
+    /// « Annuler le dépôt » pose un drapeau que le moteur lit entre deux fichiers, termine l'unité en vol
+    /// et rend un **bilan honnête par le chemin de succès** (jamais d'unité fantôme ; « Reprendre le
+    /// dépôt » ne renverra que le manquant). En test synchrone, l'annulation se joue au premier point de
+    /// contrôle du moteur (cf. `dev-docs/patterns.md`, § occupation).
     @FXML
     private void televerserVigieChiro() {
         Long idPassage = contexte.idPassage();
         depotViewModel.marquerEnCours();
-        Thread.ofVirtual().name("depot-vigiechiro").start(() -> {
-            try {
-                var bilan = depotViewModel.televerser(idPassage, new RelaisSuiviDepot(depotViewModel.suiviLignes()));
-                Platform.runLater(() -> {
+        RelaisSuiviDepot suivi = new RelaisSuiviDepot(depotViewModel.suiviLignes(), executeur.surFilJavaFx());
+        executeur.executer(
+                () -> depotViewModel.televerser(idPassage, suivi),
+                bilan -> {
                     depotViewModel.appliquerBilan(bilan);
                     // Statut honnête (#982) : le moteur a déjà posé le bon statut (jamais « Déposé » sur un
                     // dépôt partiel) ; on recharge l'état pour le refléter.
                     viewModel.ouvrirSur(idPassage);
-                });
-            } catch (RuntimeException echec) {
-                Platform.runLater(() -> depotViewModel.echec(echec.getMessage()));
-            }
-        });
+                },
+                erreur -> depotViewModel.echec(erreur.getMessage()));
     }
 
     /// Câble la table de dépôt (#983) : lignes persistées (`depot_unite` #981) + événements du moteur
@@ -585,33 +577,35 @@ public class LotController implements EmplacementNavigation, ResumeStatut {
     }
 
     /// Relais du suivi par archive (#820) vers la table : chaque événement, émis **hors fil JavaFX** et dans
-    /// le désordre (compression parallèle #814), est rejoué sur le fil JavaFX via `Platform.runLater` pour
-    /// muter les lignes observables du VM ([LotViewModel#suiviLignes()]).
+    /// le désordre (compression parallèle #814), est rejoué sur le fil JavaFX (fourni par le socle,
+    /// [ExecuteurTache#surFilJavaFx()] - immédiat en test synchrone) pour muter les lignes observables du VM
+    /// ([LotViewModel#suiviLignes()]).
     private SuiviArchives relaisSuiviTable() {
+        Executor filJavaFx = executeur.surFilJavaFx();
         return new SuiviArchives() {
             @Override
             public void planEtabli(List<ArchivePlanifiee> plan) {
-                Platform.runLater(() -> viewModel.suiviLignes().planifier(plan));
+                filJavaFx.execute(() -> viewModel.suiviLignes().planifier(plan));
             }
 
             @Override
             public void archiveDemarree(int numero) {
-                Platform.runLater(() -> viewModel.suiviLignes().demarrer(numero));
+                filJavaFx.execute(() -> viewModel.suiviLignes().demarrer(numero));
             }
 
             @Override
             public void archiveProgresse(int numero, int faits, int total) {
-                Platform.runLater(() -> viewModel.suiviLignes().progresser(numero, faits, total));
+                filJavaFx.execute(() -> viewModel.suiviLignes().progresser(numero, faits, total));
             }
 
             @Override
             public void archiveTerminee(ArchiveDepot archive) {
-                Platform.runLater(() -> viewModel.suiviLignes().terminer(archive));
+                filJavaFx.execute(() -> viewModel.suiviLignes().terminer(archive));
             }
 
             @Override
             public void archiveEchouee(int numero, String raison) {
-                Platform.runLater(() -> viewModel.suiviLignes().echouer(numero, raison));
+                filJavaFx.execute(() -> viewModel.suiviLignes().echouer(numero, raison));
             }
         };
     }

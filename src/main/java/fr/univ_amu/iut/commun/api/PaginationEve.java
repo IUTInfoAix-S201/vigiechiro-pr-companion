@@ -14,7 +14,20 @@ import java.util.function.IntFunction;
 /// (God Class) et supprime la duplication de la boucle.
 final class PaginationEve {
 
+    /// Taille de page demandée à Eve. **100 est le maximum accepté** : au-delà, le serveur ne tronque pas,
+    /// il **rejette la requête** (`422`). Comme le transport dégrade proprement un échec HTTP en
+    /// `Optional.empty()`, un dépassement ne se voyait pas : la collection entière revenait **vide, en
+    /// silence** — import des observations, participations et sites (#1277). Le plafond est celui du
+    /// `Paginator` du backend (`vigiechiro/xin/snippets.py`).
+    static final int TAILLE_PAGE = 100;
+
     private PaginationEve() {}
+
+    /// Suffixe de requête d'une page (`?max_results=…&page=…`). Le nombre de **pages** est libre, la
+    /// **taille** de page ne l'est pas : cf. [#TAILLE_PAGE].
+    static String requete(int page) {
+        return "?max_results=" + TAILLE_PAGE + "&page=" + page;
+    }
 
     /// @param pagesMax  plafond de pages (garde-fou anti-boucle)
     /// @param corpsPage renvoie le corps JSON de la page `n` ; vide = non connecté / erreur : on s'arrête

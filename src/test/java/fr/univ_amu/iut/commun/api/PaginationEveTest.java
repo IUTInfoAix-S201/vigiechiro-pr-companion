@@ -27,6 +27,21 @@ class PaginationEveTest {
     }
 
     @Test
+    @DisplayName("requete : on ne demande jamais plus de 100 éléments par page (au-delà, Eve refuse : 422)")
+    void requete_respecte_le_plafond_eve() {
+        // Régression #1277 : on demandait 1000. Eve ne tronque pas, il REJETTE la requête (422) ; le
+        // transport dégradant proprement tout échec HTTP en Optional.empty(), la boucle s'arrêtait dès la
+        // première page et la collection revenait VIDE, en silence : plus aucune observation importée,
+        // plus aucune participation à rattacher, plus aucun site rapproché.
+        assertThat(PaginationEve.TAILLE_PAGE)
+                .as("maximum accepté par le Paginator d'Eve (vigiechiro/xin/snippets.py)")
+                .isLessThanOrEqualTo(100);
+
+        assertThat(PaginationEve.requete(1)).isEqualTo("?max_results=100&page=1");
+        assertThat(PaginationEve.requete(49)).isEqualTo("?max_results=100&page=49");
+    }
+
+    @Test
     @DisplayName("parcourir : union de toutes les pages, arrêt à la première page aux _items vides")
     void union_des_pages() {
         List<ParticipationVigieChiro> tout =

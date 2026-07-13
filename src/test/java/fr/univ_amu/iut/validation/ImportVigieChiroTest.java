@@ -12,6 +12,7 @@ import fr.univ_amu.iut.commun.api.DonneeVigieChiro;
 import fr.univ_amu.iut.commun.api.EtatTraitement;
 import fr.univ_amu.iut.commun.api.ObservationVigieChiro;
 import fr.univ_amu.iut.commun.api.ParticipationVigieChiro;
+import fr.univ_amu.iut.commun.api.ReponseApi;
 import fr.univ_amu.iut.commun.api.Traitement;
 import fr.univ_amu.iut.commun.api.TraitementVigieChiro;
 import fr.univ_amu.iut.commun.model.LienVigieChiro;
@@ -62,7 +63,7 @@ class ImportVigieChiroTest {
         List<DonneeVigieChiro> donnees = List.of(new DonneeVigieChiro("d1", "Car-Z41_000", List.of(observation())));
         BilanImport attendu = new BilanImport(null, 1, 0, 0);
         when(liens.objectidPour(LienVigieChiro.ENTITE_PASSAGE, "42")).thenReturn(Optional.of(PARTICIPATION));
-        when(client.donnees(PARTICIPATION)).thenReturn(donnees);
+        when(client.donnees(PARTICIPATION)).thenReturn(ReponseApi.succes(donnees));
         when(service.importerDepuisVigieChiro(ID_PASSAGE, donnees, false)).thenReturn(attendu);
 
         assertThat(importateur.importer(ID_PASSAGE, false)).isSameAs(attendu);
@@ -95,7 +96,7 @@ class ImportVigieChiroTest {
         // Le serveur répond « 200, liste vide » tant que le calcul tourne : ce n'est pas une panne, c'est un
         // état. Le message d'avant confondait tout (« pas encore terminée, OU connexion indisponible »).
         armerParticipationSansDonnees();
-        when(traitement.etat(PARTICIPATION)).thenReturn(etat(EtatTraitement.EN_COURS));
+        when(traitement.etat(PARTICIPATION)).thenReturn(ReponseApi.succes(etat(EtatTraitement.EN_COURS)));
 
         assertThatThrownBy(() -> importateur.importer(ID_PASSAGE, false))
                 .isInstanceOf(RegleMetierException.class)
@@ -108,7 +109,7 @@ class ImportVigieChiroTest {
     @DisplayName("#1264 : analyse JAMAIS LANCÉE → on renvoie vers l'étape qui la lance")
     void rien_a_importer_car_jamais_lancee() {
         armerParticipationSansDonnees();
-        when(traitement.etat(PARTICIPATION)).thenReturn(Traitement.absent());
+        when(traitement.etat(PARTICIPATION)).thenReturn(ReponseApi.succes(Traitement.absent()));
 
         assertThatThrownBy(() -> importateur.importer(ID_PASSAGE, false))
                 .isInstanceOf(RegleMetierException.class)
@@ -122,8 +123,8 @@ class ImportVigieChiroTest {
     void rien_a_importer_car_analyse_en_echec() {
         armerParticipationSansDonnees();
         when(traitement.etat(PARTICIPATION))
-                .thenReturn(new Traitement(
-                        EtatTraitement.ERREUR, null, null, null, "RuntimeError: boum\n  at ligne 12", 1));
+                .thenReturn(ReponseApi.succes(new Traitement(
+                        EtatTraitement.ERREUR, null, null, null, "RuntimeError: boum\n  at ligne 12", 1)));
 
         assertThatThrownBy(() -> importateur.importer(ID_PASSAGE, false))
                 .isInstanceOf(RegleMetierException.class)
@@ -139,7 +140,7 @@ class ImportVigieChiroTest {
         // Cas anormal : le calcul est fini et pourtant le serveur ne renvoie rien. Ce n'est plus une question
         // de patience — quelque chose s'est perdu en route.
         armerParticipationSansDonnees();
-        when(traitement.etat(PARTICIPATION)).thenReturn(etat(EtatTraitement.FINI));
+        when(traitement.etat(PARTICIPATION)).thenReturn(ReponseApi.succes(etat(EtatTraitement.FINI)));
 
         assertThatThrownBy(() -> importateur.importer(ID_PASSAGE, false))
                 .isInstanceOf(RegleMetierException.class)
@@ -150,7 +151,7 @@ class ImportVigieChiroTest {
 
     private void armerParticipationSansDonnees() {
         when(liens.objectidPour(LienVigieChiro.ENTITE_PASSAGE, "42")).thenReturn(Optional.of(PARTICIPATION));
-        when(client.donnees(PARTICIPATION)).thenReturn(List.of());
+        when(client.donnees(PARTICIPATION)).thenReturn(ReponseApi.succes(List.of()));
     }
 
     private void aucunImport() {

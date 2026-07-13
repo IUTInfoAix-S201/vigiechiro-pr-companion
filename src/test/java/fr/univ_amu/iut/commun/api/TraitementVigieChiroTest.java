@@ -5,7 +5,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.Map;
-import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -32,7 +31,7 @@ class TraitementVigieChiroTest {
     @DisplayName("refus 400 + traitement EN COURS côté serveur → DEJA_LANCE (bénin : il n'y a qu'à attendre)")
     void refus_avec_traitement_en_cours_est_benin() {
         when(client.poster(eqChemin(), any())).thenReturn(ReponseApi.refuse(400, "{\"etat\": \"Already EN_COURS\"}"));
-        when(client.participation(PART)).thenReturn(Optional.of(detail(EtatTraitement.EN_COURS)));
+        when(client.participation(PART)).thenReturn(ReponseApi.succes(detail(EtatTraitement.EN_COURS)));
 
         ResultatLancement resultat = traitement.lancer(PART);
 
@@ -47,7 +46,7 @@ class TraitementVigieChiroTest {
         // Même code HTTP que le cas précédent : seule la relecture de l'état les départage. C'est
         // exactement ce que le booléen d'avant ne savait pas faire.
         when(client.poster(eqChemin(), any())).thenReturn(ReponseApi.refuse(400, "participation invalide"));
-        when(client.participation(PART)).thenReturn(Optional.of(detail(null)));
+        when(client.participation(PART)).thenReturn(ReponseApi.succes(detail(null)));
 
         ResultatLancement resultat = traitement.lancer(PART);
 
@@ -66,13 +65,31 @@ class TraitementVigieChiroTest {
     }
 
     @Test
-    @DisplayName("etat : le bloc traitement de la participation, ou « absent » si elle est injoignable")
+    @DisplayName("etat : le bloc traitement en Succes ; une lecture impossible garde son issue (#1284)")
     void etat_du_traitement() {
-        when(client.participation(PART)).thenReturn(Optional.of(detail(EtatTraitement.FINI)));
-        assertThat(traitement.etat(PART).resultatsDisponibles()).isTrue();
+        when(client.participation(PART)).thenReturn(ReponseApi.succes(detail(EtatTraitement.FINI)));
+        assertThat(traitement.etat(PART).enOptionnel().orElseThrow().resultatsDisponibles())
+                .isTrue();
 
-        when(client.participation(PART)).thenReturn(Optional.empty());
-        assertThat(traitement.etat(PART)).isEqualTo(Traitement.absent());
+        // Avant #1284, tout ceci s'effondrait en Traitement.absent() : « jamais calculée » et
+        // « plateforme injoignable » étaient indiscernables (l'aveu vivait dans SuiviTraitement).
+        when(client.participation(PART)).thenReturn(ReponseApi.injoignable("délai d'attente dépassé"));
+        assertThat(traitement.etat(PART)).isEqualTo(ReponseApi.injoignable("délai d'attente dépassé"));
+
+        when(client.participation(PART)).thenReturn(ReponseApi.refuse(404, "inconnue"));
+        assertThat(traitement.etat(PART)).isEqualTo(ReponseApi.refuse(404, "inconnue"));
+    }
+
+    @Test
+    @DisplayName("refus 400 + état illisible au moment de la relecture → on s'en tient au refus initial")
+    void refus_avec_etat_illisible_reste_un_refus() {
+        when(client.poster(eqChemin(), any())).thenReturn(ReponseApi.refuse(400, "boom"));
+        when(client.participation(PART)).thenReturn(ReponseApi.injoignable("délai d'attente dépassé"));
+
+        ResultatLancement resultat = traitement.lancer(PART);
+
+        assertThat(resultat.issue()).isEqualTo(IssueLancement.REFUSE);
+        assertThat(resultat.détail()).contains("400", "boom");
     }
 
     private static String eqChemin() {

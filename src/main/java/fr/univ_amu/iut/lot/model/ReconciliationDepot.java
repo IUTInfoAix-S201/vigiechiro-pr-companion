@@ -35,7 +35,7 @@ final class ReconciliationDepot {
             return;
         }
         Set<String> titresTraites = new HashSet<>();
-        for (var donnee : client.donnees(participationId)) {
+        for (var donnee : client.donnees(participationId).enOptionnel().orElseGet(List::of)) {
             titresTraites.add(donnee.titre());
         }
         if (titresTraites.isEmpty()) {

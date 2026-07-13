@@ -35,17 +35,18 @@ public final class TraitementVigieChiro {
     }
 
     /// Qualifie un refus en relisant l'état (cf. [#lancer]) : si un traitement est en attente côté
-    /// serveur, le refus est bénin (il travaille déjà) ; sinon il est réel et revient détaillé.
+    /// serveur, le refus est bénin (il travaille déjà) ; sinon il est réel et revient détaillé. Si
+    /// l'état lui-même est illisible à cet instant, on s'en tient au refus initial.
     private ResultatLancement qualifierRefus(String participationId, int statut, String corps) {
-        Traitement etat = etat(participationId);
+        Traitement etat = etat(participationId).enOptionnel().orElseGet(Traitement::absent);
         return etat.enAttente() ? ResultatLancement.dejaLance(etat) : ResultatLancement.refuse(statut, corps);
     }
 
-    /// État du traitement de la participation, ou [Traitement#absent()] si elle est injoignable ou n'a
-    /// jamais été calculée (#1260).
-    public Traitement etat(String participationId) {
-        return client.participation(participationId)
-                .map(ParticipationDetail::traitement)
-                .orElseGet(Traitement::absent);
+    /// État du traitement de la participation, **trié** (#1284) : un `Succes` porte le bloc `traitement`
+    /// ([Traitement#absent()] si la nuit n'a **jamais** été calculée : c'est une réponse du serveur, pas
+    /// un silence) ; « plateforme injoignable » et « participation refusée/inconnue » reviennent enfin
+    /// comme telles, au lieu d'être déguisées en `absent` (#1260).
+    public ReponseApi<Traitement> etat(String participationId) {
+        return client.participation(participationId).transformer(ParticipationDetail::traitement);
     }
 }

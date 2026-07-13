@@ -83,7 +83,7 @@ public final class SynchronisationParticipation {
         Passage passage = chargerPassage(idPassage);
         String objectid = participationDe(idPassage).orElseThrow(() -> new RegleMetierException(NON_LIE));
         ParticipationDetail distant =
-                client.participation(objectid).orElseThrow(() -> new RegleMetierException(INTROUVABLE));
+                client.participation(objectid).enOptionnel().orElseThrow(() -> new RegleMetierException(INTROUVABLE));
         InfosPoint point = infosPoint(passage);
         ParticipationADeposer maj =
                 CorrespondanceParticipation.versParticipation(point.code(), passage, materielDao.pour(idPassage));
@@ -97,7 +97,7 @@ public final class SynchronisationParticipation {
         Passage passage = chargerPassage(idPassage);
         String objectid = participationDe(idPassage).orElseThrow(() -> new RegleMetierException(NON_LIE));
         ParticipationDetail distant =
-                client.participation(objectid).orElseThrow(() -> new RegleMetierException(INTROUVABLE));
+                client.participation(objectid).enOptionnel().orElseThrow(() -> new RegleMetierException(INTROUVABLE));
 
         MeteoReleve fusion =
                 CorrespondanceParticipation.fusionnerMeteo(MeteoPassage.lire(passage.donneesMeteo()), distant.meteo());
@@ -120,7 +120,8 @@ public final class SynchronisationParticipation {
         }
         Passage passage = chargerPassage(idPassage);
         InfosPoint point = infosPoint(passage);
-        Optional<ParticipationDetail> distant = client.participation(objectid.get());
+        Optional<ParticipationDetail> distant =
+                client.participation(objectid.get()).enOptionnel();
         if (distant.isEmpty()) {
             return List.of("participation liée injoignable (" + objectid.get()
                     + ") : hors connexion, ou participation disparue côté VigieChiro");

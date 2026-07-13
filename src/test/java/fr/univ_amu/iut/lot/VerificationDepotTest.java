@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 
 import fr.univ_amu.iut.commun.api.ClientVigieChiro;
 import fr.univ_amu.iut.commun.api.DonneeVigieChiro;
+import fr.univ_amu.iut.commun.api.ReponseApi;
 import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.lot.model.BilanVerification;
 import fr.univ_amu.iut.lot.model.DepotUnite;
@@ -40,6 +41,9 @@ class VerificationDepotTest {
 
     @BeforeEach
     void preparer() {
+        // Par défaut : le serveur répond et n'a encore aucune donnée (Mockito ne fabrique pas de
+        // ReponseApi tout seul, contrairement aux List d'avant #1284).
+        when(client.donnees(org.mockito.ArgumentMatchers.anyString())).thenReturn(ReponseApi.succes(List.of()));
         verification = new VerificationDepot(participations, client, depotUnites);
     }
 
@@ -65,7 +69,8 @@ class VerificationDepotTest {
         when(participations.participationDe(42L)).thenReturn(Optional.of("part-1"));
         when(depotUnites.parPassage(42L))
                 .thenReturn(List.of(unite("seq_000.wav", TypeDepotUnite.WAV), unite("Car-1.zip", TypeDepotUnite.ZIP)));
-        when(client.donnees("part-1")).thenReturn(List.of(new DonneeVigieChiro("d1", "seq_000", List.of())));
+        when(client.donnees("part-1"))
+                .thenReturn(ReponseApi.succes(List.of(new DonneeVigieChiro("d1", "seq_000", List.of()))));
 
         BilanVerification bilan = verification.verifier(42L);
 

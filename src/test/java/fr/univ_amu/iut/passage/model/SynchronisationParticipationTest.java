@@ -13,6 +13,7 @@ import fr.univ_amu.iut.commun.api.ClientVigieChiro;
 import fr.univ_amu.iut.commun.api.EtatTraitement;
 import fr.univ_amu.iut.commun.api.MeteoDepot;
 import fr.univ_amu.iut.commun.api.ParticipationDetail;
+import fr.univ_amu.iut.commun.api.ReponseApi;
 import fr.univ_amu.iut.commun.api.ResultatParticipation;
 import fr.univ_amu.iut.commun.api.Traitement;
 import fr.univ_amu.iut.commun.model.InfosPoint;
@@ -103,7 +104,7 @@ class SynchronisationParticipationTest {
     void pousser_vers_patch_avec_etag() {
         armerPassageEtPoint();
         when(liens.objectidPour(LienVigieChiro.ENTITE_PASSAGE, "42")).thenReturn(Optional.of("part-1"));
-        when(client.participation("part-1")).thenReturn(Optional.of(detail("e-frais")));
+        when(client.participation("part-1")).thenReturn(ReponseApi.succes(detail("e-frais")));
         when(materielDao.pour(42L)).thenReturn(MaterielMicro.vide(42L));
         when(client.modifierParticipation(eq("part-1"), eq("e-frais"), any()))
                 .thenReturn(ResultatParticipation.reussie("part-1"));
@@ -129,7 +130,7 @@ class SynchronisationParticipationTest {
     void tirer_depuis_ecrit_localement() {
         when(passageDao.findById(42L)).thenReturn(Optional.of(passage(null)));
         when(liens.objectidPour(LienVigieChiro.ENTITE_PASSAGE, "42")).thenReturn(Optional.of("part-1"));
-        when(client.participation("part-1")).thenReturn(Optional.of(detail("e1")));
+        when(client.participation("part-1")).thenReturn(ReponseApi.succes(detail("e1")));
 
         sync.tirerDepuis(42L);
 
@@ -192,7 +193,7 @@ class SynchronisationParticipationTest {
     void ecarts_distant_injoignable() {
         armerPassageEtPoint();
         when(liens.objectidPour(LienVigieChiro.ENTITE_PASSAGE, "42")).thenReturn(Optional.of("part-1"));
-        when(client.participation("part-1")).thenReturn(Optional.empty());
+        when(client.participation("part-1")).thenReturn(ReponseApi.injoignable("délai d'attente dépassé"));
 
         assertThat(sync.ecartsAvecDistant(42L)).singleElement().asString().contains("injoignable");
     }
@@ -208,7 +209,7 @@ class SynchronisationParticipationTest {
     private void armerLienEtDistant(ParticipationDetail distant) {
         armerPassageEtPoint();
         when(liens.objectidPour(LienVigieChiro.ENTITE_PASSAGE, "42")).thenReturn(Optional.of("part-1"));
-        when(client.participation("part-1")).thenReturn(Optional.of(distant));
+        when(client.participation("part-1")).thenReturn(ReponseApi.succes(distant));
     }
 
     /// Participation distante minimale pour le pré-vol (météo/config sans objet ici).

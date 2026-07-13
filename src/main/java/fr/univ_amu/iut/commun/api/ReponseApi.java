@@ -34,6 +34,13 @@ public sealed interface ReponseApi<T> {
         public <U> ReponseApi<U> transformer(Function<T, U> transformation) {
             return new Succes<>(transformation.apply(valeur));
         }
+
+        @Override
+        public <U> ReponseApi<U> lireAvec(Function<T, Optional<U>> lecture) {
+            return lecture.apply(valeur)
+                    .<ReponseApi<U>>map(ReponseApi::succes)
+                    .orElseGet(() -> ReponseApi.injoignable(REPONSE_ILLISIBLE));
+        }
     }
 
     /// Aucun jeton : l'appel n'a **pas eu lieu**. C'est le silence légitime du mode hors connexion,
@@ -46,6 +53,11 @@ public sealed interface ReponseApi<T> {
 
         @Override
         public <U> ReponseApi<U> transformer(Function<T, U> transformation) {
+            return new NonConnecte<>();
+        }
+
+        @Override
+        public <U> ReponseApi<U> lireAvec(Function<T, Optional<U>> lecture) {
             return new NonConnecte<>();
         }
     }
@@ -68,6 +80,11 @@ public sealed interface ReponseApi<T> {
         public <U> ReponseApi<U> transformer(Function<T, U> transformation) {
             return new Injoignable<>(cause);
         }
+
+        @Override
+        public <U> ReponseApi<U> lireAvec(Function<T, Optional<U>> lecture) {
+            return new Injoignable<>(cause);
+        }
     }
 
     /// Le serveur a **répondu non** (statut hors 2xx) : l'information existe, on la garde. Le corps
@@ -86,7 +103,16 @@ public sealed interface ReponseApi<T> {
         public <U> ReponseApi<U> transformer(Function<T, U> transformation) {
             return new Refuse<>(statut, corps);
         }
+
+        @Override
+        public <U> ReponseApi<U> lireAvec(Function<T, Optional<U>> lecture) {
+            return new Refuse<>(statut, corps);
+        }
     }
+
+    /// Cause d'un `200` que nos parseurs ne savent pas lire : un portail captif ou un mandataire qui
+    /// répond à la place du serveur. « Pas de réponse exploitable » n'est pas un refus.
+    String REPONSE_ILLISIBLE = "réponse illisible";
 
     /// La valeur portée en cas de succès, vide sinon : l'adaptateur vers le comportement historique
     /// (« dégradation propre »), à réserver aux sites où le silence est le comportement **voulu**.
@@ -95,6 +121,11 @@ public sealed interface ReponseApi<T> {
     /// Transporte l'issue vers un autre type de valeur : un succès est transformé, toute autre issue
     /// traverse inchangée (la cause d'un échec ne dépend pas de ce qu'on comptait lire).
     <U> ReponseApi<U> transformer(Function<T, U> transformation);
+
+    /// Lit la valeur d'un succès avec un **lecteur qui peut échouer** (parseur JSON) : un corps que le
+    /// lecteur ne comprend pas devient [Injoignable] ([#REPONSE_ILLISIBLE]) ; toute autre issue
+    /// traverse inchangée.
+    <U> ReponseApi<U> lireAvec(Function<T, Optional<U>> lecture);
 
     static <T> ReponseApi<T> succes(T valeur) {
         return new Succes<>(valeur);

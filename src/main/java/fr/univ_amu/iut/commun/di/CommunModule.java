@@ -9,6 +9,7 @@ import fr.univ_amu.iut.commun.api.ClientGbif;
 import fr.univ_amu.iut.commun.model.DepotDispositionColonnes;
 import fr.univ_amu.iut.commun.model.DepotVues;
 import fr.univ_amu.iut.commun.model.Horloge;
+import fr.univ_amu.iut.commun.model.ImportObservations;
 import fr.univ_amu.iut.commun.model.PreferenceSourceEspece;
 import fr.univ_amu.iut.commun.model.RechercheGlobale;
 import fr.univ_amu.iut.commun.model.SourceUniverselle;
@@ -95,6 +96,10 @@ public class CommunModule extends AbstractModule {
         // pose la liaison réelle. Les consommateurs (M-Lot, modale de rattachement, CLI) reçoivent donc un
         // Optional : hors connexion, le suivi est simplement indisponible, sans binding manquant.
         OptionalBinder.newOptionalBinder(binder(), SuiviTraitement.class);
+        // Import des observations (#1264) : port déclaré À VIDE, implémenté par la feature `validation`.
+        // M-Passage le consomme en Optional — sans connexion (ou feature désactivée), le bouton d'import
+        // n'apparaît tout simplement pas.
+        OptionalBinder.newOptionalBinder(binder(), ImportObservations.class);
     }
 
     /// Descripteurs de l'onglet « Fonctionnalités » : un booléen `feature.<id>.active` par feature

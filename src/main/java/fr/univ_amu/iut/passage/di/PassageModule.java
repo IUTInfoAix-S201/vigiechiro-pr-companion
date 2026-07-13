@@ -8,6 +8,7 @@ import fr.univ_amu.iut.commun.di.Fonctionnalite;
 import fr.univ_amu.iut.commun.di.ModuleDeFeature;
 import fr.univ_amu.iut.commun.model.CoordonneesPoint;
 import fr.univ_amu.iut.commun.model.Horloge;
+import fr.univ_amu.iut.commun.model.ImportObservations;
 import fr.univ_amu.iut.commun.model.ReferentielPoint;
 import fr.univ_amu.iut.commun.model.Workspace;
 import fr.univ_amu.iut.commun.persistence.ServicePurgeOriginaux;
@@ -241,7 +242,8 @@ public class PassageModule extends ModuleDeFeature {
             ServicePassage service,
             ServiceRattachement rattachement,
             ServiceConditionsPassage conditions,
-            Optional<SynchronisationParticipation> synchronisation) {
-        return new RattachementViewModel(service, rattachement, conditions, synchronisation);
+            Optional<SynchronisationParticipation> synchronisation,
+            Optional<ImportObservations> importObservations) {
+        return new RattachementViewModel(service, rattachement, conditions, synchronisation, importObservations);
     }
 }

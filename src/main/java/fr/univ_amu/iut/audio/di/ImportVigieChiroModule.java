@@ -11,7 +11,9 @@ import fr.univ_amu.iut.commun.api.TraitementVigieChiro;
 import fr.univ_amu.iut.commun.di.Categorie;
 import fr.univ_amu.iut.commun.di.Fonctionnalite;
 import fr.univ_amu.iut.commun.di.ModuleDeFeature;
+import fr.univ_amu.iut.commun.model.ImportObservations;
 import fr.univ_amu.iut.commun.model.dao.LienVigieChiroDao;
+import fr.univ_amu.iut.validation.model.ImportObservationsVigieChiro;
 import fr.univ_amu.iut.validation.model.ImportVigieChiro;
 import fr.univ_amu.iut.validation.model.ServiceValidation;
 
@@ -41,6 +43,20 @@ public class ImportVigieChiroModule extends ModuleDeFeature {
         OptionalBinder.newOptionalBinder(binder(), ImportVigieChiro.class)
                 .setBinding()
                 .to(Key.get(ImportVigieChiro.class, Names.named(QUALIFIANT)));
+        // Port ImportObservations (#1264) : ce que M-Passage consomme, sans dépendre de la feature
+        // `validation` (un `passage` qui en dépendrait fermerait un cycle qu'ArchUnit refuse). Le port est
+        // déclaré à vide par CommunModule ; sa valeur est posée ici, là où l'import existe vraiment.
+        OptionalBinder.newOptionalBinder(binder(), ImportObservations.class)
+                .setBinding()
+                .to(Key.get(ImportObservations.class, Names.named(QUALIFIANT)));
+    }
+
+    /// Adaptateur du port : l import reel, rendu consommable par les autres ecrans (#1264).
+    @Provides
+    @Singleton
+    @Named(QUALIFIANT)
+    ImportObservations fournirImportObservations(@Named(QUALIFIANT) ImportVigieChiro importateur) {
+        return new ImportObservationsVigieChiro(importateur);
     }
 
     @Provides

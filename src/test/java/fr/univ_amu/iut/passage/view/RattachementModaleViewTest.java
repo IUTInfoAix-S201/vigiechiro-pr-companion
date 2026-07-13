@@ -77,6 +77,9 @@ class RattachementModaleViewTest {
                         service,
                         mock(ServiceRattachement.class),
                         mock(ServiceConditionsPassage.class),
+                        Optional.empty(),
+                        // Import indisponible ici (hors connexion) : le bouton « Importer les observations »
+                        // n'apparaît pas — la modale est celle d'avant.
                         Optional.empty());
                 return viewModel;
             }

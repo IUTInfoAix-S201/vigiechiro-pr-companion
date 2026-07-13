@@ -89,6 +89,20 @@ class ContratApiVigieChiroLiveTest {
     }
 
     @Test
+    @DisplayName("Transport #1284 : un refus serveur revient en Refuse avec son statut (422 pour"
+            + " max_results>100), plus jamais en vide silencieux — le verrou qui aurait rendu #1277 bruyante")
+    void refus_serveur_est_un_refuse_explicite() {
+        TransportVigieChiro transport = new TransportVigieChiro(baseUrl, () -> Optional.of(token));
+
+        ReponseApi<String> reponse = transport.lire("/moi/participations?max_results=1000&page=1");
+
+        assertThat(reponse)
+                .as("Eve rejette max_results>100 : le transport doit conserver ce refus, pas le taire")
+                .isInstanceOf(ReponseApi.Refuse.class);
+        assertThat(((ReponseApi.Refuse<String>) reponse).statut()).isEqualTo(422);
+    }
+
+    @Test
     @DisplayName("GET /participations/{id} : conforme au JSON Schema participation"
             + " (meteo/configuration/traitement optionnels, enums vent/couverture, dates ISO +00:00, _etag)")
     void participation_respecte_le_schema() {

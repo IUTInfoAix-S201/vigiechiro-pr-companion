@@ -113,7 +113,7 @@ public class ServiceArchivagePassage {
                 backfillEmpreintes.remplirSession(session.id()).sequencesRemplies();
         long octetsLiberes = purgerSequences(sequenceDao.findBySession(session.id()));
         octetsLiberes += purgeOriginaux.purgerSession(Path.of(session.cheminRacine()));
-        sessionDao.marquerOriginauxPurges(session.id());
+        sessionDao.marquerOriginauxPurges(session.id(), horloge.maintenant());
         sessionDao.marquerSequencesPurgees(session.id());
         sessionDao.marquerArchivee(session.id(), horloge.maintenant());
         disponibilite.invalider(idPassage);

@@ -163,7 +163,7 @@ public class ServiceAuditCoherence {
             Optional<ResultatsIdentification> resultats) {
         Long idPassage = passage.id();
         boolean audioAudite = !session.archivee();
-        boolean originauxAudites = audioAudite && !originauxPurges(session);
+        boolean originauxAudites = audioAudite && !session.originauxPurges();
         List<String> chemins = new ArrayList<>();
         if (originauxAudites) {
             originaux.forEach(o -> chemins.add(o.cheminFichier()));
@@ -320,10 +320,6 @@ public class ServiceAuditCoherence {
         if (chemin != null && !chemin.isBlank()) {
             chemins.add(normaliser(Path.of(chemin)));
         }
-    }
-
-    private boolean originauxPurges(SessionDEnregistrement session) {
-        return session.volumeOriginauxOctets() != null && session.volumeOriginauxOctets() == 0L;
     }
 
     /// Cible « passage <id> » d'un constat qui porte sur le passage entier (pas sur un fichier précis).

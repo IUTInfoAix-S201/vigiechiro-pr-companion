@@ -2,8 +2,13 @@ package fr.univ_amu.iut.commun.view;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import fr.univ_amu.iut.commun.model.JetonAnnulation;
+import fr.univ_amu.iut.commun.model.Progression;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import javafx.application.Platform;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -13,7 +18,8 @@ import org.testfx.util.WaitForAsyncUtils;
 
 /// Exécution **asynchrone** ([ExecuteurTacheAsynchrone], #1014, production) : le travail tourne hors du
 /// fil JavaFX, résultat et erreur sont reprogrammés **sur** le fil JavaFX. [ApplicationExtension]
-/// initialise le toolkit ; on attend le fil de fond + `runLater` via [WaitForAsyncUtils].
+/// initialise le toolkit ; on attend le fil de fond + `runLater` via [WaitForAsyncUtils]. Les
+/// extensions #1252 (progression, annulation coopérative) reviennent elles aussi sur le fil JavaFX.
 @ExtendWith(ApplicationExtension.class)
 class ExecuteurTacheAsynchroneTest {
 
@@ -67,5 +73,55 @@ class ExecuteurTacheAsynchroneTest {
 
         assertThat(capturee.get()).isSameAs(panne);
         assertThat(surFilFx).as("callback d'erreur sur le fil JavaFX").isTrue();
+    }
+
+    @Test
+    @DisplayName("#1252 : la progression émise hors fil est appliquée SUR le fil FX, dans l'ordre")
+    void progression_appliquee_sur_le_fil_fx() {
+        List<Progression> points = new CopyOnWriteArrayList<>();
+        AtomicBoolean toutSurFilFx = new AtomicBoolean(true);
+        Consumer<Progression> relais = executeur.relaisProgression(point -> {
+            toutSurFilFx.compareAndSet(true, Platform.isFxApplicationThread());
+            points.add(point);
+        });
+
+        WaitForAsyncUtils.waitForAsyncFx(
+                5_000,
+                () -> executeur.executer(
+                        () -> {
+                            relais.accept(new Progression("1/2", 0.5));
+                            relais.accept(new Progression("2/2", 1.0));
+                            return "fini";
+                        },
+                        valeur -> {},
+                        erreur -> {}));
+        WaitForAsyncUtils.waitForFxEvents();
+
+        assertThat(points).extracting(Progression::libelle).containsExactly("1/2", "2/2");
+        assertThat(toutSurFilFx).as("chaque point appliqué sur le fil JavaFX").isTrue();
+    }
+
+    @Test
+    @DisplayName("#1252 : une annulation coopérative conclut par `annule` sur le fil FX, pas par `echec`")
+    void annulation_conclut_par_annule_sur_le_fil_fx() {
+        AtomicBoolean annuleSurFilFx = new AtomicBoolean();
+        AtomicReference<Throwable> echec = new AtomicReference<>();
+        JetonAnnulation jeton = new JetonAnnulation();
+        jeton.annuler();
+
+        WaitForAsyncUtils.waitForAsyncFx(
+                5_000,
+                () -> executeur.executer(
+                        () -> {
+                            jeton.leverSiAnnule();
+                            return "jamais atteint";
+                        },
+                        valeur -> {},
+                        () -> annuleSurFilFx.set(Platform.isFxApplicationThread()),
+                        echec::set));
+        WaitForAsyncUtils.waitForFxEvents();
+
+        assertThat(annuleSurFilFx).as("callback d'annulation sur le fil JavaFX").isTrue();
+        assertThat(echec.get()).as("une annulation n'est pas un échec").isNull();
     }
 }

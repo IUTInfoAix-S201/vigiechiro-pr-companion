@@ -99,4 +99,19 @@ class RequetesVigieChiroTest {
     void finalisation_vide() {
         assertThat(RequetesVigieChiro.finalisation()).isEqualTo("{}");
     }
+
+    @Test
+    @DisplayName("correction (#723) : observateur_taxon en objectid + observateur_probabilite en jeton,"
+            + " toujours ensemble (le serveur exige la probabilité avec le taxon)")
+    void correction_observation() {
+        JsonObject corps = JsonParser.parseString(RequetesVigieChiro.correction(
+                        "5526cd5a1b1a5d20872ff587", fr.univ_amu.iut.commun.model.CertitudeObservateur.SUR))
+                .getAsJsonObject();
+
+        assertThat(corps.get("observateur_taxon").getAsString()).isEqualTo("5526cd5a1b1a5d20872ff587");
+        assertThat(corps.get("observateur_probabilite").getAsString()).isEqualTo("SUR");
+        assertThat(corps.size())
+                .as("aucun autre champ (422 unknown field sinon)")
+                .isEqualTo(2);
+    }
 }

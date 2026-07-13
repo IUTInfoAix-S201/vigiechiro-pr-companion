@@ -1,11 +1,13 @@
 package fr.univ_amu.iut.sites.view;
 
+import fr.univ_amu.iut.commun.view.ConfirmationNavigation;
 import fr.univ_amu.iut.commun.view.IndicateurBlocage;
 import fr.univ_amu.iut.commun.view.OuvrirMultisite;
 import fr.univ_amu.iut.sites.model.PointDEcoute;
 import fr.univ_amu.iut.sites.viewmodel.CartePoint;
 import fr.univ_amu.iut.sites.viewmodel.SiteDetailViewModel;
 import java.util.Locale;
+import java.util.function.Predicate;
 import javafx.beans.binding.Bindings;
 import javafx.collections.ListChangeListener;
 import javafx.scene.Node;
@@ -50,6 +52,11 @@ final class CartesPointsSite {
     /// la liaison suit la liste vivante), reconstruction à chaque changement de la liste observable de
     /// `viewModel`, actions Modifier (modale d'édition via `navigation`) et Supprimer (confirmation puis
     /// appel au viewModel), lien GPS vers la carte multi-sites (`ouvrirMultisite`).
+    /// Confirmateur injectable (#798, #1013) : par défaut un `Alert` de confirmation partagé
+    /// ([ConfirmationNavigation]) ; remplaçable par un stub déterministe dans les tests (un
+    /// `Alert.showAndWait` figerait TestFX headless).
+    private Predicate<String> confirmateur = new ConfirmationNavigation()::confirmer;
+
     static void installer(
             FlowPane cartesPoints,
             Label lblAucunPoint,
@@ -157,18 +164,13 @@ final class CartesPointsSite {
             alerteErreur("Le point « " + carte.point().code() + " » porte des passages : suppression bloquée.");
             return;
         }
-        if (confirmer("Supprimer le point « " + carte.point().code() + " » ?")) {
+        if (confirmateur.test("Supprimer le point « " + carte.point().code() + " » ?")) {
             viewModel.supprimerPoint(carte.point());
         }
     }
 
     private Window fenetre() {
         return cartesPoints.getScene().getWindow();
-    }
-
-    private boolean confirmer(String message) {
-        Alert alerte = new Alert(AlertType.CONFIRMATION, message, ButtonType.OK, ButtonType.CANCEL);
-        return alerte.showAndWait().filter(bouton -> bouton == ButtonType.OK).isPresent();
     }
 
     private void alerteErreur(String message) {

@@ -6,6 +6,7 @@ import fr.univ_amu.iut.commun.model.PortailVigieChiro;
 import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.model.Verdict;
+import fr.univ_amu.iut.commun.view.ConfirmationNavigation;
 import fr.univ_amu.iut.commun.view.EmplacementNavigation;
 import fr.univ_amu.iut.commun.view.EmplacementPassage;
 import fr.univ_amu.iut.commun.view.IndicateurBlocage;
@@ -30,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Predicate;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -86,6 +88,16 @@ public class PassageController implements EmplacementNavigation, RafraichirAuRet
     /// au lieu d'un titre d'en-tête redondant avec le fil d'Ariane.
     private final ReadOnlyObjectWrapper<ZonesStatut> zonesStatut =
             new ReadOnlyObjectWrapper<>(this, "zonesStatut", ZonesStatut.VIDE);
+
+    /// Confirmateur injectable (#798, #1013) : par défaut un `Alert` de confirmation partagé
+    /// ([ConfirmationNavigation]) ; remplaçable par un stub déterministe dans les tests (un
+    /// `Alert.showAndWait` figerait TestFX headless).
+    private Predicate<String> confirmateur = new ConfirmationNavigation()::confirmer;
+
+    /// Remplace le confirmateur (#798), pour les tests (évite la boîte de dialogue native).
+    void setConfirmateur(Predicate<String> confirmateur) {
+        this.confirmateur = Objects.requireNonNull(confirmateur, "confirmateur");
+    }
 
     @FXML
     private BorderPane racine;
@@ -412,7 +424,7 @@ public class PassageController implements EmplacementNavigation, RafraichirAuRet
     /// est alors présentée à l'utilisateur sans quitter l'écran.
     @FXML
     private void supprimer() {
-        if (!confirmer("Supprimer définitivement ce passage et toute sa nuit (séquences, relevés) ?"
+        if (!confirmateur.test("Supprimer définitivement ce passage et toute sa nuit (séquences, relevés) ?"
                 + alerteValidationsMenacees())) {
             return;
         }
@@ -443,7 +455,7 @@ public class PassageController implements EmplacementNavigation, RafraichirAuRet
     /// est alors présentée sans quitter l'écran.
     @FXML
     private void annulerDepot() {
-        if (!confirmer("Annuler le dépôt de ce passage et le ramener à « Prêt à déposer » ? "
+        if (!confirmateur.test("Annuler le dépôt de ce passage et le ramener à « Prêt à déposer » ? "
                 + "Les validations Tadarida déjà saisies sont conservées.")) {
             return;
         }
@@ -461,7 +473,7 @@ public class PassageController implements EmplacementNavigation, RafraichirAuRet
     /// originaux). Action réservée aux nuits qui conservent encore des originaux (bouton masqué sinon).
     @FXML
     private void purgerOriginaux() {
-        if (!confirmer("Supprimer les enregistrements originaux (bruts) de cette nuit pour libérer de "
+        if (!confirmateur.test("Supprimer les enregistrements originaux (bruts) de cette nuit pour libérer de "
                 + "l'espace disque ? Les séquences d'écoute, la validation et le dépôt sont conservés ; "
                 + "cette suppression est définitive.")) {
             return;
@@ -516,11 +528,6 @@ public class PassageController implements EmplacementNavigation, RafraichirAuRet
 
     private static String libelleVerdict(Verdict verdict) {
         return verdict == null || verdict == Verdict.A_VERIFIER ? "non saisi" : verdict.libelle();
-    }
-
-    private boolean confirmer(String message) {
-        Alert alerte = new Alert(AlertType.CONFIRMATION, message, ButtonType.OK, ButtonType.CANCEL);
-        return alerte.showAndWait().filter(bouton -> bouton == ButtonType.OK).isPresent();
     }
 
     private void alerteErreur(String entete, String message) {

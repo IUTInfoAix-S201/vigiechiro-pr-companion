@@ -5,6 +5,7 @@ import fr.univ_amu.iut.commun.model.DepotDispositionColonnes;
 import fr.univ_amu.iut.commun.model.Protocole;
 import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.commun.view.ColonneBadge;
+import fr.univ_amu.iut.commun.view.ConfirmationNavigation;
 import fr.univ_amu.iut.commun.view.GestionnaireColonnes;
 import fr.univ_amu.iut.commun.view.IndicateurBlocage;
 import fr.univ_amu.iut.commun.view.OuvreurDeLien;
@@ -23,6 +24,7 @@ import fr.univ_amu.iut.sites.viewmodel.SiteDetailViewModel;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Predicate;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -82,6 +84,16 @@ public class SiteDetailController implements RafraichirAuRetour, ResumeStatut {
     /// (#693) au lieu d'un en-tête titre/sous-titre.
     private final ReadOnlyObjectWrapper<ZonesStatut> zonesStatut =
             new ReadOnlyObjectWrapper<>(this, "zonesStatut", ZonesStatut.VIDE);
+
+    /// Confirmateur injectable (#798, #1013) : par défaut un `Alert` de confirmation partagé
+    /// ([ConfirmationNavigation]) ; remplaçable par un stub déterministe dans les tests (un
+    /// `Alert.showAndWait` figerait TestFX headless).
+    private Predicate<String> confirmateur = new ConfirmationNavigation()::confirmer;
+
+    /// Remplace le confirmateur (#798), pour les tests (évite la boîte de dialogue native).
+    void setConfirmateur(Predicate<String> confirmateur) {
+        this.confirmateur = Objects.requireNonNull(confirmateur, "confirmateur");
+    }
 
     @FXML
     private Label valNumeroCarre;
@@ -316,7 +328,7 @@ public class SiteDetailController implements RafraichirAuRetour, ResumeStatut {
 
     @FXML
     private void supprimerSite() {
-        if (!confirmer("Supprimer ce site et ses points d'écoute ?")) {
+        if (!confirmateur.test("Supprimer ce site et ses points d'écoute ?")) {
             return;
         }
         try {
@@ -432,11 +444,6 @@ public class SiteDetailController implements RafraichirAuRetour, ResumeStatut {
 
     private Window fenetre() {
         return cartesPoints.getScene().getWindow();
-    }
-
-    private boolean confirmer(String message) {
-        Alert alerte = new Alert(AlertType.CONFIRMATION, message, ButtonType.OK, ButtonType.CANCEL);
-        return alerte.showAndWait().filter(bouton -> bouton == ButtonType.OK).isPresent();
     }
 
     private void alerteErreur(String message) {

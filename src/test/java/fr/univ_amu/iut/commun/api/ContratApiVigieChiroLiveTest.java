@@ -12,6 +12,7 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import io.restassured.RestAssured;
 import io.restassured.specification.RequestSpecification;
 import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -357,6 +358,12 @@ class ContratApiVigieChiroLiveTest {
                 participation != null && !participation.isBlank(),
                 "Probe corrections ignorée : fournir -Dvigiechiro.participationEssai=<participation banc"
                         + " d'essai>.");
+        CibleCorrection existante = chercherCible(participation);
+        return existante != null ? existante : creerCible(participation);
+    }
+
+    /// Première donnée avec observation du banc d'essai, ou `null` s'il n'en a pas (encore).
+    private static CibleCorrection chercherCible(String participation) {
         var reponse = api().when()
                 .get("/participations/{id}/donnees?max_results=100", participation)
                 .then()
@@ -364,25 +371,58 @@ class ContratApiVigieChiroLiveTest {
                 .extract();
         String filtre = "_items.find { it.observations }";
         String idDonnee = reponse.path(filtre + "._id");
-        assumeTrue(
-                idDonnee != null,
-                "Participation banc d'essai sans observation Tadarida : rien à corriger (compute pas fini ?).");
-        return new CibleCorrection(idDonnee, reponse.path(filtre + ".observations[0].tadarida_taxon._id"));
+        return idDonnee == null
+                ? null
+                : new CibleCorrection(idDonnee, reponse.path(filtre + ".observations[0].tadarida_taxon._id"));
     }
 
-    /// Participation de l'observateur ayant déjà des résultats Tadarida : le banc d'essai si fourni,
-    /// sinon la première trouvée (première page). Les `donnees` n'existent qu'après traitement serveur :
-    /// skip (assume) si rien n'a encore été calculé.
+    /// Banc d'essai vide : la cible est **créée** avec une observation Tadarida factice sur un taxon réel
+    /// du référentiel. Vérifie au passage un contrat de plus : `POST /participations/{id}/donnees` est
+    /// ouvert au **propriétaire** (`create_donnee`), pas seulement au pipeline serveur.
+    private static CibleCorrection creerCible(String participation) {
+        String idTaxon = api().when()
+                .get("/taxons?max_results=1")
+                .then()
+                .statusCode(200)
+                .extract()
+                .path("_items[0]._id");
+        assumeTrue(idTaxon != null, "Référentiel taxons illisible : impossible de fabriquer la cible.");
+
+        String idDonnee = api().contentType("application/json")
+                .body(Map.of(
+                        "commentaire",
+                        "banc d'essai du contrat d'écriture des corrections (#1203)",
+                        "observations",
+                        List.of(Map.of(
+                                "temps_debut", 0.0,
+                                "temps_fin", 5.0,
+                                "frequence_mediane", 44.0,
+                                "tadarida_taxon", idTaxon,
+                                "tadarida_probabilite", 0.5))))
+                .when()
+                .post("/participations/{id}/donnees", participation)
+                .then()
+                .statusCode(201)
+                .extract()
+                .path("_id");
+        return new CibleCorrection(idDonnee, idTaxon);
+    }
+
+    /// Participation de l'observateur ayant déjà des résultats Tadarida : le banc d'essai d'abord s'il
+    /// est fourni (et non vide), sinon la première trouvée en balayant la première page. Les `donnees`
+    /// n'existent qu'après traitement serveur : skip (assume) si rien n'a encore été calculé.
     private static String participationTraitee() {
         String essai = System.getProperty("vigiechiro.participationEssai");
-        List<String> candidates = essai != null && !essai.isBlank()
-                ? List.of(essai)
-                : api().when()
-                        .get("/moi/participations")
-                        .then()
-                        .statusCode(200)
-                        .extract()
-                        .path("_items._id");
+        List<String> candidates = new ArrayList<>();
+        if (essai != null && !essai.isBlank()) {
+            candidates.add(essai);
+        }
+        candidates.addAll(api().when()
+                .get("/moi/participations")
+                .then()
+                .statusCode(200)
+                .extract()
+                .path("_items._id"));
         for (String participation : candidates) {
             String idDonnee = api().when()
                     .get("/participations/{id}/donnees?max_results=1", participation)

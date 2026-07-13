@@ -1,6 +1,8 @@
 package fr.univ_amu.iut.audit.model;
 
 import fr.univ_amu.iut.commun.model.Prefixe;
+import fr.univ_amu.iut.commun.model.PresenceFichiers;
+import fr.univ_amu.iut.commun.model.PresenceFichiers.Presence;
 import fr.univ_amu.iut.commun.model.Workspace;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
 import fr.univ_amu.iut.lot.model.DepotUnite;
@@ -22,11 +24,11 @@ import fr.univ_amu.iut.sites.model.dao.PointDao;
 import fr.univ_amu.iut.sites.model.dao.SiteDao;
 import fr.univ_amu.iut.validation.model.ResultatsIdentification;
 import fr.univ_amu.iut.validation.model.dao.ResultatsIdentificationDao;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -55,6 +57,7 @@ public class ServiceAuditCoherence {
     private final PointDao pointDao;
     private final SiteDao siteDao;
     private final Workspace workspace;
+    private final PresenceFichiers presenceFichiers;
     private final BalayageDisque balayage;
     private final AuditEnLigne auditEnLigne;
 
@@ -75,6 +78,7 @@ public class ServiceAuditCoherence {
         this.depotDao = new DepotUniteDao(source);
         this.pointDao = new PointDao(source);
         this.siteDao = new SiteDao(source);
+        this.presenceFichiers = new PresenceFichiers(workspace);
         this.balayage = new BalayageDisque();
         this.auditEnLigne = new AuditEnLigne(verificationDepot, auditPointsServeur, this.passageDao);
     }
@@ -138,6 +142,9 @@ public class ServiceAuditCoherence {
 
     // --- C1 : existence des file_path persistés -------------------------------------------------
 
+    /// Vérifie l'existence de tous les fichiers persistés du passage en **un balayage groupé**
+    /// ([PresenceFichiers] : un accès disque par dossier, pas par fichier), puis émet les constats
+    /// dans le même ordre qu'avant l'extraction du noyau (#1298).
     private void controleExistence(
             List<ConstatAudit> constats,
             Passage passage,
@@ -148,33 +155,48 @@ public class ServiceAuditCoherence {
             Optional<ReleveClimatique> releve,
             Optional<ResultatsIdentification> resultats) {
         Long idPassage = passage.id();
-        if (!originauxPurges(session)) {
+        boolean originauxAudites = !originauxPurges(session);
+        List<String> chemins = new ArrayList<>();
+        if (originauxAudites) {
+            originaux.forEach(o -> chemins.add(o.cheminFichier()));
+        }
+        sequences.forEach(s -> chemins.add(s.cheminFichier()));
+        journal.ifPresent(j -> chemins.add(j.cheminFichier()));
+        releve.ifPresent(r -> chemins.add(r.cheminFichier()));
+        resultats.ifPresent(r -> chemins.add(r.cheminFichier()));
+        Map<String, Presence> presences = presenceFichiers.evaluer(chemins);
+
+        if (originauxAudites) {
             for (EnregistrementOriginal original : originaux) {
-                verifierExistence(constats, idPassage, original.cheminFichier(), SeveriteConstat.ERREUR);
+                signalerAbsence(constats, idPassage, original.cheminFichier(), SeveriteConstat.ERREUR, presences);
             }
         }
         for (SequenceDEcoute sequence : sequences) {
-            verifierExistence(constats, idPassage, sequence.cheminFichier(), SeveriteConstat.ERREUR);
+            signalerAbsence(constats, idPassage, sequence.cheminFichier(), SeveriteConstat.ERREUR, presences);
         }
-        journal.ifPresent(j -> verifierExistence(constats, idPassage, j.cheminFichier(), SeveriteConstat.ERREUR));
-        releve.ifPresent(r -> verifierExistence(constats, idPassage, r.cheminFichier(), SeveriteConstat.AVERTISSEMENT));
+        journal.ifPresent(
+                j -> signalerAbsence(constats, idPassage, j.cheminFichier(), SeveriteConstat.ERREUR, presences));
+        releve.ifPresent(
+                r -> signalerAbsence(constats, idPassage, r.cheminFichier(), SeveriteConstat.AVERTISSEMENT, presences));
         resultats.ifPresent(
-                r -> verifierExistence(constats, idPassage, r.cheminFichier(), SeveriteConstat.AVERTISSEMENT));
+                r -> signalerAbsence(constats, idPassage, r.cheminFichier(), SeveriteConstat.AVERTISSEMENT, presences));
     }
 
-    /// Ajoute un constat si le fichier est absent. Un chemin **hors workspace** (carte SD externe) est
-    /// signalé en [SeveriteConstat#INFO] (média peut-être non monté) ; sous le workspace, la gravité
-    /// passée s'applique.
-    private void verifierExistence(
-            List<ConstatAudit> constats, Long idPassage, String chemin, SeveriteConstat severiteSousWorkspace) {
-        if (chemin == null || chemin.isBlank()) {
+    /// Ajoute un constat si le fichier est absent du verdict groupé. Un chemin **hors workspace**
+    /// (carte SD externe) est signalé en [SeveriteConstat#INFO] (média peut-être non monté) ; sous le
+    /// workspace, la gravité passée s'applique. Les chemins vides, ignorés du balayage, sont sans
+    /// constat (comme avant #1298).
+    private void signalerAbsence(
+            List<ConstatAudit> constats,
+            Long idPassage,
+            String chemin,
+            SeveriteConstat severiteSousWorkspace,
+            Map<String, Presence> presences) {
+        Presence verdict = presences.get(chemin);
+        if (verdict == null || verdict == Presence.PRESENTE) {
             return;
         }
-        Path fichier = Path.of(chemin);
-        if (Files.exists(fichier)) {
-            return;
-        }
-        boolean interne = estSousWorkspace(fichier);
+        boolean interne = verdict == Presence.ABSENTE;
         constats.add(new ConstatAudit(
                 interne ? severiteSousWorkspace : SeveriteConstat.INFO,
                 CategorieConstat.DISQUE_MANQUANT,
@@ -280,10 +302,6 @@ public class ServiceAuditCoherence {
 
     private boolean originauxPurges(SessionDEnregistrement session) {
         return session.volumeOriginauxOctets() != null && session.volumeOriginauxOctets() == 0L;
-    }
-
-    private boolean estSousWorkspace(Path fichier) {
-        return fichier.toAbsolutePath().normalize().startsWith(workspace.racine());
     }
 
     private static String normaliser(Path chemin) {

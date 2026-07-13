@@ -19,6 +19,7 @@ class ConversionDonneesVigieChiroTest {
     @DisplayName("une observation Tadarida brute -> LigneObservation (titre = séquence, freq arrondie, NON_VALIDE)")
     void observation_brute() {
         DonneeVigieChiro donnee = new DonneeVigieChiro(
+                "d1",
                 "Car130711-2026-Pass1-Z41-PaRec_20260703_220529_000",
                 List.of(new ObservationVigieChiro("Pipkuh", 0.99, 44.6, 0.8, 4.7, "noise", null, null)));
 
@@ -40,7 +41,7 @@ class ConversionDonneesVigieChiroTest {
     @DisplayName("taxon observateur présent -> MANUEL ; fréquence absente -> null")
     void observation_validee_manuellement() {
         DonneeVigieChiro donnee = new DonneeVigieChiro(
-                "F", List.of(new ObservationVigieChiro("Eptser", 0.70, null, 1.0, 2.0, null, "Pippip", 0.85)));
+                "d1", "F", List.of(new ObservationVigieChiro("Eptser", 0.70, null, 1.0, 2.0, null, "Pippip", 0.85)));
 
         assertThat(ConversionDonneesVigieChiro.enLignes(List.of(donnee)))
                 .singleElement()
@@ -56,12 +57,13 @@ class ConversionDonneesVigieChiroTest {
     @DisplayName("aplatissement : chaque observation devient une ligne portant le titre de sa donnée")
     void aplatissement_multi_fichiers() {
         DonneeVigieChiro a = new DonneeVigieChiro(
+                "d1",
                 "A",
                 List.of(
                         new ObservationVigieChiro("Pipkuh", 0.9, 40.0, 0.0, 1.0, null, null, null),
                         new ObservationVigieChiro("noise", 0.5, 42.0, 1.0, 2.0, null, null, null)));
         DonneeVigieChiro b = new DonneeVigieChiro(
-                "B", List.of(new ObservationVigieChiro("Nyclei", 0.8, 25.0, 0.0, 3.0, null, null, null)));
+                "d2", "B", List.of(new ObservationVigieChiro("Nyclei", 0.8, 25.0, 0.0, 3.0, null, null, null)));
 
         assertThat(ConversionDonneesVigieChiro.enLignes(List.of(a, b)))
                 .extracting(LigneObservation::nomSequence, LigneObservation::taxonTadarida)

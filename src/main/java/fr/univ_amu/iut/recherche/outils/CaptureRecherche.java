@@ -231,7 +231,10 @@ public final class CaptureRecherche {
                     false,
                     ModeValidation.MANUEL,
                     idResultats,
-                    false));
+                    false,
+                    null,
+                    null,
+                    null));
         }
     }
 

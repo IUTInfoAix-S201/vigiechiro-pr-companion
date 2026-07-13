@@ -121,7 +121,10 @@ class ServiceBibliothequeApprovalTest {
                 true,
                 ModeValidation.MANUEL,
                 idResultats,
-                false);
+                false,
+                null,
+                null,
+                null);
     }
 
     private Observation nonReference(long idSequence, String tadarida) {
@@ -140,7 +143,10 @@ class ServiceBibliothequeApprovalTest {
                 false,
                 ModeValidation.NON_VALIDE,
                 idResultats,
-                false);
+                false,
+                null,
+                null,
+                null);
     }
 
     private static long insererCle(Connection cx, String sql, Object... params) throws SQLException {

@@ -137,7 +137,10 @@ class ServiceValidationMockTest {
                 false,
                 ModeValidation.NON_VALIDE,
                 100L,
-                false);
+                false,
+                null,
+                null,
+                null);
     }
 
     @Test
@@ -308,7 +311,7 @@ class ServiceValidationMockTest {
         List<DonneeVigieChiro> donnees = List.of(new DonneeVigieChiro(
                 "d1",
                 "Car130711-Z41_000",
-                List.of(new ObservationVigieChiro("Pipkuh", 0.99, 44.0, 0.8, 4.7, "noise", null, null))));
+                List.of(new ObservationVigieChiro(0, "Pipkuh", 0.99, 44.0, 0.8, 4.7, "noise", null, null))));
 
         BilanImport bilan = service().importerDepuisVigieChiro(idPassage, donnees, false);
 
@@ -322,6 +325,10 @@ class ServiceValidationMockTest {
             assertThat(obs.frequenceMedianeKHz()).isEqualTo(44);
             assertThat(obs.idResultats()).isEqualTo(9L);
             assertThat(obs.modeValidation()).isEqualTo(ModeValidation.NON_VALIDE);
+            assertThat(obs.idDonneeVigieChiro())
+                    .as("l'ancrage plateforme (donnée, indice) est posé à l'import (#1139)")
+                    .isEqualTo("d1");
+            assertThat(obs.indiceVigieChiro()).isEqualTo(0);
         });
     }
 }

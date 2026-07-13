@@ -23,16 +23,18 @@ final class ConversionDonneesVigieChiro {
     private ConversionDonneesVigieChiro() {}
 
     /// Aplati les données en lignes d'observation : une [LigneObservation] par observation, portant le
-    /// titre de sa donnée comme nom de séquence. Fonction pure (aucun accès base ni réseau).
+    /// titre de sa donnée comme nom de séquence et son **ancrage plateforme** (#1139 : `_id` de la
+    /// donnée + indice brut serveur, la cible du `PATCH` du contrat #1203). Fonction pure (aucun accès
+    /// base ni réseau).
     static List<LigneObservation> enLignes(List<DonneeVigieChiro> donnees) {
         return donnees.stream()
-                .flatMap(donnee -> donnee.observations().stream().map(obs -> enLigne(donnee.titre(), obs)))
+                .flatMap(donnee -> donnee.observations().stream().map(obs -> enLigne(donnee, obs)))
                 .toList();
     }
 
-    private static LigneObservation enLigne(String nomSequence, ObservationVigieChiro obs) {
+    private static LigneObservation enLigne(DonneeVigieChiro donnee, ObservationVigieChiro obs) {
         return new LigneObservation(
-                nomSequence,
+                donnee.titre(),
                 obs.tempsDebut(),
                 obs.tempsFin(),
                 frequenceEntiere(obs.frequenceMediane()),
@@ -40,8 +42,11 @@ final class ConversionDonneesVigieChiro {
                 obs.probabilite(),
                 obs.taxonAutre(),
                 obs.taxonObservateur(),
-                obs.probabiliteObservateur(),
-                obs.taxonObservateur() != null ? ModeValidation.MANUEL : ModeValidation.NON_VALIDE);
+                null, // pas de probabilité numérique observateur côté serveur (c'est la certitude)
+                obs.taxonObservateur() != null ? ModeValidation.MANUEL : ModeValidation.NON_VALIDE,
+                donnee.id(),
+                obs.indiceServeur(),
+                obs.certitudeObservateur());
     }
 
     private static Integer frequenceEntiere(Double frequenceKHz) {

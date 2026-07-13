@@ -97,7 +97,10 @@ class ServiceBibliothequeMockTest {
                 reference,
                 ModeValidation.MANUEL,
                 1L,
-                false);
+                false,
+                null,
+                null,
+                null);
     }
 
     private static SequenceDEcoute seq(long id, String nom, String chemin) {

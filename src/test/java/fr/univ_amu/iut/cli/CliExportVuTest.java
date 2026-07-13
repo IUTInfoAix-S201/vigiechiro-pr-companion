@@ -146,7 +146,10 @@ class CliExportVuTest {
                 false,
                 ModeValidation.MANUEL,
                 resultats.id(),
-                false));
+                false,
+                null,
+                null,
+                null));
         observationDao.insert(new Observation(
                 null,
                 sequence.id(),
@@ -162,7 +165,10 @@ class CliExportVuTest {
                 false,
                 ModeValidation.NON_VALIDE,
                 resultats.id(),
-                false));
+                false,
+                null,
+                null,
+                null));
     }
 
     @AfterEach

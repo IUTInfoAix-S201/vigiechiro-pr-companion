@@ -1,7 +1,9 @@
 package fr.univ_amu.iut.commun.api;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import fr.univ_amu.iut.commun.model.CertitudeObservateur;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,13 +36,20 @@ final class DonneesVigieChiro {
     }
 
     /// Observations (détections) d'une donnée : chaque entrée porte au minimum un taxon Tadarida.
+    /// L'**indice brut** du tableau JSON est capturé sur chaque observation (#1139) : c'est
+    /// l'identifiant positionnel du `PATCH` serveur (contrat #1203), et il doit rester exact même
+    /// quand une entrée inexploitable est ignorée (la position dans la liste résultante ne fait pas
+    /// foi). La certitude (`observateur_probabilite`) est un **jeton** `SUR|PROBABLE|POSSIBLE`, lu en
+    /// tolérance par [CertitudeObservateur#depuisTexte].
     private static List<ObservationVigieChiro> observations(JsonObject donnee) {
         List<ObservationVigieChiro> observations = new ArrayList<>();
         JsonElement brut = donnee.get("observations");
         if (brut == null || !brut.isJsonArray()) {
             return observations;
         }
-        for (JsonElement element : brut.getAsJsonArray()) {
+        JsonArray tableau = brut.getAsJsonArray();
+        for (int indice = 0; indice < tableau.size(); indice++) {
+            JsonElement element = tableau.get(indice);
             if (!element.isJsonObject()) {
                 continue;
             }
@@ -50,6 +59,7 @@ final class DonneesVigieChiro {
                 continue; // une observation sans taxon Tadarida n'est pas exploitable
             }
             observations.add(new ObservationVigieChiro(
+                    indice,
                     taxon,
                     nombre(obs, "tadarida_probabilite"),
                     nombre(obs, "frequence_mediane"),
@@ -57,7 +67,7 @@ final class DonneesVigieChiro {
                     nombre(obs, "temps_fin"),
                     premierTaxonAutre(obs),
                     codeTaxon(obs, "observateur_taxon"),
-                    nombre(obs, "observateur_probabilite")));
+                    CertitudeObservateur.depuisTexte(ReponsesVigieChiro.texte(obs, "observateur_probabilite"))));
         }
         return observations;
     }

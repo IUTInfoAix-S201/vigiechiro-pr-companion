@@ -33,8 +33,35 @@ class DonneesVigieChiroTest {
         assertThat(donnee.titre()).isEqualTo("Car130711-2026-Pass1-Z41-PaRec_20260703_220529_000");
         assertThat(donnee.observations())
                 .containsExactly(
-                        new ObservationVigieChiro("Pipkuh", 0.99, 44.0, 0.8, 4.7, "noise", null, null),
-                        new ObservationVigieChiro("noise", 0.9, null, 0.1, 5.0, null, null, null));
+                        new ObservationVigieChiro(0, "Pipkuh", 0.99, 44.0, 0.8, 4.7, "noise", null, null),
+                        new ObservationVigieChiro(1, "noise", 0.9, null, 0.1, 5.0, null, null, null));
+    }
+
+    @Test
+    @DisplayName("observations : l'indice brut du tableau serveur est conservé malgré le filtrage, et la"
+            + " certitude observateur (jeton SUR|PROBABLE|POSSIBLE) est lue (#1139)")
+    void indice_brut_et_certitude() {
+        // L'observation d'indice 1 n'a pas de taxon Tadarida : ignorée. Celle d'indice 2 doit garder
+        // l'indice 2 (la cible du PATCH positionnel), pas glisser à 1 dans la liste filtrée.
+        String corps = "{\"_items\":[{\"_id\":\"d1\",\"titre\":\"F\",\"observations\":["
+                + "{\"tadarida_taxon\":{\"libelle_court\":\"Pipkuh\"},\"tadarida_probabilite\":0.9},"
+                + "{\"frequence_mediane\":40.0},"
+                + "{\"tadarida_taxon\":{\"libelle_court\":\"Eptser\"},\"tadarida_probabilite\":0.7,"
+                + "\"observateur_taxon\":{\"libelle_court\":\"Pippip\"},\"observateur_probabilite\":\"SUR\"}]}]}";
+
+        List<ObservationVigieChiro> observations =
+                DonneesVigieChiro.donnees(corps).getFirst().observations();
+
+        assertThat(observations)
+                .extracting(
+                        ObservationVigieChiro::indiceServeur,
+                        ObservationVigieChiro::taxonTadarida,
+                        ObservationVigieChiro::taxonObservateur,
+                        ObservationVigieChiro::certitudeObservateur)
+                .containsExactly(
+                        org.assertj.core.groups.Tuple.tuple(0, "Pipkuh", null, null),
+                        org.assertj.core.groups.Tuple.tuple(
+                                2, "Eptser", "Pippip", fr.univ_amu.iut.commun.model.CertitudeObservateur.SUR));
     }
 
     @Test

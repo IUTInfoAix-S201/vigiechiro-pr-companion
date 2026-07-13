@@ -58,7 +58,10 @@ public class ValidationManuelle {
                 false, // reference
                 ModeValidation.MANUEL,
                 null, // idResultats : aucun jeu Tadarida
-                false); // douteux : une séquence tout juste validée n'est pas marquée douteuse
+                false, // douteux : une séquence tout juste validée n'est pas marquée douteuse
+                null, // idDonneeVigieChiro : validation locale, sans ancrage plateforme
+                null, // indiceVigieChiro
+                null); // certitudeObservateur : vide tant que l'observateur ne l'a pas saisie
         return observationDao.insert(manuelle);
     }
 }

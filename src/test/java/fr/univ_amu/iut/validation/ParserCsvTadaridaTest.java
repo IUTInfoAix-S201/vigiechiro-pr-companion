@@ -150,11 +150,13 @@ class ParserCsvTadaridaTest {
     }
 
     @Test
-    @DisplayName("Une probabilité textuelle d'un _Vu (« SUR ») est lue comme inconnue, sans planter")
-    void tolere_une_probabilite_textuelle() {
+    @DisplayName("Une probabilité textuelle d'un _Vu (« SUR ») est lue comme certitude observateur"
+            + " (#1139), et la probabilité numérique reste inconnue")
+    void capture_une_certitude_textuelle() {
         // Cas réel du dataset SAÉ (observations_Vu.csv ligne 2627) : l'observateur a saisi un code de
         // confiance « SUR » dans observateur_probabilite, là où un flottant est attendu. L'import ne
-        // doit pas échouer pour autant (cf. incident « For input string: SUR »).
+        // doit pas échouer (cf. incident « For input string: SUR ») et, depuis #1139, le jeton est
+        // capturé comme certitude au lieu d'être perdu.
         String vuAvecConfiance = "nom du fichier;temps_debut;temps_fin;frequence_mediane;tadarida_taxon;"
                 + "tadarida_probabilite;tadarida_taxon_autre;observateur_taxon;observateur_probabilite\n"
                 + "seq_000;0.0;3.6;79.0;Rhifer;0.99;;Rhifer;SUR\n";
@@ -162,10 +164,27 @@ class ParserCsvTadaridaTest {
         LigneObservation ligne = parser.parser(vuAvecConfiance).lignes().get(0);
 
         assertThat(ligne.probObservateur())
-                .as("confiance textuelle → probabilité inconnue")
+                .as("confiance textuelle → probabilité numérique inconnue")
                 .isNull();
+        assertThat(ligne.certitudeObservateur())
+                .as("le jeton SUR est capturé comme certitude, plus seulement toléré")
+                .isEqualTo(fr.univ_amu.iut.commun.model.CertitudeObservateur.SUR);
         assertThat(ligne.taxonObservateur()).isEqualTo("Rhifer");
         assertThat(ligne.probTadarida()).isEqualTo(0.99);
+    }
+
+    @Test
+    @DisplayName("Une probabilité observateur numérique d'un _Vu reste lue en nombre, sans certitude")
+    void probabilite_numerique_sans_certitude() {
+        String vuNumerique = "nom du fichier;tadarida_taxon;observateur_taxon;observateur_probabilite\n"
+                + "seq_000;Rhifer;Rhifer;0.85\n";
+
+        LigneObservation ligne = parser.parser(vuNumerique).lignes().get(0);
+
+        assertThat(ligne.probObservateur()).isEqualTo(0.85);
+        assertThat(ligne.certitudeObservateur())
+                .as("un nombre n'est pas un jeton de certitude")
+                .isNull();
     }
 
     @Test

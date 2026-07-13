@@ -1,4 +1,4 @@
-package fr.univ_amu.iut.importation.model;
+package fr.univ_amu.iut.commun.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

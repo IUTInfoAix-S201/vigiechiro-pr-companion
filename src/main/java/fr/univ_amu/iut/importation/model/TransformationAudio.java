@@ -1,6 +1,7 @@
 package fr.univ_amu.iut.importation.model;
 
 import fr.univ_amu.iut.commun.model.Empreintes;
+import fr.univ_amu.iut.commun.model.FichierWav;
 import fr.univ_amu.iut.commun.model.Prefixe;
 import java.io.IOException;
 import java.io.UncheckedIOException;

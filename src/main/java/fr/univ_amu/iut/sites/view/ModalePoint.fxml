@@ -31,8 +31,10 @@
     <!-- minWidth=USE_PREF_SIZE : sans cela, la HBox rogne le libellé (« Code du poi… »). -->
     <Label text="Code du point *" styleClass="field-label" minWidth="-Infinity"/>
     <TextField fx:id="champCode" promptText="A1" prefWidth="110.0"/>
-    <Label text="1 lettre majuscule + 1 ou plusieurs chiffres (ex. A1, Z41)" styleClass="field-hint"/>
   </HBox>
+  <!-- Sur sa propre ligne : dans la HBox, la consigne était rognée (« (ex. A1, … »). -->
+  <Label text="1 lettre majuscule + 1 ou plusieurs chiffres (ex. A1, Z41)" styleClass="field-hint"
+         wrapText="true"/>
   <Label fx:id="messageErreur" styleClass="message-erreur" wrapText="true"/>
 
   <Label text="Descriptif (optionnel)" styleClass="field-label"/>
@@ -63,7 +65,7 @@
        synchronisés. Sans GPS, le marqueur démarre au centre du carré (position approximative à caler). -->
   <StackPane fx:id="zoneCarte" styleClass="zone-carte-modale" minHeight="220.0" prefHeight="240.0"/>
   <Label text="Astuce : glissez le marqueur sur la carte pour fixer la position (ou saisissez les coordonnées)."
-         styleClass="field-hint"/>
+         styleClass="field-hint" wrapText="true"/>
 
   <HBox alignment="CENTER_RIGHT" spacing="8.0">
     <Region HBox.hgrow="ALWAYS"/>

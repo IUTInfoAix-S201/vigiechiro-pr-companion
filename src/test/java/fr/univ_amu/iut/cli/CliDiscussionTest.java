@@ -3,32 +3,12 @@ package fr.univ_amu.iut.cli;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.google.inject.Injector;
-import fr.univ_amu.iut.commun.model.ModeValidation;
-import fr.univ_amu.iut.commun.model.Protocole;
-import fr.univ_amu.iut.commun.model.StatutWorkflow;
-import fr.univ_amu.iut.commun.model.Utilisateur;
-import fr.univ_amu.iut.commun.model.dao.UtilisateurDao;
 import fr.univ_amu.iut.commun.persistence.MigrationSchema;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
 import fr.univ_amu.iut.commun.persistence.UniteDeTravail;
-import fr.univ_amu.iut.passage.model.EnregistrementOriginal;
-import fr.univ_amu.iut.passage.model.Enregistreur;
-import fr.univ_amu.iut.passage.model.Passage;
-import fr.univ_amu.iut.passage.model.SequenceDEcoute;
-import fr.univ_amu.iut.passage.model.SessionDEnregistrement;
-import fr.univ_amu.iut.passage.model.dao.EnregistrementOriginalDao;
-import fr.univ_amu.iut.passage.model.dao.EnregistreurDao;
-import fr.univ_amu.iut.passage.model.dao.PassageDao;
-import fr.univ_amu.iut.passage.model.dao.SequenceDao;
-import fr.univ_amu.iut.passage.model.dao.SessionDao;
-import fr.univ_amu.iut.sites.model.PointDEcoute;
-import fr.univ_amu.iut.sites.model.Site;
-import fr.univ_amu.iut.sites.model.dao.PointDao;
-import fr.univ_amu.iut.sites.model.dao.SiteDao;
+import fr.univ_amu.iut.fixture.JeuDeDonneesPassage;
 import fr.univ_amu.iut.validation.model.MessageObservation;
-import fr.univ_amu.iut.validation.model.Observation;
 import fr.univ_amu.iut.validation.model.dao.MessageObservationDao;
-import fr.univ_amu.iut.validation.model.dao.ObservationDao;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
@@ -117,61 +97,9 @@ class CliDiscussionTest {
     /// la clé étrangère du schéma y veille, et c'est heureux : un fil sans détection ne veut rien dire.
     private long semerUnFil() throws SQLException {
         SourceDeDonnees source = injecteur.getInstance(SourceDeDonnees.class);
-        new UtilisateurDao(source).insert(new Utilisateur("u-1", "Testeur"));
-        Site site = new SiteDao(source)
-                .insert(new Site(null, "130711", "Test", Protocole.STANDARD, null, "2026-01-01", "u-1"));
-        Long idPoint = new PointDao(source)
-                .insert(new PointDEcoute(null, "Z41", null, null, null, site.id()))
-                .id();
-        new EnregistreurDao(source).insert(new Enregistreur("1925492", null, null));
-        Passage passage = new PassageDao(source)
-                .insert(new Passage(
-                        null,
-                        1,
-                        2026,
-                        "2026-07-03",
-                        "22:00",
-                        "06:00",
-                        null,
-                        StatutWorkflow.IMPORTE,
-                        null,
-                        null,
-                        null,
-                        null,
-                        idPoint,
-                        "1925492"));
-        Long idSession = new SessionDao(source)
-                .insert(new SessionDEnregistrement(null, "/ws/session", null, null, passage.id()))
-                .id();
-        Long idOriginal = new EnregistrementOriginalDao(source)
-                .insert(new EnregistrementOriginal(null, "brut.wav", "/ws/brut.wav", 5.0, 384000, null, idSession))
-                .id();
-        Long idSequence = new SequenceDao(source)
-                .insert(new SequenceDEcoute(null, "seq.wav", idOriginal, 0, 0.0, 5.0, "/ws/seq.wav", false, idSession))
-                .id();
-        Long idObservation = new ObservationDao(source)
-                .insert(new Observation(
-                        null,
-                        idSequence,
-                        0.1,
-                        0.4,
-                        45,
-                        "Pipkuh",
-                        0.9,
-                        null,
-                        null,
-                        null,
-                        null,
-                        false,
-                        ModeValidation.NON_VALIDE,
-                        null,
-                        false,
-                        "d-1",
-                        3,
-                        null,
-                        null,
-                        null))
-                .id();
+        JeuDeDonneesPassage jeu =
+                JeuDeDonneesPassage.dans(source).carre("130711").point("Z41").semer();
+        long idObservation = jeu.ajouterObservation("Pipkuh");
 
         MessageObservationDao dao = new MessageObservationDao(source);
         new UniteDeTravail(source)

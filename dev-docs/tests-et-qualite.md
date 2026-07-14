@@ -126,6 +126,43 @@ Trois exigences, dans l'ordre d'importance :
     un emoji qui ne se rend pas (#700), et une **réplique** de dialogue qui avait **dérivé** du vrai
     écran. Un geste testé n'est pas un écran regardé : rendez la capture, et **ouvrez-la**.
 
+### Semer une nuit : `JeuDeDonneesPassage`
+
+Le schéma est **profond** : une `observation` référence une `sequence`, qui référence une
+`recording_session`, qui référence un `passage`, qui référence un `point`, un `site`, un `recorder` et un
+`user`. Écrire un test sur **une observation** obligeait donc à connaître **sept tables** - et
+**soixante-quinze** fichiers de test resemaient cette même chaîne à la main, en trois styles SQL
+différents (#1258).
+
+Ce n'était pas de la rigueur, c'était du **bruit** : le test parlait de la plomberie au lieu de parler de
+ce qu'il vérifie. Et chaque migration de schéma coûtait autant de retouches que de copies.
+
+```java
+JeuDeDonneesPassage jeu = JeuDeDonneesPassage.dans(source)
+        .carre("130711")
+        .point("Z41")
+        .semer();
+
+long douteuse  = jeu.ajouterObservation("Pipkuh");
+long validee   = jeu.ajouterObservationValidee("Nyclei");
+long corrigee  = jeu.ajouterObservationCorrigee("Pipkuh", "Pippip");
+```
+
+Valeurs par défaut : utilisateur `u-1`, carré `640380`, point `A1`, enregistreur `SN-1` - celles que les
+tests utilisaient déjà. Tout se surcharge avant `semer()`.
+
+**Migration opportuniste**, pas de big bang : on bascule un fichier **quand on le retouche**. Les trois
+styles SQL et les jeux de colonnes variables rendent une conversion mécanique **risquée**, et un test
+converti trop vite est un test qu'on ne relit plus.
+
+Deux limites, assumées :
+
+- la fixture **ne migre pas** le schéma (les tests ne l'obtiennent pas tous de la même façon) et **ne sème
+  aucun taxon** : le référentiel réel est déjà posé par `V02__seed_taxons.sql`, et réinsérer `Pipkuh`
+  **viole la clé primaire** ;
+- les **outils de capture** (`src/main/.../outils`) restent **autonomes** : ce sont des exécutables
+  indépendants, la fixture de test ne leur est pas accessible, on accepte leur duplication.
+
 ### La documentation est tenue par un test
 
 Une doc qui ment est **pire** qu'une doc absente : on la croit. Le dépôt l'avait déjà tranché pour les

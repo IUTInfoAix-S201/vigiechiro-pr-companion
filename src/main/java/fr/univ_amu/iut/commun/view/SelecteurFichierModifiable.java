@@ -31,6 +31,11 @@ public final class SelecteurFichierModifiable implements SelecteurFichier {
         return delegue.choisirFichier(titre, dossierInitial, filtre);
     }
 
+    @Override
+    public Optional<Path> enregistrerFichier(String titre, String nomPropose, FiltreFichier filtre) {
+        return delegue.enregistrerFichier(titre, nomPropose, filtre);
+    }
+
     /// Remplace la stratégie de désignation (double répondant dans les tests).
     public void definir(SelecteurFichier selecteur) {
         this.delegue = Objects.requireNonNull(selecteur, "selecteur");

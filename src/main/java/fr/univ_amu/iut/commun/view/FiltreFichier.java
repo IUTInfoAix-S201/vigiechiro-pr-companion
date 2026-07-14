@@ -22,4 +22,10 @@ public record FiltreFichier(String libelle, String motif) {
     public static FiltreFichier archiveZip() {
         return new FiltreFichier("Archive ZIP", "*.zip");
     }
+
+    /// Tableur : le format d'échange des exports (inventaires, vues, observations) et des résultats
+    /// Tadarida.
+    public static FiltreFichier csv() {
+        return new FiltreFichier("CSV", "*.csv");
+    }
 }

@@ -10,6 +10,7 @@ import fr.univ_amu.iut.commun.view.ActionFicheEspece;
 import fr.univ_amu.iut.commun.view.ColonneBadge;
 import fr.univ_amu.iut.commun.view.DescripteurFiltre;
 import fr.univ_amu.iut.commun.view.ExecuteurTache;
+import fr.univ_amu.iut.commun.view.FiltreFichier;
 import fr.univ_amu.iut.commun.view.GestionnaireFiltres;
 import fr.univ_amu.iut.commun.view.GestionnaireVues;
 import fr.univ_amu.iut.commun.view.IndicateurBlocage;
@@ -18,6 +19,8 @@ import fr.univ_amu.iut.commun.view.OuvrirAudio;
 import fr.univ_amu.iut.commun.view.OuvrirPassage;
 import fr.univ_amu.iut.commun.view.RafraichirAuRetour;
 import fr.univ_amu.iut.commun.view.ResumeStatut;
+import fr.univ_amu.iut.commun.view.SelecteurFichierJavaFx;
+import fr.univ_amu.iut.commun.view.SelecteurFichierModifiable;
 import fr.univ_amu.iut.commun.view.TableDonnees;
 import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
 import fr.univ_amu.iut.commun.viewmodel.ZonesStatut;
@@ -26,7 +29,6 @@ import fr.univ_amu.iut.validation.model.EspeceAgregee;
 import fr.univ_amu.iut.validation.model.ObservationAnalyse;
 import fr.univ_amu.iut.validation.model.ObservationEspece;
 import fr.univ_amu.iut.validation.model.StatutObservation;
-import java.io.File;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
@@ -53,7 +55,6 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.stage.FileChooser;
 import javafx.util.StringConverter;
 
 /// Controller de l'écran **« Espèces & observations »** (`Analyse.fxml`). Pur câblage : lie les deux
@@ -85,6 +86,19 @@ public class AnalyseController implements RafraichirAuRetour, ResumeStatut {
     private final ActionFicheEspece actionFicheEspece;
     private final ExecuteurTache executeur;
     private IndicateurOccupation occupation;
+
+    /// Désignation du fichier d'export : porteur partagé injectable (#1431), double répondant en test.
+    /// Un `FileChooser` en dur **figeait** tout test de l'export - ce que la Javadoc de [#exporter]
+    /// avouait sans détour (« le dialog vit dans la vue, non testé en TestFX »).
+    private final SelecteurFichierModifiable selecteur = new SelecteurFichierModifiable(
+            // `this.boutonExporter` : le champ @FXML est déclaré plus bas (référence en avant interdite
+            // dans un initialiseur). La fenêtre n'est lue qu'au clic.
+            new SelecteurFichierJavaFx(() -> this.boutonExporter.getScene().getWindow()));
+
+    /// Porteur de désignation exposé aux tests (#1431) : `selecteur().definir(double)`.
+    SelecteurFichierModifiable selecteur() {
+        return selecteur;
+    }
 
     /// Item « Fiche de l'espèce » du menu contextuel de [#tableEspeces], reconfiguré à chaque sélection.
     private MenuItem itemFicheEspece;
@@ -503,19 +517,15 @@ public class AnalyseController implements RafraichirAuRetour, ResumeStatut {
         carteAffichee.set(afficherCarte);
     }
 
-    /// « 📤 Exporter… » : sélecteur de fichier natif (enregistrement) puis délègue au ViewModel l'écriture
-    /// CSV de l'inventaire **affiché** (liste filtrée courante). Le dialog vit dans la vue (non testé en
-    /// TestFX) ; l'écriture est testée côté ViewModel/service.
+    /// « 📤 Exporter… » : demande où écrire, puis délègue au ViewModel l'écriture CSV de l'inventaire
+    /// **affiché** (la liste filtrée courante, pas l'inventaire complet). La désignation passe par le port
+    /// [SelecteurFichier] (#1431) : le geste est donc **jouable** dans un test, ce qu'il n'était pas.
     @FXML
     private void exporter() {
-        FileChooser selecteur = new FileChooser();
-        selecteur.setTitle("Exporter l'inventaire des espèces en CSV");
-        selecteur.setInitialFileName("inventaire-especes.csv");
-        selecteur.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV", "*.csv"));
-        File fichier = selecteur.showSaveDialog(boutonExporter.getScene().getWindow());
-        if (fichier != null) {
-            viewModel.exporter(fichier.toPath());
-        }
+        selecteur
+                .enregistrerFichier(
+                        "Exporter l'inventaire des espèces en CSV", "inventaire-especes.csv", FiltreFichier.csv())
+                .ifPresent(viewModel::exporter);
     }
 
     /// « Ouvrir le passage → » : ouvre M-Passage pour l'observation sélectionnée du détail.

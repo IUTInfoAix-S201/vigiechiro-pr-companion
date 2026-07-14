@@ -34,4 +34,12 @@ public interface SelecteurFichier {
     /// @param filtre types de fichiers proposés
     /// @return le fichier choisi, ou vide si l'utilisateur a **annulé**
     Optional<Path> choisirFichier(String titre, Optional<Path> dossierInitial, FiltreFichier filtre);
+
+    /// Demande **où enregistrer** un fichier (export).
+    ///
+    /// @param titre titre du sélecteur (« Exporter l'inventaire des espèces en CSV »)
+    /// @param nomPropose nom pré-rempli, que l'utilisateur reste libre de changer
+    /// @param filtre types de fichiers proposés
+    /// @return le fichier à écrire, ou vide si l'utilisateur a **annulé**
+    Optional<Path> enregistrerFichier(String titre, String nomPropose, FiltreFichier filtre);
 }

@@ -80,6 +80,12 @@ class GesteResetTest {
                     String titre, Optional<Path> dossierInitial, fr.univ_amu.iut.commun.view.FiltreFichier filtre) {
                 return choix;
             }
+
+            @Override
+            public Optional<Path> enregistrerFichier(
+                    String titre, String nomPropose, fr.univ_amu.iut.commun.view.FiltreFichier filtre) {
+                throw new AssertionError("le reset guidé désigne une sauvegarde, il n'enregistre aucun fichier");
+            }
         });
         geste.confirmateur().definir(nouveauConfirmateur());
         geste.notificateur().definir(nouveauNotificateur());

@@ -182,6 +182,11 @@ class PassageReactivationViewTest {
             public Optional<Path> choisirFichier(String titre, Optional<Path> dossierInitial, FiltreFichier filtre) {
                 throw new AssertionError("la réactivation demande un dossier, pas un fichier");
             }
+
+            @Override
+            public Optional<Path> enregistrerFichier(String titre, String nomPropose, FiltreFichier filtre) {
+                throw new AssertionError("la réactivation lit un dossier, elle n'écrit aucun fichier");
+            }
         });
         controleur.notificateur().definir((niveau, entete, message) -> {
             niveaux.add(niveau);

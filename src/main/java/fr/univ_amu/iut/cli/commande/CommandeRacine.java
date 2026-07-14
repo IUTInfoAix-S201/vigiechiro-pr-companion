@@ -43,6 +43,8 @@ import picocli.CommandLine.Spec;
             ImporterVigieChiro.class,
             PublierCorrectionsVigieChiro.class,
             ListerObservations.class,
+            ValiderObservations.class,
+            CorrigerObservations.class,
             Discussion.class,
             Qualifier.class,
             ExporterLot.class,

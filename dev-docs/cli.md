@@ -81,6 +81,8 @@ un **puits** (aucune feature ne dépend de lui), donc le graphe reste acyclique.
 | `restaurer` | `--sauvegarde <chemin> [--complet] --confirmer` | #148, #1346 | `ServiceSauvegarde.restaurer` / `restaurerComplet` : remet la base (et, avec `--complet`, les dossiers de session). **Écrase l'état local** : `--confirmer` est obligatoire. La base courante est mise de côté (`vigiechiro.db.avant-restauration`) |
 | `reset-guide` | `[--json] [--executer --confirmer [--accepter-perte] [--sauvegarde <dir>]]` | #1151, #1419 | Sans `--executer` : **lecture seule** — ce que deviendrait l'audio de chaque nuit si l'on repartait d'une base neuve (disque / serveur / **perdu**), code `2` dès qu'une nuit est en « perdu », pour qu'un script puisse refuser d'enchaîner. Avec `--executer` : `ServiceReset` mène la procédure (sauvegarde complète → base neuve → repeuplement depuis VigieChiro → audit final). Il **refuse de démarrer** si la perte n'est pas acceptée, **ou si VigieChiro ne répond pas** — une base neuve qu'on ne peut pas repeupler est une destruction sèche. Dans les deux cas, la base reste **intacte** |
 | `lister-observations` | `--passage <id> [--statut ..] [--taxon ..] [--douteux] [--reference] [--certitude ..] [--json]` | #1311 | **La surface de découverte de la revue.** Liste les observations d'un passage avec leur **identifiant**, l'avis de Tadarida, le vôtre, celui du validateur, le statut et les drapeaux. Sans elle, les gestes de revue (et `discussion`) sont aveugles : rien ne donnait les identifiants. Ses filtres sont **exactement** ceux des gestes (`SelectionObservations` partagé) : ce qu'elle montre est ce qu'ils toucheraient |
+| `valider-observations` | `(--observation <ids> \| --passage <id> [filtres] [--confirmer])` | R15, #1311 | **Accepte la proposition de Tadarida**, en lot atomique (mode **Activité** : traite exactement les lignes visées ; le mode *Inventaire*, qui **propage** à d'autres lignes, reste à l'écran - propager dans un script toucherait des lignes que l'utilisateur ne voit pas) |
+| `corriger-observations` | `--taxon <code> (--observation <ids> \| --passage <id> [filtres] [--confirmer])` | R16, #1311 | **Retient un autre taxon**, en lot atomique. Le taxon doit exister au référentiel : un code inconnu arrête tout **avant** la moindre écriture |
 | `discussion` | `--observation <id> [--message <texte> --confirmer]` | #1417, #1418 | Le **fil d'échange avec le validateur** du MNHN. Sans `--message`, le **lit** (le fil vient de la base, rafraîchi à chaque import). Avec, **y répond** — ⚠️ **écriture définitive** : le serveur ajoute par `$push` et n'offre aucune route de suppression. `--confirmer` est donc obligatoire, et le message n'est écrit localement **qu'après** que le serveur l'a accepté |
 | `--help` / `-h`, `--version` / `-V`, ou aucun argument | — | — | — |
 
@@ -159,6 +161,39 @@ conservées, le dépôt suivant re-téléverse tout.
 `executer(...)` **ne fait pas** `System.exit` (il *renvoie* le code) : c'est ce qui le rend testable.
 Seul `main()` traduit le code en `System.exit`. La base est **migrée au démarrage** (idempotent) avant
 toute commande, donc une première invocation crée le schéma si besoin.
+
+## Désigner les observations d'un geste de revue (#1311)
+
+C'était la **vraie difficulté** de la parité : l'écran raisonne par **sélection dans une table**, la ligne
+de commande **n'a pas de table**. Les gestes de revue offrent donc **deux** manières de désigner, exclusives
+et obligatoires (on ne pose pas un geste sans dire sur quoi), portées par la classe **partagée**
+`CiblesRevue` :
+
+```bash
+# 1. Chirurgical : sur des lignes qu'on a LUES.
+./vigiechiro lister-observations --passage 3 --statut NON_TOUCHEE
+./vigiechiro valider-observations --observation 12,13,14
+
+# 2. Scripté : sur un sous-ensemble DÉCRIT, avec les MÊMES filtres que lister-observations.
+./vigiechiro corriger-observations --taxon Pippip --passage 3 --taxon-tadarida Pipkuh
+```
+
+**La garantie** : c'est le **même** `SelectionObservations` qui choisit pour lister et pour agir. Ce que
+`lister-observations --passage 3 --statut NON_TOUCHEE` **montre** est **exactement** ce que
+`valider-observations --passage 3 --statut NON_TOUCHEE` **touche**. On regarde, puis on agit - et c'est
+mécanique, pas promis.
+
+!!! warning "Viser un passage sans filtre exige `--confirmer`"
+    `--passage 3` **seul**, c'est **toutes** les observations du passage - des centaines. Un filtre oublié
+    dans un script transforme « corrige ces trois lignes » en « corrige la nuit entière », et **rien** dans
+    la commande ne distinguerait l'un de l'autre. Ce cas exige donc `--confirmer`.
+
+    Et une sélection qui ne retient **rien** **lève**, au lieu de répondre « 0 observation traitée » : un
+    geste qui ne touche rien est presque toujours une **erreur de filtre**.
+
+Les filtres booléens (`--douteux`, `--reference`) sont **ternaires** : posés, ils ne gardent que les lignes
+concernées ; **absents**, ils laissent passer **les deux** - ils ne veulent **pas** dire « seulement les
+non-douteuses ».
 
 ## Lancer la CLI
 

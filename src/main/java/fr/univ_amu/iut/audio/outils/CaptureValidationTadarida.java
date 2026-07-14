@@ -29,6 +29,7 @@ import fr.univ_amu.iut.commun.view.OuvrirSite;
 import fr.univ_amu.iut.commun.viewmodel.ContextePassage;
 import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
 import fr.univ_amu.iut.commun.viewmodel.SourceObservations;
+import fr.univ_amu.iut.connexion.model.StockageConnexion;
 import fr.univ_amu.iut.passage.di.PassageModule;
 import fr.univ_amu.iut.passage.model.EnregistrementOriginal;
 import fr.univ_amu.iut.passage.model.Enregistreur;
@@ -164,7 +165,8 @@ public final class CaptureValidationTadarida {
                             SaisieCertitude saisieCertitude,
                             RevueEnLot revueEnLot,
                             ServiceBibliotheque bibliotheque,
-                            ServiceDisponibiliteAudio disponibilite) {
+                            ServiceDisponibiliteAudio disponibilite,
+                            StockageConnexion connexion) {
                         return new AudioViewModel(
                                 validation,
                                 projectionsAudio,
@@ -175,7 +177,8 @@ public final class CaptureValidationTadarida {
                                 revueEnLot,
                                 bibliotheque,
                                 disponibilite,
-                                Files::exists);
+                                Files::exists,
+                                connexion);
                     }
 
                     // Import VigieChiro indisponible en capture (aucune connexion) : VM à dépôt vide.

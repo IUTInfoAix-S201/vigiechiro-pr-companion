@@ -29,6 +29,7 @@ import fr.univ_amu.iut.commun.viewmodel.ContextePassage;
 import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
 import fr.univ_amu.iut.commun.viewmodel.ReglagesReactifs;
 import fr.univ_amu.iut.commun.viewmodel.SourceObservations;
+import fr.univ_amu.iut.connexion.model.StockageConnexion;
 import fr.univ_amu.iut.passage.model.ServiceDisponibiliteAudio;
 import fr.univ_amu.iut.validation.model.BilanImport;
 import fr.univ_amu.iut.validation.model.ImportVigieChiro;
@@ -117,7 +118,8 @@ class SonsValidationDepotViewTest {
                                 mock(RevueEnLot.class),
                                 bibliotheque,
                                 mock(ServiceDisponibiliteAudio.class),
-                                p -> true);
+                                p -> true,
+                                mock(StockageConnexion.class));
                     }
 
                     @Provides

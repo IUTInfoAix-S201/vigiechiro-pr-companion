@@ -1,6 +1,7 @@
 package fr.univ_amu.iut.audio.view;
 
 import fr.univ_amu.iut.audio.viewmodel.ComparateursAudio;
+import fr.univ_amu.iut.audio.viewmodel.FormatAvisValidateur;
 import fr.univ_amu.iut.audio.viewmodel.FormatLigneAudio;
 import fr.univ_amu.iut.commun.view.ColonneBadge;
 import fr.univ_amu.iut.validation.model.LigneObservationAudio;
@@ -38,7 +39,9 @@ final class ColonnesAudio {
             TableColumn<LigneObservationAudio, LocalDateTime> heure,
             TableColumn<LigneObservationAudio, String> statut,
             TableColumn<LigneObservationAudio, String> reference,
-            TableColumn<LigneObservationAudio, String> commentaire) {}
+            TableColumn<LigneObservationAudio, String> commentaire,
+            TableColumn<LigneObservationAudio, String> validateur,
+            TableColumn<LigneObservationAudio, String> fil) {}
 
     private ColonnesAudio() {}
 
@@ -74,6 +77,16 @@ final class ColonnesAudio {
         col.certitude()
                 .setCellValueFactory(c -> new ReadOnlyStringWrapper(
                         FormatLigneAudio.libelleCertitude(c.getValue().certitude())));
+        // Le TROISIEME avis (#1417) : ce que le validateur du MNHN a tranche. Il arrivait deja du serveur
+        // a chaque import, et la table ne le montrait pas - l'observateur pouvait croire que sa correction
+        // faisait foi. Place juste apres sa certitude : les trois avis se lisent alors de gauche a droite,
+        // Tadarida propose -> vous corrigez -> l'expert tranche.
+        col.validateur().setCellValueFactory(c -> new ReadOnlyStringWrapper(FormatAvisValidateur.avis(c.getValue())));
+        // Badge : le DESACCORD est ce qu'il faut voir en premier. Un expert qui confirme ne demande rien.
+        col.validateur().setCellFactory(colonne -> ColonneBadge.cellule(FormatAvisValidateur::classeBadge));
+        // Fil de discussion : le nombre de messages, vide si personne n'a ecrit. Sans cet indicateur, un fil
+        // ouvert par un validateur resterait invisible - on ne va pas ouvrir une modale sur chaque ligne.
+        col.fil().setCellValueFactory(c -> new ReadOnlyStringWrapper(FormatAvisValidateur.marqueFil(c.getValue())));
         col.fichier()
                 .setCellValueFactory(c -> new ReadOnlyStringWrapper(
                         FormatLigneAudio.ouTiret(c.getValue().nomFichier())));

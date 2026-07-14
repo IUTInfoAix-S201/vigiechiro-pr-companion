@@ -27,6 +27,7 @@ import fr.univ_amu.iut.commun.view.OuvrirAnalyse;
 import fr.univ_amu.iut.commun.view.OuvrirMultisite;
 import fr.univ_amu.iut.commun.view.OuvrirSite;
 import fr.univ_amu.iut.commun.viewmodel.SourceObservations;
+import fr.univ_amu.iut.connexion.model.StockageConnexion;
 import fr.univ_amu.iut.passage.di.PassageModule;
 import fr.univ_amu.iut.passage.model.EnregistrementOriginal;
 import fr.univ_amu.iut.passage.model.Enregistreur;
@@ -129,7 +130,8 @@ final class GraineSonsValidation {
                             SaisieCertitude saisieCertitude,
                             RevueEnLot revueEnLot,
                             ServiceBibliotheque bibliotheque,
-                            ServiceDisponibiliteAudio disponibilite) {
+                            ServiceDisponibiliteAudio disponibilite,
+                            StockageConnexion connexion) {
                         return new AudioViewModel(
                                 validation,
                                 projectionsAudio,
@@ -140,7 +142,8 @@ final class GraineSonsValidation {
                                 revueEnLot,
                                 bibliotheque,
                                 disponibilite,
-                                Files::exists);
+                                Files::exists,
+                                connexion);
                     }
 
                     // Import VigieChiro indisponible en capture (aucune connexion) : VM à dépôt vide.

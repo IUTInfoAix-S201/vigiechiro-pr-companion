@@ -122,6 +122,7 @@
           <TableColumn fx:id="colProba" text="Proba." prefWidth="70.0"/>
           <TableColumn fx:id="colObservateur" text="Votre taxon" prefWidth="180.0"/>
           <TableColumn fx:id="colCertitude" text="Certitude" prefWidth="90.0"/>
+          <TableColumn fx:id="colValidateur" text="Avis du validateur" prefWidth="180.0"/>
           <TableColumn fx:id="colFrequence" text="Fréquence" prefWidth="100.0"/>
           <TableColumn fx:id="colFme" text="FME" prefWidth="90.0"/>
           <TableColumn fx:id="colFreqTerminale" text="Fréq. term." prefWidth="100.0"/>
@@ -130,6 +131,7 @@
           <TableColumn fx:id="colStatut" text="Statut" prefWidth="110.0"/>
           <TableColumn fx:id="colReference" text="⭐" prefWidth="50.0"/>
           <TableColumn fx:id="colCommentaire" text="💬" prefWidth="50.0"/>
+          <TableColumn fx:id="colFil" text="🗣" prefWidth="50.0"/>
         </columns>
       </TableView>
       <Label fx:id="lblVide" styleClass="audio-vide" wrapText="true"/>
@@ -144,7 +146,12 @@
            de la séquence sélectionnée n'est plus sur disque (passage archivé, disque incomplet), le
            lecteur est remplacé par une explication au lieu de rester inerte. Pas de ScrollPane autour
            de l'AudioView (piège du spectrogramme noir, #329). -->
-      <StackPane VBox.vgrow="ALWAYS" minHeight="150.0">
+      <!-- Le lecteur et le fil de discussion (#1417) cote a cote : un fil se lit EN ecoutant. Le panneau
+           reste masque (visible+managed a false) tant qu'aucun message n'existe sur la ligne selectionnee,
+           ce qui est le cas de l'immense majorite des detections : il ne vole donc pas de largeur au
+           spectrogramme pour ne rien dire. -->
+      <HBox spacing="8.0" VBox.vgrow="ALWAYS">
+      <StackPane HBox.hgrow="ALWAYS" minHeight="150.0">
         <AudioView fx:id="audioView" minHeight="150.0"/>
         <VBox fx:id="encartAudioManquant" alignment="CENTER" spacing="4.0" styleClass="audio-vide"
               visible="false" managed="false">
@@ -153,6 +160,8 @@
                  text="Cette séquence n'est plus écoutable : son fichier a été supprimé (passage archivé ou disque incomplet). Les observations restent consultables et modifiables ; pour réécouter, réimportez les fichiers d'origine."/>
         </VBox>
       </StackPane>
+      <StackPane fx:id="hoteDiscussion" managed="false" visible="false"/>
+      </HBox>
       <!-- Chaque bouton d'action est enrobé d'un StackPane : un Button désactivé n'affiche pas de Tooltip,
            on pose donc l'explication du blocage sur l'enveloppe qui, elle, reçoit le survol (#789). -->
       <HBox spacing="8.0" alignment="CENTER_LEFT" styleClass="barre-actions">

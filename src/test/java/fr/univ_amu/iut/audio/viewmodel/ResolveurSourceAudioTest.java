@@ -77,6 +77,10 @@ class ResolveurSourceAudioTest {
                 0.4,
                 null,
                 false,
-                null);
+                null,
+                null,
+                null,
+                null,
+                0);
     }
 }

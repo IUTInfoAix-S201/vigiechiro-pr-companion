@@ -37,11 +37,19 @@ public class ProjectionsAudioDao extends ProjectionGenerique {
             + " te.vernacular_name_fr AS nom_espece, tt.vernacular_name_fr AS nom_tadarida,"
             + " tt.latin_name AS latin_tadarida,"
             + " g.name AS groupe,"
+            // Le troisième avis (#1417) : ce que le validateur du MNHN a tranché. Il arrivait déjà du
+            // serveur à chaque import, et la vue ne le montrait pas — l'observateur croyait donc que sa
+            // correction faisait foi. Le nombre de messages, lui, dit qu'une discussion existe : sans ce
+            // compteur, un fil ouvert par un expert resterait invisible.
+            + " o.taxon_validator AS validateur, o.validator_certainty AS certitude_validateur,"
+            + " tv.vernacular_name_fr AS nom_validateur,"
+            + " (SELECT COUNT(*) FROM observation_message m WHERE m.observation_id = o.id) AS nb_messages,"
             + " ls.file_name AS nom_fichier, ls.recorded_at AS recorded_at,"
             + " o.start_time_s AS debut_s, o.end_time_s AS fin_s"
             + FragmentsSqlObservation.DE_OBSERVATION_AU_SITE
             + " LEFT JOIN taxon te ON te.code = COALESCE(o.taxon_observer, o.taxon_tadarida)"
             + " LEFT JOIN taxon tt ON tt.code = o.taxon_tadarida"
+            + " LEFT JOIN taxon tv ON tv.code = o.taxon_validator"
             + " LEFT JOIN taxonomic_group g ON g.id = te.group_id"
             + ")";
 
@@ -81,7 +89,11 @@ public class ProjectionsAudioDao extends ProjectionGenerique {
             (Double) rs.getObject("fin_s"),
             FragmentsSqlObservation.heureCaptureDe(rs.getString("recorded_at")),
             rs.getInt(FragmentsSqlObservation.COL_IS_DOUBTFUL) != 0,
-            CertitudeObservateur.depuisTexte(rs.getString("certitude")));
+            CertitudeObservateur.depuisTexte(rs.getString("certitude")),
+            rs.getString("validateur"),
+            CertitudeObservateur.depuisTexte(rs.getString("certitude_validateur")),
+            rs.getString("nom_validateur"),
+            rs.getInt("nb_messages"));
 
     public ProjectionsAudioDao(SourceDeDonnees source) {
         super(source);
@@ -177,7 +189,13 @@ public class ProjectionsAudioDao extends ProjectionGenerique {
             null, // finS
             FragmentsSqlObservation.heureCaptureDe(rs.getString("recorded_at")),
             rs.getInt(FragmentsSqlObservation.COL_IS_DOUBTFUL) != 0, // om NULL → getInt = 0 → pas douteux
-            CertitudeObservateur.depuisTexte(rs.getString("certitude")));
+            CertitudeObservateur.depuisTexte(rs.getString("certitude")),
+            // Une séquence non identifiée n'existe pas côté plateforme : ni avis de validateur, ni fil.
+            // (Une validation manuelle y crée une observation locale, qui n'a pas non plus d'ancrage.)
+            null, // taxonValidateur
+            null, // certitudeValidateur
+            null, // nomValidateur
+            0); // nbMessages
 
     /// Source **Non identifiés** : les séquences d'un passage **sans observation Tadarida** (à écouter et
     /// valider à la main). L'écoute ne dépend pas d'une observation, seulement de la séquence ; une

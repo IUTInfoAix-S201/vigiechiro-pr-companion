@@ -148,3 +148,38 @@
   -fx-border-insets: 2;
   -fx-border-radius: 6;
 }
+
+/*
+ * Fil de discussion avec le validateur du MNHN (#1417), a droite du lecteur.
+ * Masque tant que personne n'a ecrit : il ne vole de la largeur au spectrogramme que quand il a
+ * quelque chose a dire.
+ */
+.panneau-discussion {
+    -fx-padding: 6px;
+    -fx-background-color: -fx-control-inner-background;
+    -fx-border-color: -fx-box-border;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+}
+
+.titre-discussion {
+    -fx-font-weight: bold;
+}
+
+.bulle-message {
+    -fx-padding: 6px 8px;
+    -fx-background-radius: 6px;
+    -fx-background-color: -fx-background;
+}
+
+/* Savoir QUI parle est la moitie de l'information : nos messages et ceux de l'expert ne se ressemblent pas. */
+.message-de-moi {
+    -fx-font-size: 0.9em;
+    -fx-text-fill: -badge-info-texte;
+}
+
+.message-du-validateur {
+    -fx-font-size: 0.9em;
+    -fx-font-weight: bold;
+    -fx-text-fill: -badge-avertissement-texte;
+}

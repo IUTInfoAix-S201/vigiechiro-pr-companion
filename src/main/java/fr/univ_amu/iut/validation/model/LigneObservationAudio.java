@@ -54,8 +54,19 @@ import java.time.LocalDateTime;
 ///     sur l'heure du jour (`heureCapture.toLocalTime()`)
 /// @param douteux `true` si l'observation est marquée « douteuse / à repasser » (`is_doubtful`, #160)
 /// @param certitude certitude déclarée manuellement par l'observateur (`observer_certainty`, #1139), ou
-///     `null` = non renseignée (vide par défaut, jamais préremplie) ; ajoutée en **dernier** composant
-///     pour préserver l'ordre historique du record
+///     `null` = non renseignée (vide par défaut, jamais préremplie)
+/// @param taxonValidateur code du taxon **tranché par le validateur** du MNHN (`taxon_validator`, #1417),
+///     ou `null` tant qu'aucun expert ne s'est prononcé. C'est le **troisième avis**, celui qui fait
+///     autorité : la vue le présentait jusqu'ici comme inexistant, et l'observateur pouvait croire que sa
+///     propre correction était le dernier mot
+/// @param certitudeValidateur certitude déclarée par le validateur (`validator_certainty`, #1417), ou
+///     `null`
+/// @param nomValidateur nom vernaculaire FR du taxon du validateur, ou `null` (souche hors référentiel —
+///     la vue affiche alors le code), pendant de `nomTadarida`
+/// @param nbMessages nombre de messages du **fil de discussion** de l'observation (#1417) : `0` = personne
+///     n'a écrit. Un compteur plutôt que le fil lui-même — la table dit qu'une discussion existe, la modale
+///     la donne à lire ; les quatre derniers composants sont ajoutés en **queue** pour préserver l'ordre
+///     historique du record
 public record LigneObservationAudio(
         Long idObservation,
         long idSequence,
@@ -82,7 +93,30 @@ public record LigneObservationAudio(
         Double finS,
         LocalDateTime heureCapture,
         boolean douteux,
-        CertitudeObservateur certitude) {
+        CertitudeObservateur certitude,
+        String taxonValidateur,
+        CertitudeObservateur certitudeValidateur,
+        String nomValidateur,
+        int nbMessages) {
+
+    /// Un expert du MNHN s'est-il prononcé sur cette détection ? Vrai dès qu'un taxon de validateur est
+    /// posé — c'est ce qui distingue une observation *revue par un expert* d'une observation qu'on est
+    /// seul à avoir regardée.
+    public boolean trancheeParUnValidateur() {
+        return taxonValidateur != null;
+    }
+
+    /// Le validateur **contredit-il** l'observateur ? Vrai seulement si les deux se sont prononcés et
+    /// qu'ils divergent. Un désaccord est ce qu'on veut voir en premier : c'est là que se joue la qualité
+    /// de la donnée déposée.
+    public boolean validateurEnDesaccord() {
+        return taxonValidateur != null && taxonObservateur != null && !taxonValidateur.equals(taxonObservateur);
+    }
+
+    /// Une discussion est-elle ouverte sur cette détection ?
+    public boolean aUnFil() {
+        return nbMessages > 0;
+    }
 
     /// Ces deux projections désignent-elles la **même ligne** ? Une observation se réidentifie par son
     /// `idObservation` (unique, même si une séquence porte plusieurs cris) ; une **séquence non identifiée**

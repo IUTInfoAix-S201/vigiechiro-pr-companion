@@ -147,6 +147,10 @@ class ExportObservationsCsvTest {
                 finS,
                 null,
                 douteux,
-                null);
+                null,
+                null,
+                null,
+                null,
+                0);
     }
 }

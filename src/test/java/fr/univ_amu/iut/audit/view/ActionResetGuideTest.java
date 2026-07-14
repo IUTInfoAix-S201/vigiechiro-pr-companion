@@ -105,6 +105,13 @@ class ActionResetGuideTest {
                     String titre, Optional<Path> dossierInitial, fr.univ_amu.iut.commun.view.FiltreFichier filtre) {
                 return Optional.of(SAUVEGARDES);
             }
+
+            /// Le reset ne demande jamais où **écrire** un fichier : il désigne un dossier de sauvegarde.
+            @Override
+            public Optional<Path> enregistrerFichier(
+                    String titre, String nomPropose, fr.univ_amu.iut.commun.view.FiltreFichier filtre) {
+                return Optional.empty();
+            }
         });
         geste.confirmateur().definir(message -> true);
         geste.notificateur().definir((niveau, entete, message) -> {});

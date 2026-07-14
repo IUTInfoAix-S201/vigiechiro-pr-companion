@@ -8,6 +8,7 @@ import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 import fr.univ_amu.iut.audit.model.AuditPointsServeur;
 import fr.univ_amu.iut.audit.model.ServiceAuditCoherence;
+import fr.univ_amu.iut.audit.model.ServiceRecuperabilite;
 import fr.univ_amu.iut.audit.view.ActiviteAudit;
 import fr.univ_amu.iut.audit.viewmodel.AuditViewModel;
 import fr.univ_amu.iut.commun.api.ClientVigieChiro;
@@ -67,6 +68,14 @@ public class AuditModule extends ModuleDeFeature {
             Optional<VerificationDepot> verificationDepot,
             Optional<AuditPointsServeur> auditPointsServeur) {
         return new ServiceAuditCoherence(source, workspace, verificationDepot, auditPointsServeur);
+    }
+
+    /// Bilan de récupérabilité (#1151) : ce que deviendrait l'audio de chaque nuit si l'on repartait d'une
+    /// base neuve. Lecture seule, sans réseau — c'est le garde-fou qui doit précéder tout reset.
+    @Provides
+    @Singleton
+    ServiceRecuperabilite fournirServiceRecuperabilite(SourceDeDonnees source, Workspace workspace) {
+        return new ServiceRecuperabilite(source, workspace);
     }
 
     /// ViewModel de l'écran d'audit. **Non-singleton** (un VM frais par chargement FXML).

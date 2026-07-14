@@ -54,7 +54,8 @@ import picocli.CommandLine.Spec;
             ExporterVu.class,
             ExporterObservations.class,
             Sauvegarder.class,
-            Restaurer.class
+            Restaurer.class,
+            ResetGuide.class
         })
 public final class CommandeRacine implements Runnable {
 

@@ -37,10 +37,14 @@ class ActionMenuWiringTest {
                 .map(action -> action.getClass().getSimpleName())
                 .toList();
 
+        // Les variantes « complètes » (#1346) suivent immédiatement leur variante « base seule » : les deux
+        // se lisent par paire, la complète en second car elle est plus lourde et plus rare.
         assertThat(ordonnees)
                 .containsExactly(
                         "ActionSauvegarder",
+                        "ActionSauvegarderComplet",
                         "ActionRestaurer",
+                        "ActionRestaurerComplet",
                         "ActionPurger",
                         "ActionSourceEspece",
                         "ActionOuvrirReglages",

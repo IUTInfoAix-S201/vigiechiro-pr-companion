@@ -49,6 +49,11 @@ public final class ActiviteAnalyse implements ActiviteAccueil {
     }
 
     @Override
+    public String pageDoc() {
+        return "analyse";
+    }
+
+    @Override
     public void ouvrir() {
         navigation.ouvrir();
     }

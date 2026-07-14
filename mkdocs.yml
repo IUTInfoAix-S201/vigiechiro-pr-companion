@@ -58,12 +58,12 @@ nav:
       - ecrans/index.md
       - Accueil: ecrans/accueil.md
       - Recherche: ecrans/recherche.md
-      - Sites: ecrans/sites.md
+      - Mes sites: ecrans/sites.md
       - Passage: ecrans/passage.md
       - Importation: ecrans/importation.md
       - Qualification: ecrans/qualification.md
       - Lot: ecrans/lot.md
-      - Validation: ecrans/validation.md
+      - "Sons & validation": ecrans/validation.md
       - "Carte & passages": ecrans/multisite.md
       - "Espèces & observations": ecrans/analyse.md
       - Diagnostic: ecrans/diagnostic.md

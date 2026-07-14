@@ -32,6 +32,18 @@ public interface ActiviteAccueil {
     /// Courte phrase d'invite décrivant l'activité.
     String description();
 
+    /// Nom court de la **fiche d'écran** qui documente l'activité sur le site produit, sans extension :
+    /// la valeur `"audit"` désigne `docs/ecrans/audit.md`.
+    ///
+    /// Ce n'est pas une redondance avec [#titre()] : le nom de la fiche ne se déduit **ni** du titre
+    /// (« Sons de référence » se documente dans `validation.md`) **ni** du paquet (la feature `audio`
+    /// aussi). Il faut donc le **dire**.
+    ///
+    /// Le contrat existe pour être **contraignant** : une activité offerte à l'utilisateur est une
+    /// surface documentée, et `DocumentationAJourTest` refuse une fiche absente. Faute de cette méthode,
+    /// on peut livrer un écran entier sans page — c'est arrivé (« Audit de cohérence », #1133 → #1458).
+    String pageDoc();
+
     /// Ouvre l'activité (typiquement via la façade de navigation de la feature, qui publie une
     /// nouvelle vue dans le [Navigateur]).
     void ouvrir();

@@ -53,6 +53,11 @@ public final class ActiviteMultisite implements ActiviteAccueil {
     }
 
     @Override
+    public String pageDoc() {
+        return "multisite";
+    }
+
+    @Override
     public void ouvrir() {
         navigation.ouvrirAccueil();
     }

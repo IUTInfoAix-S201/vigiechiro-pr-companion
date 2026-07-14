@@ -49,6 +49,11 @@ public final class ActiviteAudit implements ActiviteAccueil {
     }
 
     @Override
+    public String pageDoc() {
+        return "audit";
+    }
+
+    @Override
     public void ouvrir() {
         navigation.ouvrir();
     }

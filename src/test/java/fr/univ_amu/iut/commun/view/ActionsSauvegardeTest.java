@@ -80,6 +80,12 @@ class ActionsSauvegardeTest {
                 selections.add(titre);
                 return choix;
             }
+
+            @Override
+            public Optional<Path> enregistrerFichier(String titre, String nomPropose, FiltreFichier filtre) {
+                throw new AssertionError(
+                        "la sauvegarde écrit elle-même dans le dossier choisi : elle ne passe pas par un sélecteur d'enregistrement");
+            }
         });
         action.confirmateur().definir(message -> {
             confirmations.add(message);

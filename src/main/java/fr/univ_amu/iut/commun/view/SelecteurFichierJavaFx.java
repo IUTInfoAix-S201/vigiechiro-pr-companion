@@ -40,6 +40,15 @@ public final class SelecteurFichierJavaFx implements SelecteurFichier {
         return chemin(selecteur.showOpenDialog(fenetre.get()));
     }
 
+    @Override
+    public Optional<Path> enregistrerFichier(String titre, String nomPropose, FiltreFichier filtre) {
+        FileChooser selecteur = new FileChooser();
+        selecteur.setTitle(titre);
+        selecteur.setInitialFileName(nomPropose);
+        selecteur.getExtensionFilters().add(new FileChooser.ExtensionFilter(filtre.libelle(), filtre.motif()));
+        return chemin(selecteur.showSaveDialog(fenetre.get()));
+    }
+
     /// Le dossier initial **s'il existe** : les sélecteurs de JavaFX refusent un dossier inexistant, ce
     /// qui est le cas du dossier de sauvegardes par défaut tant qu'aucune sauvegarde n'a été faite.
     private static Optional<File> dossierExistant(Optional<Path> dossier) {

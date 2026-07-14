@@ -118,6 +118,11 @@ class ImportationClicImporterTest {
                 filtres.add(filtre);
                 return choix;
             }
+
+            @Override
+            public Optional<Path> enregistrerFichier(String titre, String nomPropose, FiltreFichier filtre) {
+                throw new AssertionError("l'import lit une source, il n'écrit aucun fichier");
+            }
         });
         stage.setScene(new Scene(vue, 1100, 760));
         stage.show();

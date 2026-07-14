@@ -20,16 +20,20 @@ import fr.univ_amu.iut.commun.model.DepotVues;
 import fr.univ_amu.iut.commun.model.VueSauvegardee;
 import fr.univ_amu.iut.commun.view.DescripteurCritere;
 import fr.univ_amu.iut.commun.view.DescripteurFiltre;
+import fr.univ_amu.iut.commun.view.FiltreFichier;
 import fr.univ_amu.iut.commun.view.OuvreurDeLien;
 import fr.univ_amu.iut.commun.view.OuvrirAudio;
 import fr.univ_amu.iut.commun.view.OuvrirPassage;
+import fr.univ_amu.iut.commun.view.SelecteurFichier;
 import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
 import fr.univ_amu.iut.commun.viewmodel.SourceObservations;
 import fr.univ_amu.iut.validation.model.ObservationAnalyse;
 import fr.univ_amu.iut.validation.model.ObservationEspece;
 import fr.univ_amu.iut.validation.model.StatutObservation;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -127,9 +131,39 @@ class AnalyseViewTest {
         loader.setControllerFactory(injector::getInstance);
         Parent vue = loader.load();
         controleur = loader.getController();
+        // Désignation du fichier d'export (#1431) : sans ce double, « Exporter… » ouvrirait un FileChooser
+        // natif, qui fige le test. C'est pourquoi ce geste n'était couvert nulle part - la Javadoc de
+        // `exporter()` le disait franchement : « le dialog vit dans la vue (non testé en TestFX) ».
+        controleur.selecteur().definir(new SelecteurFichier() {
+            @Override
+            public Optional<Path> choisirDossier(String titre, Optional<Path> dossierInitial) {
+                throw new AssertionError("l'export désigne un fichier à écrire, pas un dossier");
+            }
+
+            @Override
+            public Optional<Path> choisirFichier(String titre, Optional<Path> dossierInitial, FiltreFichier filtre) {
+                throw new AssertionError("l'export écrit un fichier, il n'en ouvre pas un existant");
+            }
+
+            @Override
+            public Optional<Path> enregistrerFichier(String titre, String nomPropose, FiltreFichier filtre) {
+                nomsProposes.add(nomPropose);
+                filtres.add(filtre);
+                return choixExport;
+            }
+        });
         stage.setScene(new Scene(vue, 1000, 640));
         stage.show();
     }
+
+    /// Ce que le double de sélection répondra à l'export : vide = l'utilisateur a **annulé**.
+    private Optional<Path> choixExport = Optional.empty();
+
+    /// Noms de fichier **proposés** par l'export (l'utilisateur reste libre de les changer).
+    private final List<String> nomsProposes = new ArrayList<>();
+
+    /// Types de fichiers proposés par l'export.
+    private final List<FiltreFichier> filtres = new ArrayList<>();
 
     /// Une observation enrichie de l'espèce `taxon` sur le carré 640380 (statut validé) : matière brute que
     /// le ViewModel filtre puis agrège (#537).
@@ -466,5 +500,33 @@ class AnalyseViewTest {
         assertThat(voile.isVisible())
                 .as("chargement terminé (exécuteur synchrone) : overlay masqué")
                 .isFalse();
+    }
+
+    @Test
+    @DisplayName("#1431 : « Exporter… » écrit l'inventaire dans le fichier désigné, et propose un nom")
+    void export_ecrit_dans_le_fichier_designe(FxRobot robot) {
+        Path destination = Path.of("/tmp/mon-inventaire.csv");
+        choixExport = Optional.of(destination);
+
+        robot.interact(() -> robot.lookup("#boutonExporter").queryButton().fire());
+
+        // Le nom proposé n'est pas un détail : c'est ce que l'utilisateur va accepter neuf fois sur dix.
+        assertThat(nomsProposes).containsExactly("inventaire-especes.csv");
+        assertThat(filtres)
+                .singleElement()
+                .satisfies(filtre -> assertThat(filtre.motif()).isEqualTo("*.csv"));
+        // Ce qu'on exporte, c'est l'inventaire AFFICHÉ (la liste filtrée), pas la base entière.
+        verify(service).exporterEspeces(eq(destination), any());
+    }
+
+    @Test
+    @DisplayName("#1431 : « Exporter… » annulé : aucun fichier n'est écrit")
+    void export_annule_n_ecrit_rien(FxRobot robot) {
+        choixExport = Optional.empty();
+
+        robot.interact(() -> robot.lookup("#boutonExporter").queryButton().fire());
+
+        verify(service, never()).exporterEspeces(any(), any());
+        verify(service, never()).exporterCarres(any(), any());
     }
 }

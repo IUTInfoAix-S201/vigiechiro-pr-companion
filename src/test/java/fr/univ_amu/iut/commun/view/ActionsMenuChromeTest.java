@@ -59,6 +59,12 @@ class ActionsMenuChromeTest {
             public Optional<Path> choisirFichier(String titre, Optional<Path> dossierInitial, FiltreFichier filtre) {
                 return Optional.of(choix);
             }
+
+            @Override
+            public Optional<Path> enregistrerFichier(String titre, String nomPropose, FiltreFichier filtre) {
+                throw new AssertionError(
+                        "les entrées ☰ désignent un dossier ou une sauvegarde, elles n'enregistrent pas de fichier");
+            }
         });
         actions.confirmateur().definir(message -> true);
         actions.notificateur().definir((niveau, entete, message) -> {});

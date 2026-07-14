@@ -78,6 +78,7 @@ public class ServiceValidation implements CompteurValidations {
     private final Horloge horloge;
     private final PreservationValidations preservation;
     private final FilsDiscussionVigieChiro fils;
+    private final MessageObservationDao messageDao;
 
     public ServiceValidation(
             ResultatsIdentificationDao resultatsDao,
@@ -99,6 +100,7 @@ public class ServiceValidation implements CompteurValidations {
         this.export = Objects.requireNonNull(export, "export");
         this.uniteDeTravail = Objects.requireNonNull(uniteDeTravail, "uniteDeTravail");
         this.horloge = Objects.requireNonNull(horloge, "horloge");
+        this.messageDao = Objects.requireNonNull(messageDao, "messageDao");
         this.preservation = new PreservationValidations(resultatsDao, observationDao);
         this.fils = new FilsDiscussionVigieChiro(observationDao, messageDao, uniteDeTravail);
     }
@@ -106,6 +108,14 @@ public class ServiceValidation implements CompteurValidations {
     // ---------------------------------------------------------------------------------------------
     // Import (E7.S1)
     // ---------------------------------------------------------------------------------------------
+
+    /// **Fil de discussion** d'une observation (#1417) : ce que l'observateur et le validateur du MNHN se
+    /// sont dit à propos de cette détection, dans l'ordre du serveur. Vide si personne n'a écrit — le cas
+    /// courant. Lecture seule : le fil est un reflet du serveur, rafraîchi à chaque import.
+    public List<MessageObservation> filDeLObservation(Long idObservation) {
+        Objects.requireNonNull(idObservation, "idObservation");
+        return messageDao.filDeLObservation(idObservation);
+    }
 
     /// Nombre total d'observations (compteur du tableau de bord d'accueil).
     public long compterObservations() {

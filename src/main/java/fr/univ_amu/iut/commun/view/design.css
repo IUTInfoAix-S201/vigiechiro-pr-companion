@@ -368,6 +368,26 @@
 }
 
 /*
+ * Avis du validateur du MNHN (#1417). Le DÉSACCORD est ce qu'on doit voir en premier : c'est là que se
+ * joue la qualité de la donnée déposée. Un expert qui confirme ne demande rien (badge discret), un expert
+ * qui contredit doit sauter aux yeux. L'absence d'avis - le cas courant - reste muette.
+ */
+.badge-validateur-desaccord {
+    -fx-background-color: -badge-avertissement-fond;
+    -fx-text-fill: -badge-avertissement-texte;
+}
+
+.badge-validateur-accord {
+    -fx-background-color: -badge-succes-fond;
+    -fx-text-fill: -badge-succes-texte;
+}
+
+.badge-validateur-absent {
+    -fx-background-color: transparent;
+    -fx-text-fill: -badge-neutre-texte;
+}
+
+/*
  * Badges sémantiques génériques : pour les statuts dont l'enum ne vit pas dans le socle (ex. le statut
  * d'observation d'analyse). Une feature mappe son statut vers l'une de ces familles.
  */

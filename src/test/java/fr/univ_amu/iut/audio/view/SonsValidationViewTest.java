@@ -38,6 +38,7 @@ import fr.univ_amu.iut.commun.view.OuvrirAnalyse;
 import fr.univ_amu.iut.commun.viewmodel.ReglagesReactifs;
 import fr.univ_amu.iut.commun.viewmodel.SourceObservations;
 import fr.univ_amu.iut.commun.viewmodel.ZonesStatut;
+import fr.univ_amu.iut.connexion.model.StockageConnexion;
 import fr.univ_amu.iut.passage.model.ServiceDisponibiliteAudio;
 import fr.univ_amu.iut.validation.model.LigneObservationAudio;
 import fr.univ_amu.iut.validation.model.MarquageDouteux;
@@ -148,7 +149,11 @@ class SonsValidationViewTest {
                 // l'affichage de la colonne « Heure ».
                 LocalDateTime.of(2026, 4, 22, 22, 0).plusMinutes(seq),
                 false,
-                certitude);
+                certitude,
+                null,
+                null,
+                null,
+                0);
     }
 
     @Start
@@ -193,7 +198,8 @@ class SonsValidationViewTest {
                                 revueEnLot,
                                 bibliotheque,
                                 mock(ServiceDisponibiliteAudio.class),
-                                p -> true);
+                                p -> true,
+                                mock(StockageConnexion.class));
                     }
 
                     @Provides
@@ -652,9 +658,9 @@ class SonsValidationViewTest {
             "Ordre par défaut des colonnes (contexte, fichier, identification, indicateurs) et indicateurs non triables")
     void ordre_par_defaut_et_indicateurs_non_triables(FxRobot robot) {
         TableView<?> table = robot.lookup("#tableObservations").queryAs(TableView.class);
-        // Les 16 premières colonnes par en-tête ; les 2 indicateurs (icônes, sans texte) par leur id.
+        // Les 17 premières colonnes par en-tête ; les 3 indicateurs (icônes, sans texte) par leur id.
         assertThat(table.getColumns().stream()
-                        .limit(16)
+                        .limit(17)
                         .map(TableColumn::getText)
                         .toList())
                 .containsExactly(
@@ -668,17 +674,25 @@ class SonsValidationViewTest {
                         "Proba.",
                         "Votre taxon",
                         "Certitude",
+                        // Les TROIS avis se lisent de gauche à droite (#1417) : Tadarida propose, vous
+                        // corrigez, l'expert du MNHN tranche. Le troisième arrivait déjà du serveur, et
+                        // l'écran ne le montrait pas.
+                        "Avis du validateur",
                         "Fréquence",
                         "FME",
                         "Fréq. term.",
                         "Début",
                         "Durée",
                         "Statut");
-        assertThat(table.getColumns().get(16).getId()).isEqualTo("colReference");
-        assertThat(table.getColumns().get(17).getId()).isEqualTo("colCommentaire");
+        assertThat(table.getColumns().get(17).getId()).isEqualTo("colReference");
+        assertThat(table.getColumns().get(18).getId()).isEqualTo("colCommentaire");
+        assertThat(table.getColumns().get(19).getId()).isEqualTo("colFil");
         // Colonnes-indicateurs : non triables (trier une icône est déroutant, cf. « colonne vide triable »).
         assertThat(colonneParId(robot, "colReference").isSortable()).isFalse();
         assertThat(colonneParId(robot, "colCommentaire").isSortable()).isFalse();
+        // Le fil, lui, RESTE triable : c'est un compte, et remonter les détections qu'un validateur a
+        // commentées est précisément ce qu'on veut pouvoir faire d'un clic.
+        assertThat(colonneParId(robot, "colFil").isSortable()).isTrue();
     }
 
     @Test

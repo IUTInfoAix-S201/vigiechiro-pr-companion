@@ -26,6 +26,7 @@ import fr.univ_amu.iut.commun.viewmodel.ContextePassage;
 import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
 import fr.univ_amu.iut.commun.viewmodel.ReglagesReactifs;
 import fr.univ_amu.iut.commun.viewmodel.SourceObservations;
+import fr.univ_amu.iut.connexion.model.StockageConnexion;
 import fr.univ_amu.iut.passage.model.DecompteAudio;
 import fr.univ_amu.iut.passage.model.ServiceDisponibiliteAudio;
 import fr.univ_amu.iut.validation.model.LigneObservationAudio;
@@ -102,7 +103,11 @@ class SonsValidationArchiveViewTest {
                 0.32,
                 null,
                 false,
-                null);
+                null,
+                null,
+                null,
+                null,
+                0);
     }
 
     @Start
@@ -138,7 +143,8 @@ class SonsValidationArchiveViewTest {
                                 mock(RevueEnLot.class),
                                 mock(ServiceBibliotheque.class),
                                 disponibilite,
-                                PRESENT::equals);
+                                PRESENT::equals,
+                                mock(StockageConnexion.class));
                     }
 
                     @Provides

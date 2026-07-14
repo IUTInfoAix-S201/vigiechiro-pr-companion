@@ -12,9 +12,11 @@ import fr.univ_amu.iut.audio.viewmodel.ImportVigieChiroViewModel;
 import fr.univ_amu.iut.bibliotheque.di.BibliothequeModule;
 import fr.univ_amu.iut.bibliotheque.model.ServiceBibliotheque;
 import fr.univ_amu.iut.commun.di.PersistenceModule;
+import fr.univ_amu.iut.commun.model.Horloge;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.model.Utilisateur;
 import fr.univ_amu.iut.commun.model.Verdict;
+import fr.univ_amu.iut.commun.model.Workspace;
 import fr.univ_amu.iut.commun.model.dao.UtilisateurDao;
 import fr.univ_amu.iut.commun.outils.ApercuFx;
 import fr.univ_amu.iut.commun.outils.AttenteAudio;
@@ -29,6 +31,7 @@ import fr.univ_amu.iut.commun.view.OuvrirSite;
 import fr.univ_amu.iut.commun.viewmodel.ContextePassage;
 import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
 import fr.univ_amu.iut.commun.viewmodel.SourceObservations;
+import fr.univ_amu.iut.connexion.model.StockageConnexion;
 import fr.univ_amu.iut.passage.di.PassageModule;
 import fr.univ_amu.iut.passage.model.EnregistrementOriginal;
 import fr.univ_amu.iut.passage.model.Enregistreur;
@@ -164,7 +167,8 @@ public final class CaptureValidationTadarida {
                             SaisieCertitude saisieCertitude,
                             RevueEnLot revueEnLot,
                             ServiceBibliotheque bibliotheque,
-                            ServiceDisponibiliteAudio disponibilite) {
+                            ServiceDisponibiliteAudio disponibilite,
+                            StockageConnexion connexion) {
                         return new AudioViewModel(
                                 validation,
                                 projectionsAudio,
@@ -175,7 +179,17 @@ public final class CaptureValidationTadarida {
                                 revueEnLot,
                                 bibliotheque,
                                 disponibilite,
-                                Files::exists);
+                                Files::exists,
+                                connexion);
+                    }
+                    // Aucune connexion en capture : un stockage sur le workspace jetable suffit
+                    // (profil vide -> le fil de discussion n'attribue aucun message, #1417). Les
+                    // injecteurs partiels ne chargent pas ConnexionModule : sans ce binding, la
+                    // capture ne demarrerait plus.
+                    @Provides
+                    @Singleton
+                    StockageConnexion stockageConnexion(Workspace workspace, Horloge horloge) {
+                        return new StockageConnexion(workspace, horloge);
                     }
 
                     // Import VigieChiro indisponible en capture (aucune connexion) : VM à dépôt vide.

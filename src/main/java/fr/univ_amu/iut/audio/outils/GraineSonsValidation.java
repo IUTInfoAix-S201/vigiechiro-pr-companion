@@ -4,6 +4,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Provides;
+import com.google.inject.Singleton;
 import fr.nedjar.vigiechiro.audio.AudioView;
 import fr.univ_amu.iut.audio.view.SonsValidationController;
 import fr.univ_amu.iut.audio.viewmodel.AudioViewModel;
@@ -11,10 +12,12 @@ import fr.univ_amu.iut.audio.viewmodel.ImportVigieChiroViewModel;
 import fr.univ_amu.iut.bibliotheque.di.BibliothequeModule;
 import fr.univ_amu.iut.bibliotheque.model.ServiceBibliotheque;
 import fr.univ_amu.iut.commun.di.PersistenceModule;
+import fr.univ_amu.iut.commun.model.Horloge;
 import fr.univ_amu.iut.commun.model.ModeValidation;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.model.Utilisateur;
 import fr.univ_amu.iut.commun.model.Verdict;
+import fr.univ_amu.iut.commun.model.Workspace;
 import fr.univ_amu.iut.commun.model.dao.UtilisateurDao;
 import fr.univ_amu.iut.commun.outils.ApercuFx;
 import fr.univ_amu.iut.commun.outils.AttenteAudio;
@@ -27,6 +30,7 @@ import fr.univ_amu.iut.commun.view.OuvrirAnalyse;
 import fr.univ_amu.iut.commun.view.OuvrirMultisite;
 import fr.univ_amu.iut.commun.view.OuvrirSite;
 import fr.univ_amu.iut.commun.viewmodel.SourceObservations;
+import fr.univ_amu.iut.connexion.model.StockageConnexion;
 import fr.univ_amu.iut.passage.di.PassageModule;
 import fr.univ_amu.iut.passage.model.EnregistrementOriginal;
 import fr.univ_amu.iut.passage.model.Enregistreur;
@@ -129,7 +133,8 @@ final class GraineSonsValidation {
                             SaisieCertitude saisieCertitude,
                             RevueEnLot revueEnLot,
                             ServiceBibliotheque bibliotheque,
-                            ServiceDisponibiliteAudio disponibilite) {
+                            ServiceDisponibiliteAudio disponibilite,
+                            StockageConnexion connexion) {
                         return new AudioViewModel(
                                 validation,
                                 projectionsAudio,
@@ -140,7 +145,17 @@ final class GraineSonsValidation {
                                 revueEnLot,
                                 bibliotheque,
                                 disponibilite,
-                                Files::exists);
+                                Files::exists,
+                                connexion);
+                    }
+                    // Aucune connexion en capture : un stockage sur le workspace jetable suffit
+                    // (profil vide -> le fil de discussion n'attribue aucun message, #1417). Les
+                    // injecteurs partiels ne chargent pas ConnexionModule : sans ce binding, la
+                    // capture ne demarrerait plus.
+                    @Provides
+                    @Singleton
+                    StockageConnexion stockageConnexion(Workspace workspace, Horloge horloge) {
+                        return new StockageConnexion(workspace, horloge);
                     }
 
                     // Import VigieChiro indisponible en capture (aucune connexion) : VM à dépôt vide.

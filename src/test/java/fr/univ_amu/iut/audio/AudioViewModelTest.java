@@ -2,6 +2,7 @@ package fr.univ_amu.iut.audio;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -15,6 +16,7 @@ import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.commun.viewmodel.ContextePassage;
 import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
 import fr.univ_amu.iut.commun.viewmodel.SourceObservations;
+import fr.univ_amu.iut.connexion.model.StockageConnexion;
 import fr.univ_amu.iut.passage.model.ServiceDisponibiliteAudio;
 import fr.univ_amu.iut.validation.model.BilanImport;
 import fr.univ_amu.iut.validation.model.LigneObservationAudio;
@@ -92,7 +94,8 @@ class AudioViewModelTest {
                 revueEnLot,
                 bibliotheque,
                 disponibilite,
-                fichierPresent);
+                fichierPresent,
+                mock(StockageConnexion.class));
     }
 
     private static LigneObservationAudio ligne(
@@ -123,7 +126,11 @@ class AudioViewModelTest {
                 0.32,
                 null,
                 false,
-                null);
+                null,
+                null,
+                null,
+                null,
+                0);
     }
 
     @Nested

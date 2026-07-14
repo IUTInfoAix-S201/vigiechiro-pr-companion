@@ -230,6 +230,16 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
     @FXML
     private TableColumn<LigneObservationAudio, String> colCommentaire;
 
+    /// Hôte du fil de discussion (#1417), à droite du lecteur : masqué tant qu'aucun message n'existe.
+    @FXML
+    private StackPane hoteDiscussion;
+
+    @FXML
+    private TableColumn<LigneObservationAudio, String> colValidateur;
+
+    @FXML
+    private TableColumn<LigneObservationAudio, String> colFil;
+
     @FXML
     private Label lblVide;
 
@@ -348,7 +358,9 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
                 colHeure,
                 colStatut,
                 colReference,
-                colCommentaire);
+                colCommentaire,
+                colValidateur,
+                colFil);
         ColonnesAudio.configurer(colonnes, viewModel.actions()::commenter);
     }
 
@@ -378,6 +390,11 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
         // en miroir de la « Confiance observateur » du site (vide par défaut). Items et blocage câblés
         // dans MenuCertitude (classe dédiée, seuil de God Class).
         MenuCertitude.installer(menuCertitude, enveloppeCertitude, viewModel, actionsSelection);
+        // Fil de discussion avec le validateur (#1417) : le panneau vit à droite du lecteur et suit la
+        // sélection ; il ne s'ouvre que si la ligne porte réellement des messages. Câblage délégué
+        // (PanneauDiscussion.installer), comme MenuCertitude : ce contrôleur est au plafond de NcssCount.
+        PanneauDiscussion.installer(hoteDiscussion, tableObservations, viewModel);
+
         tableObservations.getSelectionModel().selectedItemProperty().addListener((obs, ancienne, nouvelle) -> {
             viewModel.selectionProperty().set(nouvelle);
             // « Fiche de l'espèce » (#847) : cible la proposition Tadarida de la ligne sélectionnée.
@@ -514,7 +531,9 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
                 new GestionnaireColonnes.Colonne(colHeure, "Heure", false),
                 new GestionnaireColonnes.Colonne(colStatut, "Statut", false),
                 new GestionnaireColonnes.Colonne(colReference, "Référence", false),
-                new GestionnaireColonnes.Colonne(colCommentaire, "Commentaire", false));
+                new GestionnaireColonnes.Colonne(colCommentaire, "Commentaire", false),
+                new GestionnaireColonnes.Colonne(colValidateur, "Avis du validateur", false),
+                new GestionnaireColonnes.Colonne(colFil, "Discussion", false));
     }
 
     /// Importe le **premier** fichier glissé-déposé sur l'écran (workflow Tadarida). Délègue à

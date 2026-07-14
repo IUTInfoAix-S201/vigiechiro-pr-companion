@@ -14,6 +14,7 @@ import fr.univ_amu.iut.commun.di.Fonctionnalite;
 import fr.univ_amu.iut.commun.di.ModuleDeFeature;
 import fr.univ_amu.iut.commun.view.OuvrirAnalyse;
 import fr.univ_amu.iut.commun.view.OuvrirAudio;
+import fr.univ_amu.iut.connexion.model.StockageConnexion;
 import fr.univ_amu.iut.passage.model.ServiceDisponibiliteAudio;
 import fr.univ_amu.iut.validation.model.ImportVigieChiro;
 import fr.univ_amu.iut.validation.model.MarquageDouteux;
@@ -79,7 +80,8 @@ public class AudioModule extends ModuleDeFeature {
             SaisieCertitude saisieCertitude,
             RevueEnLot revueEnLot,
             ServiceBibliotheque bibliotheque,
-            ServiceDisponibiliteAudio disponibilite) {
+            ServiceDisponibiliteAudio disponibilite,
+            StockageConnexion connexion) {
         return new AudioViewModel(
                 validation,
                 projectionsAudio,
@@ -90,7 +92,8 @@ public class AudioModule extends ModuleDeFeature {
                 revueEnLot,
                 bibliotheque,
                 disponibilite,
-                Files::exists);
+                Files::exists,
+                connexion);
     }
 
     /// ViewModel dédié de l'**import VigieChiro** (axe 4.2), séparé de [AudioViewModel] (concern distinct, et

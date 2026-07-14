@@ -1,6 +1,6 @@
 package fr.univ_amu.iut.validation.model;
 
-import fr.univ_amu.iut.commun.model.CertitudeObservateur;
+import fr.univ_amu.iut.commun.model.Certitude;
 import java.time.LocalDateTime;
 
 /// Projection **unifiée** d'une observation pour la **vue audio** (#audio) : tout ce qu'il faut pour
@@ -93,9 +93,9 @@ public record LigneObservationAudio(
         Double finS,
         LocalDateTime heureCapture,
         boolean douteux,
-        CertitudeObservateur certitude,
+        Certitude certitude,
         String taxonValidateur,
-        CertitudeObservateur certitudeValidateur,
+        Certitude certitudeValidateur,
         String nomValidateur,
         int nbMessages) {
 

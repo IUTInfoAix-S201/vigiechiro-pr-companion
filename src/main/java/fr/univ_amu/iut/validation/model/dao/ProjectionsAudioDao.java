@@ -1,6 +1,6 @@
 package fr.univ_amu.iut.validation.model.dao;
 
-import fr.univ_amu.iut.commun.model.CertitudeObservateur;
+import fr.univ_amu.iut.commun.model.Certitude;
 import fr.univ_amu.iut.commun.persistence.ProjectionGenerique;
 import fr.univ_amu.iut.commun.persistence.RowMapper;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
@@ -89,9 +89,9 @@ public class ProjectionsAudioDao extends ProjectionGenerique {
             (Double) rs.getObject("fin_s"),
             FragmentsSqlObservation.heureCaptureDe(rs.getString("recorded_at")),
             rs.getInt(FragmentsSqlObservation.COL_IS_DOUBTFUL) != 0,
-            CertitudeObservateur.depuisTexte(rs.getString("certitude")),
+            Certitude.depuisTexte(rs.getString("certitude")),
             rs.getString("validateur"),
-            CertitudeObservateur.depuisTexte(rs.getString("certitude_validateur")),
+            Certitude.depuisTexte(rs.getString("certitude_validateur")),
             rs.getString("nom_validateur"),
             rs.getInt("nb_messages"));
 
@@ -189,7 +189,7 @@ public class ProjectionsAudioDao extends ProjectionGenerique {
             null, // finS
             FragmentsSqlObservation.heureCaptureDe(rs.getString("recorded_at")),
             rs.getInt(FragmentsSqlObservation.COL_IS_DOUBTFUL) != 0, // om NULL → getInt = 0 → pas douteux
-            CertitudeObservateur.depuisTexte(rs.getString("certitude")),
+            Certitude.depuisTexte(rs.getString("certitude")),
             // Une séquence non identifiée n'existe pas côté plateforme : ni avis de validateur, ni fil.
             // (Une validation manuelle y crée une observation locale, qui n'a pas non plus d'ancrage.)
             null, // taxonValidateur

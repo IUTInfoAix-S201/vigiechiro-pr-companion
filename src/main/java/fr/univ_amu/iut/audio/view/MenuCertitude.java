@@ -1,7 +1,7 @@
 package fr.univ_amu.iut.audio.view;
 
 import fr.univ_amu.iut.audio.viewmodel.AudioViewModel;
-import fr.univ_amu.iut.commun.model.CertitudeObservateur;
+import fr.univ_amu.iut.commun.model.Certitude;
 import fr.univ_amu.iut.commun.view.IndicateurBlocage;
 import javafx.beans.binding.Bindings;
 import javafx.scene.control.MenuButton;
@@ -27,7 +27,7 @@ final class MenuCertitude {
     /// d'explication du blocage est posé sur l'enveloppe (#789, un contrôle désactivé n'en affiche pas).
     static void installer(
             MenuButton menu, StackPane enveloppe, AudioViewModel viewModel, ActionsSelectionAudio actions) {
-        for (CertitudeObservateur certitude : CertitudeObservateur.values()) {
+        for (Certitude certitude : Certitude.values()) {
             menu.getItems().add(item(certitude.libelle(), certitude, actions));
         }
         menu.getItems().add(new SeparatorMenuItem());
@@ -44,7 +44,7 @@ final class MenuCertitude {
                         .otherwise("Réservé à une observation : validez ou corrigez d'abord la ligne."));
     }
 
-    private static MenuItem item(String libelle, CertitudeObservateur certitude, ActionsSelectionAudio actions) {
+    private static MenuItem item(String libelle, Certitude certitude, ActionsSelectionAudio actions) {
         MenuItem item = new MenuItem(libelle);
         item.setOnAction(evenement -> actions.poserCertitude(certitude));
         return item;

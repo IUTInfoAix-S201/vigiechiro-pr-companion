@@ -68,7 +68,8 @@ class GesteResetTest {
     @BeforeEach
     void preparer() {
         when(sauvegarde.dossierParDefaut()).thenReturn(SAUVEGARDES);
-        geste = new GesteReset(recuperabilite, reset, sauvegarde, occupation, () -> null, () -> fermetures++);
+        geste = new GesteReset(
+                () -> recuperabilite, () -> reset, () -> sauvegarde, occupation, () -> null, () -> fermetures++);
         geste.selecteur().definir(new SelecteurFichier() {
             @Override
             public Optional<Path> choisirDossier(String titre, Optional<Path> dossierInitial) {

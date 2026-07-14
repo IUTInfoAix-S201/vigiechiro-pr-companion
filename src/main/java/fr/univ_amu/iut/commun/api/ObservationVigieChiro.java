@@ -1,6 +1,6 @@
 package fr.univ_amu.iut.commun.api;
 
-import fr.univ_amu.iut.commun.model.CertitudeObservateur;
+import fr.univ_amu.iut.commun.model.Certitude;
 import java.util.List;
 
 /// Une observation (détection) Tadarida d'un fichier, telle que renvoyée par
@@ -14,7 +14,7 @@ import java.util.List;
 ///
 /// La certitude partage le **même domaine fermé** côté serveur pour l'observateur et pour le
 /// validateur (`SUR | PROBABLE | POSSIBLE`, contrat #1203) : d'où le même type ici, dont le nom
-/// ([CertitudeObservateur]) est resté celui de son premier usage.
+/// ([Certitude]) est resté celui de son premier usage.
 ///
 /// @param indiceServeur indice **brut** de l'observation dans le tableau `observations` de sa donnée
 ///     (#1139) : l'identifiant positionnel attendu par `PATCH /donnees/{id}/observations/{index}`
@@ -45,9 +45,9 @@ public record ObservationVigieChiro(
         Double tempsFin,
         String taxonAutre,
         String taxonObservateur,
-        CertitudeObservateur certitudeObservateur,
+        Certitude certitudeObservateur,
         String taxonValidateur,
-        CertitudeObservateur certitudeValidateur,
+        Certitude certitudeValidateur,
         List<MessageVigieChiro> messages) {
 
     /// Fil **immuable** et tolérant au `null` : un fil absent est un fil vide, pas une erreur. Le record

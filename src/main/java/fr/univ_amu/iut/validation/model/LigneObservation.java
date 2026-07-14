@@ -1,6 +1,6 @@
 package fr.univ_amu.iut.validation.model;
 
-import fr.univ_amu.iut.commun.model.CertitudeObservateur;
+import fr.univ_amu.iut.commun.model.Certitude;
 import fr.univ_amu.iut.commun.model.ModeValidation;
 
 /// Projection d'une **ligne** du CSV Tadarida, avant persistance (résultat de
@@ -61,6 +61,6 @@ public record LigneObservation(
         ModeValidation modeValidation,
         String idDonneeVigieChiro,
         Integer indiceVigieChiro,
-        CertitudeObservateur certitudeObservateur,
+        Certitude certitudeObservateur,
         String taxonValidateur,
-        CertitudeObservateur certitudeValidateur) {}
+        Certitude certitudeValidateur) {}

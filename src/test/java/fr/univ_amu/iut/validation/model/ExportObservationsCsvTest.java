@@ -2,6 +2,7 @@ package fr.univ_amu.iut.validation.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import fr.univ_amu.iut.commun.model.Certitude;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -47,8 +48,8 @@ class ExportObservationsCsvTest {
                 3.8)));
 
         assertThat(csv)
-                .contains("640380;A1;Étang;2;2026-06-22;seqA_000.wav;Pippip;0,74;Nyclei;Pipistrelle commune"
-                        + ";Chiroptères;Corrigée;oui;oui;45;0,50;3,80;Cri social net");
+                .contains("640380;A1;Étang;2;2026-06-22;seqA_000.wav;Pippip;0,74;Nyclei;;;;0"
+                        + ";Pipistrelle commune;Chiroptères;Corrigée;oui;oui;45;0,50;3,80;Cri social net");
     }
 
     @Test
@@ -74,6 +75,53 @@ class ExportObservationsCsvTest {
         assertThat(csv).contains("\"clic ; puis silence\"");
         // Champs nuls → vides ; statut « À revoir » ; référence « non » ; douteux « non ».
         assertThat(csv).contains(";À revoir;non;non;");
+    }
+
+    @Test
+    @DisplayName("#1417 : les TROIS avis sortent dans le CSV — un export qui n'en porterait que deux ferait"
+            + " perdre le verdict de l'expert à qui ouvre le fichier dans un tableur")
+    void les_trois_avis_sont_exportes() {
+        LigneObservationAudio ligne = new LigneObservationAudio(
+                1L,
+                1L,
+                1L,
+                2,
+                "2026-06-22",
+                "640380",
+                "A1",
+                "Étang",
+                "Pipkuh",
+                0.74,
+                "Pippip",
+                0.91,
+                StatutObservation.CORRIGEE,
+                false,
+                null,
+                45,
+                "Pipistrelle commune",
+                "Pipistrelle de Kuhl",
+                null,
+                "Chiroptères",
+                "seqA_000.wav",
+                0.5,
+                3.8,
+                null,
+                false,
+                Certitude.POSSIBLE,
+                "Pipnat",
+                Certitude.SUR,
+                "Pipistrelle de Nathusius",
+                2);
+
+        String csv = ExportObservationsCsv.contenu(List.of(ligne));
+
+        assertThat(csv)
+                .as("l'en-tête annonce les trois avis et l'existence d'une discussion")
+                .contains("Votre certitude;Avis du validateur;Certitude du validateur;Messages");
+        assertThat(csv)
+                .as("Tadarida propose, l'observateur corrige, le validateur tranche — et 2 messages en"
+                        + " attestent : tout cela doit survivre à l'export")
+                .contains("Pipkuh;0,74;Pippip;Possible;Pipnat;Sûr;2;");
     }
 
     @Test

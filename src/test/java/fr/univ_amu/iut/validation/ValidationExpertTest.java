@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import fr.univ_amu.iut.commun.api.DonneeVigieChiro;
 import fr.univ_amu.iut.commun.api.MessageVigieChiro;
 import fr.univ_amu.iut.commun.api.ObservationVigieChiro;
-import fr.univ_amu.iut.commun.model.CertitudeObservateur;
+import fr.univ_amu.iut.commun.model.Certitude;
 import fr.univ_amu.iut.commun.model.HorlogeFigee;
 import fr.univ_amu.iut.commun.model.Protocole;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
@@ -136,8 +136,7 @@ class ValidationExpertTest {
     @DisplayName("#1417 : l'avis du validateur est persisté à côté de celui de l'observateur — les trois"
             + " avis coexistent, aucun n'écrase l'autre")
     void les_trois_avis_coexistent() {
-        BilanImport bilan =
-                importer(observation(0, "Pipkuh", "Pippip", CertitudeObservateur.POSSIBLE, "Pipnat", List.of()));
+        BilanImport bilan = importer(observation(0, "Pipkuh", "Pippip", Certitude.POSSIBLE, "Pipnat", List.of()));
 
         assertThat(bilan.importees()).isEqualTo(1);
         Observation observation =
@@ -147,8 +146,8 @@ class ValidationExpertTest {
         assertThat(observation.taxonValidateur())
                 .as("le validateur tranche : c'est ce mot-là que l'application jetait")
                 .isEqualTo("Pipnat");
-        assertThat(observation.certitudeObservateur()).isEqualTo(CertitudeObservateur.POSSIBLE);
-        assertThat(observation.certitudeValidateur()).isEqualTo(CertitudeObservateur.SUR);
+        assertThat(observation.certitudeObservateur()).isEqualTo(Certitude.POSSIBLE);
+        assertThat(observation.certitudeValidateur()).isEqualTo(Certitude.SUR);
     }
 
     @Test
@@ -219,7 +218,7 @@ class ValidationExpertTest {
                 0,
                 "Pipkuh",
                 "Pippip",
-                CertitudeObservateur.SUR,
+                Certitude.SUR,
                 "Pipnat",
                 List.of(new MessageVigieChiro("u-validateur", "Je penche pour Pipnat.", null))));
 
@@ -268,7 +267,7 @@ class ValidationExpertTest {
             int indice,
             String taxonTadarida,
             String taxonObservateur,
-            CertitudeObservateur certitudeObservateur,
+            Certitude certitudeObservateur,
             String taxonValidateur,
             List<MessageVigieChiro> messages) {
         return new ObservationVigieChiro(
@@ -282,7 +281,7 @@ class ValidationExpertTest {
                 taxonObservateur,
                 certitudeObservateur,
                 taxonValidateur,
-                taxonValidateur == null ? null : CertitudeObservateur.SUR,
+                taxonValidateur == null ? null : Certitude.SUR,
                 messages);
     }
 

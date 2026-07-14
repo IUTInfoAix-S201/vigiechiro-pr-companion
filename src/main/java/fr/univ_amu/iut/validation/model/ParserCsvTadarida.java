@@ -1,6 +1,6 @@
 package fr.univ_amu.iut.validation.model;
 
-import fr.univ_amu.iut.commun.model.CertitudeObservateur;
+import fr.univ_amu.iut.commun.model.Certitude;
 import fr.univ_amu.iut.commun.model.LecteurCsv;
 import fr.univ_amu.iut.commun.model.ModeValidation;
 import java.io.IOException;
@@ -126,7 +126,7 @@ public final class ParserCsvTadarida {
                     mode(cellule(ligne, index.get(COL_MODE_VALIDATION))),
                     null, // pas d'ancrage plateforme dans un CSV
                     null,
-                    CertitudeObservateur.depuisTexte(texte(cellule(ligne, index.get(COL_PROB_OBSERVATEUR)))),
+                    Certitude.depuisTexte(texte(cellule(ligne, index.get(COL_PROB_OBSERVATEUR)))),
                     null,
                     null));
         }

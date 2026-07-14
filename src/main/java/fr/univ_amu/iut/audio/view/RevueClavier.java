@@ -1,7 +1,7 @@
 package fr.univ_amu.iut.audio.view;
 
 import fr.univ_amu.iut.audio.viewmodel.AudioViewModel;
-import fr.univ_amu.iut.commun.model.CertitudeObservateur;
+import fr.univ_amu.iut.commun.model.Certitude;
 import fr.univ_amu.iut.validation.model.LigneObservationAudio;
 import fr.univ_amu.iut.validation.model.StatutObservation;
 import java.util.List;
@@ -57,15 +57,15 @@ final class RevueClavier {
                 evenement.consume();
             }
             case DIGIT1, NUMPAD1 -> {
-                actions.poserCertitude(CertitudeObservateur.SUR);
+                actions.poserCertitude(Certitude.SUR);
                 evenement.consume();
             }
             case DIGIT2, NUMPAD2 -> {
-                actions.poserCertitude(CertitudeObservateur.PROBABLE);
+                actions.poserCertitude(Certitude.PROBABLE);
                 evenement.consume();
             }
             case DIGIT3, NUMPAD3 -> {
-                actions.poserCertitude(CertitudeObservateur.POSSIBLE);
+                actions.poserCertitude(Certitude.POSSIBLE);
                 evenement.consume();
             }
             case N -> {

@@ -13,6 +13,7 @@ import fr.univ_amu.iut.audio.viewmodel.ImportVigieChiroViewModel;
 import fr.univ_amu.iut.bibliotheque.di.BibliothequeModule;
 import fr.univ_amu.iut.bibliotheque.model.ServiceBibliotheque;
 import fr.univ_amu.iut.commun.di.PersistenceModule;
+import fr.univ_amu.iut.commun.model.Certitude;
 import fr.univ_amu.iut.commun.model.ModeValidation;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.model.Utilisateur;
@@ -25,6 +26,7 @@ import fr.univ_amu.iut.commun.outils.ModuleCaptureNavigationAudio;
 import fr.univ_amu.iut.commun.outils.SonDemo;
 import fr.univ_amu.iut.commun.persistence.MigrationSchema;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
+import fr.univ_amu.iut.commun.persistence.UniteDeTravail;
 import fr.univ_amu.iut.commun.view.OuvrirAnalyse;
 import fr.univ_amu.iut.commun.view.OuvrirMultisite;
 import fr.univ_amu.iut.commun.view.OuvrirSite;
@@ -44,6 +46,7 @@ import fr.univ_amu.iut.passage.model.dao.SequenceDao;
 import fr.univ_amu.iut.passage.model.dao.SessionDao;
 import fr.univ_amu.iut.validation.di.ValidationModule;
 import fr.univ_amu.iut.validation.model.MarquageDouteux;
+import fr.univ_amu.iut.validation.model.MessageObservation;
 import fr.univ_amu.iut.validation.model.Observation;
 import fr.univ_amu.iut.validation.model.PlageNuitPassage;
 import fr.univ_amu.iut.validation.model.ResultatsIdentification;
@@ -51,6 +54,7 @@ import fr.univ_amu.iut.validation.model.RevueEnLot;
 import fr.univ_amu.iut.validation.model.SaisieCertitude;
 import fr.univ_amu.iut.validation.model.ServiceValidation;
 import fr.univ_amu.iut.validation.model.ValidationManuelle;
+import fr.univ_amu.iut.validation.model.dao.MessageObservationDao;
 import fr.univ_amu.iut.validation.model.dao.ObservationDao;
 import fr.univ_amu.iut.validation.model.dao.ProjectionsAudioDao;
 import fr.univ_amu.iut.validation.model.dao.ResultatsIdentificationDao;
@@ -63,6 +67,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -154,6 +159,13 @@ final class GraineSonsValidation {
                     @Provides
                     @Singleton
                     DiscussionValidateur discussion(ServiceValidation service, StockageConnexion connexion) {
+                        // Un profil, sinon l'ecran ne sait pas qui NOUS sommes : il attribuerait nos
+                        // propres messages au validateur, et la capture montrerait un expert se
+                        // repondant a lui-meme (#1417).
+                        connexion.enregistrer(
+                                "jeton-de-demo",
+                                new fr.univ_amu.iut.commun.api.ProfilVigieChiro(
+                                        ID_UTILISATEUR, "Capitaine Chiro (demo)", "Observateur"));
                         return new DiscussionValidateur(service, connexion, java.util.Optional.empty());
                     }
 
@@ -228,6 +240,20 @@ final class GraineSonsValidation {
     /// Sélectionne une ou plusieurs lignes de la table (par index) et **donne le focus** à la table, pour que
     /// les lignes retenues ressortent en surbrillance accentuée sur la capture. La sélection de la ligne
     /// « courante » déclenche aussi le chargement audio et le calcul des mesures.
+    /// Fait défiler la table jusqu'à la colonne `id`, pour qu'elle soit **dans le champ** de la capture.
+    /// Sans cela, « Avis du validateur » (#1417) resterait hors cadre : la fonctionnalité serait capturée
+    /// sans ce qu'elle apporte.
+    static void amenerLaColonne(Parent vue, String id) {
+        if (vue.lookup("#tableObservations") instanceof TableView<?> table) {
+            for (javafx.scene.control.TableColumn<?, ?> colonne : table.getColumns()) {
+                if (id.equals(colonne.getId())) {
+                    table.scrollToColumnIndex(table.getColumns().indexOf(colonne));
+                    return;
+                }
+            }
+        }
+    }
+
     static void selectionner(Parent vue, int... indices) {
         if (vue.lookup("#tableObservations") instanceof TableView<?> table) {
             table.getSelectionModel().clearSelection();
@@ -309,11 +335,78 @@ final class GraineSonsValidation {
         long idResultats = resultats.id();
         List<Long> seq = graine.idSequences();
 
-        observationDao.insert(reference(
-                seq.get(0), 45, "Pippip", "Nyclei", "Cri social typique, capté en fin de nuit.", idResultats));
+        // La première détection porte les TROIS avis (#1417) : Tadarida propose Pippip, l'observateur
+        // corrige en Nyclei, et le validateur du MNHN le CONTREDIT (Pipnat). C'est le cas que la capture
+        // doit montrer : un désaccord d'expert, mis en avant, et la discussion qu'il ouvre. Sans ces
+        // données dans la graine, l'écran serait capturé sans sa colonne ni son panneau — et la
+        // fonctionnalité serait « livrée » sans qu'on puisse la voir.
+        Long idContredite = observationDao
+                .insert(avecValidateur(
+                        reference(
+                                seq.get(0),
+                                45,
+                                "Pippip",
+                                "Nyclei",
+                                "Cri social typique, capté en fin de nuit.",
+                                idResultats),
+                        "Pipnat"))
+                .id();
         observationDao.insert(reference(seq.get(1), 47, "Pippip", null, null, idResultats));
         observationDao.insert(
                 reference(seq.get(2), 108, "Rhihip", "Rhihip", "Excellent rapport signal sur bruit.", idResultats));
+
+        seederFil(source, idContredite);
+    }
+
+    /// Le **fil de discussion** de la détection contredite (#1417/#1418) : c'est lui qui ouvre le panneau
+    /// à droite du lecteur sur la capture. Écrit directement en base — le fil est un reflet du serveur,
+    /// c'est l'import qui l'y met.
+    private static void seederFil(SourceDeDonnees source, Long idObservation) {
+        MessageObservationDao messages = new MessageObservationDao(source);
+        new UniteDeTravail(source)
+                .executer(connexion -> messages.remplacerFil(
+                        connexion,
+                        idObservation,
+                        List.of(
+                                new MessageObservation(
+                                        null,
+                                        idObservation,
+                                        0,
+                                        "u-validateur",
+                                        "La médiane est basse pour un Nyclei. Je penche pour Pipnat.",
+                                        Instant.parse("2026-06-24T09:12:00Z")),
+                                new MessageObservation(
+                                        null,
+                                        idObservation,
+                                        1,
+                                        ID_UTILISATEUR,
+                                        "Je réécoute le cri social et je vous redis.",
+                                        Instant.parse("2026-06-24T18:40:00Z")))));
+    }
+
+    /// Copie une observation en y posant l'avis du **validateur** (taxon tranché, certitude « Sûr »).
+    private static Observation avecValidateur(Observation observation, String taxonValidateur) {
+        return new Observation(
+                observation.id(),
+                observation.idSequence(),
+                observation.debutS(),
+                observation.finS(),
+                observation.frequenceMedianeKHz(),
+                observation.taxonTadarida(),
+                observation.probTadarida(),
+                observation.taxonAutreTadarida(),
+                observation.taxonObservateur(),
+                observation.probObservateur(),
+                observation.commentaire(),
+                observation.reference(),
+                observation.modeValidation(),
+                observation.idResultats(),
+                observation.douteux(),
+                observation.idDonneeVigieChiro(),
+                observation.indiceVigieChiro(),
+                observation.certitudeObservateur(),
+                taxonValidateur,
+                Certitude.SUR);
     }
 
     private static Observation reference(

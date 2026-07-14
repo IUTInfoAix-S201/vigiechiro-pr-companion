@@ -105,7 +105,7 @@ class RequetesVigieChiroTest {
             + " toujours ensemble (le serveur exige la probabilité avec le taxon)")
     void correction_observation() {
         JsonObject corps = JsonParser.parseString(RequetesVigieChiro.correction(
-                        "5526cd5a1b1a5d20872ff587", fr.univ_amu.iut.commun.model.CertitudeObservateur.SUR))
+                        "5526cd5a1b1a5d20872ff587", fr.univ_amu.iut.commun.model.Certitude.SUR))
                 .getAsJsonObject();
 
         assertThat(corps.get("observateur_taxon").getAsString()).isEqualTo("5526cd5a1b1a5d20872ff587");

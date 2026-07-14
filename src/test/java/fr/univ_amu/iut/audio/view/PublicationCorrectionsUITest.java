@@ -8,7 +8,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import fr.univ_amu.iut.audio.viewmodel.PublicationCorrectionsViewModel;
-import fr.univ_amu.iut.commun.model.CertitudeObservateur;
+import fr.univ_amu.iut.commun.model.Certitude;
 import fr.univ_amu.iut.commun.model.ModeValidation;
 import fr.univ_amu.iut.commun.view.ExecuteurTacheSynchrone;
 import fr.univ_amu.iut.commun.viewmodel.ContextePassage;
@@ -50,7 +50,7 @@ class PublicationCorrectionsUITest {
                 false,
                 "d1",
                 0,
-                CertitudeObservateur.SUR,
+                Certitude.SUR,
                 null,
                 null);
     }

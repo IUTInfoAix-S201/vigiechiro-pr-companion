@@ -141,7 +141,7 @@ class ObservationDaoTest {
                 false,
                 "6a4fcaa2842983a29ba25363",
                 12,
-                fr.univ_amu.iut.commun.model.CertitudeObservateur.PROBABLE,
+                fr.univ_amu.iut.commun.model.Certitude.PROBABLE,
                 null,
                 null);
 
@@ -152,12 +152,12 @@ class ObservationDaoTest {
         assertThat(relue.indiceVigieChiro())
                 .as("l'indice brut serveur est la cible du PATCH positionnel (#1203)")
                 .isEqualTo(12);
-        assertThat(relue.certitudeObservateur()).isEqualTo(fr.univ_amu.iut.commun.model.CertitudeObservateur.PROBABLE);
+        assertThat(relue.certitudeObservateur()).isEqualTo(fr.univ_amu.iut.commun.model.Certitude.PROBABLE);
 
-        dao.update(relue.avecCertitude(fr.univ_amu.iut.commun.model.CertitudeObservateur.SUR));
+        dao.update(relue.avecCertitude(fr.univ_amu.iut.commun.model.Certitude.SUR));
         assertThat(dao.findById(inseree.id()).orElseThrow().certitudeObservateur())
                 .as("avecCertitude + update persiste le nouveau jeton")
-                .isEqualTo(fr.univ_amu.iut.commun.model.CertitudeObservateur.SUR);
+                .isEqualTo(fr.univ_amu.iut.commun.model.Certitude.SUR);
     }
 
     @Test
@@ -183,7 +183,7 @@ class ObservationDaoTest {
                 false,
                 "6a4fcaa2842983a29ba25363",
                 4,
-                fr.univ_amu.iut.commun.model.CertitudeObservateur.SUR,
+                fr.univ_amu.iut.commun.model.Certitude.SUR,
                 null,
                 null));
         // Non revue (aucun taxon observateur) : hors du vivier.
@@ -195,7 +195,7 @@ class ObservationDaoTest {
             assertThat(revue.taxonObservateur()).isEqualTo("Nyclei");
             assertThat(revue.idDonneeVigieChiro()).isEqualTo("6a4fcaa2842983a29ba25363");
             assertThat(revue.indiceVigieChiro()).isEqualTo(4);
-            assertThat(revue.certitudeObservateur()).isEqualTo(fr.univ_amu.iut.commun.model.CertitudeObservateur.SUR);
+            assertThat(revue.certitudeObservateur()).isEqualTo(fr.univ_amu.iut.commun.model.Certitude.SUR);
         });
     }
 

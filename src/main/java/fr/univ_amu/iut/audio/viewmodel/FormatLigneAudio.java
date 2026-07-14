@@ -1,6 +1,6 @@
 package fr.univ_amu.iut.audio.viewmodel;
 
-import fr.univ_amu.iut.commun.model.CertitudeObservateur;
+import fr.univ_amu.iut.commun.model.Certitude;
 import fr.univ_amu.iut.validation.model.LigneObservationAudio;
 import fr.univ_amu.iut.validation.model.StatutObservation;
 import java.time.LocalDateTime;
@@ -114,7 +114,7 @@ public final class FormatLigneAudio {
 
     /// Libellé de la colonne « Certitude » (#1139) : la déclaration manuelle de l'observateur, ou le
     /// tiret « — » tant qu'elle n'est pas renseignée (vide par défaut, jamais préremplie).
-    public static String libelleCertitude(CertitudeObservateur certitude) {
+    public static String libelleCertitude(Certitude certitude) {
         return certitude == null ? "—" : certitude.libelle();
     }
 

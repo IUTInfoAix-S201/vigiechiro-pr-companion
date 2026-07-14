@@ -4,7 +4,7 @@ import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
-import fr.univ_amu.iut.commun.model.CertitudeObservateur;
+import fr.univ_amu.iut.commun.model.Certitude;
 import java.util.Map;
 
 /// Construction des **corps JSON des écritures** VigieChiro (#142) : pendant en écriture de
@@ -54,7 +54,7 @@ final class RequetesVigieChiro {
     /// **objectid** (mapping `vigiechiro_link`) et la certitude en jeton `SUR|PROBABLE|POSSIBLE`. Les deux
     /// champs vont toujours ensemble : le serveur exige la probabilité dès que le taxon est envoyé
     /// (`422` sinon).
-    static String correction(String objectidTaxon, CertitudeObservateur certitude) {
+    static String correction(String objectidTaxon, Certitude certitude) {
         return GSON.toJson(Map.of("observateur_taxon", objectidTaxon, "observateur_probabilite", certitude.jeton()));
     }
 

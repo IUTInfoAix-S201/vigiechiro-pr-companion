@@ -1,5 +1,6 @@
 package fr.univ_amu.iut.validation.model;
 
+import fr.univ_amu.iut.commun.model.Certitude;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -32,6 +33,15 @@ public final class ExportObservationsCsv {
             "Taxon Tadarida",
             "Proba Tadarida",
             "Votre taxon",
+            // Les TROIS avis, au complet (#1417). L'écran les montre côte à côte ; un export qui n'en
+            // porterait que deux ferait perdre le verdict de l'expert à qui ouvre le fichier dans un
+            // tableur - et lui laisserait croire que sa propre correction est le dernier mot.
+            "Votre certitude",
+            "Avis du validateur",
+            "Certitude du validateur",
+            // Le fil ne s'exporte pas (il se lit dans l'application), mais son EXISTENCE doit se voir :
+            // sans ce compteur, une discussion ouverte par un validateur serait invisible hors de l'app.
+            "Messages",
             "Nom espèce",
             "Groupe",
             "Statut",
@@ -71,6 +81,10 @@ public final class ExportObservationsCsv {
                 texte(l.taxonTadarida()),
                 proba(l.probTadarida()),
                 texte(l.taxonObservateur()),
+                certitude(l.certitude()),
+                texte(l.taxonValidateur()),
+                certitude(l.certitudeValidateur()),
+                Integer.toString(l.nbMessages()),
                 texte(l.nomEspece()),
                 texte(l.groupe()),
                 statut(l.statut()),
@@ -80,6 +94,12 @@ public final class ExportObservationsCsv {
                 secondes(l.debutS()),
                 secondes(l.finS()),
                 texte(l.commentaire()));
+    }
+
+    /// Certitude déclarée (`Sûr` / `Probable` / `Possible`), ou vide si non renseignée — pour l'observateur
+    /// comme pour le validateur : côté serveur, c'est la même énumération (contrat #1203).
+    private static String certitude(Certitude certitude) {
+        return certitude == null ? "" : certitude.libelle();
     }
 
     private static void ajouterLigne(StringBuilder csv, List<String> valeurs) {

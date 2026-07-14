@@ -38,6 +38,7 @@ MAINS=(
   "fr.univ_amu.iut.diagnostic.outils.CaptureDiagnostic"
   "fr.univ_amu.iut.audit.outils.CaptureAudit"
   "fr.univ_amu.iut.audio.outils.CaptureSonsValidation"
+  "fr.univ_amu.iut.audio.outils.CaptureAvisValidateur"
   "fr.univ_amu.iut.audio.outils.CaptureSonsValidationFiltres"
   "fr.univ_amu.iut.audio.outils.CaptureSonsValidationColonnes"
   "fr.univ_amu.iut.audio.outils.CaptureSonsValidationLot"

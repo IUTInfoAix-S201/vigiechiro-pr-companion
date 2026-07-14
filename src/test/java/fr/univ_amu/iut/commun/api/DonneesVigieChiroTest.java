@@ -63,7 +63,7 @@ class DonneesVigieChiroTest {
                 .containsExactly(
                         org.assertj.core.groups.Tuple.tuple(0, "Pipkuh", null, null),
                         org.assertj.core.groups.Tuple.tuple(
-                                2, "Eptser", "Pippip", fr.univ_amu.iut.commun.model.CertitudeObservateur.SUR));
+                                2, "Eptser", "Pippip", fr.univ_amu.iut.commun.model.Certitude.SUR));
     }
 
     @Test
@@ -114,7 +114,7 @@ class DonneesVigieChiroTest {
                 .isEqualTo("Pipnat");
         assertThat(observation.certitudeValidateur())
                 .as("la certitude du validateur partage le domaine fermé de celle de l'observateur")
-                .isEqualTo(fr.univ_amu.iut.commun.model.CertitudeObservateur.SUR);
+                .isEqualTo(fr.univ_amu.iut.commun.model.Certitude.SUR);
 
         assertThat(observation.messages()).hasSize(2);
         assertThat(observation.messages().getFirst())

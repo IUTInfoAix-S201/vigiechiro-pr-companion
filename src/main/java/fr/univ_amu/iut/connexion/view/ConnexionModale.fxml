@@ -41,7 +41,9 @@
     <HBox spacing="10.0" alignment="CENTER_LEFT">
       <Label text="Connectez-vous sur VigieChiro (GitHub ou Google)."
              wrapText="true" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
-      <Button text="Ouvrir VigieChiro" styleClass="action-secondaire" onAction="#ouvrirSite"/>
+      <!-- minWidth=USE_PREF_SIZE : la consigne (hgrow=ALWAYS) rognait le bouton (« Copier le m… »). -->
+      <Button text="Ouvrir VigieChiro" styleClass="action-secondaire" onAction="#ouvrirSite"
+              minWidth="-Infinity"/>
     </HBox>
   </VBox>
 
@@ -51,7 +53,8 @@
     <HBox spacing="10.0" alignment="CENTER_LEFT">
       <Label text="Copiez le marque-page, créez un favori et collez-le comme adresse."
              wrapText="true" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
-      <Button text="Copier le marque-page" styleClass="action-secondaire" onAction="#copierMarquePage"/>
+      <Button text="Copier le marque-page" styleClass="action-secondaire" onAction="#copierMarquePage"
+              minWidth="-Infinity"/>
     </HBox>
   </VBox>
 

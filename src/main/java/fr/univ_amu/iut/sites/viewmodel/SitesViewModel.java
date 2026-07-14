@@ -166,7 +166,8 @@ public class SitesViewModel {
         List<CarteSite> recomposees = new ArrayList<>();
         int totalPassagesAnnee = 0;
         for (Site site : service.listerSites(idUtilisateur)) {
-            StatutPlateforme statut = statutPlateforme(String.valueOf(site.id()), sitesEnregistres, sitesVerrouilles);
+            StatutPlateforme statut =
+                    StatutPlateforme.deduire(String.valueOf(site.id()), sitesEnregistres, sitesVerrouilles);
             CarteSite carte = construireCarte(site, aujourdhui, annee, statut);
             totalPassagesAnnee += carte.passagesDeLAnnee();
             recomposees.add(carte);
@@ -204,19 +205,6 @@ public class SitesViewModel {
         Site cree = service.creerSite(numeroCarre, nomConvivial, protocole, commentaire, idUtilisateur);
         rafraichir();
         return cree;
-    }
-
-    /// Statut plateforme d'un site (verrouillé > enregistré > absent), à partir des correspondances et
-    /// des correspondances verrouillées lues en amont.
-    private static StatutPlateforme statutPlateforme(
-            String refLocale, Map<String, String> enregistres, Set<String> verrouilles) {
-        if (verrouilles.contains(refLocale)) {
-            return StatutPlateforme.VERROUILLE;
-        }
-        if (enregistres.containsKey(refLocale)) {
-            return StatutPlateforme.ENREGISTRE;
-        }
-        return StatutPlateforme.ABSENT;
     }
 
     private CarteSite construireCarte(Site site, LocalDate aujourdhui, int annee, StatutPlateforme statut) {

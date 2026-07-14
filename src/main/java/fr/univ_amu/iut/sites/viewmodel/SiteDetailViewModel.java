@@ -4,6 +4,7 @@ import fr.univ_amu.iut.commun.model.Horloge;
 import fr.univ_amu.iut.commun.model.PortailVigieChiro;
 import fr.univ_amu.iut.commun.model.Protocole;
 import fr.univ_amu.iut.commun.model.RegleMetierException;
+import fr.univ_amu.iut.commun.model.dao.LienVigieChiroDao;
 import fr.univ_amu.iut.passage.model.Passage;
 import fr.univ_amu.iut.passage.model.dao.PassageDao;
 import fr.univ_amu.iut.sites.model.PointDEcoute;
@@ -20,6 +21,8 @@ import java.util.Map;
 import java.util.Objects;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
@@ -45,6 +48,9 @@ public class SiteDetailViewModel {
     private final Horloge horloge;
     private final PortailVigieChiro portail;
 
+    /// Correspondances VigieChiro : elles disent si ce site est enregistré, et s'il est verrouillé (#734).
+    private final LienVigieChiroDao liens;
+
     private Site site;
 
     private final ReadOnlyStringWrapper titre = wrapper("titre");
@@ -59,6 +65,12 @@ public class SiteDetailViewModel {
     private final ReadOnlyBooleanWrapper suppressionPossible =
             new ReadOnlyBooleanWrapper(this, "suppressionPossible", true);
 
+    /// État du site vis-à-vis de la plateforme (#734). Le détail est l'écran où l'on se demande *pourquoi
+    /// je ne peux pas déposer* : il affiche donc les trois états, y compris « non enregistré » — que la
+    /// liste, elle, tait.
+    private final ReadOnlyObjectWrapper<StatutPlateforme> statutPlateforme =
+            new ReadOnlyObjectWrapper<>(this, "statutPlateforme", StatutPlateforme.ABSENT);
+
     private final ObservableList<CartePoint> points = FXCollections.observableArrayList();
     private final ObservableList<LignePassage> passages = FXCollections.observableArrayList();
 
@@ -67,12 +79,20 @@ public class SiteDetailViewModel {
             PointDao pointDao,
             PassageDao passageDao,
             Horloge horloge,
-            PortailVigieChiro portail) {
+            PortailVigieChiro portail,
+            LienVigieChiroDao liens) {
         this.service = Objects.requireNonNull(service, "service");
         this.pointDao = Objects.requireNonNull(pointDao, "pointDao");
         this.passageDao = Objects.requireNonNull(passageDao, "passageDao");
         this.horloge = Objects.requireNonNull(horloge, "horloge");
         this.portail = Objects.requireNonNull(portail, "portail");
+        this.liens = Objects.requireNonNull(liens, "liens");
+    }
+
+    /// État du site vis-à-vis de VigieChiro : absent, enregistré, ou verrouillé (le dépôt n'est possible
+    /// que dans ce dernier cas).
+    public ReadOnlyObjectProperty<StatutPlateforme> statutPlateformeProperty() {
+        return statutPlateforme.getReadOnlyProperty();
     }
 
     /// URL de la page du site sur le portail Vigie-Chiro (#1124), vide tant que le site n’est pas
@@ -101,6 +121,7 @@ public class SiteDetailViewModel {
         mettreAJourBandeau(passagesDuSite);
         suppressionPossible.set(passagesDuSite.isEmpty());
         lienPortail.set(portail.pageSite(site.id()).orElse(""));
+        statutPlateforme.set(StatutPlateforme.duSite(site.id(), liens));
     }
 
     /// Modifie la fiche du site courant (bouton header `✏ Modifier`) puis recharge l'écran pour

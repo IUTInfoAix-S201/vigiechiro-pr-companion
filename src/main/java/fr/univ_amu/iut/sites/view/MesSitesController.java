@@ -11,6 +11,7 @@ import fr.univ_amu.iut.commun.viewmodel.ZonesStatut;
 import fr.univ_amu.iut.sites.model.Site;
 import fr.univ_amu.iut.sites.viewmodel.CarteSite;
 import fr.univ_amu.iut.sites.viewmodel.SitesViewModel;
+import fr.univ_amu.iut.sites.viewmodel.StatutPlateforme;
 import java.util.Objects;
 import java.util.Optional;
 import javafx.beans.binding.Bindings;
@@ -30,7 +31,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
-import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -207,37 +207,20 @@ public class MesSitesController implements ResumeStatut {
         return colonne;
     }
 
-    /// Rangée de badges de la carte : la fraîcheur, suivie (selon le statut plateforme du site, #718)
-    /// d'un badge « Enregistré » (bleu) ou « Verrouillé » (vert, dépôt possible). Statut absent → la
-    /// fraîcheur seule, sans conteneur.
+    /// Rangée de badges de la carte : la fraîcheur, suivie du badge de statut plateforme (#718, #734) —
+    /// « Enregistré » (bleu) ou « Verrouillé » (vert, dépôt possible). Un site **absent** de la plateforme
+    /// n'en porte pas ici : sur une liste, une pastille grise par carte ferait du bruit sans rien dire de
+    /// plus. Le **détail** du site, lui, l'affiche : c'est là qu'on se demande pourquoi on ne peut pas
+    /// déposer.
+    ///
+    /// Le libellé, la couleur et l'infobulle appartiennent à [StatutPlateforme] : cet écran ne les choisit
+    /// plus (#734).
     private static Node rangeeBadges(CarteSite carte, Label fraicheur) {
-        return switch (carte.statutPlateforme()) {
-            case ABSENT -> fraicheur;
-            case ENREGISTRE ->
-                new HBox(
-                        8.0,
-                        fraicheur,
-                        badgePlateforme(
-                                "Enregistré sur VigieChiro", "badge-info", "Ce carré est enregistré sur VigieChiro."));
-            case VERROUILLE ->
-                new HBox(
-                        8.0,
-                        fraicheur,
-                        badgePlateforme(
-                                "Verrouillé sur VigieChiro",
-                                "badge-succes",
-                                "Carré figé côté VigieChiro : le dépôt de vos données y est désormais possible."));
-        };
-    }
-
-    /// Badge de statut plateforme (texte + famille de couleur sémantique) doté d'une infobulle explicitant
-    /// l'état : « Verrouillé » désigne un cas **favorable** (dépôt possible), contre-intuitif au seul
-    /// libellé (#801).
-    private static Label badgePlateforme(String texte, String classeSemantique, String infobulle) {
-        Label badge = new Label(texte);
-        badge.getStyleClass().addAll("badge", classeSemantique);
-        Tooltip.install(badge, new Tooltip(infobulle));
-        return badge;
+        StatutPlateforme statut = carte.statutPlateforme();
+        if (statut == StatutPlateforme.ABSENT) {
+            return fraicheur;
+        }
+        return new HBox(8.0, fraicheur, BadgeStatutPlateforme.creer(statut));
     }
 
     private VBox colonneStatsPoints(CarteSite carte) {

@@ -24,7 +24,9 @@ import fr.univ_amu.iut.commun.view.ActionMenu;
 import fr.univ_amu.iut.commun.view.ActionOuvrirReglages;
 import fr.univ_amu.iut.commun.view.ActionPurger;
 import fr.univ_amu.iut.commun.view.ActionRestaurer;
+import fr.univ_amu.iut.commun.view.ActionRestaurerComplet;
 import fr.univ_amu.iut.commun.view.ActionSauvegarder;
+import fr.univ_amu.iut.commun.view.ActionSauvegarderComplet;
 import fr.univ_amu.iut.commun.view.ActionSourceEspece;
 import fr.univ_amu.iut.commun.view.DescripteurReglage;
 import fr.univ_amu.iut.commun.view.ExecuteurFiche;
@@ -91,7 +93,11 @@ public class CommunModule extends AbstractModule {
         // l'entrée « Connexion » vient de `connexion`, #931).
         Multibinder<ActionMenu> actions = Multibinder.newSetBinder(binder(), ActionMenu.class);
         actions.addBinding().to(ActionSauvegarder.class);
+        // Sauvegarde/restauration COMPLETES (base + audio, #1346) : le moteur existait depuis #1142 sans
+        // aucun appelant. C'est pourtant la seule qui protege l'audio, que la plateforme ne rend pas.
+        actions.addBinding().to(ActionSauvegarderComplet.class);
         actions.addBinding().to(ActionRestaurer.class);
+        actions.addBinding().to(ActionRestaurerComplet.class);
         actions.addBinding().to(ActionPurger.class);
         actions.addBinding().to(ActionSourceEspece.class);
         actions.addBinding().to(ActionOuvrirReglages.class);

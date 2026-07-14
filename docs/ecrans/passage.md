@@ -139,6 +139,30 @@ disponible, et le décompte vous le dit.
     La réactivation **copie** : votre dossier source reste intact, et vos observations comme vos
     validations ne sont jamais recalculées — on rebranche des chemins, rien d'autre.
 
+### Vous n'avez gardé que vos enregistrements bruts ?
+
+C'est le cas le plus fréquent : on garde volontiers sa **carte SD** (ou sa copie), plus rarement les
+séquences d'écoute, qui n'en sont qu'un produit dérivé.
+
+**Désignez ce dossier-là, tout simplement.** L'application reconnaît ce qu'il contient : si elle n'y
+trouve pas les séquences, mais qu'elle y trouve vos **bruts**, elle **régénère** les séquences à
+partir d'eux. Vous n'avez aucun choix à faire ni aucune option à cocher.
+
+Ce qui est régénéré n'est pas cru sur parole : chaque tranche recalculée passe **exactement les mêmes
+contrôles** que si vous l'aviez retrouvée telle quelle. C'est possible parce que le découpage est
+**reproductible** : à partir du même enregistrement, l'application refabrique des tranches **identiques
+au bit près**, dont l'empreinte correspond alors à celle qui avait été relevée avant l'archivage.
+Autrement dit, la reproductibilité sert de **preuve**, elle n'est pas une excuse pour ne pas vérifier.
+
+Le brut lui-même est d'abord vérifié (empreinte du fichier entier). **Un brut douteux ne régénère
+rien** : il serait absurde de recalculer des séquences à partir d'un fichier dont l'identité n'est pas
+établie.
+
+!!! note "Vos bruts ne sont pas recopiés sur le disque"
+    Ils servent à recalculer les séquences, puis l'application les oublie. Recopier les gigaoctets que
+    vous aviez justement demandé de libérer n'aurait aucun sens : le passage redevient **écoutable**,
+    sans que ses bruts reviennent occuper la place.
+
 ## Modifier le rattachement
 
 Si une nuit a été rattachée par erreur (mauvaise année ou mauvais numéro de passage), le bouton

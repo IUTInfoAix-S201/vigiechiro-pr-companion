@@ -139,6 +139,15 @@ l'utilisateur.
 **énumère** ; un passage sans empreinte reste donc réactivable, mais par la preuve acoustique, pas par la
 confiance dans un nom.
 
+**Corollaire : un fichier *reconstruit* est un candidat comme un autre** (#1406). Quand l'utilisateur n'a
+gardé que ses **bruts**, les séquences sont **régénérées** (la transformation est déterministe, R11) puis
+soumises à la **même** cascade. Si le code de transformation n'a pas changé, l'empreinte de la tranche
+régénérée est celle capturée avant l'archivage → **CERTITUDE** ; s'il a changé, la cascade descend d'un
+cran au lieu d'accorder une confiance aveugle. C'est le point à retenir : **la reproductibilité est une
+preuve, pas un prérequis** - on ne se dispense jamais de vérifier au motif qu'on a fabriqué le fichier
+soi-même. Et un **brut refusé ne régénère rien** : recalculer à partir d'un fichier dont l'identité n'est
+pas établie, c'est fabriquer du faux.
+
 **Principes.** Fail-safe (ne pas pouvoir prouver = ne pas faire), **honnêteté** (dire *avec quelle
 force* on a conclu), et refus de la fausse alternative « preuve parfaite ou rien ».
 

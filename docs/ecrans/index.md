@@ -7,13 +7,15 @@ référence explique *en détail* ce que chaque écran propose.
 | Écran | Rôle |
 |---|---|
 | [Accueil](accueil.md) | Point d'entrée vers les activités |
-| [Sites](sites.md) | Gérer les sites de suivi et leurs points d'écoute |
+| [Recherche](recherche.md) | Sauter directement à un site, un point ou un passage, depuis n'importe quel écran |
+| [Mes sites](sites.md) | Gérer les sites de suivi et leurs points d'écoute |
 | [Passage](passage.md) | Pivot d'une nuit : statut, navigation, suppression |
 | [Importation](importation.md) | Importer une nuit depuis la carte SD |
 | [Qualification](qualification.md) | Écouter les séquences et poser un verdict de qualité |
 | [Lot](lot.md) | Préparer et déposer un lot vérifié |
-| [Validation](validation.md) | Relire les observations Tadarida (espèces) |
-| [Multisite](multisite.md) | Vue agrégée des passages (tri, filtres, vues sauvegardées) |
+| [Sons & validation](validation.md) | Relire les observations Tadarida (espèces), écouter, discuter avec le validateur |
+| [Carte & passages](multisite.md) | Vue agrégée des passages (tri, filtres, vues sauvegardées) |
+| [Espèces & observations](analyse.md) | Exploiter les observations toutes nuits confondues : quelles espèces, où, quand, combien |
 | [Diagnostic](diagnostic.md) | Diagnostic d'une nuit (climat, anomalies) |
 | [Audit de cohérence](audit.md) | Confronter disque, base et Vigie-Chiro : plus rien ne diverge en silence |
 | [Réglages](reglages.md) | Préférences de l'application, par domaine (menu ☰) |

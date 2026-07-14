@@ -80,6 +80,7 @@ Les tests vivent sous `src/test/java/fr/univ_amu/iut/`, en **miroir** des paquet
 | **Geste** (TestFX) | `<feature>/view/*ViewTest` | Le bouton est **cliqué**, et on vérifie son **effet** (#1405). |
 | Bout en bout | `fr.univ_amu.iut.e2e.*`, `<feature>/e2e/Parcours*E2ETest` | Le scénario complet : IHM → ViewModel → service → base. |
 | Architecture (ArchUnit) | `architecture/ArchitectureTest` | Les **6 règles** de frontière MVVM (cf. [Architecture](architecture.md)). |
+| **Documentation** | `documentation/DocumentationAJourTest` | Toute commande CLI a sa ligne, tout écran a sa fiche (#1458). |
 
 Outils : **JUnit 5 + AssertJ + Mockito** ; **ApprovalTests** pour les sorties verbatim (CSV Tadarida
 `_Vu` : le premier run produit un `*.received`, à approuver en `*.approved`).
@@ -115,6 +116,32 @@ Trois exigences, dans l'ordre d'importance :
 3. **Le message de confirmation est un contenu.** Sur une suppression en cascade, c'est le seul
    avertissement que l'utilisateur recevra : vérifier qu'il annonce le gain, ce qui est conservé, et
    ce qui est **définitivement** perdu.
+
+### La documentation est tenue par un test
+
+Une doc qui ment est **pire** qu'une doc absente : on la croit. Le dépôt l'avait déjà tranché pour les
+**captures**, défendues par quatre garde-fous (cf. [Captures](captures.md)). Les **commandes** et les
+**écrans**, eux, n'avaient rien - et ils ont dérivé, en silence : `dev-docs/cli.md` a documenté jusqu'à
+**22 commandes sur 29**, et l'écran « Audit de cohérence » a vécu **sans aucune fiche** de sa livraison
+(#1133) à la clôture de l'EPIC #1154. Aucune CI n'a rougi. Une relecture à la main les a trouvés.
+
+`DocumentationAJourTest` comble l'asymétrie, en confrontant la doc non pas à une liste tenue à la main
+(c'est exactement ce qui dérive) mais à la **vérité du câblage** :
+
+| Ce qui est confronté | À quoi | Ce que ça empêche |
+|---|---|---|
+| Les sous-commandes de l'annotation `@Command` de `CommandeRacine` | Le tableau de `dev-docs/cli.md` | Une commande livrée, testée, verte en CI… et **introuvable** dans sa propre doc |
+| Les `ActiviteAccueil` **liées dans l'injecteur** | La fiche `docs/ecrans/<pageDoc>.md` | Un **écran entier** offert à l'utilisateur, sans page |
+| Les fiches présentes sur le disque | La `nav` de `mkdocs.yml` **et** le tableau de `docs/ecrans/index.md` | Une page que le site ne publie pas, ou qu'on ne peut atteindre depuis l'index de sa section |
+
+Deux détails qui comptent :
+
+- Les commandes sont lues **sur l'annotation**, par réflexion - jamais instanciées. Leurs constructeurs
+  tirent des `Provider` qui **ouvrent la base** : les instancier ferait de l'E/S pour rien.
+- `ActiviteAccueil.pageDoc()` est une méthode du **contrat**, pas une convention. Le nom de la fiche ne se
+  déduit ni du titre (« Sons de référence » se documente dans `validation.md`) ni du paquet (la feature
+  `audio` aussi) : il faut le **dire**. Le compilateur force donc à choisir une fiche, et le test refuse
+  qu'elle soit absente.
 
 ## Les outils qualité
 

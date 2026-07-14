@@ -60,6 +60,11 @@ public final class AccueilSonsReference implements ActiviteAccueil {
     }
 
     @Override
+    public String pageDoc() {
+        return "validation";
+    }
+
+    @Override
     public void ouvrir() {
         // Identifiant résolu paresseusement (requête en base via SitesModule), à l'ouverture seulement -
         // pas à la construction de l'accueil, sinon le rendu des cartes exigerait un schéma migré. Même

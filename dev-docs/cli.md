@@ -45,6 +45,11 @@ un **puits** (aucune feature ne dépend de lui), donc le graphe reste acyclique.
 
 ## Les sous-commandes
 
+!!! note "Ce tableau est tenu par un test"
+    `DocumentationAJourTest` confronte ce tableau aux sous-commandes **réellement câblées** dans
+    l'annotation `@Command` de `CommandeRacine` : ajouter une commande sans lui écrire sa ligne **fait
+    rougir la CI** (#1458). Le tableau a compté jusqu'à **22 commandes sur 29** avant qu'on s'en aperçoive.
+
 | Commande | Options | Parcours | Service |
 |---|---|---|---|
 | `creer-site` | `--carre <n> [--nom ..] [--protocole ..] [--commentaire ..]` | A10 | `ServiceSites.creerSite` |

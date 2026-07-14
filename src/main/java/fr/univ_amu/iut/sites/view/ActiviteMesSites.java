@@ -50,6 +50,11 @@ public final class ActiviteMesSites implements ActiviteAccueil {
     }
 
     @Override
+    public String pageDoc() {
+        return "sites";
+    }
+
+    @Override
     public void ouvrir() {
         navigation.ouvrirAccueil();
     }

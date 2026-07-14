@@ -16,6 +16,7 @@ import fr.univ_amu.iut.commun.model.PointParLocalite;
 import fr.univ_amu.iut.commun.model.Workspace;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
 import fr.univ_amu.iut.passage.model.ServiceReconstructionPassages;
+import java.util.Optional;
 
 /// Liaison **réelle** de [ServiceReconstructionPassages] (#1305), patron de
 /// `SynchronisationParticipationModule` : la reconstruction d'un passage jamais importé ici a besoin de la
@@ -48,7 +49,7 @@ public class ReconstructionModule extends ModuleDeFeature {
             SourceDeDonnees source,
             ClientVigieChiro client,
             PointParLocalite pointParLocalite,
-            ImportObservations importObservations,
+            Optional<ImportObservations> importObservations,
             Workspace workspace,
             Horloge horloge) {
         return new ServiceReconstructionPassages(

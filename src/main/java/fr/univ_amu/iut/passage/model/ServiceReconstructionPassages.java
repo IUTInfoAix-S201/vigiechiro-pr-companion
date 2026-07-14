@@ -79,7 +79,12 @@ public class ServiceReconstructionPassages {
     private final LienVigieChiroDao liens;
     private final ClientVigieChiro client;
     private final PointParLocalite pointParLocalite;
-    private final ImportObservations importObservations;
+
+    /// Port de l'import des observations (#1264), **optionnel** comme partout ailleurs : la feature
+    /// « Import VigieChiro » est désactivable (#1057), et un module ne peut pas exiger en dur ce qu'une
+    /// autre feature fournit : l'injecteur ne se construirait plus. Absent, [#reconstruire] le **dit**.
+    private final Optional<ImportObservations> importObservations;
+
     private final Workspace workspace;
     private final Horloge horloge;
 
@@ -87,7 +92,7 @@ public class ServiceReconstructionPassages {
             SourceDeDonnees source,
             ClientVigieChiro client,
             PointParLocalite pointParLocalite,
-            ImportObservations importObservations,
+            Optional<ImportObservations> importObservations,
             Workspace workspace,
             Horloge horloge) {
         Objects.requireNonNull(source, "source");
@@ -128,6 +133,13 @@ public class ServiceReconstructionPassages {
         Objects.requireNonNull(idParticipation, "idParticipation");
         refuserSiDejaRattachee(idParticipation);
 
+        // Vérifié AVANT toute écriture : un passage reconstruit sans ses observations ne serait qu'une
+        // coquille, et mieux vaut ne rien créer que créer à moitié.
+        ImportObservations importateur = importObservations.orElseThrow(() -> new RegleMetierException(
+                "La reconstruction rapatrie les observations depuis VigieChiro, et la fonctionnalité"
+                        + " « Import VigieChiro » est désactivée : réactivez-la (menu ☰ > Fonctionnalités)"
+                        + " puis recommencez."));
+
         ParticipationDetail detail = detail(idParticipation);
         ParticipationVigieChiro resume = resume(idParticipation);
         Long idPoint = pointLocal(resume)
@@ -156,8 +168,8 @@ public class ServiceReconstructionPassages {
         liens.upsert(new LienVigieChiro(LienVigieChiro.ENTITE_PASSAGE, String.valueOf(idPassage), idParticipation));
 
         // L'import des observations est le mécanisme de l'EPIC #1259, consommé par son port socle : il
-        // rattache chaque ligne à la séquence de même nom — celles qu'on vient de recréer.
-        importObservations.importer(idPassage, false);
+        // rattache chaque ligne à la séquence de même nom - celles qu'on vient de recréer.
+        importateur.importer(idPassage, false);
         int observations = donnees.stream()
                 .mapToInt(donnee -> donnee.observations().size())
                 .sum();

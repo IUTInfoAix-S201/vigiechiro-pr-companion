@@ -92,7 +92,7 @@ class ServiceReconstructionPassagesTest {
                 source,
                 client,
                 pointParLocalite,
-                importObservations,
+                Optional.of(importObservations),
                 new Workspace(dossier),
                 new HorlogeFigee(MAINTENANT));
     }
@@ -201,6 +201,26 @@ class ServiceReconstructionPassagesTest {
                 .isInstanceOf(RegleMetierException.class)
                 .hasMessageContaining("analyse");
         assertThat(passageDao.findAll()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Feature « Import VigieChiro » désactivée : refus explicite, aucun passage créé")
+    void import_desactive_refuse() {
+        bouchonnerPlateforme();
+        ServiceReconstructionPassages sansImport = new ServiceReconstructionPassages(
+                source,
+                client,
+                (carre, point) -> Optional.of(idPoint),
+                Optional.empty(),
+                new Workspace(dossier),
+                new HorlogeFigee(MAINTENANT));
+
+        assertThatThrownBy(() -> sansImport.reconstruire(PARTICIPATION))
+                .isInstanceOf(RegleMetierException.class)
+                .hasMessageContaining("Import VigieChiro");
+        assertThat(passageDao.findAll())
+                .as("le refus tombe avant toute écriture : mieux vaut rien créer que créer à moitié")
+                .isEmpty();
     }
 
     // --- Fixture ---------------------------------------------------------------------------------

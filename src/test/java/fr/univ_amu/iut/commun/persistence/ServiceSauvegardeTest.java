@@ -97,15 +97,44 @@ class ServiceSauvegardeTest {
         seederSession("Car040962-2026-Pass1-A1");
         Path destination = workspaceDir.resolve("mes-sauvegardes");
 
-        Path backup = service.sauvegarderComplet(destination);
+        BilanSauvegarde bilan = service.sauvegarderComplet(destination);
 
-        assertThat(backup).isDirectory().hasParent(destination);
-        assertThat(backup.resolve("base").resolve("vigiechiro.db")).isRegularFile();
-        assertThat(backup.resolve("sessions")
+        assertThat(bilan.dossier()).isDirectory().hasParent(destination);
+        assertThat(bilan.dossier().resolve("base").resolve("vigiechiro.db")).isRegularFile();
+        assertThat(bilan.dossier()
+                        .resolve("sessions")
                         .resolve("Car040962-2026-Pass1-A1")
                         .resolve("transformes")
                         .resolve("seq.wav"))
                 .exists();
+        assertThat(bilan.sessionsCopiees()).isEqualTo(1);
+        assertThat(bilan.incomplete()).isFalse();
+    }
+
+    @Test
+    @DisplayName("#1346 : une racine de session non montée (carte SD) est SIGNALÉE, pas sautée en silence")
+    void sauvegarde_complete_signale_les_racines_inaccessibles() throws IOException {
+        utilisateurDao.insert(new Utilisateur("u1", "Alice"));
+        seederSession("Car040962-2026-Pass1-A1");
+        // Une session dont la racine n'existe pas sur le disque : carte SD retirée, disque externe débranché.
+        Path absente = workspaceDir.resolve("Car040962-2026-Pass2-B2");
+        declarerSession(absente, 2);
+
+        BilanSauvegarde bilan = service.sauvegarderComplet(workspaceDir.resolve("mes-sauvegardes"));
+
+        assertThat(bilan.sessionsCopiees())
+                .as("ce qui était là a bien été copié : une racine absente ne fait pas échouer la sauvegarde")
+                .isEqualTo(1);
+        assertThat(bilan.incomplete())
+                .as("mais la sauvegarde N'EST PAS complète, et c'est tout ce qui compte avant un reset (#1151)")
+                .isTrue();
+        assertThat(bilan.racinesInaccessibles())
+                .singleElement()
+                .satisfies(racine -> assertThat(racine).contains("Car040962-2026-Pass2-B2"));
+        assertThat(bilan.enClair())
+                .as("le bilan se lit tel quel, en IHM comme en CLI")
+                .contains("1 dossier(s) de session copié(s)")
+                .contains("1 inaccessible(s)");
     }
 
     @Test
@@ -113,7 +142,8 @@ class ServiceSauvegardeTest {
     void restauration_complete_remet_base_et_dossiers() throws IOException {
         utilisateurDao.insert(new Utilisateur("u1", "Alice"));
         Path racineSession = seederSession("Car040962-2026-Pass1-A1");
-        Path backup = service.sauvegarderComplet(workspaceDir.resolve("mes-sauvegardes"));
+        Path backup = service.sauvegarderComplet(workspaceDir.resolve("mes-sauvegardes"))
+                .dossier();
 
         // Altérations APRÈS la sauvegarde : un second utilisateur en base et le fichier de session supprimé.
         utilisateurDao.insert(new Utilisateur("u2", "Bob"));
@@ -125,20 +155,26 @@ class ServiceSauvegardeTest {
         assertThat(racineSession.resolve("transformes").resolve("seq.wav")).exists();
     }
 
-    /// Crée `<workspace>/<nom>/transformes/seq.wav` et une ligne `recording_session` pointant sur ce dossier
-    /// (FK désactivées : seul `root_path` importe pour la sauvegarde complète).
+    /// Crée `<workspace>/<nom>/transformes/seq.wav` et déclare la session en base.
     private Path seederSession(String nom) throws IOException {
         Path racine = workspaceDir.resolve(nom);
         Files.createDirectories(racine.resolve("transformes"));
         Files.writeString(racine.resolve("transformes").resolve("seq.wav"), "audio");
+        declarerSession(racine, 1);
+        return racine;
+    }
+
+    /// Déclare une ligne `recording_session` pointant sur `racine`, **sans rien créer sur le disque** (FK
+    /// désactivées : seul `root_path` importe pour la sauvegarde complète). Sert à simuler une racine
+    /// inaccessible — une carte SD retirée laisse exactement cette trace en base.
+    private void declarerSession(Path racine, int idPassage) throws IOException {
         try (Connection cx = source.getConnection();
                 Statement st = cx.createStatement()) {
             st.execute("PRAGMA foreign_keys = OFF");
             st.execute("INSERT INTO recording_session(root_path, originals_total_bytes, sequences_total_bytes,"
-                    + " passage_id) VALUES ('" + racine.toString().replace("'", "''") + "', 0, 0, 1)");
+                    + " passage_id) VALUES ('" + racine.toString().replace("'", "''") + "', 0, 0, " + idPassage + ")");
         } catch (SQLException echec) {
             throw new IOException(echec);
         }
-        return racine;
     }
 }

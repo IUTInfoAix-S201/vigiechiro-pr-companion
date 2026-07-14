@@ -153,8 +153,9 @@ public class ServiceSauvegarde {
     /// Action **délibérée** (l'audio peut peser plusieurs Go) : à lancer avant un reset, hors opération
     /// concurrente.
     ///
-    /// @return le dossier de sauvegarde créé
-    public Path sauvegarderComplet(Path dossierDestination) {
+    /// @return le **bilan** de la sauvegarde : le dossier créé, les sessions copiées, et **celles qui ne
+    ///     l'ont pas été** (#1346)
+    public BilanSauvegarde sauvegarderComplet(Path dossierDestination) {
         Objects.requireNonNull(dossierDestination, "dossierDestination");
         try {
             Path racineBackup = dossierLibreComplet(dossierDestination);
@@ -165,14 +166,22 @@ public class ServiceSauvegarde {
                 st.execute("VACUUM INTO " + litteralSql(base));
             }
             Path dossierSessions = Files.createDirectories(racineBackup.resolve(SOUS_DOSSIER_SESSIONS));
+            int copiees = 0;
+            List<String> inaccessibles = new ArrayList<>();
             for (Path racineSession : racinesSessions()) {
+                // Une racine absente n'est PAS une erreur (carte SD non montée, disque débranché) : la
+                // sauvegarde doit aboutir. Mais la sauter en silence laissait croire à une copie complète
+                // (#1346) — c'est la seule chose qu'on ne peut pas se permettre avant un reset (#1151).
                 if (Files.isDirectory(racineSession)) {
                     copierRecursif(
                             racineSession,
                             dossierSessions.resolve(racineSession.getFileName().toString()));
+                    copiees++;
+                } else {
+                    inaccessibles.add(racineSession.toString());
                 }
             }
-            return racineBackup;
+            return new BilanSauvegarde(racineBackup, copiees, inaccessibles);
         } catch (IOException | SQLException echec) {
             throw new DataAccessException("Sauvegarde complète impossible vers " + dossierDestination, echec);
         }

@@ -3,12 +3,11 @@ package fr.univ_amu.iut.passage.view;
 import fr.univ_amu.iut.commun.model.CompteurValidations;
 import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.commun.view.ConfirmateurModifiable;
+import fr.univ_amu.iut.commun.view.NiveauNotification;
+import fr.univ_amu.iut.commun.view.NotificateurModifiable;
 import fr.univ_amu.iut.passage.viewmodel.PassageViewModel;
 import java.util.Objects;
 import java.util.function.LongSupplier;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.ButtonType;
 
 /// Actions **destructives ou correctives** de la fiche d'un passage : supprimer, annuler le dépôt,
 /// purger les originaux. Chacune confirme, délègue au [PassageViewModel], puis recharge l'écran (ou
@@ -16,10 +15,16 @@ import javafx.scene.control.ButtonType;
 ///
 /// Extraites de [PassageController] pour qu'il reste du **pur câblage** (PMD GodClass), au même
 /// titre que [ActionArchivage] (#1300) et [ActionReactivation] (#1302).
+///
+/// Le refus passe par le port `Notificateur` (#1405) et non plus par un `Alert` en dur : c'est ce qui
+/// rend ces trois gestes **cliquables dans un test**. Jusqu'ici on ne vérifiait que la **présence** de
+/// leurs boutons, jamais leur effet - alors que la suppression emporte la nuit entière et, avec elle,
+/// les validations de l'observateur.
 final class ActionsFichePassage {
 
     private final PassageViewModel viewModel;
     private final ConfirmateurModifiable confirmateur;
+    private final NotificateurModifiable notificateur;
     private final CompteurValidations compteurValidations;
     private final LongSupplier idPassage;
     private final Runnable recharger;
@@ -27,6 +32,7 @@ final class ActionsFichePassage {
 
     /// @param viewModel ViewModel de M-Passage
     /// @param confirmateur porteur de confirmation partagé de l'écran (stub déterministe en test, #1013)
+    /// @param notificateur porteur de compte rendu partagé de l'écran (double capturant en test, #1405)
     /// @param compteurValidations validations menacées par une suppression (avertissement, #786)
     /// @param idPassage identifiant du passage affiché (évalué à l'action : l'écran peut avoir changé)
     /// @param recharger rejeu de l'ouverture de l'écran après une action non destructive
@@ -34,12 +40,14 @@ final class ActionsFichePassage {
     ActionsFichePassage(
             PassageViewModel viewModel,
             ConfirmateurModifiable confirmateur,
+            NotificateurModifiable notificateur,
             CompteurValidations compteurValidations,
             LongSupplier idPassage,
             Runnable recharger,
             Runnable retourAccueil) {
         this.viewModel = Objects.requireNonNull(viewModel, "viewModel");
         this.confirmateur = Objects.requireNonNull(confirmateur, "confirmateur");
+        this.notificateur = Objects.requireNonNull(notificateur, "notificateur");
         this.compteurValidations = Objects.requireNonNull(compteurValidations, "compteurValidations");
         this.idPassage = Objects.requireNonNull(idPassage, "idPassage");
         this.recharger = Objects.requireNonNull(recharger, "recharger");
@@ -57,7 +65,7 @@ final class ActionsFichePassage {
             viewModel.supprimer();
             retourAccueil.run();
         } catch (RegleMetierException refus) {
-            alerteErreur("Suppression impossible", refus.getMessage());
+            signalerRefus("Suppression impossible", refus.getMessage());
         }
     }
 
@@ -73,7 +81,7 @@ final class ActionsFichePassage {
             viewModel.annulerDepot();
             recharger.run();
         } catch (RegleMetierException refus) {
-            alerteErreur("Annulation impossible", refus.getMessage());
+            signalerRefus("Annulation impossible", refus.getMessage());
         }
     }
 
@@ -90,7 +98,7 @@ final class ActionsFichePassage {
             viewModel.purgerOriginaux();
             recharger.run();
         } catch (RuntimeException echec) {
-            alerteErreur("Purge impossible", echec.getMessage());
+            signalerRefus("Purge impossible", echec.getMessage());
         }
     }
 
@@ -107,9 +115,8 @@ final class ActionsFichePassage {
                 + " validation(s) Tadarida (correction, référence, commentaire) seront définitivement perdues.";
     }
 
-    private static void alerteErreur(String entete, String message) {
-        Alert alerte = new Alert(AlertType.WARNING, message, ButtonType.OK);
-        alerte.setHeaderText(entete);
-        alerte.showAndWait();
+    /// L'action n'a pas eu lieu : l'écran ne bouge pas, et l'utilisateur sait pourquoi.
+    private void signalerRefus(String entete, String message) {
+        notificateur.notifier(NiveauNotification.AVERTISSEMENT, entete, message);
     }
 }

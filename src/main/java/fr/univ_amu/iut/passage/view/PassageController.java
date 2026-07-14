@@ -40,10 +40,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.ListChangeListener;
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -515,6 +512,7 @@ public class PassageController implements EmplacementNavigation, RafraichirAuRet
         return new ActionsFichePassage(
                 viewModel,
                 confirmateur,
+                notificateur,
                 compteurValidations,
                 () -> idPassage,
                 () -> viewModel.ouvrirSur(idPassage, contexte),
@@ -584,11 +582,5 @@ public class PassageController implements EmplacementNavigation, RafraichirAuRet
 
     private static String libelleVerdict(Verdict verdict) {
         return verdict == null || verdict == Verdict.A_VERIFIER ? "non saisi" : verdict.libelle();
-    }
-
-    private void alerteErreur(String entete, String message) {
-        Alert alerte = new Alert(AlertType.WARNING, message, ButtonType.OK);
-        alerte.setHeaderText(entete);
-        alerte.showAndWait();
     }
 }

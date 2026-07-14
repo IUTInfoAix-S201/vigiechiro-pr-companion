@@ -60,7 +60,32 @@ class SiteDetailViewModelTest {
         HorlogeFigee horloge = new HorlogeFigee(LocalDate.of(2026, 5, 31));
         service = new ServiceSites(siteDao, pointDao, passageDao, horloge);
         liens = new LienVigieChiroDao(source);
-        viewModel = new SiteDetailViewModel(service, pointDao, passageDao, horloge, new PortailVigieChiro(liens));
+        viewModel =
+                new SiteDetailViewModel(service, pointDao, passageDao, horloge, new PortailVigieChiro(liens), liens);
+    }
+
+    @Test
+    @DisplayName("#734 : le statut plateforme suit les correspondances (absent, enregistré, verrouillé)")
+    void statut_plateforme_suit_les_correspondances() {
+        Site site = service.creerSite("640380", "Étang", Protocole.STANDARD, null, ID_USER);
+        viewModel.chargerSite(site);
+        assertThat(viewModel.statutPlateformeProperty().get())
+                .as("aucune correspondance : le carré n'est pas connu de la plateforme")
+                .isEqualTo(StatutPlateforme.ABSENT);
+
+        liens.upsert(new LienVigieChiro(LienVigieChiro.ENTITE_SITE, String.valueOf(site.id()), "6a4961f5", false));
+        viewModel.rafraichir();
+        assertThat(viewModel.statutPlateformeProperty().get())
+                .as("correspondance non verrouillée : enregistré, mais le dépôt reste impossible")
+                .isEqualTo(StatutPlateforme.ENREGISTRE);
+        assertThat(viewModel.statutPlateformeProperty().get().depotPossible()).isFalse();
+
+        liens.upsert(new LienVigieChiro(LienVigieChiro.ENTITE_SITE, String.valueOf(site.id()), "6a4961f5", true));
+        viewModel.rafraichir();
+        assertThat(viewModel.statutPlateformeProperty().get())
+                .as("correspondance verrouillée : c'est l'état FAVORABLE, celui qui autorise le dépôt")
+                .isEqualTo(StatutPlateforme.VERROUILLE);
+        assertThat(viewModel.statutPlateformeProperty().get().depotPossible()).isTrue();
     }
 
     @Test

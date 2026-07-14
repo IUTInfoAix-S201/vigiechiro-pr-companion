@@ -80,6 +80,12 @@
       <Label text="PASSAGES (ANNÉE)" styleClass="bandeau-label"/>
       <Label fx:id="valPassages" styleClass="bandeau-valeur"/>
     </VBox>
+    <!-- Statut plateforme (#734) : le dépôt n'est possible que sur un carré VERROUILLÉ côté VigieChiro.
+         C'est ici qu'on se pose la question, donc c'est ici qu'on y répond - badge posé en code
+         (BadgeStatutPlateforme), avec son infobulle. -->
+    <VBox fx:id="celluleStatutPlateforme" styleClass="bandeau-cellule" HBox.hgrow="ALWAYS">
+      <Label text="VIGIE-CHIRO" styleClass="bandeau-label"/>
+    </VBox>
   </HBox>
 
   <HBox alignment="CENTER_LEFT" spacing="12.0">

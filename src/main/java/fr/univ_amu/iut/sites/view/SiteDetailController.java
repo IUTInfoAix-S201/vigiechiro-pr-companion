@@ -21,6 +21,7 @@ import fr.univ_amu.iut.commun.viewmodel.ZonesStatut;
 import fr.univ_amu.iut.sites.model.Site;
 import fr.univ_amu.iut.sites.viewmodel.LignePassage;
 import fr.univ_amu.iut.sites.viewmodel.SiteDetailViewModel;
+import fr.univ_amu.iut.sites.viewmodel.StatutPlateforme;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -48,6 +49,7 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.Window;
 import javafx.util.StringConverter;
 
@@ -109,6 +111,11 @@ public class SiteDetailController implements RafraichirAuRetour, ResumeStatut {
 
     @FXML
     private Label valPassages;
+
+    /// Cellule « VIGIE-CHIRO » du bandeau (#734) : elle accueille le badge de statut plateforme, reconstruit
+    /// à chaque changement d'état (le badge porte son infobulle, on le remplace plutôt que de le muter).
+    @FXML
+    private VBox celluleStatutPlateforme;
 
     @FXML
     private Button boutonModifier;
@@ -203,6 +210,15 @@ public class SiteDetailController implements RafraichirAuRetour, ResumeStatut {
         return zonesStatut.getReadOnlyProperty();
     }
 
+    /// Remplace le badge de la cellule « VIGIE-CHIRO » par celui de `statut` (le libellé de la cellule,
+    /// premier enfant, reste en place).
+    private void afficherStatutPlateforme(StatutPlateforme statut) {
+        celluleStatutPlateforme
+                .getChildren()
+                .removeIf(noeud -> noeud.getStyleClass().contains("badge"));
+        celluleStatutPlateforme.getChildren().add(BadgeStatutPlateforme.creer(statut));
+    }
+
     @FXML
     private void initialize() {
         // Densité/habillage de table uniformes (#690) + table navigable au double-clic (#792).
@@ -225,6 +241,11 @@ public class SiteDetailController implements RafraichirAuRetour, ResumeStatut {
         valDateCreation.textProperty().bind(viewModel.dateCreationProperty());
         valDerniereNuit.textProperty().bind(viewModel.derniereNuitProperty());
         valPassages.textProperty().bind(viewModel.passagesDeLAnneeProperty());
+        // Badge de statut plateforme (#734), unifié avec celui des cartes de « Mes sites ». Le détail
+        // affiche les TROIS états, « non enregistré » compris : c'est ici qu'on se demande pourquoi le
+        // dépôt reste impossible, et l'infobulle du badge le dit.
+        afficherStatutPlateforme(viewModel.statutPlateformeProperty().get());
+        viewModel.statutPlateformeProperty().addListener((observable, avant, apres) -> afficherStatutPlateforme(apres));
         boutonSupprimer
                 .disableProperty()
                 .bind(viewModel.suppressionPossibleProperty().not());

@@ -59,6 +59,10 @@ public class AuditModule extends ModuleDeFeature {
                 .to(Key.get(AuditPointsServeur.class, Names.named("vigiechiro")));
     }
 
+    /// L'audit des points regarde dans les **deux sens** (#1455). Le sens serveur → local s'appuie sur la
+    /// reconstruction (#1305), qui sait déjà quelles participations n'ont aucun équivalent ici :
+    /// `Optional`, car la feature « reconstruire » est désactivable — l'audit se tait alors sur ce sens
+    /// plutôt que d'échouer.
     @Provides
     @Singleton
     @Named("vigiechiro")
@@ -67,8 +71,9 @@ public class AuditModule extends ModuleDeFeature {
             SiteDao siteDao,
             PointDao pointDao,
             LienVigieChiroDao liens,
-            @Named("idUtilisateurCourant") String idUtilisateur) {
-        return new AuditPointsServeur(client, siteDao, pointDao, liens, idUtilisateur);
+            @Named("idUtilisateurCourant") String idUtilisateur,
+            Optional<ServiceReconstructionPassages> reconstruction) {
+        return new AuditPointsServeur(client, siteDao, pointDao, liens, idUtilisateur, reconstruction);
     }
 
     @Provides

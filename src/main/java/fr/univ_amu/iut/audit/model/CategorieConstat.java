@@ -27,5 +27,14 @@ public enum CategorieConstat {
     SERVEUR_INJOIGNABLE,
     /// Un point d'écoute local diverge de sa localité serveur (inconnu du serveur, ou position
     /// différente) : constat **en ligne**.
-    POINT_DIVERGENT
+    POINT_DIVERGENT,
+    /// **Sens inverse** de [#POINT_DIVERGENT] (#1455) : la plateforme connaît une localité qu'on n'a
+    /// **pas** ici, **et** cette localité porte des nuits absentes d'ici. Le prochain rapprochement
+    /// créerait le point **en silence**, et ce silence masquerait du **travail qui existe ailleurs**.
+    ///
+    /// Une localité serveur inconnue qui ne porte **aucune** nuit ne fait **pas** de constat : la créer est
+    /// le comportement voulu (c'est ce qui rend possible la restauration depuis une base vierge, #1050, et
+    /// le reset guidé, #1419). Ce n'est pas l'absence du point qui mérite d'être dite, c'est ce qu'elle
+    /// **cache**.
+    POINT_SERVEUR_IGNORE
 }

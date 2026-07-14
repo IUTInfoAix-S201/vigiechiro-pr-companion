@@ -47,7 +47,29 @@ tant qu'aucune nuit n'est sélectionnée, et son infobulle vous dit **pourquoi**
 
 **« Vérifier en ligne »** ajoute les écarts qui demandent le réseau : ce que Vigie-Chiro a **réellement
 reçu** de vos dépôts, et les **points d'écoute** que la plateforme connaît. Hors connexion, l'audit
-fonctionne quand même — il se limite au disque et à la base, et vous le dit.
+fonctionne quand même : il se limite au disque et à la base, et vous le dit.
+
+### Les points d'écoute, dans les deux sens
+
+L'audit compare vos points à ceux de la plateforme **dans les deux sens**, mais il ne dit pas la même
+chose des deux.
+
+- **Un point d'ici que Vigie-Chiro ne connaît pas** est toujours signalé : vous l'avez créé localement, ou
+  il a été supprimé côté plateforme.
+- **Une localité que Vigie-Chiro connaît et que vous n'avez pas** ne l'est **pas systématiquement**.
+  L'application la **crée** au prochain rapprochement, et c'est **voulu** : c'est exactement ce qui permet
+  de tout retrouver après une réinstallation ou un [redémarrage sur base neuve](index.md#repartir-dune-base-neuve).
+  Le signaler à chaque fois ne ferait que du bruit.
+
+!!! warning "Sauf quand ce silence cache du travail"
+    Si cette localité inconnue **porte des nuits que vous n'avez pas ici**, l'audit le **dit** - et il
+    **nomme les nuits**. Le point serait créé sans un mot, et vous ne sauriez jamais qu'il existe, sur la
+    plateforme, des nuits entières qui vous manquent : déposées depuis un autre poste, ou avant une
+    réinstallation.
+
+    C'est le seul cas où l'absence d'un point raconte vraiment quelque chose. Vous pouvez alors
+    **reconstruire** ces nuits (voir [Passage](passage.md)), ou vérifier que vous travaillez bien sur le
+    poste que vous croyez.
 
 ## En ligne de commande
 

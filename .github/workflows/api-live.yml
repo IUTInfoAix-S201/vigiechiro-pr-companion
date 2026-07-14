@@ -1,0 +1,77 @@
+# Suite de contrat API VigieChiro, jouée PÉRIODIQUEMENT en lecture seule (#1371).
+#
+# C'est la leçon de méthode de #1277 : les tests unitaires simulent les réponses, ils ne
+# rejouent jamais un refus réel du serveur. Seule cette suite (`-Papi-live`, REST-assured
+# contre l'API réelle + notre ClientVigieChiro) voit une dérive du backend Eve (nouveau
+# plafond, champ obligatoire, état inédit). Entre deux exécutions manuelles, elle dormait :
+# ce planning la réveille chaque semaine.
+#
+# Trois états, pas deux (#1371) :
+#   - VERT   : le contrat tient (les probes d'écriture opt-in ne sont JAMAIS jouées ici) ;
+#   - VERT + avertissement « jeton à renouveler » : le secret VIGIECHIRO_TOKEN est absent ou
+#     expiré (14 jours de validité côté Eve) — ce n'est pas une dérive du contrat, on ne
+#     crie pas au loup, mais le résumé du run dit quoi faire ;
+#   - ROUGE  : le serveur répond et le contrat ne tient plus → à regarder vite.
+name: Contrat API live (hebdomadaire)
+
+on:
+  schedule:
+    # Le lundi à 06:12 UTC (heure creuse, décalée des heures rondes chargées de GitHub).
+    - cron: '12 6 * * 1'
+  workflow_dispatch: {}
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  contrat:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Jeton valide ?
+        # Un simple GET /moi départage « jeton mort » (avertissement, run vert) de « contrat
+        # cassé » (échec des tests, run rouge). Sans ce tri, chaque expiration de jeton
+        # ressemblerait à une dérive de l'API.
+        id: jeton
+        env:
+          VIGIECHIRO_TOKEN: ${{ secrets.VIGIECHIRO_TOKEN }}
+        run: |
+          if [ -z "$VIGIECHIRO_TOKEN" ]; then
+            echo "valide=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Secret VIGIECHIRO_TOKEN absent : la suite de contrat n'a pas tourné."
+            echo "## Contrat API live : non joué" >> "$GITHUB_STEP_SUMMARY"
+            echo "Secret \`VIGIECHIRO_TOKEN\` absent. Le poser : \`gh secret set VIGIECHIRO_TOKEN\` (jeton VigieChiro, validité 14 jours)." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          statut=$(curl -s -o /dev/null -w "%{http_code}" -u "$VIGIECHIRO_TOKEN:" \
+            https://vigiechiro.herokuapp.com/api/v1/moi || echo "000")
+          if [ "$statut" = "200" ]; then
+            echo "valide=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "valide=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Jeton VigieChiro refusé ou plateforme injoignable (HTTP $statut) : la suite de contrat n'a pas tourné. Renouveler le secret VIGIECHIRO_TOKEN (validité 14 jours)."
+            echo "## Contrat API live : non joué (HTTP $statut sur GET /moi)" >> "$GITHUB_STEP_SUMMARY"
+            echo "Jeton expiré/invalide ou plateforme indisponible. Renouveler : \`gh secret set VIGIECHIRO_TOKEN\` avec un jeton frais (14 jours)." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Set up JDK 25
+        if: steps.jeton.outputs.valide == 'true'
+        uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+          check-latest: false
+          cache: maven
+
+      - name: Contrat API (lecture seule)
+        # Jamais -Dvigiechiro.write=true ici : les probes d'écriture restent un geste humain
+        # opt-in (participation de rebut, cf. dev-docs/api-vigiechiro.md).
+        if: steps.jeton.outputs.valide == 'true'
+        env:
+          VIGIECHIRO_TOKEN: ${{ secrets.VIGIECHIRO_TOKEN }}
+        run: ./mvnw -B -Papi-live test -Dvigiechiro.token="$VIGIECHIRO_TOKEN" --file pom.xml

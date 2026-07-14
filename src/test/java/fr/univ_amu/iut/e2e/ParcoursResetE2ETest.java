@@ -238,6 +238,6 @@ class ParcoursResetE2ETest {
     }
 
     private static ObservationVigieChiro observation(String taxon) {
-        return new ObservationVigieChiro(0, taxon, 0.9, 45.0, 0.20, 0.32, null, null, null);
+        return new ObservationVigieChiro(0, taxon, 0.9, 45.0, 0.20, 0.32, null, null, null, null, null, List.of());
     }
 }

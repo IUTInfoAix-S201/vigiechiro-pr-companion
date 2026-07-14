@@ -1,6 +1,6 @@
 package fr.univ_amu.iut.validation.model.dao;
 
-import fr.univ_amu.iut.commun.model.CertitudeObservateur;
+import fr.univ_amu.iut.commun.model.Certitude;
 import fr.univ_amu.iut.commun.model.ModeValidation;
 import fr.univ_amu.iut.commun.persistence.DaoGenerique;
 import fr.univ_amu.iut.commun.persistence.DataAccessException;
@@ -63,9 +63,9 @@ public class ObservationDao extends DaoGenerique<Observation, Long> {
             rs.getInt(FragmentsSqlObservation.COL_IS_DOUBTFUL) != 0,
             rs.getString("vigiechiro_data_id"),
             FragmentsSqlObservation.entierNullable(rs, "vigiechiro_obs_index"),
-            CertitudeObservateur.depuisTexte(rs.getString("observer_certainty")),
+            Certitude.depuisTexte(rs.getString("observer_certainty")),
             rs.getString("taxon_validator"),
-            CertitudeObservateur.depuisTexte(rs.getString("validator_certainty")));
+            Certitude.depuisTexte(rs.getString("validator_certainty")));
 
     public ObservationDao(SourceDeDonnees source) {
         super(source);
@@ -249,7 +249,7 @@ public class ObservationDao extends DaoGenerique<Observation, Long> {
 
     /// Jeton persisté d'une certitude (`SUR` / `PROBABLE` / `POSSIBLE`), ou `null` si non renseignée :
     /// l'observateur et le validateur partagent le même domaine fermé (contrat #1203).
-    private static String jeton(CertitudeObservateur certitude) {
+    private static String jeton(Certitude certitude) {
         return certitude == null ? null : certitude.jeton();
     }
 }

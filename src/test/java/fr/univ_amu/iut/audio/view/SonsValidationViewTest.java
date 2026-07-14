@@ -22,7 +22,7 @@ import fr.univ_amu.iut.audio.viewmodel.AudioViewModel;
 import fr.univ_amu.iut.audio.viewmodel.DiscussionValidateur;
 import fr.univ_amu.iut.audio.viewmodel.ImportVigieChiroViewModel;
 import fr.univ_amu.iut.bibliotheque.model.ServiceBibliotheque;
-import fr.univ_amu.iut.commun.model.CertitudeObservateur;
+import fr.univ_amu.iut.commun.model.Certitude;
 import fr.univ_amu.iut.commun.model.DepotVues;
 import fr.univ_amu.iut.commun.model.PortailVigieChiro;
 import fr.univ_amu.iut.commun.model.Reglages;
@@ -120,7 +120,7 @@ class SonsValidationViewTest {
             String observateur,
             String nomEspece,
             String nomTadarida,
-            CertitudeObservateur certitude) {
+            Certitude certitude) {
         return new LigneObservationAudio(
                 id,
                 seq,
@@ -175,7 +175,7 @@ class SonsValidationViewTest {
                                 "Nyclei",
                                 "Noctule de Leisler",
                                 "Noctule de Leisler",
-                                CertitudeObservateur.PROBABLE)));
+                                Certitude.PROBABLE)));
         when(service.cheminAudio(anyLong())).thenReturn(Optional.empty());
         when(service.cheminAudio(10L)).thenReturn(Optional.of(Path.of("/ws/transformes/p.wav")));
         depotVues = mock(DepotVues.class);
@@ -408,12 +408,12 @@ class SonsValidationViewTest {
         assertThat(menu.isDisabled()).isFalse();
         robot.interact(() -> itemParLibelle(menu, "Sûr").fire());
         WaitForAsyncUtils.waitForFxEvents();
-        verify(saisieCertitude).poser(1L, CertitudeObservateur.SUR);
+        verify(saisieCertitude).poser(1L, Certitude.SUR);
 
         robot.interact(() -> table.getSelectionModel().selectIndices(0, 1));
         robot.interact(() -> itemParLibelle(menu, "Possible").fire());
         WaitForAsyncUtils.waitForFxEvents();
-        verify(saisieCertitude).poser(List.of(1L, 2L), CertitudeObservateur.POSSIBLE);
+        verify(saisieCertitude).poser(List.of(1L, 2L), Certitude.POSSIBLE);
     }
 
     @Test
@@ -428,7 +428,7 @@ class SonsValidationViewTest {
         robot.push(KeyCode.DIGIT2);
         WaitForAsyncUtils.waitForFxEvents();
 
-        verify(saisieCertitude).poser(1L, CertitudeObservateur.PROBABLE);
+        verify(saisieCertitude).poser(1L, Certitude.PROBABLE);
     }
 
     @Test

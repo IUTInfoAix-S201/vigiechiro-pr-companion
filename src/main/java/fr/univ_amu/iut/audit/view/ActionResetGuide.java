@@ -19,13 +19,15 @@ import javafx.stage.Window;
 /// comme la procédure elle-même.
 public final class ActionResetGuide implements ActionMenu {
 
-    // Providers, non instances directes : le menu ☰ est bâti au démarrage du chrome, AVANT que quiconque
-    // ait ouvert la base. Résoudre ServiceReset ici tirerait les rapprocheurs → `idUtilisateurCourant` →
-    // une requête SQL sur une base pas encore migrée. Le reset ne se résout qu'au clic.
-    private final Provider<ServiceRecuperabilite> recuperabilite;
-    private final Provider<ServiceReset> reset;
-    private final Provider<ServiceSauvegarde> sauvegarde;
-    private final OccupationChrome occupation;
+    /// Fenêtre propriétaire des dialogues, posée **au clic** : elle n'existe pas encore quand l'entrée de
+    /// menu est construite. Le geste la lit paresseusement (même mécanique que `PorteurSauvegarde`, #1405).
+    private Window proprietaire;
+
+    /// Le geste, **détenu** par l'entrée et non recréé à chaque clic. C'est ce qui le rend atteignable :
+    /// un test remplace ses dialogues, déclenche l'entrée, et vérifie **quel** geste est parti. Sans cela,
+    /// rien ne garantissait que « Repartir d'une base neuve » ne lance pas une simple sauvegarde — et
+    /// c'est l'entrée la plus destructrice du menu (#1436).
+    private final GesteReset geste;
 
     @Inject
     ActionResetGuide(
@@ -33,10 +35,13 @@ public final class ActionResetGuide implements ActionMenu {
             Provider<ServiceReset> reset,
             Provider<ServiceSauvegarde> sauvegarde,
             OccupationChrome occupation) {
-        this.recuperabilite = Objects.requireNonNull(recuperabilite, "recuperabilite");
-        this.reset = Objects.requireNonNull(reset, "reset");
-        this.sauvegarde = Objects.requireNonNull(sauvegarde, "sauvegarde");
-        this.occupation = Objects.requireNonNull(occupation, "occupation");
+        this.geste = new GesteReset(
+                Objects.requireNonNull(recuperabilite, "recuperabilite")::get,
+                Objects.requireNonNull(reset, "reset")::get,
+                Objects.requireNonNull(sauvegarde, "sauvegarde")::get,
+                Objects.requireNonNull(occupation, "occupation"),
+                () -> proprietaire,
+                Platform::exit);
     }
 
     @Override
@@ -57,13 +62,12 @@ public final class ActionResetGuide implements ActionMenu {
 
     @Override
     public void executer(Window proprietaire) {
-        new GesteReset(
-                        recuperabilite.get(),
-                        reset.get(),
-                        sauvegarde.get(),
-                        occupation,
-                        () -> proprietaire,
-                        Platform::exit)
-                .lancer();
+        this.proprietaire = proprietaire;
+        geste.lancer();
+    }
+
+    /// Geste exposé aux tests (#1405) : il porte les trois dialogues et la fermeture de l'application.
+    GesteReset geste() {
+        return geste;
     }
 }

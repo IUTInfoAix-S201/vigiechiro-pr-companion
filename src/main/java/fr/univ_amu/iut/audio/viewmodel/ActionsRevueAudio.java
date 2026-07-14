@@ -1,6 +1,6 @@
 package fr.univ_amu.iut.audio.viewmodel;
 
-import fr.univ_amu.iut.commun.model.CertitudeObservateur;
+import fr.univ_amu.iut.commun.model.Certitude;
 import fr.univ_amu.iut.validation.model.LigneObservationAudio;
 import fr.univ_amu.iut.validation.model.MarquageDouteux;
 import fr.univ_amu.iut.validation.model.ModeRevue;
@@ -127,7 +127,7 @@ public final class ActionsRevueAudio {
 
     /// Pose (ou efface, `certitude` = `null`) la **certitude observateur** (#1139) de l'observation
     /// sélectionnée : déclaration manuelle, jamais préremplie (miroir du site VigieChiro).
-    public boolean poserCertitude(CertitudeObservateur certitude) {
+    public boolean poserCertitude(Certitude certitude) {
         return surSelection(courant -> appliquer(() -> saisieCertitude.poser(courant.idObservation(), certitude)));
     }
 
@@ -153,7 +153,7 @@ public final class ActionsRevueAudio {
     }
 
     /// Pose (ou efface) la **certitude observateur** (#1139) sur un lot, en une transaction atomique.
-    public int poserCertitudeLot(List<Long> ids, CertitudeObservateur certitude) {
+    public int poserCertitudeLot(List<Long> ids, Certitude certitude) {
         return appliquerLot(
                 certitude == null ? "sans certitude (effacée)" : "notée(s) « " + certitude.libelle() + " »",
                 () -> saisieCertitude.poser(ids, certitude));

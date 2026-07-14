@@ -168,7 +168,7 @@ class ParserCsvTadaridaTest {
                 .isNull();
         assertThat(ligne.certitudeObservateur())
                 .as("le jeton SUR est capturé comme certitude, plus seulement toléré")
-                .isEqualTo(fr.univ_amu.iut.commun.model.CertitudeObservateur.SUR);
+                .isEqualTo(fr.univ_amu.iut.commun.model.Certitude.SUR);
         assertThat(ligne.taxonObservateur()).isEqualTo("Rhifer");
         assertThat(ligne.probTadarida()).isEqualTo(0.99);
     }

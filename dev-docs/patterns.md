@@ -184,6 +184,73 @@ la faire), et un **vocabulaire unique** des messages d'échec (`ReponseApi.echec
 
 ---
 
+## Le verdict porte son message (résultat scellé, message par variante)
+
+**Le problème.** Une opération à plusieurs issues renvoie souvent un rapport « à trous » :
+`(boolean succes, String motif, Rapport rapport)`, dont l'appelant doit deviner quels champs sont
+renseignés dans quel cas. Chaque appelant re-tricote alors le même `if` — et chaque **surface** (IHM,
+CLI) invente sa propre phrase pour dire la même chose. Les deux finissent par diverger.
+
+**La solution.** Un type **scellé** dont chaque variante porte **ce qui la caractérise**, et **sait le
+dire**. Le message n'est pas dans l'appelant : il est dans le verdict.
+
+```java
+public sealed interface ResultatReset {
+    int codeSortie();     // 0 fait · 2 refusé (distinct de 1, l'échec d'exécution)
+    String enClair();     // ce qu'il faut dire à l'utilisateur
+
+    record Refuse(String motif, BilanRecuperabilite bilan) implements ResultatReset { … }
+    record Fait(BilanSauvegarde sauvegarde, Path filet, int passagesReconstruits,
+                RapportAudit audit, List<String> aRetablir) implements ResultatReset { … }
+}
+```
+
+L'IHM **affiche** `enClair()`, la CLI **affiche** `enClair()` et sort sur `codeSortie()`. Aucune des deux
+ne traduit un état en phrase : la parité CLI ↔ IHM est **structurelle**, pas maintenue à la main.
+
+**Dans VigieChiro.** `VerdictCarre` (#733 : `Concorde` / `Diverge` / `HorsGrille` / `Indisponible` — dont
+le message **vide** exprime le silence hors ligne) et `ResultatReset` (#1419). Même famille que
+[l'issue d'appel triée](#issue-dappel-triee-le-transport-ne-parle-plus-par-silence), appliquée aux
+**opérations locales** plutôt qu'au transport : exhaustivité par le compilateur, comportement par
+**override** et jamais par `switch (this)`.
+
+---
+
+## Refuser avant de détruire (l'ordre des garde-fous est la garantie)
+
+**Le problème.** Une opération destructrice qui vérifie ses conditions **au fil de l'eau** laisse, au
+premier obstacle, un état **à moitié détruit** — le pire des deux mondes. Et l'utilisateur, lui, ne
+distingue plus « ça a refusé » de « ça a planté en route ».
+
+**La solution.** Tous les refus **avant** la première écriture, et un refus qui **le dit** : *rien n'a été
+modifié*. L'ordre des étapes n'est pas une commodité de lecture, c'est **la garantie**.
+
+Le reset guidé (#1419) en est le cas d'école :
+
+1. **dire ce qu'on perdrait** — une nuit dont l'audio n'est ni sur le disque ni sur le serveur est perdue
+   pour de bon ; sans acceptation **explicite**, on s'arrête là ;
+2. **vérifier que la plateforme répond** — la base neuve se **repeuple depuis le serveur** : le détruire
+   alors qu'il est injoignable laisserait un workspace **vide**. Aucune sauvegarde ne rendrait ça
+   acceptable, et c'est le garde-fou décisif ;
+3. **sauvegarder** ; 4. **base neuve** ; 5. **repeupler** ; 6. **auditer**.
+
+Le pendant, pour une écriture **irréversible** : **le serveur d'abord, la base ensuite** (#1418). Le
+message n'est écrit localement qu'**après** que le serveur l'a accepté. L'inverse laisserait, au moindre
+refus, un message que l'observateur **croirait envoyé** et que le validateur ne verrait **jamais**.
+
+**Corollaires.**
+
+- Une **confirmation nomme ce qu'on perd** : elle énumère les nuits, ou cite le texte qui va partir. Un
+  « êtes-vous sûr ? » générique n'est **pas un consentement** — on ne consent qu'à ce qu'on a lu. C'est ce
+  message-là que le test vérifie, pas le fait qu'un dialogue s'ouvre.
+- Une **écriture définitive mérite d'être désactivable**. `discuter-validateur` (#1418) est une
+  fonctionnalité à part de la lecture du fil : couper l'écriture laisse la lecture intacte. Lire est sans
+  conséquence ; écrire ne se retire pas.
+- Un **refus a son propre code de sortie** (`2`), distinct du succès (`0`) et de l'échec d'exécution
+  (`1`) : un script peut ainsi refuser d'enchaîner.
+
+---
+
 ## Package-by-feature (tranches verticales)
 
 **Le problème.** Une organisation **par couche** (`controllers/`, `services/`, `dao/`…) éparpille une

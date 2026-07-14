@@ -41,14 +41,18 @@ import javafx.stage.Window;
 /// **jusqu'à son effet**, sans figer un test headless sur un `showAndWait()` ni tuer la JVM.
 final class GesteReset {
 
-    private final ServiceRecuperabilite recuperabilite;
-    private final ServiceReset reset;
-    private final ServiceSauvegarde sauvegarde;
+    // Fournisseurs, non instances : l'entrée ☰ est bâtie au démarrage du chrome, AVANT que la base soit
+    // ouverte. Résoudre ServiceReset à ce moment-là tirerait les rapprocheurs → idUtilisateurCourant → une
+    // requête SQL sur une base pas encore migrée. Les services se résolvent au clic ; le GESTE, lui, naît
+    // avec l'entrée — c'est ce qui le rend atteignable par un test (#1405, patron de PorteurSauvegarde).
+    private final Supplier<ServiceRecuperabilite> recuperabilite;
+    private final Supplier<ServiceReset> reset;
+    private final Supplier<ServiceSauvegarde> sauvegarde;
     private final OccupationChrome occupation;
 
-    /// Fermeture de l'application après un reset réussi. Injectable : un test vérifie qu'elle a bien été
-    /// demandée, sans que la JVM du test y passe.
-    private final Runnable fermeture;
+    /// Fermeture de l'application après un reset réussi. **Porteur remplaçable** (#1405), au même titre que
+    /// les trois dialogues : sans cela, un test qui déclenche l'entrée ☰ tuerait sa propre JVM.
+    private Runnable fermeture;
 
     private final SelecteurFichierModifiable selecteur;
     private final ConfirmateurModifiable confirmateur =
@@ -56,9 +60,9 @@ final class GesteReset {
     private final NotificateurModifiable notificateur;
 
     GesteReset(
-            ServiceRecuperabilite recuperabilite,
-            ServiceReset reset,
-            ServiceSauvegarde sauvegarde,
+            Supplier<ServiceRecuperabilite> recuperabilite,
+            Supplier<ServiceReset> reset,
+            Supplier<ServiceSauvegarde> sauvegarde,
             OccupationChrome occupation,
             Supplier<Window> fenetre,
             Runnable fermeture) {
@@ -77,7 +81,7 @@ final class GesteReset {
         occupation.occuper(
                 "Analyse de ce qui reviendrait…",
                 "l'analyse de récupérabilité",
-                recuperabilite::bilan,
+                () -> recuperabilite.get().bilan(),
                 this::demanderAcceptation,
                 echec -> notificateur.notifier(NiveauNotification.AVERTISSEMENT, "Analyse impossible", message(echec)));
     }
@@ -94,7 +98,7 @@ final class GesteReset {
         }
         Optional<Path> dossier = selecteur.choisirDossier(
                 "Dossier où sauvegarder (base + audio) avant de repartir de zéro",
-                Optional.of(sauvegarde.dossierParDefaut()));
+                Optional.of(sauvegarde.get().dossierParDefaut()));
         if (dossier.isEmpty()) {
             return;
         }
@@ -131,7 +135,7 @@ final class GesteReset {
         occupation.occuper(
                 "Reset en cours (sauvegarde, base neuve, repeuplement)…",
                 "le reset de la base",
-                () -> reset.executer(dossier, perteAcceptee),
+                () -> reset.get().executer(dossier, perteAcceptee),
                 this::annoncer,
                 echec -> notificateur.notifier(NiveauNotification.AVERTISSEMENT, "Reset impossible", message(echec)));
     }
@@ -170,5 +174,11 @@ final class GesteReset {
     /// Porteur de compte rendu exposé aux tests (#1405).
     NotificateurModifiable notificateur() {
         return notificateur;
+    }
+
+    /// Remplace la fermeture de l'application (tests) : on vérifie qu'elle a été **demandée**, sans que la
+    /// JVM du test y passe.
+    void definirFermeture(Runnable double_) {
+        this.fermeture = Objects.requireNonNull(double_, "fermeture");
     }
 }

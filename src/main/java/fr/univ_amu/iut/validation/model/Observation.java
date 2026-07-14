@@ -1,6 +1,6 @@
 package fr.univ_amu.iut.validation.model;
 
-import fr.univ_amu.iut.commun.model.CertitudeObservateur;
+import fr.univ_amu.iut.commun.model.Certitude;
 import fr.univ_amu.iut.commun.model.ModeValidation;
 
 /// Observation : une ligne du fichier de résultats Tadarida, soumise à validation (C13, table
@@ -31,7 +31,7 @@ import fr.univ_amu.iut.commun.model.ModeValidation;
 ///
 /// Depuis #1139, l'observation porte aussi son **ancrage plateforme** (couple `idDonneeVigieChiro`
 /// + `indiceVigieChiro`, cible du `PATCH /donnees/{id}/observations/{index}` du contrat #1203) et la
-/// **certitude observateur** ([CertitudeObservateur], déclaration manuelle à la revue, distincte de
+/// **certitude observateur** ([Certitude], déclaration manuelle à la revue, distincte de
 /// `probObservateur` qui reste la confiance numérique Tadarida recopiée à la validation).
 ///
 /// @param id clé technique, `null` avant insertion
@@ -80,9 +80,9 @@ public record Observation(
         boolean douteux,
         String idDonneeVigieChiro,
         Integer indiceVigieChiro,
-        CertitudeObservateur certitudeObservateur,
+        Certitude certitudeObservateur,
         String taxonValidateur,
-        CertitudeObservateur certitudeValidateur) {
+        Certitude certitudeValidateur) {
 
     /// Copie de cette observation avec un **commentaire** différent (tous les autres champs inchangés) :
     /// évite de réénumérer les composants du record à chaque mise à jour mono-champ côté service. Le
@@ -195,7 +195,7 @@ public record Observation(
     /// Copie de cette observation avec la **certitude observateur** (#1139) modifiée (tous les autres
     /// champs inchangés). `null` = « non renseignée » : la certitude est une déclaration manuelle,
     /// jamais posée par défaut ni dérivée d'une probabilité.
-    public Observation avecCertitude(CertitudeObservateur certitude) {
+    public Observation avecCertitude(Certitude certitude) {
         return new Observation(
                 id,
                 idSequence,

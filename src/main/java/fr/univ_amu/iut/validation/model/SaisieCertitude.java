@@ -1,7 +1,7 @@
 package fr.univ_amu.iut.validation.model;
 
 import com.google.inject.Inject;
-import fr.univ_amu.iut.commun.model.CertitudeObservateur;
+import fr.univ_amu.iut.commun.model.Certitude;
 import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.validation.model.dao.ObservationDao;
 import java.util.List;
@@ -29,7 +29,7 @@ public class SaisieCertitude {
     ///
     /// @return l'observation relue, à jour
     /// @throws RegleMetierException si l'observation est introuvable
-    public Observation poser(Long idObservation, CertitudeObservateur certitude) {
+    public Observation poser(Long idObservation, Certitude certitude) {
         Observation mise = charger(idObservation).avecCertitude(certitude);
         observationDao.update(mise);
         return mise;
@@ -38,7 +38,7 @@ public class SaisieCertitude {
     /// Pose `certitude` (`null` = effacer) sur toutes les observations `ids`, en **une transaction
     /// atomique** (tout réussit ou tout est annulé, comme les actions de [RevueEnLot]). Renvoie le
     /// nombre d'observations écrites.
-    public int poser(List<Long> ids, CertitudeObservateur certitude) {
+    public int poser(List<Long> ids, Certitude certitude) {
         List<Observation> mises = ids.stream()
                 .map(this::charger)
                 .map(o -> o.avecCertitude(certitude))

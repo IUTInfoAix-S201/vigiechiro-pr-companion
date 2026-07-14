@@ -180,7 +180,8 @@ PATCH /donnees/6a4fcaa2842983a29ba25363/observations/0
 Règles imposées par le handler (`donnees.py`, `edit_observation`) :
 
 - **rôle `Observateur` + propriétaire de la donnée uniquement** pour `observateur_*` (`403` sinon) ;
-  `validateur_taxon` / `validateur_probabilite` sont réservés Administrateur / Validateur (→ #724) ;
+  `validateur_taxon` / `validateur_probabilite` sont réservés Administrateur / Validateur — l'application
+  ne peut donc **que les lire**, jamais les écrire (arbitrage #724, livré par #1417) ;
 - **`observateur_probabilite` est une énumération `SUR | PROBABLE | POSSIBLE`**, pas un flottant, et
   elle est **obligatoire dès que `observateur_taxon` est envoyé** (`422` sinon). **Arbitrage tranché
   (2026-07-13)** : deux notions distinctes, **aucune conversion**. Le `Double` local
@@ -218,9 +219,60 @@ Effets de bord et leviers :
   relit **embarqué complet** (objet taxon avec `_id`, `libelle_court`, `libelle_long`, `parents`),
   exactement comme `tadarida_taxon` : le parseur actuel (`codeTaxon`) lit donc déjà son
   `libelle_court` ;
-- routes voisines découvertes : `PUT /donnees/{id}/observations/{index}/messages` (fils de
-  discussion : le spike #724 a déjà sa réponse côté API) et `GET /donnees/{id}/fichiers?wav=true`
-  (fichiers rattachés à une donnée, croise le repli audio #1244).
+- route voisine restée à explorer : `GET /donnees/{id}/fichiers?wav=true` (fichiers rattachés à une
+  donnée, croise le repli audio #1244).
+
+### Les trois avis, et le fil : tout arrive déjà dans `GET …/donnees` (#1417)
+
+Le spike de #724 a établi que **rien de nouveau n'était à appeler**. Le schéma de la ressource `donnees`
+porte, sur **chaque observation** :
+
+```python
+'observateur_taxon':       relation('taxons'),
+'observateur_probabilite': choice(['SUR', 'PROBABLE', 'POSSIBLE']),
+'validateur_taxon':        relation('taxons'),
+'validateur_probabilite':  choice(['SUR', 'PROBABLE', 'POSSIBLE']),
+'messages': [ {'message': str, 'auteur': relation('utilisateurs'), 'date': datetime} ],
+```
+
+Ces champs arrivaient donc à **chaque import**, dans la même charge utile — et le parseur les jetait.
+L'application présentait la correction de l'observateur comme le dernier mot, alors qu'un expert avait pu
+la réviser sans qu'on le voie jamais.
+
+Points de contrat :
+
+- la **certitude** partage la même énumération pour l'observateur et le validateur : un seul type local
+  (`Certitude`) les porte tous les deux, et son nom le dit depuis la clôture de #1154 ;
+- l'**auteur** d'un message est un **objectid** d'`utilisateurs`, jamais un nom. Le résoudre demanderait
+  un appel par auteur : on le compare à l'identifiant de notre propre profil (déjà stocké localement à la
+  connexion) pour dire « vous » ou « le validateur » ;
+- l'auteur revient tantôt **brut** (`"auteur": "5f3a…"`), tantôt **résolu** (`{"_id": "5f3a…", …}`) selon
+  les projections : le parseur accepte les deux.
+
+### `PUT /donnees/{id}/observations/{index}/messages` — poster un message (#1418)
+
+```http
+PUT /donnees/6a4fcaa2842983a29ba25363/observations/0/messages
+{ "message": "Médiane basse pour un Eptser, non ?" }
+```
+
+- rôle **`Observateur`** : `_check_access_rights` laisse passer le **propriétaire** de la donnée — notre
+  jeton suffit (contrairement à l'avis de validateur, refusé en `403`) ;
+- **ancrage positionnel**, le même que la correction : `donnee._id` + indice **brut** ;
+- corps à un seul champ ; tout ce qui n'est pas une chaîne → `422` ;
+- ni `If-Match`, ni `_etag` : **aucun contrôle de concurrence**. Deux messages simultanés s'**empilent**,
+  ils ne s'écrasent pas — c'est le seul point rassurant de cette absence.
+
+!!! danger "Un message posté ne se retire pas"
+    Le serveur ajoute par **`$push`**, et **aucune route ne permet de supprimer ni de modifier un
+    message**. C'est une écriture **définitive**, sur des données que lit un validateur du MNHN. D'où,
+    partout : une confirmation qui **dit** l'irréversibilité et **cite** le texte (on ne consent qu'à ce
+    qu'on a compris), `--confirmer` obligatoire en CLI, et une **fonctionnalité désactivable**
+    (`discuter-validateur`) — couper l'écriture laisse la lecture du fil intacte.
+
+    Corollaire pour les probes : toute sonde **live** sur cette route est **irréversible**. Elle reste
+    **opt-in**, sur la participation de rebut, et n'a **pas** sa place dans `api-live.yml` (contrat
+    hebdomadaire, lecture seule).
 
 ## Cycle de vie d'une participation (EPIC #941)
 

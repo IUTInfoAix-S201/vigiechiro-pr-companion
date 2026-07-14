@@ -3,7 +3,7 @@ package fr.univ_amu.iut.validation;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import fr.univ_amu.iut.commun.model.CertitudeObservateur;
+import fr.univ_amu.iut.commun.model.Certitude;
 import fr.univ_amu.iut.commun.model.ModeValidation;
 import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.commun.model.Workspace;
@@ -100,7 +100,7 @@ class SaisieCertitudeTest {
                 .id();
     }
 
-    private CertitudeObservateur certitude(long id) {
+    private Certitude certitude(long id) {
         return observationDao.findById(id).orElseThrow().certitudeObservateur();
     }
 
@@ -112,11 +112,11 @@ class SaisieCertitudeTest {
                 .as("jamais préremplie (miroir du site VigieChiro)")
                 .isNull();
 
-        saisieCertitude.poser(id, CertitudeObservateur.PROBABLE);
-        assertThat(certitude(id)).isEqualTo(CertitudeObservateur.PROBABLE);
+        saisieCertitude.poser(id, Certitude.PROBABLE);
+        assertThat(certitude(id)).isEqualTo(Certitude.PROBABLE);
 
-        saisieCertitude.poser(id, CertitudeObservateur.SUR);
-        assertThat(certitude(id)).as("une certitude se remplace").isEqualTo(CertitudeObservateur.SUR);
+        saisieCertitude.poser(id, Certitude.SUR);
+        assertThat(certitude(id)).as("une certitude se remplace").isEqualTo(Certitude.SUR);
 
         saisieCertitude.poser(id, null);
         assertThat(certitude(id)).as("l'effacement reste possible localement").isNull();
@@ -129,11 +129,10 @@ class SaisieCertitudeTest {
         long b = inserer("Nyclei");
         long horsLot = inserer("noise");
 
-        assertThat(saisieCertitude.poser(List.of(a, b), CertitudeObservateur.POSSIBLE))
-                .isEqualTo(2);
+        assertThat(saisieCertitude.poser(List.of(a, b), Certitude.POSSIBLE)).isEqualTo(2);
 
-        assertThat(certitude(a)).isEqualTo(CertitudeObservateur.POSSIBLE);
-        assertThat(certitude(b)).isEqualTo(CertitudeObservateur.POSSIBLE);
+        assertThat(certitude(a)).isEqualTo(Certitude.POSSIBLE);
+        assertThat(certitude(b)).isEqualTo(Certitude.POSSIBLE);
         assertThat(certitude(horsLot)).as("hors du lot : intouchée").isNull();
     }
 
@@ -142,7 +141,7 @@ class SaisieCertitudeTest {
     void ne_touche_que_la_certitude() {
         long id = inserer("Pippip");
 
-        saisieCertitude.poser(id, CertitudeObservateur.SUR);
+        saisieCertitude.poser(id, Certitude.SUR);
 
         Observation relue = observationDao.findById(id).orElseThrow();
         assertThat(relue.taxonTadarida()).isEqualTo("Pippip");
@@ -157,7 +156,7 @@ class SaisieCertitudeTest {
     void observation_introuvable() {
         long existante = inserer("Pippip");
 
-        assertThatThrownBy(() -> saisieCertitude.poser(List.of(existante, 999L), CertitudeObservateur.SUR))
+        assertThatThrownBy(() -> saisieCertitude.poser(List.of(existante, 999L), Certitude.SUR))
                 .isInstanceOf(RegleMetierException.class);
         assertThat(certitude(existante))
                 .as("le lot est refusé avant la transaction : rien d'écrit")

@@ -107,7 +107,7 @@ S'ajoutent des tables techniques : `saved_view` (vues sauvegardées de M-Multisi
       L'ancrage vient **frais du serveur à chaque import** et n'est jamais préservé d'un jeu à
       l'autre (un re-compute régénère les `donnees`, donc les `_id`) ; `NULL` hors import VigieChiro.
     - **`observer_certainty`** : la **certitude déclarée manuellement** par l'observateur à la revue
-      (`SUR | PROBABLE | POSSIBLE`, énumération `CertitudeObservateur`, jetons exacts du serveur).
+      (`SUR | PROBABLE | POSSIBLE`, énumération `Certitude`, jetons exacts du serveur).
       **Vide par défaut**, jamais préremplie ni dérivée de `prob_observer` (qui reste la confiance
       numérique Tadarida recopiée à la validation, héritage du format `_Vu`). C'est une décision
       humaine : elle est **préservée** au réimport (`PreservationValidations`), et elle sera exigée
@@ -134,6 +134,31 @@ S'ajoutent des tables techniques : `saved_view` (vues sauvegardées de M-Multisi
 
     Les deux marqueurs répondent à la même question : *pourquoi* l'audio manque. Sans eux, le disque
     dit « absent » de la même façon pour une purge volontaire et pour un disque en train de mourir.
+
+!!! note "Validation d'expert (V26, EPIC #1154)"
+    **`V26__validation_expert.sql`** fait entrer en base le **troisième avis** — et la discussion qui
+    l'entoure.
+
+    VigieChiro distingue trois avis sur une même détection : Tadarida **propose** (`taxon_tadarida`),
+    l'observateur **corrige** (`taxon_observer`), le validateur du MNHN **tranche**. Le troisième arrivait
+    déjà du serveur à **chaque** import, dans la même charge utile, et le parseur le jetait. L'application
+    présentait donc la correction de l'observateur comme le dernier mot, alors qu'un expert avait pu la
+    réviser sans qu'on le voie jamais.
+
+    - `observation.taxon_validator` (FK → `taxon.code`) + `observation.validator_certainty`. Le code
+      hors référentiel est **auto-enregistré en souche** à l'import, comme celui de l'observateur : sans
+      souche, la clé étrangère ramènerait le code à `NULL` et l'application **tairait l'avis qui fait
+      autorité**.
+    - `observation_message` : le **fil de discussion** (1-N, cascade sur `observation`). `rank_in_thread`
+      fige l'ordre du serveur — l'ajout s'y faisant par `$push`, cet ordre **est** l'ordre chronologique,
+      plus fiable qu'un tri sur des dates que le serveur ne garantit pas toutes.
+      `author_platform_id` est un **objectid**, jamais un nom.
+
+    **Reflet, pas saisie.** Ces colonnes sont **rafraîchies à chaque import** : le serveur refuse (403)
+    qu'un jeton d'`Observateur` pose un avis de validateur. Au réimport, la correction de l'observateur
+    est donc **préservée** (c'est une saisie humaine locale) tandis que l'avis du validateur et le fil sont
+    **rafraîchis** (si l'expert a changé d'avis, c'est **le sien** qui doit s'afficher, pas la copie qu'on
+    en gardait). Deux natures différentes, deux règles différentes.
 
 ## Transformation audio : de l'original brut aux séquences d'écoute (R10/R11)
 

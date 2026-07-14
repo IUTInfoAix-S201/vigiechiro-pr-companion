@@ -1,6 +1,6 @@
 package fr.univ_amu.iut.commun.api;
 
-import fr.univ_amu.iut.commun.model.CertitudeObservateur;
+import fr.univ_amu.iut.commun.model.Certitude;
 import java.net.http.HttpRequest;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
@@ -198,7 +198,7 @@ public final class ClientVigieChiro {
     /// sur le **dernier** envoi d'un lot). Un `HTTP 404` signale un **ancrage périmé** (la donnée a
     /// été régénérée par un re-compute) ; tout refus revient détaillé (statut + corps).
     public ResultatCorrection corrigerObservation(
-            String donneeId, int indice, String objectidTaxon, CertitudeObservateur certitude, boolean bilan) {
+            String donneeId, int indice, String objectidTaxon, Certitude certitude, boolean bilan) {
         String chemin = "/donnees/" + donneeId + "/observations/" + indice + (bilan ? "" : "?no_bilan=true");
         String echec = echecDe(
                 transport.ecrire("PATCH", chemin, RequetesVigieChiro.correction(objectidTaxon, certitude), null));

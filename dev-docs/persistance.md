@@ -43,6 +43,36 @@ base existante, les versions déjà présentes sont ignorées (« base présente
 
     `App` appelle `MigrationSchema.migrer()` au démarrage ; les tests le font sur leur base jetable.
 
+## Remplacer la base sous une application vivante
+
+Trois gestes remplacent le fichier de base **à chaud** : la **restauration** (`ServiceSauvegarde.restaurer`,
+#148), la **restauration complète** (#1346) et la **base neuve** (`BaseNeuve.repartirDeZero`, #1419).
+
+Ce n'est pas un pari. La [source de données](#la-source-de-donnees) **n'a aucun pool** : chaque opération
+ouvre puis ferme sa connexion, et `SourceDeDonnees` ne retient qu'une URL JDBC. Il n'y a donc aucune
+connexion longue à fermer — la prochaine ouvrira simplement le fichier neuf.
+
+Trois précautions, les mêmes pour les trois gestes :
+
+- un **filet** est posé avant d'écraser (`vigiechiro.db.avant-restauration`, `…avant-reset`) : le geste
+  reste réversible ;
+- les **journaux SQLite** (`-wal`, `-shm`, `-journal`) sont **purgés** : un journal périmé rejouerait
+  l'ancienne base par-dessus la neuve ;
+- la **migration est rejouée** : la base obtenue est utilisable telle quelle, quel que soit l'âge de ce
+  qu'on vient d'y mettre.
+
+!!! warning "Ce que la base ne sait pas, c'est l'IHM qui doit le porter"
+    Une application graphique **déjà ouverte** garde en mémoire des écrans peuplés par l'**ancienne** base :
+    ils afficheraient des fantômes. Le socle ne connaît pas d'IHM — c'est à l'appelant d'exiger un
+    redémarrage (ce que fait le reset : il ferme l'application après coup).
+
+    Le piège est plus subtil qu'il n'y paraît, et il a été trouvé par un test E2E : `idUtilisateurCourant`
+    est un **singleton Guice déjà résolu**. Après une base neuve, l'utilisateur local avait disparu de la
+    table, mais les rapprocheurs tenaient toujours son identifiant : tout ce qu'ils recréaient (sites,
+    points) pointait sur un **propriétaire disparu**. Clé étrangère morte, échec **avalé** par le contrat
+    best-effort, workspace muet. `ServiceReset` **préserve donc l'observateur** à travers le reset : c'est
+    la même personne qui repart d'une base neuve.
+
 ## Le patron DAO
 
 Pas d'ORM : des **DAO** en `PreparedStatement`. La base technique

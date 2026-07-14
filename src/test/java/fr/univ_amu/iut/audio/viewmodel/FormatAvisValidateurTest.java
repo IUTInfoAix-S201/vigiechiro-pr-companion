@@ -2,7 +2,7 @@ package fr.univ_amu.iut.audio.viewmodel;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import fr.univ_amu.iut.commun.model.CertitudeObservateur;
+import fr.univ_amu.iut.commun.model.Certitude;
 import fr.univ_amu.iut.validation.model.LigneObservationAudio;
 import fr.univ_amu.iut.validation.model.MessageObservation;
 import fr.univ_amu.iut.validation.model.StatutObservation;
@@ -33,7 +33,7 @@ class FormatAvisValidateurTest {
     @Test
     @DisplayName("#1417 : le validateur CONFIRME l'observateur → badge d'accord, discret")
     void avis_en_accord() {
-        LigneObservationAudio ligne = ligne("Pipkuh", "Pippip", "Pippip", CertitudeObservateur.SUR);
+        LigneObservationAudio ligne = ligne("Pipkuh", "Pippip", "Pippip", Certitude.SUR);
 
         assertThat(FormatAvisValidateur.avis(ligne))
                 .as("l'avis se lit d'un bloc : le taxon et sa certitude, pas deux colonnes")
@@ -45,7 +45,7 @@ class FormatAvisValidateurTest {
     @DisplayName("#1417 : le validateur CONTREDIT l'observateur → badge de désaccord : c'est CE cas qu'on"
             + " doit voir en premier")
     void avis_en_desaccord() {
-        LigneObservationAudio ligne = ligne("Pipkuh", "Pippip", "Pipnat", CertitudeObservateur.PROBABLE);
+        LigneObservationAudio ligne = ligne("Pipkuh", "Pippip", "Pipnat", Certitude.PROBABLE);
 
         assertThat(FormatAvisValidateur.classeBadge(ligne))
                 .as("un expert qui confirme ne demande rien ; un expert qui contredit doit sauter aux yeux")
@@ -84,7 +84,7 @@ class FormatAvisValidateurTest {
                 false,
                 null,
                 "Especeinconnue",
-                CertitudeObservateur.SUR,
+                Certitude.SUR,
                 null,
                 0);
 
@@ -136,7 +136,7 @@ class FormatAvisValidateurTest {
     /// « Pipistrelle commune » est le vernaculaire semé pour Pippip ; on projette ici celui du **validateur**
     /// (`nomValidateur`), qui est le seul que la colonne affiche.
     private static LigneObservationAudio ligne(
-            String tadarida, String observateur, String validateur, CertitudeObservateur certitudeValidateur) {
+            String tadarida, String observateur, String validateur, Certitude certitudeValidateur) {
         return new LigneObservationAudio(
                 1L,
                 1L,

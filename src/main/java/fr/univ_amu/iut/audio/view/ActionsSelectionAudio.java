@@ -1,7 +1,7 @@
 package fr.univ_amu.iut.audio.view;
 
 import fr.univ_amu.iut.audio.viewmodel.AudioViewModel;
-import fr.univ_amu.iut.commun.model.CertitudeObservateur;
+import fr.univ_amu.iut.commun.model.Certitude;
 import fr.univ_amu.iut.validation.model.LigneObservationAudio;
 import fr.univ_amu.iut.validation.model.Taxon;
 import java.util.List;
@@ -56,7 +56,7 @@ final class ActionsSelectionAudio {
     /// Pose (ou efface, `certitude` = `null`) la **certitude observateur** (#1139) : **une** ligne →
     /// unitaire ; **plusieurs** → lot atomique. Pas de bascule ici : la valeur choisie s'applique telle
     /// quelle à toute la sélection (saisie explicite, comme sur le site VigieChiro).
-    void poserCertitude(CertitudeObservateur certitude) {
+    void poserCertitude(Certitude certitude) {
         List<LigneObservationAudio> selection = selection();
         if (selection.size() <= 1) {
             viewModel.actions().poserCertitude(certitude);

@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import fr.univ_amu.iut.commun.api.DonneeVigieChiro;
 import fr.univ_amu.iut.commun.api.ObservationVigieChiro;
-import fr.univ_amu.iut.commun.model.CertitudeObservateur;
+import fr.univ_amu.iut.commun.model.Certitude;
 import fr.univ_amu.iut.commun.model.ModeValidation;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -54,18 +54,7 @@ class ConversionDonneesVigieChiroTest {
                 "d1",
                 "F",
                 List.of(new ObservationVigieChiro(
-                        3,
-                        "Eptser",
-                        0.70,
-                        null,
-                        1.0,
-                        2.0,
-                        null,
-                        "Pippip",
-                        CertitudeObservateur.SUR,
-                        null,
-                        null,
-                        List.of())));
+                        3, "Eptser", 0.70, null, 1.0, 2.0, null, "Pippip", Certitude.SUR, null, null, List.of())));
 
         assertThat(ConversionDonneesVigieChiro.enLignes(List.of(donnee)))
                 .singleElement()
@@ -75,7 +64,7 @@ class ConversionDonneesVigieChiroTest {
                     assertThat(ligne.probObservateur())
                             .as("la certitude serveur n'est pas une probabilité numérique")
                             .isNull();
-                    assertThat(ligne.certitudeObservateur()).isEqualTo(CertitudeObservateur.SUR);
+                    assertThat(ligne.certitudeObservateur()).isEqualTo(Certitude.SUR);
                     assertThat(ligne.modeValidation()).isEqualTo(ModeValidation.MANUEL);
                     assertThat(ligne.idDonneeVigieChiro()).isEqualTo("d1");
                     assertThat(ligne.indiceVigieChiro())

@@ -3,7 +3,7 @@ package fr.univ_amu.iut.commun.api;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import fr.univ_amu.iut.commun.model.CertitudeObservateur;
+import fr.univ_amu.iut.commun.model.Certitude;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -42,7 +42,7 @@ final class DonneesVigieChiro {
     /// l'identifiant positionnel du `PATCH` serveur (contrat #1203), et il doit rester exact même
     /// quand une entrée inexploitable est ignorée (la position dans la liste résultante ne fait pas
     /// foi). La certitude (`observateur_probabilite`) est un **jeton** `SUR|PROBABLE|POSSIBLE`, lu en
-    /// tolérance par [CertitudeObservateur#depuisTexte].
+    /// tolérance par [Certitude#depuisTexte].
     ///
     /// Depuis #1417, on lit aussi ce que le parseur laissait tomber : l'avis du **validateur**
     /// (`validateur_taxon` / `validateur_probabilite`, mêmes formes que les champs observateur) et le
@@ -74,9 +74,9 @@ final class DonneesVigieChiro {
                     nombre(obs, "temps_fin"),
                     premierTaxonAutre(obs),
                     codeTaxon(obs, "observateur_taxon"),
-                    CertitudeObservateur.depuisTexte(ReponsesVigieChiro.texte(obs, "observateur_probabilite")),
+                    Certitude.depuisTexte(ReponsesVigieChiro.texte(obs, "observateur_probabilite")),
                     codeTaxon(obs, "validateur_taxon"),
-                    CertitudeObservateur.depuisTexte(ReponsesVigieChiro.texte(obs, "validateur_probabilite")),
+                    Certitude.depuisTexte(ReponsesVigieChiro.texte(obs, "validateur_probabilite")),
                     messages(obs)));
         }
         return observations;

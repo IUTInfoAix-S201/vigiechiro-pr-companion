@@ -219,6 +219,54 @@ indique le nombre), et les taxons que Tadarida propose hors de la liste de réf�
 quels. Vous pouvez ainsi importer un fichier de résultats complet même si vous n'avez gardé qu'une partie
 des sons.
 
+## L'avis du validateur, et la discussion qu'il ouvre
+
+Sur Vigie-Chiro, **trois personnes** peuvent se prononcer sur une même détection :
+
+| Qui | Ce qu'il dit | Où c'est affiché |
+|---|---|---|
+| **Tadarida** | l'algorithme **propose** une espèce | colonne « Proposition Tadarida » |
+| **Vous** | vous **corrigez** si vous n'êtes pas d'accord | colonnes « Votre taxon » et « Certitude » |
+| **Le validateur** (expert du MNHN) | il **tranche** | colonne « **Avis du validateur** » |
+
+Le troisième avis arrive **à chaque import** depuis Vigie-Chiro, en même temps que le reste. Vous n'avez
+rien à faire pour l'obtenir : il apparaît dès qu'un expert s'est prononcé sur votre nuit.
+
+![Les trois avis sur une même détection : Tadarida propose, vous corrigez, le validateur tranche - et ici, il vous contredit. La discussion s'ouvre à droite du lecteur.](../assets/captures/apercu-sons-validation-avis-validateur.png)
+
+!!! tip "Le désaccord saute aux yeux"
+    L'avis du validateur est **coloré selon qu'il vous confirme ou vous contredit**. Un expert qui
+    confirme ne vous demande rien ; un expert qui **contredit** votre correction est ce que vous devez
+    voir en premier — c'est là que se joue la qualité de la donnée que vous avez déposée.
+
+    Tant qu'aucun expert ne s'est prononcé — le cas le plus courant — la colonne reste discrète (« — »).
+
+### Lire le fil de discussion
+
+Quand le validateur vous **écrit**, un **panneau s'ouvre à droite du lecteur** : vous lisez la discussion
+**en écoutant le cri**, sans changer d'écran. La colonne « 🗣 » de la table indique le nombre de messages,
+pour repérer d'un coup d'œil les détections dont il faut parler.
+
+Chaque message dit **qui** parle (« Vous », « Le validateur ») et **quand**.
+
+### Répondre au validateur
+
+La zone de saisie sous le fil vous permet de **répondre**. Une **confirmation** vous montre d'abord le
+texte qui va partir.
+
+!!! danger "Un message envoyé ne peut plus être retiré"
+    Contrairement à une correction (qui se **remplace**), un message est **définitif** : la plateforme ne
+    permet **ni de le supprimer, ni de le modifier**, et il est lu par un expert du MNHN.
+
+    C'est pourquoi la confirmation **cite votre texte** avant l'envoi : relisez-le. Si vous annulez, votre
+    texte reste dans la zone de saisie — rien n'est perdu.
+
+    Si l'envoi échoue (plateforme injoignable, par exemple), **rien n'est publié** et votre texte vous est
+    rendu : vous ne risquez pas de croire envoyé un message que le validateur ne verra jamais.
+
+La zone de saisie est **désactivée**, en expliquant pourquoi, quand il n'y a personne à qui parler : une
+détection issue d'un **import CSV** ou d'une **saisie manuelle** n'existe pas sur Vigie-Chiro.
+
 ## Sons de référence
 
 Depuis l'accueil, l'activité **Sons & validation** ouvre l'écran sur **toutes les observations marquées

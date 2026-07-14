@@ -342,7 +342,7 @@ class ServiceValidationTest {
         service.marquerReference(observationCiblee(idAncien, "Nyclei", 0.0).id(), true);
         // Certitude saisie (#1139) : une décision humaine de plus, préservée comme les autres.
         Observation avantReimport = observationCiblee(idAncien, "Pippip", 1.0);
-        observationDao.update(avantReimport.avecCertitude(fr.univ_amu.iut.commun.model.CertitudeObservateur.PROBABLE));
+        observationDao.update(avantReimport.avecCertitude(fr.univ_amu.iut.commun.model.Certitude.PROBABLE));
 
         BilanImport bilan = service.reimporter(idPassage, ecrireBrut());
 
@@ -355,7 +355,7 @@ class ServiceValidationTest {
         assertThat(correction.modeValidation()).isEqualTo(ModeValidation.MANUEL);
         assertThat(correction.certitudeObservateur())
                 .as("la certitude saisie survit au réimport (#1139)")
-                .isEqualTo(fr.univ_amu.iut.commun.model.CertitudeObservateur.PROBABLE);
+                .isEqualTo(fr.univ_amu.iut.commun.model.Certitude.PROBABLE);
         assertThat(observationCiblee(bilan.idResultats(), "Nyclei", 0.0).reference())
                 .isTrue();
     }

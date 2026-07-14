@@ -52,7 +52,8 @@ import picocli.CommandLine.Spec;
             ReinitialiserDepot.class,
             VerifierDepotVigieChiro.class,
             ExporterVu.class,
-            ExporterObservations.class
+            ExporterObservations.class,
+            ResetGuide.class
         })
 public final class CommandeRacine implements Runnable {
 

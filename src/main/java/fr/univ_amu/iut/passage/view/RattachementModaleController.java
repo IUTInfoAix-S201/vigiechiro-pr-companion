@@ -254,8 +254,9 @@ public class RattachementModaleController {
     /// Après un enregistrement **local** réussi, **pousse** les métadonnées (météo/micro/dates) vers la
     /// participation VigieChiro en **tâche de fond** (réseau, hors fil JavaFX via [ExecuteurTache]) :
     /// best-effort et silencieux (le ViewModel avale un passage non encore lié à une participation). La
-    /// modale se ferme sans attendre le réseau : les callbacks sont volontairement muets, un échec
-    /// inattendu n'a plus de fenêtre où s'afficher (les métadonnées repartiront au prochain dépôt).
+    /// modale se ferme sans attendre le réseau : les callbacks sont volontairement muets - un échec
+    /// inattendu n'a plus de fenêtre où s'afficher (les métadonnées repartiront au prochain dépôt) mais il
+    /// est désormais **journalisé** au point de passage (#1523), donc plus perdu sans trace.
     private void pousserVersVigieChiro() {
         executeur.executer(
                 () -> {

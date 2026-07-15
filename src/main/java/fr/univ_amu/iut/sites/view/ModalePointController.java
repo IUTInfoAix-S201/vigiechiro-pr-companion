@@ -10,6 +10,7 @@ import fr.univ_amu.iut.commun.view.carte.FournisseurEmpriseCarre;
 import fr.univ_amu.iut.commun.view.carte.PointGeo;
 import fr.univ_amu.iut.sites.model.PointDEcoute;
 import fr.univ_amu.iut.sites.model.Site;
+import fr.univ_amu.iut.sites.model.VerdictCarre;
 import fr.univ_amu.iut.sites.viewmodel.PointEditViewModel;
 import java.util.List;
 import java.util.Locale;
@@ -148,9 +149,14 @@ public class ModalePointController {
     ///
     /// Le contrôle ne **remplit** rien et ne **bloque** rien : le n° de carré appartient au site, pas au
     /// point, et l'observateur peut avoir de bonnes raisons de s'écarter de la grille. On dit ce qu'on
-    /// sait ; il décide.
+    /// sait ; il décide. En cas d'échec réseau on ne **sait plus** : on repasse à « indisponible » (message
+    /// effacé) pour ne pas laisser traîner un verdict périmé - la trace de l'échec est, elle, journalisée au
+    /// point de passage (#1523).
     private void controlerCarre() {
-        executeur.executer(viewModel::controlerCarre, viewModel::appliquerControleCarre, echec -> {});
+        executeur.executer(
+                viewModel::controlerCarre,
+                viewModel::appliquerControleCarre,
+                echec -> viewModel.appliquerControleCarre(new VerdictCarre.Indisponible()));
     }
 
     /// Colore le message du carré : alerte (divergence, hors grille) ou simple confirmation.

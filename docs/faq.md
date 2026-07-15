@@ -31,17 +31,17 @@ continuer : l'import reste possible. Voir l'écran [Importation](ecrans/importat
 
 ## Vérification et dépôt
 
-### Les boutons de l'écran Lot sont grisés
+### Les boutons de l'écran Préparer le dépôt sont grisés
 
-L'écran signale des **alertes de cohérence** à corriger avant de préparer le lot (par exemple des
+L'écran signale des **alertes de cohérence** à corriger avant de préparer le dépôt (par exemple des
 séquences d'écoute manquantes ou un journal du capteur absent). Tant que ces points ne sont pas
-réglés, la préparation reste bloquée. Voir l'écran [Lot](ecrans/lot.md).
+réglés, la préparation reste bloquée. Voir l'écran [Préparer le dépôt](ecrans/lot.md).
 
 ### Quel dossier dois-je téléverser sur Vigie-Chiro ?
 
-Celui indiqué dans le **récapitulatif** de l'écran Lot après avoir cliqué sur « Préparer le lot ».
+Celui indiqué dans le **récapitulatif** de l'écran Préparer le dépôt après avoir cliqué sur « Vérifier et préparer le dépôt ».
 Le téléversement est **manuel** : vous l'effectuez depuis votre navigateur, puis vous revenez
-marquer la nuit comme déposée. Voir l'écran [Lot](ecrans/lot.md).
+marquer la nuit comme déposée. Voir l'écran [Préparer le dépôt](ecrans/lot.md).
 
 ## Validation des espèces
 

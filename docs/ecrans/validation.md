@@ -4,7 +4,7 @@ L'écran **Validation** (la vue audio unifiée « Sons & validation ») sert à 
 corriger** les espèces identifiées par l'outil Tadarida, et à constituer votre **corpus de sons de
 référence**. On y arrive depuis plusieurs points : un **passage** (après dépôt, pour valider ses
 résultats Tadarida), l'accueil (**Sons & validation**), **Espèces & observations** (les détections d'une
-espèce) et **Carte & passages** (un passage ou le lot filtré).
+espèce) et **Carte & passages** (un passage ou la sélection filtrée).
 
 ![Sons & validation : table des observations, écoute pleine largeur et barre d'actions.](../assets/captures/apercu-sons-validation.png)
 
@@ -127,7 +127,7 @@ sur cette observation (l'indicateur de commentaire de la table signale les ligne
 
 ![L'éditeur de commentaire ouvert au clic sur la case : une zone de texte et le bouton Enregistrer.](../assets/captures/apercu-sons-validation-commentaire.png)
 
-### Aller vite : clavier et lots
+### Aller vite : clavier et actions groupées
 
 La revue est pensée pour **enchaîner** les observations sans quitter le clavier :
 
@@ -137,11 +137,11 @@ La revue est pensée pour **enchaîner** les observations sans quitter le clavie
 - **N** saute à la prochaine observation « À revoir ».
 
 Vous pouvez aussi **sélectionner plusieurs lignes** (Ctrl+clic, ou Maj+clic pour une plage) et **valider,
-corriger, marquer en référence ou déclarer la certitude de tout le lot d'un coup**. Une action groupée est **tout ou rien** (si elle
+corriger, marquer en référence ou déclarer la certitude de toute la sélection d'un coup**. Une action groupée est **tout ou rien** (si elle
 échoue, aucune ligne n'est modifiée) et enregistre la validation en **mode activité** (sans propagation
 inventaire, qui n'aurait pas de sens sur une sélection hétérogène).
 
-![Trois observations sélectionnées d'un coup dans la table : l'action (valider, corriger, référence) s'applique à tout le lot.](../assets/captures/apercu-sons-validation-lot.png)
+![Trois observations sélectionnées d'un coup dans la table : l'action (valider, corriger, référence) s'applique à toute la sélection.](../assets/captures/apercu-sons-validation-lot.png)
 
 ## Consulter la fiche d'une espèce
 

@@ -6,7 +6,7 @@ débloque tout ce qui touche à la plateforme :
 - la **synchronisation** de vos sites et points déclarés sur le portail (créés ou reliés
   localement, jamais écrasés) et du **référentiel officiel des taxons** ;
 - le **dépôt** d'une nuit préparée, le **lancement de son traitement** par la plateforme et sa
-  vérification (écran [Lot](ecrans/lot.md)) ;
+  vérification (écran [Préparer le dépôt](ecrans/lot.md)) ;
 - la **récupération des résultats Tadarida** après traitement serveur (écran
   [Validation](ecrans/validation.md)) ;
 - les boutons **« Ouvrir sur Vigie-Chiro »** des écrans rattachés (site, passage, validation).

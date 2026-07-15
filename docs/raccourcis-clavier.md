@@ -50,7 +50,7 @@ La revue des observations de « Sons & validation » s'enchaîne sans quitter le
 | <kbd>1</kbd> / <kbd>2</kbd> / <kbd>3</kbd> | Déclarer la certitude : Sûr / Probable / Possible |
 | <kbd>N</kbd> | Aller à la prochaine observation « À revoir » (en bouclant) |
 
-Avec **plusieurs lignes sélectionnées**, ces touches agissent sur **tout le lot** (action tout ou
+Avec **plusieurs lignes sélectionnées**, ces touches agissent sur **toute la sélection** (action tout ou
 rien).
 
 ## Écran Qualification (écoute et verdict)

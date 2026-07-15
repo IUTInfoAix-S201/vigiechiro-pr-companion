@@ -126,6 +126,9 @@ class QualificationViewTest {
         loader.setControllerFactory(injector::getInstance);
         Parent vue = loader.load();
         controleur = loader.getController();
+        // Compte rendu neutralisé par défaut (#1509) : le vrai dialogue figerait le headless ; un test
+        // spécifique redéfinit un double capturant.
+        controleur.notificateur().definir((niveau, entete, message) -> {});
         controleur.ouvrirSur(
                 new ContextePassage(ID_PASSAGE, 2, new ContexteSite("640380", "A1", "Étang de la Tuilière")));
         stage.setScene(new Scene(vue, 1100, 760));

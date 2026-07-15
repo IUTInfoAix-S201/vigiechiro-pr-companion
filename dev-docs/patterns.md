@@ -804,6 +804,17 @@ sequenceDiagram
 
 **Principes.** **SRP** (la gestion transactionnelle est isolée des DAO) ; garantit l'**intégrité** O7.
 
+!!! note "Quand une seule transaction est impossible : compensation"
+    `UniteDeTravail` regroupe des écritures **sur une même connexion**. Mais certaines opérations
+    franchissent une frontière qui ouvre sa **propre** transaction - typiquement la reconstruction d'un
+    passage (#1522), dont l'import des observations passe par un port qui gère sa transaction à lui (et
+    SQLite n'a qu'un seul écrivain). Une transaction unique est alors infaisable. On garde malgré tout la
+    règle « mieux vaut ne rien créer que créer à moitié » par **compensation** (*saga*) : si une étape
+    échoue, on **défait** ce qui précède - ici via les clés étrangères `ON DELETE CASCADE` (supprimer le
+    passage emporte sa session, ses séquences, ses observations, cf.
+    [Modèle de données](modele-de-donnees.md)). Le résultat visible est celui d'une transaction : tout,
+    ou rien.
+
 ---
 
 ## Observer (propriétés et *binding* JavaFX)

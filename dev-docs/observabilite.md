@@ -21,8 +21,11 @@ Le choix s'est porté sur **java.util.logging (JUL)** plutôt que slf4j+logback 
   bruit à l'écran).
 
 Elle est amorcée à `App.main` **et** `Cli.main` (IHM et CLI). L'amorçage est dans `main`, **pas**
-`start()` : les tests (qui appellent `start()` directement) n'installent donc aucun fichier de log et
-restent silencieux.
+`start()` : les tests (qui appellent `start()` directement) n'installent donc aucun fichier de log. La
+sortie **console** des tests reste propre elle aussi : de nombreux tests exercent *volontairement* les
+chemins d'échec, où `JournalisationTache` émettrait des `SEVERE` + traces d'apparence alarmante mais
+normales ; une configuration JUL de test (`src/test/resources/logging-tests.properties`, pointée par
+`maven-surefire`) coupe ce seul logger pendant les tests, sans rien changer en production (#1560).
 
 !!! note "Workspace"
     Le dossier est résolu par `Workspace.dossierLogs()` (`<workspace>/logs/`), comme le reste : aucun
@@ -56,8 +59,11 @@ Le menu ☰ → **« Ouvrir le dossier des journaux »** (une `ActionMenu` socle
 [Ajouter une fonctionnalité](ajouter-une-fonctionnalite.md)) ouvre `<workspace>/logs/` dans le
 gestionnaire de fichiers : l'utilisateur retrouve la trace d'un incident et la joint à un signalement.
 
-## Dette connue
+## Dette soldée
 
-Quelques opérations de fond lourdes restent **sans progression** (barre) et deux callbacks d'échec ne
-rendent **aucun message** à l'écran - l'incident est tout de même tracé. Suivi dans l'issue d'audit
-#1543.
+L'audit de suite (#1543, **clos**) a résorbé les points restants : les opérations de fond lourdes
+(import et publication VigieChiro, relevé d'analyses, rattachement, lancement du traitement serveur)
+montrent désormais un **voile d'occupation** ou un repère « … en cours » (cf.
+[Patterns et principes](patterns.md)), et les deux callbacks d'échec muets sont traités - l'un routé
+vers le filet d'erreurs de son écran, l'autre *fire-and-forget* assumé à la fermeture de la modale mais
+**journalisé** au point de passage. Aucune dette d'observabilité connue à ce jour.

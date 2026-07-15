@@ -155,6 +155,9 @@
             <graphic><FontIcon iconLiteral="fas-music"/></graphic>
           </Label>
           <AudioView fx:id="audioView" minHeight="220.0" VBox.vgrow="ALWAYS"/>
+          <!-- État de chargement (#1509) : visible tant que le WAV sélectionné n'est pas prêt à jouer. -->
+          <Label fx:id="lblChargementAudio" styleClass="section-sous" visible="false" managed="false"
+                 text="Chargement de la séquence…"/>
         </VBox>
 
         <VBox spacing="6.0">

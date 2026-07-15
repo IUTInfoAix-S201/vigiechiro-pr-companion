@@ -45,6 +45,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.api.FxRobot;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
+import org.testfx.util.WaitForAsyncUtils;
 
 /// Test d'intégration TestFX **complémentaire** de l'écran M-Qualification, ciblant les câblages
 /// Vue↔ViewModel que les tests de vue « lecture de propriétés » laissent passer : un écran non câblé
@@ -131,6 +132,8 @@ class QualificationVueIntegrationTest {
         // Ces tests vérifient le comportement R12 de « Régénérer », pas la confirmation (#798) : on accepte
         // d'office pour ne pas bloquer sur un Alert natif quand une progression d'écoute est en cours.
         controleur.confirmateur().definir(message -> true);
+        // Compte rendu neutralisé par défaut (#1509) : un vrai dialogue figerait le headless.
+        controleur.notificateur().definir((niveau, entete, message) -> {});
         controleur.ouvrirSur(
                 new ContextePassage(ID_PASSAGE, 2, new ContexteSite("640380", "A1", "Étang de la Tuilière")));
         stage.setScene(new Scene(vue, 1100, 760));
@@ -275,5 +278,40 @@ class QualificationVueIntegrationTest {
         robot.interact(regenerer::fire); // régénérer la sélection ne doit pas effacer le verdict
 
         assertThat(enregistrer.isDisabled()).isFalse();
+    }
+
+    @Test
+    @DisplayName("#1509 : « Régénérer » rend compte de la sélection reconstruite")
+    void regenerer_rend_compte(FxRobot robot) {
+        Button regenerer = robot.lookup("#boutonRegenerer").queryAs(Button.class);
+        List<String> comptes = new ArrayList<>();
+        controleur.notificateur().definir((niveau, entete, message) -> comptes.add(entete + " | " + message));
+
+        robot.interact(regenerer::fire);
+        WaitForAsyncUtils.waitForFxEvents();
+
+        assertThat(comptes).as("la régénération n'était plus muette").hasSize(1);
+        assertThat(comptes.get(0)).contains("Sélection régénérée").contains("réparties sur la nuit");
+    }
+
+    @Test
+    @DisplayName("#1509 : l'état de chargement suit la disponibilité de l'AudioView")
+    void chargement_audio_suit_l_etat(FxRobot robot) {
+        Label chargement = robot.lookup("#lblChargementAudio").queryAs(Label.class);
+        AudioView audio = robot.lookup("#audioView").queryAs(AudioView.class);
+        TableView<?> table = robot.lookup("#tableSequences").queryAs(TableView.class);
+
+        // Aucune séquence sélectionnée → pas de source → pas d'indicateur de chargement.
+        robot.interact(() -> table.getSelectionModel().clearSelection());
+        WaitForAsyncUtils.waitForFxEvents();
+        assertThat(chargement.isVisible()).isFalse();
+
+        // Séquence sélectionnée : l'indicateur reflète l'invariant (source posée ET pas encore prête).
+        robot.interact(() -> table.getSelectionModel().select(0));
+        WaitForAsyncUtils.waitForFxEvents();
+        boolean attendu = audio.getAudioFile() != null
+                && !audio.isReady()
+                && (audio.getErrorMessage() == null || audio.getErrorMessage().isEmpty());
+        assertThat(chargement.isVisible()).isEqualTo(attendu);
     }
 }

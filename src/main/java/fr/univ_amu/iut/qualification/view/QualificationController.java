@@ -14,6 +14,7 @@ import fr.univ_amu.iut.commun.view.GestionnaireColonnes;
 import fr.univ_amu.iut.commun.view.IndicateurBlocage;
 import fr.univ_amu.iut.commun.view.IndicateurOccupation;
 import fr.univ_amu.iut.commun.view.Lieu;
+import fr.univ_amu.iut.commun.view.NotificateurModifiable;
 import fr.univ_amu.iut.commun.view.OuvrirPassage;
 import fr.univ_amu.iut.commun.view.OuvrirSite;
 import fr.univ_amu.iut.commun.view.ResumeStatut;
@@ -80,6 +81,11 @@ public class QualificationController implements GardeQuitter, EmplacementNavigat
 
     /// Confirmation d'action destructive : porteur partagé injectable (#1013), stub déterministe en test.
     private final ConfirmateurModifiable confirmateur = new ConfirmateurModifiable();
+
+    /// Compte rendu d'action (#1404) : rend compte de la régénération de la sélection (« Sélection
+    /// régénérée : 18 séquences… », #1509). Porteur injectable, jumeau du confirmateur ; un double
+    /// capturant en test (un `Alert` figerait le headless).
+    private final NotificateurModifiable notificateur = new NotificateurModifiable();
 
     @FXML
     private StackPane hoteOccupation;
@@ -151,6 +157,11 @@ public class QualificationController implements GardeQuitter, EmplacementNavigat
     @FXML
     private AudioView audioView;
 
+    /// État de chargement de la séquence (#1509) : visible tant que le WAV sélectionné n'est pas prêt
+    /// à jouer, pour expliquer le délai au premier clic (« le fichier semble se recharger »).
+    @FXML
+    private Label lblChargementAudio;
+
     @FXML
     private Button boutonOk;
 
@@ -193,6 +204,11 @@ public class QualificationController implements GardeQuitter, EmplacementNavigat
     /// Porteur de confirmation exposé aux tests (#1013) : `confirmateur().definir(stub)`.
     ConfirmateurModifiable confirmateur() {
         return confirmateur;
+    }
+
+    /// Porteur de compte rendu exposé aux tests (#1404/#1509) : `notificateur().definir(stub)`.
+    NotificateurModifiable notificateur() {
+        return notificateur;
     }
 
     @Inject
@@ -336,6 +352,7 @@ public class QualificationController implements GardeQuitter, EmplacementNavigat
                 audioView.dispose();
             }
         });
+        lierEtatChargement();
 
         // Verdict différé : surbrillance du bouton choisi + liaison du commentaire.
         marquerChoisi(boutonOk, Verdict.OK);
@@ -458,6 +475,21 @@ public class QualificationController implements GardeQuitter, EmplacementNavigat
             return;
         }
         selectionVm.regenerer();
+        // Compte rendu de la régénération (#1509/#1404), externalisé pour garder le contrôleur sous
+        // les plafonds PMD (GodClass / NcssCount).
+        CompteRenduRegeneration.rendreCompte(notificateur, selectionVm);
+    }
+
+    /// Lie l'état de chargement (#1509) : le libellé « Chargement… » est visible tant qu'une séquence
+    /// est sélectionnée (source posée) mais pas encore prête à jouer, et qu'aucune erreur n'est signalée.
+    private void lierEtatChargement() {
+        var enChargement = audioView
+                .audioFileProperty()
+                .isNotNull()
+                .and(audioView.readyProperty().not())
+                .and(audioView.errorMessageProperty().isEmpty());
+        lblChargementAudio.visibleProperty().bind(enChargement);
+        lblChargementAudio.managedProperty().bind(enChargement);
     }
 
     /// Colonnes de la sélection d'écoute proposées au sélecteur (#920). « Fichier » est l'identité

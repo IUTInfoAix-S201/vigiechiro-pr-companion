@@ -52,8 +52,8 @@ d'entrée :
 | **Carte & passages** | La carte de vos sites et le tableau de tous vos passages, avec filtres, tri et export. |
 
 Depuis ces points d'entrée, vous atteignez ensuite les autres écrans : un **site** donne accès à
-ses **passages** (les nuits), et un passage ouvre les écrans de **qualification**, de **dépôt
-(lot)**, de **validation** des espèces et de **diagnostic**.
+ses **passages** (les nuits), et un passage ouvre les écrans de **qualification**, de **dépôt**,
+de **validation** des espèces et de **diagnostic**.
 
 La barre du haut affiche un fil d'Ariane qui rappelle où vous vous trouvez et permet de revenir en
 arrière.

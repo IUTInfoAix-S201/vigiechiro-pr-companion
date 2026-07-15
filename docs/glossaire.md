@@ -5,9 +5,8 @@ Les termes du domaine employés dans cette documentation et dans l'application.
 | Terme | Définition |
 |---|---|
 | **Carré** | Maille de suivi Vigie-Chiro, identifiée par un numéro à six chiffres. Dans l'application, un carré et ses points d'écoute forment un [site](ecrans/sites.md). |
-| **Dépôt** | Envoi des données d'une nuit vérifiée sur la plateforme Vigie-Chiro. Le téléversement est **manuel** (l'application prépare le dossier mais ne dialogue pas avec le portail). Voir l'écran [Lot](ecrans/lot.md). |
+| **Dépôt** | Envoi des données d'une nuit vérifiée sur la plateforme Vigie-Chiro. Le téléversement est **manuel** (l'application prépare le dossier mais ne dialogue pas avec le portail). Voir l'écran [Préparer le dépôt](ecrans/lot.md). |
 | **Journal du capteur** | Fichier d'évènements produit par l'enregistreur (démarrage, arrêt programmé...), exploité notamment par le [diagnostic](ecrans/diagnostic.md). |
-| **Lot** | Ensemble préparé des fichiers d'une nuit vérifiée, prêt à être déposé sur Vigie-Chiro. |
 | **Passage** | Une **nuit d'enregistrement** sur un point d'écoute, identifiée par une année et un numéro de passage. C'est l'unité de travail de l'application. Voir l'écran [Passage](ecrans/passage.md). |
 | **Passage archivé** | Passage dont l'**audio local a été supprimé volontairement** pour libérer de l'espace : ses observations et ses validations restent **consultables**, mais on ne peut plus l'**écouter**. Il **redevient actif** en réimportant les fichiers d'origine (« réactivation »). Voir l'écran [Passage](ecrans/passage.md). |
 | **Passive Recorder (PR)** | Enregistreur autonome posé sur le terrain, qui capte les ultrasons des chauves-souris pendant une nuit entière. Le « PR » du nom de l'application. |

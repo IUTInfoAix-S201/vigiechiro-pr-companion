@@ -13,7 +13,7 @@ espèces** identifiées. Cette page déroule ce parcours étape par étape.
 |---|---|---|
 | **Importer** | Copier la carte SD, renommer et transformer les enregistrements | Importation |
 | **Vérifier** | Contrôler la qualité (pré-check + écoute) et poser un verdict | Qualification |
-| **Déposer** | Préparer le lot, générer les archives, les téléverser sur Vigie-Chiro, lancer la participation | Lot |
+| **Déposer** | Préparer le dépôt, générer les archives, les téléverser sur Vigie-Chiro, lancer la participation | Préparer le dépôt |
 | **Valider** | Relire les espèces identifiées par Tadarida | Validation |
 
 ## L'écran Passage, votre pivot
@@ -36,7 +36,7 @@ Une fois la nuit **déposée**, la carte « Sons & validation » se déverrouill
 ![Le même pivot au statut « Déposé » : la carte « Sons & validation » est désormais accessible.](../assets/captures/apercu-passage-depose.png)
 
 !!! warning "Le dépôt précède la validation"
-    La **validation des espèces** (Tadarida) n'est accessible qu'une fois le **lot déposé** :
+    La **validation des espèces** (Tadarida) n'est accessible qu'une fois le **passage déposé** :
     Vigie-Chiro ne renvoie les résultats d'identification que **24 à 48 h après le dépôt**.
     L'application verrouille donc cette étape tant que le passage n'est pas au statut « Déposé ».
     L'ordre est bien **Vérifier, puis Déposer, puis Valider**.
@@ -71,13 +71,13 @@ Sur l'écran **Qualification**, vous contrôlez que la nuit est exploitable, à 
 Vous posez ensuite un **verdict global** : OK, Douteux ou À jeter. Cet écran se pilote
 efficacement au clavier (voir [Raccourcis clavier](../raccourcis-clavier.md)).
 
-## Déposer le lot
+## Déposer le passage
 
-Sur l'écran **Lot**, le dépôt se fait en quatre temps :
+Sur l'écran **Préparer le dépôt**, le dépôt se fait en quatre temps :
 
-![L'écran de préparation du lot : récapitulatif et étapes du dépôt.](../assets/captures/apercu-lot-preparer.png)
+![L'écran de préparation du dépôt : récapitulatif et étapes du dépôt.](../assets/captures/apercu-lot-preparer.png)
 
-1. **Préparer le lot** : l'application contrôle la cohérence du passage (préfixes, complétude).
+1. **Préparer le dépôt** : l'application contrôle la cohérence du passage (préfixes, complétude).
 2. **Générer les archives** : les séquences sont regroupées en archives ZIP prêtes à partir.
 3. **Téléverser sur Vigie-Chiro** : si l'application est connectée, elle dépose les archives
    elle-même (plusieurs en parallèle, avec une reprise en cas de coupure). Sinon, repli : « Ouvrir le
@@ -91,7 +91,7 @@ Sur l'écran **Lot**, le dépôt se fait en quatre temps :
 !!! warning "Déposer ≠ faire traiter"
     Téléverser les fichiers ne déclenche **pas** le calcul : sans « Lancer la participation », la
     participation reste vide côté plateforme et aucun résultat n'arrivera. Détail sur la page
-    [Lot](../ecrans/lot.md).
+    [Préparer le dépôt](../ecrans/lot.md).
 
 ## Valider les espèces
 

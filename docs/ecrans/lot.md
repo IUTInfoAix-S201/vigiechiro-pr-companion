@@ -1,20 +1,20 @@
-# Lot
+# Préparer le dépôt
 
-L'écran **Lot** (« Préparer le dépôt ») prépare et trace le **dépôt** d'une nuit vérifiée sur la
+L'écran **Préparer le dépôt** prépare et trace le **dépôt** d'une nuit vérifiée sur la
 plateforme Vigie-Chiro. Le dépôt suit un **flux ordonné en quatre étapes**, rappelé en haut de l'écran
 par un fil d'étapes (l'étape courante est mise en avant) :
 
 **① Préparer · ② Générer les archives · ③ Téléverser · ④ Marquer déposé.**
 
-## ① Vérifier et préparer le lot
+## ① Vérifier et préparer le dépôt
 
-![L'écran Lot : récapitulatif du lot et première étape « Vérifier et préparer le lot ».](../assets/captures/apercu-lot-preparer.png)
+![L'écran Préparer le dépôt : récapitulatif du dépôt et première étape « Vérifier et préparer le dépôt ».](../assets/captures/apercu-lot-preparer.png)
 
 Le **récapitulatif** indique le nombre de séquences et le volume. Une **checklist de cohérence** montre,
 contrôle par contrôle et **même quand tout est satisfait**, ce qui est vérifié : transformation
 effectuée, fichiers bien nommés, journal du capteur présent, relevé climatique. Chaque ligne est marquée
 **✓** (satisfait), **✗** (à corriger, bloquant) ou **⚠** (avertissement non bloquant, comme un relevé
-climatique absent). « Vérifier et préparer le lot » **verrouille** ensuite la liste des séquences qui
+climatique absent). « Vérifier et préparer le dépôt » **verrouille** ensuite la liste des séquences qui
 partiront. Vos fichiers d'origine ne sont pas modifiés. Le passage passe alors au statut « Prêt à
 déposer ».
 
@@ -127,7 +127,7 @@ une nuit apparaît « Déposée » côté application alors que la participation
 **archives sur le disque** et le **lien vers la participation** sont conservés : rien n'est perdu, on
 ne remet à zéro que le compteur.
 
-## La barre de statut : l'état du lot en permanence
+## La barre de statut : l'état du dépôt en permanence
 
 L'écran est long ; la **barre de statut** du bas de fenêtre garde l'essentiel sous les yeux :
 
@@ -141,7 +141,7 @@ L'écran est long ; la **barre de statut** du bas de fenêtre garde l'essentiel 
 
 Si la nuit n'est pas en état d'être déposée (par exemple séquences d'écoute absentes ou journal du
 capteur manquant), les contrôles concernés passent en **✗** dans la checklist, avec la raison et la
-correction à apporter. Le bouton « Vérifier et préparer le lot » reste grisé tant qu'un contrôle est en
-échec. Un **⚠** (relevé climatique absent) n'empêche pas, lui, de préparer le lot.
+correction à apporter. Le bouton « Vérifier et préparer le dépôt » reste grisé tant qu'un contrôle est en
+échec. Un **⚠** (relevé climatique absent) n'empêche pas, lui, de préparer le dépôt.
 
 ![L'état incohérent : la checklist montre les contrôles ✓ et ✗ ; la préparation est bloquée.](../assets/captures/apercu-lot-alertes.png)

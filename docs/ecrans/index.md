@@ -12,7 +12,7 @@ référence explique *en détail* ce que chaque écran propose.
 | [Passage](passage.md) | Pivot d'une nuit : statut, navigation, suppression |
 | [Importation](importation.md) | Importer une nuit depuis la carte SD |
 | [Qualification](qualification.md) | Écouter les séquences et poser un verdict de qualité |
-| [Lot](lot.md) | Préparer et déposer un lot vérifié |
+| [Préparer le dépôt](lot.md) | Préparer et déposer une nuit vérifiée |
 | [Sons & validation](validation.md) | Relire les observations Tadarida (espèces), écouter, discuter avec le validateur |
 | [Carte & passages](multisite.md) | Vue agrégée des passages (tri, filtres, vues sauvegardées) |
 | [Espèces & observations](analyse.md) | Exploiter les observations toutes nuits confondues : quelles espèces, où, quand, combien |

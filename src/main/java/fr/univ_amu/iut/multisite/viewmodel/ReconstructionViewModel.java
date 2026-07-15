@@ -1,13 +1,17 @@
 package fr.univ_amu.iut.multisite.viewmodel;
 
 import com.google.inject.Inject;
+import fr.univ_amu.iut.commun.model.JetonAnnulation;
+import fr.univ_amu.iut.commun.model.Progression;
 import fr.univ_amu.iut.commun.model.RegleMetierException;
+import fr.univ_amu.iut.commun.viewmodel.ProgressionOperation;
 import fr.univ_amu.iut.passage.model.ParticipationOrpheline;
 import fr.univ_amu.iut.passage.model.RapportReconstruction;
 import fr.univ_amu.iut.passage.model.ServiceReconstructionPassages;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Consumer;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
@@ -43,6 +47,11 @@ public class ReconstructionViewModel {
 
     private final ReadOnlyStringWrapper compteRendu = new ReadOnlyStringWrapper("");
     private final ReadOnlyBooleanWrapper reconstruit = new ReadOnlyBooleanWrapper(false);
+
+    /// Suivi de la **progression déterminée** de la reconstruction (barre + libellé + ETA), via le socle
+    /// [ProgressionOperation] partagé avec l'import et le dépôt : la vue lie sa barre à
+    /// `progression().fractionProperty()` et son libellé à `progression().messageProperty()`.
+    private final ProgressionOperation progression = new ProgressionOperation();
 
     @Inject
     public ReconstructionViewModel(Optional<ServiceReconstructionPassages> service) {
@@ -82,6 +91,11 @@ public class ReconstructionViewModel {
         return reconstruit.getReadOnlyProperty();
     }
 
+    /// Suivi de la progression de l'opération longue, à lier depuis la vue (barre + libellé, #1522).
+    public ProgressionOperation progression() {
+        return progression;
+    }
+
     /// **Bloquant** (réseau) : lit les participations du compte et retient celles qui n'ont pas de passage
     /// ici.
     public List<ParticipationOrpheline> charger() {
@@ -98,10 +112,14 @@ public class ReconstructionViewModel {
                         : chargees.size() + " nuit(s) déposée(s) sur VigieChiro n'existent pas sur cette machine.");
     }
 
-    /// **Bloquant** (réseau) : reconstruit la participation choisie en passage archivé.
-    public RapportReconstruction reconstruire(ParticipationOrpheline orpheline) {
+    /// **Bloquant** (réseau + base) : reconstruit la participation choisie en passage archivé, en relayant
+    /// sa **progression** et en honorant le **jeton d'annulation** (#1252, #1522). L'orpheline est passée
+    /// telle quelle au service, qui en tire carré et localité sans re-télécharger la liste des
+    /// participations.
+    public RapportReconstruction reconstruire(
+            ParticipationOrpheline orpheline, Consumer<Progression> progres, JetonAnnulation jeton) {
         Objects.requireNonNull(orpheline, "orpheline");
-        return exiger().reconstruire(orpheline.idParticipation());
+        return exiger().reconstruire(orpheline, progres, jeton);
     }
 
     /// Publie le compte rendu et retire la nuit reconstruite de la liste des manquantes (**fil JavaFX**).
@@ -130,6 +148,13 @@ public class ReconstructionViewModel {
     public void signalerErreur(Throwable echec) {
         String detail = echec.getMessage();
         erreur.set(detail != null && !detail.isBlank() ? detail : "Reconstruction impossible.");
+    }
+
+    /// Annulation demandée par l'utilisateur : un état **neutre**, pas une erreur. Rien n'a été créé (la
+    /// reconstruction se compense côté service), et on le dit plutôt que de laisser un écran figé.
+    public void signalerAnnulation() {
+        erreur.set("");
+        message.set("Reconstruction annulée : aucun passage n'a été créé.");
     }
 
     private ServiceReconstructionPassages exiger() {

@@ -1,6 +1,8 @@
 package fr.univ_amu.iut.multisite.view;
 
 import com.google.inject.Inject;
+import fr.univ_amu.iut.commun.model.JetonAnnulation;
+import fr.univ_amu.iut.commun.model.Progression;
 import fr.univ_amu.iut.commun.view.ExecuteurTache;
 import fr.univ_amu.iut.commun.view.IndicateurBlocage;
 import fr.univ_amu.iut.commun.view.TableDonnees;
@@ -10,6 +12,7 @@ import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Objects;
+import java.util.function.Consumer;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.StringBinding;
@@ -19,8 +22,10 @@ import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
@@ -50,6 +55,9 @@ public class ReconstructionModaleController {
 
     /// Vrai pendant un appel réseau : neutralise les deux boutons (pas de double reconstruction).
     private final SimpleBooleanProperty operationEnCours = new SimpleBooleanProperty(false);
+
+    /// Jeton de la reconstruction en cours, câblé sur le bouton « Annuler » (#1252). Null hors opération.
+    private JetonAnnulation jetonCourant;
 
     /// Rafraîchissement de l'écran appelant, exécuté à la fermeture **si** une nuit a été reconstruite.
     private final SimpleObjectProperty<Runnable> apresSucces = new SimpleObjectProperty<>(() -> {});
@@ -92,6 +100,18 @@ public class ReconstructionModaleController {
 
     @FXML
     private StackPane enveloppeReconstruire;
+
+    @FXML
+    private HBox zoneProgression;
+
+    @FXML
+    private ProgressBar barreProgression;
+
+    @FXML
+    private Label lblProgression;
+
+    @FXML
+    private Button boutonAnnuler;
 
     @Inject
     public ReconstructionModaleController(ReconstructionViewModel viewModel, ExecuteurTache executeur) {
@@ -137,6 +157,17 @@ public class ReconstructionModaleController {
                         .then("Rapatrie cette nuit en passage archivé : observations comprises, sans audio.")
                         .otherwise(motifDeBlocage()));
 
+        // Barre + libellé de progression (socle ProgressionOperation, avec ETA). La zone n'a de sens que
+        // pendant l'opération et après un succès (barre à 100 %, « Terminé. ») : masquée sinon.
+        barreProgression.progressProperty().bind(viewModel.progression().fractionProperty());
+        lblProgression.textProperty().bind(viewModel.progression().messageProperty());
+        BooleanBinding progressionVisible = operationEnCours.or(viewModel.reconstruitProperty());
+        zoneProgression.visibleProperty().bind(progressionVisible);
+        zoneProgression.managedProperty().bind(progressionVisible);
+        // « Annuler » n'apparaît que pendant l'opération.
+        boutonAnnuler.visibleProperty().bind(operationEnCours);
+        boutonAnnuler.managedProperty().bind(operationEnCours);
+
         charger();
     }
 
@@ -176,16 +207,36 @@ public class ReconstructionModaleController {
             return;
         }
         operationEnCours.set(true);
+        viewModel.progression().demarrer("Reconstruction en cours…");
+        JetonAnnulation jeton = new JetonAnnulation();
+        jetonCourant = jeton;
+        Consumer<Progression> progres =
+                executeur.relaisProgression(point -> viewModel.progression().appliquer(point));
         executeur.executer(
-                () -> viewModel.reconstruire(choisie),
+                () -> viewModel.reconstruire(choisie, progres, jeton),
                 rapport -> {
                     operationEnCours.set(false);
                     viewModel.restituer(choisie, rapport);
                 },
+                () -> {
+                    operationEnCours.set(false);
+                    viewModel.progression().reinitialiser();
+                    viewModel.signalerAnnulation();
+                },
                 erreur -> {
                     operationEnCours.set(false);
+                    viewModel.progression().reinitialiser();
                     viewModel.signalerErreur(erreur);
                 });
+    }
+
+    /// « Annuler » : demande l'arrêt de la reconstruction en cours (#1252). Le travail hors fil s'arrête au
+    /// prochain point de contrôle et la compensation défait ce qui a déjà été écrit - aucun passage partiel.
+    @FXML
+    private void annuler() {
+        if (jetonCourant != null) {
+            jetonCourant.annuler();
+        }
     }
 
     /// Ferme la modale et, **si** une nuit a été reconstruite, rafraîchit l'écran appelant : elle y

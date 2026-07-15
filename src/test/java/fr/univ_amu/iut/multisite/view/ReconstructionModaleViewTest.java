@@ -1,6 +1,8 @@
 package fr.univ_amu.iut.multisite.view;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -8,6 +10,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Provides;
+import fr.univ_amu.iut.commun.model.OperationAnnuleeException;
 import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.multisite.viewmodel.ReconstructionViewModel;
 import fr.univ_amu.iut.passage.model.ParticipationOrpheline;
@@ -102,7 +105,7 @@ class ReconstructionModaleViewTest {
     @Test
     @DisplayName("Reconstruire : compte rendu avec les lacunes, nuit retirée, écran appelant rafraîchi")
     void reconstruire_publie_le_compte_rendu_et_rafraichit(FxRobot robot) {
-        when(service.reconstruire("p-connue"))
+        when(service.reconstruire(eq(CONNUE), any(), any()))
                 .thenReturn(new RapportReconstruction(12L, 56, 132, RapportReconstruction.lacunesConnues()));
         TableView<ParticipationOrpheline> table =
                 robot.lookup("#tableOrphelines").queryTableView();
@@ -127,7 +130,7 @@ class ReconstructionModaleViewTest {
     @Test
     @DisplayName("Un refus du service devient un message dans la modale, pas une exception muette")
     void refus_devient_un_message(FxRobot robot) {
-        when(service.reconstruire("p-connue"))
+        when(service.reconstruire(eq(CONNUE), any(), any()))
                 .thenThrow(new RegleMetierException("VigieChiro ne renvoie aucune donnée : analyse non terminée."));
         TableView<ParticipationOrpheline> table =
                 robot.lookup("#tableOrphelines").queryTableView();
@@ -142,6 +145,28 @@ class ReconstructionModaleViewTest {
                 .contains("2 nuit(s)");
         assertThat(robot.lookup("#boutonReconstruire").queryButton().isDisabled())
                 .as("bouton relâché après l'échec : l'utilisateur peut réessayer")
+                .isFalse();
+    }
+
+    @Test
+    @DisplayName("Annuler : la modale revient à un état neutre, aucun passage créé (pas d'erreur rouge)")
+    void annulation_revient_a_un_etat_neutre(FxRobot robot) {
+        when(service.reconstruire(eq(CONNUE), any(), any())).thenThrow(new OperationAnnuleeException());
+        TableView<ParticipationOrpheline> table =
+                robot.lookup("#tableOrphelines").queryTableView();
+        robot.interact(() -> table.getSelectionModel().select(CONNUE));
+
+        robot.interact(() -> robot.lookup("#boutonReconstruire").queryButton().fire());
+
+        assertThat(robot.lookup("#lblErreur").queryAs(Label.class).getText())
+                .as("une annulation n'est pas une erreur : rien en rouge")
+                .isEmpty();
+        assertThat(robot.lookup("#lblMessage").queryAs(Label.class).getText()).contains("annulée");
+        assertThat(table.getItems())
+                .as("rien n'a été créé : la nuit manque toujours")
+                .containsExactly(CONNUE, INCONNUE);
+        assertThat(robot.lookup("#boutonReconstruire").queryButton().isDisabled())
+                .as("bouton relâché : on peut réessayer")
                 .isFalse();
     }
 }

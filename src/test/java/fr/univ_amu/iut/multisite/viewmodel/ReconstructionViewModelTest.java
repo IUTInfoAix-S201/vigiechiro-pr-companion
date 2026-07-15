@@ -2,9 +2,12 @@ package fr.univ_amu.iut.multisite.viewmodel;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import fr.univ_amu.iut.commun.model.JetonAnnulation;
 import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.passage.model.ParticipationOrpheline;
 import fr.univ_amu.iut.passage.model.RapportReconstruction;
@@ -65,12 +68,12 @@ class ReconstructionViewModelTest {
     void compte_rendu_enonce_les_lacunes() {
         ServiceReconstructionPassages service = mock(ServiceReconstructionPassages.class);
         when(service.orphelines()).thenReturn(List.of(ORPHELINE));
-        when(service.reconstruire(ORPHELINE.idParticipation()))
+        when(service.reconstruire(eq(ORPHELINE), any(), any()))
                 .thenReturn(new RapportReconstruction(7L, 56, 132, RapportReconstruction.lacunesConnues()));
         ReconstructionViewModel viewModel = new ReconstructionViewModel(Optional.of(service));
         viewModel.appliquer(viewModel.charger());
 
-        viewModel.restituer(ORPHELINE, viewModel.reconstruire(ORPHELINE));
+        viewModel.restituer(ORPHELINE, viewModel.reconstruire(ORPHELINE, progression -> {}, JetonAnnulation.neutre()));
 
         assertThat(viewModel.compteRenduProperty().get())
                 .contains("56 séquence(s)")

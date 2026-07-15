@@ -5,6 +5,8 @@ import fr.univ_amu.iut.cli.commande.CommandeRacine;
 import fr.univ_amu.iut.cli.di.CliModule;
 import fr.univ_amu.iut.cli.model.ErreurUsage;
 import fr.univ_amu.iut.commun.di.RacineInjecteur;
+import fr.univ_amu.iut.commun.model.ConfigurationJournalisation;
+import fr.univ_amu.iut.commun.model.Workspace;
 import fr.univ_amu.iut.commun.persistence.MigrationSchema;
 import java.io.PrintStream;
 import java.io.PrintWriter;
@@ -138,6 +140,9 @@ public final class Cli {
         if (workspace != null) {
             System.setProperty("vigiechiro.workspace", workspace);
         }
+        // Journalisation après la résolution du workspace (pour écrire dans le bon dossier), avant tout
+        // travail : la CLI aussi laisse une trace de ses incidents (#1523).
+        ConfigurationJournalisation.configurer(Workspace.resolu().dossierLogs());
         int code = applicative().executer(restants.toArray(new String[0]), System.out, System.err);
         System.exit(code);
     }

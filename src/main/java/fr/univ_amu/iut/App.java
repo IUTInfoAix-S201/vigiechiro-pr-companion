@@ -2,6 +2,7 @@ package fr.univ_amu.iut;
 
 import com.google.inject.Injector;
 import fr.univ_amu.iut.commun.di.RacineInjecteur;
+import fr.univ_amu.iut.commun.model.ConfigurationJournalisation;
 import fr.univ_amu.iut.commun.model.Workspace;
 import fr.univ_amu.iut.commun.persistence.MigrationSchema;
 import fr.univ_amu.iut.commun.view.ChargeurFxml;
@@ -9,6 +10,8 @@ import fr.univ_amu.iut.commun.view.Navigateur;
 import fr.univ_amu.iut.commun.view.OuvreurDeLienSysteme;
 import fr.univ_amu.iut.importation.model.ExtracteurZip;
 import fr.univ_amu.iut.passage.model.BackfillHorodatageCapture;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -25,12 +28,15 @@ import javafx.stage.Stage;
 /// ce qui leur donne accès aux ViewModels et services du socle et des features.
 public class App extends Application {
 
+    private static final Logger LOG = Logger.getLogger(App.class.getName());
+
     @Override
     public void start(Stage primaryStage) throws Exception {
         // Filet global (#795) : une exception non capturée (fil JavaFX ou tâche de fond) était jusqu'ici
-        // perdue en console. On la signale désormais à l'utilisateur par une alerte, sur le fil JavaFX.
+        // perdue en console. On la signale à l'utilisateur par une alerte, et on la **journalise** avec sa
+        // trace (#1523) : un incident laisse désormais une trace inspectable, même à message nul.
         Thread.setDefaultUncaughtExceptionHandler((fil, erreur) -> {
-            erreur.printStackTrace();
+            LOG.log(Level.SEVERE, erreur, () -> "Exception non capturée sur le fil « " + fil.getName() + " »");
             Platform.runLater(() -> {
                 Alert alerte = new Alert(Alert.AlertType.ERROR);
                 alerte.setHeaderText("Une erreur inattendue est survenue");
@@ -85,6 +91,10 @@ public class App extends Application {
     }
 
     public static void main(String[] args) {
+        // Journalisation dès l'entrée du processus, avant le lancement JavaFX : même un échec de démarrage
+        // laisse une trace (#1523). En test, `AppTest` appelle start() directement (jamais main) : aucun
+        // fichier de log n'y est donc installé. Idempotente.
+        ConfigurationJournalisation.configurer(Workspace.resolu().dossierLogs());
         launch(args);
     }
 }

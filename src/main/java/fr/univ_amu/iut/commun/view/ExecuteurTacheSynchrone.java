@@ -16,6 +16,7 @@ public final class ExecuteurTacheSynchrone implements ExecuteurTache {
         try {
             resultat = travail.get();
         } catch (RuntimeException erreur) {
+            JournalisationTache.consigner(erreur);
             echec.accept(erreur);
             return;
         }

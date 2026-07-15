@@ -17,6 +17,7 @@ public final class ExecuteurTacheAsynchrone implements ExecuteurTache {
                 T resultat = travail.get();
                 Platform.runLater(() -> succes.accept(resultat));
             } catch (RuntimeException erreur) {
+                JournalisationTache.consigner(erreur);
                 Platform.runLater(() -> echec.accept(erreur));
             }
         });

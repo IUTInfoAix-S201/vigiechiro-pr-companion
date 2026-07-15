@@ -77,6 +77,10 @@ public class PassageViewModel {
             new ReadOnlyBooleanWrapper(this, "reactivationPossible", false);
     private final ReadOnlyStringWrapper motifBlocageReactivation =
             new ReadOnlyStringWrapper(this, "motifBlocageReactivation", "");
+    /// #1514 : pourquoi la carte « Vérifier » est grisée quand elle l'est (nuit non transformée, ou
+    /// déjà déposée donc verdict figé). Vide quand la vérification est disponible.
+    private final ReadOnlyStringWrapper motifBlocageVerification =
+            new ReadOnlyStringWrapper(this, "motifBlocageVerification", "");
     private final ReadOnlyObjectWrapper<ActionRecommandee> actionRecommandee =
             new ReadOnlyObjectWrapper<>(this, "actionRecommandee", ActionRecommandee.AUCUNE);
     private final ReadOnlyStringWrapper message = new ReadOnlyStringWrapper(this, "message", "");
@@ -209,7 +213,15 @@ public class PassageViewModel {
         dureeEnregistree.set(Formats.dureeLisible(detail.dureeEnregistreeSecondes()));
         nombreSequences.set(detail.nombreSequences());
         etapes.setAll(EtapesWorkflow.construire(detail.statut()));
-        verificationDisponible.set(detail.statut().ordinal() >= StatutWorkflow.TRANSFORME.ordinal());
+        boolean nuitTransformee = detail.statut().ordinal() >= StatutWorkflow.TRANSFORME.ordinal();
+        boolean nuitDeposee = detail.statut() == StatutWorkflow.DEPOSE;
+        // #1514 : la vérification reste possible tant que la nuit n'est pas déposée (une nuit déposée a un
+        // verdict figé, cf. ServiceQualification.enregistrerVerdict) — on grise donc la carte au dépôt.
+        verificationDisponible.set(nuitTransformee && !nuitDeposee);
+        motifBlocageVerification.set(
+                nuitDeposee
+                        ? "🔒 Verdict figé : cette nuit est déposée, son verdict ne change plus."
+                        : nuitTransformee ? "" : "🔒 La vérification sera possible une fois la nuit transformée.");
         validationVerrouillee.set(detail.statut() != StatutWorkflow.DEPOSE);
         // Accès à l'écran de dépôt (M-Lot) dès le passage vérifié ET **même une fois déposé** (#…) : on doit
         // pouvoir y revenir pour consulter les archives ou les supprimer, sans avoir à annuler le dépôt.
@@ -248,6 +260,7 @@ public class PassageViewModel {
         numeroPassage = 0;
         etapes.clear();
         verificationDisponible.set(false);
+        motifBlocageVerification.set("");
         validationVerrouillee.set(true);
         depotDisponible.set(false);
         annulationDepotDisponible.set(false);
@@ -373,6 +386,10 @@ public class PassageViewModel {
 
     public ReadOnlyStringProperty motifBlocageReactivationProperty() {
         return motifBlocageReactivation.getReadOnlyProperty();
+    }
+
+    public ReadOnlyStringProperty motifBlocageVerificationProperty() {
+        return motifBlocageVerification.getReadOnlyProperty();
     }
 
     /// Prochaine action recommandée du workflow (carte mise en avant), dérivée du statut. Se déplace

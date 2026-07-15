@@ -60,7 +60,7 @@ final class EtapeDeposerUI {
                         .otherwise(Bindings.when(lot.peutDeposerProperty()
                                         .and(lot.generationEnCoursProperty().not()))
                                 .then("Marquer le passage comme déposé sur VigieChiro.")
-                                .otherwise("À faire une fois le lot préparé, les archives générées et"
+                                .otherwise("À faire une fois le dépôt préparé, les archives générées et"
                                         + " téléversées sur VigieChiro.")));
     }
 }

@@ -26,7 +26,7 @@ class FormatsLotTest {
         assertThat(FormatsLot.messageEtat(new EtatLot(StatutWorkflow.DEPOSE, "/ws", 5, 8192L, List.of(), "2026-06-22")))
                 .contains("déposé");
         assertThat(FormatsLot.messageEtat(new EtatLot(StatutWorkflow.PRET_A_DEPOSER, "/ws", 5, 8192L, List.of(), null)))
-                .contains("Lot préparé");
+                .contains("Dépôt préparé");
         assertThat(FormatsLot.messageEtat(new EtatLot(StatutWorkflow.VERIFIE, "/ws", 5, 8192L, List.of(), null)))
                 .isEmpty();
     }

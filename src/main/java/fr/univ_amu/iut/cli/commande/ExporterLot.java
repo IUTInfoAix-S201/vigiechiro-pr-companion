@@ -13,18 +13,16 @@ import picocli.CommandLine.Model.CommandSpec;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Spec;
 
-/// `exporter-lot` (P4) : prépare le **lot prêt à déposer** d'un passage vérifié (récapitulatif + archives ZIP
+/// `exporter-lot` (P4) : prépare le **dépôt** d'un passage vérifié (récapitulatif + archives ZIP
 /// de dépôt Tadarida), via [ServiceLot].
-@Command(
-        name = "exporter-lot",
-        description = "Prépare le lot prêt à déposer d'un passage vérifié (récapitulatif + archives ZIP).")
+@Command(name = "exporter-lot", description = "Prépare le dépôt d'un passage vérifié (récapitulatif + archives ZIP).")
 public final class ExporterLot implements Callable<Integer> {
 
     @Option(
             names = "--passage",
             required = true,
             paramLabel = "<id>",
-            description = "Identifiant du passage dont préparer le lot.")
+            description = "Identifiant du passage dont préparer le dépôt.")
     private long passage;
 
     @Spec
@@ -42,7 +40,7 @@ public final class ExporterLot implements Callable<Integer> {
         PrintWriter sortie = spec.commandLine().getOut();
 
         Lot lot = serviceLot.preparerLot(passage);
-        sortie.println("Lot prêt à déposer pour le passage #" + lot.idPassage() + ".");
+        sortie.println("Dépôt prêt pour le passage #" + lot.idPassage() + ".");
         sortie.println("  Séquences : " + lot.nombreSequences());
         sortie.println("  Volume    : "
                 + (lot.volumeSequencesOctets() == null ? "-" : lot.volumeSequencesOctets() + " octets"));

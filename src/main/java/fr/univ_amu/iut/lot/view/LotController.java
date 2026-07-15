@@ -292,7 +292,7 @@ public class LotController implements EmplacementNavigation, ResumeStatut {
         IndicateurBlocage.expliquer(
                 enveloppePreparer,
                 Bindings.when(viewModel.peutPreparerProperty())
-                        .then("Figer les séquences et préparer le lot à déposer.")
+                        .then("Figer les séquences et préparer le dépôt.")
                         .otherwise("Préparation impossible : le passage doit être vérifié et tous les contrôles"
                                 + " de cohérence au vert."));
         // Bouton de l'étape ④ : trois règles (libellé qui change de sens, cliquable après un dépôt
@@ -300,7 +300,7 @@ public class LotController implements EmplacementNavigation, ResumeStatut {
         EtapeDeposerUI.cabler(btnDeposer, enveloppeDeposer, viewModel, depotViewModel, traitementViewModel);
 
         // Téléversement VigieChiro (#142), étape ③ : masqué hors application connectée (contexte de capture
-        // sans `connexion`). Actif une fois le lot préparé, hors génération et hors téléversement en cours.
+        // sans `connexion`). Actif une fois le dépôt préparé, hors génération et hors téléversement en cours.
         // Un libellé restitue l'avancement puis le bilan (ou l'erreur). La visibilité porte sur l'ENVELOPPE
         // (et non le bouton), pour que l'infobulle du grisage (#789) et le bouton disparaissent ensemble.
         enveloppeTeleverser.setVisible(depotViewModel.disponible());
@@ -318,7 +318,7 @@ public class LotController implements EmplacementNavigation, ResumeStatut {
                 Bindings.when(viewModel.deposeProperty())
                         .then("Passage déjà déposé sur VigieChiro : le téléversement est terminé.")
                         .otherwise(Bindings.when(btnTeleverser.disableProperty())
-                                .then("Téléversement possible une fois le lot préparé (statut « Prêt à"
+                                .then("Téléversement possible une fois le dépôt préparé (statut « Prêt à"
                                         + " déposer »), génération et envoi précédent terminés.")
                                 .otherwise(
                                         "Téléverser la nuit sur VigieChiro (marque ensuite le passage" + " déposé).")));

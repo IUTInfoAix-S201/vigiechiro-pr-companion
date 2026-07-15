@@ -48,7 +48,7 @@ public class LotModule extends ModuleDeFeature {
     /// son consommateur (PassageController l'injecte en `Optional` et masque la carte si absent).
     @Override
     public Fonctionnalite fonctionnalite() {
-        return new Fonctionnalite("lot", "Lots de dépôt", Categorie.OPTIONNELLE);
+        return new Fonctionnalite("lot", "Préparation du dépôt", Categorie.OPTIONNELLE);
     }
 
     /// Fournit le contrat de navigation socle [OuvrirLot] : M-Passage l'injecte pour ouvrir la

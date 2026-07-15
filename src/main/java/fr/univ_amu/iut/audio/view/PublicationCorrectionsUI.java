@@ -2,7 +2,7 @@ package fr.univ_amu.iut.audio.view;
 
 import fr.univ_amu.iut.audio.viewmodel.PublicationCorrectionsViewModel;
 import fr.univ_amu.iut.commun.view.Confirmateur;
-import fr.univ_amu.iut.commun.view.ExecuteurTache;
+import fr.univ_amu.iut.commun.view.IndicateurOccupation;
 import fr.univ_amu.iut.commun.viewmodel.ContextePassage;
 import fr.univ_amu.iut.commun.viewmodel.SourceObservations;
 import fr.univ_amu.iut.validation.model.TriPublication;
@@ -39,7 +39,7 @@ final class PublicationCorrectionsUI {
     static void lancer(
             PublicationCorrectionsViewModel publication,
             SourceObservations source,
-            ExecuteurTache executeur,
+            IndicateurOccupation occupation,
             Confirmateur confirmateur) {
         ContextePassage contexte = source.contexteDuPassage();
         if (contexte == null) {
@@ -47,9 +47,10 @@ final class PublicationCorrectionsUI {
         }
         Long idPassage = contexte.idPassage();
         publication.marquerEnCours();
-        executeur.executer(
+        occupation.occuper(
+                "Analyse des corrections à publier…",
                 () -> publication.trier(idPassage),
-                tri -> confirmerPuisPublier(publication, idPassage, tri, executeur, confirmateur),
+                tri -> confirmerPuisPublier(publication, idPassage, tri, occupation, confirmateur),
                 erreur -> publication.echec(erreur.getMessage()));
     }
 
@@ -59,7 +60,7 @@ final class PublicationCorrectionsUI {
             PublicationCorrectionsViewModel publication,
             Long idPassage,
             TriPublication tri,
-            ExecuteurTache executeur,
+            IndicateurOccupation occupation,
             Confirmateur confirmateur) {
         if (tri.publiables().isEmpty()) {
             publication.echec("Rien à publier : " + ecarts(tri)
@@ -71,7 +72,8 @@ final class PublicationCorrectionsUI {
             publication.echec(""); // annulé : on efface l'état « en cours »
             return;
         }
-        executeur.executer(
+        occupation.occuper(
+                "Publication des corrections vers VigieChiro…",
                 () -> publication.publier(idPassage),
                 publication::appliquerBilan,
                 erreur -> publication.echec(erreur.getMessage()));

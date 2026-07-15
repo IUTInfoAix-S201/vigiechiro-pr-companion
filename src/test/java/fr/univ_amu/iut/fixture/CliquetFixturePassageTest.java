@@ -40,7 +40,7 @@ class CliquetFixturePassageTest {
     /// Surefire s'exécute depuis la racine du projet.
     private static final Path TESTS = Path.of("src", "test", "java");
 
-    /// Les 66 tests qui sèment encore un passage à la main, au 2026-07-14.
+    /// Les 64 tests qui sèment encore un passage à la main, au 2026-07-15.
     ///
     /// **Cette liste ne doit que rétrécir.** Pour en retirer un : basculer son semis sur
     /// [JeuDeDonneesPassage], puis supprimer sa ligne ici.
@@ -77,8 +77,6 @@ class CliquetFixturePassageTest {
             "fr/univ_amu/iut/lot/LotModuleTest.java",
             "fr/univ_amu/iut/lot/ServiceLotTest.java",
             "fr/univ_amu/iut/lot/VerificationCoherenceTest.java",
-            "fr/univ_amu/iut/multisite/ServiceMultisiteCsvApprovalTest.java",
-            "fr/univ_amu/iut/multisite/ServiceMultisiteTest.java",
             "fr/univ_amu/iut/passage/BackfillEmpreintesTest.java",
             "fr/univ_amu/iut/passage/BackfillHorodatageCaptureTest.java",
             "fr/univ_amu/iut/passage/EnregistrementOriginalDaoTest.java",

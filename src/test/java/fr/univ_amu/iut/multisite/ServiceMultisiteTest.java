@@ -3,46 +3,50 @@ package fr.univ_amu.iut.multisite;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Provides;
+import fr.univ_amu.iut.commun.di.CommunModule;
+import fr.univ_amu.iut.commun.di.PersistenceModule;
 import fr.univ_amu.iut.commun.model.HorlogeFigee;
-import fr.univ_amu.iut.commun.model.Protocole;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
-import fr.univ_amu.iut.commun.model.Utilisateur;
 import fr.univ_amu.iut.commun.model.Verdict;
-import fr.univ_amu.iut.commun.model.Workspace;
 import fr.univ_amu.iut.commun.model.dao.ReleveTraitementDao;
-import fr.univ_amu.iut.commun.model.dao.UtilisateurDao;
 import fr.univ_amu.iut.commun.persistence.MigrationSchema;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
+import fr.univ_amu.iut.fixture.JeuDeDonneesPassage;
 import fr.univ_amu.iut.multisite.model.CarreAgrege;
 import fr.univ_amu.iut.multisite.model.FiltresMultisite;
 import fr.univ_amu.iut.multisite.model.LignePassage;
 import fr.univ_amu.iut.multisite.model.PointAgrege;
 import fr.univ_amu.iut.multisite.model.ServiceMultisite;
 import fr.univ_amu.iut.multisite.model.TriMultisite;
-import fr.univ_amu.iut.passage.model.Enregistreur;
-import fr.univ_amu.iut.passage.model.Passage;
-import fr.univ_amu.iut.passage.model.dao.EnregistreurDao;
+import fr.univ_amu.iut.passage.di.PassageModule;
 import fr.univ_amu.iut.passage.model.dao.PassageDao;
-import fr.univ_amu.iut.sites.model.PointDEcoute;
-import fr.univ_amu.iut.sites.model.Site;
+import fr.univ_amu.iut.sites.di.SitesModule;
 import fr.univ_amu.iut.sites.model.dao.PointDao;
 import fr.univ_amu.iut.sites.model.dao.SiteDao;
 import fr.univ_amu.iut.validation.model.dao.ResultatsIdentificationDao;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.List;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/// Tests du service [ServiceMultisite] sur une base SQLite jetable (`@TempDir` +
-/// [MigrationSchema]), comme les `*DaoTest`. On instancie les vrais DAO des features `sites`
-/// et `passage` et une [HorlogeFigee], puis on sème plusieurs sites / points /
-/// passages pour vérifier l'agrégation, les filtres, le tri et le CRUD des vues sauvegardées.
+/// Tests du service [ServiceMultisite] sur une base SQLite jetable (`@TempDir` + [MigrationSchema]). La
+/// topologie est semée par [JeuDeDonneesPassage] (plusieurs nuits qui **partagent** leur site et leur
+/// point, grâce au trouver-ou-créer de la fixture), et les DAO du service sont résolus par un injecteur
+/// Guice — d'où l'absence de tout semis manuel de passage ici.
 ///
-/// Jeu de données (utilisateur `u-1`) — ordre de lecture par défaut (site, point, année,
-/// n°) :
+/// L'[HorlogeFigee] au 2026-05-31 garde déterministe la vue « saison courante » (année 2026). Le seul
+/// DAO fourni localement est [ResultatsIdentificationDao] (feature `validation`), absent de cet injecteur
+/// partiel de `multisite`.
+///
+/// Jeu de données (utilisateur `u-1`) — ordre de lecture par défaut (site, point, année, n°) :
 ///
 /// ```
 ///   #1  640380 / A1 / 2025 / 1  → Transformé , OK
@@ -54,7 +58,6 @@ import org.junit.jupiter.api.io.TempDir;
 class ServiceMultisiteTest {
 
     private static final String ID_USER = "u-1";
-    private static final String SERIE = "1925492";
 
     @TempDir
     Path dossier;
@@ -63,53 +66,64 @@ class ServiceMultisiteTest {
 
     @BeforeEach
     void preparer() {
-        SourceDeDonnees source = new SourceDeDonnees(new Workspace(dossier));
+        System.setProperty("vigiechiro.workspace", dossier.toString());
+        // Injecteur minimal : juste de quoi résoudre les DAO du service. Pas de `MultisiteModule` (on ne
+        // veut pas la carte d'accueil et son chrome), et `ResultatsIdentificationDao` fourni localement.
+        Injector injecteur = Guice.createInjector(
+                new CommunModule(),
+                new PersistenceModule(),
+                new SitesModule(),
+                new PassageModule(),
+                new AbstractModule() {
+                    @Provides
+                    ResultatsIdentificationDao fournirResultatsDao(SourceDeDonnees source) {
+                        return new ResultatsIdentificationDao(source);
+                    }
+                });
+        SourceDeDonnees source = injecteur.getInstance(SourceDeDonnees.class);
         new MigrationSchema(source).migrer();
-        new UtilisateurDao(source).insert(new Utilisateur(ID_USER, "Testeur"));
 
-        SiteDao siteDao = new SiteDao(source);
-        PointDao pointDao = new PointDao(source);
-        PassageDao passageDao = new PassageDao(source);
-        new EnregistreurDao(source).insert(new Enregistreur(SERIE, "V1.01", null));
+        semer(source, 1, 2025, "2025-06-20", StatutWorkflow.TRANSFORME, Verdict.OK, "640380", "Étang", "A1");
+        semer(source, 1, 2026, "2026-06-20", StatutWorkflow.VERIFIE, Verdict.DOUTEUX, "640380", "Étang", "A1");
+        semer(source, 1, 2026, "2026-06-21", StatutWorkflow.IMPORTE, null, "640380", "Étang", "B2");
+        semer(source, 1, 2026, "2026-06-22", StatutWorkflow.DEPOSE, Verdict.OK, "640381", "Forêt", "A1");
+        semer(source, 2, 2026, "2026-08-20", StatutWorkflow.VERIFIE, Verdict.A_JETER, "640381", "Forêt", "A1");
 
-        Site siteA = siteDao.insert(new Site(null, "640380", "Étang", Protocole.STANDARD, null, "2025-01-01", ID_USER));
-        Site siteB = siteDao.insert(new Site(null, "640381", "Forêt", Protocole.STANDARD, null, "2025-01-01", ID_USER));
-        PointDEcoute pa1 = pointDao.insert(new PointDEcoute(null, "A1", null, null, null, siteA.id()));
-        PointDEcoute pb2 = pointDao.insert(new PointDEcoute(null, "B2", null, null, null, siteA.id()));
-        PointDEcoute pBa1 = pointDao.insert(new PointDEcoute(null, "A1", null, null, null, siteB.id()));
-
-        semerPassage(passageDao, 1, 2025, "2025-06-20", StatutWorkflow.TRANSFORME, Verdict.OK, pa1.id());
-        semerPassage(passageDao, 1, 2026, "2026-06-20", StatutWorkflow.VERIFIE, Verdict.DOUTEUX, pa1.id());
-        semerPassage(passageDao, 1, 2026, "2026-06-21", StatutWorkflow.IMPORTE, null, pb2.id());
-        semerPassage(passageDao, 1, 2026, "2026-06-22", StatutWorkflow.DEPOSE, Verdict.OK, pBa1.id());
-        semerPassage(passageDao, 2, 2026, "2026-08-20", StatutWorkflow.VERIFIE, Verdict.A_JETER, pBa1.id());
-
+        // Horloge **figée** (déterminisme de la vue « saison ») : le service est assemblé à partir des DAO
+        // résolus par l'injecteur, sans jamais construire de DAO de passage ici.
         service = new ServiceMultisite(
-                siteDao,
-                pointDao,
-                passageDao,
-                new ReleveTraitementDao(source),
-                new ResultatsIdentificationDao(source),
+                injecteur.getInstance(SiteDao.class),
+                injecteur.getInstance(PointDao.class),
+                injecteur.getInstance(PassageDao.class),
+                injecteur.getInstance(ReleveTraitementDao.class),
+                injecteur.getInstance(ResultatsIdentificationDao.class),
                 new HorlogeFigee(LocalDate.of(2026, 5, 31)));
     }
 
-    private void semerPassage(
-            PassageDao dao, int numero, int annee, String date, StatutWorkflow statut, Verdict verdict, Long idPoint) {
-        dao.insert(new Passage(
-                null,
-                numero,
-                annee,
-                date,
-                "21:00:00",
-                "05:00:00",
-                null,
-                statut,
-                verdict,
-                null,
-                null,
-                null,
-                idPoint,
-                SERIE));
+    @AfterEach
+    void nettoyer() {
+        System.clearProperty("vigiechiro.workspace");
+    }
+
+    private static void semer(
+            SourceDeDonnees source,
+            int numero,
+            int annee,
+            String date,
+            StatutWorkflow statut,
+            Verdict verdict,
+            String carre,
+            String nomSite,
+            String point) {
+        JeuDeDonneesPassage.dans(source)
+                .utilisateur(ID_USER)
+                .carre(carre)
+                .nomSite(nomSite)
+                .point(point)
+                .nuit(numero, annee, date)
+                .statut(statut)
+                .verdict(verdict)
+                .semer();
     }
 
     @Test

@@ -38,9 +38,9 @@
 
   <Separator/>
 
-  <!-- Étape 1 - Vérifier et préparer le lot -->
+  <!-- Étape 1 - Vérifier et préparer le dépôt -->
   <VBox spacing="4.0" styleClass="carte-section">
-    <Label text="1. Vérifier et préparer le lot" styleClass="section-titre"/>
+    <Label text="1. Vérifier et préparer le dépôt" styleClass="section-titre"/>
     <Label text="Avant le dépôt, l'application vérifie que la nuit est complète et conforme."
            styleClass="section-sous" wrapText="true"/>
     <Label text="Elle verrouille ensuite la liste des séquences qui partiront sur Vigie-Chiro. Vos fichiers d'origine ne sont pas modifiés."
@@ -50,7 +50,7 @@
     <VBox fx:id="checklist" spacing="3.0"/>
     <!-- Enveloppe : un Button désactivé n'affiche pas de Tooltip, on le pose sur ce StackPane (#789). -->
     <StackPane fx:id="enveloppePreparer" alignment="CENTER_LEFT">
-      <Button fx:id="btnPreparer" text="📦 Vérifier et préparer le lot"
+      <Button fx:id="btnPreparer" text="📦 Vérifier et préparer le dépôt"
               styleClass="bouton-primaire" onAction="#preparer"/>
     </StackPane>
   </VBox>

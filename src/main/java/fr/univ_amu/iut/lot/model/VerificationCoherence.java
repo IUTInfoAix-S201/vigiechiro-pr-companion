@@ -108,7 +108,7 @@ public class VerificationCoherence {
                     "Session d'enregistrement",
                     StatutControle.ECHEC,
                     "Aucune session d'enregistrement n'est rattachée à ce passage : importez et transformez la nuit"
-                            + " avant de préparer le lot."));
+                            + " avant de préparer le dépôt."));
             return controles;
         }
         SessionDEnregistrement session = sessionOpt.get();
@@ -122,14 +122,13 @@ public class VerificationCoherence {
         return controles;
     }
 
-    /// R14 : un passage au verdict « À jeter » ne peut pas rejoindre un lot.
+    /// R14 : un passage au verdict « À jeter » ne peut pas être déposé.
     private static ControleCoherence controleVerdict(Passage passage) {
         if (passage.verdictVerification() == Verdict.A_JETER) {
             return new ControleCoherence(
                     "Verdict de vérification",
                     StatutControle.ECHEC,
-                    "Ce passage porte le verdict « À jeter » et ne peut pas être inclus dans un lot prêt à"
-                            + " déposer.");
+                    "Ce passage porte le verdict « À jeter » et ne peut pas être déposé.");
         }
         return new ControleCoherence(
                 "Verdict de vérification", StatutControle.OK, "Le passage n'est pas marqué « À jeter ».");

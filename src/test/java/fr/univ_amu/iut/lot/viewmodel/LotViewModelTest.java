@@ -221,7 +221,7 @@ class LotViewModelTest {
         viewModel.ouvrirSur(ID_PASSAGE);
 
         assertThat(viewModel.messageProperty().get())
-                .contains("Lot préparé")
+                .contains("Dépôt préparé")
                 .contains("2 séquence")
                 .contains("verrouillée");
     }
@@ -273,7 +273,7 @@ class LotViewModelTest {
     void preparer_en_erreur_restitue_le_message() {
         when(service.consulterLot(ID_PASSAGE)).thenReturn(etat(StatutWorkflow.VERIFIE, List.of(), null));
         when(service.preparerLot(ID_PASSAGE))
-                .thenThrow(new RegleMetierException("Préparation du lot impossible : incohérent"));
+                .thenThrow(new RegleMetierException("Préparation du dépôt impossible : incohérent"));
         viewModel.ouvrirSur(ID_PASSAGE);
 
         assertThat(viewModel.preparer()).isFalse();

@@ -68,7 +68,7 @@ import javafx.scene.Scene;
 /// Capture l'écran M-Lot en PNG pour le comparer à la maquette du brief, en illustrant **le workflow
 /// du dépôt étape par étape** (#251) :
 ///
-/// - `apercu-lot-preparer.png` : passage **Vérifié** cohérent — étape ① « Vérifier et préparer le lot »
+/// - `apercu-lot-preparer.png` : passage **Vérifié** cohérent — étape ① « Vérifier et préparer le dépôt »
 ///   active ;
 /// - `apercu-lot-deposer.png` : passage **Prêt à déposer** (après préparation) — étape ② « Générer les
 ///   archives » active ;
@@ -142,7 +142,7 @@ public final class CaptureLot {
         long idIncoherent = seederPassageIncoherent(source, idPoint);
 
         // Workflow du dépôt illustré étape par étape (#251) :
-        // ① Vérifié cohérent : « Vérifier et préparer le lot » actif.
+        // ① Vérifié cohérent : « Vérifier et préparer le dépôt » actif.
         rendre(injecteur, idCoherent, sortie.resolve("apercu-lot-preparer.png"));
         // Après préparation : Prêt à déposer (étape ② à faire), « Générer les archives » actif.
         service.preparerLot(idCoherent);

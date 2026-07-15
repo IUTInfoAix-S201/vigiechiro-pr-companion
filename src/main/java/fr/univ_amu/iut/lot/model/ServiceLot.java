@@ -187,7 +187,7 @@ public class ServiceLot {
 
         ResultatVerification coherence = verification.verifier(passage);
         if (coherence.estBloquant()) {
-            throw new RegleMetierException("Préparation du lot impossible : "
+            throw new RegleMetierException("Préparation du dépôt impossible : "
                     + String.join(
                             " ",
                             coherence.alertesBloquantes().stream()
@@ -277,14 +277,14 @@ public class ServiceLot {
         // ces contrôles, même si l'IHM masque déjà le bouton avant cet état.
         if (passage.statutWorkflow() != StatutWorkflow.PRET_A_DEPOSER
                 && passage.statutWorkflow() != StatutWorkflow.DEPOSE) {
-            throw new RegleMetierException("Les archives de dépôt ne peuvent être générées qu'une fois le lot"
-                    + " préparé (statut « Prêt à déposer ») : préparez d'abord le lot.");
+            throw new RegleMetierException("Les archives de dépôt ne peuvent être générées qu'une fois le dépôt"
+                    + " préparé (statut « Prêt à déposer ») : préparez-le d'abord.");
         }
         SessionDEnregistrement session = chargerSession(idPassage);
         List<SequenceDEcoute> sequences = sequenceDao.findBySession(session.id());
         if (sequences.isEmpty()) {
             throw new RegleMetierException(
-                    "Aucune séquence à déposer pour le passage " + idPassage + " : préparez d'abord le lot.");
+                    "Aucune séquence à déposer pour le passage " + idPassage + " : préparez d'abord le dépôt.");
         }
         Path racineSession = Path.of(session.cheminRacine());
         String prefixe = racineSession.getFileName().toString(); // R22 : nom du dossier = préfixe R6
@@ -354,7 +354,7 @@ public class ServiceLot {
                     + passage.numeroPassage()
                     + " ("
                     + passage.annee()
-                    + ") porte le verdict « À jeter » et ne peut pas rejoindre un lot prêt à déposer.");
+                    + ") porte le verdict « À jeter » et ne peut pas être déposé.");
         }
     }
 

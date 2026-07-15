@@ -17,7 +17,7 @@ import picocli.CommandLine.Spec;
 /// le **marque déposé** ([ServiceLot#marquerDepose], Prêt à déposer → Déposé). Réutilise `ServiceLot` sans
 /// logique nouvelle. Tout refus métier (statut incompatible, passage « À jeter », session introuvable)
 /// sort en échec d'exécution (code 1), avant tout changement d'état si la préparation échoue.
-@Command(name = "deposer", description = "Clôture le dépôt d'un passage : prépare le lot puis le marque déposé.")
+@Command(name = "deposer", description = "Clôture le dépôt d'un passage : prépare le dépôt puis le marque déposé.")
 public final class Deposer implements Callable<Integer> {
 
     @Option(
@@ -51,7 +51,7 @@ public final class Deposer implements Callable<Integer> {
     /// Compte rendu du dépôt. Fonction pure (testable sans base) : le volume peut être `null` (non calculé).
     static String rendreDepot(long idPassage, int nombreSequences, Long volumeOctets, String deposeLe) {
         String volume = volumeOctets == null ? "volume inconnu" : Formats.octetsLisibles(volumeOctets);
-        return "Passage #" + idPassage + " déposé le " + deposeLe + ".\n" + "  Lot : " + nombreSequences
+        return "Passage #" + idPassage + " déposé le " + deposeLe + ".\n" + "  Dépôt : " + nombreSequences
                 + " séquence(s), " + volume + ".";
     }
 }

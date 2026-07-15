@@ -107,7 +107,7 @@ class LotViewTest {
     }
 
     @Test
-    @DisplayName("« Préparer le lot » délègue au service")
+    @DisplayName("« Préparer le dépôt » délègue au service")
     void preparer_delegue_au_service(FxRobot robot) {
         robot.clickOn("#btnPreparer");
         verify(service).preparerLot(42L);

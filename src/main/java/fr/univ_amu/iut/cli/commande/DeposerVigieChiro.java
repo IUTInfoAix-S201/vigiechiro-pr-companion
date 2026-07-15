@@ -48,7 +48,7 @@ public final class DeposerVigieChiro implements Callable<Integer> {
             names = "--passage",
             required = true,
             paramLabel = "<id>",
-            description = "Passage à téléverser (lot préparé : statut « Prêt à déposer » ou « Dépôt en cours »).")
+            description = "Passage à téléverser (dépôt préparé : statut « Prêt à déposer » ou « Dépôt en cours »).")
     private Long idPassage;
 
     @Option(
@@ -100,7 +100,7 @@ public final class DeposerVigieChiro implements Callable<Integer> {
 
     /// Choix des fichiers à téléverser, **aligné sur M-Lot** :
     /// - `--archives` : force les ZIP `depot/*.zip` (échoue si aucune n'est présente) ;
-    /// - `--wav` : force les séquences WAV une à une (échoue si le lot n'est pas préparé) ;
+    /// - `--wav` : force les séquences WAV une à une (échoue si le dépôt n'est pas préparé) ;
     /// - sans option : le **défaut du service** (`fichiersDepotParDefaut`) — ZIP si présentes, invite à
     ///   générer les archives (étape 2) si l'espace disque le permet, repli WAV sinon.
     private List<Path> choisirFichiers() {
@@ -116,7 +116,7 @@ public final class DeposerVigieChiro implements Callable<Integer> {
             List<Path> sequences = serviceLot.sequencesADeposer(idPassage);
             if (sequences.isEmpty()) {
                 throw new RegleMetierException("Aucune séquence transformée à déposer pour ce passage"
-                        + " (préparez d'abord le lot : statut « Prêt à déposer »).");
+                        + " (préparez d'abord le dépôt : statut « Prêt à déposer »).");
             }
             return sequences;
         }

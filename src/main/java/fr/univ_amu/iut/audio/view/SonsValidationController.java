@@ -686,7 +686,7 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
     /// [PublicationCorrectionsUI] (tri hors fil, confirmation récapitulative, envoi hors fil, bilan).
     @FXML
     private void publierCorrections() {
-        PublicationCorrectionsUI.lancer(publicationCorrections, source, appuis.executeur(), confirmateur());
+        PublicationCorrectionsUI.lancer(publicationCorrections, source, occupation, confirmateur());
     }
 
     /// « Exporter _Vu » : sélecteur de fichier natif (enregistrement) puis délégation au VM.

@@ -11,6 +11,7 @@ import fr.univ_amu.iut.audio.viewmodel.PublicationCorrectionsViewModel;
 import fr.univ_amu.iut.commun.model.Certitude;
 import fr.univ_amu.iut.commun.model.ModeValidation;
 import fr.univ_amu.iut.commun.view.ExecuteurTacheSynchrone;
+import fr.univ_amu.iut.commun.view.IndicateurOccupation;
 import fr.univ_amu.iut.commun.viewmodel.ContextePassage;
 import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
 import fr.univ_amu.iut.commun.viewmodel.SourceObservations;
@@ -19,17 +20,33 @@ import fr.univ_amu.iut.validation.model.Observation;
 import fr.univ_amu.iut.validation.model.TriPublication;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import javafx.scene.layout.StackPane;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.testfx.framework.junit5.ApplicationExtension;
 
 /// Flux de la publication depuis la vue (#723) : tri hors fil (aperçu), confirmation récapitulative
 /// **injectable** (un `Alert.showAndWait` en dur figerait les tests headless), envoi seulement après
-/// accord, restitution. Logique pure (VM mocké, exécuteur synchrone) : aucun TestFX nécessaire.
+/// accord, restitution. Logique pure (VM mocké, voile synchrone) ; la plateforme JavaFX est initialisée
+/// ([ApplicationExtension]) pour que le voile d'occupation se construise, mais aucun robot n'est piloté.
+@ExtendWith(ApplicationExtension.class)
 class PublicationCorrectionsUITest {
 
     private final PublicationCorrectionsViewModel publication = mock(PublicationCorrectionsViewModel.class);
     private final SourceObservations parPassage =
             new SourceObservations.ParPassage(new ContextePassage(7L, 1, new ContexteSite("640380", "A1", "Mon site")));
+
+    /// Voile synchrone : le travail s'exécute immédiatement, l'overlay n'est jamais réellement affiché.
+    /// Construit dans [#demarrer] (après l'init de la plateforme JavaFX), pas en champ : le [StackPane] et
+    /// le `ProgressIndicator` du voile exigent le toolkit, absent tant que l'instance se construit.
+    private IndicateurOccupation voile;
+
+    @BeforeEach
+    void demarrer() {
+        voile = new IndicateurOccupation(new StackPane(), new ExecuteurTacheSynchrone());
+    }
 
     private static Observation publiable() {
         return new Observation(
@@ -60,7 +77,7 @@ class PublicationCorrectionsUITest {
     void source_sans_passage() {
         SourceObservations lot = new SourceObservations.ParPassages(List.of(1L, 2L), "Lot filtré");
 
-        PublicationCorrectionsUI.lancer(publication, lot, new ExecuteurTacheSynchrone(), message -> true);
+        PublicationCorrectionsUI.lancer(publication, lot, voile, message -> true);
 
         verify(publication, never()).trier(anyLong());
         verify(publication, never()).publier(anyLong());
@@ -71,7 +88,7 @@ class PublicationCorrectionsUITest {
     void rien_de_publiable() {
         when(publication.trier(7L)).thenReturn(new TriPublication(List.of(), 2, 1, 0));
 
-        PublicationCorrectionsUI.lancer(publication, parPassage, new ExecuteurTacheSynchrone(), message -> {
+        PublicationCorrectionsUI.lancer(publication, parPassage, voile, message -> {
             throw new AssertionError("aucune confirmation attendue quand rien n'est publiable");
         });
 
@@ -87,7 +104,7 @@ class PublicationCorrectionsUITest {
     void confirmation_refusee() {
         when(publication.trier(7L)).thenReturn(new TriPublication(List.of(publiable()), 0, 0, 0));
 
-        PublicationCorrectionsUI.lancer(publication, parPassage, new ExecuteurTacheSynchrone(), message -> false);
+        PublicationCorrectionsUI.lancer(publication, parPassage, voile, message -> false);
 
         verify(publication, never()).publier(anyLong());
         verify(publication).echec("");
@@ -101,7 +118,7 @@ class PublicationCorrectionsUITest {
         when(publication.publier(7L)).thenReturn(bilan);
         AtomicReference<String> recapitulatif = new AtomicReference<>();
 
-        PublicationCorrectionsUI.lancer(publication, parPassage, new ExecuteurTacheSynchrone(), message -> {
+        PublicationCorrectionsUI.lancer(publication, parPassage, voile, message -> {
             recapitulatif.set(message);
             return true;
         });

@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import fr.univ_amu.iut.commun.model.MethodeSelection;
+import fr.univ_amu.iut.commun.model.VerdictFichier;
 import fr.univ_amu.iut.commun.model.Workspace;
 import fr.univ_amu.iut.commun.persistence.DataAccessException;
 import fr.univ_amu.iut.commun.persistence.MigrationSchema;
@@ -193,6 +194,46 @@ class SelectionDaoTest {
                 .extracting(SequenceSelectionnee::ecoutee)
                 .as("le flag listened doit être passé à true")
                 .isEqualTo(true);
+    }
+
+    @Test
+    @DisplayName("#1524 : verdict par fichier — défaut NON_JUGE (NULL), marquage et remise à NULL")
+    void verdict_par_fichier_defaut_marquage_et_remise_a_zero() {
+        SelectionDEcoute selection = dao.insert(new SelectionDEcoute(null, MethodeSelection.MANUEL, 1, idPassage));
+        long sequence = creerSequence("seq_verdict");
+        dao.attacherSequence(new SequenceSelectionnee(selection.id(), sequence, 0, false));
+
+        // Par défaut : colonne NULL → NON_JUGE.
+        assertThat(dao.listerSequences(selection.id()))
+                .singleElement()
+                .extracting(SequenceSelectionnee::verdict)
+                .isEqualTo(VerdictFichier.NON_JUGE);
+
+        dao.marquerVerdict(selection.id(), sequence, VerdictFichier.INEXPLOITABLE);
+        assertThat(dao.listerSequences(selection.id()))
+                .singleElement()
+                .extracting(SequenceSelectionnee::verdict)
+                .isEqualTo(VerdictFichier.INEXPLOITABLE);
+
+        // Remise à NON_JUGE : la colonne repasse à NULL (relue en NON_JUGE).
+        dao.marquerVerdict(selection.id(), sequence, VerdictFichier.NON_JUGE);
+        assertThat(dao.listerSequences(selection.id()))
+                .singleElement()
+                .extracting(SequenceSelectionnee::verdict)
+                .isEqualTo(VerdictFichier.NON_JUGE);
+    }
+
+    @Test
+    @DisplayName("#1524 : le verdict fourni à l'attachement est persisté et relu")
+    void verdict_fourni_a_l_attachement_est_persiste() {
+        SelectionDEcoute selection = dao.insert(new SelectionDEcoute(null, MethodeSelection.MANUEL, 1, idPassage));
+        long sequence = creerSequence("seq_bon");
+        dao.attacherSequence(new SequenceSelectionnee(selection.id(), sequence, 0, true, VerdictFichier.BON));
+
+        assertThat(dao.listerSequences(selection.id()))
+                .singleElement()
+                .extracting(SequenceSelectionnee::verdict)
+                .isEqualTo(VerdictFichier.BON);
     }
 
     @Test

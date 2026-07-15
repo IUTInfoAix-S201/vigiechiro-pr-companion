@@ -1,6 +1,7 @@
 package fr.univ_amu.iut.qualification.model.dao;
 
 import fr.univ_amu.iut.commun.model.MethodeSelection;
+import fr.univ_amu.iut.commun.model.VerdictFichier;
 import fr.univ_amu.iut.commun.persistence.DaoGenerique;
 import fr.univ_amu.iut.commun.persistence.DataAccessException;
 import fr.univ_amu.iut.commun.persistence.RowMapper;
@@ -35,7 +36,11 @@ public class SelectionDao extends DaoGenerique<SelectionDEcoute, Long> {
             rs.getLong("passage_id"));
 
     private static final RowMapper<SequenceSelectionnee> MAPPER_JONCTION = rs -> new SequenceSelectionnee(
-            rs.getLong("selection_id"), rs.getLong("sequence_id"), rs.getInt("position"), rs.getInt("listened") != 0);
+            rs.getLong("selection_id"),
+            rs.getLong("sequence_id"),
+            rs.getInt("position"),
+            rs.getInt("listened") != 0,
+            VerdictFichier.parLibelleOuNonJuge(rs.getString("verdict")));
 
     public SelectionDao(SourceDeDonnees source) {
         super(source);
@@ -91,12 +96,19 @@ public class SelectionDao extends DaoGenerique<SelectionDEcoute, Long> {
     /// (`foreign_keys=ON`).
     public void attacherSequence(SequenceSelectionnee rattachement) {
         executerMaj(
-                "INSERT INTO selection_sequence (selection_id, sequence_id, position, listened)"
-                        + " VALUES (?, ?, ?, ?)",
+                "INSERT INTO selection_sequence (selection_id, sequence_id, position, listened, verdict)"
+                        + " VALUES (?, ?, ?, ?, ?)",
                 rattachement.idSelection(),
                 rattachement.idSequence(),
                 rattachement.position(),
-                rattachement.ecoutee() ? 1 : 0);
+                rattachement.ecoutee() ? 1 : 0,
+                libelleOuNull(rattachement.verdict()));
+    }
+
+    /// Libellé d'un verdict par fichier pour le stockage, ou `null` si non jugé (colonne nullable :
+    /// `NULL` ⇔ [VerdictFichier#NON_JUGE], cf. mapper).
+    private static String libelleOuNull(VerdictFichier verdict) {
+        return verdict == null || verdict == VerdictFichier.NON_JUGE ? null : verdict.libelle();
     }
 
     /// Séquences rattachées à une sélection, ordonnées par position d'affichage.
@@ -127,6 +139,17 @@ public class SelectionDao extends DaoGenerique<SelectionDEcoute, Long> {
     public void marquerEcoutee(Long idSelection, Long idSequence) {
         executerMaj(
                 "UPDATE selection_sequence SET listened = 1 WHERE selection_id = ? AND sequence_id = ?",
+                idSelection,
+                idSequence);
+    }
+
+    /// Enregistre le **verdict par fichier** d'une séquence rattachée (#1524, lot 5). Le verdict
+    /// [VerdictFichier#NON_JUGE] repose la colonne à `NULL`. Sans effet si le couple (sélection,
+    /// séquence) n'est pas rattaché.
+    public void marquerVerdict(Long idSelection, Long idSequence, VerdictFichier verdict) {
+        executerMaj(
+                "UPDATE selection_sequence SET verdict = ? WHERE selection_id = ? AND sequence_id = ?",
+                libelleOuNull(verdict),
                 idSelection,
                 idSequence);
     }

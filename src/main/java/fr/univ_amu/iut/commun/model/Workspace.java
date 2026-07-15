@@ -14,6 +14,7 @@ import java.nio.file.Path;
 /// ├── Car040962-2026-Pass1-A1/        ← R22 : nom = préfixe du passage
 /// │   ├── bruts/                       ← enregistrements originaux (R7)
 /// │   └── transformes/                 ← séquences d'écoute (R8) + CSV Tadarida (R23)
+/// ├── logs/                            ← journaux applicatifs (rotation, #1523)
 /// └── vigiechiro.db                    ← base SQLite (R21)
 /// ```
 public final class Workspace {
@@ -24,6 +25,7 @@ public final class Workspace {
     private static final String DOSSIER_DEFAUT = "VigieChiro-Companion";
     private static final String SOUS_DOSSIER_BRUTS = "bruts";
     private static final String SOUS_DOSSIER_TRANSFORMES = "transformes";
+    private static final String SOUS_DOSSIER_LOGS = "logs";
 
     private final Path racine;
 
@@ -53,6 +55,13 @@ public final class Workspace {
     /// Chemin du fichier de base SQLite (R21).
     public Path cheminBaseDeDonnees() {
         return racine.resolve(FICHIER_BASE);
+    }
+
+    /// Dossier des **journaux applicatifs** (`logs/`), à la racine du workspace (#1523). Comme les autres
+    /// résolveurs, ne crée pas le dossier : l'amorçage de la journalisation
+    /// ([ConfigurationJournalisation]) s'en charge.
+    public Path dossierLogs() {
+        return racine.resolve(SOUS_DOSSIER_LOGS);
     }
 
     /// Dossier d'une session, nommé exactement comme le préfixe du passage (R22).

@@ -36,6 +36,12 @@ class WorkspaceTest {
     }
 
     @Test
+    @DisplayName("Le dossier des journaux est <racine>/logs (#1523)")
+    void dossier_logs() {
+        assertThat(ws.dossierLogs()).isEqualTo(ws.racine().resolve("logs"));
+    }
+
+    @Test
     @DisplayName("Le workspace par défaut est sous ~/Documents/VigieChiro-Companion (R21)")
     void par_defaut() {
         Path racine = Workspace.parDefaut().racine();

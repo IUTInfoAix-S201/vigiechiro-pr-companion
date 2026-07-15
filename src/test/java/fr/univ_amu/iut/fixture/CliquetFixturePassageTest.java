@@ -55,6 +55,7 @@ class CliquetFixturePassageTest {
             "fr/univ_amu/iut/cli/CliRetroEmpreintesTest.java",
             "fr/univ_amu/iut/commun/model/CycleTraitementIntegrationTest.java",
             "fr/univ_amu/iut/commun/model/dao/ReleveTraitementDaoTest.java",
+            "fr/univ_amu/iut/commun/persistence/BackfillVerdictMigrationTest.java",
             "fr/univ_amu/iut/diagnostic/DiagnosticModuleTest.java",
             "fr/univ_amu/iut/diagnostic/ServiceDiagnosticTest.java",
             "fr/univ_amu/iut/e2e/ParcoursAnalyseVersValidationE2ETest.java",

@@ -6,6 +6,7 @@ import fr.univ_amu.iut.cli.di.CliModule;
 import fr.univ_amu.iut.cli.model.ErreurUsage;
 import fr.univ_amu.iut.commun.di.RacineInjecteur;
 import fr.univ_amu.iut.commun.model.ConfigurationJournalisation;
+import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.commun.model.Workspace;
 import fr.univ_amu.iut.commun.persistence.MigrationSchema;
 import java.io.PrintStream;
@@ -14,6 +15,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import picocli.CommandLine;
 import picocli.CommandLine.MissingParameterException;
@@ -46,6 +49,8 @@ public final class Cli {
 
     /// Mauvaise invocation : commande inconnue, argument requis manquant ou mal formé.
     public static final int CODE_ERREUR_ARGUMENTS = 2;
+
+    private static final Logger LOG = Logger.getLogger(Cli.class.getName());
 
     private final Injector injecteur;
 
@@ -121,12 +126,20 @@ public final class Cli {
     }
 
     /// Erreurs d'**exécution** d'une commande : une [ErreurUsage] (invocation invalide détectée dans la
-    /// logique, ex. point introuvable) sort en [#CODE_ERREUR_ARGUMENTS] ; toute autre exception métier en
-    /// [#CODE_ERREUR_EXECUTION]. On imprime le **message** (jamais la trace).
+    /// logique, ex. point introuvable) sort en [#CODE_ERREUR_ARGUMENTS] ; toute autre exception en
+    /// [#CODE_ERREUR_EXECUTION]. On imprime le **message** à l'utilisateur (jamais la trace, qui
+    /// parasiterait la sortie d'un script) et on **journalise** l'échec (#1523), à la parité de l'IHM : un
+    /// refus métier discrètement (FINE, sans trace), un échec **inattendu** avec sa trace (SEVERE, reste
+    /// inspectable dans `<workspace>/logs/`). Une simple erreur d'usage ne mérite ni l'un ni l'autre.
     private static int gererErreurExecution(Exception exception, CommandLine ligne, ParseResult parseResult) {
         if (exception instanceof ErreurUsage) {
             ligne.getErr().println("Erreur d'usage : " + exception.getMessage());
             return CODE_ERREUR_ARGUMENTS;
+        }
+        if (exception instanceof RegleMetierException) {
+            LOG.fine(() -> "Refus métier d'une commande CLI : " + exception.getMessage());
+        } else {
+            LOG.log(Level.SEVERE, exception, () -> "Échec inattendu d'une commande CLI");
         }
         ligne.getErr().println("Échec : " + exception.getMessage());
         return CODE_ERREUR_EXECUTION;

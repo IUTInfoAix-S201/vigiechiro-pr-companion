@@ -10,6 +10,7 @@ import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.model.Utilisateur;
 import fr.univ_amu.iut.commun.model.Verdict;
+import fr.univ_amu.iut.commun.model.VerdictFichier;
 import fr.univ_amu.iut.commun.model.Workspace;
 import fr.univ_amu.iut.commun.model.dao.UtilisateurDao;
 import fr.univ_amu.iut.commun.persistence.MigrationSchema;
@@ -214,6 +215,37 @@ class ServiceQualificationTest {
 
         assertThat(selection.taille()).isEqualTo(15);
         assertThat(service.sequencesDeLaSelection(selection.id())).hasSize(15);
+    }
+
+    @Test
+    @DisplayName("#1524 : verdict par fichier persisté, puis verdict passage dérivé (lot 5)")
+    void verdict_par_fichier_puis_derivation() {
+        creerNuit(3);
+        SelectionDEcoute selection = service.creerSelection(idPassage, MethodeSelection.MANUEL, 3);
+        List<Long> sequences = service.sequencesDeLaSelection(selection.id()).stream()
+                .map(SequenceSelectionnee::idSequence)
+                .toList();
+
+        // Aucun verdict encore : le passage reste « À vérifier ».
+        assertThat(service.verdictDerivePassage(idPassage)).isEqualTo(Verdict.A_VERIFIER);
+
+        // Deux Bon + un Inexploitable (minorité) → Douteux (reste exploitable).
+        service.enregistrerVerdictFichier(idPassage, sequences.get(0), VerdictFichier.BON);
+        service.enregistrerVerdictFichier(idPassage, sequences.get(1), VerdictFichier.BON);
+        service.enregistrerVerdictFichier(idPassage, sequences.get(2), VerdictFichier.INEXPLOITABLE);
+
+        assertThat(service.sequencesDeLaSelection(selection.id()))
+                .as("les verdicts par fichier sont persistés et relus")
+                .extracting(SequenceSelectionnee::verdict)
+                .containsExactlyInAnyOrder(VerdictFichier.BON, VerdictFichier.BON, VerdictFichier.INEXPLOITABLE);
+        assertThat(service.verdictDerivePassage(idPassage)).isEqualTo(Verdict.DOUTEUX);
+    }
+
+    @Test
+    @DisplayName("#1524 : enregistrer un verdict de fichier sans sélection lève une RegleMetierException")
+    void verdict_fichier_sans_selection_leve() {
+        assertThatThrownBy(() -> service.enregistrerVerdictFichier(idPassage, 1L, VerdictFichier.BON))
+                .isInstanceOf(RegleMetierException.class);
     }
 
     @Test

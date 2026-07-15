@@ -52,7 +52,8 @@ public class MigrationSchema {
         "V23__empreintes_fichiers.sql",
         "V24__archivage_passage.sql",
         "V25__purge_originaux_declaree.sql",
-        "V26__validation_expert.sql"
+        "V26__validation_expert.sql",
+        "V27__verdict_par_fichier.sql"
     };
 
     private static final String DOSSIER = "/db/migration/";

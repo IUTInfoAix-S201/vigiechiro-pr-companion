@@ -5,6 +5,7 @@ import fr.univ_amu.iut.commun.model.Prefixe;
 import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.model.Verdict;
+import fr.univ_amu.iut.commun.model.VerdictFichier;
 import fr.univ_amu.iut.commun.persistence.UniteDeTravail;
 import fr.univ_amu.iut.passage.model.EnregistrementOriginal;
 import fr.univ_amu.iut.passage.model.Passage;
@@ -232,6 +233,34 @@ public class ServiceQualification {
                             new SequenceEnSelection(sequence, rattachement.position(), rattachement.ecoutee())));
         }
         return lignes;
+    }
+
+    /// Enregistre le **verdict par fichier** d'une séquence de la sélection d'un passage (#1524,
+    /// lot 5). Lève si le passage n'a pas de sélection. Ne recalcule pas encore le verdict du passage
+    /// (le rebranchage de la source de vérité est au lot 6) : c'est un point d'entrée « sous le
+    /// capot » pour la future IHM par fichier.
+    ///
+    /// @throws RegleMetierException si le passage n'a pas de sélection d'écoute
+    public void enregistrerVerdictFichier(Long idPassage, Long idSequence, VerdictFichier verdict) {
+        Objects.requireNonNull(verdict, "verdict");
+        SelectionDEcoute selection = selectionDao
+                .findByPassage(idPassage)
+                .orElseThrow(
+                        () -> new RegleMetierException("Aucune sélection d'écoute pour le passage " + idPassage + "."));
+        selectionDao.marquerVerdict(selection.id(), idSequence, verdict);
+    }
+
+    /// **Verdict final proposé** pour un passage, dérivé des verdicts par fichier de sa sélection
+    /// ([AgregationVerdict], #1524, lot 5). Lecture seule : ne persiste rien et ne fait pas encore
+    /// autorité (la surcharge et le cache dérivé arrivent au lot 6). Renvoie [Verdict#A_VERIFIER] si
+    /// le passage n'a pas de sélection ou si aucune séquence n'est jugée.
+    public Verdict verdictDerivePassage(Long idPassage) {
+        return selectionDao
+                .findByPassage(idPassage)
+                .map(selection -> AgregationVerdict.deriver(selectionDao.listerSequences(selection.id()).stream()
+                        .map(SequenceSelectionnee::verdict)
+                        .toList()))
+                .orElse(Verdict.A_VERIFIER);
     }
 
     // ===========================================================================

@@ -402,13 +402,7 @@ public class PassageController implements EmplacementNavigation, RafraichirAuRet
                         .then("Réactiver ce passage : réimporte les fichiers d'origine et les rebranche,"
                                 + " après vérification que ce sont bien les mêmes.")
                         .otherwise(viewModel.motifBlocageReactivationProperty()));
-        lblIndiceAction
-                .textProperty()
-                .bind(Bindings.createStringBinding(
-                        () -> viewModel.verificationDisponibleProperty().get()
-                                ? ""
-                                : "🔒 La vérification sera possible une fois la nuit transformée.",
-                        viewModel.verificationDisponibleProperty()));
+        lblIndiceAction.textProperty().bind(viewModel.motifBlocageVerificationProperty());
 
         // Mise en avant de la « prochaine action » : le liseré recommandé se déplace selon le statut
         // (Vérifier → Préparer le dépôt → Sons & validation), au lieu de rester figé sur Vérifier.

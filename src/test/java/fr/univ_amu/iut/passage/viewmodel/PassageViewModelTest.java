@@ -153,6 +153,18 @@ class PassageViewModelTest {
         viewModel.ouvrirSur(ID_PASSAGE, CONTEXTE);
 
         assertThat(viewModel.verificationDisponibleProperty().get()).isTrue();
+        assertThat(viewModel.motifBlocageVerificationProperty().get()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("#1514 : la vérification est verrouillée sur une nuit déposée (verdict figé), avec l'explication")
+    void verification_verrouillee_si_deposee() {
+        when(service.detailPassage(ID_PASSAGE)).thenReturn(detail(StatutWorkflow.DEPOSE));
+
+        viewModel.ouvrirSur(ID_PASSAGE, CONTEXTE);
+
+        assertThat(viewModel.verificationDisponibleProperty().get()).isFalse();
+        assertThat(viewModel.motifBlocageVerificationProperty().get()).contains("Verdict figé");
     }
 
     @Test

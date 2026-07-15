@@ -679,7 +679,7 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
     @FXML
     private void importerDepuisVigieChiro() {
         ImportVigieChiroUI.lancer(
-                importVigieChiro, viewModel, source, appuis.executeur(), confirmateur(), demandeurParticipation());
+                importVigieChiro, viewModel, source, occupation, confirmateur(), demandeurParticipation());
     }
 
     /// Publie les corrections observateur du passage courant vers VigieChiro (#723). Délègue à

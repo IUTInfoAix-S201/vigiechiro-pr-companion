@@ -6,7 +6,7 @@ import fr.univ_amu.iut.commun.api.ParticipationVigieChiro;
 import fr.univ_amu.iut.commun.api.ReponseApi;
 import fr.univ_amu.iut.commun.view.Confirmateur;
 import fr.univ_amu.iut.commun.view.DemandeurDeChoix;
-import fr.univ_amu.iut.commun.view.ExecuteurTache;
+import fr.univ_amu.iut.commun.view.IndicateurOccupation;
 import fr.univ_amu.iut.commun.viewmodel.ContextePassage;
 import fr.univ_amu.iut.commun.viewmodel.SourceObservations;
 import java.util.List;
@@ -39,13 +39,14 @@ final class ImportVigieChiroUI {
     /// Lance l'import des résultats VigieChiro du passage de `source`. Deux cas : si le passage est déjà
     /// **rattaché** à une participation (dépôt-app antérieur), on importe directement ; sinon on récupère les
     /// participations du compte et on demande **à laquelle rattacher** ce passage (nuit créée à la main),
-    /// avant d'importer. Sans passage (source non ciblée), ne fait rien. Les appels réseau passent par
-    /// `executeur` (socle #1255 : hors du fil JavaFX en production, synchrone en test).
+    /// avant d'importer. Sans passage (source non ciblée), ne fait rien. Les appels réseau (participations,
+    /// puis import qui peut brasser des milliers de fichiers) passent par `occupation` : ils tournent hors
+    /// du fil JavaFX **sous un voile** « … en cours » qui bloque les clics le temps du traitement (#1543).
     static void lancer(
             ImportVigieChiroViewModel importVigieChiro,
             AudioViewModel viewModel,
             SourceObservations source,
-            ExecuteurTache executeur,
+            IndicateurOccupation occupation,
             Confirmateur confirmateur,
             DemandeurDeChoix<ParticipationVigieChiro> demandeur) {
         ContextePassage contexte = source.contexteDuPassage();
@@ -54,9 +55,9 @@ final class ImportVigieChiroUI {
         }
         Long idPassage = contexte.idPassage();
         if (importVigieChiro.rattache(idPassage)) {
-            importerRattache(importVigieChiro, viewModel, source, idPassage, executeur, confirmateur);
+            importerRattache(importVigieChiro, viewModel, source, idPassage, occupation, confirmateur);
         } else {
-            rattacherPuisImporter(importVigieChiro, viewModel, source, idPassage, executeur, demandeur);
+            rattacherPuisImporter(importVigieChiro, viewModel, source, idPassage, occupation, demandeur);
         }
     }
 
@@ -66,13 +67,13 @@ final class ImportVigieChiroUI {
             AudioViewModel viewModel,
             SourceObservations source,
             Long idPassage,
-            ExecuteurTache executeur,
+            IndicateurOccupation occupation,
             Confirmateur confirmateur) {
         boolean remplacer = viewModel.resultatsDisponiblesProperty().get();
         if (remplacer && !confirmerRemplacement(confirmateur)) {
             return;
         }
-        importerHorsFil(importVigieChiro, viewModel, source, idPassage, remplacer, executeur);
+        importerHorsFil(importVigieChiro, viewModel, source, idPassage, remplacer, occupation);
     }
 
     /// Passage non rattaché : récupère les participations **hors fil**, demande laquelle rattacher (au fil
@@ -84,10 +85,11 @@ final class ImportVigieChiroUI {
             AudioViewModel viewModel,
             SourceObservations source,
             Long idPassage,
-            ExecuteurTache executeur,
+            IndicateurOccupation occupation,
             DemandeurDeChoix<ParticipationVigieChiro> demandeur) {
         importVigieChiro.marquerEnCours();
-        executeur.executer(
+        occupation.occuper(
+                "Lecture de vos participations VigieChiro…",
                 importVigieChiro::participations,
                 reponse -> {
                     // #1370 : une panne ne ressemble plus à « aucune participation sur votre compte ».
@@ -110,7 +112,7 @@ final class ImportVigieChiroUI {
                         return;
                     }
                     importVigieChiro.rattacher(idPassage, choix.orElseThrow().id());
-                    importerHorsFil(importVigieChiro, viewModel, source, idPassage, false, executeur);
+                    importerHorsFil(importVigieChiro, viewModel, source, idPassage, false, occupation);
                 },
                 erreur -> importVigieChiro.echec(erreur.getMessage()));
     }
@@ -122,9 +124,10 @@ final class ImportVigieChiroUI {
             SourceObservations source,
             Long idPassage,
             boolean remplacer,
-            ExecuteurTache executeur) {
+            IndicateurOccupation occupation) {
         importVigieChiro.marquerEnCours();
-        executeur.executer(
+        occupation.occuper(
+                "Import des observations depuis VigieChiro…",
                 () -> importVigieChiro.importer(idPassage, remplacer),
                 bilan -> {
                     importVigieChiro.appliquerBilan(bilan);

@@ -4,12 +4,12 @@
 # tests Java in-process (CliTest & co.) ne voient pas — le packaging réel, l'analyse des arguments par
 # picocli, et les CODES DE SORTIE d'un vrai processus.
 #
-# Amorce focalisée sur les commandes du chantier (reconstruire-passage, reactiver) en contrat
-# HORS-LIGNE (aide générale, aide par commande, validation d'arguments, refus métier). La couverture bats
-# complète des ~35 commandes et des chemins réseau est cadrée en suite (#1592).
+# Contrats HORS-LIGNE : aide générale, aide de CHAQUE sous-commande (un test parcourt les 35),
+# validation d'arguments, refus métier, lectures locales sur base vide. La couverture des chemins
+# RÉSEAU (import, dépôt, ancrage) reste cadrée en suite (#1592).
 #
-# `--help` est désormais activé sur CHAQUE sous-commande (Cli.executer, #1592) : `reactiver --help`
-# décrit la commande au lieu d'échouer « Unknown option ».
+# `--help` est activé sur chaque sous-commande (Cli.executer, #1592) : `reactiver --help` décrit la
+# commande au lieu d'échouer « Unknown option ».
 #
 # Lancer :  ./mvnw -DskipTests package   # produit target/vigiechiro-*-shaded.jar
 #           bats src/test/bats
@@ -52,6 +52,33 @@ cli() {
   [[ "${output}" == *"--participation"* ]]
 }
 
+@test "TOUTES les sous-commandes répondent à --help (exit 0 + usage) (#1592)" {
+  # Le correctif --help (Cli.executer) vaut pour toutes les commandes d'un coup : on le prouve sur
+  # CHACUNE. On extrait la liste depuis l'aide générale (1re colonne des lignes de la section Commands,
+  # les lignes de description étant bien plus indentées), puis on interroge l'aide de chaque commande.
+  run cli --help
+  [ "${status}" -eq 0 ]
+  local commandes
+  commandes=$(printf '%s\n' "${output}" | awk '/^Commands:/{f=1} f && /^  [a-z]/{print $1}')
+  [ -n "${commandes}" ]
+
+  local n=0
+  for commande in ${commandes}; do
+    run cli "${commande}" --help
+    [ "${status}" -eq 0 ] || {
+      echo "« ${commande} --help » a échoué (exit ${status})"
+      return 1
+    }
+    [[ "${output}" == *"Usage: vigiechiro ${commande}"* ]] || {
+      echo "« ${commande} --help » n'affiche pas son usage"
+      return 1
+    }
+    n=$((n + 1))
+  done
+  echo "sous-commandes vérifiées : ${n}"
+  [ "${n}" -ge 20 ] # garde-fou : l'extraction a bien trouvé les commandes (35 attendues)
+}
+
 @test "reconstruire-passage hors connexion : refus métier expliqué, exit 1" {
   # Sans jeton, lister/reconstruire exige la plateforme : refus « non connecté » (pas un plantage muet).
   run cli reconstruire-passage
@@ -74,4 +101,24 @@ cli() {
   run cli reactiver --passage 1 --source "${BATS_TEST_TMPDIR}/pas-la"
   [ "${status}" -eq 1 ]
   [[ "${output}" == *"Dossier introuvable"* ]]
+}
+
+# --- Lectures locales (base jetable vide) : la CLI migre la base puis lit, sans réseau ------------
+
+@test "lister-sites : base vide, exit 0" {
+  run cli lister-sites
+  [ "${status}" -eq 0 ]
+  [[ "${output}" == *"Aucun site"* ]]
+}
+
+@test "lister-passages : base vide, exit 0" {
+  run cli lister-passages
+  [ "${status}" -eq 0 ]
+  [[ "${output}" == *"Aucun passage"* ]]
+}
+
+@test "statut-passage --passage <inconnu> : refus métier, exit 1" {
+  run cli statut-passage --passage 999999
+  [ "${status}" -eq 1 ]
+  [[ "${output}" == *"introuvable"* ]]
 }

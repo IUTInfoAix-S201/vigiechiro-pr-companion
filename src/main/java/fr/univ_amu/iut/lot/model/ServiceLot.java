@@ -30,7 +30,7 @@ import java.util.function.Supplier;
 ///
 /// - [#preparerLot(Long)] (E4.S1 + E4.S2) : contrôle R14 + cohérence
 ///   ([VerificationCoherence]), assemble le récapitulatif ([Lot]) et fait passer le passage
-///   à [StatutWorkflow#PRET_A_DEPOSER]. Refuse (exception) tout passage « À jeter » (R14)
+///   à [StatutWorkflow#PRET_A_DEPOSER]. Refuse (exception) tout passage « Inexploitable » (R14)
 ///   ou incohérent.
 /// - [#marquerDepose(Long)] (E4.S3) : une fois le téléversement manuel effectué, marque le
 ///   passage [StatutWorkflow#DEPOSE] et horodate `deposited_at` via l'[Horloge] injectée
@@ -173,17 +173,17 @@ public class ServiceLot {
 
     /// Prépare le lot à déposer d'un passage (E4.S1 + E4.S2).
     ///
-    /// - R14 (dur, bloquant) : un passage au verdict [Verdict#A_JETER] est refusé d'emblée.
+    /// - R14 (dur, bloquant) : un passage au verdict [Verdict#A_JETER] (« Inexploitable ») est refusé d'emblée.
     /// - Cohérence (dur) : si au moins un contrôle de [VerificationCoherence] est bloquant
     ///   (transformation incomplète, préfixe non conforme, journal absent…), la préparation
     ///   est refusée. Les alertes *soft* (relevé absent, R20) ne bloquent pas.
     /// - Transition : le passage passe à [StatutWorkflow#PRET_A_DEPOSER].
     ///
     /// @return le récapitulatif du lot (séquences, volume, chemin du dossier prêt)
-    /// @throws RegleMetierException si le passage est introuvable, « À jeter » (R14) ou incohérent
+    /// @throws RegleMetierException si le passage est introuvable, « Inexploitable » (R14) ou incohérent
     public Lot preparerLot(Long idPassage) {
         Passage passage = chargerPassage(idPassage);
-        exigerNonAJeter(passage); // R14
+        exigerDeposable(passage); // R14
 
         ResultatVerification coherence = verification.verifier(passage);
         if (coherence.estBloquant()) {
@@ -209,10 +209,10 @@ public class ServiceLot {
     /// [StatutWorkflow#DEPOSE] et horodatage `deposited_at` lu de l'[Horloge].
     ///
     /// @return le passage mis à jour (statut déposé, date posée)
-    /// @throws RegleMetierException si le passage est introuvable ou « À jeter » (R14)
+    /// @throws RegleMetierException si le passage est introuvable ou « Inexploitable » (R14)
     public Passage marquerDepose(Long idPassage) {
         Passage passage = chargerPassage(idPassage);
-        exigerNonAJeter(passage); // R14 : un « À jeter » ne peut jamais être déposé.
+        exigerDeposable(passage); // R14 : un « Inexploitable » ne peut jamais être déposé.
 
         // Transition de statut déléguée au moteur de workflow (Prêt à déposer → Déposé) : impose donc
         // qu'un lot ait d'abord été préparé.
@@ -348,13 +348,16 @@ public class ServiceLot {
                 .orElseThrow(() -> new RegleMetierException("Passage introuvable : " + idPassage));
     }
 
-    private static void exigerNonAJeter(Passage passage) {
+    /// R14 : un passage « Inexploitable » ne peut pas être déposé. Pour le débloquer, on le **re-vérifie**
+    /// (requalification) jusqu'à un verdict déposable : le verdict n'est figé qu'une fois DÉPOSÉ (#1514).
+    private static void exigerDeposable(Passage passage) {
         if (passage.verdictVerification() == Verdict.A_JETER) {
             throw new RegleMetierException("Le passage n°"
                     + passage.numeroPassage()
                     + " ("
                     + passage.annee()
-                    + ") porte le verdict « Inexploitable » et ne peut pas être déposé.");
+                    + ") porte le verdict « Inexploitable » et ne peut pas être déposé."
+                    + " Re-vérifiez-le pour lui attribuer un autre verdict.");
         }
     }
 

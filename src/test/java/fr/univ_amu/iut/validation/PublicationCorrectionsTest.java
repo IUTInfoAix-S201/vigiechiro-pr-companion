@@ -102,6 +102,32 @@ class PublicationCorrectionsTest {
     }
 
     @Test
+    @DisplayName("Passage reconstruit (#1596) : toutes les revues sont sans ancrage → RIEN de publiable,"
+            + " aucun envoi vers la plateforme")
+    void passage_reconstruit_rien_de_publiable() {
+        // Un passage reconstruit par CSV (#1565) porte des observations SANS ancrage plateforme tant qu'il
+        // n'a pas été réactivé (#1571). La garde tient par construction : rien ne part, tout est compté
+        // « sans ancrage » (l'IHM affiche alors « Rien à publier… réimportez depuis VigieChiro »).
+        when(observations.revuesDuPassage(7L))
+                .thenReturn(List.of(
+                        revue(1L, "Pippip", Certitude.SUR, null, null),
+                        revue(2L, "Barbar", Certitude.PROBABLE, null, null)));
+        when(liens.tous(LienVigieChiro.ENTITE_TAXON))
+                .thenReturn(Map.of("Pippip", "obj-pippip", "Barbar", "obj-barbar"));
+
+        TriPublication tri = publication().trier(7L);
+        BilanPublication bilan = publication().publier(7L);
+
+        assertThat(tri.publiables())
+                .as("aucune observation ancrée : rien à publier")
+                .isEmpty();
+        assertThat(tri.sansAncrage()).isEqualTo(2);
+        assertThat(bilan.poussees()).as("rien n'est envoyé").isZero();
+        assertThat(bilan.sansAncrage()).isEqualTo(2);
+        verify(client, never()).corrigerObservation(anyString(), anyInt(), anyString(), any(), anyBoolean());
+    }
+
+    @Test
     @DisplayName(
             "rafale : no_bilan sur tous les envois SAUF le dernier (le serveur ne régénère son bilan" + " qu'une fois)")
     void no_bilan_sauf_dernier() {

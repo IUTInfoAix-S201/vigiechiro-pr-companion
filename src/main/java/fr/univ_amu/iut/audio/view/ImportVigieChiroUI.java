@@ -79,11 +79,10 @@ final class ImportVigieChiroUI {
             SuiviOperation dialogue,
             Supplier<Window> proprietaire,
             Confirmateur confirmateur) {
-        boolean remplacer = viewModel.resultatsDisponiblesProperty().get();
-        if (remplacer && !confirmerRemplacement(confirmateur)) {
-            return;
-        }
-        importerHorsFil(importVigieChiro, viewModel, source, idPassage, remplacer, dialogue, proprietaire);
+        DecisionRemplacementJeu.resoudre(
+                        viewModel.resultatsDisponiblesProperty().get(), confirmateur, "ceux de VigieChiro")
+                .ifPresent(remplacer -> importerHorsFil(
+                        importVigieChiro, viewModel, source, idPassage, remplacer, dialogue, proprietaire));
     }
 
     /// Passage non rattaché : récupère les participations **hors fil**, demande laquelle rattacher (au fil
@@ -174,13 +173,5 @@ final class ImportVigieChiroUI {
             libelle.append(" · ").append(participation.siteTitre());
         }
         return libelle.toString();
-    }
-
-    /// Confirme le **remplacement** d'un jeu de résultats existant avant un réimport (un seul jeu par
-    /// passage ; les validations en cours seraient perdues).
-    private static boolean confirmerRemplacement(Confirmateur confirmateur) {
-        return confirmateur.confirmer(
-                "Des résultats Tadarida existent déjà pour ce passage. Les remplacer par ceux de VigieChiro ?"
-                        + " Les validations en cours sur ce passage seront perdues.");
     }
 }

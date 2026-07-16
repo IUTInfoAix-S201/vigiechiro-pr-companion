@@ -125,6 +125,7 @@
             <TableColumn fx:id="colFichier" text="Fichier" prefWidth="220.0"/>
             <TableColumn fx:id="colDuree" text="Durée" prefWidth="80.0"/>
             <TableColumn fx:id="colEcoute" text="Écouté" prefWidth="70.0"/>
+            <TableColumn fx:id="colVerdict" text="Verdict" prefWidth="120.0"/>
           </columns>
           <placeholder>
             <Label text="Aucune séquence à écouter pour l'instant." wrapText="true"/>
@@ -158,6 +159,25 @@
           <!-- État de chargement (#1509) : visible tant que le WAV sélectionné n'est pas prêt à jouer. -->
           <Label fx:id="lblChargementAudio" styleClass="section-sous" visible="false" managed="false"
                  text="Chargement de la séquence…"/>
+        </VBox>
+
+        <!-- Verdict PAR FICHIER de la séquence courante (#1524, lot 6a) : on juge le fichier qu'on
+             vient d'écouter. Distinct du verdict global du passage ci-dessous, qui en sera dérivé
+             (étape 2). Boutons désactivés tant qu'aucune séquence n'est sélectionnée (rien à juger) ;
+             câblés en Java par VerdictParFichier, l'actif porte la classe verdict-fichier-actif. -->
+        <VBox spacing="6.0">
+          <Label text="Votre verdict sur ce fichier" styleClass="section-titre">
+            <graphic><FontIcon iconLiteral="fas-headphones"/></graphic>
+          </Label>
+          <HBox spacing="10.0">
+            <Button fx:id="boutonBon" text="Bon" styleClass="verdict-fichier,verdict-fichier-bon"
+                    HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+            <Button fx:id="boutonMauvais" text="Mauvais" styleClass="verdict-fichier,verdict-fichier-mauvais"
+                    HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+            <Button fx:id="boutonInexploitable" text="Inexploitable"
+                    styleClass="verdict-fichier,verdict-fichier-inexploitable"
+                    HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+          </HBox>
         </VBox>
 
         <VBox spacing="6.0">

@@ -104,7 +104,7 @@ public class DiagnosticController implements EmplacementNavigation, ResumeStatut
     /// diagnostic (centre), et à droite l'**alerte prioritaire** : hors-nuit puis relevé climatique absent.
     private ZonesStatut calculerZonesStatut() {
         String gauche = contexte == null ? "" : contexte.identiteStatut();
-        String releveAbsent = viewModel.releveClimatiqueAbsentProperty().get() ? "⚠ Relevé climatique absent" : "";
+        String releveAbsent = viewModel.releveClimatiqueAbsentProperty().get() ? "Relevé climatique absent" : "";
         String droite =
                 ZonesStatut.premierNonVide(viewModel.alerteHorsNuitProperty().get(), releveAbsent);
         return new ZonesStatut(gauche, materielCentre(), droite);
@@ -133,7 +133,7 @@ public class DiagnosticController implements EmplacementNavigation, ResumeStatut
                 viewModel.mesures()));
         lblTemperature
                 .textProperty()
-                .bind(Bindings.concat("🌡 Température en début de nuit : ", viewModel.temperatureProperty()));
+                .bind(Bindings.concat("Température en début de nuit : ", viewModel.temperatureProperty()));
         lblReleveAbsent.visibleProperty().bind(viewModel.releveClimatiqueAbsentProperty());
         lblReleveAbsent.managedProperty().bind(viewModel.releveClimatiqueAbsentProperty());
 
@@ -209,8 +209,11 @@ public class DiagnosticController implements EmplacementNavigation, ResumeStatut
         List<MesureClimatique> mesures = viewModel.mesures();
         NumberAxis axeTemps = (NumberAxis) grapheClimat.getXAxis();
         if (mesures.isEmpty()) {
+            // Graphe vide (R20) : aucune échelle temporelle à montrer, on masque étiquettes et
+            // graduations plutôt que d'exposer des minutes brutes (0, 10, ... 110).
+            axeTemps.setTickLabelsVisible(false);
+            axeTemps.setTickMarkVisible(false);
             axeTemps.setTickLabelFormatter(null);
-            axeTemps.setAutoRanging(true);
         } else {
             LocalDateTime origine = instant(mesures.get(0));
             for (MesureClimatique mesure : mesures) {
@@ -228,6 +231,8 @@ public class DiagnosticController implements EmplacementNavigation, ResumeStatut
     private void configurerAxeTemps(NumberAxis axeTemps, LocalDateTime origine, List<MesureClimatique> mesures) {
         long span = Duration.between(origine, instant(mesures.get(mesures.size() - 1)))
                 .toMinutes();
+        axeTemps.setTickLabelsVisible(true);
+        axeTemps.setTickMarkVisible(true);
         axeTemps.setAutoRanging(false);
         axeTemps.setLowerBound(0);
         axeTemps.setUpperBound(Math.max(span, 1));

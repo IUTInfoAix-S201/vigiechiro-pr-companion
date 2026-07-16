@@ -43,7 +43,8 @@ public class DiagnosticViewModel {
     private final ReadOnlyBooleanWrapper coherenceHoraireDisponible =
             new ReadOnlyBooleanWrapper(this, "coherenceHoraireDisponible", false);
 
-    /// Libellé de la fenêtre nocturne (`🌙 Nuit : coucher 21:58 · lever 05:48`), vide si indisponible.
+    /// Libellé de la fenêtre nocturne (`Nuit : coucher 21:58 · lever 05:48`), vide si indisponible.
+    /// L'icône lune est posée par la vue (FontIcon), pas ici (le VM ignore l'IHM).
     private final ReadOnlyStringWrapper fenetreNuit = new ReadOnlyStringWrapper(this, "fenetreNuit", "");
 
     /// Alerte « hors nuit » (démarrage/arrêt diurne), vide si les horaires sont cohérents.
@@ -84,7 +85,7 @@ public class DiagnosticViewModel {
             alerteHorsNuit.set("");
             return;
         }
-        fenetreNuit.set("🌙 Nuit : coucher " + HEURE.format(coherence.coucherSoleil()) + " · lever "
+        fenetreNuit.set("Nuit : coucher " + HEURE.format(coherence.coucherSoleil()) + " · lever "
                 + HEURE.format(coherence.leverSoleil()));
         alerteHorsNuit.set(libelleEcart(coherence));
     }
@@ -101,7 +102,7 @@ public class DiagnosticViewModel {
         } else {
             detail = "arrêt après le lever du soleil";
         }
-        return "⚠ Hors nuit : " + detail + " (une partie de l'enregistrement est diurne).";
+        return "Hors nuit : " + detail + " (une partie de l'enregistrement est diurne).";
     }
 
     private void reinitialiser() {
@@ -142,7 +143,7 @@ public class DiagnosticViewModel {
         return coherenceHoraireDisponible.getReadOnlyProperty();
     }
 
-    /// Libellé de la fenêtre nocturne au point (`🌙 Nuit : coucher 21:58 · lever 05:48`), vide si
+    /// Libellé de la fenêtre nocturne au point (`Nuit : coucher 21:58 · lever 05:48`), vide si
     /// indisponible.
     public ReadOnlyStringProperty fenetreNuitProperty() {
         return fenetreNuit.getReadOnlyProperty();

@@ -157,6 +157,7 @@ class DiagnosticVueIntegrationTest {
         assertThat(axe.getTickLabelFormatter().toString(0L)).isEqualTo("22:00");
         assertThat(axe.getTickLabelFormatter().toString(240L)).isEqualTo("02:00");
         assertThat(axe.isAutoRanging()).isFalse();
+        assertThat(axe.isTickLabelsVisible()).isTrue();
     }
 
     @Test
@@ -225,6 +226,8 @@ class DiagnosticVueIntegrationTest {
         assertThat(graphe.getData()).hasSize(2);
         assertThat(graphe.getData().get(0).getData()).isEmpty();
         assertThat(graphe.getData().get(1).getData()).isEmpty();
+        // Graphe vide : l'axe temporel masque ses étiquettes (pas de minutes brutes 0..110).
+        assertThat(((NumberAxis) graphe.getXAxis()).isTickLabelsVisible()).isFalse();
         // GPS absent : ligne d'état toujours affichée (jamais muette), en état d'avertissement ambre.
         assertThat(ligneGps.isVisible()).isTrue();
         assertThat(ligneGps.getStyleClass()).contains("gps-absent");

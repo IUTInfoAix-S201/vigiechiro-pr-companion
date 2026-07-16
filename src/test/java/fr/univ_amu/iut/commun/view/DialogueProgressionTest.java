@@ -13,8 +13,8 @@ import org.junit.jupiter.api.Test;
 
 /// Orchestration de [DialogueProgression] (#1597), **sans fenêtre** : sur un [ExecuteurTacheSynchrone], on
 /// vérifie que le succès ferme et restitue (et que la progression émise avance la barre), qu'une
-/// annulation ferme **sans rien restituer** (renoncer n'est pas échouer), et qu'une erreur ferme et
-/// remonte l'échec.
+/// annulation ferme et appelle **`annule`** — sans succès ni échec (renoncer n'est pas échouer, #1622) —
+/// et qu'une erreur ferme et remonte l'échec.
 class DialogueProgressionTest {
 
     private final DialogueProgression dialogue = new DialogueProgression(new ExecuteurTacheSynchrone());
@@ -35,6 +35,7 @@ class DialogueProgressionTest {
                     return "ok";
                 },
                 resultat -> journal.add("succes:" + resultat),
+                () -> journal.add("annule"),
                 erreur -> journal.add("echec:" + erreur.getMessage()));
 
         assertThat(ferme).as("la modale se ferme à la fin").isTrue();
@@ -45,8 +46,8 @@ class DialogueProgressionTest {
     }
 
     @Test
-    @DisplayName("Annulation : la modale se ferme, ni succès ni échec (renoncer n'est pas échouer)")
-    void annulation_ferme_sans_rien_restituer() {
+    @DisplayName("Annulation : la modale se ferme et appelle `annule`, sans succès ni échec")
+    void annulation_ferme_et_appelle_annule() {
         AtomicBoolean ferme = new AtomicBoolean(false);
         List<String> journal = new ArrayList<>();
         JetonAnnulation jeton = new JetonAnnulation();
@@ -61,10 +62,13 @@ class DialogueProgressionTest {
                     return "ok";
                 },
                 resultat -> journal.add("succes"),
+                () -> journal.add("annule"),
                 erreur -> journal.add("echec"));
 
         assertThat(ferme).isTrue();
-        assertThat(journal).as("une annulation ne restitue ni succès ni échec").isEmpty();
+        assertThat(journal)
+                .as("une annulation appelle `annule`, sans succès ni échec")
+                .containsExactly("annule");
     }
 
     @Test
@@ -81,6 +85,7 @@ class DialogueProgressionTest {
                     throw new IllegalStateException("boum");
                 },
                 resultat -> journal.add("succes"),
+                () -> journal.add("annule"),
                 erreur -> journal.add("echec:" + erreur.getMessage()));
 
         assertThat(ferme).isTrue();

@@ -7,13 +7,16 @@ import fr.univ_amu.iut.commun.api.ReponseApi;
 import fr.univ_amu.iut.commun.view.Confirmateur;
 import fr.univ_amu.iut.commun.view.DemandeurDeChoix;
 import fr.univ_amu.iut.commun.view.IndicateurOccupation;
+import fr.univ_amu.iut.commun.view.SuiviOperation;
 import fr.univ_amu.iut.commun.viewmodel.ContextePassage;
 import fr.univ_amu.iut.commun.viewmodel.SourceObservations;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 import javafx.beans.binding.Bindings;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
+import javafx.stage.Window;
 
 /// Câblage et déclenchement de l'**import des résultats VigieChiro** (axe 4.2) sur la vue audio. Isolé du
 /// [SonsValidationController] (même patron que [ImportTadarida] / `DepotFichier`) pour le garder léger
@@ -39,14 +42,19 @@ final class ImportVigieChiroUI {
     /// Lance l'import des résultats VigieChiro du passage de `source`. Deux cas : si le passage est déjà
     /// **rattaché** à une participation (dépôt-app antérieur), on importe directement ; sinon on récupère les
     /// participations du compte et on demande **à laquelle rattacher** ce passage (nuit créée à la main),
-    /// avant d'importer. Sans passage (source non ciblée), ne fait rien. Les appels réseau (participations,
-    /// puis import qui peut brasser des milliers de fichiers) passent par `occupation` : ils tournent hors
-    /// du fil JavaFX **sous un voile** « … en cours » qui bloque les clics le temps du traitement (#1543).
+    /// avant d'importer. Sans passage (source non ciblée), ne fait rien.
+    ///
+    /// La brève lecture des participations passe par `occupation` (voile « … en cours »). L'**import**
+    /// lui-même — qui peut brasser des milliers de fichiers — passe par `dialogue` : une **modale de
+    /// progression annulable** ([SuiviOperation], #1622) au-dessus de `proprietaire`, qui montre l'avancement
+    /// page par page et laisse renoncer, plutôt qu'un voile opaque.
     static void lancer(
             ImportVigieChiroViewModel importVigieChiro,
             AudioViewModel viewModel,
             SourceObservations source,
             IndicateurOccupation occupation,
+            SuiviOperation dialogue,
+            Supplier<Window> proprietaire,
             Confirmateur confirmateur,
             DemandeurDeChoix<ParticipationVigieChiro> demandeur) {
         ContextePassage contexte = source.contexteDuPassage();
@@ -55,25 +63,27 @@ final class ImportVigieChiroUI {
         }
         Long idPassage = contexte.idPassage();
         if (importVigieChiro.rattache(idPassage)) {
-            importerRattache(importVigieChiro, viewModel, source, idPassage, occupation, confirmateur);
+            importerRattache(importVigieChiro, viewModel, source, idPassage, dialogue, proprietaire, confirmateur);
         } else {
-            rattacherPuisImporter(importVigieChiro, viewModel, source, idPassage, occupation, demandeur);
+            rattacherPuisImporter(
+                    importVigieChiro, viewModel, source, idPassage, occupation, dialogue, proprietaire, demandeur);
         }
     }
 
-    /// Passage déjà rattaché : confirmation si un jeu existe déjà, puis import hors fil.
+    /// Passage déjà rattaché : confirmation si un jeu existe déjà, puis import dans la modale de progression.
     private static void importerRattache(
             ImportVigieChiroViewModel importVigieChiro,
             AudioViewModel viewModel,
             SourceObservations source,
             Long idPassage,
-            IndicateurOccupation occupation,
+            SuiviOperation dialogue,
+            Supplier<Window> proprietaire,
             Confirmateur confirmateur) {
         boolean remplacer = viewModel.resultatsDisponiblesProperty().get();
         if (remplacer && !confirmerRemplacement(confirmateur)) {
             return;
         }
-        importerHorsFil(importVigieChiro, viewModel, source, idPassage, remplacer, occupation);
+        importerHorsFil(importVigieChiro, viewModel, source, idPassage, remplacer, dialogue, proprietaire);
     }
 
     /// Passage non rattaché : récupère les participations **hors fil**, demande laquelle rattacher (au fil
@@ -86,6 +96,8 @@ final class ImportVigieChiroUI {
             SourceObservations source,
             Long idPassage,
             IndicateurOccupation occupation,
+            SuiviOperation dialogue,
+            Supplier<Window> proprietaire,
             DemandeurDeChoix<ParticipationVigieChiro> demandeur) {
         importVigieChiro.marquerEnCours();
         occupation.occuper(
@@ -112,27 +124,31 @@ final class ImportVigieChiroUI {
                         return;
                     }
                     importVigieChiro.rattacher(idPassage, choix.orElseThrow().id());
-                    importerHorsFil(importVigieChiro, viewModel, source, idPassage, false, occupation);
+                    importerHorsFil(importVigieChiro, viewModel, source, idPassage, false, dialogue, proprietaire);
                 },
                 erreur -> importVigieChiro.echec(erreur.getMessage()));
     }
 
-    /// Récupère les résultats + importe **hors fil JavaFX**, applique le bilan et recharge la liste.
+    /// Importe **hors fil JavaFX** dans la **modale de progression annulable** : le suivi par page avance la
+    /// barre, l'annulation efface l'état « en cours », le succès applique le bilan et recharge la liste.
     private static void importerHorsFil(
             ImportVigieChiroViewModel importVigieChiro,
             AudioViewModel viewModel,
             SourceObservations source,
             Long idPassage,
             boolean remplacer,
-            IndicateurOccupation occupation) {
+            SuiviOperation dialogue,
+            Supplier<Window> proprietaire) {
         importVigieChiro.marquerEnCours();
-        occupation.occuper(
-                "Import des observations depuis VigieChiro…",
-                () -> importVigieChiro.importer(idPassage, remplacer),
+        dialogue.lancer(
+                proprietaire.get(),
+                "Import des observations depuis VigieChiro",
+                (progres, jeton) -> importVigieChiro.importer(idPassage, remplacer, progres, jeton),
                 bilan -> {
                     importVigieChiro.appliquerBilan(bilan);
                     viewModel.ouvrirSur(source); // recharge la liste avec les observations importées
                 },
+                () -> importVigieChiro.echec(""), // annulé : on efface l'état « en cours »
                 erreur -> importVigieChiro.echec(erreur.getMessage()));
     }
 

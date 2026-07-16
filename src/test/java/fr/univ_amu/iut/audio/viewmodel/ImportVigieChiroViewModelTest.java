@@ -2,19 +2,26 @@ package fr.univ_amu.iut.audio.viewmodel;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import fr.univ_amu.iut.commun.api.ParticipationVigieChiro;
 import fr.univ_amu.iut.commun.api.ReponseApi;
+import fr.univ_amu.iut.commun.api.SuiviPagination;
+import fr.univ_amu.iut.commun.model.JetonAnnulation;
+import fr.univ_amu.iut.commun.model.OperationAnnuleeException;
+import fr.univ_amu.iut.commun.model.Progression;
 import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.validation.model.BilanImport;
 import fr.univ_amu.iut.validation.model.ImportVigieChiro;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -50,6 +57,32 @@ class ImportVigieChiroViewModelTest {
 
         assertThat(new ImportVigieChiroViewModel(Optional.of(importateur)).importer(ID_PASSAGE, false))
                 .isSameAs(bilan);
+    }
+
+    @Test
+    @DisplayName("importer suivi : délègue, émet la progression par page, et lève à l'annulation (#1622)")
+    void importer_suivi_progression_et_annulation() {
+        BilanImport bilan = new BilanImport(null, 3, 0, 0);
+        ArgumentCaptor<SuiviPagination> suiviCaptor = ArgumentCaptor.forClass(SuiviPagination.class);
+        when(importateur.importer(eq(ID_PASSAGE), eq(false), suiviCaptor.capture()))
+                .thenReturn(bilan);
+        ImportVigieChiroViewModel vm = new ImportVigieChiroViewModel(Optional.of(importateur));
+        List<Progression> points = new ArrayList<>();
+        JetonAnnulation jeton = new JetonAnnulation();
+
+        assertThat(vm.importer(ID_PASSAGE, false, points::add, jeton)).isSameAs(bilan);
+
+        // Le suivi transmis au service émet un point d'avancement par page (fraction + libellé « page k/n »).
+        SuiviPagination suivi = suiviCaptor.getValue();
+        suivi.surPage(1, 4);
+        assertThat(points).singleElement().satisfies(point -> {
+            assertThat(point.fraction()).isEqualTo(0.25);
+            assertThat(point.libelle()).contains("page 1/4");
+        });
+
+        // Dès que l'utilisateur a demandé l'annulation, la page suivante lève : le service s'arrête net.
+        jeton.annuler();
+        assertThatThrownBy(() -> suivi.surPage(2, 4)).isInstanceOf(OperationAnnuleeException.class);
     }
 
     @Test

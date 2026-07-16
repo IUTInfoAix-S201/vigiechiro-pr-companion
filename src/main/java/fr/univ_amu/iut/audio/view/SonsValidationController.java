@@ -8,6 +8,7 @@ import fr.univ_amu.iut.audio.viewmodel.PublicationCorrectionsViewModel;
 import fr.univ_amu.iut.commun.api.ParticipationVigieChiro;
 import fr.univ_amu.iut.commun.view.ConfirmateurModifiable;
 import fr.univ_amu.iut.commun.view.DemandeurDeChoixModifiable;
+import fr.univ_amu.iut.commun.view.DialogueProgression;
 import fr.univ_amu.iut.commun.view.EmplacementNavigation;
 import fr.univ_amu.iut.commun.view.FiltreFichier;
 import fr.univ_amu.iut.commun.view.GestionnaireColonnes;
@@ -679,7 +680,14 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
     @FXML
     private void importerDepuisVigieChiro() {
         ImportVigieChiroUI.lancer(
-                importVigieChiro, viewModel, source, occupation, confirmateur(), demandeurParticipation());
+                importVigieChiro,
+                viewModel,
+                source,
+                occupation,
+                new DialogueProgression(appuis.executeur()),
+                () -> tableObservations.getScene().getWindow(),
+                confirmateur(),
+                demandeurParticipation());
     }
 
     /// Publie les corrections observateur du passage courant vers VigieChiro (#723). Délègue à

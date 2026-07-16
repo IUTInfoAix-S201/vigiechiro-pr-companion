@@ -76,6 +76,18 @@
   -fx-background-color: #ffffff;
 }
 
+/*
+ * Barre de verdict GLOBAL en pied (#1524) : pleine largeur sous les deux colonnes, pour signifier
+ * que la décision porte sur toute la nuit et non sur le fichier courant (jugé dans la colonne de
+ * droite). Filet supérieur pour la détacher du corps.
+ */
+.barre-verdict-global {
+  -fx-background-color: #ffffff;
+  -fx-border-color: #d0d7de transparent transparent transparent;
+  -fx-border-width: 1 0 0 0;
+  -fx-padding: 12 18 14 18;
+}
+
 .colonne-titre {
   -fx-font-size: 15px;
   -fx-font-weight: bold;

@@ -179,59 +179,70 @@
                     HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
           </HBox>
         </VBox>
-
-        <VBox spacing="6.0">
-          <Label text="Verdict global du passage" styleClass="section-titre">
-            <graphic><FontIcon iconLiteral="fas-gavel"/></graphic>
-          </Label>
-          <HBox spacing="10.0">
-            <Button fx:id="boutonOk" text="OK" styleClass="verdict,verdict-ok"
-                    onAction="#choisirOk" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
-            <Button fx:id="boutonDouteux" text="Douteux" styleClass="verdict,verdict-douteux"
-                    onAction="#choisirDouteux" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
-            <Button fx:id="boutonAJeter" text="À jeter" styleClass="verdict,verdict-jeter"
-                    onAction="#choisirAJeter" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
-          </HBox>
-          <Label fx:id="lblApercuR14" styleClass="apercu-r14" wrapText="true"
-                 text="« À jeter » : ce passage ne pourra pas être déposé.">
-            <graphic><FontIcon iconLiteral="fas-exclamation-triangle"/></graphic>
-          </Label>
-        </VBox>
-
-        <VBox spacing="4.0">
-          <Label text="Commentaire (optionnel)" styleClass="section-sous">
-            <graphic><FontIcon iconLiteral="fas-comment-dots"/></graphic>
-          </Label>
-          <TextArea fx:id="champCommentaire" prefRowCount="2" wrapText="true"
-                    promptText="Ex. vent fort vers 02:00, sons à vérifier ultérieurement."/>
-        </VBox>
-
-        <Label fx:id="lblAvertissement" styleClass="avertissement" wrapText="true"/>
-        <Label fx:id="lblMessage" styleClass="message-erreur" wrapText="true"/>
-
-        <!-- Légende des raccourcis clavier (#796) : câblés (gererRaccourci) mais indécouvrables sans
-             cette aide visible. -->
-        <Label styleClass="section-sous" wrapText="true"
-               text="Raccourcis clavier : O OK · D Douteux · J À jeter · Espace écouter · Entrée enregistrer"/>
-
-        <HBox alignment="CENTER_RIGHT" spacing="10.0">
-          <!-- Confirmation de succès locale (#797) : visible une fois le verdict persisté (état ENREGISTRE),
-               masquée dès qu'une modification recrée un brouillon. Complète le grisage du bouton. -->
-          <Label fx:id="lblSucces" styleClass="badge, badge-succes" text="Verdict enregistré"
-                 managed="false" visible="false">
-            <graphic><FontIcon iconLiteral="fas-check-circle"/></graphic>
-          </Label>
-          <!-- Enveloppe : un Button désactivé n'affiche pas de Tooltip, on le pose sur ce StackPane (#789). -->
-          <StackPane fx:id="enveloppeEnregistrer">
-            <Button fx:id="boutonEnregistrer" text="Enregistrer le verdict"
-                    styleClass="bouton-primaire" onAction="#enregistrer">
-              <graphic><FontIcon iconLiteral="fas-save"/></graphic>
-            </Button>
-          </StackPane>
-        </HBox>
       </VBox>
       </ScrollPane>
     </SplitPane>
   </center>
+
+  <!-- ============ Verdict GLOBAL du passage (sous les deux colonnes) ============ -->
+  <!-- Placé en pied, pleine largeur : la décision porte sur TOUTE la nuit (l'ensemble des fichiers),
+       pas sur la séquence courante jugée à droite. Au fil de l'étape 2, ce verdict deviendra un
+       proposé dérivé des verdicts par fichier, surchargeable ici même. -->
+  <bottom>
+    <VBox spacing="8.0" styleClass="barre-verdict-global">
+      <HBox spacing="14.0" alignment="CENTER_LEFT">
+        <VBox spacing="1.0" HBox.hgrow="ALWAYS">
+          <Label text="Verdict global du passage" styleClass="section-titre">
+            <graphic><FontIcon iconLiteral="fas-gavel"/></graphic>
+          </Label>
+          <Label styleClass="section-sous" wrapText="true"
+                 text="Décision d'ensemble pour toute la nuit, pas pour un seul fichier."/>
+        </VBox>
+        <Button fx:id="boutonOk" text="OK" styleClass="verdict,verdict-ok"
+                onAction="#choisirOk" prefWidth="150.0"/>
+        <Button fx:id="boutonDouteux" text="Douteux" styleClass="verdict,verdict-douteux"
+                onAction="#choisirDouteux" prefWidth="150.0"/>
+        <Button fx:id="boutonAJeter" text="À jeter" styleClass="verdict,verdict-jeter"
+                onAction="#choisirAJeter" prefWidth="150.0"/>
+      </HBox>
+
+      <Label fx:id="lblApercuR14" styleClass="apercu-r14" wrapText="true"
+             text="« À jeter » : ce passage ne pourra pas être déposé.">
+        <graphic><FontIcon iconLiteral="fas-exclamation-triangle"/></graphic>
+      </Label>
+
+      <VBox spacing="4.0">
+        <Label text="Commentaire (optionnel)" styleClass="section-sous">
+          <graphic><FontIcon iconLiteral="fas-comment-dots"/></graphic>
+        </Label>
+        <TextArea fx:id="champCommentaire" prefRowCount="2" wrapText="true"
+                  promptText="Ex. vent fort vers 02:00, sons à vérifier ultérieurement."/>
+      </VBox>
+
+      <Label fx:id="lblAvertissement" styleClass="avertissement" wrapText="true"/>
+      <Label fx:id="lblMessage" styleClass="message-erreur" wrapText="true"/>
+
+      <HBox alignment="CENTER_LEFT" spacing="10.0">
+        <!-- Légende des raccourcis clavier (#796) : câblés (gererRaccourci) mais indécouvrables sans
+             cette aide visible. -->
+        <Label styleClass="section-sous" wrapText="true"
+               text="Raccourcis clavier : O OK · D Douteux · J À jeter · Espace écouter · Entrée enregistrer"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <!-- Confirmation de succès locale (#797) : visible une fois le verdict persisté (état ENREGISTRE),
+             masquée dès qu'une modification recrée un brouillon. Complète le grisage du bouton. -->
+        <Label fx:id="lblSucces" styleClass="badge, badge-succes" text="Verdict enregistré"
+               managed="false" visible="false">
+          <graphic><FontIcon iconLiteral="fas-check-circle"/></graphic>
+        </Label>
+        <!-- Enveloppe : un Button désactivé n'affiche pas de Tooltip, on le pose sur ce StackPane (#789). -->
+        <StackPane fx:id="enveloppeEnregistrer">
+          <Button fx:id="boutonEnregistrer" text="Enregistrer le verdict"
+                  styleClass="bouton-primaire" onAction="#enregistrer">
+            <graphic><FontIcon iconLiteral="fas-save"/></graphic>
+          </Button>
+        </StackPane>
+      </HBox>
+    </VBox>
+  </bottom>
 </BorderPane>
 </StackPane>

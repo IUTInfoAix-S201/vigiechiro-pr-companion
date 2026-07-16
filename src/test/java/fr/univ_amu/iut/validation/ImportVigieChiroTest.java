@@ -2,6 +2,7 @@ package fr.univ_amu.iut.validation;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -63,7 +64,7 @@ class ImportVigieChiroTest {
         List<DonneeVigieChiro> donnees = List.of(new DonneeVigieChiro("d1", "Car-Z41_000", List.of(observation())));
         BilanImport attendu = new BilanImport(null, 1, 0, 0);
         when(liens.objectidPour(LienVigieChiro.ENTITE_PASSAGE, "42")).thenReturn(Optional.of(PARTICIPATION));
-        when(client.donnees(PARTICIPATION)).thenReturn(ReponseApi.succes(donnees));
+        when(client.donnees(eq(PARTICIPATION), any())).thenReturn(ReponseApi.succes(donnees));
         when(service.importerDepuisVigieChiro(ID_PASSAGE, donnees, false)).thenReturn(attendu);
 
         assertThat(importateur.importer(ID_PASSAGE, false)).isSameAs(attendu);
@@ -87,7 +88,7 @@ class ImportVigieChiroTest {
         assertThatThrownBy(() -> importateur.importer(ID_PASSAGE, false))
                 .isInstanceOf(RegleMetierException.class)
                 .hasMessageContaining("rattaché");
-        verify(client, never()).donnees(eq(PARTICIPATION));
+        verify(client, never()).donnees(eq(PARTICIPATION), any());
     }
 
     @Test
@@ -96,7 +97,7 @@ class ImportVigieChiroTest {
         // La panne d'origine : max_results=1000 → 422, que le transport taisait. L'import affichait
         // « Aucun résultat Tadarida disponible » avec 4806 observations sur le serveur.
         when(liens.objectidPour(LienVigieChiro.ENTITE_PASSAGE, "42")).thenReturn(Optional.of(PARTICIPATION));
-        when(client.donnees(PARTICIPATION)).thenReturn(ReponseApi.refuse(422, "max_results depasse"));
+        when(client.donnees(eq(PARTICIPATION), any())).thenReturn(ReponseApi.refuse(422, "max_results depasse"));
 
         assertThatThrownBy(() -> importateur.importer(ID_PASSAGE, false))
                 .isInstanceOf(RegleMetierException.class)
@@ -110,7 +111,7 @@ class ImportVigieChiroTest {
     @DisplayName("#1284 : plateforme injoignable (délai) → message actionnable, pas « aucun résultat »")
     void injoignable_dit_injoignable() {
         when(liens.objectidPour(LienVigieChiro.ENTITE_PASSAGE, "42")).thenReturn(Optional.of(PARTICIPATION));
-        when(client.donnees(PARTICIPATION)).thenReturn(ReponseApi.injoignable("délai d'attente dépassé"));
+        when(client.donnees(eq(PARTICIPATION), any())).thenReturn(ReponseApi.injoignable("délai d'attente dépassé"));
 
         assertThatThrownBy(() -> importateur.importer(ID_PASSAGE, false))
                 .isInstanceOf(RegleMetierException.class)
@@ -123,7 +124,7 @@ class ImportVigieChiroTest {
     @DisplayName("#1284 : non connecté → on demande le jeton, sans parler de panne")
     void non_connecte_demande_le_jeton() {
         when(liens.objectidPour(LienVigieChiro.ENTITE_PASSAGE, "42")).thenReturn(Optional.of(PARTICIPATION));
-        when(client.donnees(PARTICIPATION)).thenReturn(ReponseApi.nonConnecte());
+        when(client.donnees(eq(PARTICIPATION), any())).thenReturn(ReponseApi.nonConnecte());
 
         assertThatThrownBy(() -> importateur.importer(ID_PASSAGE, false))
                 .isInstanceOf(RegleMetierException.class)
@@ -192,7 +193,7 @@ class ImportVigieChiroTest {
 
     private void armerParticipationSansDonnees() {
         when(liens.objectidPour(LienVigieChiro.ENTITE_PASSAGE, "42")).thenReturn(Optional.of(PARTICIPATION));
-        when(client.donnees(PARTICIPATION)).thenReturn(ReponseApi.succes(List.of()));
+        when(client.donnees(eq(PARTICIPATION), any())).thenReturn(ReponseApi.succes(List.of()));
     }
 
     private void aucunImport() {

@@ -1,6 +1,7 @@
 package fr.univ_amu.iut.validation.model;
 
 import fr.univ_amu.iut.commun.api.DonneeVigieChiro;
+import fr.univ_amu.iut.commun.api.SuiviPagination;
 import fr.univ_amu.iut.commun.model.ImportObservations;
 import java.util.List;
 import java.util.Objects;
@@ -32,6 +33,11 @@ public class ImportObservationsVigieChiro implements ImportObservations {
     @Override
     public String importer(Long idPassage, List<DonneeVigieChiro> donnees, boolean remplacer) {
         return compteRendu(importateur.importer(idPassage, donnees, remplacer));
+    }
+
+    @Override
+    public String importer(Long idPassage, boolean remplacer, SuiviPagination suivi) {
+        return compteRendu(importateur.importer(idPassage, remplacer, suivi));
     }
 
     @Override

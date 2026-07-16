@@ -10,6 +10,7 @@ import fr.univ_amu.iut.commun.model.Protocole;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.model.Utilisateur;
 import fr.univ_amu.iut.commun.model.Verdict;
+import fr.univ_amu.iut.commun.model.VerdictFichier;
 import fr.univ_amu.iut.commun.model.dao.UtilisateurDao;
 import fr.univ_amu.iut.commun.outils.ApercuFx;
 import fr.univ_amu.iut.commun.outils.AttenteAudio;
@@ -141,15 +142,21 @@ public final class CaptureQualification {
         ApercuFx.enregistrerPng(scene, initial);
         System.out.println("Apercu ecrit dans " + initial.toAbsolutePath());
 
-        // État avancé : quelques séquences écoutées (progression) et verdict OK posé.
+        // État avancé : quelques séquences écoutées (progression), un MÉLANGE de verdicts par fichier
+        // (#1524 : 7 Bon, 3 Mauvais, 2 Inexploitable → colonne tricolore) et le verdict global posé.
         for (int i = 0; i < NB_ECOUTEES && i < selectionVm.lignes().size(); i++) {
             selectionVm.selectionner(selectionVm.lignes().get(i));
             selectionVm.marquerCouranteEcoutee();
+            selectionVm.marquerVerdictCourante(verdictDemo(i));
         }
-        if (selectionVm.lignes().size() > NB_ECOUTEES) {
-            selectionVm.selectionner(selectionVm.lignes().get(NB_ECOUTEES)); // séquence courante à écouter
+        // Séquence courante = une séquence déjà jugée « Bon » : montre un bouton de verdict par fichier
+        // actif et charge un spectrogramme réel.
+        if (!selectionVm.lignes().isEmpty()) {
+            selectionVm.selectionner(selectionVm.lignes().get(0));
         }
-        verdictVm.choisirVerdict(Verdict.OK);
+        // Verdict global cohérent avec le mélange par fichier (ni tout Bon, ni majorité d'inexploitables
+        // → Douteux) : c'est aussi ce que la dérivation proposera au lot 6a, tranche suivante.
+        verdictVm.choisirVerdict(Verdict.DOUTEUX);
 
         // DERNIÈRE capture : on attend le chargement audio de la séquence courante (sélectionnée
         // ci-dessus) pour montrer un spectrogramme réel. Le Stage est montré AVANT la boucle
@@ -174,6 +181,19 @@ public final class CaptureQualification {
                 new SitesModule(),
                 new PassageModule(),
                 new QualificationModule());
+    }
+
+    /// Répartition de démonstration des verdicts par fichier sur les séquences écoutées (#1524) : un
+    /// mélange 7 Bon / 3 Mauvais / 2 Inexploitable, pour illustrer la colonne tricolore de la liste et
+    /// l'agrégation vers le verdict global (Douteux ici : ni tout Bon, ni majorité d'inexploitables).
+    private static VerdictFichier verdictDemo(int index) {
+        if (index == 4 || index == 8 || index == 11) {
+            return VerdictFichier.MAUVAIS;
+        }
+        if (index == 6 || index == 10) {
+            return VerdictFichier.INEXPLOITABLE;
+        }
+        return VerdictFichier.BON;
     }
 
     /// Seede une nuit complète (chemins sous le `workspace` temporaire) et renvoie l'identifiant du

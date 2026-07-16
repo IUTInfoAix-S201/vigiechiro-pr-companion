@@ -177,7 +177,9 @@ Plutôt que d'importer le CSV à la main, le menu **☰ → Importer depuis Vigi
 résultats **directement depuis la plateforme** (application [connectée](../connexion-vigiechiro.md),
 passage déposé et traité). Si le passage n'est pas encore relié à une participation, l'application
 propose de choisir la bonne dans la liste de vos participations. L'import CSV reste disponible en
-repli - les deux alimentent le même écran.
+repli - les deux alimentent le même écran. L'import lui-même - qui peut rapatrier des milliers de
+fichiers - s'affiche dans une **fenêtre de progression** (barre d'avancement page par page) avec un
+bouton **Annuler** : renoncer laisse le passage tel qu'il était, sans demi-import.
 
 Si l'analyse de la plateforme n'est pas terminée, l'import vous dit **pourquoi** il n'y a rien à
 récupérer : l'analyse n'a **jamais été lancée** (lancez-la depuis « Préparer le dépôt », étape ④), elle
@@ -201,6 +203,10 @@ qui restera à quai : les observations **sans certitude** (déclarez-la d'abord)
 ancrage** plateforme (résultats importés d'un CSV : réimportez depuis VigieChiro pour les ancrer)
 et les taxons **hors référentiel**. La publication est **rejouable sans risque** : republier
 réécrit les mêmes valeurs.
+
+Si le passage n'a **aucun ancrage** plateforme (il a été *reconstruit* à partir d'un CSV et n'a jamais
+été réactivé), l'entrée de menu est d'emblée **grisée** : réactivez d'abord le passage pour ancrer ses
+observations, sans quoi il n'y aurait rien à publier.
 
 À savoir : une correction publiée se **remplace** mais ne se **retire** pas de la plateforme, et
 une **relance du traitement serveur** efface les corrections publiées (republiez alors après le

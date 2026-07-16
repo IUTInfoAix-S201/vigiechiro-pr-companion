@@ -562,6 +562,14 @@ bloqué. Le patron correct (thread virtuel → travail → `Platform.runLater`) 
   sur la racine de la fenêtre, et **opération critique (#906) posée le temps du travail** (fermer
   l'application en pleine copie déclenche l'avertissement du socle). Installée par le
   `MainController`, consommée par injection dans les `ActionMenu`.
+- `DialogueProgression` (#1597) / port `SuiviOperation` (#1622) : la déclinaison **modale à barre de
+  progression annulable**, pour les opérations **longues** dont l'utilisateur veut voir l'avancement et
+  pouvoir renoncer (reconstruction, réactivation avec ancrage, import des observations). Là où
+  `IndicateurOccupation` pose un voile opaque (« ça travaille »), la modale **dit où on en est** (barre
+  déterminée + libellé d'étape + ETA) et **laisse annuler** (bouton « Annuler » câblé sur le jeton). Elle
+  pilote le même `ExecuteurTache` (progression + annulation ci-dessous). Le port `SuiviOperation` rend le
+  geste **testable sans fenêtre** : un double **synchrone** exécute le travail sans ouvrir de `Stage`, si
+  bien que le déclenchement s'éprouve **hors du fil JavaFX**.
 
 **Opérations longues « riches » (#1252).** Pour les traitements qui diffusent leur avancement ou
 s'annulent, le socle étend `ExecuteurTache` sans toucher aux écrans déjà migrés :
@@ -586,9 +594,11 @@ l'annulation : le jeton appartenant à l'appelant, le test l'**annule avant de d
 l'opération et vérifie l'arrêt propre au premier point de contrôle (callback `annule`, ni succès ni
 échec) - c'est le contrat coopératif qui est testé, la simultanéité réelle relevant de l'E2E.
 
-**La règle.** Toute opération longue d'un écran passe par `IndicateurOccupation` (l'échec est routé
-vers le filet d'erreurs de l'écran, #795) — jamais un `Thread.ofVirtual()` + `runLater` recopié à la
-main, y compris pour la progression et l'annulation (surcharges ci-dessus). Le déport écran par
+**La règle.** Toute opération longue d'un écran passe par le socle — `IndicateurOccupation` (voile) pour
+les traitements brefs, `DialogueProgression` (modale) quand l'avancement mérite d'être montré et
+l'opération annulée — l'échec étant routé vers le filet d'erreurs de l'écran (#795), jamais un
+`Thread.ofVirtual()` + `runLater` recopié à la main, y compris pour la progression et l'annulation
+(surcharges ci-dessus). Le déport écran par
 écran (EPIC #793 puis reliquat #1316) est **terminé** : plus aucun `Thread.ofVirtual` ne vit hors du
 socle, tout nouvel écran naît avec ce patron.
 

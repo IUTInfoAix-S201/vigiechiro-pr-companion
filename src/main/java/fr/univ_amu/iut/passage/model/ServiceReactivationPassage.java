@@ -1,6 +1,8 @@
 package fr.univ_amu.iut.passage.model;
 
+import fr.univ_amu.iut.commun.api.SuiviPagination;
 import fr.univ_amu.iut.commun.model.ImportObservations;
+import fr.univ_amu.iut.commun.model.JetonAnnulation;
 import fr.univ_amu.iut.commun.model.Prefixe;
 import fr.univ_amu.iut.commun.model.Progression;
 import fr.univ_amu.iut.commun.model.RegleMetierException;
@@ -89,9 +91,23 @@ public class ServiceReactivationPassage {
     /// @throws RegleMetierException si le passage est introuvable, jamais importé, ou si le dossier
     ///     source n'existe pas
     public RapportReactivation reactiver(Long idPassage, Path dossierSource, Consumer<Progression> progres) {
+        return reactiver(idPassage, dossierSource, progres, JetonAnnulation.neutre());
+    }
+
+    /// Variante **suivie et annulable** (#1597) : depuis S3 (#1571) la réactivation peut rapatrier tout un
+    /// jeu de `donnees` pour ancrer les observations (~48 pages, plusieurs dizaines de secondes) — assez
+    /// long pour mériter une **modale à barre de progression et un bouton « Annuler »**, comme la
+    /// reconstruction. Le `jeton` est consulté **aux frontières de phase** (avant le rebranchement audio,
+    /// avant l'ancrage) et **page par page** pendant la phase d'ancrage (via le `suivi` construit ici).
+    ///
+    /// @param jeton consulté aux points de contrôle ; `annuler()` interrompt à la prochaine frontière /
+    ///     page, en levant une [OperationAnnuleeException]
+    public RapportReactivation reactiver(
+            Long idPassage, Path dossierSource, Consumer<Progression> progres, JetonAnnulation jeton) {
         Objects.requireNonNull(idPassage, PARAM_ID_PASSAGE);
         Objects.requireNonNull(dossierSource, "dossierSource");
         Objects.requireNonNull(progres, "progres");
+        Objects.requireNonNull(jeton, "jeton");
         if (!Files.isDirectory(dossierSource)) {
             throw new RegleMetierException("Dossier introuvable : " + dossierSource + ".");
         }
@@ -106,13 +122,15 @@ public class ServiceReactivationPassage {
         Optional<Prefixe> prefixe = prefixeDe(session);
 
         // Ce que le dossier contient, constaté et non supposé.
+        jeton.leverSiAnnule();
         VoieReactivation voie = reconnaitre(sequences, originaux, candidats, prefixe);
         BilanReactivation bilan = voie == VoieReactivation.BRUTS
                 ? depuisBruts.appliquer(sequences, originaux, candidats, prefixe, progres)
                 : rebranchement.rebrancher(sequences, candidats, progres);
 
         RapportReactivation rapport = conclure(idPassage, session, sequences, bilan, voie);
-        acquerirAncrageSiNecessaire(idPassage, rapport, progres);
+        jeton.leverSiAnnule();
+        acquerirAncrageSiNecessaire(idPassage, rapport, progres, jeton);
         return rapport;
     }
 
@@ -127,7 +145,7 @@ public class ServiceReactivationPassage {
     /// un passage importé normalement porte déjà son ancrage, la phase ne s'y déclenche pas — donc aucune
     /// dépendance réseau n'est imposée à la réactivation d'un passage local ordinaire.
     private void acquerirAncrageSiNecessaire(
-            Long idPassage, RapportReactivation rapport, Consumer<Progression> progres) {
+            Long idPassage, RapportReactivation rapport, Consumer<Progression> progres, JetonAnnulation jeton) {
         if (importObservations.isEmpty() || rapport.decompte().disponibilite() == DisponibiliteAudio.ABSENTE) {
             return;
         }
@@ -135,8 +153,16 @@ public class ServiceReactivationPassage {
         if (!importateur.estRattache(idPassage) || !importateur.ancrageManquant(idPassage)) {
             return;
         }
-        progres.accept(new Progression("Ancrage des observations sur VigieChiro…", 0.98));
-        importateur.importer(idPassage, true);
+        progres.accept(new Progression("Ancrage des observations sur VigieChiro…", 0.90));
+        // Suivi page par page : la barre avance dans la dernière tranche (0,90 -> 1,00) pendant le
+        // rapatriement des donnees (~48 pages), et « Annuler » s'y honore à chaque page (#1597).
+        SuiviPagination suivi = (page, totalPages) -> {
+            jeton.leverSiAnnule();
+            double fraction = 0.90 + 0.10 * Math.min(page, totalPages) / (double) Math.max(totalPages, 1);
+            progres.accept(new Progression(
+                    "Ancrage des observations sur VigieChiro… (page " + page + "/" + totalPages + ")", fraction));
+        };
+        importateur.importer(idPassage, true, suivi);
     }
 
     /// Reconnaît ce que le dossier contient. Les **séquences** l'emportent sur les **bruts** : quand les

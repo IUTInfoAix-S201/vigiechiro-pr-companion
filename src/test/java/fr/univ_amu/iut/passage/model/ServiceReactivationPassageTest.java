@@ -2,14 +2,19 @@ package fr.univ_amu.iut.passage.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import fr.univ_amu.iut.commun.api.SuiviPagination;
 import fr.univ_amu.iut.commun.model.Empreintes;
 import fr.univ_amu.iut.commun.model.FichierWav;
 import fr.univ_amu.iut.commun.model.ImportObservations;
+import fr.univ_amu.iut.commun.model.JetonAnnulation;
+import fr.univ_amu.iut.commun.model.OperationAnnuleeException;
 import fr.univ_amu.iut.commun.model.Prefixe;
 import fr.univ_amu.iut.commun.model.Progression;
 import fr.univ_amu.iut.commun.model.Protocole;
@@ -157,7 +162,28 @@ class ServiceReactivationPassageTest {
 
         // Audio (re)disponible + observations sans ancrage : on le rapatrie par ré-import des donnees
         // (remplacer = true), qui pose idDonneeVigieChiro tout en préservant les validations observateur.
-        verify(importObservations).importer(idPassage, true);
+        // Variante suivie (#1597) : la phase d'ancrage passe un suivi (progression + annulation par page).
+        verify(importObservations).importer(eq(idPassage), eq(true), any());
+    }
+
+    @Test
+    @DisplayName("Annulation pendant l'ancrage (#1597) : « Annuler » interrompt la phase réseau dès une page")
+    void annulation_pendant_l_ancrage() throws IOException {
+        archiverAvecSauvegarde(true, true); // l'audio revient complet → la phase d'ancrage se déclenche
+        ImportObservations importObservations = mock(ImportObservations.class);
+        when(importObservations.estRattache(idPassage)).thenReturn(true);
+        when(importObservations.ancrageManquant(idPassage)).thenReturn(true);
+        JetonAnnulation jeton = new JetonAnnulation();
+        // Le port relaie une page au suivi : c'est là que la réactivation consulte le jeton (annulé juste avant).
+        when(importObservations.importer(eq(idPassage), eq(true), any())).thenAnswer(invocation -> {
+            jeton.annuler();
+            SuiviPagination suivi = invocation.getArgument(2);
+            suivi.surPage(1, 48); // -> le suivi lève OperationAnnuleeException
+            return "";
+        });
+
+        assertThatThrownBy(() -> avecImport(importObservations).reactiver(idPassage, sauvegarde, progres -> {}, jeton))
+                .isInstanceOf(OperationAnnuleeException.class);
     }
 
     @Test
@@ -170,7 +196,7 @@ class ServiceReactivationPassageTest {
 
         avecImport(importObservations).reactiver(idPassage, sauvegarde, progres -> {});
 
-        verify(importObservations, never()).importer(idPassage, true);
+        verify(importObservations, never()).importer(eq(idPassage), eq(true), any());
     }
 
     @Test
@@ -183,7 +209,7 @@ class ServiceReactivationPassageTest {
         // Réactiver depuis un dossier VIDE : rien ne rebranche, l'audio reste ABSENTE → pas de phase d'ancrage.
         avecImport(importObservations).reactiver(idPassage, vide, progres -> {});
 
-        verify(importObservations, never()).importer(idPassage, true);
+        verify(importObservations, never()).importer(eq(idPassage), eq(true), any());
     }
 
     /// Service muni du port d'import (phase d'ancrage #1571 active), sur la même base et le même workspace.

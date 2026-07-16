@@ -1,6 +1,8 @@
 package fr.univ_amu.iut.e2e;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -227,7 +229,7 @@ class ParcoursValidationExpertE2ETest {
     /// être stubé.
     private static ClientVigieChiro plateformeBouchonnee() {
         ClientVigieChiro client = mock(ClientVigieChiro.class);
-        when(client.donnees(PARTICIPATION))
+        when(client.donnees(eq(PARTICIPATION), any()))
                 .thenReturn(new ReponseApi.Succes<>(List.of(new DonneeVigieChiro(
                         "d-1",
                         SEQUENCE,

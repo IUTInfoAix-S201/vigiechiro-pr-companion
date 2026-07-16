@@ -1,6 +1,7 @@
 package fr.univ_amu.iut.commun.model;
 
 import fr.univ_amu.iut.commun.api.DonneeVigieChiro;
+import fr.univ_amu.iut.commun.api.SuiviPagination;
 import java.util.List;
 
 /// **Port** : importer les observations d'une nuit depuis Vigie-Chiro, depuis n'importe quel écran (#1264).
@@ -37,6 +38,16 @@ public interface ImportObservations {
     /// @param donnees les résultats déjà rapatriés (non vides : l'appelant l'a vérifié)
     /// @return un compte rendu prêt à afficher
     String importer(Long idPassage, List<DonneeVigieChiro> donnees, boolean remplacer);
+
+    /// Variante **suivie et annulable** de [#importer(Long, boolean)] pour une **opération longue** (#1597) :
+    /// le `suivi` est notifié à **chaque page** de `donnees` (progression déterminée), et c'est **par lui**
+    /// que l'appelant honore une **annulation** (en levant depuis [SuiviPagination#surPage]). Sert la phase
+    /// d'ancrage de la réactivation, qui rapatrie tout un jeu de `donnees` (~48 pages) : le suivi donne la
+    /// barre de progression **et** le point d'arrêt du bouton « Annuler ».
+    ///
+    /// @param suivi notifié à chaque page ; peut lever depuis `surPage` pour interrompre le téléchargement
+    /// @return un compte rendu prêt à afficher
+    String importer(Long idPassage, boolean remplacer, SuiviPagination suivi);
 
     /// **Reconstruction instantanée par CSV** (#1565) : noms de séquences (fichiers) **distincts** présents
     /// dans un CSV Tadarida brut, dans leur ordre d'apparition. Le passage recrée ses lignes de séquences à

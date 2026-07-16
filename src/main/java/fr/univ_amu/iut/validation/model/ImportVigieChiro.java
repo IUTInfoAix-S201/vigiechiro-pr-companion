@@ -4,6 +4,7 @@ import fr.univ_amu.iut.commun.api.ClientVigieChiro;
 import fr.univ_amu.iut.commun.api.DonneeVigieChiro;
 import fr.univ_amu.iut.commun.api.ParticipationVigieChiro;
 import fr.univ_amu.iut.commun.api.ReponseApi;
+import fr.univ_amu.iut.commun.api.SuiviPagination;
 import fr.univ_amu.iut.commun.api.Traitement;
 import fr.univ_amu.iut.commun.api.TraitementVigieChiro;
 import fr.univ_amu.iut.commun.model.LienVigieChiro;
@@ -77,13 +78,22 @@ public class ImportVigieChiro {
     /// @param remplacer remplace le jeu existant (en préservant les validations observateur) si `true`
     /// @return le bilan de l'import
     public BilanImport importer(Long idPassage, boolean remplacer) {
+        return importer(idPassage, remplacer, (page, totalPages) -> {});
+    }
+
+    /// Variante **suivie et annulable** de [#importer(Long, boolean)] (#1597) : rapatrie les `donnees` en
+    /// suivant chaque page via `suivi` (progression déterminée), qui peut aussi **lever pour interrompre**
+    /// le téléchargement (bouton « Annuler »). Sert la phase d'ancrage de la réactivation. Mêmes règles et
+    /// mêmes diagnostics d'absence que la variante non suivie.
+    public BilanImport importer(Long idPassage, boolean remplacer, SuiviPagination suivi) {
         Objects.requireNonNull(idPassage, CHAMP_ID_PASSAGE);
+        Objects.requireNonNull(suivi, "suivi");
         String participationId = participation(idPassage)
                 .orElseThrow(() -> new RegleMetierException("Ce passage n'est rattaché à aucune participation"
                         + " VigieChiro. Déposez-le d'abord sur VigieChiro (ou rattachez-le à une participation"
                         + " existante)."));
         List<DonneeVigieChiro> donnees =
-                switch (client.donnees(participationId)) {
+                switch (client.donnees(participationId, suivi)) {
                     case ReponseApi.Succes<List<DonneeVigieChiro>>(List<DonneeVigieChiro> liste) -> liste;
                     case ReponseApi.NonConnecte<List<DonneeVigieChiro>> nonConnecte ->
                         throw new RegleMetierException("Non connecté à VigieChiro : collez un jeton"

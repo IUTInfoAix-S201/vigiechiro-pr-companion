@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -310,7 +311,7 @@ class SonsValidationDepotViewTest {
     @DisplayName("#1255 : import d'un passage rattaché via le socle, bilan restitué dans le libellé")
     void import_vigiechiro_passage_rattache(FxRobot robot) {
         when(importVigieChiro.estRattache(7L)).thenReturn(true);
-        when(importVigieChiro.importer(7L, false))
+        when(importVigieChiro.importer(eq(7L), eq(false), any()))
                 .thenReturn(new BilanImport(
                         new ResultatsIdentification(101L, "vigiechiro", "Brut", "2026-06-30T00:00", 7L), 3, 0, 0));
 
@@ -404,7 +405,7 @@ class SonsValidationDepotViewTest {
         ParticipationVigieChiro nuit = new ParticipationVigieChiro("p-1", "A1", "2026-06-22", "Étang de la Tuilière");
         when(importVigieChiro.estRattache(7L)).thenReturn(false);
         when(importVigieChiro.participationsDisponibles()).thenReturn(ReponseApi.succes(List.of(nuit)));
-        when(importVigieChiro.importer(7L, false))
+        when(importVigieChiro.importer(eq(7L), eq(false), any()))
                 .thenReturn(new BilanImport(
                         new ResultatsIdentification(101L, "vigiechiro", "Brut", "2026-06-30T00:00", 7L), 3, 0, 0));
         choixParticipation = Optional.of(nuit);
@@ -414,7 +415,7 @@ class SonsValidationDepotViewTest {
         // Le libellé est ce qui permet à l'observateur de reconnaître SA nuit parmi les autres.
         assertThat(participationsProposees).containsExactly("A1 · 2026-06-22 · Étang de la Tuilière");
         verify(importVigieChiro).rattacher(7L, "p-1");
-        verify(importVigieChiro).importer(7L, false);
+        verify(importVigieChiro).importer(eq(7L), eq(false), any());
     }
 
     @Test
@@ -431,6 +432,6 @@ class SonsValidationDepotViewTest {
         // Rattacher une nuit à la MAUVAISE participation est difficilement réversible : renoncer doit
         // vraiment ne rien faire.
         verify(importVigieChiro, never()).rattacher(anyLong(), anyString());
-        verify(importVigieChiro, never()).importer(anyLong(), anyBoolean());
+        verify(importVigieChiro, never()).importer(anyLong(), anyBoolean(), any());
     }
 }

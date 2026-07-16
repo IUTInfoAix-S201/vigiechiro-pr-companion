@@ -2,12 +2,16 @@ package fr.univ_amu.iut.audio.viewmodel;
 
 import fr.univ_amu.iut.commun.api.ParticipationVigieChiro;
 import fr.univ_amu.iut.commun.api.ReponseApi;
+import fr.univ_amu.iut.commun.api.SuiviPagination;
+import fr.univ_amu.iut.commun.model.JetonAnnulation;
+import fr.univ_amu.iut.commun.model.Progression;
 import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.validation.model.BilanImport;
 import fr.univ_amu.iut.validation.model.ImportVigieChiro;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Consumer;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
@@ -71,6 +75,25 @@ public class ImportVigieChiroViewModel {
         return importateur
                 .orElseThrow(() -> new RegleMetierException("Import VigieChiro indisponible dans ce contexte."))
                 .importer(idPassage, remplacer);
+    }
+
+    /// Variante **suivie et annulable** de [#importer(Long, boolean)] (#1622) : à chaque page rapatriée, le
+    /// jeton est **interrogé** (annulation demandée → [OperationAnnuleeException]) et `progres` reçoit un
+    /// point d'avancement (fraction + libellé « page k/n »). Même contrat que la forme simple : **bloquant**
+    /// (réseau), à appeler **hors du fil JavaFX** ; ne mute aucun état observable.
+    ///
+    /// @return le bilan de l'import
+    public BilanImport importer(
+            Long idPassage, boolean remplacer, Consumer<Progression> progres, JetonAnnulation jeton) {
+        SuiviPagination suivi = (page, totalPages) -> {
+            jeton.leverSiAnnule();
+            double fraction = totalPages <= 0 ? 0.0 : (double) Math.min(page, totalPages) / totalPages;
+            progres.accept(new Progression(
+                    "Import des observations depuis VigieChiro… (page " + page + "/" + totalPages + ")", fraction));
+        };
+        return importateur
+                .orElseThrow(() -> new RegleMetierException("Import VigieChiro indisponible dans ce contexte."))
+                .importer(idPassage, remplacer, suivi);
     }
 
     /// Signale le **début** de l'import (au fil JavaFX, avant de lancer [#importer] en arrière-plan).

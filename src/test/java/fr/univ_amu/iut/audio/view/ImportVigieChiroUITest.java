@@ -1,8 +1,10 @@
 package fr.univ_amu.iut.audio.view;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -11,29 +13,40 @@ import static org.mockito.Mockito.when;
 import fr.univ_amu.iut.audio.viewmodel.AudioViewModel;
 import fr.univ_amu.iut.audio.viewmodel.ImportVigieChiroViewModel;
 import fr.univ_amu.iut.commun.api.ParticipationVigieChiro;
+import fr.univ_amu.iut.commun.model.JetonAnnulation;
+import fr.univ_amu.iut.commun.model.OperationAnnuleeException;
+import fr.univ_amu.iut.commun.model.Progression;
 import fr.univ_amu.iut.commun.view.DemandeurDeChoix;
 import fr.univ_amu.iut.commun.view.ExecuteurTacheSynchrone;
 import fr.univ_amu.iut.commun.view.IndicateurOccupation;
+import fr.univ_amu.iut.commun.view.SuiviOperation;
 import fr.univ_amu.iut.commun.viewmodel.ContextePassage;
 import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
 import fr.univ_amu.iut.commun.viewmodel.SourceObservations;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.layout.StackPane;
+import javafx.stage.Window;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.framework.junit5.ApplicationExtension;
 
-/// Flux du **voile d'import** depuis la vue (#1543, jumeau de [PublicationCorrectionsUITest]). On couvre le
-/// chemin d'un passage **déjà rattaché** (le cœur logique du geste) : sans passage ciblé on ne fait rien ;
-/// rattaché sans jeu existant on importe directement ; avec un jeu existant on **confirme le remplacement**
-/// (refus → rien ; accord → import en remplaçant). Logique pure (ViewModel mockés, voile synchrone) ; la
-/// plateforme JavaFX est initialisée ([ApplicationExtension]) pour que le voile d'occupation se construise,
-/// mais aucun robot n'est piloté. Le chemin **non rattaché** (choix de participation, réseau) reste couvert
-/// par [ImportVigieChiroViewModelTest].
+/// Flux de l'**import des observations** depuis la vue (#1543, migré en modale de progression annulable
+/// #1622). On couvre le chemin d'un passage **déjà rattaché** (le cœur logique du geste) : sans passage
+/// ciblé on ne fait rien ; rattaché sans jeu existant on importe directement ; avec un jeu existant on
+/// **confirme le remplacement** (refus → rien ; accord → import en remplaçant).
+///
+/// La modale d'import est injectée par le port [SuiviOperation] : ici un **double synchrone sans fenêtre**
+/// qui exécute le travail immédiatement — le geste se teste **hors du fil JavaFX**, sans ouvrir de `Stage`
+/// (c'est tout l'intérêt de l'abstraction). La plateforme JavaFX reste initialisée ([ApplicationExtension])
+/// pour le voile d'occupation (chemin non rattaché), mais aucun robot n'est piloté. Le chemin **non
+/// rattaché** (choix de participation, réseau) reste couvert par [ImportVigieChiroViewModelTest].
 @ExtendWith(ApplicationExtension.class)
 class ImportVigieChiroUITest {
 
@@ -49,9 +62,33 @@ class ImportVigieChiroUITest {
                 throw new AssertionError("aucun choix de participation attendu sur un passage déjà rattaché");
             };
 
-    /// Voile synchrone : le travail s'exécute immédiatement, l'overlay n'est jamais réellement affiché.
-    /// Construit dans [#demarrer] (après l'init de la plateforme JavaFX), pas en champ : le [StackPane] et le
-    /// `ProgressIndicator` du voile exigent le toolkit, absent tant que l'instance se construit.
+    /// Modale de progression **synchrone et sans fenêtre** : exécute le travail immédiatement (relais de
+    /// progression neutre, jeton vierge) puis restitue succès / annulation / échec, comme le ferait la vraie
+    /// modale une fois le travail fini — mais sans `Stage`, donc jouable hors du fil JavaFX.
+    private final SuiviOperation suiviSynchrone = new SuiviOperation() {
+        @Override
+        public <T> void lancer(
+                Window proprietaire,
+                String titre,
+                BiFunction<Consumer<Progression>, JetonAnnulation, T> travail,
+                Consumer<T> succes,
+                Runnable annule,
+                Consumer<Throwable> echec) {
+            try {
+                succes.accept(travail.apply(progres -> {}, new JetonAnnulation()));
+            } catch (OperationAnnuleeException annulee) {
+                annule.run();
+            } catch (RuntimeException erreur) {
+                echec.accept(erreur);
+            }
+        }
+    };
+
+    /// Propriétaire de la modale : sans fenêtre réelle dans ce test logique (le double l'ignore).
+    private final Supplier<Window> proprietaire = () -> null;
+
+    /// Voile synchrone (chemin non rattaché) : construit dans [#demarrer] après l'init de la plateforme
+    /// JavaFX (le [StackPane] et le `ProgressIndicator` exigent le toolkit).
     private IndicateurOccupation voile;
 
     @BeforeEach
@@ -64,10 +101,18 @@ class ImportVigieChiroUITest {
     void source_sans_passage() {
         SourceObservations lot = new SourceObservations.ParPassages(List.of(1L, 2L), "Lot filtré");
 
-        ImportVigieChiroUI.lancer(importVigieChiro, viewModel, lot, voile, message -> true, demandeurQuiEchoue);
+        ImportVigieChiroUI.lancer(
+                importVigieChiro,
+                viewModel,
+                lot,
+                voile,
+                suiviSynchrone,
+                proprietaire,
+                message -> true,
+                demandeurQuiEchoue);
 
         verify(importVigieChiro, never()).rattache(anyLong());
-        verify(importVigieChiro, never()).importer(anyLong(), anyBoolean());
+        verify(importVigieChiro, never()).importer(anyLong(), anyBoolean(), any(), any());
     }
 
     @Test
@@ -81,12 +126,14 @@ class ImportVigieChiroUITest {
                 viewModel,
                 parPassage,
                 voile,
+                suiviSynchrone,
+                proprietaire,
                 message -> {
                     throw new AssertionError("aucune confirmation attendue sans jeu de résultats existant");
                 },
                 demandeurQuiEchoue);
 
-        verify(importVigieChiro).importer(7L, false);
+        verify(importVigieChiro).importer(eq(7L), eq(false), any(), any());
         verify(viewModel).ouvrirSur(parPassage);
     }
 
@@ -96,9 +143,17 @@ class ImportVigieChiroUITest {
         when(importVigieChiro.rattache(7L)).thenReturn(true);
         when(viewModel.resultatsDisponiblesProperty()).thenReturn(new SimpleBooleanProperty(true));
 
-        ImportVigieChiroUI.lancer(importVigieChiro, viewModel, parPassage, voile, message -> false, demandeurQuiEchoue);
+        ImportVigieChiroUI.lancer(
+                importVigieChiro,
+                viewModel,
+                parPassage,
+                voile,
+                suiviSynchrone,
+                proprietaire,
+                message -> false,
+                demandeurQuiEchoue);
 
-        verify(importVigieChiro, never()).importer(anyLong(), anyBoolean());
+        verify(importVigieChiro, never()).importer(anyLong(), anyBoolean(), any(), any());
     }
 
     @Test
@@ -113,6 +168,8 @@ class ImportVigieChiroUITest {
                 viewModel,
                 parPassage,
                 voile,
+                suiviSynchrone,
+                proprietaire,
                 message -> {
                     confirmation.set(message);
                     return true;
@@ -120,7 +177,7 @@ class ImportVigieChiroUITest {
                 demandeurQuiEchoue);
 
         assertThat(confirmation.get()).contains("remplacer").contains("perdues");
-        verify(importVigieChiro).importer(7L, true);
+        verify(importVigieChiro).importer(eq(7L), eq(true), any(), any());
         verify(viewModel).ouvrirSur(parPassage);
     }
 }

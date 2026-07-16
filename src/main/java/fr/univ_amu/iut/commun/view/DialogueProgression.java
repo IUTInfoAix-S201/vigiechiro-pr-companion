@@ -25,9 +25,10 @@ import javafx.stage.Window;
 ///
 /// Socle **réutilisable** : là où [IndicateurOccupation] pose un voile opaque (« ça travaille »), cette
 /// modale **dit où on en est** et **laisse renoncer** — ce qu'attend une opération de plusieurs dizaines
-/// de secondes (réactivation avec ancrage, #1571, et toute opération longue future). C'est le patron que
-/// la modale de reconstruction assemblait inline, offert en un point.
-public final class DialogueProgression {
+/// de secondes (réactivation avec ancrage, #1571, import des observations, #1622, et toute opération
+/// longue future). C'est le patron que la modale de reconstruction assemblait inline, offert en un point.
+/// Implémente [SuiviOperation], que les gestes testent avec un double synchrone sans fenêtre.
+public final class DialogueProgression implements SuiviOperation {
 
     private final ExecuteurTache executeur;
 
@@ -37,13 +38,16 @@ public final class DialogueProgression {
 
     /// Ouvre la modale au-dessus de `proprietaire` et lance `travail` (qui reçoit le **relais de
     /// progression** à passer au service et le **jeton d'annulation**). La modale se ferme à la fin ;
-    /// `succes` ou `echec` est alors appelé sur le fil JavaFX. Une **annulation** ferme sans rien appeler
-    /// (renoncer n'est pas échouer).
+    /// `succes`, `annule` ou `echec` est alors appelé sur le fil JavaFX. Une **annulation** ferme puis
+    /// appelle `annule` (pour effacer un état « en cours »), sans passer par `echec` — renoncer n'est pas
+    /// échouer.
+    @Override
     public <T> void lancer(
             Window proprietaire,
             String titre,
             BiFunction<Consumer<Progression>, JetonAnnulation, T> travail,
             Consumer<T> succes,
+            Runnable annule,
             Consumer<Throwable> echec) {
         Objects.requireNonNull(titre, "titre");
         ProgressionOperation progression = new ProgressionOperation();
@@ -75,18 +79,20 @@ public final class DialogueProgression {
         modale.setOnCloseRequest(evenement -> jeton.annuler());
         modale.show();
 
-        executer(modale::close, jeton, progression, travail, succes, echec);
+        executer(modale::close, jeton, progression, travail, succes, annule, echec);
     }
 
     /// Orchestration **sans fenêtre** (testable) : démarre le suivi, exécute le `travail` hors fil avec le
     /// relais de progression et le jeton, puis **ferme** (`fermeture`) avant de conclure. Exactement une
-    /// issue est appliquée ; une **annulation** ferme sans appeler ni `succes` ni `echec`.
+    /// issue est appliquée ; une **annulation** ferme puis appelle `annule`, sans passer par `succes` ni
+    /// `echec`.
     <T> void executer(
             Runnable fermeture,
             JetonAnnulation jeton,
             ProgressionOperation progression,
             BiFunction<Consumer<Progression>, JetonAnnulation, T> travail,
             Consumer<T> succes,
+            Runnable annule,
             Consumer<Throwable> echec) {
         progression.demarrer("Démarrage…");
         Consumer<Progression> relais = executeur.relaisProgression(progression::appliquer);
@@ -96,7 +102,10 @@ public final class DialogueProgression {
                     fermeture.run();
                     succes.accept(resultat);
                 },
-                fermeture,
+                () -> {
+                    fermeture.run();
+                    annule.run();
+                },
                 erreur -> {
                     fermeture.run();
                     echec.accept(erreur);

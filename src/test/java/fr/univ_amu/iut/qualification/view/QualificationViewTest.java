@@ -248,6 +248,22 @@ class QualificationViewTest {
     }
 
     @Test
+    @DisplayName("#1524 : les boutons de verdict par fichier portent leurs classes CSS et sont désactivés au départ")
+    void boutons_par_fichier_presents_et_desactives(FxRobot robot) {
+        Button bon = robot.lookup("#boutonBon").queryAs(Button.class);
+        Button mauvais = robot.lookup("#boutonMauvais").queryAs(Button.class);
+        Button inexploitable = robot.lookup("#boutonInexploitable").queryAs(Button.class);
+
+        assertThat(bon.getStyleClass()).contains("verdict-fichier", "verdict-fichier-bon");
+        assertThat(mauvais.getStyleClass()).contains("verdict-fichier", "verdict-fichier-mauvais");
+        assertThat(inexploitable.getStyleClass()).contains("verdict-fichier", "verdict-fichier-inexploitable");
+        // Aucune séquence sélectionnée à l'ouverture : rien à juger → les trois boutons sont désactivés.
+        assertThat(bon.isDisabled()).isTrue();
+        assertThat(mauvais.isDisabled()).isTrue();
+        assertThat(inexploitable.isDisabled()).isTrue();
+    }
+
+    @Test
     @DisplayName("La vue audio suit le fichier de la séquence sélectionnée")
     void audio_suit_la_sequence_selectionnee(FxRobot robot) {
         TableView<?> table = robot.lookup("#tableSequences").queryAs(TableView.class);

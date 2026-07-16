@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.inject.AbstractModule;
@@ -14,6 +15,7 @@ import com.google.inject.Provides;
 import fr.nedjar.vigiechiro.audio.AudioView;
 import fr.univ_amu.iut.commun.model.MethodeSelection;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
+import fr.univ_amu.iut.commun.model.VerdictFichier;
 import fr.univ_amu.iut.commun.view.Lieu;
 import fr.univ_amu.iut.commun.view.OuvrirPassage;
 import fr.univ_amu.iut.commun.view.OuvrirSite;
@@ -72,9 +74,13 @@ class QualificationVueIntegrationTest {
 
     private QualificationController controleur;
 
+    /// Service mocké, promu en champ pour que les tests de geste puissent vérifier les appels
+    /// (`verify`) qui traversent la Vue et le ViewModel (#1524, verdict par fichier).
+    private ServiceQualification service;
+
     @Start
     void start(Stage stage) throws Exception {
-        ServiceQualification service = mock(ServiceQualification.class);
+        service = mock(ServiceQualification.class);
         // Feu rouge sur la couverture → presenteUneAnomalie() vrai (exerce l'anomalie R13 visible).
         when(service.precheck(anyLong())).thenReturn(new PreCheckNuit.Diagnostic(Feu.ROUGE, Feu.ORANGE, Feu.VERT));
         when(service.chargerContexte(anyLong()))
@@ -202,17 +208,62 @@ class QualificationVueIntegrationTest {
     void colonnes_table_liees_aux_donnees(FxRobot robot) {
         TableView<?> table = robot.lookup("#tableSequences").queryAs(TableView.class);
 
-        assertThat(table.getColumns()).hasSize(4);
+        assertThat(table.getColumns()).hasSize(5);
         TableColumn<?, ?> colPosition = table.getColumns().get(0);
         TableColumn<?, ?> colFichier = table.getColumns().get(1);
         TableColumn<?, ?> colDuree = table.getColumns().get(2);
         TableColumn<?, ?> colEcoute = table.getColumns().get(3);
+        TableColumn<?, ?> colVerdict = table.getColumns().get(4);
 
         // Une colonne non liée renverrait null : ces valeurs prouvent les cellValueFactory câblées.
         assertThat((String) colPosition.getCellData(0)).isEqualTo("1");
         assertThat((String) colFichier.getCellData(0)).isEqualTo("PaRec_0.wav");
         assertThat((String) colDuree.getCellData(0)).contains("5").endsWith("s");
         assertThat((String) colEcoute.getCellData(0)).isEqualTo("○"); // séquence non encore écoutée
+        // #1524 : le verdict par fichier vaut NON_JUGE tant qu'aucune écoute n'a été rendue.
+        assertThat((VerdictFichier) colVerdict.getCellData(0)).isEqualTo(VerdictFichier.NON_JUGE);
+    }
+
+    @Test
+    @DisplayName("#1524 : juger « Bon » enregistre le verdict par fichier, met à jour la ligne et le bouton")
+    void juger_bon_met_a_jour_la_ligne_et_le_bouton(FxRobot robot) {
+        TableView<?> table = robot.lookup("#tableSequences").queryAs(TableView.class);
+        Button bon = robot.lookup("#boutonBon").queryAs(Button.class);
+
+        robot.interact(() -> table.getSelectionModel().select(0)); // séquence courante = ligne 0 (id 0)
+        robot.interact(bon::fire);
+        WaitForAsyncUtils.waitForFxEvents();
+
+        // Le geste traverse bien le ViewModel jusqu'au service (verdict PAR FICHIER de la séquence).
+        verify(service).enregistrerVerdictFichier(ID_PASSAGE, 0L, VerdictFichier.BON);
+        // La ligne (colonne badge) reflète le verdict rendu...
+        TableColumn<?, ?> colVerdict = table.getColumns().get(4);
+        assertThat((VerdictFichier) colVerdict.getCellData(0)).isEqualTo(VerdictFichier.BON);
+        // ...et le bouton correspondant est mis en évidence (classe verdict-fichier-actif).
+        assertThat(bon.getStyleClass()).contains("verdict-fichier-actif");
+    }
+
+    @Test
+    @DisplayName("#1524 : les boutons de verdict par fichier sont désactivés tant qu'aucune séquence n'est choisie")
+    void boutons_par_fichier_desactives_sans_sequence(FxRobot robot) {
+        Button bon = robot.lookup("#boutonBon").queryAs(Button.class);
+        Button mauvais = robot.lookup("#boutonMauvais").queryAs(Button.class);
+        Button inexploitable = robot.lookup("#boutonInexploitable").queryAs(Button.class);
+        TableView<?> table = robot.lookup("#tableSequences").queryAs(TableView.class);
+
+        // À l'ouverture, aucune séquence n'est sélectionnée : rien à juger → boutons désactivés.
+        robot.interact(() -> table.getSelectionModel().clearSelection());
+        WaitForAsyncUtils.waitForFxEvents();
+        assertThat(bon.isDisabled()).isTrue();
+        assertThat(mauvais.isDisabled()).isTrue();
+        assertThat(inexploitable.isDisabled()).isTrue();
+
+        // Une fois une séquence sélectionnée, les trois deviennent actifs.
+        robot.interact(() -> table.getSelectionModel().select(0));
+        WaitForAsyncUtils.waitForFxEvents();
+        assertThat(bon.isDisabled()).isFalse();
+        assertThat(mauvais.isDisabled()).isFalse();
+        assertThat(inexploitable.isDisabled()).isFalse();
     }
 
     @Test

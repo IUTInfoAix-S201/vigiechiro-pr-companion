@@ -5,6 +5,7 @@ import fr.nedjar.vigiechiro.audio.AudioView;
 import fr.univ_amu.iut.commun.model.DepotDispositionColonnes;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.model.Verdict;
+import fr.univ_amu.iut.commun.model.VerdictFichier;
 import fr.univ_amu.iut.commun.view.ConfirmateurModifiable;
 import fr.univ_amu.iut.commun.view.EmplacementNavigation;
 import fr.univ_amu.iut.commun.view.EmplacementPassage;
@@ -148,6 +149,10 @@ public class QualificationController implements GardeQuitter, EmplacementNavigat
     @FXML
     private TableColumn<SequenceEnSelection, String> colEcoute;
 
+    /// Colonne « Verdict » : badge du verdict par fichier de chaque séquence (#1524, lot 6a).
+    @FXML
+    private TableColumn<SequenceEnSelection, VerdictFichier> colVerdict;
+
     @FXML
     private Label lblSeqNumero;
 
@@ -170,6 +175,17 @@ public class QualificationController implements GardeQuitter, EmplacementNavigat
 
     @FXML
     private Button boutonAJeter;
+
+    /// Verdict PAR FICHIER de la séquence courante (#1524, lot 6a) : « Bon / Mauvais / Inexploitable ».
+    /// Câblés à [SelectionEcouteViewModel#marquerVerdictCourante] par [VerdictParFichier].
+    @FXML
+    private Button boutonBon;
+
+    @FXML
+    private Button boutonMauvais;
+
+    @FXML
+    private Button boutonInexploitable;
 
     @FXML
     private TextArea champCommentaire;
@@ -295,6 +311,9 @@ public class QualificationController implements GardeQuitter, EmplacementNavigat
                 Formats.dureeSecondes(c.getValue().sequence().dureeSecondes())));
         colEcoute.setCellValueFactory(
                 c -> new ReadOnlyStringWrapper(c.getValue().ecoutee() ? "✓" : "○"));
+        // Verdict par fichier (#1524, lot 6a) : 3 boutons sur la séquence courante + colonne badge,
+        // externalisés pour garder le contrôleur sous les plafonds PMD (GodClass / NcssCount).
+        VerdictParFichier.lier(selectionVm, boutonBon, boutonMauvais, boutonInexploitable, colVerdict);
         tableSequences
                 .getSelectionModel()
                 .selectedItemProperty()
@@ -504,7 +523,8 @@ public class QualificationController implements GardeQuitter, EmplacementNavigat
                 new GestionnaireColonnes.Colonne(colPosition, "N°", false),
                 new GestionnaireColonnes.Colonne(colFichier, "Fichier", true),
                 new GestionnaireColonnes.Colonne(colDuree, "Durée", false),
-                new GestionnaireColonnes.Colonne(colEcoute, "Écouté", false));
+                new GestionnaireColonnes.Colonne(colEcoute, "Écouté", false),
+                new GestionnaireColonnes.Colonne(colVerdict, "Verdict", false));
     }
 
     /// Ouvre la modale de personnalisation de la sélection (R12) : choix de la méthode et de la taille,

@@ -76,6 +76,18 @@
   -fx-background-color: #ffffff;
 }
 
+/*
+ * Barre de verdict GLOBAL en pied (#1524) : pleine largeur sous les deux colonnes, pour signifier
+ * que la décision porte sur toute la nuit et non sur le fichier courant (jugé dans la colonne de
+ * droite). Filet supérieur pour la détacher du corps.
+ */
+.barre-verdict-global {
+  -fx-background-color: #ffffff;
+  -fx-border-color: #d0d7de transparent transparent transparent;
+  -fx-border-width: 1 0 0 0;
+  -fx-padding: 12 18 14 18;
+}
+
 .colonne-titre {
   -fx-font-size: 15px;
   -fx-font-weight: bold;
@@ -142,6 +154,84 @@
 .verdict-choisi {
   -fx-border-color: #2c3e50;
   -fx-border-width: 3;
+}
+
+/*
+ * ---- Verdict PAR FICHIER (séquence courante, #1524) ----
+ * Boutons plus discrets que le verdict global du passage (contour coloré sur fond clair, pas de
+ * pavé plein) : ils jugent un fichier, pas la nuit. L'actif (verdict courant de la séquence) prend
+ * un fond teinté de la palette des feux, cohérent avec les badges de la colonne.
+ */
+.verdict-fichier {
+  -fx-font-size: 12px;
+  -fx-font-weight: bold;
+  -fx-padding: 8 8 8 8;
+  -fx-background-radius: 4;
+  -fx-border-radius: 4;
+  -fx-border-width: 1.5;
+  -fx-background-color: #ffffff;
+}
+
+.verdict-fichier:disabled {
+  -fx-opacity: 0.45;
+}
+
+.verdict-fichier-bon {
+  -fx-text-fill: #0e5128;
+  -fx-border-color: #1e8449;
+}
+
+.verdict-fichier-mauvais {
+  -fx-text-fill: #7e5109;
+  -fx-border-color: #b9770e;
+}
+
+.verdict-fichier-inexploitable {
+  -fx-text-fill: #6e2c00;
+  -fx-border-color: #a93226;
+}
+
+.verdict-fichier-bon.verdict-fichier-actif {
+  -fx-background-color: #d5f0de;
+  -fx-border-width: 2.5;
+}
+
+.verdict-fichier-mauvais.verdict-fichier-actif {
+  -fx-background-color: #fbe6c8;
+  -fx-border-width: 2.5;
+}
+
+.verdict-fichier-inexploitable.verdict-fichier-actif {
+  -fx-background-color: #f5d2cd;
+  -fx-border-width: 2.5;
+}
+
+/* ---- Badge de la colonne « Verdict » de la liste de sélection (#1524) ---- */
+.badge-verdict {
+  -fx-font-size: 11px;
+  -fx-font-weight: bold;
+  -fx-padding: 1 8 1 8;
+  -fx-background-radius: 9;
+}
+
+.badge-verdict-bon {
+  -fx-background-color: #d5f0de;
+  -fx-text-fill: #0e5128;
+}
+
+.badge-verdict-mauvais {
+  -fx-background-color: #fbe6c8;
+  -fx-text-fill: #7e5109;
+}
+
+.badge-verdict-inexploitable {
+  -fx-background-color: #f5d2cd;
+  -fx-text-fill: #6e2c00;
+}
+
+.badge-verdict-non-juge {
+  -fx-background-color: #eef2f5;
+  -fx-text-fill: #6a737d;
 }
 
 /* ---- Messages + actions ---- */

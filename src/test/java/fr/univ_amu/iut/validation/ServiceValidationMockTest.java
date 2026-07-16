@@ -341,4 +341,62 @@ class ServiceValidationMockTest {
             assertThat(obs.indiceVigieChiro()).isEqualTo(0);
         });
     }
+
+    private static ResultatsIdentification resultats(Long idPassage) {
+        return new ResultatsIdentification(100L, "observations.csv", "\"Brut\"", "2026-07-07T10:00:00", idPassage);
+    }
+
+    /// Observation **ancrée** à la plateforme (`idDonneeVigieChiro` renseigné) : le reste est indifférent au
+    /// calcul de [ServiceValidation#aucunAncrage].
+    private static Observation observationAncree() {
+        return new Observation(
+                1L,
+                10L,
+                0.0,
+                5.0,
+                45,
+                "Pippip",
+                0.8,
+                null,
+                "Pippip",
+                0.9,
+                null,
+                false,
+                ModeValidation.MANUEL,
+                100L,
+                false,
+                "d1",
+                0,
+                null,
+                null,
+                null);
+    }
+
+    @Test
+    @DisplayName("aucunAncrage : passage reconstruit par CSV (aucune observation ancrée) → true (#1596)")
+    void aucun_ancrage_passage_reconstruit() {
+        when(resultatsDao.findByPassage(7L)).thenReturn(Optional.of(resultats(7L)));
+        when(observationDao.findByResults(100L))
+                .thenReturn(List.of(observation("Pippip", "Pippip", 0.9), observation("noise", "Pippip", 0.9)));
+
+        assertThat(service().aucunAncrage(7L)).isTrue();
+    }
+
+    @Test
+    @DisplayName("aucunAncrage : au moins une observation ancrée → false (publication partielle possible)")
+    void aucun_ancrage_partiel_reste_publiable() {
+        when(resultatsDao.findByPassage(7L)).thenReturn(Optional.of(resultats(7L)));
+        when(observationDao.findByResults(100L))
+                .thenReturn(List.of(observation("Pippip", "Pippip", 0.9), observationAncree()));
+
+        assertThat(service().aucunAncrage(7L)).isFalse();
+    }
+
+    @Test
+    @DisplayName("aucunAncrage : passage sans résultats → false (rien à publier)")
+    void aucun_ancrage_sans_resultats() {
+        when(resultatsDao.findByPassage(7L)).thenReturn(Optional.empty());
+
+        assertThat(service().aucunAncrage(7L)).isFalse();
+    }
 }

@@ -78,6 +78,7 @@ public class ServiceValidation implements CompteurValidations {
     private final Horloge horloge;
     private final PreservationValidations preservation;
     private final FilsDiscussionVigieChiro fils;
+    private final EtatAncragePassage ancrage;
     private final MessageObservationDao messageDao;
 
     public ServiceValidation(
@@ -103,6 +104,7 @@ public class ServiceValidation implements CompteurValidations {
         this.messageDao = Objects.requireNonNull(messageDao, "messageDao");
         this.preservation = new PreservationValidations(resultatsDao, observationDao);
         this.fils = new FilsDiscussionVigieChiro(observationDao, messageDao, uniteDeTravail);
+        this.ancrage = new EtatAncragePassage(resultatsDao, observationDao);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -128,17 +130,20 @@ public class ServiceValidation implements CompteurValidations {
         return resultatsDao.findByPassage(idPassage).map(ResultatsIdentification::id);
     }
 
-    /// Le passage a-t-il des observations **sans ancrage plateforme** (`idDonneeVigieChiro == null`) ?
-    /// C'est le cas d'un passage reconstruit par CSV (#1565), dont l'ancrage — requis pour publier des
-    /// corrections — n'est acquis qu'à la réactivation (#1571). `false` s'il n'a pas d'observations, ou si
-    /// toutes portent déjà leur ancrage.
+    /// Le passage a-t-il **au moins une** observation sans ancrage plateforme (`idDonneeVigieChiro ==
+    /// null`) ? Cas d'un passage reconstruit par CSV (#1565), dont l'ancrage — requis pour publier des
+    /// corrections — n'est acquis qu'à la réactivation (#1571). Délègue à [EtatAncragePassage].
     public boolean ancrageManquant(Long idPassage) {
-        Objects.requireNonNull(idPassage, PARAM_ID_PASSAGE);
-        return resultatsDao
-                .findByPassage(idPassage)
-                .map(resultats -> observationDao.findByResults(resultats.id()).stream()
-                        .anyMatch(observation -> observation.idDonneeVigieChiro() == null))
-                .orElse(false);
+        return ancrage.manquant(idPassage);
+    }
+
+    /// Le passage n'a-t-il **aucune observation ancrée** à la plateforme (toutes `idDonneeVigieChiro ==
+    /// null`) ? État d'un passage reconstruit par CSV non réactivé, où rien n'est publiable : l'IHM grise
+    /// donc proactivement l'action de publication (#1596). Distinct de [#ancrageManquant] (au moins une
+    /// manquante) : ici il faut qu'**aucune** ne soit ancrée, sinon une publication partielle reste
+    /// possible. Délègue à [EtatAncragePassage].
+    public boolean aucunAncrage(Long idPassage) {
+        return ancrage.aucun(idPassage);
     }
 
     /// Importe les résultats Tadarida d'un passage, **en mode tolérant** : parse le CSV, crée les

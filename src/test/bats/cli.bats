@@ -5,7 +5,7 @@
 # picocli, et les CODES DE SORTIE d'un vrai processus.
 #
 # Contrats HORS-LIGNE : aide générale, aide de CHAQUE sous-commande (un test parcourt les 35),
-# validation d'arguments, refus métier, lectures locales sur base vide. La couverture des chemins
+# validation d'arguments, refus métier, lectures et écritures locales sur base jetable. La couverture des chemins
 # RÉSEAU (import, dépôt, ancrage) reste cadrée en suite (#1592).
 #
 # `--help` est activé sur chaque sous-commande (Cli.executer, #1592) : `reactiver --help` décrit la
@@ -121,4 +121,37 @@ cli() {
   run cli statut-passage --passage 999999
   [ "${status}" -eq 1 ]
   [[ "${output}" == *"introuvable"* ]]
+}
+
+# --- Écritures locales (base jetable) : creer-site / ajouter-point écrivent en base, sans réseau ----
+
+@test "creer-site --carre 130711 : exit 0" {
+  run cli creer-site --carre 130711 --protocole STANDARD
+  [ "${status}" -eq 0 ]
+}
+
+@test "creer-site sans --carre : erreur d'usage picocli, exit 2" {
+  run cli creer-site --protocole STANDARD
+  [ "${status}" -eq 2 ]
+}
+
+@test "ajouter-point sans --site : erreur d'usage picocli, exit 2" {
+  run cli ajouter-point --code A1
+  [ "${status}" -eq 2 ]
+}
+
+@test "workflow local : creer-site -> ajouter-point -> lister-sites les montre (#1592)" {
+  # Un vrai enchaînement scriptable, sur la même base jetable (le tmpdir du test).
+  # creer-site écrit l'identifiant du site sur stdout (les logs partent sur stderr) : on le récupère.
+  local site
+  site=$(cli creer-site --carre 130711 --protocole STANDARD 2>/dev/null)
+  [[ "${site}" =~ ^[0-9]+$ ]]
+
+  run cli ajouter-point --site "${site}" --code A1
+  [ "${status}" -eq 0 ]
+
+  run cli lister-sites
+  [ "${status}" -eq 0 ]
+  [[ "${output}" == *"130711"* ]]
+  [[ "${output}" == *"A1"* ]]
 }

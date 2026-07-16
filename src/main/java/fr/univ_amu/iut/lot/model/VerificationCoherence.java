@@ -122,13 +122,14 @@ public class VerificationCoherence {
         return controles;
     }
 
-    /// R14 : un passage au verdict « À jeter » ne peut pas être déposé.
+    /// R14 : un passage au verdict « Inexploitable » ne peut pas être déposé.
     private static ControleCoherence controleVerdict(Passage passage) {
         if (passage.verdictVerification() == Verdict.A_JETER) {
             return new ControleCoherence(
                     "Verdict de vérification",
                     StatutControle.ECHEC,
-                    "Ce passage porte le verdict « Inexploitable » et ne peut pas être déposé.");
+                    "Ce passage porte le verdict « Inexploitable » et ne peut pas être déposé."
+                            + " Re-vérifiez-le pour lui attribuer un autre verdict.");
         }
         return new ControleCoherence(
                 "Verdict de vérification", StatutControle.OK, "Le passage n'est pas marqué « Inexploitable ».");

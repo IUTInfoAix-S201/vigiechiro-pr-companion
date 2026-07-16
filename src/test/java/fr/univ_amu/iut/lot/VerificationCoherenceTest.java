@@ -217,8 +217,8 @@ class VerificationCoherenceTest {
     }
 
     @Test
-    @DisplayName("R14 : un passage « Inexploitable » produit une alerte bloquante")
-    void verdict_a_jeter_bloque() {
+    @DisplayName("R14 : un passage « Inexploitable » produit une alerte bloquante orientant vers la requalification")
+    void verdict_inexploitable_bloque() {
         Passage passage = creerPassage(Verdict.A_JETER);
         Long idSession = creerSessionCoherente(passage.id());
         creerReleve(idSession);
@@ -227,6 +227,8 @@ class VerificationCoherenceTest {
 
         assertThat(resultat.estBloquant()).isTrue();
         assertThat(resultat.messages()).anyMatch(m -> m.contains("Inexploitable"));
+        // Lot 7 : le message oriente vers la requalification (re-vérifier pour changer le verdict).
+        assertThat(resultat.messages()).anyMatch(m -> m.contains("Re-vérifiez"));
     }
 
     @Test

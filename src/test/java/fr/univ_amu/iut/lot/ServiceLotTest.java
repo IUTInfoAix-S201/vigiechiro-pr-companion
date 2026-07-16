@@ -392,7 +392,8 @@ class ServiceLotTest {
 
         assertThatThrownBy(() -> service.preparerLot(passage.id()))
                 .isInstanceOf(RegleMetierException.class)
-                .hasMessageContaining("Inexploitable");
+                .hasMessageContaining("Inexploitable")
+                .hasMessageContaining("Re-vérifiez"); // lot 7 : oriente vers la requalification
 
         assertThat(passageDao.findById(passage.id()).orElseThrow().statutWorkflow())
                 .as("statut inchangé après refus R14")

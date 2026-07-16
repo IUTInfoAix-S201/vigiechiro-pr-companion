@@ -128,10 +128,10 @@ public class VerificationCoherence {
             return new ControleCoherence(
                     "Verdict de vérification",
                     StatutControle.ECHEC,
-                    "Ce passage porte le verdict « À jeter » et ne peut pas être déposé.");
+                    "Ce passage porte le verdict « Inexploitable » et ne peut pas être déposé.");
         }
         return new ControleCoherence(
-                "Verdict de vérification", StatutControle.OK, "Le passage n'est pas marqué « À jeter ».");
+                "Verdict de vérification", StatutControle.OK, "Le passage n'est pas marqué « Inexploitable ».");
     }
 
     /// R10 : des séquences existent et chaque original a au moins une séquence dérivée.

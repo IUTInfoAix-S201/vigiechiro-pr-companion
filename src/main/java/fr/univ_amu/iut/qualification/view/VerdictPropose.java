@@ -7,7 +7,7 @@ import javafx.scene.control.Label;
 
 /// Rendu de la puce « Verdict proposé » de M-Qualification (#1524, lot 6a) : affiche le verdict final
 /// **dérivé** des verdicts par fichier de la sélection ([Verdict], proposé seulement), coloré selon sa
-/// valeur (OK / Douteux / À jeter) et masqué tant qu'aucune séquence n'est jugée ([Verdict#A_VERIFIER]).
+/// valeur (OK / Utilisable / Inexploitable) et masqué tant qu'aucune séquence n'est jugée ([Verdict#A_VERIFIER]).
 ///
 /// Extrait de [QualificationController] pour garder le contrôleur sous le plafond de taille (PMD
 /// `NcssCount`), sur le patron de [Feux]. Purement présentation : la dérivation vit dans le ViewModel.

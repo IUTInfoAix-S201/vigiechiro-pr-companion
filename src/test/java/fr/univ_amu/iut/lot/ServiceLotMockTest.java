@@ -29,7 +29,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /// Complément Mockito (cf. SERVICE-CONVENTIONS §3.2) : isole la règle dure R14 indépendamment
-/// de la base. On vérifie que le verdict « À jeter » court-circuite tout le reste : ni la
+/// de la base. On vérifie que le verdict « Inexploitable » court-circuite tout le reste : ni la
 /// vérification de cohérence ni la moindre écriture ne sont déclenchées avant le refus.
 @ExtendWith(MockitoExtension.class)
 class ServiceLotMockTest {
@@ -65,7 +65,7 @@ class ServiceLotMockTest {
     }
 
     @Test
-    @DisplayName("R14 : preparerLot refuse « À jeter » sans vérifier la cohérence ni écrire")
+    @DisplayName("R14 : preparerLot refuse « Inexploitable » sans vérifier la cohérence ni écrire")
     void preparer_lot_a_jeter_court_circuite() {
         ServiceLot service = new ServiceLot(
                 passageDao,
@@ -80,7 +80,7 @@ class ServiceLotMockTest {
 
         assertThatThrownBy(() -> service.preparerLot(1L))
                 .isInstanceOf(RegleMetierException.class)
-                .hasMessageContaining("À jeter");
+                .hasMessageContaining("Inexploitable");
 
         verify(verification, never()).verifier(any());
         verify(passageDao, never()).update(any());

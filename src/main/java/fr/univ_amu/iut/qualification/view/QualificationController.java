@@ -405,7 +405,7 @@ public class QualificationController implements GardeQuitter, EmplacementNavigat
                 enveloppeEnregistrer,
                 Bindings.when(verdictVm.peutEnregistrer())
                         .then("Enregistrer le verdict de ce passage.")
-                        .otherwise("Choisissez d'abord un verdict (OK, Douteux…) pour pouvoir l'enregistrer."));
+                        .otherwise("Choisissez d'abord un verdict (OK, Utilisable…) pour pouvoir l'enregistrer."));
 
         // Raccourcis clavier (O/D/J, Entrée, Espace) sur la racine de l'écran : addEventFilter (phase de
         // **capture**, #1504) et non addEventHandler (phase de bulle). En bulle, Espace était consommé par

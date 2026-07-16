@@ -16,13 +16,13 @@ import org.junit.jupiter.api.Test;
 class CriteresMultisiteTest {
 
     @Test
-    @DisplayName("Les vues par défaut (Tout / Déposés / À vérifier / Vérifiés) portent les bons filtres")
+    @DisplayName("Les vues par défaut (Tout / Déposés / Non vérifié / Vérifiés) portent les bons filtres")
     void vues_par_defaut_portent_les_bons_filtres() {
         List<VueSauvegardee> vues = CriteresMultisite.vuesParDefaut();
 
         assertThat(vues)
                 .extracting(VueSauvegardee::nom)
-                .containsExactly("Tout", "Résultats à importer", "Déposés", "À vérifier", "Vérifiés");
+                .containsExactly("Tout", "Résultats à importer", "Déposés", "Non vérifié", "Vérifiés");
         assertThat(vues).allSatisfy(vue -> {
             assertThat(vue.id())
                     .as("vue par défaut : jamais persistée (lecture seule)")
@@ -33,7 +33,7 @@ class CriteresMultisiteTest {
         assertThat(descripteur(vues, "Tout")).doesNotContain("statut", "verdict");
         assertThat(descripteur(vues, "Résultats à importer")).contains("analyse", EtatAnalyse.A_IMPORTER.name());
         assertThat(descripteur(vues, "Déposés")).contains("statut", StatutWorkflow.DEPOSE.name());
-        assertThat(descripteur(vues, "À vérifier")).contains("verdict", Verdict.A_VERIFIER.name());
+        assertThat(descripteur(vues, "Non vérifié")).contains("verdict", Verdict.A_VERIFIER.name());
         assertThat(descripteur(vues, "Vérifiés")).contains("statut", StatutWorkflow.VERIFIE.name());
     }
 

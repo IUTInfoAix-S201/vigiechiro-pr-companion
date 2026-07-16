@@ -53,7 +53,8 @@ public class MigrationSchema {
         "V24__archivage_passage.sql",
         "V25__purge_originaux_declaree.sql",
         "V26__validation_expert.sql",
-        "V27__verdict_par_fichier.sql"
+        "V27__verdict_par_fichier.sql",
+        "V28__bascule_lexique_verdict.sql"
     };
 
     private static final String DOSSIER = "/db/migration/";

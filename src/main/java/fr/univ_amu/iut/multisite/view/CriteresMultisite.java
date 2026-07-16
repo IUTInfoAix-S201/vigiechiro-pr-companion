@@ -46,7 +46,7 @@ final class CriteresMultisite {
     ///   observations ne sont **pas encore** en base — la réponse en un onglet à « lesquelles de mes nuits
     ///   sont prêtes ? », qui obligeait jusqu'ici à ouvrir chaque passage l'un après l'autre ;
     /// - **« Déposés »** (statut Déposé : nuits déjà envoyées) ;
-    /// - **« À vérifier »** (verdict À vérifier : passages à contrôler) ;
+    /// - **« Non vérifié »** (verdict Non vérifié : passages à contrôler) ;
     /// - **« Vérifiés »** (statut Vérifié).
     ///
     /// Chaque descripteur est sérialisé exactement comme [GestionnaireFiltres#decrire()] le produirait, pour
@@ -58,7 +58,7 @@ final class CriteresMultisite {
                         "Résultats à importer",
                         new DescripteurCritere(ANALYSE, List.of(EtatAnalyse.A_IMPORTER.name()))),
                 vueParDefaut("Déposés", new DescripteurCritere(STATUT, List.of(StatutWorkflow.DEPOSE.name()))),
-                vueParDefaut("À vérifier", new DescripteurCritere("verdict", List.of(Verdict.A_VERIFIER.name()))),
+                vueParDefaut("Non vérifié", new DescripteurCritere("verdict", List.of(Verdict.A_VERIFIER.name()))),
                 vueParDefaut("Vérifiés", new DescripteurCritere(STATUT, List.of(StatutWorkflow.VERIFIE.name()))));
     }
 

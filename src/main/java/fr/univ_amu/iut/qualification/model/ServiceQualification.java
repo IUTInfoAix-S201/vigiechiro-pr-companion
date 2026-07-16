@@ -280,7 +280,7 @@ public class ServiceQualification {
     /// simplement mémorisé tel quel — le refus d'inclusion dans un lot (R14) sera appliqué en
     /// aval par la feature `lot`.
     ///
-    /// @param verdict `OK`, `Douteux` ou `À jeter` (le sentinelle `À vérifier` est refusé : il
+    /// @param verdict `OK`, `Utilisable` ou `Inexploitable` (le sentinelle `Non vérifié` est refusé : il
     ///     dénote l'absence de verdict)
     /// @param commentaire commentaire libre facultatif (`null` ⇒ commentaire existant conservé)
     /// @return le passage mis à jour
@@ -289,7 +289,7 @@ public class ServiceQualification {
     ///     une nuit déposée sur Vigie-Chiro ne peut plus changer de verdict, #1514)
     public Passage enregistrerVerdict(Long idPassage, Verdict verdict, String commentaire) {
         if (verdict == null || verdict == Verdict.A_VERIFIER) {
-            throw new IllegalArgumentException("Un verdict explicite est requis (OK, Douteux ou À jeter).");
+            throw new IllegalArgumentException("Un verdict explicite est requis (OK, Utilisable ou Inexploitable).");
         }
         Passage passage = passageDao
                 .findById(idPassage)
@@ -322,7 +322,7 @@ public class ServiceQualification {
     }
 
     /// `true` si le passage porte le verdict [Verdict#A_JETER]. Point d'extension pour R14 (un
-    /// passage « À jeter » ne peut pas rejoindre un lot prêt à déposer) : la feature `lot`
+    /// passage « Inexploitable » ne peut pas rejoindre un lot prêt à déposer) : la feature `lot`
     /// s'appuiera sur cette information.
     ///
     /// @throws RegleMetierException si le passage est introuvable

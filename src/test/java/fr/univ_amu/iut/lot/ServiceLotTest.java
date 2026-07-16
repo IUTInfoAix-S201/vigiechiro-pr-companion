@@ -385,14 +385,14 @@ class ServiceLotTest {
     }
 
     @Test
-    @DisplayName("R14 : preparerLot refuse un passage « À jeter » (RegleMetierException)")
+    @DisplayName("R14 : preparerLot refuse un passage « Inexploitable » (RegleMetierException)")
     void preparer_lot_a_jeter_refuse() {
         Passage passage = creerPassage(Verdict.A_JETER);
         creerSessionCoherente(passage.id());
 
         assertThatThrownBy(() -> service.preparerLot(passage.id()))
                 .isInstanceOf(RegleMetierException.class)
-                .hasMessageContaining("À jeter");
+                .hasMessageContaining("Inexploitable");
 
         assertThat(passageDao.findById(passage.id()).orElseThrow().statutWorkflow())
                 .as("statut inchangé après refus R14")
@@ -444,7 +444,7 @@ class ServiceLotTest {
     }
 
     @Test
-    @DisplayName("R14 : marquerDepose refuse aussi un passage « À jeter »")
+    @DisplayName("R14 : marquerDepose refuse aussi un passage « Inexploitable »")
     void marquer_depose_a_jeter_refuse() {
         Passage passage = creerPassage(Verdict.A_JETER);
         creerSessionCoherente(passage.id());

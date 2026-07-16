@@ -154,9 +154,9 @@ public final class CaptureQualification {
         if (!selectionVm.lignes().isEmpty()) {
             selectionVm.selectionner(selectionVm.lignes().get(0));
         }
-        // Le mélange par fichier propose « Douteux » (ni tout Bon, ni majorité d'inexploitables), qui
+        // Le mélange par fichier propose « Utilisable » (ni tout Bon, ni majorité d'inexploitables), qui
         // PRÉ-REMPLIT le verdict global (#1524, lot 6a). Ici l'utilisateur SURCHARGE en retenant « OK » :
-        // la puce affiche « Proposé : Douteux (surchargé) » et le bouton OK est mis en évidence.
+        // la puce affiche « Proposé : Utilisable (surchargé) » et le bouton OK est mis en évidence.
         verdictVm.choisirVerdict(Verdict.OK);
 
         // DERNIÈRE capture : on attend le chargement audio de la séquence courante (sélectionnée
@@ -186,7 +186,7 @@ public final class CaptureQualification {
 
     /// Répartition de démonstration des verdicts par fichier sur les séquences écoutées (#1524) : un
     /// mélange 7 Bon / 3 Mauvais / 2 Inexploitable, pour illustrer la colonne tricolore de la liste et
-    /// l'agrégation vers le verdict global (Douteux ici : ni tout Bon, ni majorité d'inexploitables).
+    /// l'agrégation vers le verdict global (Utilisable ici : ni tout Bon, ni majorité d'inexploitables).
     private static VerdictFichier verdictDemo(int index) {
         if (index == 4 || index == 8 || index == 11) {
             return VerdictFichier.MAUVAIS;

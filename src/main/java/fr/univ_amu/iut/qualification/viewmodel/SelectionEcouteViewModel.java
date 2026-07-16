@@ -229,7 +229,8 @@ public class SelectionEcouteViewModel {
     }
 
     /// Dérive le verdict proposé du passage à partir des verdicts par fichier courants
-    /// ([AgregationVerdict] : majorité stricte d'inexploitables → À jeter ; tout Bon → OK ; sinon Douteux).
+    /// ([AgregationVerdict] : majorité stricte d'inexploitables → Inexploitable ; tout Bon → OK ; sinon
+    /// Utilisable).
     private void recalculerPropose() {
         verdictPropose.set(AgregationVerdict.deriver(
                 lignes.stream().map(SequenceEnSelection::verdict).toList()));

@@ -43,33 +43,39 @@ Tadarida, une écoute filtrée sur plusieurs sites). Là aussi on préfère « *
 Le **verdict** est le jugement de qualité porté sur un passage après écoute d'un échantillon de
 séquences (parcours P3, règles R13 consultative et R14 bloquante).
 
-### État livré
+### Verdict final du passage
 
-| Verdict | Sens | Dépôt |
+**Dérivé** des verdicts par fichier son et **surchargeable** (proposé, pas imposé — R13).
+
+| Verdict final | Sens | Dépôt |
 |---|---|---|
-| `À vérifier` | pas encore jugé (valeur sentinelle) | — |
-| `OK` | exploitable | autorisé |
-| `Douteux` | à considérer avec réserve | autorisé |
-| `À jeter` | à écarter | **bloqué (R14)** |
+| `Non vérifié` | pas encore jugé (valeur sentinelle) | — |
+| `OK` | pleinement exploitable | autorisé |
+| `Utilisable` | exploitable avec réserve | autorisé |
+| `Inexploitable` | à écarter | **bloqué (R14, garde reprise au lot 7)** |
 
-L'enum vit dans [`commun/model/Verdict`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/model/Verdict.java).
+### Verdict par fichier son
 
-### Cible du chantier #1524 (décidée, pas encore implémentée)
+Saisi à l'écoute de chaque séquence de l'échantillon ; alimente la colonne « Verdict » et la barre
+tricolore de la sélection, et sa dérivation (`AgregationVerdict`) propose le verdict final.
 
-!!! note "Évolution de vocabulaire figée, bascule à venir"
-    Le chantier [#1524](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/1524) fait
-    passer d'un **verdict global unique** à **un verdict par fichier son** plus **un verdict final du
-    passage dérivé**. Tant que la bascule (enum + migration Flyway) n'est pas livrée, l'**état livré**
-    ci-dessus fait foi ; ne pas anticiper ces mots dans l'IHM ou la doc utilisateur.
+| Verdict fichier | Sens |
+|---|---|
+| `Non jugé` | pas encore écouté (défaut) |
+| `Bon` | séquence exploitable |
+| `Mauvais` | mauvaise qualité, mais pas inutilisable |
+| `Inexploitable` | rien d'exploitable |
 
-    - **Verdict par fichier son** : `Bon` / `Mauvais` / `Inexploitable` (alimente la barre de
-      progression tricolore).
-    - **Verdict final du passage**, proposé après écoute complète de l'échantillon : `OK` /
-      `Utilisable` / `Inexploitable`. État initial : `Non vérifié`.
-    - Correspondance ancien → cible : `OK` → `OK`, `Douteux` → `Utilisable`, `À jeter` →
-      `Inexploitable`, `À vérifier` → `Non vérifié`.
-    - **Garde de dépôt** : `Inexploitable` reprend le rôle bloquant de `À jeter` (un passage
-      `Inexploitable` ne peut pas être déposé sans **requalification**).
+Les enums vivent dans [`commun/model/Verdict`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/model/Verdict.java) et [`commun/model/VerdictFichier`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/model/VerdictFichier.java).
+
+!!! note "Bascule de vocabulaire livrée (chantier #1524, lot 6b)"
+    Le lexique du **verdict final** a basculé de `À vérifier / OK / Douteux / À jeter` vers `Non vérifié
+    / OK / Utilisable / Inexploitable` (correspondance : `OK`→`OK`, `Douteux`→`Utilisable`,
+    `À jeter`→`Inexploitable`, `À vérifier`→`Non vérifié`). Seuls les **libellés** changent : les **noms
+    de constantes** de l'enum restent `A_VERIFIER/OK/DOUTEUX/A_JETER` (pour préserver les badges CSS, le
+    tri par `ordinal` et les vues de filtre sauvegardées), et le libellé stocké dans
+    `passage.verification_verdict` est réécrit par la migration `V28`. La **garde de dépôt**
+    (`Inexploitable` bloque, requalification) est reprise au **lot 7**.
 
 ## Autres termes
 

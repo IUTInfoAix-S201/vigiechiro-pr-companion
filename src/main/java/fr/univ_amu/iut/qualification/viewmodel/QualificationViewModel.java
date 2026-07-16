@@ -204,7 +204,7 @@ public class QualificationViewModel {
     /// décisif n'est choisi. Signale (R14) si « à jeter » exclura le passage du dépôt.
     public void enregistrer() {
         if (!peutEnregistrer.get()) {
-            message.set("Choisissez un verdict (OK, Douteux ou À jeter) avant d'enregistrer.");
+            message.set("Choisissez un verdict (OK, Utilisable ou Inexploitable) avant d'enregistrer.");
             return;
         }
         try {

@@ -12,9 +12,9 @@ import java.util.Objects;
 /// `ServiceQualification` qui l'alimente avec les verdicts lus en base.
 ///
 /// **Proposé, pas imposé (R13).** Le résultat est une *proposition* : l'utilisateur garde le dernier
-/// mot (la surcharge est câblée au lot 6). Le lexique visible reste celui de [Verdict] pour ce lot
-/// (`À vérifier / OK / Douteux / À jeter`) ; sa bascule vers `Non vérifié / OK / Utilisable /
-/// Inexploitable` est un chantier du lot 6.
+/// mot (surcharge câblée dans l'IHM, lot 6a). Le lexique visible de [Verdict] a basculé (lot 6b) vers
+/// `Non vérifié / OK / Utilisable / Inexploitable` ; les **noms de constantes** restent inchangés
+/// (`A_VERIFIER/OK/DOUTEUX/A_JETER`).
 ///
 /// **Règle de dérivation.** Sur les seules séquences **jugées** (verdict ≠ [VerdictFichier#NON_JUGE]) :
 ///
@@ -25,7 +25,7 @@ import java.util.Objects;
 ///   [Verdict#DOUTEUX].
 ///
 /// Le seuil exact est peu critique : le verdict final est surchargeable. Cette règle **reproduit
-/// l'existant** au back-fill (V27) : un passage jadis `OK`/`Douteux`/`À jeter` diffusé sur toutes ses
+/// l'existant** au back-fill (V27) : un passage jadis `OK`/`Utilisable`/`Inexploitable` diffusé sur toutes ses
 /// séquences se re-dérive vers le même verdict.
 public final class AgregationVerdict {
 

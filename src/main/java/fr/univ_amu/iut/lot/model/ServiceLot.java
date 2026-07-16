@@ -354,7 +354,7 @@ public class ServiceLot {
                     + passage.numeroPassage()
                     + " ("
                     + passage.annee()
-                    + ") porte le verdict « À jeter » et ne peut pas être déposé.");
+                    + ") porte le verdict « Inexploitable » et ne peut pas être déposé.");
         }
     }
 

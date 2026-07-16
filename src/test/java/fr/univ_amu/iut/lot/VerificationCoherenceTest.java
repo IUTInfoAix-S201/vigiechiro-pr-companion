@@ -217,7 +217,7 @@ class VerificationCoherenceTest {
     }
 
     @Test
-    @DisplayName("R14 : un passage « À jeter » produit une alerte bloquante")
+    @DisplayName("R14 : un passage « Inexploitable » produit une alerte bloquante")
     void verdict_a_jeter_bloque() {
         Passage passage = creerPassage(Verdict.A_JETER);
         Long idSession = creerSessionCoherente(passage.id());
@@ -226,7 +226,7 @@ class VerificationCoherenceTest {
         ResultatVerification resultat = verification.verifier(passage);
 
         assertThat(resultat.estBloquant()).isTrue();
-        assertThat(resultat.messages()).anyMatch(m -> m.contains("À jeter"));
+        assertThat(resultat.messages()).anyMatch(m -> m.contains("Inexploitable"));
     }
 
     @Test

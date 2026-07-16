@@ -198,7 +198,7 @@ class MultisiteViewTest {
         // (#1338) vient en second : c'est la question la plus fréquente au retour du terrain.
         assertThat(robot.from(onglets).lookup(".onglet-vue-nom").queryAllAs(Label.class))
                 .extracting(Label::getText)
-                .containsExactly("Tout", "Résultats à importer", "Déposés", "À vérifier", "Vérifiés");
+                .containsExactly("Tout", "Résultats à importer", "Déposés", "Non vérifié", "Vérifiés");
 
         Label verifies = robot.from(onglets).lookup(".onglet-vue-nom").queryAllAs(Label.class).stream()
                 .filter(label -> "Vérifiés".equals(label.getText()))

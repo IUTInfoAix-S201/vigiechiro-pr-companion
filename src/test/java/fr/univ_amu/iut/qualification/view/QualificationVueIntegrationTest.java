@@ -346,14 +346,15 @@ class QualificationVueIntegrationTest {
         // À l'ouverture, aucune séquence n'est jugée → puce masquée.
         assertThat(propose.isVisible()).isFalse();
 
-        // 2 Bon + 1 Inexploitable (minorité) → Douteux.
+        // 2 Bon + 1 Inexploitable (minorité) → DOUTEUX, libellé « Utilisable ».
         jugerLigne(robot, table, 0, "#boutonBon");
         jugerLigne(robot, table, 1, "#boutonBon");
         jugerLigne(robot, table, 2, "#boutonInexploitable");
         WaitForAsyncUtils.waitForFxEvents();
 
         assertThat(propose.isVisible()).isTrue();
-        assertThat(propose.getText()).contains("Proposé").contains("Douteux");
+        assertThat(propose.getText()).contains("Proposé").contains("Utilisable");
+        // La classe CSS dérive du NOM de constante (DOUTEUX), inchangé par la bascule de libellé.
         assertThat(propose.getStyleClass()).contains("propose-douteux");
     }
 
@@ -366,7 +367,7 @@ class QualificationVueIntegrationTest {
         Button enregistrer = robot.lookup("#boutonEnregistrer").queryAs(Button.class);
         Label propose = robot.lookup("#lblVerdictPropose").queryAs(Label.class);
 
-        // 2 Bon + 1 Inexploitable → proposé Douteux, qui pré-remplit le verdict global.
+        // 2 Bon + 1 Inexploitable → proposé « Utilisable », qui pré-remplit le verdict global.
         jugerLigne(robot, table, 0, "#boutonBon");
         jugerLigne(robot, table, 1, "#boutonBon");
         jugerLigne(robot, table, 2, "#boutonInexploitable");
@@ -382,7 +383,7 @@ class QualificationVueIntegrationTest {
         WaitForAsyncUtils.waitForFxEvents();
         assertThat(boutonOk.getStyleClass()).contains("verdict-choisi");
         assertThat(boutonDouteux.getStyleClass()).doesNotContain("verdict-choisi");
-        assertThat(propose.getText()).contains("Proposé").contains("Douteux").contains("surchargé");
+        assertThat(propose.getText()).contains("Proposé").contains("Utilisable").contains("surchargé");
     }
 
     @Test
@@ -391,7 +392,7 @@ class QualificationVueIntegrationTest {
         TableView<?> table = robot.lookup("#tableSequences").queryAs(TableView.class);
         Button enregistrer = robot.lookup("#boutonEnregistrer").queryAs(Button.class);
 
-        // 2 Bon + 1 Inexploitable → proposé Douteux, qui pré-remplit le verdict global (aucune surcharge).
+        // 2 Bon + 1 Inexploitable → proposé « Utilisable », qui pré-remplit le verdict global (aucune surcharge).
         jugerLigne(robot, table, 0, "#boutonBon");
         jugerLigne(robot, table, 1, "#boutonBon");
         jugerLigne(robot, table, 2, "#boutonInexploitable");
@@ -400,7 +401,8 @@ class QualificationVueIntegrationTest {
         robot.interact(enregistrer::fire);
         WaitForAsyncUtils.waitForFxEvents();
 
-        // Le verdict persisté est le dérivé (Douteux), sans saisie manuelle : la dérivation fait autorité.
+        // Le verdict persisté est le dérivé (DOUTEUX, « Utilisable »), sans saisie manuelle : la dérivation fait
+        // autorité.
         verify(service).enregistrerVerdict(ID_PASSAGE, Verdict.DOUTEUX, null);
     }
 

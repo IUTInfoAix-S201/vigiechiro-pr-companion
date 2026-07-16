@@ -206,14 +206,14 @@
         <Label fx:id="lblVerdictPropose" styleClass="verdict-propose"/>
         <Button fx:id="boutonOk" text="OK" styleClass="verdict,verdict-ok"
                 onAction="#choisirOk" prefWidth="150.0"/>
-        <Button fx:id="boutonDouteux" text="Douteux" styleClass="verdict,verdict-douteux"
+        <Button fx:id="boutonDouteux" text="Utilisable" styleClass="verdict,verdict-douteux"
                 onAction="#choisirDouteux" prefWidth="150.0"/>
-        <Button fx:id="boutonAJeter" text="À jeter" styleClass="verdict,verdict-jeter"
+        <Button fx:id="boutonAJeter" text="Inexploitable" styleClass="verdict,verdict-jeter"
                 onAction="#choisirAJeter" prefWidth="150.0"/>
       </HBox>
 
       <Label fx:id="lblApercuR14" styleClass="apercu-r14" wrapText="true"
-             text="« À jeter » : ce passage ne pourra pas être déposé.">
+             text="« Inexploitable » : ce passage ne pourra pas être déposé.">
         <graphic><FontIcon iconLiteral="fas-exclamation-triangle"/></graphic>
       </Label>
 
@@ -232,7 +232,7 @@
         <!-- Légende des raccourcis clavier (#796) : câblés (gererRaccourci) mais indécouvrables sans
              cette aide visible. -->
         <Label styleClass="section-sous" wrapText="true"
-               text="Raccourcis clavier : O OK · D Douteux · J À jeter · Espace écouter · Entrée enregistrer"/>
+               text="Raccourcis clavier : O → OK · D → Utilisable · J → Inexploitable · Espace écouter · Entrée enregistrer"/>
         <Region HBox.hgrow="ALWAYS"/>
         <!-- Confirmation de succès locale (#797) : visible une fois le verdict persisté (état ENREGISTRE),
              masquée dès qu'une modification recrée un brouillon. Complète le grisage du bouton. -->

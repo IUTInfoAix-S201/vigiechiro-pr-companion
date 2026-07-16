@@ -1,6 +1,7 @@
 package fr.univ_amu.iut.cli.commande;
 
 import com.google.inject.Inject;
+import fr.univ_amu.iut.commun.api.SuiviPagination;
 import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.validation.model.BilanImport;
 import fr.univ_amu.iut.validation.model.ImportVigieChiro;
@@ -77,7 +78,11 @@ public final class ImporterVigieChiro implements Callable<Integer> {
         if (participation != null && !participation.isBlank()) {
             moteur.rattacher(idPassage, participation.trim());
         }
-        BilanImport bilan = moteur.importer(idPassage, remplacer);
+        // Un import peut brasser des milliers de fichiers : on relaie l'avancement par page sur la sortie
+        // d'erreur (stdout reste réservé au bilan), à parité avec la barre de progression de l'IHM (#1622).
+        SuiviPagination suivi = (page, totalPages) ->
+                spec.commandLine().getErr().println("Import VigieChiro… page " + page + "/" + totalPages);
+        BilanImport bilan = moteur.importer(idPassage, remplacer, suivi);
         // Même rendu que l'import CSV (ImporterTadarida) : les deux chemins alimentent le même écran.
         spec.commandLine().getOut().println(ImporterTadarida.rendreBilan(bilan, remplacer));
         return 0;

@@ -46,3 +46,19 @@
   -fx-text-fill: -couleur-avertissement;
   -fx-icon-color: -couleur-avertissement;
 }
+
+/*
+ * Icônes FontIcon des libellés (#1671, en remplacement des emojis) : neutres sur les titres de
+ * section et les sous-titres, ambre dans les encarts d'alerte (R20 / hors-nuit) pour s'accorder au
+ * texte. Le repère GPS garde ses propres couleurs (plus spécifiques, ci-dessus).
+ */
+.ecran-diagnostic .section-titre .ikonli-font-icon,
+.ecran-diagnostic .section-sous .ikonli-font-icon {
+  -fx-icon-color: -couleur-texte-discret;
+  -fx-icon-size: 13px;
+}
+
+.ecran-diagnostic .alerte-r20 .ikonli-font-icon {
+  -fx-icon-color: #7e5109;
+  -fx-icon-size: 13px;
+}

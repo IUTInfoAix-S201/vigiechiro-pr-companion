@@ -104,6 +104,11 @@ public class AudioViewModel {
     private final ReadOnlyBooleanWrapper resultatsDisponibles =
             new ReadOnlyBooleanWrapper(this, "resultatsDisponibles", false);
 
+    /// `true` quand le passage courant n'a **aucune observation ancrée** à la plateforme (#1596) : passage
+    /// reconstruit par CSV (#1565) tant qu'il n'a pas été réactivé (#1571). L'IHM grise alors « publier les
+    /// corrections » (rien n'y est publiable sans ancrage). `false` hors source `ParPassage`.
+    private final ReadOnlyBooleanWrapper aucunAncrage = new ReadOnlyBooleanWrapper(this, "aucunAncrage", false);
+
     private final ReadOnlyObjectWrapper<ComptageAudio> comptage =
             new ReadOnlyObjectWrapper<>(this, "comptage", ComptageAudio.VIDE);
 
@@ -182,11 +187,15 @@ public class AudioViewModel {
     /// **Lecture seule** des données d'ouverture (taxons + résolution de la source). Sûre **hors du fil
     /// JavaFX** (#1214, déport via `IndicateurOccupation`).
     public DonneesOuverture chargerOuverture(SourceObservations source) {
+        // #1596 : l'absence d'ancrage plateforme n'a de sens que pour un passage unique (seule source où la
+        // publication de corrections est offerte) ; on l'évalue ici, hors fil, plutôt que sur le fil JavaFX.
+        Long idPassage = ResolveurSourceAudio.idPassage(source);
         return new DonneesOuverture(
                 service.taxonsDisponibles(),
                 resolveur.idResultats(source),
                 resolveur.lignes(source),
-                disponibiliteEcoute.decompte(source));
+                disponibiliteEcoute.decompte(source),
+                idPassage != null && service.aucunAncrage(idPassage));
     }
 
     /// Applique les données d'ouverture (taxons, résultats, table). **Mutations observables** : sur le
@@ -199,6 +208,7 @@ public class AudioViewModel {
         resultatsDisponibles.set(idResultats != null);
         observations.setAll(donnees.lignes());
         bandeauArchive.set(DisponibiliteEcoute.texteBandeau(donnees.decompteAudio()));
+        aucunAncrage.set(donnees.aucunAncrage());
         filtres.appliquer();
     }
 
@@ -349,6 +359,7 @@ public class AudioViewModel {
         comptage.set(ComptageAudio.VIDE);
         audioManquant.set(false);
         bandeauArchive.set("");
+        aucunAncrage.set(false);
         messages.reinitialiser();
     }
 
@@ -394,6 +405,14 @@ public class AudioViewModel {
     /// `true` dès qu'un jeu de résultats est chargé (activation du bouton d'export `_Vu`).
     public ReadOnlyBooleanProperty resultatsDisponiblesProperty() {
         return resultatsDisponibles.getReadOnlyProperty();
+    }
+
+    /// `true` quand le passage courant est **sans ancrage plateforme** (#1596) : reconstruit par CSV et
+    /// pas encore réactivé, donc sans correction publiable. La vue grise « publier les corrections » et en
+    /// explique la cause (le libellé de l'item invite à réactiver le passage). `false` dès qu'au moins une
+    /// observation est ancrée, ou hors source `ParPassage`.
+    public ReadOnlyBooleanProperty aucunAncrageProperty() {
+        return aucunAncrage.getReadOnlyProperty();
     }
 
     /// Inclure la colonne `validation_mode` (R24) à l'export `_Vu` (case à cocher, vraie par défaut).

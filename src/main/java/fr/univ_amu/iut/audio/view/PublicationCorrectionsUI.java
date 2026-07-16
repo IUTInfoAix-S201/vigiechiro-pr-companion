@@ -6,6 +6,8 @@ import fr.univ_amu.iut.commun.view.IndicateurOccupation;
 import fr.univ_amu.iut.commun.viewmodel.ContextePassage;
 import fr.univ_amu.iut.commun.viewmodel.SourceObservations;
 import fr.univ_amu.iut.validation.model.TriPublication;
+import javafx.beans.binding.Bindings;
+import javafx.beans.value.ObservableBooleanValue;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 
@@ -21,9 +23,23 @@ final class PublicationCorrectionsUI {
 
     private PublicationCorrectionsUI() {}
 
-    /// Câble l'item de menu (désactivé pendant une publication) et le libellé de restitution.
-    static void cabler(MenuItem item, Label message, PublicationCorrectionsViewModel publication) {
-        item.disableProperty().bind(publication.enCoursProperty());
+    /// Câble l'item de menu (désactivé pendant une publication **ou** faute d'ancrage plateforme, #1596)
+    /// et le libellé de restitution.
+    static void cabler(
+            MenuItem item,
+            Label message,
+            PublicationCorrectionsViewModel publication,
+            ObservableBooleanValue aucunAncrage) {
+        // Grisé pendant l'envoi, et — proactivement — quand le passage n'a aucun ancrage plateforme
+        // (#1596 : reconstruit par CSV non réactivé, rien n'y est publiable). Un MenuItem désactivé
+        // n'accueille pas de tooltip : on inscrit la cause dans son libellé (patron #789, comme
+        // « Exporter les observations »), qui n'apparaît que lorsqu'il est effectivement grisé.
+        item.disableProperty().bind(publication.enCoursProperty().or(aucunAncrage));
+        item.textProperty()
+                .bind(Bindings.when(aucunAncrage)
+                        .then("☁ Publier les corrections vers VigieChiro…"
+                                + " (réactivez le passage pour ancrer les observations)")
+                        .otherwise("☁ Publier les corrections vers VigieChiro…"));
         message.textProperty().bind(publication.messageProperty());
         message.visibleProperty().bind(publication.messageProperty().isNotEmpty());
         message.managedProperty().bind(publication.messageProperty().isNotEmpty());

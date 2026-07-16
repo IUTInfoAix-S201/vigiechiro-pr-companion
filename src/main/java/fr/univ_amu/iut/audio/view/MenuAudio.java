@@ -55,9 +55,13 @@ final class MenuAudio {
         // Import VigieChiro (axe 4.2) : câblage (libellé Importer/Réimporter, désactivation, restitution)
         // délégué à ImportVigieChiroUI. Sa visibilité (workflow + connexion) est gérée dans [#adapter].
         ImportVigieChiroUI.cabler(items.importerVigieChiro(), items.lblImportVigieChiro(), importVigieChiro, viewModel);
-        // Publication des corrections (#723) : item désactivé pendant l'envoi, restitution dédiée.
+        // Publication des corrections (#723) : item désactivé pendant l'envoi et, proactivement, quand le
+        // passage n'a aucun ancrage plateforme (#1596). Restitution dédiée.
         PublicationCorrectionsUI.cabler(
-                items.publierCorrections(), items.lblPublierCorrections(), publicationCorrections);
+                items.publierCorrections(),
+                items.lblPublierCorrections(),
+                publicationCorrections,
+                viewModel.aucunAncrageProperty());
         items.exporterVu()
                 .disableProperty()
                 .bind(viewModel.resultatsDisponiblesProperty().not());

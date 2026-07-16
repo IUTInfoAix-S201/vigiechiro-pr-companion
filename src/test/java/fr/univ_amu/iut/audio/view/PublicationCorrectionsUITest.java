@@ -20,6 +20,11 @@ import fr.univ_amu.iut.validation.model.Observation;
 import fr.univ_amu.iut.validation.model.TriPublication;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
 import javafx.scene.layout.StackPane;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -129,5 +134,25 @@ class PublicationCorrectionsUITest {
                 .contains("ne peut pas être retirée");
         verify(publication).publier(7L);
         verify(publication).appliquerBilan(bilan);
+    }
+
+    @Test
+    @DisplayName("garde ancrage : item grisé + libellé explicite sans ancrage plateforme, actif sinon (#1596)")
+    void garde_ancrage_avant_publication() {
+        when(publication.enCoursProperty()).thenReturn(new SimpleBooleanProperty(false));
+        when(publication.messageProperty()).thenReturn(new SimpleStringProperty(""));
+        MenuItem item = new MenuItem();
+        BooleanProperty aucunAncrage = new SimpleBooleanProperty(false);
+
+        PublicationCorrectionsUI.cabler(item, new Label(), publication, aucunAncrage);
+
+        assertThat(item.isDisable()).as("passage ancré : publication offerte").isFalse();
+        assertThat(item.getText()).doesNotContain("réactivez");
+
+        aucunAncrage.set(true);
+        assertThat(item.isDisable())
+                .as("passage sans ancrage : publication grisée")
+                .isTrue();
+        assertThat(item.getText()).contains("réactivez le passage");
     }
 }

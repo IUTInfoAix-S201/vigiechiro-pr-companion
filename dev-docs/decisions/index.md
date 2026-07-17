@@ -56,3 +56,8 @@ Les premières entrées sont **rétroactives** : elles consignent, à partir des
 | [0007](0007-retours-http-type-scelle-reponse-api.md) | Les retours de l'API sont un type scellé `ReponseApi` | #1284 |
 | [0008](0008-aucun-echec-silencieux-severite-a-l-emission.md) | Aucun échec silencieux ; la sévérité de journalisation se décide à l'émission | #1523 |
 | [0009](0009-la-nuit-est-l-unite-bornee-a-midi.md) | La nuit (soir → matin, bornée à midi) est l'unité de traitement | #664, #1696 |
+| [0010](0010-dialogues-bloquants-sont-des-ports.md) | Les dialogues bloquants (confirmation, compte rendu) sont des ports injectables | #789, #1405 |
+| [0011](0011-transformation-audio-pilotee-par-le-log.md) | La transformation audio est pilotée par le log (fréquence réelle), pas par l'en-tête | import Tadarida |
+| [0012](0012-audit-coherence-tout-ecart-visible-etat-normal-silencieux.md) | L'audit rend tout écart visible, mais un état normal ne crie pas | #1154 |
+| [0013](0013-ancrage-passage-relie-a-sa-participation.md) | Un passage local est ancré à sa participation serveur (lien explicite) | #720 |
+| [0014](0014-parite-cli-ihm.md) | Toute capacité métier est offerte aussi en CLI (parité CLI ↔ IHM) | #619, #1304 |

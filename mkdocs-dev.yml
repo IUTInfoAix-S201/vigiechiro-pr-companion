@@ -73,6 +73,11 @@ nav:
     - 0007 · Retours HTTP scellés (ReponseApi): decisions/0007-retours-http-type-scelle-reponse-api.md
     - 0008 · Aucun échec silencieux: decisions/0008-aucun-echec-silencieux-severite-a-l-emission.md
     - 0009 · La nuit comme unité: decisions/0009-la-nuit-est-l-unite-bornee-a-midi.md
+    - 0010 · Dialogues bloquants = ports: decisions/0010-dialogues-bloquants-sont-des-ports.md
+    - 0011 · Transformation pilotée par le log: decisions/0011-transformation-audio-pilotee-par-le-log.md
+    - "0012 · Audit : tout écart visible, un état normal silencieux": decisions/0012-audit-coherence-tout-ecart-visible-etat-normal-silencieux.md
+    - 0013 · Ancrage passage ↔ participation: decisions/0013-ancrage-passage-relie-a-sa-participation.md
+    - 0014 · Parité CLI ↔ IHM: decisions/0014-parite-cli-ihm.md
   - Recette (acceptation):
     - Méthode: recette/index.md
     - S1 · Premier contact: recette/sessions/s1-premier-contact.md

@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+## [2.11.1](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v2.11.0...v2.11.1) (2026-07-17)
+
+
+### Performance Improvements
+
+* **passage:** n'hydrater que les bruts de la nuit du passage ([#1724](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/1724)) ([#1737](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/1737)) ([0906503](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/0906503be5a20107cf628eb1382ed284bdf60276))
+
 # [2.11.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v2.10.0...v2.11.0) (2026-07-12)
 
 

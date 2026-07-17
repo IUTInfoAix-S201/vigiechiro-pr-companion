@@ -110,4 +110,20 @@ class CorrespondanceParticipationTest {
                 .withZoneSameInstant(ZoneId.systemDefault())
                 .toLocalDateTime();
     }
+
+    @Test
+    @DisplayName("#1689 : serieDepuis lit la clé canonique VigieChiro, à défaut la clé de l'app, sinon null")
+    void serie_depuis_les_deux_cles() {
+        assertThat(CorrespondanceParticipation.serieDepuis(Map.of("detecteur_enregistreur_numero_serie", "1997632")))
+                .isEqualTo("1997632");
+        assertThat(CorrespondanceParticipation.serieDepuis(Map.of("detecteur_enregistreur_numserie", "1925492")))
+                .isEqualTo("1925492");
+        assertThat(CorrespondanceParticipation.serieDepuis(
+                        Map.of("detecteur_enregistreur_numero_serie", "AAA", "detecteur_enregistreur_numserie", "BBB")))
+                .as("les deux présentes : la clé canonique VigieChiro l'emporte")
+                .isEqualTo("AAA");
+        assertThat(CorrespondanceParticipation.serieDepuis(Map.of("micro0_type", "ICS")))
+                .isNull();
+        assertThat(CorrespondanceParticipation.serieDepuis(null)).isNull();
+    }
 }

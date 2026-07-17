@@ -18,6 +18,7 @@ import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
 import fr.univ_amu.iut.commun.persistence.UniteDeTravail;
 import fr.univ_amu.iut.passage.model.dao.EnregistrementOriginalDao;
 import fr.univ_amu.iut.passage.model.dao.EnregistreurDao;
+import fr.univ_amu.iut.passage.model.dao.MaterielMicroDao;
 import fr.univ_amu.iut.passage.model.dao.PassageDao;
 import fr.univ_amu.iut.passage.model.dao.SequenceDao;
 import fr.univ_amu.iut.passage.model.dao.SessionDao;
@@ -70,13 +71,12 @@ public class ServiceReconstructionPassages {
     /// le schéma exige un enregistreur, et inventer un vrai numéro serait un mensonge.
     private static final String ENREGISTREUR_INCONNU = "INCONNU";
 
-    private static final String CLE_NUMERO_SERIE = "detecteur_enregistreur_numserie";
-
     private final PassageDao passageDao;
     private final SessionDao sessionDao;
     private final SequenceDao sequenceDao;
     private final EnregistrementOriginalDao originalDao;
     private final EnregistreurDao enregistreurDao;
+    private final MaterielMicroDao materielDao;
     private final LienVigieChiroDao liens;
 
     /// Toutes les lectures distantes de la reconstruction (participations, détail, source des observations
@@ -110,6 +110,7 @@ public class ServiceReconstructionPassages {
         this.sequenceDao = new SequenceDao(source);
         this.originalDao = new EnregistrementOriginalDao(source);
         this.enregistreurDao = new EnregistreurDao(source);
+        this.materielDao = new MaterielMicroDao(source);
         this.liens = new LienVigieChiroDao(source);
         this.uniteDeTravail = new UniteDeTravail(source);
         this.plateforme = new PlateformeReconstruction(client);
@@ -222,7 +223,8 @@ public class ServiceReconstructionPassages {
         try {
             jeton.leverSiAnnule();
             progres.accept(new Progression("Création du passage…", 0.90));
-            idPassage = creerPassage(idPoint, numeroPassage, debut, fin, enregistreur(detail));
+            idPassage = creerPassage(idPoint, numeroPassage, debut, fin, enregistreur(detail), meteoDepuis(detail));
+            rapatrierMateriel(idPassage, detail);
             Long idSession = creerSessionArchivee(idPassage, prefixe);
             progres.accept(new Progression("Création des séquences…", 0.93));
             int sequences = creerSequences(idSession, prefixe, observations.nomsFichiers());
@@ -264,7 +266,12 @@ public class ServiceReconstructionPassages {
     /// point et cette année (calculé par l'appelant, qui en a aussi besoin pour le préfixe) : la
     /// plateforme ne le porte pas, et deviner « 1 ou 2 » selon la date serait une supposition.
     private Long creerPassage(
-            Long idPoint, int numeroPassage, LocalDateTime debut, LocalDateTime fin, String idEnregistreur) {
+            Long idPoint,
+            int numeroPassage,
+            LocalDateTime debut,
+            LocalDateTime fin,
+            String idEnregistreur,
+            String donneesMeteo) {
         int annee = debut.getYear();
         return passageDao
                 .insert(new Passage(
@@ -278,7 +285,7 @@ public class ServiceReconstructionPassages {
                         StatutWorkflow.DEPOSE,
                         null,
                         null,
-                        null,
+                        donneesMeteo,
                         debut.toLocalDate().toString(),
                         idPoint,
                         idEnregistreur))
@@ -361,18 +368,41 @@ public class ServiceReconstructionPassages {
         return numero;
     }
 
-    /// Enregistreur de la nuit : celui que porte la configuration de la participation si elle le dit,
-    /// sinon un enregistreur **« inconnu »** (le schéma en exige un ; inventer un numéro de série serait
-    /// pire que de dire qu'on ne le sait pas). Créé s'il n'existe pas encore.
+    /// Enregistreur de la nuit : le numéro de série que porte la configuration de la participation, lu par
+    /// [CorrespondanceParticipation#serieDepuis] qui accepte **les deux clés** en circulation (canonique
+    /// VigieChiro `detecteur_enregistreur_numero_serie` du web, et `detecteur_enregistreur_numserie` poussée
+    /// par l'app, #1689). Un enregistreur **« inconnu »** de repli seulement si aucune n'est présente (le
+    /// schéma exige un enregistreur ; inventer un numéro serait pire que de dire qu'on ne le sait pas). Créé
+    /// s'il n'existe pas encore.
     private String enregistreur(ParticipationDetail detail) {
-        String serie = detail.configuration().getOrDefault(CLE_NUMERO_SERIE, ENREGISTREUR_INCONNU);
-        if (serie.isBlank()) {
+        String serie = CorrespondanceParticipation.serieDepuis(detail.configuration());
+        if (serie == null) {
             serie = ENREGISTREUR_INCONNU;
         }
         if (enregistreurDao.findById(serie).isEmpty()) {
             enregistreurDao.insert(new Enregistreur(serie, null, null));
         }
         return serie;
+    }
+
+    /// Météo (vent + couverture) de la nuit, rapatriée de la participation (#1689) via les mêmes mappeurs
+    /// que le « tir » de [SynchronisationParticipation]. `null` si la participation ne porte pas de météo
+    /// (l'API la rend `null`). Les températures ne voyagent pas dans l'API : elles resteront à saisir à la
+    /// main (« Modifier le passage », #1688).
+    private static String meteoDepuis(ParticipationDetail detail) {
+        if (detail.meteo() == null) {
+            return null;
+        }
+        return MeteoPassage.definirReleve(
+                null, CorrespondanceParticipation.fusionnerMeteo(MeteoReleve.VIDE, detail.meteo()));
+    }
+
+    /// Matériel du micro (position, hauteur, type) rapatrié de la participation (#1689) s'il est renseigné,
+    /// via les mêmes clés `micro0_*` que le « tir » de [SynchronisationParticipation].
+    private void rapatrierMateriel(Long idPassage, ParticipationDetail detail) {
+        if (detail.configuration() != null && !detail.configuration().isEmpty()) {
+            materielDao.definir(CorrespondanceParticipation.microDepuis(idPassage, detail.configuration()));
+        }
     }
 
     // --- Lectures distantes et helpers -------------------------------------------------------------

@@ -2,6 +2,18 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [2.12.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v2.11.1...v2.12.0) (2026-07-17)
+
+
+### Bug Fixes
+
+* **audit:** reset déterministe, le rapprocheur des passages hors de sa synchro ([#1743](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/1743)) ([18fee5d](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/18fee5de0f29dd862deb8152a0dc259288087f97)), closes [#1707](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/1707) [#1707](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/1707)
+
+
+### Features
+
+* **passage:** inscrire l'empreinte sha256 des originaux hydratés ([#1726](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/1726)) ([#1740](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/1740)) ([fb143bc](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/fb143bc4f492ee16afe7b1dbcf72d3beeeedc94e)), closes [#1651](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/1651) [#1299](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/1299)
+
 ## [2.11.1](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v2.11.0...v2.11.1) (2026-07-17)
 
 

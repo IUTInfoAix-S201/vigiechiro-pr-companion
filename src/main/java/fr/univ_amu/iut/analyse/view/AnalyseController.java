@@ -16,6 +16,7 @@ import fr.univ_amu.iut.commun.view.GestionnaireFiltres;
 import fr.univ_amu.iut.commun.view.GestionnaireVues;
 import fr.univ_amu.iut.commun.view.IndicateurBlocage;
 import fr.univ_amu.iut.commun.view.IndicateurOccupation;
+import fr.univ_amu.iut.commun.view.MenuLigne;
 import fr.univ_amu.iut.commun.view.OuvrirAudio;
 import fr.univ_amu.iut.commun.view.OuvrirPassage;
 import fr.univ_amu.iut.commun.view.RafraichirAuRetour;
@@ -304,7 +305,11 @@ public class AnalyseController implements RafraichirAuRetour, ResumeStatut {
                 tableObservations,
                 menuOutils,
                 () -> viewModel.regroupementProperty().get());
-        selecteurColonnes.installer(itemFicheEspece, itemFicheEspeceObs);
+        selecteurColonnes.installer(
+                itemFicheEspece,
+                MenuLigne.item("Écouter", tableObservations, this::ecouter),
+                MenuLigne.item("Ouvrir le passage", tableObservations, this::ouvrirPassageDe),
+                itemFicheEspeceObs);
         selecteurColonnes.persister(depotColonnes, FEATURE);
         // Clic droit : sélectionne la ligne (cible du menu contextuel). Double-clic : ouvre la fiche de
         // l'espèce, même cible que l'item « Fiche de l'espèce » du menu (#1794).

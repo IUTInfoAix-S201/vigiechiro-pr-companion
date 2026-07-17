@@ -529,6 +529,7 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
                 appuis.depotColonnes(),
                 FEATURE,
                 "principale",
+                actionsMenu.itemOuvrirPassage(tableObservations),
                 actionsMenu.itemFicheContexte());
 
         occupation = new IndicateurOccupation(hoteOccupation, appuis.executeur());

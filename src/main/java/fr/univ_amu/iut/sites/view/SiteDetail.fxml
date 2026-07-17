@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Hyperlink?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.MenuButton?>
 <?import javafx.scene.control.TableColumn?>
@@ -93,6 +94,10 @@
     <Button text="+ Ajouter un point" styleClass="bouton-primaire" onAction="#ajouterPoint"/>
   </HBox>
   <FlowPane fx:id="cartesPoints" styleClass="cartes-points" hgap="12.0" vgap="12.0"/>
+  <!-- Révélation des points rapatriés non utilisés (#1738) : la synchro ramène tous les points du carré,
+       mais la fiche n'affiche par défaut que ceux qui servent. Ce lien (masqué s'il n'y a rien à révéler)
+       montre/replie les autres. Libellé et visibilité pilotés en code depuis le ViewModel. -->
+  <Hyperlink fx:id="lienPointsNonUtilises" styleClass="section-sous" managed="false" visible="false"/>
   <!-- Repli d'état vide (#791) : un FlowPane n'a pas de placeholder ; ce label s'affiche à sa place quand
        aucune carte de point n'est présente (visibilité liée en code à cartesPoints). -->
   <Label fx:id="lblAucunPoint" styleClass="section-sous" wrapText="true" managed="false" visible="false"

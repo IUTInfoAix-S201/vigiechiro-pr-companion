@@ -19,12 +19,16 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
+import javafx.beans.property.ReadOnlyIntegerProperty;
+import javafx.beans.property.ReadOnlyIntegerWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
@@ -74,6 +78,18 @@ public class SiteDetailViewModel {
     private final ObservableList<CartePoint> points = FXCollections.observableArrayList();
     private final ObservableList<LignePassage> passages = FXCollections.observableArrayList();
 
+    /// La synchro rapatrie **tous** les points du carré (utile pour importer une nuit sur un point encore
+    /// inutilisé), mais la fiche site ne déverse pas cette masse : elle masque par défaut les points
+    /// **rapatriés non utilisés** (synchronisés + sans passage) et révèle ces derniers à la demande
+    /// (#1738). Les points **ajoutés à la main** et les points **utilisés** restent toujours affichés.
+    /// [#toutesLesCartes] tient la liste complète ; [#points] en est la projection affichée.
+    private final List<CartePoint> toutesLesCartes = new ArrayList<>();
+
+    private final BooleanProperty afficherTousLesPoints =
+            new SimpleBooleanProperty(this, "afficherTousLesPoints", false);
+    private final ReadOnlyIntegerWrapper nombrePointsMasques =
+            new ReadOnlyIntegerWrapper(this, "nombrePointsMasques", 0);
+
     public SiteDetailViewModel(
             ServiceSites service,
             PointDao pointDao,
@@ -87,6 +103,8 @@ public class SiteDetailViewModel {
         this.horloge = Objects.requireNonNull(horloge, "horloge");
         this.portail = Objects.requireNonNull(portail, "portail");
         this.liens = Objects.requireNonNull(liens, "liens");
+        // La bascule d'affichage re-projette la liste (points utilisés seuls <-> tous), #1738.
+        afficherTousLesPoints.addListener((observable, avant, apres) -> projeterPoints());
     }
 
     /// État du site vis-à-vis de VigieChiro : absent, enregistré, ou verrouillé (le dépôt n'est possible
@@ -104,6 +122,8 @@ public class SiteDetailViewModel {
     /// Charge le site à afficher, puis recompose la fiche, les cartes de points et le tableau.
     public void chargerSite(Site site) {
         this.site = Objects.requireNonNull(site, "site");
+        // Chaque site s'ouvre décombré : les points non utilisés d'un site précédent ne restent pas révélés.
+        afficherTousLesPoints.set(false);
         rafraichir();
     }
 
@@ -192,9 +212,22 @@ public class SiteDetailViewModel {
         return suppressionPossible.getReadOnlyProperty();
     }
 
-    /// Cartes des points d'écoute du site.
+    /// Cartes des points d'écoute du site **effectivement affichées** : par défaut, tous sauf les points
+    /// rapatriés non utilisés ; tous si [#afficherTousLesPointsProperty] est vrai (#1738).
     public ObservableList<CartePoint> points() {
         return points;
+    }
+
+    /// Bascule d'affichage des points **rapatriés non utilisés** (synchronisés + sans passage) : faux par
+    /// défaut (fiche décombrée), la vue l'inverse par le lien de révélation (#1738).
+    public BooleanProperty afficherTousLesPointsProperty() {
+        return afficherTousLesPoints;
+    }
+
+    /// Nombre de points **masqués** par défaut : rapatriés de la plateforme et sans aucun passage. La vue
+    /// n'affiche le lien de révélation que si ce nombre est > 0, et l'indique dans son libellé.
+    public ReadOnlyIntegerProperty nombrePointsMasquesProperty() {
+        return nombrePointsMasques.getReadOnlyProperty();
     }
 
     /// Lignes du tableau des passages, triées de la plus récente à la plus ancienne.
@@ -208,7 +241,30 @@ public class SiteDetailViewModel {
             Double distanceProche = ProximitePoints.distanceAuPlusProche(point, pointsDuSite);
             cartes.add(new CartePoint(point, passageDao.findByPoint(point.id()).size(), distanceProche));
         }
-        points.setAll(cartes);
+        toutesLesCartes.clear();
+        toutesLesCartes.addAll(cartes);
+        projeterPoints();
+    }
+
+    /// Projette [#toutesLesCartes] sur [#points] selon la bascule : par défaut, tout **sauf** les points
+    /// rapatriés non utilisés ; tous si [#afficherTousLesPoints]. Recompte au passage les points masqués,
+    /// pour que la vue sache s'il faut proposer la révélation (#1738). L'ordre des cartes est préservé (le
+    /// filtre est un simple sous-ensemble).
+    private void projeterPoints() {
+        List<CartePoint> visibles = toutesLesCartes.stream()
+                .filter(carte -> afficherTousLesPoints.get() || affichableParDefaut(carte))
+                .toList();
+        long masques = toutesLesCartes.stream()
+                .filter(carte -> !affichableParDefaut(carte))
+                .count();
+        nombrePointsMasques.set((int) masques);
+        points.setAll(visibles);
+    }
+
+    /// Affiché par défaut si le point **sert** (au moins un passage) **ou** s'il a été **ajouté à la main** :
+    /// seuls les points rapatriés (synchronisés) et non utilisés encombrent, et sont donc masqués (#1738).
+    private static boolean affichableParDefaut(CartePoint carte) {
+        return carte.nombrePassages() > 0 || !carte.point().synchronise();
     }
 
     private void mettreAJourTableauPassages(List<PointDEcoute> pointsDuSite, List<Passage> passagesDuSite) {

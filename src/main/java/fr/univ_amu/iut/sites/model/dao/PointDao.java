@@ -19,7 +19,8 @@ public class PointDao extends DaoGenerique<PointDEcoute, Long> {
             (Double) rs.getObject("gps_lat"),
             (Double) rs.getObject("gps_lon"),
             rs.getString("description"),
-            rs.getLong("site_id"));
+            rs.getLong("site_id"),
+            rs.getInt("synchronise") != 0);
 
     public PointDao(SourceDeDonnees source) {
         super(source);
@@ -48,15 +49,22 @@ public class PointDao extends DaoGenerique<PointDEcoute, Long> {
     @Override
     public PointDEcoute insert(PointDEcoute point) {
         long id = insererEtRecupererCle(
-                "INSERT INTO listening_point (code, gps_lat, gps_lon, description, site_id)"
-                        + " VALUES (?, ?, ?, ?, ?)",
+                "INSERT INTO listening_point (code, gps_lat, gps_lon, description, site_id, synchronise)"
+                        + " VALUES (?, ?, ?, ?, ?, ?)",
                 point.code(),
                 point.latitude(),
                 point.longitude(),
                 point.description(),
-                point.idSite());
+                point.idSite(),
+                point.synchronise() ? 1 : 0);
         return new PointDEcoute(
-                id, point.code(), point.latitude(), point.longitude(), point.description(), point.idSite());
+                id,
+                point.code(),
+                point.latitude(),
+                point.longitude(),
+                point.description(),
+                point.idSite(),
+                point.synchronise());
     }
 
     @Override

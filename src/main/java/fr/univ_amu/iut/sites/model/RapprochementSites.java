@@ -124,7 +124,10 @@ public class RapprochementSites implements RapprochementVigieChiro {
                 serviceSites.creerSite(distant.numeroCarre(), distant.titre(), Protocole.STANDARD, null, idUtilisateur);
         for (PointVigieChiro point : distant.points()) {
             try {
-                serviceSites.ajouterPoint(site.id(), point.code(), point.latitude(), point.longitude(), null);
+                // Marqué synchronisé (#1738) : rapatrié en masse, il pourra être masqué de la fiche site
+                // tant qu'aucune nuit ne s'y rattache, contrairement à un point ajouté à la main.
+                serviceSites.ajouterPointSynchronise(
+                        site.id(), point.code(), point.latitude(), point.longitude(), null);
             } catch (RuntimeException pointInvalide) {
                 LOG.log(
                         Level.FINE,

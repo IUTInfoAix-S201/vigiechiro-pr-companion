@@ -405,7 +405,10 @@ class AnalyseViewTest {
         WaitForAsyncUtils.waitForFxEvents();
 
         TableView<?> observations = robot.lookup("#tableObservations").queryAs(TableView.class);
-        MenuItem fiche = observations.getContextMenu().getItems().get(0);
+        MenuItem fiche = observations.getContextMenu().getItems().stream()
+                .filter(i -> i.getText() != null && i.getText().startsWith("Fiche de l'espèce"))
+                .findFirst()
+                .orElseThrow();
         assertThat(fiche.getText()).isEqualTo("Fiche de l'espèce (Pipistrelle commune)");
         assertThat(fiche.isDisable()).isFalse();
 
@@ -413,6 +416,23 @@ class AnalyseViewTest {
         assertThat(urlsFiche)
                 .containsExactly(
                         "https://plan-actions-chiropteres.fr/les-chauves-souris/les-especes/pipistrelle-commune/");
+    }
+
+    @Test
+    @DisplayName("#1796 : le détail des observations propose « Écouter » et « Ouvrir le passage » au clic droit")
+    void menu_de_ligne_des_observations(FxRobot robot) {
+        TableView<?> especes = robot.lookup("#tableEspeces").queryAs(TableView.class);
+        robot.interact(() -> especes.getSelectionModel().select(0)); // charge les observations
+        WaitForAsyncUtils.waitForFxEvents();
+
+        TableView<?> observations = robot.lookup("#tableObservations").queryAs(TableView.class);
+        robot.interact(() -> observations.getSelectionModel().select(0));
+        var items = observations.getContextMenu().getItems();
+        assertThat(items.get(0).getText()).isEqualTo("Écouter");
+        assertThat(items.get(1).getText()).isEqualTo("Ouvrir le passage");
+
+        robot.interact(() -> items.get(1).fire()); // « Ouvrir le passage »
+        verify(ouvrirPassage).ouvrir(eq(42L), any(ContexteSite.class));
     }
 
     @Test

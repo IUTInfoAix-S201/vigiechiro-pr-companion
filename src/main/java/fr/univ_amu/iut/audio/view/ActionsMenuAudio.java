@@ -3,9 +3,13 @@ package fr.univ_amu.iut.audio.view;
 import com.google.inject.Inject;
 import fr.univ_amu.iut.commun.model.EspeceIdentifiee;
 import fr.univ_amu.iut.commun.view.ActionFicheEspece;
+import fr.univ_amu.iut.commun.view.MenuLigne;
+import fr.univ_amu.iut.commun.view.OuvrirPassage;
+import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
 import fr.univ_amu.iut.validation.model.LigneObservationAudio;
 import java.util.Objects;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.TableView;
 
 /// Regroupe les actions « externes » du menu ☰ de Sons & validation (fiche d’espèce #847, données
 /// Vigie-Chiro #1124) : objet-paramètre qui garde le constructeur de [SonsValidationController]
@@ -14,15 +18,28 @@ final class ActionsMenuAudio {
 
     private final ActionFicheEspece ficheEspece;
     private final ActionDonneesVigieChiro donneesVigieChiro;
+    private final OuvrirPassage ouvrirPassage;
 
     /// Item « Fiche de l'espèce » du **menu contextuel** de la table (#1795), tenu ici — comme l'item du ☰
     /// est tenu par le controller : instance distincte, un [MenuItem] n'appartenant qu'à un seul menu.
     private final MenuItem itemFicheContexte = new MenuItem();
 
     @Inject
-    ActionsMenuAudio(ActionFicheEspece ficheEspece, ActionDonneesVigieChiro donneesVigieChiro) {
+    ActionsMenuAudio(
+            ActionFicheEspece ficheEspece, ActionDonneesVigieChiro donneesVigieChiro, OuvrirPassage ouvrirPassage) {
         this.ficheEspece = Objects.requireNonNull(ficheEspece, "ficheEspece");
         this.donneesVigieChiro = Objects.requireNonNull(donneesVigieChiro, "donneesVigieChiro");
+        this.ouvrirPassage = Objects.requireNonNull(ouvrirPassage, "ouvrirPassage");
+    }
+
+    /// Item « Ouvrir le passage » du menu de ligne (#1796) : ouvre M-Passage sur le passage de la ligne
+    /// sélectionnée, avec le contexte du site (carré/point) pour le fil d'Ariane. Désactivé sans sélection.
+    MenuItem itemOuvrirPassage(TableView<LigneObservationAudio> table) {
+        return MenuLigne.item(
+                "Ouvrir le passage",
+                table,
+                ligne -> ouvrirPassage.ouvrir(
+                        ligne.idPassage(), new ContexteSite(ligne.numeroCarre(), ligne.codePoint(), ligne.nomSite())));
     }
 
     /// Cible l'item « Fiche de l'espèce » (#847) sur la proposition Tadarida de la ligne sélectionnée

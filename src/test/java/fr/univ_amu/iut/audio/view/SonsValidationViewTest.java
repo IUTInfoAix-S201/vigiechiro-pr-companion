@@ -361,7 +361,10 @@ class SonsValidationViewTest {
         robot.interact(() -> table.getSelectionModel().select(0));
         WaitForAsyncUtils.waitForFxEvents();
 
-        MenuItem fiche = table.getContextMenu().getItems().get(0);
+        MenuItem fiche = table.getContextMenu().getItems().stream()
+                .filter(i -> i.getText() != null && i.getText().startsWith("Fiche de l'espèce"))
+                .findFirst()
+                .orElseThrow();
         assertThat(fiche.getText()).isEqualTo("Fiche de l'espèce (Pipistrelle commune)");
         assertThat(fiche.isDisable()).isFalse();
 
@@ -369,6 +372,20 @@ class SonsValidationViewTest {
         assertThat(urlsFiche)
                 .containsExactly(
                         "https://plan-actions-chiropteres.fr/les-chauves-souris/les-especes/pipistrelle-commune/");
+    }
+
+    @Test
+    @DisplayName("#1796 : « Ouvrir le passage » figure au clic droit de la table, actif sur une sélection")
+    void menu_de_ligne_a_ouvrir_le_passage(FxRobot robot) {
+        TableView<?> table = robot.lookup("#tableObservations").queryAs(TableView.class);
+        robot.interact(() -> table.getSelectionModel().select(0));
+        WaitForAsyncUtils.waitForFxEvents();
+
+        MenuItem ouvrir = table.getContextMenu().getItems().get(0);
+        assertThat(ouvrir.getText()).isEqualTo("Ouvrir le passage");
+        assertThat(ouvrir.isDisable())
+                .as("actif quand une ligne est sélectionnée")
+                .isFalse();
     }
 
     @Test

@@ -25,6 +25,13 @@ final class CorrespondanceParticipation {
     /// Type de détecteur/enregistreur (l'app cible les Passive Recorders, log `PaRecPR…`).
     private static final String TYPE_DETECTEUR = "PassiveRecorder";
 
+    /// Clé **canonique** VigieChiro du numéro de série de l'enregistreur (celle du formulaire web).
+    private static final String CLE_SERIE_CANONIQUE = "detecteur_enregistreur_numero_serie";
+
+    /// Clé **historique** poussée par l'application (#1689) : une participation déposée par l'app porte le
+    /// numéro de série sous cette forme, le web sous [#CLE_SERIE_CANONIQUE]. La lecture accepte les deux.
+    private static final String CLE_SERIE_APP = "detecteur_enregistreur_numserie";
+
     private CorrespondanceParticipation() {}
 
     /// Corps de participation (push) : `point` = code de la localité, fenêtre de nuit en **RFC 1123 UTC**,
@@ -65,7 +72,7 @@ final class CorrespondanceParticipation {
         Map<String, String> config = new LinkedHashMap<>();
         if (passage.idEnregistreur() != null) {
             config.put("detecteur_enregistreur_type", TYPE_DETECTEUR);
-            config.put("detecteur_enregistreur_numserie", passage.idEnregistreur());
+            config.put(CLE_SERIE_APP, passage.idEnregistreur());
         }
         if (micro.typeMicro() != null) {
             config.put("micro0_type", micro.typeMicro());
@@ -145,6 +152,18 @@ final class CorrespondanceParticipation {
             case "75-100" -> CouvertureNuageuse.DE_75_A_100;
             default -> null;
         };
+    }
+
+    /// Numéro de série de l'enregistreur lu dans une `configuration` distante, quelle que soit la clé
+    /// employée à la création de la participation : forme canonique VigieChiro ([#CLE_SERIE_CANONIQUE],
+    /// web) **ou** forme historique de l'application ([#CLE_SERIE_APP]). `null` si aucune n'est présente
+    /// (ou vide) : c'est alors qu'il n'y a vraiment rien à rapatrier.
+    static String serieDepuis(Map<String, String> configuration) {
+        if (configuration == null) {
+            return null;
+        }
+        String serie = configuration.getOrDefault(CLE_SERIE_CANONIQUE, configuration.get(CLE_SERIE_APP));
+        return serie == null || serie.isBlank() ? null : serie;
     }
 
     /// Matériel micro local depuis la `configuration` distante (`micro0_*`). Valeurs absentes / illisibles →

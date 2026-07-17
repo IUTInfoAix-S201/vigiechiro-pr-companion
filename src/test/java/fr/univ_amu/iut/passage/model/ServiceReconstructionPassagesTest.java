@@ -13,6 +13,7 @@ import static org.mockito.Mockito.when;
 
 import fr.univ_amu.iut.commun.api.ClientVigieChiro;
 import fr.univ_amu.iut.commun.api.DonneeVigieChiro;
+import fr.univ_amu.iut.commun.api.MeteoDepot;
 import fr.univ_amu.iut.commun.api.ParticipationDetail;
 import fr.univ_amu.iut.commun.api.ParticipationVigieChiro;
 import fr.univ_amu.iut.commun.api.ReponseApi;
@@ -35,6 +36,7 @@ import fr.univ_amu.iut.commun.model.dao.UtilisateurDao;
 import fr.univ_amu.iut.commun.persistence.MigrationSchema;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
 import fr.univ_amu.iut.passage.model.dao.EnregistrementOriginalDao;
+import fr.univ_amu.iut.passage.model.dao.MaterielMicroDao;
 import fr.univ_amu.iut.passage.model.dao.PassageDao;
 import fr.univ_amu.iut.passage.model.dao.SequenceDao;
 import fr.univ_amu.iut.passage.model.dao.SessionDao;
@@ -168,6 +170,28 @@ class ServiceReconstructionPassagesTest {
         assertThat(liens.objectidPour(LienVigieChiro.ENTITE_PASSAGE, String.valueOf(rapport.idPassage())))
                 .contains(PARTICIPATION);
         verify(importObservations).importer(eq(rapport.idPassage()), any(), eq(false));
+    }
+
+    @Test
+    @DisplayName("#1689 : la reconstruction rapatrie le n° de série (clé canonique), la météo et le micro")
+    void reconstruire_rapatrie_serie_meteo_micro() {
+        bouchonnerPlateforme();
+        // La participation porte le n° de série sous la clé CANONIQUE VigieChiro (formulaire web), plus la
+        // météo et le matériel micro : tout doit être ramené, plutôt que « INCONNU » + météo/micro vides.
+        when(client.participation(PARTICIPATION)).thenReturn(new ReponseApi.Succes<>(detailComplet()));
+
+        RapportReconstruction rapport = service.reconstruire(PARTICIPATION);
+
+        Passage passage = passageDao.findById(rapport.idPassage()).orElseThrow();
+        assertThat(passage.idEnregistreur())
+                .as("n° de série lu sous la clé canonique, pas « INCONNU »")
+                .isEqualTo("1997632");
+        assertThat(passage.donneesMeteo())
+                .as("la météo (vent/couverture) est rapatriée de la participation")
+                .isNotNull();
+        MaterielMicro micro = new MaterielMicroDao(source).pour(rapport.idPassage());
+        assertThat(micro.typeMicro()).isEqualTo("ICS");
+        assertThat(micro.positionMicro()).isEqualTo(PositionMicro.CANOPEE);
     }
 
     @Test
@@ -418,6 +442,23 @@ class ServiceReconstructionPassagesTest {
                 "2026-07-04T06:30:00+02:00",
                 null,
                 Map.of("detecteur_enregistreur_numserie", "1925492"),
+                Traitement.absent());
+    }
+
+    /// Détail complet façon formulaire web : n° de série sous la clé **canonique**, météo et micro renseignés.
+    private static ParticipationDetail detailComplet() {
+        return new ParticipationDetail(
+                PARTICIPATION,
+                "etag-1",
+                "Z41",
+                "2026-07-03T22:00:00+02:00",
+                "2026-07-04T06:30:00+02:00",
+                new MeteoDepot("FAIBLE", "0-25"),
+                Map.of(
+                        "detecteur_enregistreur_numero_serie", "1997632",
+                        "micro0_type", "ICS",
+                        "micro0_position", "CANOPEE",
+                        "micro0_hauteur", "4"),
                 Traitement.absent());
     }
 

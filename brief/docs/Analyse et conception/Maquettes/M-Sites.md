@@ -2,7 +2,7 @@
 
 > **Type** : vue principale (atteinte depuis la carte « Mes sites » de l'accueil).
 > **Persona principal** : [Marie](../Personas/Marie.md), partagée avec [Karim](../Personas/Karim.md). [Samuel](../Personas/Samuel.md) bascule sur [M-MultiSite](M-MultiSite.md) pour sa volumétrie.
-> **Parcours couverts** : [P1 - Déclarer un site de suivi](../Parcours%20utilisateurs/P1%20-%20Déclarer%20un%20site%20de%20suivi.md).
+> **Parcours couverts** : [P1 - Déclarer un site de suivi](../Parcours%20utilisateurs/P1%20-%20Déclarer%20un%20site%20de%20suivi.md), [P12 - Récupérer une nuit déposée sur VigieChiro](../Parcours%20utilisateurs/P12%20-%20Récupérer%20une%20nuit%20déposée%20sur%20VigieChiro.md).
 
 L'écran liste tous les sites de suivi déclarés sous forme de **cartes**, avec pour chacun : le n° de carré, le nom convivial (et la commune), le nombre de points d'écoute, le nombre de passages enregistrés cette saison, et un badge de fraîcheur (date du dernier passage). Un bouton `+ Nouveau site` est toujours visible en haut à droite. Le clic sur une carte ouvre [M-Site-detail](M-Site-detail.md). L'écran est atteint depuis l'accueil ; le **fil d'Ariane** du chrome (`Accueil › Mes sites`) et la **recherche globale** sont posés dans le bandeau.
 
@@ -206,3 +206,4 @@ L'écran liste tous les sites de suivi déclarés sous forme de **cartes**, avec
     - orange si entre 7 et 30 jours,
     - gris si > 30 jours ou aucun passage.
 - Le **fil d'Ariane** et la **recherche globale** appartiennent au chrome (socle `commun`), partagés par tous les écrans.
+- **Points rapatriés** (récupération d'une nuit, [P12](../Parcours%20utilisateurs/P12%20-%20Récupérer%20une%20nuit%20déposée%20sur%20VigieChiro.md)) : la synchronisation « mes sites » ramène **tous** les points du carré Vigie-Chiro (la grille STOC peut en compter des dizaines). Le bandeau des points d'une carte **résume** ceux qui sont rapatriés mais **sans passage** (« A1 · B2 · C3  (+ N rapatrié(s)) ») plutôt que de les lister un à un, pour ne pas noyer les points réellement utilisés. Un point rapatrié réapparaît nommément dès qu'un passage l'y rattache.

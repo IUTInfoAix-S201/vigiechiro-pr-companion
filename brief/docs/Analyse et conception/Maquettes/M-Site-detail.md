@@ -2,7 +2,7 @@
 
 > **Type** : vue de détail (atteinte par clic sur une carte de [M-Sites](M-Sites.md)).
 > **Persona principal** : [Marie](../Personas/Marie.md), partagée avec [Karim](../Personas/Karim.md). [Samuel](../Personas/Samuel.md) y accède ponctuellement ; sa vue de prédilection est [M-MultiSite](M-MultiSite.md).
-> **Parcours couverts** : [P1 - Déclarer un site de suivi](../Parcours%20utilisateurs/P1%20-%20Déclarer%20un%20site%20de%20suivi.md).
+> **Parcours couverts** : [P1 - Déclarer un site de suivi](../Parcours%20utilisateurs/P1%20-%20Déclarer%20un%20site%20de%20suivi.md), [P12 - Récupérer une nuit déposée sur VigieChiro](../Parcours%20utilisateurs/P12%20-%20Récupérer%20une%20nuit%20déposée%20sur%20VigieChiro.md).
 
 Cette vue présente **un site et tout ce qui s'y rattache** : sa fiche d'identité (n° de carré, département, protocole, dates), ses points d'écoute (coordonnées GPS optionnelles) et l'historique des passages enregistrés sur ce site. C'est aussi depuis cet écran qu'on **modifie le site** (ajout/retrait de points, mise à jour des coordonnées GPS) et qu'on lance un import.
 
@@ -329,3 +329,4 @@ Si on tente de supprimer un point qui porte des passages, l'opération est **blo
 - La **fiche d'identité** et le **tableau des passages** sont calculés par le service (agrégation par site).
 - Le **tableau** supporte de nombreuses lignes sans pagination (un site très actif sur la saison) ; le tri se fait par en-tête de colonne.
 - Le **statut d'avancement** affiché est l'attribut persisté ; la couleur du badge en est **dérivée**, pas stockée.
+- **Points rapatriés** (récupération d'une nuit, [P12](../Parcours%20utilisateurs/P12%20-%20Récupérer%20une%20nuit%20déposée%20sur%20VigieChiro.md)) : la synchronisation « mes sites » ramène **tous** les points du carré Vigie-Chiro. La section « Points d'écoute » **masque par défaut** ceux qui sont rapatriés mais **sans passage**, repliés derrière un « **+ N rapatrié(s)** » qu'on déplie au besoin, pour ne montrer d'emblée que les points réellement utilisés. Un point rapatrié réapparaît dès qu'un passage l'y rattache.

@@ -119,15 +119,53 @@ sont couvertes automatiquement par `ArchitectureTest`.
 
 ### 7. Passe d'harmonisation
 
-Prendre du recul sur l'ensemble du chantier et chercher les concepts à **abstraire** pour réduire
-**complexité** et **duplication** : code répété entre features → **contrat/pattern partagé** dans
-`commun` ; classe devenue trop grosse → **Extract Class** (le PMD `GodClass` du portail qualité est le
-garde-fou, cf. [Tests et qualité](tests-et-qualite.md)). C'est le moment de transformer trois copies
-d'un même geste en un mécanisme d'extension.
+**Prendre du recul sur l'application entière**, pas seulement sur les fichiers que le chantier a
+touchés. Il s'agit de regarder comment ce qui vient d'être livré **s'intègre dans le tout**. La passe
+se fait en **deux temps**.
+
+**Premier temps : l'audit global.** Avant de refactorer quoi que ce soit, cartographier l'intégration
+du résultat du chantier dans le reste de l'application. Deux questions, posées sur **tout le code** et
+pas sur le seul périmètre du chantier :
+
+- **Qu'est-ce qui ressemble** à ce qu'on vient d'écrire ? Un geste, un composant, un contrat, une
+  formulation d'IHM, un parcours.
+- **Qu'est-ce qui bénéficierait** du résultat du chantier ? Un écran qui gagnerait le nouveau
+  composant, un service qui pourrait s'appuyer sur la nouvelle abstraction, un appelant resté sur
+  l'ancienne façon de faire.
+
+Cet audit doit être **exhaustif et scrupuleux** : l'enjeu est de **comprendre ce qui sous-tend la
+demande initiale** (le concept réel, au-delà de la formulation du ticket) et d'en repérer **tous les
+axes** possibles. On ne s'arrête pas au premier doublon évident.
+
+**Second temps : le refactoring de conceptualisation.** Retravailler l'application pour que sa
+structure **exprime mieux ce concept** et la rende à la fois plus **lisible** et plus
+**compréhensible**. La **réduction de la duplication** (code répété entre features → **contrat/pattern
+partagé** dans `commun`) et l'**abstraction** (classe devenue trop grosse → **Extract Class**, le PMD
+`GodClass` du portail qualité est le garde-fou, cf. [Tests et qualité](tests-et-qualite.md)) sont des
+**outils** au service de cette clarté, **pas** le but : un code plus court mais moins compréhensible
+n'est pas une harmonisation. C'est le moment de transformer trois copies d'un même geste en un
+mécanisme d'extension.
+
+**Discuter, ne pas trancher seul.** Un refactoring de conceptualisation engage l'application entière.
+Dès qu'un choix, un doute ou une conséquence n'est pas évident, **en discuter avec l'utilisateur** :
+soumettre les options, expliciter les compromis, laisser trancher la direction. C'est un des rares
+moments où l'on **remonte** de l'implémentation vers la conception ; on ne s'y engage pas à l'aveugle.
 
 ### 8. Passe de revue visuelle
 
-**Régénérer les captures des écrans touchés, et les ouvrir.** Une par une. Les regarder.
+**Inspecter visuellement toutes les conséquences visibles du chantier.** Pas seulement les écrans
+nouveaux ou modifiés : **chaque état** qu'un écran touché peut prendre (donnée présente ou absente,
+GPS renseigné ou non, liste vide ou pleine, calcul disponible ou indisponible, thème clair ou
+sombre...). On **régénère** les captures concernées, on les **ouvre une par une**, on les **regarde**.
+
+**Les captures sont une documentation vivante de l'état réel de l'application.** Il est donc **crucial
+qu'elles reflètent toutes les fonctionnalités visuelles du chantier**. Une conséquence visible qui n'a
+**pas** de capture n'est **pas documentée** : elle dérivera en silence, et le prochain qui lira la doc
+verra un produit qui n'existe plus. Cette passe **ajoute donc autant de captures que nécessaire** : un
+état neuf apparu avec le chantier, une variante qu'aucune capture ne montrait, un écran entier créé.
+Une capture ajoutée devient une **validation visuelle rejouable** (seed déterministe, entrée au
+manifeste des captures, insertion dans la doc) : elle est régénérée à chaque build et re-contrôlée à
+chaque chantier suivant.
 
 Cette passe existe parce qu'un constat s'est répété **cinq fois** sur les chantiers #1405 et #1431 :
 
@@ -150,7 +188,9 @@ ou aux composants du socle : c'est **elle** qui est la plus à même de casser u
 test. On regarde donc **après** elle. Et comme les aperçus sont **régénérés automatiquement sur `main`**,
 un défaut corrigé ici rafraîchit la documentation tout seul.
 
-**Ce qu'on cherche** (par ordre de fréquence constatée) :
+**Ce qu'on cherche.** D'abord la **couverture** : chaque conséquence visible du chantier a-t-elle une
+capture ? Un état montré nulle part est un angle mort ; on **crée la capture manquante** avant d'aller
+plus loin. Puis, sur chaque capture (par ordre de fréquence constatée) :
 
 1. du **texte coupé** - libellé, consigne, bouton (une ellipse `…` est un aveu) ;
 2. un **glyphe absent** (emoji, symbole) ;
@@ -184,8 +224,8 @@ règle du dépôt, se répercute dans `CLAUDE.md` / `CONTRIBUTING.md`. Le bilan 
 - [ ] 4. Doc utilisateur (docs/) + captures
 - [ ] 5. Brief projet (IUTInfoAix-S201/brief) répercuté si un élément de conception change
 - [ ] 6. Tests d'intégration + E2E couvrant chaque usage
-- [ ] 7. Harmonisation (abstractions, duplication, GodClass)
-- [ ] 8. Revue visuelle : captures des écrans touchés **régénérées et ouvertes**
+- [ ] 7. Harmonisation : **audit global** (ce qui ressemble / bénéficierait, exhaustif) puis **refactoring de conceptualisation** (lisibilité ; duplication et abstraction = outils) ; **choix, doutes, conséquences discutés avec l'utilisateur**
+- [ ] 8. Revue visuelle : **toute conséquence visible** couverte par une capture (captures **ajoutées** si besoin), régénérées et ouvertes une par une
 - [ ] 9. Nouveaux chantiers identifiés + issues créées
 - [ ] 10. Bilan (livré / dette / décisions)
 ```

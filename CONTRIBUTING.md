@@ -139,12 +139,20 @@ rédiger un plan, découper en **issues reliées à un EPIC**.
    conception vivant : besoin, parcours utilisateurs, maquettes, MCD - **pas** un sujet pédagogique) les
    évolutions qui changent un de ces **éléments de conception**.
 6. **Tests** : chaque usage couvert par des tests d'**intégration** (TestFX) et **E2E**.
-7. **Harmonisation** : abstraire pour réduire **complexité** et **duplication** (Extract Class,
-   patterns partagés).
-8. **Revue visuelle** : **régénérer les captures** des écrans touchés et **les ouvrir**. Un geste testé
-   n'est pas un écran regardé : un texte coupé, un glyphe absent ou une régression de style ne font
-   rougir aucun test. C'est la passe précédente (CSS, socle) qui est la plus à même de casser un écran
-   sans casser un test, d'où cette relecture **juste après** elle.
+7. **Harmonisation** : prendre du recul sur **l'application entière**, en deux temps. D'abord un
+   **audit global**, exhaustif et scrupuleux (qu'est-ce qui **ressemble** au résultat du chantier,
+   qu'est-ce qui en **bénéficierait**), pour comprendre ce qui **sous-tend** la demande initiale. Puis
+   un **refactoring de conceptualisation** (rendre l'application plus **lisible** et **compréhensible** ;
+   réduire la duplication et abstraire (Extract Class, patterns partagés) sont des **outils**, pas le
+   but). **Discuter les choix, doutes et conséquences avec l'utilisateur.**
+8. **Revue visuelle** : inspecter **toutes les conséquences visibles** du chantier, chaque écran **et
+   chaque état** qu'il peut prendre. Les captures sont une **documentation vivante** de l'état réel de
+   l'application : **ajouter autant de captures que nécessaire** pour refléter toutes ses
+   fonctionnalités visuelles (une capture ajoutée = validation rejouable). Les **régénérer**, les
+   **ouvrir une par une**, les **regarder**. Un geste testé n'est pas un écran regardé : un texte
+   coupé, un glyphe absent ou une régression de style ne font rougir aucun test. C'est la passe
+   précédente (CSS, socle) qui est la plus à même de casser un écran sans casser un test, d'où cette
+   relecture **juste après** elle.
 9. **Nouveaux chantiers** identifiés + **issues** créées.
 10. **Bilan** : ce qui a été livré, dette restante, décisions (qui **renvoient aux ADR** de la passe 3).
 

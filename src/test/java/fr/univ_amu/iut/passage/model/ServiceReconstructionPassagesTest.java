@@ -16,6 +16,7 @@ import fr.univ_amu.iut.commun.api.DonneeVigieChiro;
 import fr.univ_amu.iut.commun.api.MeteoDepot;
 import fr.univ_amu.iut.commun.api.ParticipationDetail;
 import fr.univ_amu.iut.commun.api.ParticipationVigieChiro;
+import fr.univ_amu.iut.commun.api.RapportSynchro;
 import fr.univ_amu.iut.commun.api.ReponseApi;
 import fr.univ_amu.iut.commun.api.SuiviPagination;
 import fr.univ_amu.iut.commun.api.Traitement;
@@ -427,6 +428,81 @@ class ServiceReconstructionPassagesTest {
                         new DonneeVigieChiro("d-1", SEQ_1, List.of(observation(), observation())),
                         new DonneeVigieChiro("d-2", SEQ_2, List.of(observation())))));
         when(importObservations.importer(anyLong(), any(), anyBoolean())).thenReturn("3 observation(s) importée(s).");
+    }
+
+    @Test
+    @DisplayName("#1707 synchro : une orpheline située devient un squelette archivé (INCONNU, 0 séquence), rattaché")
+    void synchroniser_cree_un_squelette() {
+        when(client.mesParticipations()).thenReturn(new ReponseApi.Succes<>(List.of(participation(PARTICIPATION))));
+
+        Optional<RapportSynchro> rapport = service.synchroniser(client);
+
+        assertThat(rapport).hasValueSatisfying(compteRendu -> {
+            assertThat(compteRendu.nombre()).isEqualTo(1);
+            assertThat(compteRendu.enClair()).isEqualTo("1 passage(s) rapatrié(s)");
+        });
+        List<Passage> passages = passageDao.findAll();
+        assertThat(passages).hasSize(1);
+        Passage passage = passages.get(0);
+        assertThat(passage.statutWorkflow())
+                .as("la participation existe sur la plateforme : le passage est déposé")
+                .isEqualTo(StatutWorkflow.DEPOSE);
+        assertThat(passage.idPoint()).isEqualTo(idPoint);
+        assertThat(passage.annee()).isEqualTo(2026);
+        assertThat(passage.idEnregistreur())
+                .as("aucun détail n'est téléchargé pour un squelette : enregistreur honnêtement « inconnu »")
+                .isEqualTo("INCONNU");
+        assertThat(passage.donneesMeteo())
+                .as("le squelette ne porte pas de météo : elle viendra à l'hydratation (#1710)")
+                .isNull();
+
+        SessionDEnregistrement session =
+                sessionDao.trouverParPassage(passage.id()).orElseThrow();
+        assertThat(session.archivee())
+                .as("un squelette naît archivé : rien n'a jamais été importé ici")
+                .isTrue();
+        assertThat(sequenceDao.findBySession(session.id()))
+                .as("un squelette n'a pas encore de séquence : l'hydratation les créera")
+                .isEmpty();
+        assertThat(liens.objectidPour(LienVigieChiro.ENTITE_PASSAGE, String.valueOf(passage.id())))
+                .contains(PARTICIPATION);
+        verify(importObservations, never()).importer(anyLong(), any(), anyBoolean());
+    }
+
+    @Test
+    @DisplayName("#1707 synchro : relancée, elle ne recrée rien et n'annonce rien (idempotence)")
+    void synchroniser_idempotent() {
+        when(client.mesParticipations()).thenReturn(new ReponseApi.Succes<>(List.of(participation(PARTICIPATION))));
+
+        assertThat(service.synchroniser(client))
+                .as("1re synchro : crée le squelette")
+                .isPresent();
+        Optional<RapportSynchro> seconde = service.synchroniser(client);
+
+        assertThat(seconde).as("2e synchro : déjà rattaché, rien à annoncer").isEmpty();
+        assertThat(passageDao.findAll()).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("#1707 synchro : une participation dont le point n'est pas encore local est ignorée")
+    void synchroniser_ignore_point_non_local() {
+        when(client.mesParticipations())
+                .thenReturn(new ReponseApi.Succes<>(List.of(new ParticipationVigieChiro(
+                        "autre", "Z99", "2026-07-03T22:00:00+02:00", "Vigiechiro - Point Fixe-130711"))));
+
+        assertThat(service.synchroniser(client))
+                .as("point Z99 inconnu du référentiel local : pas encore situable")
+                .isEmpty();
+        assertThat(passageDao.findAll()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("#1707 synchro : hors connexion, best-effort silencieux (Optional vide, aucune exception)")
+    void synchroniser_hors_connexion_silencieux() {
+        when(client.mesParticipations()).thenReturn(new ReponseApi.NonConnecte<>());
+
+        assertThat(service.synchroniser(client)).isEmpty();
+        assertThat(passageDao.findAll()).isEmpty();
     }
 
     private static ParticipationVigieChiro participation(String id) {

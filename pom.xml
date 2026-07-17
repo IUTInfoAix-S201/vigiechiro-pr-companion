@@ -52,6 +52,10 @@
              VigieChiro réelle et valide les réponses contre les JSON Schema de src/test/resources. -->
         <restassured.version>5.5.1</restassured.version>
 
+        <!-- Lecture des specs YAML du générateur de cartes SD de recette (scope test uniquement,
+             cf. recette/fixtures/spec/ ; jamais embarqué dans le binaire distribué). -->
+        <snakeyaml.version>2.5</snakeyaml.version>
+
         <!-- Persistance + injection de dépendances (cf. TP5 / TP4). -->
         <guice.version>7.0.0</guice.version>
         <sqlite.jdbc.version>3.53.2.0</sqlite.jdbc.version>
@@ -234,6 +238,16 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- Générateur déterministe de cartes SD de recette : lit les specs YAML de
+             recette/fixtures/spec/. Test uniquement (l'application n'embarque pas la génération de
+             fixtures ; ce sont les tests qui fabriquent WAV/ZIP, cf. paquet de test recette). -->
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <version>${snakeyaml.version}</version>
+            <scope>test</scope>
+        </dependency>
+
         <!-- Icônes FontAwesome5 via Ikonli (FontIcon en FXML). ikonli-javafx tire ikonli-core. -->
         <dependency>
             <groupId>org.kordamp.ikonli</groupId>
@@ -311,6 +325,21 @@
                 <configuration>
                     <mainClass>fr.univ_amu.iut.App</mainClass>
                 </configuration>
+                <executions>
+                    <!-- Goal de confort (non lié à une phase, jamais exécuté en CI ni au packaging) :
+                         matérialise les cartes SD de recette depuis leurs specs YAML (portée test).
+                         Lancer via :
+                           ./mvnw -q test-compile exec:java@generer-sd \
+                             -Dexec.args="recette/fixtures/spec <dossierDest>"
+                         cf. dev-docs/recette/fixtures.md. -->
+                    <execution>
+                        <id>generer-sd</id>
+                        <configuration>
+                            <mainClass>fr.univ_amu.iut.recette.GenerateurCartesSD</mainClass>
+                            <classpathScope>test</classpathScope>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
 
             <plugin>

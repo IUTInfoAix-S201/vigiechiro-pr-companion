@@ -29,6 +29,7 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Hyperlink;
+import javafx.scene.control.Label;
 import javafx.stage.Stage;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -154,6 +155,15 @@ class SiteDetailSuppressionsViewTest {
                 .queryAs(Hyperlink.class);
     }
 
+    /// Révèle les points rapatriés **non utilisés** (#1738) : le point de test ne porte aucun passage, il
+    /// est donc masqué par défaut. On clique « Afficher les points non utilisés » pour rendre sa carte (et
+    /// son lien « Supprimer ») accessible - exactement le geste qu'un utilisateur ferait pour élaguer un
+    /// point rapatrié inutile.
+    private void revelerPointsNonUtilises(FxRobot robot) {
+        robot.interact(() ->
+                robot.lookup("#lienPointsNonUtilises").queryAs(Hyperlink.class).fire());
+    }
+
     @Test
     @DisplayName("#1405 : « Supprimer » le site, confirmé : le site disparaît de la base")
     void suppression_du_site_confirmee(FxRobot robot) {
@@ -218,6 +228,41 @@ class SiteDetailSuppressionsViewTest {
 
         assertThat(pointsEnBase()).hasSize(1);
         assertThat(annonces).isEmpty();
+    }
+
+    @Test
+    @DisplayName("#1738 : un point rapatrié non utilisé est masqué, puis révélé par un lien qui l'annonce")
+    void point_rapatrie_masque_puis_revele(FxRobot robot) {
+        // Un point RAPATRIÉ (synchronisé) et jamais utilisé s'ajoute au site : contrairement au point A1
+        // (ajouté à la main, toujours visible), il n'apparaît pas d'emblée.
+        new PointDao(source).insert(new PointDEcoute(null, "Z9", null, null, null, site.id(), true));
+        robot.interact(() -> controleur.afficher(site));
+
+        assertThat(codesPointsAffiches(robot))
+                .as("A1 (manuel) reste visible, Z9 (rapatrié non utilisé) est masqué")
+                .containsExactly(CODE_POINT);
+        Hyperlink reveler = robot.lookup("#lienPointsNonUtilises").queryAs(Hyperlink.class);
+        assertThat(reveler.getText())
+                .as("le lien annonce combien de points rapatriés sont masqués")
+                .contains("Afficher")
+                .contains("1");
+
+        revelerPointsNonUtilises(robot);
+
+        assertThat(codesPointsAffiches(robot))
+                .as("révélé, le point rapatrié Z9 apparaît (le manuel A1 reste)")
+                .containsExactlyInAnyOrder(CODE_POINT, "Z9");
+        assertThat(robot.lookup("#lienPointsNonUtilises")
+                        .queryAs(Hyperlink.class)
+                        .getText())
+                .as("révélé, le lien propose désormais de replier")
+                .contains("Masquer");
+    }
+
+    private List<String> codesPointsAffiches(FxRobot robot) {
+        return robot.lookup("#cartesPoints").lookup(".carte-point-code").queryAllAs(Label.class).stream()
+                .map(Label::getText)
+                .toList();
     }
 
     @Test

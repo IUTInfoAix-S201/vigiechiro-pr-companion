@@ -122,6 +122,19 @@ public class ServiceSites {
     ///     le site
     /// @throws IllegalArgumentException si le code de point est mal formé (R2)
     public PointDEcoute ajouterPoint(Long idSite, String code, Double latitude, Double longitude, String description) {
+        return ajouterPoint(idSite, code, latitude, longitude, description, false);
+    }
+
+    /// Ajoute un point **rapatrié** de VigieChiro (#1738), marqué `synchronise` : la fiche site pourra le
+    /// masquer tant qu'aucune nuit ne s'y rattache (contrairement à un point ajouté à la main, toujours
+    /// visible). Réservé au rapprochement des sites ([RapprochementSites]) ; mêmes règles (R2, unicité).
+    public PointDEcoute ajouterPointSynchronise(
+            Long idSite, String code, Double latitude, Double longitude, String description) {
+        return ajouterPoint(idSite, code, latitude, longitude, description, true);
+    }
+
+    private PointDEcoute ajouterPoint(
+            Long idSite, String code, Double latitude, Double longitude, String description, boolean synchronise) {
         Site site =
                 siteDao.findById(idSite).orElseThrow(() -> new RegleMetierException("Site introuvable : " + idSite));
         ValidateurCodePoint.exigerValide(code); // R2
@@ -131,7 +144,7 @@ public class ServiceSites {
             throw new RegleMetierException(
                     "Le code de point « " + code + " » existe déjà dans ce site (unicité code/point).");
         }
-        PointDEcoute aCreer = new PointDEcoute(null, code, latitude, longitude, description, site.id());
+        PointDEcoute aCreer = new PointDEcoute(null, code, latitude, longitude, description, site.id(), synchronise);
         return pointDao.insert(aCreer);
     }
 

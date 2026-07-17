@@ -31,6 +31,7 @@ import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.TableColumn;
@@ -142,6 +143,11 @@ public class SiteDetailController implements RafraichirAuRetour, ResumeStatut {
     /// carte (un FlowPane n'a pas de placeholder). Visibilité liée à la liste des cartes dans initialize.
     @FXML
     private Label lblAucunPoint;
+
+    /// Révélation des points rapatriés **non utilisés** (#1738) : masqué s'il n'y en a pas, sinon il montre
+    /// ou replie les points sans passage. Libellé et visibilité liés au ViewModel dans initialize.
+    @FXML
+    private Hyperlink lienPointsNonUtilises;
 
     @FXML
     private TableView<LignePassage> tablePassages;
@@ -292,6 +298,24 @@ public class SiteDetailController implements RafraichirAuRetour, ResumeStatut {
         // personne n'exposait - donc que personne ne pouvait remplacer en test.
         CartesPointsSite.installer(
                 cartesPoints, lblAucunPoint, viewModel, navigation, ouvrirMultisite, confirmateur, notificateur);
+        // Révélation des points rapatriés non utilisés (#1738) : la synchro ramène tous les points du carré,
+        // mais la fiche ne montre par défaut que ceux qui SERVENT (au moins un passage). Ce lien n'apparaît
+        // que s'il reste des points à révéler ; son libellé suit l'état (Afficher N… / Masquer…).
+        lienPointsNonUtilises
+                .visibleProperty()
+                .bind(viewModel.nombrePointsMasquesProperty().greaterThan(0));
+        lienPointsNonUtilises.managedProperty().bind(lienPointsNonUtilises.visibleProperty());
+        lienPointsNonUtilises
+                .textProperty()
+                .bind(Bindings.when(viewModel.afficherTousLesPointsProperty())
+                        .then("Masquer les points non utilisés")
+                        .otherwise(Bindings.concat(
+                                "Afficher ",
+                                viewModel.nombrePointsMasquesProperty().asString(),
+                                " point(s) rapatrié(s) non utilisé(s)")));
+        lienPointsNonUtilises.setOnAction(evenement -> viewModel
+                .afficherTousLesPointsProperty()
+                .set(!viewModel.afficherTousLesPointsProperty().get()));
     }
 
     /// Contexte d'identité (carré/code/nom) transmis à M-Passage pour éviter une dépendance

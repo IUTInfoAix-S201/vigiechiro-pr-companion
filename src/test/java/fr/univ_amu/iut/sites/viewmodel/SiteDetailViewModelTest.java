@@ -270,6 +270,49 @@ class SiteDetailViewModelTest {
                 .hasMessageContaining("130010");
     }
 
+    @Test
+    @DisplayName("#1738 : les points RAPATRIÉS non utilisés sont masqués par défaut, révélables à la demande")
+    void points_rapatries_non_utilises_masques() {
+        Site site = service.creerSite("640380", "Étang", Protocole.STANDARD, null, ID_USER);
+        PointDEcoute utilise = service.ajouterPoint(site.id(), "A1", null, null, null);
+        service.ajouterPointSynchronise(site.id(), "Z2", null, null, null); // rapatrié, jamais utilisé
+        service.ajouterPointSynchronise(site.id(), "Z3", null, null, null); // idem
+        insererPassage(utilise, 1, "2026-04-22", Verdict.OK);
+
+        viewModel.chargerSite(site);
+
+        // Par défaut : le point qui SERT est affiché ; les deux rapatriés non utilisés sont masqués.
+        assertThat(viewModel.points()).extracting(c -> c.point().code()).containsExactly("A1");
+        assertThat(viewModel.nombrePointsMasquesProperty().get()).isEqualTo(2);
+
+        // Révélation : tous les points rapatriés apparaissent, l'ordre (par code) étant préservé.
+        viewModel.afficherTousLesPointsProperty().set(true);
+        assertThat(viewModel.points()).extracting(c -> c.point().code()).containsExactly("A1", "Z2", "Z3");
+        assertThat(viewModel.nombrePointsMasquesProperty().get())
+                .as("le compte des masqués ne dépend pas de l'affichage")
+                .isEqualTo(2);
+
+        // Repli : retour au seul point affiché par défaut.
+        viewModel.afficherTousLesPointsProperty().set(false);
+        assertThat(viewModel.points()).extracting(c -> c.point().code()).containsExactly("A1");
+    }
+
+    @Test
+    @DisplayName("#1738 : un point AJOUTÉ À LA MAIN reste visible même sans passage (seuls les rapatriés se masquent)")
+    void point_ajoute_a_la_main_reste_visible() {
+        Site site = service.creerSite("640380", "Étang", Protocole.STANDARD, null, ID_USER);
+        service.ajouterPoint(site.id(), "A1", null, null, null); // manuel, jamais utilisé
+        service.ajouterPointSynchronise(site.id(), "Z2", null, null, null); // rapatrié, jamais utilisé
+
+        viewModel.chargerSite(site);
+
+        assertThat(viewModel.points())
+                .as("le point manuel A1 reste affiché ; seul le rapatrié Z2 est masqué")
+                .extracting(c -> c.point().code())
+                .containsExactly("A1");
+        assertThat(viewModel.nombrePointsMasquesProperty().get()).isEqualTo(1);
+    }
+
     private void insererPassage(PointDEcoute point, int numeroPassage, String date, Verdict verdict) {
         passageDao.insert(new Passage(
                 null,

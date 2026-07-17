@@ -86,6 +86,8 @@ class RapprochementSitesTest {
         assertThat(locaux).singleElement().extracting(Site::numeroCarre).isEqualTo("130711");
         Site cree = locaux.getFirst();
         assertThat(pointDao.findBySite(cree.id()))
+                .as("les points rapatriés sont marqués synchronisés : la fiche site pourra les masquer (#1738)")
+                .allMatch(PointDEcoute::synchronise)
                 .extracting(PointDEcoute::code)
                 .containsExactly("Z1", "Z41");
         assertThat(liens.tous(LienVigieChiro.ENTITE_SITE)).containsOnly(Map.entry(String.valueOf(cree.id()), "s1"));

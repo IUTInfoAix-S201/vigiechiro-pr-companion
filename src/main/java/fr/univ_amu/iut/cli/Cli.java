@@ -133,14 +133,19 @@ public final class Cli {
     /// logique, ex. point introuvable) sort en [#CODE_ERREUR_ARGUMENTS] ; toute autre exception en
     /// [#CODE_ERREUR_EXECUTION]. On imprime le **message** à l'utilisateur (jamais la trace, qui
     /// parasiterait la sortie d'un script) et on **journalise** l'échec (#1523), à la parité de l'IHM : un
-    /// refus métier discrètement (FINE, sans trace), un échec **inattendu** avec sa trace (SEVERE, reste
-    /// inspectable dans `<workspace>/logs/`). Une simple erreur d'usage ne mérite ni l'un ni l'autre.
+    /// refus métier discrètement (FINE, sans trace ; `RegleMetierException` **ou** l'`IllegalArgumentException`
+    /// des validateurs R1/R2), un échec **inattendu** avec sa trace (SEVERE, reste inspectable dans
+    /// `<workspace>/logs/`). Une simple erreur d'usage ne mérite ni l'un ni l'autre.
     private static int gererErreurExecution(Exception exception, CommandLine ligne, ParseResult parseResult) {
         if (exception instanceof ErreurUsage) {
             ligne.getErr().println("Erreur d'usage : " + exception.getMessage());
             return CODE_ERREUR_ARGUMENTS;
         }
-        if (exception instanceof RegleMetierException) {
+        if (exception instanceof RegleMetierException || exception instanceof IllegalArgumentException) {
+            // Un `IllegalArgumentException` qui remonte jusqu'ici vient des validateurs (R1/R2 :
+            // `ValidateurCarre`, `ValidateurCodePoint`) : c'est un refus métier, pas un incident. L'IHM le
+            // traite déjà ainsi (`catch (RegleMetierException | IllegalArgumentException)`) ; la CLI s'aligne,
+            // pour ne pas noyer les logs sous une trace SEVERE à chaque saisie invalide.
             LOG.fine(() -> "Refus métier d'une commande CLI : " + exception.getMessage());
         } else {
             LOG.log(Level.SEVERE, exception, () -> "Échec inattendu d'une commande CLI");

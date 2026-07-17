@@ -10,6 +10,12 @@ import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -179,12 +185,34 @@ class CliTest {
     }
 
     @Test
-    @DisplayName("creer-site avec un carré mal formé : échec métier (1)")
+    @DisplayName("creer-site avec un carré mal formé : échec métier (1), journalisé sans trace SEVERE")
     void creer_site_carre_invalide_echoue() {
-        int code = cli.executer(new String[] {"creer-site", "--carre", "pas-un-carre"}, sortie, erreur);
+        Logger logCli = Logger.getLogger(Cli.class.getName());
+        List<LogRecord> journalises = new ArrayList<>();
+        Handler capture = new Handler() {
+            @Override
+            public void publish(LogRecord enregistrement) {
+                journalises.add(enregistrement);
+            }
 
-        assertThat(code).isEqualTo(Cli.CODE_ERREUR_EXECUTION);
-        assertThat(texteErreur()).contains("Échec");
+            @Override
+            public void flush() {}
+
+            @Override
+            public void close() {}
+        };
+        logCli.addHandler(capture);
+        try {
+            int code = cli.executer(new String[] {"creer-site", "--carre", "pas-un-carre"}, sortie, erreur);
+
+            assertThat(code).isEqualTo(Cli.CODE_ERREUR_EXECUTION);
+            assertThat(texteErreur()).contains("Échec");
+            assertThat(journalises)
+                    .as("un carré mal formé est un refus métier (R1), pas un incident : aucune trace SEVERE")
+                    .noneMatch(enregistrement -> enregistrement.getLevel() == Level.SEVERE);
+        } finally {
+            logCli.removeHandler(capture);
+        }
     }
 
     @Test

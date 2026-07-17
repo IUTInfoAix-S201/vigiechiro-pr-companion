@@ -47,19 +47,22 @@ import javafx.scene.Scene;
 
 /// Outil de capture/mesure, utilisable tel quel.
 ///
-/// Capture l'écran M-Diagnostic en PNG pour le comparer à la maquette du brief, en **deux états**
+/// Capture l'écran M-Diagnostic en PNG pour le comparer à la maquette du brief, en **trois états**
 /// afin d'en montrer les particularités :
 ///
 /// - `apercu-diagnostic.png` : **relevé présent**, courbe climatique (T°/hygrométrie de la nuit),
-///   anomalies (R19 : réveil non programmé, batterie faible), évènements et GPS ;
+///   anomalies (R19 : réveil non programmé, batterie faible), évènements, cohérence horaire et GPS ;
 /// - `apercu-diagnostic-sans-releve.png` : **relevé absent** (R20), l'absence de sonde est signalée,
-///   le graphe est vide mais les anomalies du journal restent affichées.
+///   le graphe est vide mais les anomalies du journal restent affichées ;
+/// - `apercu-diagnostic-sans-gps.png` : **point sans coordonnées GPS**, le repère GPS passe à « non
+///   renseigné » et l'encart cohérence horaires disparaît (calcul impossible sans coordonnées).
 ///
 /// On seede une base SQLite temporaire via les **DAO réels** (`diagnostic → passage/sites`, autorisé)
-/// : un site/point géolocalisé, deux passages déposés avec leur session et leur journal du capteur ;
-/// le premier reçoit en plus un **THLog synthétique** (écrit dans le workspace, relu par le service
-/// comme à l'import). Chaque vue est chargée via une `controllerFactory` Guice (socle + sites +
-/// passage + diagnostic) et rendue hors-écran par [ApercuFx].
+/// : un point géolocalisé et un point sans GPS, trois passages déposés avec leur session et leur
+/// journal du capteur ; les passages « avec relevé » et « sans GPS » reçoivent en plus un **THLog
+/// synthétique** (écrit dans le workspace, relu par le service comme à l'import). Chaque vue est
+/// chargée via une `controllerFactory` Guice (socle + sites + passage + diagnostic) et rendue
+/// hors-écran par [ApercuFx].
 ///
 /// **Déterminisme** : l'écran n'affiche que la série climatique, les anomalies et le GPS — aucun
 /// chemin de fichier, donc aucune dépendance au dossier temporaire.
@@ -121,6 +124,7 @@ public final class CaptureDiagnostic {
 
         rendre(injecteur, graine.idAvecReleve(), sortie.resolve("apercu-diagnostic.png"));
         rendre(injecteur, graine.idSansReleve(), sortie.resolve("apercu-diagnostic-sans-releve.png"));
+        rendre(injecteur, graine.idSansGps(), sortie.resolve("apercu-diagnostic-sans-gps.png"));
     }
 
     /// Injecteur (partiel) utilisé par cet outil de capture. Exposé pour le garde-fou de câblage
@@ -163,16 +167,30 @@ public final class CaptureDiagnostic {
                 null, "640380", "Étang de la Tuilière", Protocole.STANDARD, null, "2026-01-01", ID_UTILISATEUR));
         Long idPoint = pointDao.insert(new PointDEcoute(null, "A1", 43.4010, -1.5740, "lisière", site.id()))
                 .id();
+        // Point NON géolocalisé (#1673) : sert la 3e capture (GPS non renseigné → cohérence indisponible).
+        Long idPointSansGps = pointDao.insert(new PointDEcoute(null, "A2", null, null, "clairière", site.id()))
+                .id();
 
         long idAvecReleve = passageAvecJournal(passageDao, sessionDao, journalDao, idPoint, 2, "2026-06-22");
-        Long sessionAvec =
-                sessionDao.trouverParPassage(idAvecReleve).orElseThrow().id();
         Path thlog = workspace.resolve("PaRecPR" + SERIE + "_THLog.csv");
         Files.writeString(thlog, String.join("\n", THLOG) + "\n", StandardCharsets.UTF_8);
-        releveDao.insert(new ReleveClimatique(null, thlog.toString(), null, sessionAvec));
+        rattacherReleve(releveDao, sessionDao, idAvecReleve, thlog);
 
         long idSansReleve = passageAvecJournal(passageDao, sessionDao, journalDao, idPoint, 1, "2026-06-08");
-        return new Graine(idAvecReleve, idSansReleve);
+
+        // Relevé présent mais point sans GPS : la courbe s'affiche, le repère GPS passe à « non
+        // renseigné » et l'encart cohérence horaires disparaît (calcul impossible sans coordonnées).
+        long idSansGps = passageAvecJournal(passageDao, sessionDao, journalDao, idPointSansGps, 3, "2026-06-24");
+        rattacherReleve(releveDao, sessionDao, idSansGps, thlog);
+
+        return new Graine(idAvecReleve, idSansReleve, idSansGps);
+    }
+
+    /// Rattache le relevé climatique `thlog` à la session du passage `idPassage`.
+    private static void rattacherReleve(
+            ReleveClimatiqueDao releveDao, SessionDao sessionDao, long idPassage, Path thlog) {
+        Long idSession = sessionDao.trouverParPassage(idPassage).orElseThrow().id();
+        releveDao.insert(new ReleveClimatique(null, thlog.toString(), null, idSession));
     }
 
     /// Insère un passage déposé, sa session et un journal du capteur (mêmes anomalies/évènements pour
@@ -216,5 +234,5 @@ public final class CaptureDiagnostic {
         return passage.id();
     }
 
-    private record Graine(long idAvecReleve, long idSansReleve) {}
+    private record Graine(long idAvecReleve, long idSansReleve, long idSansGps) {}
 }

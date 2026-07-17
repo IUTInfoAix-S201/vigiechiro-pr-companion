@@ -193,4 +193,14 @@ public class SequenceDao extends DaoGenerique<SequenceDEcoute, Long> {
                 empreinte,
                 idSequence);
     }
+
+    /// Réattache une séquence à un autre enregistrement original (#1651) : l'hydratation d'un passage
+    /// reconstruit remplace le placeholder par les vrais originaux régénérés, et rebranche chaque séquence
+    /// sur le sien. Maj ciblée, sans réécrire les autres colonnes.
+    public void majOriginal(long idSequence, long idEnregistrementOriginal) {
+        executerMaj(
+                "UPDATE listening_sequence SET original_recording_id = ? WHERE id = ?",
+                idEnregistrementOriginal,
+                idSequence);
+    }
 }

@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -54,7 +55,7 @@ final class HydratationDepuisBruts {
     /// Rend le bilan si l'hydratation a pu s'exécuter (feature « Importation » active, préfixe connu, log
     /// exploitable dans le dossier), `Optional.empty()` sinon : la réactivation reste alors sur le compte
     /// rendu honnête du palier 1 (#1648), sans rien inventer.
-    Optional<BilanReactivation> appliquer(
+    Optional<ResultatHydratation> appliquer(
             List<SequenceDEcoute> sequences,
             Path dossierSource,
             Optional<Prefixe> prefixeSession,
@@ -71,8 +72,9 @@ final class HydratationDepuisBruts {
 
     /// Régénère et rebranche, **brut par brut**. Le temporaire est vidé après chaque brut : régénérer une
     /// nuit entière d'un coup doublerait transitoirement l'occupation disque, ce que l'archivage cherchait
-    /// justement à éviter.
-    private BilanReactivation regenererEtRebrancher(
+    /// justement à éviter. On retient, pour chaque brut ayant produit des séquences, ces séquences : elles
+    /// serviront à remplacer le placeholder par les vrais originaux (#1651).
+    private ResultatHydratation regenererEtRebrancher(
             List<SequenceDEcoute> sequences,
             InventaireBruts inventorie,
             Prefixe prefixe,
@@ -81,6 +83,7 @@ final class HydratationDepuisBruts {
         Map<String, SequenceDEcoute> parNom = indexerParNom(sequences);
         Set<String> restantes = new HashSet<>(parNom.keySet());
         BilanReactivation bilan = new BilanReactivation();
+        List<BrutRebranche> brutsRebranches = new ArrayList<>();
         List<BrutInventorie> bruts = inventorie.bruts();
         int traites = 0;
         for (BrutInventorie brut : bruts) {
@@ -92,6 +95,9 @@ final class HydratationDepuisBruts {
                 moteur.regenerer(
                         brut.source(), brut.nomOriginal(), prefixe, inventorie.frequenceAcquisitionHz(), temporaire);
                 List<SequenceDEcoute> sesSequences = sequencesProduites(temporaire, parNom, restantes);
+                if (!sesSequences.isEmpty()) {
+                    brutsRebranches.add(new BrutRebranche(brut, sesSequences));
+                }
                 bilan.absorber(rebranchement.rebrancher(
                         sesSequences, CandidatsReactivation.dans(temporaire), avancement -> {}));
                 sesSequences.forEach(sequence -> restantes.remove(sequence.nomFichier()));
@@ -100,7 +106,7 @@ final class HydratationDepuisBruts {
             }
         }
         bilan.manquantes += absentesDuDisque(restantes, parNom);
-        return bilan;
+        return new ResultatHydratation(bilan, inventorie.frequenceAcquisitionHz(), brutsRebranches);
     }
 
     /// Les séquences que **ce brut** a régénérées : celles dont le nom figure parmi les tranches produites,

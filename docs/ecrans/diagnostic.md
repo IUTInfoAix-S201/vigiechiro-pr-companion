@@ -27,3 +27,11 @@ Si la nuit ne comporte pas de relevé climatique, l'absence est signalée et seu
 les évènements du journal restent affichés.
 
 ![L'écran de diagnostic sans relevé climatique : l'absence est signalée.](../assets/captures/apercu-diagnostic-sans-releve.png)
+
+## Sans coordonnées GPS
+
+Si le point d'écoute n'a pas de coordonnées, le repère GPS passe à « non renseigné (compléter la
+fiche site) » et l'encart cohérence horaire disparaît : la fenêtre nocturne ne peut pas être calculée
+sans coordonnées. Le reste du diagnostic (courbe, anomalies, évènements) demeure exploitable.
+
+![L'écran de diagnostic sans coordonnées GPS : repère « non renseigné », cohérence horaire absente.](../assets/captures/apercu-diagnostic-sans-gps.png)

@@ -62,6 +62,9 @@ public class ServiceReactivationPassage {
     /// donc du dossier (log + bruts) plutôt que des originaux connus.
     private final HydratationDepuisBruts hydratation;
 
+    /// Remplacement du placeholder d'un passage reconstruit par les vrais originaux, après hydratation (#1651).
+    private final AdoptionOriginauxReconstruits adoption;
+
     /// Port d'import des observations (#1264), **optionnel** (la feature « Import VigieChiro » est
     /// désactivable, #1057). Il sert ici la **phase d'ancrage** (#1571) : un passage reconstruit par CSV
     /// (#1565) a des observations sans ancrage plateforme, acquis à la réactivation quand l'audio revient.
@@ -76,6 +79,7 @@ public class ServiceReactivationPassage {
             Optional<CrisAttendus> crisAttendus,
             Optional<RegenerationSequences> regeneration,
             Optional<InventaireBrutsSource> inventaireBruts,
+            AdoptionOriginauxReconstruits adoption,
             Optional<ImportObservations> importObservations) {
         this.sessionDao = Objects.requireNonNull(sessionDao, "sessionDao");
         this.sequenceDao = Objects.requireNonNull(sequenceDao, "sequenceDao");
@@ -93,6 +97,7 @@ public class ServiceReactivationPassage {
                 Objects.requireNonNull(inventaireBruts, "inventaireBruts"),
                 regeneration,
                 new RebranchementSequences(verification, crisAttendus, true));
+        this.adoption = Objects.requireNonNull(adoption, "adoption");
         this.importObservations = Objects.requireNonNull(importObservations, "importObservations");
     }
 
@@ -141,12 +146,14 @@ public class ServiceReactivationPassage {
             bilan = depuisBruts.appliquer(sequences, originaux, candidats, prefixe, progres);
         } else if (voie == VoieReactivation.RECONSTRUIT) {
             // Un passage reconstruit peut être hydraté depuis ses bruts (log + WAV) : si c'est possible, la
-            // voie devient BRUTS (les séquences ont été régénérées) ; sinon on reste sur le compte rendu
-            // honnête (#1648), sans rien inventer.
-            Optional<BilanReactivation> hydrate = hydratation.appliquer(sequences, dossierSource, prefixe, progres);
+            // voie devient BRUTS (les séquences ont été régénérées) et on remplace le placeholder par les
+            // vrais originaux (#1651) ; sinon on reste sur le compte rendu honnête (#1648), sans rien inventer.
+            Optional<ResultatHydratation> hydrate = hydratation.appliquer(sequences, dossierSource, prefixe, progres);
             if (hydrate.isPresent()) {
                 voie = VoieReactivation.BRUTS;
-                bilan = hydrate.orElseThrow();
+                ResultatHydratation resultat = hydrate.orElseThrow();
+                bilan = resultat.bilan();
+                adopterOriginaux(session, originaux, resultat);
             } else {
                 bilan = rebranchement.rebrancher(sequences, candidats, progres);
             }
@@ -221,6 +228,17 @@ public class ServiceReactivationPassage {
     /// archivé ou purgé, garde en base la fréquence d'acquisition de ses originaux.
     private static boolean sansInventaireExploitable(List<EnregistrementOriginal> originaux) {
         return originaux.stream().noneMatch(original -> original.frequenceEchantillonnageHz() != null);
+    }
+
+    /// Remplace le placeholder du passage reconstruit par les vrais originaux régénérés (#1651). Les
+    /// placeholders sont les originaux **sans fréquence d'acquisition** (ce que pose la reconstruction) ; les
+    /// vrais originaux, eux, la portent (lue du log). Sans objet si rien n'a été hydraté.
+    private void adopterOriginaux(
+            SessionDEnregistrement session, List<EnregistrementOriginal> originaux, ResultatHydratation resultat) {
+        List<EnregistrementOriginal> placeholders = originaux.stream()
+                .filter(original -> original.frequenceEchantillonnageHz() == null)
+                .toList();
+        adoption.adopter(session, placeholders, resultat.brutsRebranches(), resultat.frequenceAcquisitionHz());
     }
 
     /// Remet la fiche du passage d'aplomb, puis rend compte.

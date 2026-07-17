@@ -12,6 +12,7 @@ import static org.mockito.Mockito.when;
 import fr.univ_amu.iut.commun.api.SuiviPagination;
 import fr.univ_amu.iut.commun.model.Empreintes;
 import fr.univ_amu.iut.commun.model.FichierWav;
+import fr.univ_amu.iut.commun.model.HorlogeFigee;
 import fr.univ_amu.iut.commun.model.ImportObservations;
 import fr.univ_amu.iut.commun.model.JetonAnnulation;
 import fr.univ_amu.iut.commun.model.OperationAnnuleeException;
@@ -95,6 +96,7 @@ class ServiceReactivationPassageTest {
     private EnregistrementOriginalDao originalDao;
     private ServiceDisponibiliteAudio disponibilite;
     private RegenerationParTransformationAudio regeneration;
+    private AdoptionOriginauxReconstruits adoption;
     private ServiceReactivationPassage service;
     private Long idPoint;
     private Long idPassage;
@@ -122,6 +124,8 @@ class ServiceReactivationPassageTest {
         // Régénération branchée (port #1406) : c'est la VRAIE transformation de l'import, seule capable de
         // reproduire les tranches à l'identique - la faire jouer ici prouve la chaîne de bout en bout.
         regeneration = new RegenerationParTransformationAudio(new TransformationAudio());
+        adoption = new AdoptionOriginauxReconstruits(
+                originalDao, sequenceDao, sessionDao, new HorlogeFigee(LocalDateTime.of(2026, 7, 16, 20, 0)));
         service = new ServiceReactivationPassage(
                 sessionDao,
                 sequenceDao,
@@ -131,6 +135,7 @@ class ServiceReactivationPassageTest {
                 Optional.empty(), // pas de cris : cascade structurelle (injecteur partiel)
                 Optional.of(regeneration),
                 Optional.of(new InventaireParInspection(new InspecteurDossier(new AnalyseurLogPR()))),
+                adoption,
                 Optional.empty()); // pas d'import : pas de phase d'ancrage (comportement historique)
     }
 
@@ -227,6 +232,7 @@ class ServiceReactivationPassageTest {
                 Optional.empty(),
                 Optional.of(regeneration),
                 Optional.of(new InventaireParInspection(new InspecteurDossier(new AnalyseurLogPR()))),
+                adoption,
                 Optional.of(importObservations));
     }
 
@@ -325,6 +331,7 @@ class ServiceReactivationPassageTest {
                 }),
                 Optional.of(regeneration),
                 Optional.empty(),
+                adoption,
                 Optional.empty());
 
         avecCris.reactiver(idPassage, sauvegarde, progres -> {});
@@ -415,6 +422,7 @@ class ServiceReactivationPassageTest {
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
+                adoption,
                 Optional.empty());
 
         assertThatThrownBy(() -> sansRegeneration.reactiver(idPassage, sauvegarde, progres -> {}))
@@ -478,6 +486,17 @@ class ServiceReactivationPassageTest {
                 .as("l'audio est revenu : le passage n'est plus archivé")
                 .isFalse();
         assertThat(noms).allSatisfy(nom -> assertThat(transformes.resolve(nom)).exists());
+
+        // #1651 : le placeholder est remplacé par de vrais originaux (avec fréquence), et les originaux sont
+        // déclarés « purgés » (connus, prouvés par régénération, mais non stockés localement).
+        assertThat(originalDao.findBySession(idSession))
+                .isNotEmpty()
+                .allSatisfy(original ->
+                        assertThat(original.frequenceEchantillonnageHz()).isNotNull())
+                .noneMatch(original -> original.nomFichier().endsWith("reconstruit.wav"));
+        assertThat(sessionDao.trouverParPassage(idPassage).orElseThrow().originauxPurges())
+                .as("les originaux sont connus mais non stockés localement : déclarés purgés")
+                .isTrue();
     }
 
     @Test
@@ -496,6 +515,7 @@ class ServiceReactivationPassageTest {
                 Optional.of(idSequence -> List.of(new CriAttendu(0.1, 0.4, 8_000))),
                 Optional.of(regeneration),
                 Optional.of(new InventaireParInspection(new InspecteurDossier(new AnalyseurLogPR()))),
+                adoption,
                 Optional.empty());
 
         RapportReactivation rapport = avecCris.reactiver(idPassage, sauvegarde, progres -> {});

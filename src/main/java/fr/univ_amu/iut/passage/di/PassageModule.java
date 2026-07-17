@@ -20,6 +20,7 @@ import fr.univ_amu.iut.commun.view.OuvrirDiagnostic;
 import fr.univ_amu.iut.commun.view.OuvrirLot;
 import fr.univ_amu.iut.commun.view.OuvrirPassage;
 import fr.univ_amu.iut.commun.view.OuvrirVerification;
+import fr.univ_amu.iut.passage.model.AdoptionOriginauxReconstruits;
 import fr.univ_amu.iut.passage.model.BackfillEmpreintes;
 import fr.univ_amu.iut.passage.model.CrisAttendus;
 import fr.univ_amu.iut.passage.model.DeclarationPurgeParSessions;
@@ -227,6 +228,7 @@ public class PassageModule extends ModuleDeFeature {
             Optional<CrisAttendus> crisAttendus,
             Optional<RegenerationSequences> regeneration,
             Optional<InventaireBrutsSource> inventaireBruts,
+            AdoptionOriginauxReconstruits adoption,
             Optional<ImportObservations> importObservations) {
         return new ServiceReactivationPassage(
                 sessionDao,
@@ -237,6 +239,7 @@ public class PassageModule extends ModuleDeFeature {
                 crisAttendus,
                 regeneration,
                 inventaireBruts,
+                adoption,
                 importObservations);
     }
 

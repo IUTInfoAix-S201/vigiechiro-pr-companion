@@ -73,24 +73,31 @@ import (copie protégée + renommage + transformation), puis les cas dégradés 
 
 **Étape 4 · Diagnostic (depuis le passage)**
 
-36. La courbe climatique T°/hygrométrie s'affiche.
-37. La liste des anomalies s'affiche (ou son placeholder).
-38. La liste des évènements du journal s'affiche (ou son placeholder).
-39. La fenêtre nocturne est indiquée, avec l'alerte « hors nuit » le cas échéant.
-40. La disponibilité GPS est indiquée.
+*Écran refondu depuis la passe du 14/07 (#1673 ; #1497 GPS et #1498 soin de l'écran corrigés) : items
+alignés sur l'écran actuel, à confirmer au re-jeu.*
+
+36. La courbe climatique T°/hygrométrie s'affiche, l'axe **gradué en heures**.
+37. Les anomalies détectées s'affichent (ou leur placeholder).
+38. Les évènements du journal s'affichent (ou leur placeholder).
+39. La cohérence horaire indique la fenêtre nocturne (coucher/lever du soleil), avec l'alerte
+    « hors nuit » si l'enregistrement déborde.
+40. L'état GPS du **point d'écoute** est **toujours visible** : « disponible » ou « non renseigné
+    (compléter la fiche site) ».
+41. La **barre de statut** (bas de fenêtre) affiche l'enregistreur diagnostiqué et le **nombre de
+    mesures climatiques**.
 
 **Étape 5 · Cas dégradés (un import ou une inspection par fixture)**
 
-41. `sd-melange` : bandeau « mélange » (2 enregistreurs), non bloquant.
-42. `sd-incoherente` : bandeau « incohérence » journal↔wav (série et date), plus ferme.
-43. `sd-multi-nuits` : la table des nuits apparaît (3 lignes, n° automatiques, cases Inclure).
-44. `sd-sans-journal` : l'absence de journal est signalée, l'import reste possible (mode dégradé).
-45. `sd-journal-corrompu` : l'inspection échoue avec un message compréhensible.
-46. `sd-prefixee` : bandeau « discordance de préfixe » si le rattachement ne correspond pas.
-47. `sd-rejets` : l'import aboutit malgré le faux wav, la zone des rejets liste « nom - raison ».
-48. `sd-nominale.zip` : la décompression affiche sa barre et son bouton Annuler avant l'inspection.
-49. Ré-inspection de `sd-nominale` : bandeau « nuit déjà importée », informatif.
-50. Rattachement au même point + année + n° : bandeau « n° déjà pris » avec « Utiliser ce n° » et
+42. `sd-melange` : bandeau « mélange » (2 enregistreurs), non bloquant.
+43. `sd-incoherente` : bandeau « incohérence » journal↔wav (série et date), plus ferme.
+44. `sd-multi-nuits` : la table des nuits apparaît (3 lignes, n° automatiques, cases Inclure).
+45. `sd-sans-journal` : l'absence de journal est signalée, l'import reste possible (mode dégradé).
+46. `sd-journal-corrompu` : l'inspection échoue avec un message compréhensible.
+47. `sd-prefixee` : bandeau « discordance de préfixe » si le rattachement ne correspond pas.
+48. `sd-rejets` : l'import aboutit malgré le faux wav, la zone des rejets liste « nom - raison ».
+49. `sd-nominale.zip` : la décompression affiche sa barre et son bouton Annuler avant l'inspection.
+50. Ré-inspection de `sd-nominale` : bandeau « nuit déjà importée », informatif.
+51. Rattachement au même point + année + n° : bandeau « n° déjà pris » avec « Utiliser ce n° » et
     « 🗑 Écraser et réimporter » ; « Écraser » enchaîne deux confirmations (principe, puis liste de ce
     qui sera supprimé).
 

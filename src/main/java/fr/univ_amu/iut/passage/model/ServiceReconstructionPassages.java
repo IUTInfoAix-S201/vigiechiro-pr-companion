@@ -3,6 +3,8 @@ package fr.univ_amu.iut.passage.model;
 import fr.univ_amu.iut.commun.api.ClientVigieChiro;
 import fr.univ_amu.iut.commun.api.ParticipationDetail;
 import fr.univ_amu.iut.commun.api.ParticipationVigieChiro;
+import fr.univ_amu.iut.commun.api.RapportSynchro;
+import fr.univ_amu.iut.commun.api.RapprochementVigieChiro;
 import fr.univ_amu.iut.commun.model.Horloge;
 import fr.univ_amu.iut.commun.model.ImportObservations;
 import fr.univ_amu.iut.commun.model.JetonAnnulation;
@@ -54,7 +56,7 @@ import java.util.stream.Collectors;
 ///
 /// Les DAO sont construits depuis la [SourceDeDonnees] (fins adaptateurs sans état), comme
 /// `ServiceAuditCoherence` : le constructeur reste court et le service testable sur une base jetable.
-public class ServiceReconstructionPassages {
+public class ServiceReconstructionPassages implements RapprochementVigieChiro {
 
     /// Carré à six chiffres, extrait du **titre du site** VigieChiro (ex. `Vigiechiro - Point Fixe-130711`).
     private static final Pattern CARRE = Pattern.compile("(\\d{6})");
@@ -106,6 +108,57 @@ public class ServiceReconstructionPassages {
                 .filter(participation -> !rattachees.contains(participation.id()))
                 .map(this::enOrpheline)
                 .toList();
+    }
+
+    /// **Rapprocheur de structure** (#1707, EPIC #1662) : à la synchronisation « mes sites », rapatrie sous
+    /// forme de **squelette** (point + date + n°, sans observations) chaque participation de la plateforme
+    /// dont le point est déjà local mais qui n'a **pas encore** de passage ici. Ainsi la synchro ne ramène
+    /// plus seulement les sites, mais aussi l'**historique des nuits** ; l'utilisateur les hydrate ensuite à
+    /// la demande (reconstruction/réactivation, #1710).
+    ///
+    /// Contrat **best-effort** du port : ne lève jamais. Hors connexion ou plateforme injoignable, silence
+    /// légitime (le rapprocheur des sites porte déjà le souci dans le même geste). Renvoie un rapport
+    /// seulement s'il y a du neuf à annoncer.
+    ///
+    /// **Ordre.** Ne crée un squelette que pour les points **déjà** locaux : un site tout juste synchronisé
+    /// dans le même geste voit ses passages à la synchro suivante (les rapprocheurs ne sont pas ordonnés).
+    /// La synchro est idempotente : relancée, elle ne recrée pas ce qui est déjà rattaché.
+    @Override
+    public Optional<RapportSynchro> synchroniser(ClientVigieChiro client) {
+        try {
+            int crees = synchroniserStructure();
+            return crees == 0 ? Optional.empty() : Optional.of(new RapportSynchro("passage(s) rapatrié(s)", crees));
+        } catch (RuntimeException echecBestEffort) {
+            return Optional.empty();
+        }
+    }
+
+    /// Crée un **squelette** de passage pour chaque orpheline dont le point est déjà local et la nuit
+    /// datable ; les autres sont **ignorées** (pas encore situables). Réutilise l'énumération
+    /// ([#orphelines]), la résolution de point, le calcul de numéro et la création de structure de la
+    /// reconstruction : **même geste, mêmes invariants** que la reconstruction d'une nuit unique. La
+    /// création séquentielle donne des numéros de passage successifs pour un même point/année.
+    ///
+    /// @return le nombre de squelettes créés
+    int synchroniserStructure() {
+        int crees = 0;
+        for (ParticipationOrpheline orpheline : orphelines()) {
+            Optional<Long> idPoint = pointParLocalite.pour(orpheline.numeroCarre(), orpheline.codePoint());
+            Optional<LocalDateTime> debut = nuit(orpheline.dateDebut());
+            if (idPoint.isEmpty() || debut.isEmpty()) {
+                continue;
+            }
+            int numeroPassage = premierNumeroLibre(idPoint.get(), debut.get().getYear());
+            Prefixe prefixe =
+                    new Prefixe(orpheline.numeroCarre(), debut.get().getYear(), numeroPassage, orpheline.codePoint());
+            Long idPassage = creationStructure
+                    .creerSquelette(idPoint.get(), numeroPassage, debut.get(), debut.get(), prefixe)
+                    .idPassage();
+            liens.upsert(new LienVigieChiro(
+                    LienVigieChiro.ENTITE_PASSAGE, String.valueOf(idPassage), orpheline.idParticipation()));
+            crees++;
+        }
+        return crees;
     }
 
     /// Reconstruit localement la participation `idParticipation` en **passage archivé** : passage, session

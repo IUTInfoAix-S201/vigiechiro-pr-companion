@@ -3,10 +3,12 @@ package fr.univ_amu.iut.passage.di;
 import com.google.inject.Key;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
+import com.google.inject.multibindings.Multibinder;
 import com.google.inject.multibindings.OptionalBinder;
 import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 import fr.univ_amu.iut.commun.api.ClientVigieChiro;
+import fr.univ_amu.iut.commun.api.RapprochementVigieChiro;
 import fr.univ_amu.iut.commun.di.Categorie;
 import fr.univ_amu.iut.commun.di.Fonctionnalite;
 import fr.univ_amu.iut.commun.di.ModuleDeFeature;
@@ -39,6 +41,13 @@ public class ReconstructionModule extends ModuleDeFeature {
     protected void configure() {
         OptionalBinder.newOptionalBinder(binder(), ServiceReconstructionPassages.class)
                 .setBinding()
+                .to(Key.get(ServiceReconstructionPassages.class, Names.named(QUALIFIANT)));
+        // Le service est aussi un rapprocheur de STRUCTURE (#1707) : à la synchro « mes sites », il rapatrie
+        // les passages manquants en squelettes. Contribué au Multibinder par la MÊME clé qualifiée (le
+        // singleton, pas une seconde instance). Ce module n'étant chargé qu'avec ConnexionModule, le
+        // rapprocheur n'apparaît que quand la synchro peut réellement tourner.
+        Multibinder.newSetBinder(binder(), RapprochementVigieChiro.class)
+                .addBinding()
                 .to(Key.get(ServiceReconstructionPassages.class, Names.named(QUALIFIANT)));
     }
 

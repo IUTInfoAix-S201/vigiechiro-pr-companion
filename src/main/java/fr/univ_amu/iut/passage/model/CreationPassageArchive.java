@@ -99,6 +99,28 @@ public final class CreationPassageArchive {
         return new PassageArchive(idPassage, sequences);
     }
 
+    /// Crée le squelette **minimal** d'un passage archivé : le passage (déposé, enregistreur « inconnu »,
+    /// sans météo) et sa session marquée **archivée** (#1300), **sans séquences, sans matériel, sans
+    /// observations**. C'est la forme légère que pose la synchro « mes sites » (#1707) : la nuit connue de
+    /// la plateforme apparaît dans l'historique dès la synchro, sans coûter un appel de détail par nuit ;
+    /// elle sera **hydratée** plus tard (matériel, météo, séquences, observations) par une reconstruction ou
+    /// une réactivation (#1710). N'émet **aucun** point de progression : la synchro en crée beaucoup et
+    /// rythme au niveau du lot, pas de la nuit.
+    ///
+    /// @param idPoint point d'écoute local (déjà résolu par l'appelant)
+    /// @param numeroPassage premier numéro libre pour ce point et cette année
+    /// @param debut début de nuit
+    /// @param fin fin de nuit
+    /// @param prefixe préfixe R6 réel (carré, année, n°, code point) - celui que recalcule l'audit (#1050)
+    /// @return l'identifiant du passage créé (nbSequences vaut 0 : un squelette n'a pas encore de séquence)
+    public PassageArchive creerSquelette(
+            Long idPoint, int numeroPassage, LocalDateTime debut, LocalDateTime fin, Prefixe prefixe) {
+        Long idPassage =
+                creerPassage(idPoint, numeroPassage, debut, fin, assurerEnregistreur(ENREGISTREUR_INCONNU), null);
+        creerSessionArchivee(idPassage, prefixe);
+        return new PassageArchive(idPassage, 0);
+    }
+
     /// Crée le passage, **déposé** (il l'est : la participation existe sur la plateforme) et sans verdict
     /// local (aucune vérification n'a eu lieu ici). Le numéro de passage est le **premier libre** pour ce
     /// point et cette année (calculé par l'appelant, qui en a aussi besoin pour le préfixe) : la
@@ -201,9 +223,13 @@ public final class CreationPassageArchive {
     /// s'il n'existe pas encore.
     private String enregistreur(ParticipationDetail detail) {
         String serie = CorrespondanceParticipation.serieDepuis(detail.configuration());
-        if (serie == null) {
-            serie = ENREGISTREUR_INCONNU;
-        }
+        return assurerEnregistreur(serie == null ? ENREGISTREUR_INCONNU : serie);
+    }
+
+    /// Garantit qu'un enregistreur de ce numéro de série existe (clé étrangère du passage) et le renvoie ;
+    /// le crée « nu » (marque/modèle inconnus) s'il manque. Partagé par la nuit détaillée ([#enregistreur])
+    /// et le squelette ([#creerSquelette], qui n'a que « inconnu » sous la main).
+    private String assurerEnregistreur(String serie) {
         if (enregistreurDao.findById(serie).isEmpty()) {
             enregistreurDao.insert(new Enregistreur(serie, null, null));
         }

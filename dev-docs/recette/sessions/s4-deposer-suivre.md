@@ -108,6 +108,33 @@ participation », puis le suivi du traitement. S4 est la première session qui *
 41. Fermer/rouvrir l'application : le dernier état connu est réaffiché avec sa date, sans réseau.
 42. **Noter l'identifiant de la participation** (nettoyage manuel éventuel + matériau de S5).
 
+### Métadonnées : ce que la plateforme affiche vraiment (#1828, #1844, #1845)
+
+> Ces cases ne sont **pas automatisables** : elles se jouent sur la **fiche web** de la participation,
+> seul juge de ce qui est arrivé. Trois défauts de ce chantier ont tous **réussi silencieusement** -
+> l'application annonçait « envoyées » et la plateforme n'affichait rien (voir
+> [ADR 0020](../../decisions/0020-ecrire-sur-la-plateforme-ne-rien-inventer-ni-effacer.md)). Un code de
+> retour vert ne prouve donc rien ici. Préparer la fiche **avant** : depuis le formulaire web, renseigner
+> `micro0_numero_serie` et un canal, pour pouvoir vérifier ensuite qu'ils ont survécu.
+
+43. Modale « Modifier le passage » : le champ **Enregistreur** propose le n° de série lu dans les noms de
+    fichiers de la nuit (`LogPR…` / `PaRecPR…`).
+44. Saisir « INCONNU » est **refusé** (ce n'est pas une valeur, c'est un aveu d'ignorance).
+45. « Envoyer vers VigieChiro » affiche un compte rendu, succès **comme** échec.
+46. Sur la **fiche web** rechargée : le n° de série **apparaît** dans le champ du formulaire (et pas
+    seulement dans le JSON) - c'est le défaut de clé de #1844.
+47. Sur la **fiche web** : les **températures** de début et de fin de nuit apparaissent.
+48. Sur la **fiche web** : `micro0_numero_serie` et le canal renseignés au préalable sont **toujours là**
+    (l'envoi n'efface pas ce que l'application ne modélise pas).
+49. Sur une nuit dont l'enregistreur est inconnu, un envoi **ne publie pas** « INCONNU » : le champ reste
+    vide sur la fiche web.
+50. Couper le réseau, « Envoyer » : la modale **reste ouverte**, la cause est à l'écran, et un second
+    essai une fois le réseau revenu aboutit.
+51. `logs/vigiechiro-0.log` porte une ligne par échange (méthode, chemin, issue, durée).
+52. Un refus serveur y figure **avec le corps de la réponse** (la cause, pas seulement le statut).
+53. **Ouvrir le journal et y chercher le jeton** : il n'y figure ni en clair, ni encodé, ni via une URL S3
+    signée (le journal doit pouvoir être joint à un signalement).
+
 ## Constats candidats (desk-check, à confirmer en séance)
 
 | # | Axe | Constat |
@@ -128,6 +155,11 @@ Bonne couverture, deux surprises : la CLI **surpasse** l'IHM (`--wav` / `--archi
 surtout `verifier-depot-vigiechiro`, sans équivalent IHM alors que c'est le seul moyen de confirmer qu'un
 dépôt ZIP est bien arrivé). Écart de nommage : la commande `deposer` ne dépose rien (elle prépare et
 marque déposé, sans réseau) : confusion avec `deposer-vigiechiro`.
+
+Un écart s'est ajouté avec ce chantier : les **métadonnées d'un passage** (récupérer, envoyer, saisir
+l'enregistreur) n'existent **que** dans la modale IHM - aucune commande ne les expose. C'est aussi ce qui
+prive d'un rattrapage en masse des nuits rapatriées avant #1814, réparables aujourd'hui **une par une**.
+Suivi par une issue dédiée.
 
 ## Prérequis avant de lancer
 

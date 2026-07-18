@@ -43,6 +43,18 @@ simplement reliés - vos données locales ne sont **jamais écrasées**. C'est l
 que celle exécutée automatiquement à la connexion ; un message sous le bandeau récapitule ce qui a
 été récupéré (ou signale qu'il n'y avait rien à récupérer, par exemple hors connexion).
 
+Il rapatrie aussi vos **nuits déjà déposées** sur la plateforme, avec leur **identité** : date, point,
+numéro de passage, mais également l'**enregistreur**, la **météo** et le **micro**. Vous retrouvez donc
+votre historique lisible dès la première synchronisation - c'est ce qui permet, après une réinstallation
+ou sur un nouveau poste, de repartir de la plateforme plutôt que de zéro.
+
+!!! note "Une nuit rapatriée reste « à reconstruire »"
+    Ce que la synchronisation ramène, c'est l'**identité** de la nuit, pas son **contenu** : ni les
+    sons, ni les identifications. Ces nuits apparaissent donc « à reconstruire » ; c'est
+    **☰ › Reconstruire un passage manquant…** ([Toutes mes nuits](multisite.md)) qui va chercher les
+    observations, une nuit ou toutes en une passe. Le contenu est bien plus lourd que l'identité : la
+    synchronisation ne l'impose pas.
+
 La synchronisation rapatrie **tous** les points d'un carré (utile pour importer une nuit sur un point
 pas encore utilisé). Mais un carré Point Fixe en compte des dizaines, dont un seul sert : les vues ne
 **mettent en avant** que les points **utilisés** (au moins un passage) ou que vous avez **ajoutés à la

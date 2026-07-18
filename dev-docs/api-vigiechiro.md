@@ -113,10 +113,13 @@ la sonde live `refus_serveur_est_un_refuse_explicite` verrouille que ce refus re
   "point": "Z41",
   "date_debut": "2026-07-03T19:00:00+00:00",
   "date_fin": "2026-07-04T04:00:00+00:00",
-  "meteo": { "vent": "FAIBLE", "couverture": "0-25" },
+  "meteo": {
+    "vent": "FAIBLE", "couverture": "0-25",
+    "temperature_debut": 18, "temperature_fin": 11
+  },
   "configuration": {
     "detecteur_enregistreur_type": "PassiveRecorder",
-    "detecteur_enregistreur_numserie": "1997632",
+    "detecteur_enregistreur_numero_serie": "1997632",
     "micro0_type": "ICS", "micro0_position": "CANOPEE", "micro0_hauteur": "4"
   },
   "traitement": { "etat": "FINI" },
@@ -128,8 +131,18 @@ la sonde live `refus_serveur_est_un_refuse_explicite` verrouille que ce refus re
     - **Pas de champ `numero`** : Eve le refuse (`422 {"numero": "invalid field"}`).
     - **Dates** : Eve **refuse l'ISO 8601** en entrée (`422 must be of datetime type`) ; il faut du
       **RFC 1123** (`Sat, 04 Jul 2026 19:00:00 GMT`). En sortie, Eve renvoie de l'ISO UTC (`+00:00`).
-    - **`meteo`** ne contient **que** `vent` (`NUL|FAIBLE|MOYEN|FORT`) et `couverture`
-      (`0-25|25-50|50-75|75-100`) : **pas de températures**.
+    - **`meteo`** porte `vent` (`NUL|FAIBLE|MOYEN|FORT`), `couverture`
+      (`0-25|25-50|50-75|75-100`) **et les températures** `temperature_debut` / `temperature_fin`,
+      typées **`integer`** : un relevé décimal est **refusé**, il faut arrondir avant l'envoi (#1844).
+      *(Cette page a longtemps affirmé l'inverse — « pas de températures ». L'app ne les transportait
+      pas, ce qui a fait conclure à tort que le schéma ne les portait pas.)*
+    - **`configuration` est un dictionnaire libre, donc un piège** : le `PATCH` le **remplace en
+      entier**, et aucune clé n'est validée. D'où deux règles ([ADR 0020](decisions/0020-ecrire-sur-la-plateforme-ne-rien-inventer-ni-effacer.md)) :
+      partir de la configuration **distante** avant d'y superposer la nôtre (sinon on efface
+      `micro0_numero_serie`, `micro1_*`, `canal_*`), et écrire le n° de série sous la clé **que le
+      formulaire web lie** — `detecteur_enregistreur_numero_serie`. L'app a longtemps poussé
+      `..._numserie` : accepté par le serveur, **invisible** sur la fiche web. La lecture accepte
+      encore les deux ; l'écriture retire l'ancienne.
     - **`_etag`** est requis en en-tête `If-Match` pour tout `PATCH`/`PUT`/`DELETE` (concurrence Eve).
     - **`traitement.etat`** : les **cinq** états de l'analyse serveur (`PLANIFIE`, `EN_COURS`, `FINI`,
       `ERREUR`, `RETRY`), accompagnés de `date_planification` / `date_debut` / `date_fin`, `message`

@@ -53,6 +53,40 @@ pas. Le filet d'exceptions non capturées d'`App`
 (`Thread.setDefaultUncaughtExceptionHandler`) journalise de même **avec la trace**, au lieu d'un
 `printStackTrace` perdu en console.
 
+## Les échanges avec l'API (#1845)
+
+Le filet ci-dessus couvre les **tâches** ; il ne voyait pas le **réseau**. Le journal ne portait aucune
+ligne mentionnant `participation`, `PATCH` ni le moindre statut HTTP. Face à « l'application dit
+*envoyées*, la plateforme n'affiche rien » (#1844), il ne permettait de trancher **aucune** hypothèse :
+le diagnostic a dû se faire en lisant les sources du serveur et du front — hors de portée d'un
+utilisateur, et impossible sur le terrain.
+
+`TransportVigieChiro` consigne désormais chaque échange : **méthode, chemin, issue, durée**. Le point
+d'instrumentation est le filet commun `emettre`, qui voit déjà passer GET, POST, PATCH et PUT et trie
+leur issue en `ReponseApi` ([ADR 0007](decisions/0007-retours-http-type-scelle-reponse-api.md)) : un
+seul endroit pour tout couvrir. Le dépôt S3, qui ne passe pas par lui (corps binaire, délai long), se
+consigne lui-même.
+
+La sévérité se décide **à l'émission**
+([ADR 0008](decisions/0008-aucun-echec-silencieux-severite-a-l-emission.md)) :
+
+| Issue | Niveau | Pourquoi |
+|---|---|---|
+| Succès | FINE | échange nominal : capté par le fichier, absent de la console |
+| Non connecté | FINE | appel non émis faute de jeton : ce n'est pas une anomalie |
+| Injoignable | WARNING | anomalie, visible sans réglage |
+| Refusé | WARNING | idem, **avec le corps de la réponse** |
+
+Le **corps d'un refus** est consigné, tronqué à 300 caractères : c'est l'explication du serveur
+(`_issues`, « invalid field »…), l'élément le plus diagnostique qui soit — et précisément ce qui
+manquait pour comprendre #1844.
+
+!!! warning "Ce qu'un journal ne doit jamais contenir"
+    Le jeton et les en-têtes ne sont **jamais** journalisés, ni le corps envoyé. L'**URL complète**
+    non plus : une URL S3 **pré-signée porte sa signature dans sa requête**. On journalise donc le
+    **chemin seul** — la fuite est réglée par construction, pas par vigilance. Un journal doit pouvoir
+    être joint à un signalement d'anomalie sans divulguer de secret (cf. [Sécurité](securite.md)).
+
 ## Accès utilisateur
 
 Le menu ☰ → **« Ouvrir le dossier des journaux »** (une `ActionMenu` socle du groupe Maintenance, cf.
@@ -66,4 +100,10 @@ L'audit de suite (#1543, **clos**) a résorbé les points restants : les opérat
 montrent désormais un **voile d'occupation** ou un repère « … en cours » (cf.
 [Patterns et principes](patterns.md)), et les deux callbacks d'échec muets sont traités - l'un routé
 vers le filet d'erreurs de son écran, l'autre *fire-and-forget* assumé à la fermeture de la modale mais
-**journalisé** au point de passage. Aucune dette d'observabilité connue à ce jour.
+**journalisé** au point de passage.
+
+Cette page a ensuite conclu, pendant un temps, qu'aucune dette d'observabilité ne restait — alors que
+la **couche réseau était muette** (§ « Les échanges avec l'API »). La leçon vaut d'être gardée : un
+audit d'observabilité ne prouve rien sur ce qu'il n'a pas pensé à regarder. La question utile n'est pas
+« mes journaux couvrent-ils mes échecs ? » mais « **face à ce symptôme, le journal me permet-il de
+trancher ?** ». Ici, le symptôme était un succès.

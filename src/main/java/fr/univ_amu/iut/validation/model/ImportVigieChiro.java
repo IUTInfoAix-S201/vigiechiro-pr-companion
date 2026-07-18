@@ -81,17 +81,53 @@ public class ImportVigieChiro {
         return importer(idPassage, remplacer, (page, totalPages) -> {});
     }
 
-    /// Variante **suivie et annulable** de [#importer(Long, boolean)] (#1597) : rapatrie les `donnees` en
-    /// suivant chaque page via `suivi` (progression déterminée), qui peut aussi **lever pour interrompre**
-    /// le téléchargement (bouton « Annuler »). Sert la phase d'ancrage de la réactivation. Mêmes règles et
-    /// mêmes diagnostics d'absence que la variante non suivie.
-    public BilanImport importer(Long idPassage, boolean remplacer, SuiviPagination suivi) {
-        Objects.requireNonNull(idPassage, CHAMP_ID_PASSAGE);
-        Objects.requireNonNull(suivi, "suivi");
-        String participationId = participation(idPassage)
+    /// Participation rattachée au passage, ou refus explicite : sans lien, aucun import n'a de cible.
+    private String participationOuLever(Long idPassage) {
+        return participation(idPassage)
                 .orElseThrow(() -> new RegleMetierException("Ce passage n'est rattaché à aucune participation"
                         + " VigieChiro. Déposez-le d'abord sur VigieChiro (ou rattachez-le à une participation"
                         + " existante)."));
+    }
+
+    /// Import **au plus vite** (#1838) : le **CSV** d'observations téléchargé d'un coup (#1565, quasi
+    /// instantané) quand la plateforme l'expose, sinon **repli** sur la pagination `donnees` de
+    /// [#importer(Long, boolean, SuiviPagination)] - même repli que la reconstruction
+    /// ([PlateformeReconstruction]).
+    ///
+    /// C'est la voie de l'**import explicite** (écran de validation, CLI) : rapatrier les observations. Le
+    /// CSV ne porte **ni ancrage ni fils de discussion** ; ni l'un ni l'autre ne servent tant qu'on ne
+    /// touche pas à la plateforme, et la **publication** les acquiert ensemble quand elle en a besoin
+    /// (ADR 0019, même appel `donnees` avec `remplacer = true`). Faire payer cette pagination à chaque
+    /// import revenait à précharger, pour tout le monde, ce dont seuls les publiants ont l'usage.
+    ///
+    /// Le CSV n'est tenté que s'il est **exploitable** (au moins un nom de séquence) : sur le moindre
+    /// doute - route absente, refus, contenu inutilisable - on repasse par les `donnees`, qui portent
+    /// aussi les diagnostics d'absence (#1264). L'optimisation ne doit jamais coûter le résultat.
+    public BilanImport importerRapide(Long idPassage, boolean remplacer, SuiviPagination suivi) {
+        Objects.requireNonNull(idPassage, CHAMP_ID_PASSAGE);
+        Objects.requireNonNull(suivi, "suivi");
+        String participationId = participationOuLever(idPassage);
+        if (client.csvObservations(participationId) instanceof ReponseApi.Succes<Optional<String>>(Optional<String> csv)
+                && csv.isPresent()
+                && !service.nomsSequencesCsv(csv.get()).isEmpty()) {
+            return service.importerContenuCsv(idPassage, csv.get(), remplacer);
+        }
+        return importer(idPassage, remplacer, suivi);
+    }
+
+    /// Variante **suivie et annulable** de [#importer(Long, boolean)] (#1597) : rapatrie les `donnees` en
+    /// suivant chaque page via `suivi` (progression déterminée), qui peut aussi **lever pour interrompre**
+    /// le téléchargement (bouton « Annuler »). Mêmes règles et mêmes diagnostics d'absence que la variante
+    /// non suivie.
+    ///
+    /// C'est la voie **complète** : les `donnees` portent l'**ancrage** plateforme et les **fils de
+    /// discussion** du validateur (#1417), que le CSV n'a pas. Elle sert les gestes qui en ont l'usage -
+    /// la phase d'ancrage de la réactivation (#1571) et celle de la publication (#1838) - tandis que
+    /// l'import explicite passe par [#importerRapide].
+    public BilanImport importer(Long idPassage, boolean remplacer, SuiviPagination suivi) {
+        Objects.requireNonNull(idPassage, CHAMP_ID_PASSAGE);
+        Objects.requireNonNull(suivi, "suivi");
+        String participationId = participationOuLever(idPassage);
         List<DonneeVigieChiro> donnees =
                 switch (client.donnees(participationId, suivi)) {
                     case ReponseApi.Succes<List<DonneeVigieChiro>>(List<DonneeVigieChiro> liste) -> liste;

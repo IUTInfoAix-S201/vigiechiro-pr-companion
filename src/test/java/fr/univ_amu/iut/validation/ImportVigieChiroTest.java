@@ -71,6 +71,63 @@ class ImportVigieChiroTest {
     }
 
     @Test
+    @DisplayName("importerRapide : le CSV exploitable est pris d'un coup, sans toucher aux donnees (#1838)")
+    void importer_rapide_prend_le_csv() {
+        BilanImport attendu = new BilanImport(null, 3, 0, 0);
+        when(liens.objectidPour(LienVigieChiro.ENTITE_PASSAGE, "42")).thenReturn(Optional.of(PARTICIPATION));
+        when(client.csvObservations(PARTICIPATION)).thenReturn(ReponseApi.succes(Optional.of("CSV")));
+        when(service.nomsSequencesCsv("CSV")).thenReturn(List.of("Car-Z41_000.wav"));
+        when(service.importerContenuCsv(ID_PASSAGE, "CSV", false)).thenReturn(attendu);
+
+        assertThat(importateur.importerRapide(ID_PASSAGE, false, (page, total) -> {}))
+                .isSameAs(attendu);
+        // Le gain est là : pas une seule page de donnees. C'est ce que #1838 vient chercher.
+        verify(client, never()).donnees(any(), any());
+    }
+
+    @Test
+    @DisplayName("importerRapide : CSV inexploitable → repli sur les donnees, l'import aboutit quand même")
+    void importer_rapide_repli_sur_donnees() {
+        List<DonneeVigieChiro> donnees = List.of(new DonneeVigieChiro("d1", "Car-Z41_000", List.of(observation())));
+        BilanImport attendu = new BilanImport(null, 1, 0, 0);
+        when(liens.objectidPour(LienVigieChiro.ENTITE_PASSAGE, "42")).thenReturn(Optional.of(PARTICIPATION));
+        // Contenu présent mais sans aucune séquence exploitable : l'optimisation ne doit pas coûter
+        // le résultat, on repasse par la voie complète.
+        when(client.csvObservations(PARTICIPATION)).thenReturn(ReponseApi.succes(Optional.of("vide")));
+        when(service.nomsSequencesCsv("vide")).thenReturn(List.of());
+        when(client.donnees(eq(PARTICIPATION), any())).thenReturn(ReponseApi.succes(donnees));
+        when(service.importerDepuisVigieChiro(ID_PASSAGE, donnees, false)).thenReturn(attendu);
+
+        assertThat(importateur.importerRapide(ID_PASSAGE, false, (page, total) -> {}))
+                .isSameAs(attendu);
+    }
+
+    @Test
+    @DisplayName("importerRapide : route CSV absente (refus) → repli silencieux sur les donnees")
+    void importer_rapide_repli_si_csv_refuse() {
+        List<DonneeVigieChiro> donnees = List.of(new DonneeVigieChiro("d1", "Car-Z41_000", List.of(observation())));
+        BilanImport attendu = new BilanImport(null, 1, 0, 0);
+        when(liens.objectidPour(LienVigieChiro.ENTITE_PASSAGE, "42")).thenReturn(Optional.of(PARTICIPATION));
+        when(client.csvObservations(PARTICIPATION)).thenReturn(ReponseApi.refuse(404, "not found"));
+        when(client.donnees(eq(PARTICIPATION), any())).thenReturn(ReponseApi.succes(donnees));
+        when(service.importerDepuisVigieChiro(ID_PASSAGE, donnees, false)).thenReturn(attendu);
+
+        assertThat(importateur.importerRapide(ID_PASSAGE, false, (page, total) -> {}))
+                .isSameAs(attendu);
+    }
+
+    @Test
+    @DisplayName("importerRapide : passage non rattaché → refus explicite, aucun appel réseau")
+    void importer_rapide_non_rattache() {
+        when(liens.objectidPour(LienVigieChiro.ENTITE_PASSAGE, "42")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> importateur.importerRapide(ID_PASSAGE, false, (page, total) -> {}))
+                .isInstanceOf(RegleMetierException.class)
+                .hasMessageContaining("rattaché à aucune participation");
+        verify(client, never()).csvObservations(any());
+    }
+
+    @Test
     @DisplayName("estRattache : reflète la présence d'un lien participation pour le passage")
     void est_rattache() {
         when(liens.objectidPour(LienVigieChiro.ENTITE_PASSAGE, "42"))

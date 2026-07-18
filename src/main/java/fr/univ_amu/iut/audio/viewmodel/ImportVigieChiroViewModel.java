@@ -91,9 +91,12 @@ public class ImportVigieChiroViewModel {
             progres.accept(new Progression(
                     "Import des observations depuis VigieChiro… (page " + page + "/" + totalPages + ")", fraction));
         };
+        // Voie rapide (#1838) : le CSV d'un coup, repli sur les `donnees` page par page. L'ancrage et les
+        // fils de discussion, que le CSV ne porte pas, sont acquis par la publication au moment où ils
+        // servent (ADR 0019) — les précharger ici coûtait des minutes à chaque import, pour tout le monde.
         return importateur
                 .orElseThrow(() -> new RegleMetierException("Import VigieChiro indisponible dans ce contexte."))
-                .importer(idPassage, remplacer, suivi);
+                .importerRapide(idPassage, remplacer, suivi);
     }
 
     /// Signale le **début** de l'import (au fil JavaFX, avant de lancer [#importer] en arrière-plan).

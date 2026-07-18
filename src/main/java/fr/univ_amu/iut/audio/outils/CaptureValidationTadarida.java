@@ -10,12 +10,17 @@ import fr.univ_amu.iut.audio.view.SonsValidationController;
 import fr.univ_amu.iut.audio.viewmodel.AudioViewModel;
 import fr.univ_amu.iut.audio.viewmodel.DiscussionValidateur;
 import fr.univ_amu.iut.audio.viewmodel.ImportVigieChiroViewModel;
+import fr.univ_amu.iut.audio.viewmodel.PublicationCorrectionsViewModel;
 import fr.univ_amu.iut.bibliotheque.di.BibliothequeModule;
 import fr.univ_amu.iut.bibliotheque.model.ServiceBibliotheque;
+import fr.univ_amu.iut.commun.api.ClientVigieChiro;
+import fr.univ_amu.iut.commun.api.TraitementVigieChiro;
 import fr.univ_amu.iut.commun.di.PersistenceModule;
+import fr.univ_amu.iut.commun.model.LienVigieChiro;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.model.Utilisateur;
 import fr.univ_amu.iut.commun.model.Verdict;
+import fr.univ_amu.iut.commun.model.dao.LienVigieChiroDao;
 import fr.univ_amu.iut.commun.model.dao.UtilisateurDao;
 import fr.univ_amu.iut.commun.outils.ApercuFx;
 import fr.univ_amu.iut.commun.outils.AttenteAudio;
@@ -44,12 +49,15 @@ import fr.univ_amu.iut.passage.model.dao.PassageDao;
 import fr.univ_amu.iut.passage.model.dao.SequenceDao;
 import fr.univ_amu.iut.passage.model.dao.SessionDao;
 import fr.univ_amu.iut.validation.di.ValidationModule;
+import fr.univ_amu.iut.validation.model.ImportVigieChiro;
 import fr.univ_amu.iut.validation.model.MarquageDouteux;
 import fr.univ_amu.iut.validation.model.PlageNuitPassage;
+import fr.univ_amu.iut.validation.model.PublicationCorrections;
 import fr.univ_amu.iut.validation.model.RevueEnLot;
 import fr.univ_amu.iut.validation.model.SaisieCertitude;
 import fr.univ_amu.iut.validation.model.ServiceValidation;
 import fr.univ_amu.iut.validation.model.ValidationManuelle;
+import fr.univ_amu.iut.validation.model.dao.ObservationDao;
 import fr.univ_amu.iut.validation.model.dao.ProjectionsAudioDao;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -66,10 +74,19 @@ import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 import javafx.application.Platform;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.SnapshotParameters;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuButton;
 import javafx.scene.control.TableView;
+import javafx.scene.image.WritableImage;
+import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Color;
+import javafx.stage.Stage;
+import javax.imageio.ImageIO;
 
 /// Outil de capture/mesure, utilisable tel quel.
 ///
@@ -137,8 +154,16 @@ public final class CaptureValidationTadarida {
         new MigrationSchema(source).migrer();
 
         long idPassage = seeder(source, workspace);
+        // La nuit est **rattachée** à une participation : sans ce lien, la publication serait grisée et
+        // la capture documenterait un cas de bord au lieu du cas normal (#1865).
+        new LienVigieChiroDao(source)
+                .upsert(new LienVigieChiro(
+                        LienVigieChiro.ENTITE_PASSAGE, String.valueOf(idPassage), "65f0a1b2c3d4e5f60718293a", null));
         Path csv = ecrireCsvTadarida(workspace);
 
+        // Le menu ☰ AVANT l'écran : [AttenteAudio] ouvre une boucle d'événements imbriquée, après quoi la
+        // Headless Platform refuse un nouveau `Stage` - or le popup en exige un.
+        rendreMenuActions(injecteur, idPassage, sortie.resolve("apercu-sons-validation-menu-actions.png"));
         rendre(injecteur, idPassage, csv, sortie.resolve("apercu-validation-tadarida.png"));
     }
 
@@ -191,16 +216,29 @@ public final class CaptureValidationTadarida {
                         return new DiscussionValidateur(service, connexion, java.util.Optional.empty());
                     }
 
-                    // Import VigieChiro indisponible en capture (aucune connexion) : VM à dépôt vide.
+                    // Surface **connectée** (#1865) : sans ces deux passerelles, MenuAudio.adapter masque
+                    // « Importer depuis Vigie-Chiro… » et « Publier les corrections… », et la moitié du
+                    // menu ☰ n'apparaissait sur AUCUNE capture. Le client pointe vers une adresse morte :
+                    // la capture REND la vue, elle ne clique sur rien - il suffit que la passerelle
+                    // existe. Patron repris de CapturePassage.injecteurConnecte() (#1839).
                     @Provides
                     @Singleton
-                    ImportVigieChiroViewModel importVigieChiro() {
-                        return new ImportVigieChiroViewModel(Optional.empty());
+                    ImportVigieChiroViewModel importVigieChiro(ServiceValidation service, SourceDeDonnees source) {
+                        return new ImportVigieChiroViewModel(Optional.of(new ImportVigieChiro(
+                                clientHorsAtteinte(),
+                                new TraitementVigieChiro(clientHorsAtteinte()),
+                                new LienVigieChiroDao(source),
+                                service)));
                     }
 
                     @Provides
-                    fr.univ_amu.iut.audio.viewmodel.PublicationCorrectionsViewModel publicationCorrections() {
-                        return new fr.univ_amu.iut.audio.viewmodel.PublicationCorrectionsViewModel(Optional.empty());
+                    @Singleton
+                    PublicationCorrectionsViewModel publicationCorrections(SourceDeDonnees source) {
+                        return new PublicationCorrectionsViewModel(Optional.of(new PublicationCorrections(
+                                clientHorsAtteinte(),
+                                new LienVigieChiroDao(source),
+                                new ObservationDao(source),
+                                Optional.empty())));
                     }
 
                     // OuvrirSite requis par le fil d'Ariane du controller (SitesModule non inclus) : no-op.
@@ -228,7 +266,66 @@ public final class CaptureValidationTadarida {
                     OuvrirMultisite ouvrirMultisite() {
                         return numeroCarre -> {};
                     }
+
+                    // Un client dont l'adresse ne répond pas : la capture a besoin que la passerelle
+                    // EXISTE (sinon les entrées de menu sont masquées), jamais qu'elle réponde. Aucune
+                    // capture ne clique, donc aucune requête ne part.
+                    private ClientVigieChiro clientHorsAtteinte() {
+                        return new ClientVigieChiro("http://localhost:1", Optional::empty);
+                    }
                 });
+    }
+
+    /// Photographie le **menu ☰ ouvert** de « Sons & validation » (#1865). Jusqu'ici il n'était ouvert par
+    /// aucune capture : la moitié plateforme du menu (« Importer depuis Vigie-Chiro… », « Publier les
+    /// corrections vers Vigie-Chiro… ») n'apparaissait donc **nulle part**, alors que c'est la surface qui
+    /// bouge le plus.
+    ///
+    /// [MenuButton] n'expose pas la scène de son popup. On reprend donc ses **vrais** [MenuItem] dans un
+    /// [ContextMenu] que l'on montre : textes, visibilité et grisages restent ceux de l'application, ce
+    /// qu'une reconstruction à l'identique ne garantirait pas. Le menu d'origine s'en trouve vidé, sans
+    /// conséquence : fermé, il n'affiche que son « ☰ », et le processus se termine après.
+    ///
+    /// Repli défensif comme [CaptureMenuLigne] : en headless, un popup peut ne pas se rendre. On abandonne
+    /// alors proprement plutôt que d'échouer le job de capture.
+    private static void rendreMenuActions(Injector injecteur, long idPassage, Path fichier) throws IOException {
+        FXMLLoader loader = new FXMLLoader(SonsValidationController.class.getResource("SonsValidation.fxml"));
+        loader.setControllerFactory(injecteur::getInstance);
+        Parent vue = loader.load();
+        SonsValidationController controleur = loader.getController();
+        // Source ParPassage : c'est elle qui « permet le workflow Tadarida », seconde condition de
+        // MenuAudio.adapter. Sur le corpus de référence, les entrées resteraient masquées.
+        controleur.ouvrirSur(new SourceObservations.ParPassage(
+                new ContextePassage(idPassage, 2, new ContexteSite(NUMERO_CARRE, CODE_POINT, NOM_SITE))));
+
+        if (!(vue.lookup("#menuActions") instanceof MenuButton menuActions)) {
+            System.out.println("[capture-menu-actions] menu ☰ introuvable : capture ignorée.");
+            return;
+        }
+        ContextMenu apercu = new ContextMenu();
+        apercu.getItems().addAll(List.copyOf(menuActions.getItems()));
+
+        Stage hote = new Stage();
+        hote.setScene(new Scene(new StackPane(), 500, 300));
+        hote.show();
+        apercu.show(hote);
+
+        Scene scenePopup = apercu.getScene();
+        if (scenePopup == null || scenePopup.getRoot() == null) {
+            System.out.println("[capture-menu-actions] popup non rendu (headless) : " + fichier + " ignoré.");
+            return;
+        }
+        Parent racine = scenePopup.getRoot();
+        racine.applyCss();
+        racine.layout();
+
+        SnapshotParameters params = new SnapshotParameters();
+        params.setFill(Color.WHITE);
+        WritableImage image = racine.snapshot(params, null);
+        ImageIO.write(SwingFXUtils.fromFXImage(image, null), "png", fichier.toFile());
+        apercu.hide();
+        hote.hide();
+        System.out.println("Apercu ecrit dans " + fichier.toAbsolutePath());
     }
 
     /// Charge `SonsValidation.fxml`, ouvre la vue sur le **passage** puis **importe** le CSV Tadarida sur

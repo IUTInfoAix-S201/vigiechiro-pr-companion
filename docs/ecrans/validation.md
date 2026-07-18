@@ -185,6 +185,13 @@ d'identification 24 à 48 h plus tard, voir le [parcours](../parcours/index.md))
 d'**importer le fichier CSV** de résultats Tadarida, puis d'**exporter** le fichier `_Vu` réinjectable
 (avec, en option, la trace du mode de validation). Ces actions propres au passage vivent dans le menu « ☰ ».
 
+![Le menu ☰ ouvert sur un passage : import du CSV Tadarida, import et publication vers Vigie-Chiro, ouverture des données sur le portail, options d'export et d'écoute. Les entrées sans objet sont grisées et disent pourquoi.](../assets/captures/apercu-sons-validation-menu-actions.png)
+
+Les entrées **liées à Vigie-Chiro** n'apparaissent que sur un **passage** et quand l'application est
+[connectée](../connexion-vigiechiro.md) : sur le corpus de référence, ou hors connexion, le menu se
+réduit à ce qui a du sens. Une entrée sans objet reste **visible mais grisée**, avec sa raison entre
+parenthèses, plutôt que de disparaître sans explication.
+
 Plutôt que d'importer le CSV à la main, le menu **☰ → Importer depuis Vigie-Chiro…** récupère les
 résultats **directement depuis la plateforme** (application [connectée](../connexion-vigiechiro.md),
 passage déposé et traité). Si le passage n'est pas encore relié à une participation, l'application

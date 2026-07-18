@@ -10,6 +10,8 @@ import fr.univ_amu.iut.audio.outils.CaptureSonsValidationColonnes;
 import fr.univ_amu.iut.audio.outils.CaptureSonsValidationFiltres;
 import fr.univ_amu.iut.audio.outils.CaptureSonsValidationLot;
 import fr.univ_amu.iut.audio.outils.CaptureValidationTadarida;
+import fr.univ_amu.iut.audio.viewmodel.ImportVigieChiroViewModel;
+import fr.univ_amu.iut.audio.viewmodel.PublicationCorrectionsViewModel;
 import fr.univ_amu.iut.audit.outils.CaptureAudit;
 import fr.univ_amu.iut.commun.view.ExecuteurFiche;
 import fr.univ_amu.iut.commun.view.ExecuteurFicheSynchrone;
@@ -30,6 +32,8 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -131,5 +135,21 @@ class CablageInjecteursCaptureTest {
         assertThat(injecteur.getInstance(ExecuteurFiche.class))
                 .as("%s : ExecuteurFiche doit être synchrone (sinon la capture montre une fiche vide)", outil)
                 .isInstanceOf(ExecuteurFicheSynchrone.class);
+    }
+
+    @Test
+    @DisplayName("#1865 : l'outil du menu ☰ est CONNECTÉ, sinon sa capture perd la moitié plateforme")
+    void l_injecteur_du_menu_actions_est_connecte() {
+        Injector injecteur = CaptureValidationTadarida.creerInjecteur();
+
+        // MenuAudio.adapter masque les deux entrées quand ces ViewModels sont indisponibles. Remettre un
+        // Optional.empty() ici ne casserait ni la compilation ni aucune autre garde : la capture
+        // redeviendrait simplement muette, en silence. C'est ce silence que ce test interdit.
+        assertThat(injecteur.getInstance(ImportVigieChiroViewModel.class).disponible())
+                .as("sans passerelle d'import, « Importer depuis Vigie-Chiro… » disparaît de la capture du ☰")
+                .isTrue();
+        assertThat(injecteur.getInstance(PublicationCorrectionsViewModel.class).disponible())
+                .as("sans passerelle de publication, « Publier les corrections… » disparaît de la capture du ☰")
+                .isTrue();
     }
 }

@@ -2,6 +2,7 @@ package fr.univ_amu.iut.qualification.viewmodel;
 
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.model.Verdict;
+import fr.univ_amu.iut.commun.viewmodel.RetourOperation;
 import fr.univ_amu.iut.qualification.model.ContexteVerification;
 import fr.univ_amu.iut.qualification.model.PreCheckNuit;
 import fr.univ_amu.iut.qualification.model.ServiceQualification;
@@ -60,7 +61,9 @@ public class QualificationViewModel {
             new ReadOnlyObjectWrapper<>(this, "etatVerdict", EtatVerdict.BROUILLON);
     private final ReadOnlyStringWrapper avertissementAJeter =
             new ReadOnlyStringWrapper(this, "avertissementAJeter", "");
-    private final ReadOnlyStringWrapper message = new ReadOnlyStringWrapper(this, "message", "");
+    /// Retour de la dernière opération, avec sa sévérité, rendu dans le bandeau partagé (ADR 0023).
+    private final ReadOnlyObjectWrapper<RetourOperation> retour =
+            new ReadOnlyObjectWrapper<>(this, "retour", RetourOperation.AUCUN);
 
     private final BooleanBinding peutEnregistrer;
 
@@ -128,7 +131,7 @@ public class QualificationViewModel {
                 donnees.contexte().verdict() == null
                         ? Verdict.A_VERIFIER
                         : donnees.contexte().verdict());
-        message.set("");
+        retour.set(RetourOperation.AUCUN);
     }
 
     /// Route l'échec d'un chargement (passage introuvable…) vers le message de l'écran (filet #795).
@@ -136,7 +139,8 @@ public class QualificationViewModel {
         this.idPassage = idPassage;
         reinitialiser();
         String detail = erreur.getMessage();
-        message.set(detail != null && !detail.isBlank() ? detail : "Ouverture de la vérification impossible.");
+        retour.set(RetourOperation.erreur(
+                detail != null && !detail.isBlank() ? detail : "Ouverture de la vérification impossible."));
     }
 
     /// Remet l'écran à un état vierge avant chaque (ré)ouverture et après un échec : feux, bandeau et
@@ -204,7 +208,9 @@ public class QualificationViewModel {
     /// décisif n'est choisi. Signale (R14) si « à jeter » exclura le passage du dépôt.
     public void enregistrer() {
         if (!peutEnregistrer.get()) {
-            message.set("Choisissez un verdict (OK, Utilisable ou Inexploitable) avant d'enregistrer.");
+            // Guidage, pas échec technique : l'utilisateur n'a pas encore choisi (sévérité INFO).
+            retour.set(RetourOperation.info(
+                    "Choisissez un verdict (OK, Utilisable ou Inexploitable) avant d'enregistrer."));
             return;
         }
         try {
@@ -213,10 +219,10 @@ public class QualificationViewModel {
             statut.set(StatutWorkflow.VERIFIE);
             avertissementAJeter.set(
                     service.estAJeter(idPassage) ? "Passage marqué « à jeter » : il ne pourra pas être déposé." : "");
-            message.set("");
+            retour.set(RetourOperation.AUCUN);
             etatVerdict.set(EtatVerdict.ENREGISTRE);
         } catch (RuntimeException refus) {
-            message.set(refus.getMessage());
+            retour.set(RetourOperation.erreur(refus.getMessage()));
         }
     }
 
@@ -308,8 +314,14 @@ public class QualificationViewModel {
     }
 
     /// Message d'erreur (passage introuvable, verdict manquant), vide en fonctionnement nominal.
-    public ReadOnlyStringProperty messageProperty() {
-        return message.getReadOnlyProperty();
+    /// Retour de la **dernière opération** avec sa sévérité, pour le bandeau de l'écran.
+    public ReadOnlyObjectProperty<RetourOperation> retourProperty() {
+        return retour.getReadOnlyProperty();
+    }
+
+    /// Efface le retour (l'utilisateur a lu le bandeau et le ferme).
+    public void effacerRetour() {
+        retour.set(RetourOperation.AUCUN);
     }
 
     /// Activation du bouton « Enregistrer le verdict » : un verdict décisif (≠ `A_VERIFIER`) choisi.

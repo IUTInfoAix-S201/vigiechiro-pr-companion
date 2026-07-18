@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.model.Verdict;
+import fr.univ_amu.iut.commun.viewmodel.RetourOperation;
 import fr.univ_amu.iut.qualification.model.ContexteVerification;
 import fr.univ_amu.iut.qualification.model.PreCheckNuit;
 import fr.univ_amu.iut.qualification.model.PreCheckNuit.Feu;
@@ -104,9 +105,12 @@ class QualificationViewModelTest {
         assertThat(viewModel.statutProperty().get()).isEqualTo(StatutWorkflow.TRANSFORME);
 
         viewModel.signalerErreur(ID_PASSAGE, new IllegalStateException("passage introuvable"));
-        assertThat(viewModel.messageProperty().get()).isEqualTo("passage introuvable");
+        assertThat(viewModel.retourProperty().get().texte()).contains("passage introuvable");
+        assertThat(viewModel.retourProperty().get().severite())
+                .as("un chargement qui échoue est une erreur, pas un guidage")
+                .isEqualTo(RetourOperation.Severite.ERREUR);
         viewModel.signalerErreur(ID_PASSAGE, new IllegalStateException());
-        assertThat(viewModel.messageProperty().get()).contains("impossible");
+        assertThat(viewModel.retourProperty().get().texte()).contains("impossible");
     }
 
     @Test
@@ -123,7 +127,9 @@ class QualificationViewModelTest {
         assertThat(viewModel.preCheckAnomalieProperty().get()).isTrue();
         assertThat(viewModel.statutProperty().get()).isEqualTo(StatutWorkflow.TRANSFORME);
         assertThat(viewModel.verdictActuelProperty().get()).isEqualTo(Verdict.A_VERIFIER);
-        assertThat(viewModel.messageProperty().get()).isEmpty();
+        assertThat(viewModel.retourProperty().get().present())
+                .as("aucun retour à afficher")
+                .isFalse();
     }
 
     @Test
@@ -135,7 +141,10 @@ class QualificationViewModelTest {
 
         viewModel.enregistrer();
 
-        assertThat(viewModel.messageProperty().get()).contains("verdict");
+        assertThat(viewModel.retourProperty().get().texte()).contains("verdict");
+        assertThat(viewModel.retourProperty().get().severite())
+                .as("l'utilisateur n'a pas encore choisi : c'est un guidage, pas un échec technique")
+                .isEqualTo(RetourOperation.Severite.INFO);
         verify(service, never()).enregistrerVerdict(any(), any(), any());
     }
 
@@ -198,7 +207,7 @@ class QualificationViewModelTest {
 
         viewModel.ouvrirSur(ID_PASSAGE);
 
-        assertThat(viewModel.messageProperty().get()).contains("introuvable");
+        assertThat(viewModel.retourProperty().get().texte()).contains("introuvable");
         assertThat(viewModel.feuCouvertureProperty().get()).isNull();
     }
 
@@ -217,6 +226,6 @@ class QualificationViewModelTest {
         assertThat(viewModel.feuCouvertureProperty().get()).isNull();
         assertThat(viewModel.statutProperty().get()).isNull();
         assertThat(viewModel.verdictActuelProperty().get()).isEqualTo(Verdict.A_VERIFIER);
-        assertThat(viewModel.messageProperty().get()).contains("introuvable");
+        assertThat(viewModel.retourProperty().get().texte()).contains("introuvable");
     }
 }

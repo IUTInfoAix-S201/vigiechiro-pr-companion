@@ -2,6 +2,7 @@
 
 <?import javafx.scene.chart.LineChart?>
 <?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.layout.HBox?>
@@ -101,5 +102,10 @@
     <FontIcon fx:id="iconeGps" styleClass="icone-gps"/>
     <Label fx:id="lblGps" wrapText="true"/>
   </HBox>
-  <Label fx:id="lblMessage" styleClass="message-erreur" wrapText="true"/>
+  <!-- Bandeau de retour partagé (ADR 0023) : style dans commun/view/design.css, câblage dans
+       commun/view/BandeauRetour. Remplace le libellé d'erreur ad hoc, qui n'avait ni sévérité ni fermeture. -->
+  <HBox fx:id="bandeauRetour" styleClass="bandeau-retour" alignment="CENTER_LEFT" spacing="10.0">
+    <Label fx:id="lblMessage" wrapText="true" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+    <Button fx:id="btnFermerRetour" text="✕" styleClass="fermer-retour" accessibleText="Fermer le message"/>
+  </HBox>
 </VBox>

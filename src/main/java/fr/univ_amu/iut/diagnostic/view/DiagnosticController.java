@@ -1,6 +1,7 @@
 package fr.univ_amu.iut.diagnostic.view;
 
 import com.google.inject.Inject;
+import fr.univ_amu.iut.commun.view.BandeauRetour;
 import fr.univ_amu.iut.commun.view.EmplacementNavigation;
 import fr.univ_amu.iut.commun.view.EmplacementPassage;
 import fr.univ_amu.iut.commun.view.Lieu;
@@ -24,6 +25,7 @@ import javafx.fxml.FXML;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.layout.HBox;
@@ -87,6 +89,12 @@ public class DiagnosticController implements EmplacementNavigation, ResumeStatut
 
     @FXML
     private Label lblMessage;
+
+    @FXML
+    private HBox bandeauRetour;
+
+    @FXML
+    private Button btnFermerRetour;
 
     @Inject
     public DiagnosticController(DiagnosticViewModel viewModel, OuvrirSite ouvrirSite, OuvrirPassage ouvrirPassage) {
@@ -170,10 +178,9 @@ public class DiagnosticController implements EmplacementNavigation, ResumeStatut
         ligneGps.visibleProperty().bind(diagnosticCharge);
         ligneGps.managedProperty().bind(diagnosticCharge);
 
-        lblMessage.textProperty().bind(viewModel.messageProperty());
-        var messagePresent = viewModel.messageProperty().isNotEmpty();
-        lblMessage.visibleProperty().bind(messagePresent);
-        lblMessage.managedProperty().bind(messagePresent);
+        // Bandeau de retour partagé (ADR 0023) : libellé, visibilité, sévérité et croix de fermeture.
+        BandeauRetour.installer(
+                bandeauRetour, lblMessage, btnFermerRetour, viewModel.retourProperty(), viewModel::effacerRetour);
     }
 
     /// Ouvre le diagnostic du passage `passage`. Appelée par [NavigationDiagnostic] après le chargement

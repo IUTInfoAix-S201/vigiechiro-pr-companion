@@ -35,9 +35,27 @@ La frontière entre les coutures 1 et 2 se place au **coût**, pas à la commodi
 
 ## L'échange va dans les deux sens
 
-Récupérer suppose que la plateforme sache. Ce n'est pas toujours le cas : une nuit importée depuis une carte SD peut arriver **sans enregistreur identifié**, et une météo se saisit souvent après coup. La fenêtre de modification d'un passage porte donc les **deux gestes**, nommés par leur sens : **Récupérer depuis VigieChiro** (la plateforme fait foi) et **Envoyer vers VigieChiro** (le poste fait foi). L'utilisateur choisit lequel des deux côtés détient la vérité, plutôt que de subir un « synchroniser » qui déciderait à sa place.
+Récupérer suppose que la plateforme sache. Ce n'est pas toujours le cas : une nuit importée depuis une carte SD peut arriver **sans enregistreur identifié**, et une météo se saisit souvent après coup. La fenêtre de modification d'un passage porte donc les **deux gestes**, nommés par leur sens : **Récupérer depuis Vigie-Chiro** (la plateforme fait foi) et **Envoyer vers Vigie-Chiro** (le poste fait foi). L'utilisateur choisit lequel des deux côtés détient la vérité, plutôt que de subir un « synchroniser » qui déciderait à sa place.
 
 Une règle encadre le sens montant : l'application **ne publie jamais ce qu'elle ignore** (un « inconnu » local ne devient pas une donnée sur la plateforme) et **n'efface jamais** ce qu'elle ne modélise pas (les champs saisis sur le formulaire web survivent à un envoi).
+
+### Les heures de la nuit sont un cas à part
+
+Le reste de l'identité se recopie d'un côté à l'autre. Les **heures**, non : l'application détient
+souvent mieux que ce qui est déclaré. Les noms de fichiers portent l'horodatage de capture, les
+séquences le leur ; une nuit qui a des enregistrements **prouve** ses bornes, là où les champs
+`début` / `fin` ne portent qu'une déclaration, susceptible d'avoir dérivé.
+
+L'envoi part donc de la **preuve** quand elle existe, et le dit à l'utilisateur (il vient de voir ses
+données corrigées, il doit pouvoir contester). Une nuit **squelette**, elle, n'a par construction
+aucun enregistrement : rien ne l'atteste, et ses heures se **saisissent** - c'est le seul cas où
+l'utilisateur en décide. La règle générale s'écrit donc : *les heures viennent des preuves quand il y
+en a, de l'utilisateur quand il n'y en a pas*.
+
+Ce n'est pas un raffinement théorique. Un cliquet de conversion de fuseau a fait dériver des nuits
+réelles de 21 h à 15 h en quatre allers-retours, entraînant la météo avec elle - une nuit affichait
+35 °C à 6 h du matin. Faire porter l'autorité par la preuve rend la cohérence **structurelle** au lieu
+de la faire reposer sur l'absence de bug.
 
 ## Ne pas noyer les vues site
 

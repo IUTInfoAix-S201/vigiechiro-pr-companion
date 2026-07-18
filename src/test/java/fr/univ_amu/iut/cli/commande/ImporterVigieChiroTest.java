@@ -51,7 +51,7 @@ class ImporterVigieChiroTest {
     @Test
     @DisplayName("import via le lien existant : bilan rendu comme l'import CSV, code 0")
     void import_par_le_lien_code_zero() {
-        when(moteur.importer(eq(42L), eq(false), any())).thenReturn(bilan());
+        when(moteur.importerRapide(eq(42L), eq(false), any())).thenReturn(bilan());
         StringWriter sortie = new StringWriter();
 
         int code = ligne(Optional.of(moteur), sortie).execute("--passage", "42");
@@ -68,14 +68,14 @@ class ImporterVigieChiroTest {
     @Test
     @DisplayName("--participation : rattache d'abord le passage, puis importe")
     void rattachement_prealable() {
-        when(moteur.importer(eq(42L), eq(true), any())).thenReturn(bilan());
+        when(moteur.importerRapide(eq(42L), eq(true), any())).thenReturn(bilan());
 
         int code = ligne(Optional.of(moteur), new StringWriter())
                 .execute("--passage", "42", "--remplacer", "--participation", "6a4961f587bc8dba39481180");
 
         assertThat(code).isZero();
         verify(moteur).rattacher(42L, "6a4961f587bc8dba39481180");
-        verify(moteur).importer(eq(42L), eq(true), any());
+        verify(moteur).importerRapide(eq(42L), eq(true), any());
     }
 
     @Test
@@ -103,7 +103,7 @@ class ImporterVigieChiroTest {
     @Test
     @DisplayName("--token : jeton ponctuel posé pour la durée de la commande (propriété système)")
     void token_ponctuel_pose() {
-        when(moteur.importer(eq(42L), eq(false), any())).thenReturn(bilan());
+        when(moteur.importerRapide(eq(42L), eq(false), any())).thenReturn(bilan());
 
         ligne(Optional.of(moteur), new StringWriter()).execute("--passage", "42", "--token", "jeton-x");
 
@@ -111,9 +111,12 @@ class ImporterVigieChiroTest {
     }
 
     @Test
-    @DisplayName("import long : l'avancement par page est relayé sur la sortie d'erreur (#1622)")
+    @DisplayName("repli paginé : l'avancement par page est relayé sur la sortie d'erreur (#1622)")
     void progression_relayee_sur_stderr() {
-        when(moteur.importer(eq(42L), eq(false), any())).thenAnswer(invocation -> {
+        // Depuis #1838 la voie normale est le CSV, qui ne se pagine pas : le suivi ne s'exprime que sur le
+        // repli `donnees`. Ce qu'on vérifie ici reste le point sensible — que la commande branche bien son
+        // relais, sans quoi un import long redeviendrait muet.
+        when(moteur.importerRapide(eq(42L), eq(false), any())).thenAnswer(invocation -> {
             SuiviPagination suivi = invocation.getArgument(2);
             suivi.surPage(1, 3); // le service signale une page rapatriée
             return bilan();

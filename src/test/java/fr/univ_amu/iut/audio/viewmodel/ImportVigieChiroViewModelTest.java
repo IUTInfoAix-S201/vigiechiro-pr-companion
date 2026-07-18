@@ -64,7 +64,7 @@ class ImportVigieChiroViewModelTest {
     void importer_suivi_progression_et_annulation() {
         BilanImport bilan = new BilanImport(null, 3, 0, 0);
         ArgumentCaptor<SuiviPagination> suiviCaptor = ArgumentCaptor.forClass(SuiviPagination.class);
-        when(importateur.importer(eq(ID_PASSAGE), eq(false), suiviCaptor.capture()))
+        when(importateur.importerRapide(eq(ID_PASSAGE), eq(false), suiviCaptor.capture()))
                 .thenReturn(bilan);
         ImportVigieChiroViewModel vm = new ImportVigieChiroViewModel(Optional.of(importateur));
         List<Progression> points = new ArrayList<>();

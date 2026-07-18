@@ -89,7 +89,9 @@ public final class ImporterVigieChiro implements Callable<Integer> {
         // d'erreur (stdout reste réservé au bilan), à parité avec la barre de progression de l'IHM (#1622).
         SuiviPagination suivi = (page, totalPages) ->
                 spec.commandLine().getErr().println("Import VigieChiro… page " + page + "/" + totalPages);
-        BilanImport bilan = moteur.importer(idPassage, remplacer, suivi);
+        // Voie rapide (#1838), à parité avec l'écran : CSV d'un coup, repli sur les `donnees`. Le suivi
+        // par page ne s'exprime donc que sur le repli — un CSV ne se pagine pas.
+        BilanImport bilan = moteur.importerRapide(idPassage, remplacer, suivi);
         // Même rendu que l'import CSV (ImporterTadarida) : les deux chemins alimentent le même écran.
         spec.commandLine().getOut().println(ImporterTadarida.rendreBilan(bilan, remplacer));
         return 0;

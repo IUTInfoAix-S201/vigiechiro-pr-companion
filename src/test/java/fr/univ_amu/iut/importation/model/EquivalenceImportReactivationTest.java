@@ -3,6 +3,8 @@ package fr.univ_amu.iut.importation.model;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import fr.univ_amu.iut.commun.model.JetonAnnulation;
+import fr.univ_amu.iut.commun.model.NommageSequences;
+import fr.univ_amu.iut.commun.model.NommageSequences.TranchesAttendues;
 import fr.univ_amu.iut.commun.model.Prefixe;
 import fr.univ_amu.iut.passage.model.RegenerationSequences;
 import fr.univ_amu.iut.passage.model.SequencesRegenerees;
@@ -15,6 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
@@ -80,7 +83,7 @@ class EquivalenceImportReactivationTest {
     /// Le chemin d'**import** : découpe puis [ReconciliationNoms], via le pipeline réel.
     private Map<String, String> cheminImport(Path tmp, List<Path> originaux) throws IOException {
         Path transformes = Files.createDirectories(tmp.resolve("import-transformes"));
-        List<SourceOriginal> sources = new java.util.ArrayList<>();
+        List<SourceOriginal> sources = new ArrayList<>();
         for (int i = 0; i < originaux.size(); i++) {
             Path original = originaux.get(i);
             sources.add(new SourceOriginal(original, original.getFileName().toString(), i + 1));
@@ -99,20 +102,31 @@ class EquivalenceImportReactivationTest {
         return empreintesDe(transformes);
     }
 
-    /// Le chemin de **réactivation** : régénération brut par brut, chacun dans son temporaire, exactement
-    /// comme `ReactivationDepuisBruts` procède.
+    /// Le chemin de **réactivation** : arbitrage rejoué sur la nuit entière, puis régénération brut par
+    /// brut, chacun dans son temporaire - exactement l'enchaînement de `ReactivationDepuisBruts`.
+    ///
+    /// L'arbitrage est calculé ici parce que c'est le rôle de l'appelant : lui seul a la nuit sous les
+    /// yeux. Ce sont les **durées connues en base** qui l'alimentent en production ; le test les tient de
+    /// ses fixtures, ce qui revient au même.
     private Map<String, String> cheminReactivation(Path tmp, List<Path> originaux) throws IOException {
         Path racine = Files.createDirectories(tmp.resolve("reactivation-regenere"));
         RegenerationSequences regeneration = new RegenerationParTransformationAudio(new TransformationAudio());
+        Map<String, List<String>> arbitrage = NommageSequences.arbitrer(prefixe, attendues(originaux));
         Map<String, String> empreintes = new TreeMap<>();
         for (int i = 0; i < originaux.size(); i++) {
             Path original = originaux.get(i);
+            String nomOriginal = original.getFileName().toString();
             Path sortie = Files.createDirectories(racine.resolve(Integer.toString(i)));
             SequencesRegenerees regenerees = regeneration.regenerer(
-                    original, original.getFileName().toString(), prefixe, FREQUENCE_ACQUISITION, sortie);
+                    original,
+                    nomOriginal,
+                    prefixe,
+                    FREQUENCE_ACQUISITION,
+                    sortie,
+                    arbitrage.getOrDefault(nomOriginal, List.of()));
             for (Path tranche : regenerees.tranches()) {
                 // Un nom déjà vu signale que la régénération a produit deux fois le même : c'est
-                // précisément ce que la réconciliation évite à l'import.
+                // précisément ce que l'arbitrage doit empêcher.
                 empreintes.merge(
                         tranche.getFileName().toString(),
                         empreinte(tranche),
@@ -120,6 +134,18 @@ class EquivalenceImportReactivationTest {
             }
         }
         return empreintes;
+    }
+
+    /// Ce que chaque original attend de l'arbitrage, tel que la réactivation le construit depuis la base :
+    /// son nom, et son nombre de tranches déduit de sa durée.
+    private static List<TranchesAttendues> attendues(List<Path> originaux) throws IOException {
+        List<TranchesAttendues> attendues = new ArrayList<>();
+        for (Path original : originaux) {
+            double duree = (Files.size(original) - ENTETE_WAV) / (double) (FREQUENCE_ACQUISITION * OCTETS_PAR_TRAME);
+            attendues.add(
+                    new TranchesAttendues(original.getFileName().toString(), NommageSequences.nombreTranches(duree)));
+        }
+        return attendues;
     }
 
     private static Map<String, String> empreintesDe(Path dossier) throws IOException {

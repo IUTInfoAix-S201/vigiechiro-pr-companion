@@ -1,5 +1,6 @@
 package fr.univ_amu.iut.importation.model;
 
+import fr.univ_amu.iut.commun.model.NommageSequences;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
@@ -10,11 +11,8 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /// Résolution des **collisions de noms** entre tranches, puis déplacement des fichiers du dossier temporaire
 /// vers `transformes/`.
@@ -32,10 +30,11 @@ import java.util.regex.Pattern;
 /// donc la jointure observation ↔ audio reste correcte). Le perdant n'est **pas perdu** : il est renommé en
 /// `_001` (puis `_002`…), disponible à l'écoute mais sans observation associée. Le traitement dans l'ordre
 /// chronologique (noms de fichiers horodatés triés) rend l'attribution **déterministe** (R11).
+///
+/// La **règle** elle-même vit dans [NommageSequences] (`commun`), parce que la réactivation depuis les
+/// bruts doit la rejouer à l'identique et ne peut pas dépendre de cette feature. Ne subsiste ici que ce
+/// qui touche au disque : parcourir les résultats de découpage et déplacer les fichiers.
 final class ReconciliationNoms {
-
-    /// Suffixe de séquence `_NNN` juste avant l'extension (à incrémenter en cas de collision).
-    private static final Pattern SUFFIXE_SEQUENCE = Pattern.compile("_(\\d{3})(\\.[^.]+)$");
 
     private ReconciliationNoms() {}
 
@@ -55,7 +54,7 @@ final class ReconciliationNoms {
             TransformationOriginal origine = resultat.transformation();
             List<SequenceProduite> tranches = new ArrayList<>();
             for (SequenceProduite sequence : origine.sequences()) {
-                String nomFinal = premierNomLibre(sequence.nomFichier(), nomsPris);
+                String nomFinal = NommageSequences.premierNomLibre(sequence.nomFichier(), nomsPris);
                 Path cheminFinal = deplacer(sequence.chemin(), dossierFinal.resolve(nomFinal));
                 // Le déplacement ne change pas le contenu : taille et empreinte (#1299) suivent telles
                 // quelles, seuls le nom et le chemin sont réconciliés.
@@ -87,29 +86,6 @@ final class ReconciliationNoms {
                         ? new ResultatDecoupage(resultat.original(), reconciliees.get(resultat.original()), null)
                         : resultat)
                 .toList();
-    }
-
-    /// Premier nom libre à partir de `nom` : `nom` s'il est disponible, sinon son suffixe `_000` incrémenté
-    /// en `_001`, `_002`… jusqu'à un nom non pris. Le nom retenu est marqué pris.
-    private static String premierNomLibre(String nom, Set<String> pris) {
-        String candidat = nom;
-        int index = 0;
-        while (!pris.add(candidat)) {
-            index++;
-            candidat = avecIndexSequence(nom, index);
-        }
-        return candidat;
-    }
-
-    /// Remplace le suffixe `_NNN` final de `nom` par `_index` (3 chiffres). Ex. `…_205342_000.wav`, index 1
-    /// → `…_205342_001.wav`.
-    private static String avecIndexSequence(String nom, int index) {
-        String suffixe = String.format(Locale.ROOT, "_%03d", index);
-        Matcher m = SUFFIXE_SEQUENCE.matcher(nom);
-        if (m.find()) {
-            return nom.substring(0, m.start()) + suffixe + m.group(2);
-        }
-        return nom + suffixe;
     }
 
     private static Path deplacer(Path source, Path cible) {

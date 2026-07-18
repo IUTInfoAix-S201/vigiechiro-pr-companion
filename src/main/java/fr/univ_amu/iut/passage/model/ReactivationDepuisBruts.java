@@ -1,5 +1,7 @@
 package fr.univ_amu.iut.passage.model;
 
+import fr.univ_amu.iut.commun.model.NommageSequences;
+import fr.univ_amu.iut.commun.model.NommageSequences.TranchesAttendues;
 import fr.univ_amu.iut.commun.model.Prefixe;
 import fr.univ_amu.iut.commun.model.Progression;
 import fr.univ_amu.iut.commun.model.RegleMetierException;
@@ -9,6 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -60,6 +63,12 @@ final class ReactivationDepuisBruts {
                 "Le dossier de cette session ne porte pas un nom reconnaissable : impossible de régénérer"
                         + " ses séquences."));
 
+        // L'arbitrage des collisions de noms se rejoue sur la nuit ENTIÈRE, avant toute régénération : il
+        // ne manipule que des chaînes, donc il ne coûte rien, et il doit voir tous les originaux que
+        // l'import voyait. Le fonder sur les bruts retrouvés rendrait des noms différents dès qu'un
+        // manque - et la jointure avec l'observations.csv casserait.
+        Map<String, List<String>> nomsArbitres = NommageSequences.arbitrer(prefixe, attendues(originaux));
+
         BilanReactivation bilan = new BilanReactivation();
         int traites = 0;
         for (EnregistrementOriginal original : originaux) {
@@ -73,9 +82,28 @@ final class ReactivationDepuisBruts {
                 bilan.manquantes += absentesDuDisque(sesSequences);
                 continue;
             }
-            regenererEtRebrancher(moteur, bilan, original, sesSequences, brut, prefixe);
+            regenererEtRebrancher(
+                    moteur,
+                    bilan,
+                    original,
+                    sesSequences,
+                    brut,
+                    prefixe,
+                    nomsArbitres.getOrDefault(original.nomFichier(), List.of()));
         }
         return bilan;
+    }
+
+    /// Ce que chaque original attend de l'arbitrage : son nom, et son nombre de tranches (`ceil(D / 5)`).
+    ///
+    /// Un original **sans durée** en base ne participe pas : c'est le cas du placeholder d'un passage
+    /// reconstruit (#1648), qui ne représente aucun fichier et ne produit donc aucune tranche.
+    private static List<TranchesAttendues> attendues(List<EnregistrementOriginal> originaux) {
+        return originaux.stream()
+                .filter(original -> original.dureeSecondes() != null)
+                .map(original -> new TranchesAttendues(
+                        original.nomFichier(), NommageSequences.nombreTranches(original.dureeSecondes())))
+                .toList();
     }
 
     /// Le **premier** brut candidat dont l'identité est prouvée, `null` si aucun ne l'est. Comme pour les
@@ -106,10 +134,12 @@ final class ReactivationDepuisBruts {
             EnregistrementOriginal original,
             List<SequenceDEcoute> sesSequences,
             Path brut,
-            Prefixe prefixe) {
+            Prefixe prefixe,
+            List<String> nomsArbitres) {
         Path temporaire = DossierTemporaire.creer("vc-regen-" + original.id() + "-");
         try {
-            moteur.regenerer(brut, original.nomFichier(), prefixe, frequenceAcquisition(original), temporaire);
+            moteur.regenerer(
+                    brut, original.nomFichier(), prefixe, frequenceAcquisition(original), temporaire, nomsArbitres);
             bilan.absorber(
                     rebranchement.rebrancher(sesSequences, CandidatsReactivation.dans(temporaire), progres -> {}));
         } finally {

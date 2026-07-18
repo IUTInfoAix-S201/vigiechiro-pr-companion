@@ -2,6 +2,7 @@ package fr.univ_amu.iut.passage.model;
 
 import fr.univ_amu.iut.commun.model.Prefixe;
 import java.nio.file.Path;
+import java.util.List;
 
 /// Port de **régénération des séquences d'écoute à partir d'un brut** (#1406, EPIC #1297).
 ///
@@ -41,8 +42,19 @@ public interface RegenerationSequences {
     ///     l'import : c'est elle qui pilote le découpage à 5 s **réelles**, pas l'en-tête du WAV
     /// @param dossierSortie dossier **temporaire** où écrire les tranches (elles ne rejoindront leur
     ///     place définitive qu'une fois **vérifiées**)
+    /// @param nomsArbitres noms **définitifs** des tranches, dans l'ordre des index, tels que l'arbitrage
+    ///     des collisions les a attribués sur la nuit entière (`NommageSequences.arbitrer`). Un brut, seul
+    ///     devant lui-même, ne peut pas voir qu'une de ses tranches est entrée en collision avec celle d'un
+    ///     autre enregistrement : il la nommerait `_000` alors que l'import l'a écrite `_001`, et la
+    ///     réactivation la perdrait en silence. Liste **vide** = aucun arbitrage connu, les noms produits
+    ///     par la transformation sont conservés tels quels.
     /// @return les tranches produites **et** l'empreinte SHA-256 du brut source, calculée au passage sans
     ///     re-lecture ([SequencesRegenerees], #1726)
     SequencesRegenerees regenerer(
-            Path brut, String nomOriginal, Prefixe prefixe, int frequenceAcquisitionHz, Path dossierSortie);
+            Path brut,
+            String nomOriginal,
+            Prefixe prefixe,
+            int frequenceAcquisitionHz,
+            Path dossierSortie,
+            List<String> nomsArbitres);
 }

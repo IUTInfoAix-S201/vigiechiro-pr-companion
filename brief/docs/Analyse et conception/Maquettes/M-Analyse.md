@@ -177,7 +177,9 @@ L'écran est la porte d'entrée du prisme **biodiversité** : il **exploite tran
 | Filtre **Statut** / champ texte | Restreint l'inventaire et le détail |
 | Sélection d'une **espèce** | Charge ses observations dans le panneau du bas |
 | **🎧 Écouter / valider** | Ouvre [M-SonsValidation](M-SonsValidation.md) **droit sur cette détection** (réécoute / validation) |
-| **Ouvrir le passage →** (ou double-clic) | Ouvre [M-Passage](M-Passage.md) du passage concerné |
+| **Ouvrir le passage →** | Ouvre [M-Passage](M-Passage.md) du passage concerné |
+| **Double-clic** sur une ligne | Ouvre la **fiche de l'espèce** dans le navigateur (les deux tables) |
+| **Clic droit** sur une ligne | Menu de la ligne : fiche de l'espèce, Écouter et Ouvrir le passage (détail), `Copier ▸`, `Colonnes…` |
 | Bouton **📤 Exporter** | Exporte l'inventaire courant (CSV) |
 
 ## Variante - mode carte (choroplèthe de richesse)

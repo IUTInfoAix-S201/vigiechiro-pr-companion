@@ -257,6 +257,8 @@ Cet écran **unifie** la validation taxonomique (post-Tadarida) et la bibliothè
 | Sélection d'une ligne | Charge aussi le **fil de discussion** de cette observation dans le panneau de droite |
 | **🗣** (colonne) | Indique qu'un **fil existe**, et combien de messages : on voit d'un coup d'œil où la discussion a eu lieu |
 | **Envoyer** (panneau de discussion) | Poste une réponse au validateur. **Définitif** : une confirmation **cite le texte** avant l'envoi |
+| **Double-clic** sur une ligne | Ouvre la **fiche de l'espèce** de la proposition Tadarida dans le navigateur |
+| **Clic droit** sur une ligne | Menu de la ligne : Ouvrir le passage, fiche de l'espèce, `Validation ▸` (valider, corriger, certitude, référence, douteux), `Copier ▸`, `Colonnes…` |
 | Menu **☰ → Importer / Exporter** | Import CSV Tadarida, export `_Vu` (passage), export bibliothèque (références) |
 | Fil d'Ariane | Remonte selon la source (passage, accueil, espèces, carte) |
 

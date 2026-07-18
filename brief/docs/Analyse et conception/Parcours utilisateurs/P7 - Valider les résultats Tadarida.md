@@ -16,6 +16,9 @@
     - si le taxon Tadarida lui semble correct, elle valide en un clic (`taxon observateur = taxon Tadarida`, R15)
     - sinon, elle saisit un autre taxon dans le sélecteur. L'observation passe en statut `corrigée` (R16)
     - elle peut ajouter un commentaire libre (« pic 39 kHz, morphologie atypique »)
+    - en cas de doute, elle **consulte la fiche de l'espèce** proposée (double-clic sur la ligne) : critères acoustiques et répartition s'ouvrent dans son navigateur, sur la fiche du **Plan National d'Actions Chiroptères** pour une chauve-souris, sur une source universelle par nom scientifique sinon. C'est la **troisième source de preuve**, à côté du son et du spectrogramme, et elle est nécessaire précisément parce que la probabilité Tadarida ne tranche pas (voir les notes ci-dessous)
+
+    Ces décisions sont toutes atteignables **depuis la ligne elle-même** (clic droit), sans remonter aux boutons ni au menu de l'écran : la revue se fait au fil de la liste, là où l'œil et le curseur se trouvent déjà.
 6. Marie peut **filtrer** par taxon, par groupe taxonomique (« toutes les pipistrelles », « tous les murins »), par seuil de probabilité, par plage horaire.
 7. Elle peut **quitter et reprendre plus tard** : son contexte (dernière observation vue, filtres actifs) est restauré. La validation peut s'étaler sur plusieurs jours sans rien perdre.
 8. Une fois la revue terminée, Marie exporte le **fichier de résultats validés** (`*_Vu.csv`) et le téléverse sur Vigie-Chiro pour finaliser sa contribution.

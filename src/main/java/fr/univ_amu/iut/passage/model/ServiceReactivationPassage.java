@@ -59,6 +59,14 @@ import java.util.function.Consumer;
 /// surface : hors du fil JavaFX, progression, annulation, rapport honnête (jamais un simple « c'est fait »).
 public class ServiceReactivationPassage {
 
+    /// Ce que fait la phase disque une fois les séquences traitées : recompter l'audio présent et remettre
+    /// la fiche d'aplomb. Nommé parce que c'est long et que rien d'autre ne le montre.
+    private static final String VERIFICATION_AUDIO = "Vérification de l'audio disponible…";
+
+    /// Ce que fait la phase disque juste avant de passer la main : établir s'il reste un ancrage à
+    /// rapatrier. Le libellé reprend les mots de la question que se pose l'observateur à ce moment-là.
+    private static final String RECHERCHE_ANCRAGE = "Recherche de ce qu'il reste à récupérer…";
+
     private static final String PARAM_ID_PASSAGE = "idPassage";
 
     /// Parallélisme de la régénération des bruts à l'hydratation (#1779), calqué sur l'import
@@ -197,8 +205,16 @@ public class ServiceReactivationPassage {
             bilan = rebranchement.rebrancher(sequences, candidats, OrigineCandidats.DOSSIER, progresRegeneration);
         }
 
+        // Entre la dernière séquence traitée et la première page d'ancrage, le travail continue sans qu'aucune
+        // barre ne bouge : on recompte l'audio désormais disponible et on remet la fiche du passage d'aplomb,
+        // puis on cherche s'il reste un ancrage à récupérer. Sur une nuit de 1819 séquences, cela fait plus de
+        // DEUX MINUTES pendant lesquelles l'écran ne dit rien - la barre pleine à 1819/1819 et rien d'autre,
+        // exactement le silence que #1780 avait entrepris de supprimer entre les phases. La phase disque dit
+        // donc où elle en est : sa barre reste pleine, son libellé avance.
+        progresRegeneration.accept(new Progression(VERIFICATION_AUDIO, 1.0));
         RapportReactivation rapport = conclure(idPassage, session, sequences, bilan, voie);
         jeton.leverSiAnnule();
+        progresRegeneration.accept(new Progression(RECHERCHE_ANCRAGE, 1.0));
         return rapport.avecRapatriement(acquerirAncrageSiNecessaire(idPassage, rapport, progresAncrage, jeton));
     }
 

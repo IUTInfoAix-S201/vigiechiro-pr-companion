@@ -257,6 +257,31 @@ class ServiceReactivationPassageTest {
     }
 
     @Test
+    @DisplayName("Entre les deux phases, le travail restant se nomme au lieu de laisser l'écran muet")
+    void les_temps_morts_entre_les_phases_se_nomment() throws IOException {
+        archiverAvecSauvegarde(true, true);
+        ImportObservations importObservations = mock(ImportObservations.class);
+        when(importObservations.estRattache(idPassage)).thenReturn(true);
+        when(importObservations.ancrageManquant(idPassage)).thenReturn(true);
+        when(importObservations.importer(eq(idPassage), eq(true), any())).thenAnswer(invocation -> {
+            SuiviPagination suivi = invocation.getArgument(2);
+            suivi.surPage(1, 1);
+            return "";
+        });
+        List<Progression> regeneration = new ArrayList<>();
+
+        avecImport(importObservations)
+                .reactiver(idPassage, sauvegarde, regeneration::add, progres -> {}, JetonAnnulation.neutre());
+
+        // Le recomptage de l'audio et la recherche de l'ancrage restant prennent, sur une vraie nuit, plus de
+        // deux minutes à eux deux. Sans ces deux points, la barre reste pleine et l'écran ne dit plus rien.
+        assertThat(regeneration)
+                .extracting(Progression::libelle)
+                .as("la phase disque dit ce qu'elle fait encore, et dans l'ordre où elle le fait")
+                .containsSubsequence("Vérification de l'audio disponible…", "Recherche de ce qu'il reste à récupérer…");
+    }
+
+    @Test
     @DisplayName("#1780 : deux barres — la régénération et l'ancrage rapportent chacun à son consommateur")
     void deux_progressions_separent_regeneration_et_ancrage() throws IOException {
         archiverAvecSauvegarde(true, true); // audio complet -> la phase d'ancrage se déclenche
@@ -375,7 +400,9 @@ class ServiceReactivationPassageTest {
         RapportReactivation rapport = service.reactiver(idPassage, sauvegarde, avancement::add);
 
         assertThat(rapport.confianceMinimale()).isEqualTo(NiveauConfiance.CERTITUDE);
-        assertThat(avancement).hasSize(2);
+        assertThat(avancement)
+                .as("un point par séquence rebranchée, puis les deux étapes qui nomment la fin de phase")
+                .hasSize(4);
         assertThat(avancement.get(avancement.size() - 1).fraction()).isEqualTo(1.0);
     }
 

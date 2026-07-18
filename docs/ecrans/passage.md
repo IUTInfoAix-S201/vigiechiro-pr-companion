@@ -187,14 +187,50 @@ rien** : il serait absurde de recalculer des séquences à partir d'un fichier d
 ## Modifier le passage
 
 Le bouton **Modifier le passage** ouvre une fenêtre pour corriger le **rattachement** (année, numéro de
-passage, si une nuit a été rattachée par erreur) et saisir les **conditions de dépôt** (relevé météo,
-matériel du micro).
+passage, si une nuit a été rattachée par erreur), saisir les **conditions de dépôt** (relevé météo,
+matériel du micro) et renseigner l'**enregistreur**.
 
-![La fenêtre « Modifier le passage » : rattachement et conditions de dépôt.](../assets/captures/apercu-passage-rattachement.png)
+![La fenêtre « Modifier le passage » : rattachement, enregistreur et conditions de dépôt.](../assets/captures/apercu-passage-rattachement.png)
 
 Sur un passage **déjà déposé**, l'année et le numéro sont **verrouillés** (ils forment l'identité de la
 nuit côté Vigie-Chiro), mais la **météo et le micro restent modifiables**. C'est utile, par exemple, pour
 compléter à la main la météo d'un passage **reconstruit** que la plateforme n'a pas rapatriée.
+
+### Renseigner l'enregistreur
+
+Le champ **Enregistreur** porte le **numéro de série** du Passive Recorder qui a produit la nuit.
+Normalement, l'application le lit dans les noms de fichiers de la carte SD à l'import. Quand elle n'y
+parvient pas, la nuit affiche **« PR INCONNU »** — et jusqu'ici, rien ne permettait de le corriger.
+
+Le champ est une **liste modifiable** : vous pouvez saisir le numéro librement, ou en choisir un parmi
+les propositions. Celles-ci viennent d'abord des **noms de fichiers de cette nuit** (le journal
+`LogPR…`, puis les enregistrements `PaRecPR…`), puis des enregistreurs **déjà connus** de votre poste.
+Le premier cas est le plus fréquent : l'information était bien là, dans les noms de fichiers, mais
+l'import ne l'avait pas retenue.
+
+!!! note "Un enregistreur ne peut pas être vidé"
+    Une nuit est toujours rattachée à un enregistreur. Vous pouvez **corriger** le numéro, pas le
+    supprimer — et « INCONNU » n'est pas une saisie acceptée : c'est ce que l'application affiche
+    quand elle ne sait pas, pas une valeur que l'on choisit.
+
+### Récupérer et envoyer
+
+Deux boutons, deux sens :
+
+| Bouton | Ce qu'il fait |
+|---|---|
+| **Récupérer depuis VigieChiro** | lit sur la plateforme la météo, le micro et l'enregistreur de cette nuit, et remplit le formulaire |
+| **Envoyer vers VigieChiro** | pousse vers la plateforme ce que vous venez de saisir |
+
+**Récupérer** sert quand la nuit a été préparée sur le **site web** : inutile de ressaisir ce qui existe
+déjà. **Envoyer** fait l'inverse, et vous dit s'il a réussi : en cas d'échec (hors connexion, refus du
+serveur), le message le dit et la fenêtre **reste ouverte** pour que vous puissiez réessayer sans
+perdre votre saisie.
+
+!!! tip "Vérifier sur la plateforme"
+    Après un envoi, le bouton **Voir la participation** (barre du haut de l'écran du passage) ouvre la
+    fiche dans votre navigateur : c'est le moyen le plus sûr de confirmer que la plateforme affiche
+    bien ce que vous attendiez.
 
 ### Importer les observations
 

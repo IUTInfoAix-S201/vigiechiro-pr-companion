@@ -66,3 +66,4 @@ Les premières entrées sont **rétroactives** : elles consignent, à partir des
 | [0017](0017-origine-d-un-point-etat-porte-pas-deduit.md) | L'origine d'un point (rapatrié vs manuel) est un état porté, pas déduit | #1738 |
 | [0018](0018-la-synchro-rapatrie-l-identite-de-la-nuit.md) | La synchro rapatrie aussi l'identité de la nuit (amende 0016) | #1814 |
 | [0019](0019-ancrage-acquis-quand-il-sert.md) | L'ancrage s'acquiert quand il sert, pas à un moment décrété (amende 0016) | #1838 |
+| [0020](0020-ecrire-sur-la-plateforme-ne-rien-inventer-ni-effacer.md) | Écrire sur la plateforme : ne rien inventer, ne rien effacer, parler la langue du lecteur | #1828, #1844 |

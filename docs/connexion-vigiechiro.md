@@ -9,6 +9,8 @@ débloque tout ce qui touche à la plateforme :
   vérification (écran [Préparer le dépôt](ecrans/lot.md)) ;
 - la **récupération des résultats Tadarida** après traitement serveur (écran
   [Validation](ecrans/validation.md)) ;
+- l'échange des **métadonnées d'une nuit** dans les deux sens - « Récupérer » et « Envoyer » -
+  depuis la fenêtre [Modifier le passage](ecrans/passage.md#recuperer-et-envoyer) ;
 - les boutons **« Ouvrir sur Vigie-Chiro »** des écrans rattachés (site, passage, validation).
 
 ## Obtenir son jeton (méthode du marque-page)

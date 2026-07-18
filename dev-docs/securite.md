@@ -35,6 +35,11 @@ données d'exemple ou de test.
   supportent, pour qu'un autre compte de la machine ne puisse pas lire le token (sans objet sous
   Windows, où le fichier reste protégé par les ACL du profil). Un durcissement supplémentaire
   (chiffrement au repos / keychain OS) reste suivi dans #1140.
+- **Un journal doit pouvoir être joint à un signalement** (#1845). L'utilisateur est invité à envoyer
+  ses journaux avec un rapport d'anomalie : ils ne doivent donc porter **ni le jeton, ni les en-têtes,
+  ni le corps envoyé**. Ils ne portent pas non plus l'**URL complète** d'un dépôt S3 : une URL
+  pré-signée **porte sa signature dans sa requête**, et journaliser le **chemin seul** règle la fuite
+  par construction plutôt que par vigilance (cf. [Observabilité](observabilite.md)).
 - Les workflows GitHub Actions tournent au **moindre privilège** (`maven.yml` : `permissions: contents:
   read`). N'élargir que là où c'est nécessaire (`contents: write` pour `capture-vues.yml`, qui pousse
   les aperçus).

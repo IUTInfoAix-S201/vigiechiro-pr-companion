@@ -48,6 +48,24 @@ final class PlateformeReconstruction {
         return exiger(client.participation(idParticipation), "le détail de cette participation");
     }
 
+    /// Le détail de **plusieurs** participations, rendu **dans le même ordre**, chacun **best-effort** : une
+    /// nuit dont le détail est indisponible (injoignable, refus) rend un `Optional` vide au lieu de faire
+    /// échouer le lot. C'est ce dont la synchro a besoin (#1814) pour rapatrier l'identité de chaque nuit
+    /// nouvelle sans qu'un accroc sur l'une écarte les autres.
+    List<Optional<ParticipationDetail>> detailsBestEffort(List<String> idsParticipation) {
+        return idsParticipation.stream().map(this::detailSiDisponible).toList();
+    }
+
+    /// Le détail d'une participation, ou **vide** s'il est indisponible : un détail manquant ne doit ni
+    /// écarter la nuit ni casser le lot.
+    private Optional<ParticipationDetail> detailSiDisponible(String idParticipation) {
+        try {
+            return Optional.of(detail(idParticipation));
+        } catch (RuntimeException detailIndisponible) {
+            return Optional.empty();
+        }
+    }
+
     /// La **source des observations** : le CSV téléchargé d'un coup (#1565) si la plateforme l'expose,
     /// sinon la pagination `donnees` (repli, plus lent). Dans les deux cas, elle porte les noms de fichiers
     /// (pour recréer les séquences), le nombre d'observations (pour le rapport) et le geste d'import. C'est

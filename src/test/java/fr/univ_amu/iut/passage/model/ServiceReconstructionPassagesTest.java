@@ -434,9 +434,11 @@ class ServiceReconstructionPassagesTest {
     }
 
     @Test
-    @DisplayName("#1707 synchro : une orpheline située devient un squelette archivé (INCONNU, 0 séquence), rattaché")
-    void synchroniser_cree_un_squelette() {
+    @DisplayName("#1814 synchro : une orpheline située devient un passage archivé PORTANT son identité "
+            + "(n° série réel, météo), toujours 0 séquence")
+    void synchroniser_rapatrie_l_identite() {
         when(client.mesParticipations()).thenReturn(new ReponseApi.Succes<>(List.of(participation(PARTICIPATION))));
+        when(client.participation(PARTICIPATION)).thenReturn(new ReponseApi.Succes<>(detailComplet()));
 
         Optional<RapportSynchro> rapport = service.synchroniser(client);
 
@@ -453,23 +455,51 @@ class ServiceReconstructionPassagesTest {
         assertThat(passage.idPoint()).isEqualTo(idPoint);
         assertThat(passage.annee()).isEqualTo(2026);
         assertThat(passage.idEnregistreur())
-                .as("aucun détail n'est téléchargé pour un squelette : enregistreur honnêtement « inconnu »")
-                .isEqualTo("INCONNU");
+                .as("#1814 : l'enregistreur réel est rapatrié depuis le détail, plus « INCONNU »")
+                .isEqualTo("1997632");
         assertThat(passage.donneesMeteo())
-                .as("le squelette ne porte pas de météo : elle viendra à l'hydratation (#1710)")
-                .isNull();
+                .as("#1814 : la météo du détail est rapatriée dès la synchro")
+                .isNotNull();
 
         SessionDEnregistrement session =
                 sessionDao.trouverParPassage(passage.id()).orElseThrow();
         assertThat(session.archivee())
-                .as("un squelette naît archivé : rien n'a jamais été importé ici")
+                .as("la nuit naît archivée : rien n'a jamais été importé ici")
                 .isTrue();
         assertThat(sequenceDao.findBySession(session.id()))
-                .as("un squelette n'a pas encore de séquence : l'hydratation les créera")
+                .as("elle reste un squelette : 0 séquence, l'audio et les observations viennent à la reconstruction")
                 .isEmpty();
         assertThat(liens.objectidPour(LienVigieChiro.ENTITE_PASSAGE, String.valueOf(passage.id())))
                 .contains(PARTICIPATION);
         verify(importObservations, never()).importer(anyLong(), any(), anyBoolean());
+    }
+
+    @Test
+    @DisplayName(
+            "#1814 synchro : détail indisponible → repli sur le squelette nu (INCONNU), la nuit apparaît quand même")
+    void synchroniser_detail_indisponible_repli() {
+        when(client.mesParticipations()).thenReturn(new ReponseApi.Succes<>(List.of(participation(PARTICIPATION))));
+        when(client.participation(PARTICIPATION)).thenReturn(new ReponseApi.Injoignable<>("timeout réseau"));
+
+        Optional<RapportSynchro> rapport = service.synchroniser(client);
+
+        assertThat(rapport)
+                .as("la nuit est rapatriée malgré le détail manquant")
+                .isPresent();
+        List<Passage> passages = passageDao.findAll();
+        assertThat(passages).hasSize(1);
+        assertThat(passages.get(0).idEnregistreur())
+                .as("détail indisponible : repli honnête sur « INCONNU », rattrapable à la reconstruction")
+                .isEqualTo("INCONNU");
+        assertThat(passages.get(0).donneesMeteo())
+                .as("sans détail, pas de météo non plus")
+                .isNull();
+        assertThat(sequenceDao.findBySession(sessionDao
+                        .trouverParPassage(passages.get(0).id())
+                        .orElseThrow()
+                        .id()))
+                .as("repli = toujours un squelette, 0 séquence")
+                .isEmpty();
     }
 
     @Test

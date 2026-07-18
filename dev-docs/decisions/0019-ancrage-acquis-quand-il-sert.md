@@ -9,7 +9,7 @@
 
 Mais l'ancrage et l'audio ne servent pas au même geste. L'audio sert à **écouter** ; l'ancrage sert à **publier** — il est la cible du `PATCH /donnees/{id}/observations/{indice}` (contrat #1203). Les rattacher revenait à exiger la réactivation d'une nuit pour publier ses corrections, alors que publier ne demande aucun fichier.
 
-Le coût de ce raccourci s'est payé sur les nuits importées par **CSV** (#1565), qui ne portent pas d'ancrage. Leurs corrections étaient toutes écartées ; l'application conseillait « réimportez depuis VigieChiro », et l'action de publication était même **grisée par avance** (#1596). Un utilisateur ayant validé toute une nuit se retrouvait devant un menu inerte lui demandant de réactiver — c'est-à-dire de retrouver l'audio — pour un geste qui n'en avait pas besoin. Pire, l'import proposé par l'écran de validation avait dérivé vers la pagination `donnees` (lente) plutôt que le CSV, précisément pour ramener cet ancrage : une heuristique de pré-chargement payée par tous, pour un besoin qui ne concerne que ceux qui publient.
+Le coût de ce raccourci s'est payé sur les nuits importées par **CSV** (#1565), qui ne portent pas d'ancrage. Leurs corrections étaient toutes écartées ; l'application conseillait « réimportez depuis VigieChiro », et l'action de publication était même **grisée par avance** (#1596). Un utilisateur ayant validé toute une nuit se retrouvait devant un menu inerte lui demandant de réactiver — c'est-à-dire de retrouver l'audio — pour un geste qui n'en avait pas besoin.
 
 ## Décision
 
@@ -22,13 +22,13 @@ Corollaire sur les gardes : une IHM ne grise un geste que sur une **impossibilit
 ## Conséquences
 
 - Une nuit importée par CSV devient publiable **sans réactivation** : le chemin le plus court entre « j'ai fini ma revue » et « c'est parti sur la plateforme » ne passe plus par la recherche des fichiers audio.
-- L'import de l'écran de validation peut redevenir le **CSV** (rapide) : il n'a plus à ramener l'ancrage pour le compte de la publication. Le coût de la pagination `donnees` est reporté sur le geste qui en a besoin, et payé une seule fois.
+- L'import de l'écran de validation **ne bascule pas** pour autant sur le CSV. On l'a cru — il ne ramenait plus l'ancrage que pour le compte de la publication — mais le CSV ne porte pas les **fils de discussion** du validateur MNHN (#1417), qui vivent dans les `donnees` et s'attachent **par ancrage**. Cet import paie donc la pagination pour deux raisons, dont une seule vient d'être levée. Ce qui change, c'est qu'il n'est plus un **passage obligé** avant de publier.
 - La publication peut désormais durer : elle passe par une **modale de progression annulable** ([ADR 0010](0010-dialogues-bloquants-sont-des-ports.md)) et non plus par un voile à libellé fixe. En CLI, l'avancement va sur la sortie d'erreur, la sortie standard restant réservée au bilan ([ADR 0014](0014-parite-cli-ihm.md)).
 - La confirmation ne peut plus annoncer un total exact : une observation à ancrer peut aussi manquer de certitude. Elle annonce ce qui est prêt et ce qui sera d'abord ancré, plutôt qu'un compte que le bilan démentirait.
 - Ce qui reste « sans ancrage » après un envoi n'est plus un oubli de réimport mais une nuit sans participation : le remède affiché change de nature.
 
 ## Alternatives écartées
 
-- **Ancrer à l'import**, systématiquement. C'est l'état de fait qui a motivé l'issue : tout le monde paie la pagination `donnees` (des dizaines de pages) pour un besoin que seule la publication a. La rapidité du CSV, gagnée en #1565, était perdue pour tous.
+- **Compter sur l'import de l'écran de validation** pour ancrer, comme aujourd'hui. C'est ce qui a motivé l'issue : une nuit ne devenait publiable qu'après un geste sans rapport, que rien n'imposait de faire. L'import garde ses raisons propres de rapatrier les `donnees` (les fils de discussion), mais il ne peut pas servir de condition préalable à la publication : l'utilisateur n'a aucun moyen de deviner ce lien.
 - **Laisser la publication écarter les non ancrées et documenter le remède.** C'est ce que faisait le code ; le remède était « réimportez » (le geste que la publication sait faire) ou « réactivez » (un geste hors sujet). Faire porter à l'utilisateur une étape que le programme peut mener seul, sur la foi d'un message, n'est pas un contrat, c'est un piège.
 - **Acquérir l'ancrage à la première correction saisie.** Trop tôt : corriger n'engage à rien, beaucoup de revues ne seront jamais publiées. On aurait déplacé le pré-chargement, pas supprimé.

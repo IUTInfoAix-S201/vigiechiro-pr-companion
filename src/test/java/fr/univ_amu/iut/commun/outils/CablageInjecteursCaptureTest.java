@@ -88,6 +88,9 @@ class CablageInjecteursCaptureTest {
                 Arguments.of("CaptureQualification", (Supplier<Injector>) CaptureQualification::creerInjecteur),
                 Arguments.of("CapturePassage", (Supplier<Injector>) CapturePassage::creerInjecteur),
                 Arguments.of("CaptureLot", (Supplier<Injector>) CaptureLot::creerInjecteur),
+                // #1890 : la variante connectée a son propre graphe (dépôt lié) ; c'est elle qui rend
+                // l'étape ③ et le second libellé du bouton ④, invisibles dans le mode déconnecté.
+                Arguments.of("CaptureLot (connecté)", (Supplier<Injector>) CaptureLot::creerInjecteurConnecte),
                 Arguments.of("CaptureMultisite", (Supplier<Injector>) CaptureMultisite::creerInjecteur),
                 Arguments.of("CaptureAnalyse", (Supplier<Injector>) CaptureAnalyse::creerInjecteur),
                 Arguments.of("CaptureAudit", (Supplier<Injector>) CaptureAudit::creerInjecteur),

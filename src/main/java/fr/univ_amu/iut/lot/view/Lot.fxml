@@ -36,6 +36,17 @@
   <!-- Stepper du dépôt (#251) : ① Préparer · ② Générer les archives · ③ Téléverser · ④ Marquer déposé. -->
   <HBox fx:id="stepper" styleClass="stepper" spacing="8.0"/>
 
+  <!-- État du lot en prose (version lisible du stepper) : permanent, non fermable. Distinct du bandeau
+       de retour ci-dessous, avec lequel il partageait un canal unique avant #1890. -->
+  <Label fx:id="lblEtatLot" styleClass="message-lot" wrapText="true"/>
+
+  <!-- Bandeau de retour partagé (ADR 0023) : un seul pour les deux ViewModels de l'écran, en tête de
+       flux. Style dans commun/view/design.css, câblage dans commun/view/BandeauRetour. -->
+  <HBox fx:id="bandeauRetour" styleClass="bandeau-retour" alignment="CENTER_LEFT" spacing="10.0">
+    <Label fx:id="lblMessage" wrapText="true" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+    <Button fx:id="btnFermerRetour" text="✕" styleClass="fermer-retour" accessibleText="Fermer le message"/>
+  </HBox>
+
   <Separator/>
 
   <!-- Étape 1 - Vérifier et préparer le dépôt -->
@@ -120,7 +131,6 @@
         </tooltip>
       </Button>
     </HBox>
-    <Label fx:id="lblDepotMessage" styleClass="section-sous" wrapText="true"/>
     <!-- Table de dépôt (#983) : une ligne par unité téléversée (état persisté depot_unite #981),
          réhydratée à l'ouverture et vivante pendant un dépôt. Masquée tant qu'aucun dépôt automatique
          n'a été entamé. -->
@@ -161,5 +171,4 @@
             styleClass="bouton-secondaire" onAction="#supprimerArchives"/>
   </VBox>
 
-  <Label fx:id="lblMessage" styleClass="message-lot" wrapText="true"/>
 </VBox>

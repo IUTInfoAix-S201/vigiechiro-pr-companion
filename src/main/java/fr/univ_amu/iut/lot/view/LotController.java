@@ -154,9 +154,6 @@ public class LotController implements EmplacementNavigation, ResumeStatut {
     private Button btnTeleverser;
 
     @FXML
-    private Label lblDepotMessage;
-
-    @FXML
     private TableView<LigneDepot> tableDepot;
 
     @FXML
@@ -175,7 +172,16 @@ public class LotController implements EmplacementNavigation, ResumeStatut {
     private Button btnReinitialiserDepot;
 
     @FXML
+    private Label lblEtatLot;
+
+    @FXML
+    private HBox bandeauRetour;
+
+    @FXML
     private Label lblMessage;
+
+    @FXML
+    private Button btnFermerRetour;
 
     /// Zone « Traitement Vigie-Chiro » (#1263) : visible une fois la nuit déposée par l'application.
     @FXML
@@ -413,10 +419,15 @@ public class LotController implements EmplacementNavigation, ResumeStatut {
         viewModel.suiviLignes().lignes().addListener((ListChangeListener<LigneArchive>) changement -> majRolesEtapes());
         majRolesEtapes();
 
-        lblMessage.textProperty().bind(viewModel.messageProperty());
-        var messagePresent = viewModel.messageProperty().isNotEmpty();
-        lblMessage.visibleProperty().bind(messagePresent);
-        lblMessage.managedProperty().bind(messagePresent);
+        // Ligne d'**état** du lot, adossée au stepper dont elle est la version en prose : permanente et
+        // non fermable (#1890). Elle ne partage plus le canal des comptes rendus, qui la recouvraient ou
+        // s'en faisaient recouvrir selon l'ordre des appels.
+        lblEtatLot.textProperty().bind(viewModel.etatLotProperty());
+        var etatPresent = viewModel.etatLotProperty().isNotEmpty();
+        lblEtatLot.visibleProperty().bind(etatPresent);
+        lblEtatLot.managedProperty().bind(etatPresent);
+
+        BandeauLotUI.cabler(bandeauRetour, lblMessage, btnFermerRetour, viewModel, depotViewModel);
     }
 
     /// Met en avant l'action **actionnable** du dépôt (#689) : `.bouton-primaire` sur l'unique étape
@@ -558,9 +569,6 @@ public class LotController implements EmplacementNavigation, ResumeStatut {
     /// reprenable (#982). Visible seulement quand un dépôt a été entamé (liaison vivante sur la liste).
     /// Quand il reste des unités non déposées, l'action devient une reprise : « Retenter les échecs ».
     private void lierTableDepot() {
-        lblDepotMessage.textProperty().bind(depotViewModel.messageProperty());
-        lblDepotMessage.visibleProperty().bind(depotViewModel.messageProperty().isNotEmpty());
-        lblDepotMessage.managedProperty().bind(depotViewModel.messageProperty().isNotEmpty());
         TableSuiviDepot.configurer(tableDepot);
         // Sélecteur de colonnes (#1800) : la table de dépôt n'avait aucun menu contextuel, alors que sa
         // voisine (archives) en a un sur le même écran. Disposition retenue par écran (#994), clé « depot ».

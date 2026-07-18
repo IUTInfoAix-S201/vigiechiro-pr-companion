@@ -3,17 +3,26 @@ package fr.univ_amu.iut.lot.outils;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.Key;
 import com.google.inject.Provides;
+import com.google.inject.Singleton;
+import com.google.inject.multibindings.OptionalBinder;
+import com.google.inject.name.Named;
+import com.google.inject.name.Names;
 import com.google.inject.util.Modules;
+import fr.univ_amu.iut.commun.api.ClientVigieChiro;
+import fr.univ_amu.iut.commun.api.TraitementVigieChiro;
 import fr.univ_amu.iut.commun.di.PersistenceModule;
 import fr.univ_amu.iut.commun.model.DepotDispositionColonnes;
 import fr.univ_amu.iut.commun.model.Horloge;
 import fr.univ_amu.iut.commun.model.HorlogeFigee;
+import fr.univ_amu.iut.commun.model.LienVigieChiro;
 import fr.univ_amu.iut.commun.model.Prefixe;
 import fr.univ_amu.iut.commun.model.Protocole;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.model.Utilisateur;
 import fr.univ_amu.iut.commun.model.Verdict;
+import fr.univ_amu.iut.commun.model.dao.LienVigieChiroDao;
 import fr.univ_amu.iut.commun.model.dao.UtilisateurDao;
 import fr.univ_amu.iut.commun.outils.ApercuFx;
 import fr.univ_amu.iut.commun.outils.ModuleCaptureCommun;
@@ -27,18 +36,22 @@ import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
 import fr.univ_amu.iut.commun.viewmodel.NavigationViewModel;
 import fr.univ_amu.iut.lot.di.LotModule;
 import fr.univ_amu.iut.lot.model.ArchiveDepot;
+import fr.univ_amu.iut.lot.model.DepotVigieChiro;
 import fr.univ_amu.iut.lot.model.ServiceLot;
 import fr.univ_amu.iut.lot.model.dao.DepotUniteDao;
 import fr.univ_amu.iut.lot.view.LotController;
 import fr.univ_amu.iut.lot.viewmodel.DepotViewModel;
 import fr.univ_amu.iut.lot.viewmodel.LotViewModel;
 import fr.univ_amu.iut.passage.di.PassageModule;
+import fr.univ_amu.iut.passage.di.SynchronisationParticipationModule;
 import fr.univ_amu.iut.passage.model.EnregistrementOriginal;
 import fr.univ_amu.iut.passage.model.Enregistreur;
 import fr.univ_amu.iut.passage.model.JournalDuCapteur;
+import fr.univ_amu.iut.passage.model.MoteurWorkflowPassage;
 import fr.univ_amu.iut.passage.model.Passage;
 import fr.univ_amu.iut.passage.model.SequenceDEcoute;
 import fr.univ_amu.iut.passage.model.SessionDEnregistrement;
+import fr.univ_amu.iut.passage.model.SynchronisationParticipation;
 import fr.univ_amu.iut.passage.model.dao.EnregistrementOriginalDao;
 import fr.univ_amu.iut.passage.model.dao.EnregistreurDao;
 import fr.univ_amu.iut.passage.model.dao.JournalDuCapteurDao;
@@ -55,6 +68,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
@@ -75,9 +89,17 @@ import javafx.scene.Scene;
 /// - `apercu-lot-generation.png` : **génération en cours** — indicateur d'activité, bouton désactivé ;
 /// - `apercu-lot-archives.png` : **archives générées** — liste des ZIP (redimensionnée à son contenu),
 ///   « Ouvrir le dossier » et « Supprimer les archives » actifs, étape ③ « Téléverser » courante ;
+/// - `apercu-lot-televerser.png` : mêmes archives, **application connectée** — l'étape ③ expose enfin
+///   « Téléverser sur Vigie-Chiro » à côté du dépôt manuel (#1890) ;
 /// - `apercu-lot-depose.png` : passage **Déposé** — état final, toutes les étapes franchies ;
+/// - `apercu-lot-participation.png` : **participation liée** — le bouton de l'étape ④ bascule sur son
+///   second libellé, « Lancer la participation » (#1890) ;
 /// - `apercu-lot-alertes.png` : passage **Vérifié incohérent** (séquences/journal manquants) — la
 ///   zone d'alertes de cohérence (R14) apparaît et « Préparer le lot » est désactivé.
+///
+/// Les deux aperçus **connectés** comblent un angle mort : l'étape ③ et le second mode du bouton ④ ne
+/// se rendent que si `Optional<DepotVigieChiro>` est non vide, ce que l'injecteur de capture ne
+/// fournissait pas. La moitié connectée de l'écran n'était donc relue par personne.
 ///
 /// On seede une base SQLite temporaire (deux passages sur un même point : un cohérent, un
 /// incohérent), puis on charge l'écran via une `controllerFactory` Guice (socle + sites + passage +
@@ -133,6 +155,9 @@ public final class CaptureLot {
         // Horloge figée : la date de dépôt (marquerDepose) est ainsi **déterministe** dans l'aperçu
         // « déposé » (sinon l'horodatage système changerait le PNG à chaque régénération).
         Injector injecteur = creerInjecteur();
+        // Second injecteur, connecté : il partage la même base (le workspace est un chemin, pas un objet),
+        // donc il voit les mêmes passages. Seuls les deux aperçus connectés passent par lui.
+        Injector connecte = creerInjecteurConnecte();
         SourceDeDonnees source = injecteur.getInstance(SourceDeDonnees.class);
         new MigrationSchema(source).migrer();
         ServiceLot service = injecteur.getInstance(ServiceLot.class);
@@ -159,34 +184,138 @@ public final class CaptureLot {
                 idCoherent,
                 sortie.resolve("apercu-lot-archives.png"),
                 vm -> vm.appliquerGeneration(archivesDemo(vm)));
+        // ③ bis (#1890) : mêmes archives, mais **connecté**. L'étape « Téléverser sur Vigie-Chiro » n'est
+        // visible que si le dépôt est disponible : sans ce rendu, aucun aperçu ne la montrait.
+        rendrePilote(
+                connecte,
+                idCoherent,
+                sortie.resolve("apercu-lot-televerser.png"),
+                vm -> vm.appliquerGeneration(archivesDemo(vm)));
         // ④ Déposé : état final, toutes les étapes franchies.
         service.marquerDepose(idCoherent);
         rendre(injecteur, idCoherent, sortie.resolve("apercu-lot-depose.png"));
+        // ④ bis (#1890) : participation liée. Le bouton de l'étape ④ bascule sur son second libellé
+        // (« 🚀 Lancer la participation ») — jamais rendu jusqu'ici, faute de lien en base.
+        lierParticipation(injecteur, idCoherent);
+        rendre(connecte, idCoherent, sortie.resolve("apercu-lot-participation.png"));
         // Cas bloquant : Vérifié incohérent → zone d'alertes (R14), « Préparer » désactivé.
         rendre(injecteur, idIncoherent, sortie.resolve("apercu-lot-alertes.png"));
+    }
+
+    /// Mémorise un lien `passage → participation` (#1890) : c'est ce que lit `participationLiee`, et
+    /// donc ce qui fait basculer le bouton de l'étape ④ de « Marquer déposé » vers « Lancer la
+    /// participation ». L'`objectid` est arbitraire mais **fixe** : il ne s'affiche pas, et un
+    /// identifiant tiré au hasard rendrait le PNG non reproductible.
+    private static void lierParticipation(Injector injecteur, long idPassage) {
+        injecteur
+                .getInstance(LienVigieChiroDao.class)
+                .upsert(new LienVigieChiro(
+                        LienVigieChiro.ENTITE_PASSAGE, String.valueOf(idPassage), "6480c0ffee0000000000dead", false));
     }
 
     /// Injecteur (partiel) utilisé par cet outil de capture. Exposé pour le garde-fou de câblage
     /// (test).
     public static Injector creerInjecteur() {
         return Guice.createInjector(
-                Modules.override(ModuleCaptureCommun.communSynchrone()).with(new AbstractModule() {
-                    @Provides
-                    Horloge horlogeFigee() {
-                        return new HorlogeFigee(LocalDateTime.of(2026, 6, 21, 8, 0));
-                    }
-
-                    /// ServiceLot exige le DAO de suivi de dépôt (#981) ; son binding applicatif vit dans
-                    /// DepotVigieChiroModule (non chargé ici, capture sans connexion).
-                    @Provides
-                    DepotUniteDao depotUniteDao(SourceDeDonnees source) {
-                        return new DepotUniteDao(source);
-                    }
-                }),
+                Modules.override(ModuleCaptureCommun.communSynchrone()).with(new ModuleCaptureLot()),
                 new PersistenceModule(),
                 new SitesModule(),
                 new PassageModule(),
                 new LotModule());
+    }
+
+    /// Variante **connectée** de [#creerInjecteur] (#1890) : mêmes modules, plus la liaison du dépôt.
+    ///
+    /// Deux injecteurs et non un seul, parce que les deux modes se rendent différemment et que **les
+    /// deux méritent d'être relus** : le déconnecté masque l'étape ③ et n'offre que le dépôt manuel.
+    /// Tout basculer en connecté aurait simplement déplacé l'angle mort d'un mode à l'autre.
+    public static Injector creerInjecteurConnecte() {
+        return Guice.createInjector(
+                Modules.override(ModuleCaptureCommun.communSynchrone()).with(new ModuleCaptureLot()),
+                new PersistenceModule(),
+                new SitesModule(),
+                new PassageModule(),
+                new SynchronisationParticipationModule(),
+                new LotModule(),
+                new ModuleDepotConnecte());
+    }
+
+    /// Réglages communs aux deux injecteurs de capture : horloge figée (aperçus reproductibles), DAO de
+    /// suivi de dépôt, et un client Vigie-Chiro **jamais appelé**.
+    ///
+    /// Le client n'existe que pour satisfaire le graphe du dépôt : aucun aperçu ne fait de réseau, seules
+    /// `disponible()` (présence de l'objet) et `participationLiee()` (lecture de `lien_vigiechiro` en
+    /// base) sont consultées. Son jeton vaut `Optional.empty()`, pour qu'un appel accidentel parte en
+    /// erreur franche plutôt que sur le réseau de la machine de capture.
+    private static final class ModuleCaptureLot extends AbstractModule {
+
+        @Provides
+        Horloge horlogeFigee() {
+            return new HorlogeFigee(LocalDateTime.of(2026, 6, 21, 8, 0));
+        }
+
+        /// ServiceLot exige le DAO de suivi de dépôt (#981) ; son binding applicatif vit dans
+        /// DepotVigieChiroModule, qui n'est chargé par aucun des deux injecteurs de capture.
+        @Provides
+        DepotUniteDao depotUniteDao(SourceDeDonnees source) {
+            return new DepotUniteDao(source);
+        }
+
+        @Provides
+        @Singleton
+        ClientVigieChiro clientSansReseau() {
+            return new ClientVigieChiro(Optional::empty);
+        }
+
+        @Provides
+        @Singleton
+        TraitementVigieChiro traitementVigieChiro(ClientVigieChiro client) {
+            return new TraitementVigieChiro(client);
+        }
+    }
+
+    /// Rend le dépôt **disponible** dans l'injecteur de capture (#1890).
+    ///
+    /// Sans cette liaison, `Optional<DepotVigieChiro>` reste vide (défaut posé par `LotModule`) et la
+    /// **moitié connectée de l'écran ne se rend pas** : l'étape ③ « Téléverser » est masquée
+    /// (`enveloppeTeleverser.setVisible(depotViewModel.disponible())`) et le bouton de l'étape ④ ne
+    /// s'affiche jamais dans son second libellé (« 🚀 Lancer la participation »). Aucun aperçu ne
+    /// montrait donc cette zone, alors qu'elle porte deux des étapes du flux.
+    ///
+    /// Calqué sur `DepotVigieChiroModule` (qualifiant intermédiaire pour éviter que la cible de
+    /// l'`OptionalBinder` ne se référence elle-même), mais sans exiger de connexion réelle.
+    private static final class ModuleDepotConnecte extends AbstractModule {
+
+        private static final String QUALIFIANT = "captureDepotConnecte";
+
+        @Override
+        protected void configure() {
+            OptionalBinder.newOptionalBinder(binder(), DepotVigieChiro.class)
+                    .setBinding()
+                    .to(Key.get(DepotVigieChiro.class, Names.named(QUALIFIANT)));
+        }
+
+        @Provides
+        @Singleton
+        @Named(QUALIFIANT)
+        DepotVigieChiro depotDeCapture(
+                Optional<SynchronisationParticipation> participations,
+                ClientVigieChiro client,
+                TraitementVigieChiro traitement,
+                DepotUniteDao depotUnites,
+                PassageDao passageDao,
+                MoteurWorkflowPassage moteurWorkflow,
+                Horloge horloge) {
+            return new DepotVigieChiro(
+                    participations.orElseThrow(() -> new IllegalStateException(
+                            "SynchronisationParticipationModule doit être chargé dans l'injecteur de capture")),
+                    client,
+                    traitement,
+                    depotUnites,
+                    passageDao,
+                    moteurWorkflow,
+                    horloge);
+        }
     }
 
     /// Charge `Lot.fxml`, l'ouvre sur le passage puis rend la scène hors-écran en PNG.

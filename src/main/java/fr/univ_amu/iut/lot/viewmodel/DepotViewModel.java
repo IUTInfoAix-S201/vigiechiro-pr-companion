@@ -3,6 +3,7 @@ package fr.univ_amu.iut.lot.viewmodel;
 import fr.univ_amu.iut.commun.api.ResultatLancement;
 import fr.univ_amu.iut.commun.model.JetonAnnulation;
 import fr.univ_amu.iut.commun.model.RegleMetierException;
+import fr.univ_amu.iut.commun.viewmodel.RetourOperation;
 import fr.univ_amu.iut.lot.model.BilanDepot;
 import fr.univ_amu.iut.lot.model.DepotVigieChiro;
 import fr.univ_amu.iut.lot.model.ServiceLot;
@@ -13,8 +14,8 @@ import java.util.Objects;
 import java.util.Optional;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
-import javafx.beans.property.ReadOnlyStringProperty;
-import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 
 /// ViewModel du **téléversement d'une nuit sur VigieChiro** (#142), distinct de [LotViewModel] : le dépôt
 /// est un concern à part (et [LotViewModel] est déjà volumineux). Coordonne la résolution des séquences
@@ -38,7 +39,7 @@ public class DepotViewModel {
     /// **Lancement du traitement** en cours (étape ④), distinct de [#enCours] que le téléversement occupe
     /// avec ses compteurs d'archives : sans cette distinction, la barre de statut annoncerait un dépôt
     /// (« n/N déposées ») pendant un simple appel de lancement. Porte l'annonce du travail en cours, là où
-    /// [#message] ne porte plus que des **résultats** (#1886).
+    /// [#retour] ne porte plus que des **résultats** (#1886).
     private final ReadOnlyBooleanWrapper lancementEnCours = new ReadOnlyBooleanWrapper(this, "lancementEnCours", false);
 
     /// Annulation coopérative (#1044, harmonisée #1315) : le [JetonAnnulation] du socle est **lu par le
@@ -51,8 +52,10 @@ public class DepotViewModel {
     private final ReadOnlyBooleanWrapper annulationDemandee =
             new ReadOnlyBooleanWrapper(this, "annulationDemandee", false);
 
-    /// Message de restitution du dernier dépôt (succès résumé ou erreur), pour l'IHM.
-    private final ReadOnlyStringWrapper message = new ReadOnlyStringWrapper(this, "message", "");
+    /// Compte rendu de la dernière opération de dépôt (téléversement, réinitialisation, lancement du
+    /// traitement), rendu par le bandeau partagé de l'écran (ADR 0023).
+    private final ReadOnlyObjectWrapper<RetourOperation> retour =
+            new ReadOnlyObjectWrapper<>(this, "retour", RetourOperation.AUCUN);
 
     /// `true` quand une participation VigieChiro est **liée** au passage courant (dépôt via l'API
     /// effectué, #984) : l'IHM bascule alors l'étape ④ de « Marquer déposé » à « Lancer la participation »
@@ -135,7 +138,7 @@ public class DepotViewModel {
     /// n'interromprait rien et le message serait écrasé à la fin. Le lancement a besoin d'un état
     /// **distinct** de [#enCoursProperty], que le téléversement occupe déjà avec ses propres compteurs.
     public void marquerLancementEnCours() {
-        message.set("");
+        retour.set(RetourOperation.AUCUN);
         lancementEnCours.set(true);
         enCours.set(true);
     }
@@ -144,22 +147,31 @@ public class DepotViewModel {
     /// issue** pour la zone de statut du dépôt (#1261). Le message unique d'avant s'achevait sur un point
     /// d'interrogation (« déjà en cours ? ») : le code ne savait pas, l'utilisateur non plus.
     public void restituerLancement(ResultatLancement resultat) {
-        message.set(libelle(resultat));
+        retour.set(libelle(resultat));
         lancementEnCours.set(false);
         enCours.set(false);
     }
 
     /// Message d'une issue de lancement, du point de vue de l'utilisateur : que s'est-il passé, et qu'a-t-il
     /// à faire (souvent : rien).
-    private static String libelle(ResultatLancement resultat) {
+    /// Les cinq issues n'ont pas le même poids, et le canal `String` ne pouvait pas le dire (#1890).
+    /// « Déjà lancé » et « relance bloquée » ne sont **pas des échecs** : rien n'a raté, il n'y a
+    /// simplement rien à faire, et le second protège délibérément les observations du serveur. Seuls un
+    /// refus et une injoignabilité sont des erreurs.
+    private static RetourOperation libelle(ResultatLancement resultat) {
         return switch (resultat.issue()) {
-            case ACCEPTE -> "🚀 Traitement lancé sur Vigie-Chiro : les résultats arriveront après le calcul serveur.";
-            case DEJA_LANCE -> "🚀 Le traitement est déjà en cours sur Vigie-Chiro : il n'y a plus qu'à attendre.";
+            case ACCEPTE ->
+                RetourOperation.succes(
+                        "Traitement lancé sur Vigie-Chiro : les résultats arriveront après" + " le calcul serveur.");
+            case DEJA_LANCE ->
+                RetourOperation.info(
+                        "Le traitement est déjà en cours sur Vigie-Chiro : il n'y a plus qu'à" + " attendre.");
             case RELANCE_BLOQUEE ->
-                "Cette nuit a déjà été analysée par Vigie-Chiro. La relancer effacerait les observations"
-                        + " du serveur sans pouvoir les recalculer : importez-les plutôt.";
-            case REFUSE -> "Vigie-Chiro a refusé le lancement du traitement.";
-            case INJOIGNABLE -> "Vigie-Chiro est injoignable : le traitement n'a pas pu être lancé.";
+                RetourOperation.info("Cette nuit a déjà été analysée par Vigie-Chiro. La relancer effacerait"
+                        + " les observations du serveur sans pouvoir les recalculer : importez-les plutôt.");
+            case REFUSE -> RetourOperation.erreur("Vigie-Chiro a refusé le lancement du traitement.");
+            case INJOIGNABLE ->
+                RetourOperation.erreur("Vigie-Chiro est injoignable : le traitement n'a pas pu être lancé.");
         };
     }
 
@@ -178,7 +190,7 @@ public class DepotViewModel {
         Objects.requireNonNull(idPassage, PARAM_ID_PASSAGE);
         service.reinitialiserDepot(idPassage);
         rehydrater(idPassage);
-        message.set("Dépôt réinitialisé : vous pouvez re-téléverser la nuit.");
+        retour.set(RetourOperation.succes("Dépôt réinitialisé : vous pouvez re-téléverser la nuit."));
     }
 
     /// Table de dépôt observable (#983) : lignes à lier à la `TableView`, drapeau « reste à reprendre »
@@ -191,7 +203,7 @@ public class DepotViewModel {
     public void marquerEnCours() {
         // #1886 : le décompte vivant de la barre de statut annonce le travail ; le retour d'opération est
         // effacé pour ne pas laisser le bilan du dépôt précédent se lire comme celui-ci.
-        message.set("");
+        retour.set(RetourOperation.AUCUN);
         // Le jeton du socle est volontairement à usage unique : réarmer = repartir d'un jeton neuf.
         jeton = new JetonAnnulation();
         annulationDemandee.set(false);
@@ -221,26 +233,39 @@ public class DepotViewModel {
         // Dépôt interrompu à la demande (#1044) : le bilan de la tentative peut être « sans échec » alors
         // qu'il reste des fichiers à téléverser — le message le dit explicitement (compteurs de la table).
         if (annulationDemandee.get()) {
-            message.set("Dépôt interrompu : " + suiviLignes.deposeesProperty().get() + "/"
-                    + suiviLignes.totalProperty().get()
-                    + " fichier(s) en ligne. « Reprendre le dépôt » ne renverra que les manquants.");
+            // Interruption demandée : ni un succès (des fichiers manquent), ni une erreur (rien n'a raté,
+            // l'utilisateur a arrêté), et la reprise ne renverra que le reste.
+            retour.set(RetourOperation.info(
+                    "Dépôt interrompu : " + suiviLignes.deposeesProperty().get() + "/"
+                            + suiviLignes.totalProperty().get()
+                            + " fichier(s) en ligne. « Reprendre le dépôt » ne renverra que les manquants."));
             return;
         }
         String resume = "Nuit déposée sur Vigie-Chiro : " + bilan.deposees() + " fichier(s) téléversé(s).";
-        message.set(bilan.estComplet() ? resume : resume + " " + bilan.echecs().size() + " en échec (à relancer).");
+        // Dépôt partiel : même raisonnement qu'au Lot 2 pour un relevé partiel - annoncer un succès
+        // mentirait sur ce qui est en ligne, annoncer une erreur nierait ce qui est passé.
+        retour.set(
+                bilan.estComplet()
+                        ? RetourOperation.succes(resume)
+                        : RetourOperation.info(resume + " " + bilan.echecs().size() + " en échec (à relancer)."));
     }
 
     /// Restitue un **échec** de dépôt (au fil JavaFX) : message d'erreur métier / réseau.
     public void echec(String erreur) {
         enCours.set(false);
-        message.set(erreur);
+        retour.set(RetourOperation.erreur(erreur));
     }
 
     public ReadOnlyBooleanProperty enCoursProperty() {
         return enCours.getReadOnlyProperty();
     }
 
-    public ReadOnlyStringProperty messageProperty() {
-        return message.getReadOnlyProperty();
+    public ReadOnlyObjectProperty<RetourOperation> retourProperty() {
+        return retour.getReadOnlyProperty();
+    }
+
+    /// Efface le retour (l'utilisateur a lu le bandeau et le ferme).
+    public void effacerRetour() {
+        retour.set(RetourOperation.AUCUN);
     }
 }

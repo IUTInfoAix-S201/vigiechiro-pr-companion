@@ -83,11 +83,6 @@ public final class FormatsLot {
         if (etat.aDesEchecs()) {
             return "Cohérence : corrigez les contrôles en échec avant de préparer le dépôt.";
         }
-        if (etat.statut() == StatutWorkflow.PRET_A_DEPOSER) {
-            // Retour explicite de l'étape ① (#251) : ce que « Préparer » a accompli (dépôt validé + verrouillé).
-            return "✓ Dépôt préparé : " + etat.nombreSequences()
-                    + " séquence(s) validée(s) et verrouillée(s), prêtes à l'archivage.";
-        }
         return "";
     }
 }

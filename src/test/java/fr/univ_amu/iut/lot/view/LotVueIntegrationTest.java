@@ -162,7 +162,8 @@ class LotVueIntegrationTest {
 
         Label chemin = robot.lookup("#lblCheminDepot").queryAs(Label.class);
         VBox checklist = robot.lookup("#checklist").queryAs(VBox.class);
-        Label message = robot.lookup("#lblMessage").queryAs(Label.class);
+        // #1890 : l'état du lot a son propre libellé, permanent ; #lblMessage porte les comptes rendus.
+        Label message = robot.lookup("#lblEtatLot").queryAs(Label.class);
         Button preparer = robot.lookup("#btnPreparer").queryAs(Button.class);
         Button deposer = robot.lookup("#btnDeposer").queryAs(Button.class);
 
@@ -172,8 +173,11 @@ class LotVueIntegrationTest {
         assertThat(chemin.getText()).isEqualTo("/ws/session-42/depot");
         // #254 : la checklist reste affichée même quand tout est satisfait (chaque ligne en ✓).
         assertThat(textesChecklist(checklist)).hasSize(3).allMatch(t -> t.startsWith("✓"));
-        // Pas de message d'état en fonctionnement nominal.
+        // Pas de message d'état en fonctionnement nominal, et aucun compte rendu tant qu'on n'a rien fait.
         assertThat(message.isVisible()).isFalse();
+        assertThat(robot.lookup("#bandeauRetour").queryAs(HBox.class).isVisible())
+                .as("ouvrir un écran n'est pas une opération : rien à rapporter")
+                .isFalse();
         assertThat(preparer.isDisabled()).isFalse();
         assertThat(deposer.isDisabled()).isTrue();
     }
@@ -195,7 +199,8 @@ class LotVueIntegrationTest {
                         null));
 
         VBox checklist = robot.lookup("#checklist").queryAs(VBox.class);
-        Label message = robot.lookup("#lblMessage").queryAs(Label.class);
+        // #1890 : l'état du lot a son propre libellé, permanent ; #lblMessage porte les comptes rendus.
+        Label message = robot.lookup("#lblEtatLot").queryAs(Label.class);
         Button preparer = robot.lookup("#btnPreparer").queryAs(Button.class);
         Button genererArchives = robot.lookup("#btnGenererArchives").queryAs(Button.class);
 
@@ -250,7 +255,8 @@ class LotVueIntegrationTest {
     void statut_depose_affiche_message_et_desactive_actions(FxRobot robot) {
         reouvrirAvec(robot, new EtatLot(StatutWorkflow.DEPOSE, "/ws/session-42", 2, 8192L, List.of(), "2026-06-18"));
 
-        Label message = robot.lookup("#lblMessage").queryAs(Label.class);
+        // #1890 : l'état du lot a son propre libellé, permanent ; #lblMessage porte les comptes rendus.
+        Label message = robot.lookup("#lblEtatLot").queryAs(Label.class);
         Button preparer = robot.lookup("#btnPreparer").queryAs(Button.class);
         Button deposer = robot.lookup("#btnDeposer").queryAs(Button.class);
 

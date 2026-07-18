@@ -526,12 +526,19 @@ régénère le CSV côté serveur ; inutile ici, le pipeline le produit déjà a
   le pull (`RapprochementSites`) reste la seule direction de synchronisation des sites — exécuté à la
   connexion, et rejouable **à la demande** depuis M-Sites (« Récupérer depuis VigieChiro », #1045,
   passerelle `SynchronisationSites` activée par `OptionalBinder`).
-- **Aller-retour d'écriture (#1862)** : **écrite, pas encore tirée.** Les quatre probes de
-  `AllerRetourParticipationLiveTest` (le `PATCH` remplace la configuration, la clé canonique survit, la
-  sentinelle ne franchit pas la frontière, les heures ne dérivent pas d'un cycle à l'autre) attendent leur
-  première exécution sur une participation de rebut. Tant qu'elle n'a pas eu lieu, elles **n'apportent
-  aucun verdict** : ce sont des hypothèses instrumentées, pas des faits observés, et c'est exactement la
-  distinction que cette page tient ailleurs.
+- **Aller-retour d'écriture (#1862)** : **quatre verdicts confirmés en réel** (exécutée le 2026-07-18 sur
+  la participation de rebut `6a50f790…`, quatre probes vertes).
+
+    | Fait de plateforme | Observé | Ce qui en dépend |
+    |---|---|---|
+    | Le `PATCH` **remplace** la `configuration` entière | une clé témoin posée puis non renvoyée **disparaît** | oblige `CorrespondanceParticipation` à **partir de la configuration distante** (#1844) |
+    | La clé canonique ressort **verbatim**, l'ancienne disparaît | `detecteur_enregistreur_numero_serie` conservé tel quel | une participation déposée avant #1844 se **répare au premier envoi** |
+    | Une sentinelle ne franchit pas la frontière | **aucune** clé de série après un envoi « INCONNU » | #1828, ne rien inventer |
+    | Les heures ne dérivent pas d'un cycle à l'autre | `21:00 → 06:00` rendus à l'identique sur deux cycles | #1860, le cliquet est bien refermé |
+
+    **Corroboration au passage** : la configuration de la participation de rebut portait
+    `detecteur_enregistreur_numserie` (clé **historique**), preuve de terrain que des participations
+    déposées avant #1844 existent bel et bien avec l'ancienne clé.
 
 ### Méthodes autorisées et récupération (exploration du 2026-07-11, lecture seule)
 

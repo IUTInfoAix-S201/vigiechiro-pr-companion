@@ -8,6 +8,8 @@ import fr.univ_amu.iut.commun.api.ParticipationADeposer;
 import fr.univ_amu.iut.commun.api.ParticipationDetail;
 import fr.univ_amu.iut.commun.api.ResultatEcriture;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -54,8 +56,10 @@ import org.junit.jupiter.api.Test;
 /// Le contrat live hebdomadaire (`api-live.yml`) est en **lecture seule** et ne passe aucun de ces
 /// drapeaux : ces probes n'y tournent jamais.
 ///
-/// La configuration de la participation d'essai est **relue au début et restaurée à la fin** : une sonde
-/// qui vérifie « ne rien effacer » n'a pas d'excuse pour laisser derrière elle un dictionnaire tronqué.
+/// L'état de la participation d'essai (configuration **et** bornes de nuit) est **relu au début et
+/// restauré à la fin**, et la restauration est **vérifiée** : une sonde qui vérifie « ne rien effacer »
+/// n'a pas d'excuse pour laisser derrière elle un dictionnaire tronqué - ni pour croire sa propre remise
+/// en état sur parole.
 ///
 /// ## Ce qu'elle ne voit pas
 ///
@@ -80,8 +84,15 @@ class AllerRetourParticipationLiveTest {
     private static ClientVigieChiro client;
     private static String participation;
 
-    /// Configuration trouvée en arrivant : remise en place à la fin.
+    /// État trouvé en arrivant : remis en place à la fin.
+    ///
+    /// La **première exécution** (2026-07-18) ne restaurait que la configuration, et a donc laissé la nuit
+    /// de rebut avec les bornes de la probe. Une sonde qui prêche « ne rien effacer » ne peut pas se
+    /// contenter de restaurer ce qu'elle a pensé à noter : les **dates** en font partie.
     private static Map<String, String> configurationInitiale;
+
+    private static String dateDebutInitiale;
+    private static String dateFinInitiale;
 
     @BeforeAll
     static void configurer() {
@@ -99,14 +110,30 @@ class AllerRetourParticipationLiveTest {
                         + " JAMAIS une participation réelle : ces probes réécrivent sa configuration.");
         String baseUrl = System.getProperty("vigiechiro.baseUrl", "https://vigiechiro.herokuapp.com/api/v1");
         client = new ClientVigieChiro(baseUrl, () -> Optional.of(token));
-        configurationInitiale = relire().configuration();
+        ParticipationDetail avant = relire();
+        configurationInitiale = avant.configuration();
+        dateDebutInitiale = avant.dateDebut();
+        dateFinInitiale = avant.dateFin();
     }
 
     @AfterAll
     static void restaurer() {
-        if (client != null && configurationInitiale != null) {
-            ecrire(configurationInitiale);
+        if (client == null || configurationInitiale == null) {
+            return;
         }
+        // Les bornes relues sont en ISO ; Eve REFUSE l'ISO en entrée (cf. CorrespondanceParticipation).
+        // Les reposer telles quelles ferait échouer la restauration en silence - au moment précis où
+        // cette sonde prétend qu'un succès apparent ne suffit pas.
+        ResultatEcriture remise = envoyer(new ParticipationADeposer(
+                null, enRfc1123(dateDebutInitiale), enRfc1123(dateFinInitiale), null, configurationInitiale, null));
+        assertThat(remise.estReussie())
+                .as("la nuit de rebut doit être rendue dans l'état où on l'a trouvée : %s", remise.echec())
+                .isTrue();
+    }
+
+    /// Une borne ISO relue, reformatée dans le seul format que la plateforme accepte en **entrée**.
+    private static String enRfc1123(String iso) {
+        return iso == null ? null : OffsetDateTime.parse(iso).format(DateTimeFormatter.RFC_1123_DATE_TIME);
     }
 
     @Test

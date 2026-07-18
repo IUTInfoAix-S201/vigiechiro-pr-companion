@@ -56,9 +56,9 @@
              sauvegarde/restauration, purge, préférences, réglages, connexion, plus toute entrée future
              ajoutée par une feature. Le socle n'énumère plus les items ici. -->
         <MenuButton fx:id="menuOutils" text="☰" styleClass="menu-outils"
-                    accessibleText="Outils : sauvegarde, restauration, purge, connexion VigieChiro">
+                    accessibleText="Outils : sauvegarde, restauration, purge, connexion Vigie-Chiro">
           <tooltip>
-            <Tooltip text="Outils : sauvegarde, restauration, purge, connexion VigieChiro"/>
+            <Tooltip text="Outils : sauvegarde, restauration, purge, connexion Vigie-Chiro"/>
           </tooltip>
         </MenuButton>
       </HBox>

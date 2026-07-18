@@ -31,7 +31,7 @@ import picocli.CommandLine.Spec;
 /// encore disponibles, jeton mort...), avec la raison sur la sortie d'erreur.
 @Command(
         name = "importer-vigiechiro",
-        description = "Importe les résultats Tadarida d'un passage depuis VigieChiro (sans CSV,"
+        description = "Importe les résultats Tadarida d'un passage depuis Vigie-Chiro (sans CSV,"
                 + " participation rattachée).")
 public final class ImporterVigieChiro implements Callable<Integer> {
 
@@ -46,14 +46,14 @@ public final class ImporterVigieChiro implements Callable<Integer> {
     @Option(
             names = "--participation",
             paramLabel = "<objectid>",
-            description = "Rattache d'abord le passage à cette participation VigieChiro (sinon : le lien"
+            description = "Rattache d'abord le passage à cette participation Vigie-Chiro (sinon : le lien"
                     + " posé au dépôt est réutilisé).")
     private String participation;
 
     @Option(
             names = "--token",
             paramLabel = "<jeton>",
-            description = "Jeton VigieChiro ponctuel (sinon : variable VIGIECHIRO_TOKEN, sinon la connexion"
+            description = "Jeton Vigie-Chiro ponctuel (sinon : variable VIGIECHIRO_TOKEN, sinon la connexion"
                     + " enregistrée dans l'application).")
     private String token;
 
@@ -72,7 +72,7 @@ public final class ImporterVigieChiro implements Callable<Integer> {
     @Override
     public Integer call() {
         ImportVigieChiro moteur = importVigieChiro.orElseThrow(
-                () -> new RegleMetierException("Import VigieChiro indisponible dans ce contexte d'exécution"
+                () -> new RegleMetierException("Import Vigie-Chiro indisponible dans ce contexte d'exécution"
                         + " (fonctionnalité « import-vigiechiro » désactivée ?)."));
         // Même garde que `importer-tadarida` : refus d'usage (code 2) sur un passage déjà pourvu d'un jeu,
         // AVANT l'appel réseau, plutôt que le message d'IHM du garde-fou service (« ouvrez Sons & validation »).
@@ -88,7 +88,7 @@ public final class ImporterVigieChiro implements Callable<Integer> {
         // Un import peut brasser des milliers de fichiers : on relaie l'avancement par page sur la sortie
         // d'erreur (stdout reste réservé au bilan), à parité avec la barre de progression de l'IHM (#1622).
         SuiviPagination suivi = (page, totalPages) ->
-                spec.commandLine().getErr().println("Import VigieChiro… page " + page + "/" + totalPages);
+                spec.commandLine().getErr().println("Import Vigie-Chiro… page " + page + "/" + totalPages);
         // Voie rapide (#1838), à parité avec l'écran : CSV d'un coup, repli sur les `donnees`. Le suivi
         // par page ne s'exprime donc que sur le repli — un CSV ne se pagine pas.
         BilanImport bilan = moteur.importerRapide(idPassage, remplacer, suivi);

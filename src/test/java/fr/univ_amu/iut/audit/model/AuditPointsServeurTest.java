@@ -184,7 +184,7 @@ class AuditPointsServeurTest {
     @DisplayName("Plateforme injoignable pendant le second appel : INFO, jamais un échec dur")
     void reconstruction_injoignable_degrade_en_info() {
         siteAJour();
-        when(reconstruction.orphelines()).thenThrow(new RegleMetierException("VigieChiro est injoignable (timeout)"));
+        when(reconstruction.orphelines()).thenThrow(new RegleMetierException("Vigie-Chiro est injoignable (timeout)"));
 
         assertThat(audit.auditer()).singleElement().satisfies(constat -> {
             assertThat(constat.severite()).isEqualTo(SeveriteConstat.INFO);

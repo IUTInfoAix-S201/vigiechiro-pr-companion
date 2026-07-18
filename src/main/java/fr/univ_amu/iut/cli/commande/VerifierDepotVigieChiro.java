@@ -37,7 +37,7 @@ public final class VerifierDepotVigieChiro implements Callable<Integer> {
     @Option(
             names = "--token",
             paramLabel = "<jeton>",
-            description = "Jeton VigieChiro ponctuel (sinon : variable VIGIECHIRO_TOKEN, sinon la connexion"
+            description = "Jeton Vigie-Chiro ponctuel (sinon : variable VIGIECHIRO_TOKEN, sinon la connexion"
                     + " enregistrée dans l’application).")
     private String token;
 
@@ -54,7 +54,7 @@ public final class VerifierDepotVigieChiro implements Callable<Integer> {
     @Override
     public Integer call() {
         VerificationDepot moteur = verification.orElseThrow(
-                () -> new RegleMetierException("Vérification VigieChiro indisponible dans ce contexte d’exécution."));
+                () -> new RegleMetierException("Vérification Vigie-Chiro indisponible dans ce contexte d’exécution."));
         if (token != null && !token.isBlank()) {
             System.setProperty("vigiechiro.token", token);
         }

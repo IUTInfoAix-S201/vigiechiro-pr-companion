@@ -333,13 +333,13 @@ public class PassageController implements EmplacementNavigation, RafraichirAuRet
                 enveloppeOuvrirPortail,
                 Bindings.when(lienParticipation.isNotEmpty())
                         .then("Ouvre la participation liée sur le portail Vigie-Chiro (navigateur).")
-                        .otherwise("Ce passage n'est pas encore lié à une participation VigieChiro :"
+                        .otherwise("Ce passage n'est pas encore lié à une participation Vigie-Chiro :"
                                 + " elle est créée à l'import (connecté) ou au premier dépôt."));
         IndicateurBlocage.expliquer(
                 enveloppeSupprimer,
                 Bindings.when(viewModel.suppressionPossibleProperty())
                         .then("Supprimer définitivement ce passage et toute sa nuit (séquences, relevés).")
-                        .otherwise("Suppression impossible : ce passage est déposé sur VigieChiro."
+                        .otherwise("Suppression impossible : ce passage est déposé sur Vigie-Chiro."
                                 + " Annulez d'abord le dépôt."));
         // « Modifier le passage » ouvre toujours la modale (la météo et le micro sont éditables à tout
         // statut, y compris sur un passage déposé ou reconstruit). Le renommage (année/n°), lui, est

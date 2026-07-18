@@ -7,14 +7,14 @@
 
 ## Objectif
 
-Premier lancement sur base vierge : découvrir l'accueil, se connecter à VigieChiro (les quatre issues
+Premier lancement sur base vierge : découvrir l'accueil, se connecter à Vigie-Chiro (les quatre issues
 distinctes), déclarer un site et un point d'écoute. On valide que le tout premier contact guide le geste.
 
 ## Environnement
 
 - Lancement sur workspace vierge :
   `JAVA_TOOL_OPTIONS="-Dvigiechiro.workspace=<workspace-recette>" ./mvnw javafx:run`.
-- Compte VigieChiro de test ; un carré plateforme synchronisé + un carré créé à la main (640380).
+- Compte Vigie-Chiro de test ; un carré plateforme synchronisé + un carré créé à la main (640380).
 
 ## Le script (une case = un fait observable)
 
@@ -28,10 +28,10 @@ distinctes), déclarer un site et un point d'écoute. On valide que le tout prem
 
 **Étape 2 · Connexion (modale)**
 
-4. La modale déroule 3 étapes (Ouvrir VigieChiro, Copier le marque-page, coller le token).
+4. La modale déroule 3 étapes (Ouvrir Vigie-Chiro, Copier le marque-page, coller le token).
 5. Token vide : message d'information.
 6. Token bidon : 401 « Token invalide ou expiré… ».
-7. Réseau coupé : « VigieChiro est injoignable… le jeton n'est peut-être pas en cause ».
+7. Réseau coupé : « Vigie-Chiro est injoignable… le jeton n'est peut-être pas en cause ».
 8. Succès : bandeau vert « référentiel à jour : N taxons, N sites », badge vert identité + rôle.
 9. Déconnexion : confirmation, badge repasse gris, l'entrée du menu ☰ redevient « Se connecter… ».
 
@@ -40,9 +40,9 @@ distinctes), déclarer un site et un point d'écoute. On valide que le tout prem
 10. État vide : icône 🌐, « + Ajouter mon premier site de suivi », hint-box.
 11. Création : carré 6 chiffres, « Créer » grisé tant qu'invalide, le champ rougit.
 12. Carte de site complète : nom, points, passages, badge fraîcheur, badges « Enregistré / Verrouillé
-    sur VigieChiro », chevron ›.
+    sur Vigie-Chiro », chevron ›.
 13. Navigation clavier (Tab / Entrée / Espace) sur les cartes.
-14. « Récupérer depuis VigieChiro » est présent, et masqué hors connexion.
+14. « Récupérer depuis Vigie-Chiro » est présent, et masqué hors connexion.
 15. Voile d'occupation au chargement.
 
 **Étape 4 · Détail de carré**
@@ -92,7 +92,7 @@ modifier-site, supprimer-site, modifier-point).
 ## Notes de méthode
 
 **Delta rejoué en ouverture de S2 (7/7)** : entre S1 et S2, plusieurs chantiers ont touché ces écrans.
-La modale de site a remplacé les deux Dialog (#1454), un badge d'état VigieChiro (#734) et la
+La modale de site a remplacé les deux Dialog (#1454), un badge d'état Vigie-Chiro (#734) et la
 confirmation STOC du carré (#733) sont apparus, le jeton n'est plus effacé sur panne réseau (#1369). Tous
 re-vérifiés sans régression. **Leçon rejouable** : rouvrir un écran déjà recetté après un chantier qui l'a
 touché, au delta.

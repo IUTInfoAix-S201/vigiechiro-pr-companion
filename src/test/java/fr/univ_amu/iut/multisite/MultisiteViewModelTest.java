@@ -70,7 +70,7 @@ class MultisiteViewModelTest {
     // --- Relevé groupé de l'état des analyses (#1338) ---
 
     @Test
-    @DisplayName("#1338 : le relevé groupé n'est disponible que connecté à VigieChiro")
+    @DisplayName("#1338 : le relevé groupé n'est disponible que connecté à Vigie-Chiro")
     void releve_disponible_seulement_connecte() {
         assertThat(new MultisiteViewModel(service, serviceSites, Optional.empty(), ID).releveAnalysesDisponible())
                 .isFalse();

@@ -299,12 +299,12 @@ class SonsValidationDepotViewTest {
     }
 
     @Test
-    @DisplayName("#719 : l'item « Importer depuis VigieChiro » est présent et visible (passage, connecté)")
+    @DisplayName("#719 : l'item « Importer depuis Vigie-Chiro » est présent et visible (passage, connecté)")
     void item_import_vigiechiro_present(FxRobot robot) {
         MenuItem item = itemImporterVigieChiro(robot);
 
         assertThat(item.isVisible()).isTrue();
-        assertThat(item.getText()).contains("VigieChiro");
+        assertThat(item.getText()).contains("Vigie-Chiro");
     }
 
     @Test
@@ -319,7 +319,7 @@ class SonsValidationDepotViewTest {
 
         Label message = robot.lookup("#lblImportVigieChiro").queryAs(Label.class);
         assertThat(message.getText())
-                .contains("Résultats importés depuis VigieChiro")
+                .contains("Résultats importés depuis Vigie-Chiro")
                 .contains("3");
     }
 
@@ -332,7 +332,7 @@ class SonsValidationDepotViewTest {
         robot.interact(() -> itemImporterVigieChiro(robot).fire());
 
         Label message = robot.lookup("#lblImportVigieChiro").queryAs(Label.class);
-        assertThat(message.getText()).contains("Aucune participation VigieChiro");
+        assertThat(message.getText()).contains("Aucune participation Vigie-Chiro");
     }
 
     private static MenuItem itemImporterVigieChiro(FxRobot robot) {

@@ -16,7 +16,7 @@ ce domaine propose. Aujourd'hui :
   par la plateforme). Utile pour générer des archives plus petites (connexion fragile) ; le
   changement s'applique à la **prochaine génération** d'archives.
 - **Fonctionnalités** : **activer ou désactiver** les fonctionnalités optionnelles de l'application
-  (l'**import depuis VigieChiro**, le **diagnostic** du capteur, la **préparation du dépôt**, la
+  (l'**import depuis Vigie-Chiro**, le **diagnostic** du capteur, la **préparation du dépôt**, la
   **vérification**, l'**importation Tadarida**, l'**analyse** « Espèces & observations » et la
   **recherche globale**). Désactiver une fonctionnalité retire son point d'entrée de l'interface.
   Contrairement aux autres réglages, ces bascules prennent effet **au prochain démarrage** de

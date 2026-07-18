@@ -28,8 +28,8 @@
     <Insets top="24.0" right="28.0" bottom="22.0" left="28.0"/>
   </padding>
 
-  <Label text="Connexion VigieChiro" styleClass="titre-page"/>
-  <Label text="Reliez l'application à votre compte VigieChiro en trois étapes (aucun fichier à installer)."
+  <Label text="Connexion Vigie-Chiro" styleClass="titre-page"/>
+  <Label text="Reliez l'application à votre compte Vigie-Chiro en trois étapes (aucun fichier à installer)."
          styleClass="section-sous" wrapText="true"/>
 
   <!-- Badge d'état : gris « Non connecté » / vert « Connecté : … ». styleClass pilotée par le controller. -->
@@ -39,10 +39,10 @@
   <VBox spacing="4.0">
     <Label text="1 · Ouvrir la plateforme" styleClass="bandeau-label"/>
     <HBox spacing="10.0" alignment="CENTER_LEFT">
-      <Label text="Connectez-vous sur VigieChiro (GitHub ou Google)."
+      <Label text="Connectez-vous sur Vigie-Chiro (GitHub ou Google)."
              wrapText="true" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
       <!-- minWidth=USE_PREF_SIZE : la consigne (hgrow=ALWAYS) rognait le bouton (« Copier le m… »). -->
-      <Button text="Ouvrir VigieChiro" styleClass="action-secondaire" onAction="#ouvrirSite"
+      <Button text="Ouvrir Vigie-Chiro" styleClass="action-secondaire" onAction="#ouvrirSite"
               minWidth="-Infinity"/>
     </HBox>
   </VBox>
@@ -61,7 +61,7 @@
   <!-- Étape 3 : coller le token -->
   <VBox spacing="4.0">
     <Label text="3 · Coller le token" styleClass="bandeau-label"/>
-    <Label text="Sur l'onglet VigieChiro connecté, cliquez le marque-page (il copie votre token), puis collez-le ici."
+    <Label text="Sur l'onglet Vigie-Chiro connecté, cliquez le marque-page (il copie votre token), puis collez-le ici."
            styleClass="section-sous" wrapText="true"/>
     <HBox spacing="10.0" alignment="CENTER_LEFT">
       <TextField fx:id="champToken" promptText="collez votre token ici" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>

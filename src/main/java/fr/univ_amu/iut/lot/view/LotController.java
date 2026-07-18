@@ -318,12 +318,12 @@ public class LotController implements EmplacementNavigation, ResumeStatut {
         IndicateurBlocage.expliquer(
                 enveloppeTeleverser,
                 Bindings.when(viewModel.deposeProperty())
-                        .then("Passage déjà déposé sur VigieChiro : le téléversement est terminé.")
+                        .then("Passage déjà déposé sur Vigie-Chiro : le téléversement est terminé.")
                         .otherwise(Bindings.when(btnTeleverser.disableProperty())
                                 .then("Téléversement possible une fois le dépôt préparé (statut « Prêt à"
                                         + " déposer »), génération et envoi précédent terminés.")
-                                .otherwise(
-                                        "Téléverser la nuit sur VigieChiro (marque ensuite le passage" + " déposé).")));
+                                .otherwise("Téléverser la nuit sur Vigie-Chiro (marque ensuite le passage"
+                                        + " déposé).")));
         lierTableDepot();
 
         // Archives de dépôt (#110) : titre = plafond configuré ; bouton actif une fois le lot préparé et
@@ -673,7 +673,7 @@ public class LotController implements EmplacementNavigation, ResumeStatut {
     private void reinitialiserDepot() {
         if (confirmateur.confirmer("Réinitialiser le dépôt de cette nuit ?\n\n"
                 + "Le suivi local est effacé pour permettre un nouveau téléversement ; les archives ZIP"
-                + " sur disque et la participation VigieChiro sont conservées.")) {
+                + " sur disque et la participation Vigie-Chiro sont conservées.")) {
             depotViewModel.reinitialiser(contexte.idPassage());
             viewModel.ouvrirSur(contexte.idPassage());
         }

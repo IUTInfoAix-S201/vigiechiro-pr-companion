@@ -73,7 +73,7 @@ public class ImportVigieChiroViewModel {
     /// @return le bilan de l'import
     public BilanImport importer(Long idPassage, boolean remplacer) {
         return importateur
-                .orElseThrow(() -> new RegleMetierException("Import VigieChiro indisponible dans ce contexte."))
+                .orElseThrow(() -> new RegleMetierException("Import Vigie-Chiro indisponible dans ce contexte."))
                 .importer(idPassage, remplacer);
     }
 
@@ -89,26 +89,26 @@ public class ImportVigieChiroViewModel {
             jeton.leverSiAnnule();
             double fraction = totalPages <= 0 ? 0.0 : (double) Math.min(page, totalPages) / totalPages;
             progres.accept(new Progression(
-                    "Import des observations depuis VigieChiro… (page " + page + "/" + totalPages + ")", fraction));
+                    "Import des observations depuis Vigie-Chiro… (page " + page + "/" + totalPages + ")", fraction));
         };
         // Voie rapide (#1838) : le CSV d'un coup, repli sur les `donnees` page par page. L'ancrage et les
         // fils de discussion, que le CSV ne porte pas, sont acquis par la publication au moment où ils
         // servent (ADR 0019) — les précharger ici coûtait des minutes à chaque import, pour tout le monde.
         return importateur
-                .orElseThrow(() -> new RegleMetierException("Import VigieChiro indisponible dans ce contexte."))
+                .orElseThrow(() -> new RegleMetierException("Import Vigie-Chiro indisponible dans ce contexte."))
                 .importerRapide(idPassage, remplacer, suivi);
     }
 
     /// Signale le **début** de l'import (au fil JavaFX, avant de lancer [#importer] en arrière-plan).
     public void marquerEnCours() {
-        message.set("Récupération des résultats Tadarida depuis VigieChiro…");
+        message.set("Récupération des résultats Tadarida depuis Vigie-Chiro…");
         enCours.set(true);
     }
 
     /// Restitue un import **réussi** (au fil JavaFX) : résumé du bilan (nombre d'observations importées).
     public void appliquerBilan(BilanImport bilan) {
         enCours.set(false);
-        message.set("Résultats importés depuis VigieChiro : " + bilan.importees() + " observation(s).");
+        message.set("Résultats importés depuis Vigie-Chiro : " + bilan.importees() + " observation(s).");
     }
 
     /// Restitue un **échec** d'import (au fil JavaFX) : message d'erreur métier / réseau.

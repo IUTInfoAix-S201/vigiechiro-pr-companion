@@ -62,7 +62,7 @@ public final class ResetGuide implements Callable<Integer> {
     @Option(
             names = "--executer",
             description = "EXÉCUTE la procédure : sauvegarde complète, base neuve, repeuplement depuis "
-                    + "VigieChiro, audit final. Exige --confirmer. Sans cette option, la commande se "
+                    + "Vigie-Chiro, audit final. Exige --confirmer. Sans cette option, la commande se "
                     + "contente d'établir le bilan (lecture seule).")
     private boolean executer;
 

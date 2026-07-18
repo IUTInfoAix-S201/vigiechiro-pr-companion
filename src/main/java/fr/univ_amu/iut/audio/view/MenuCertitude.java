@@ -39,7 +39,7 @@ final class MenuCertitude {
                 enveloppe,
                 Bindings.when(viewModel.etatSelection().avecObservationProperty())
                         .then("Déclarer votre certitude (Sûr, Probable, Possible) sur la sélection :"
-                                + " c'est la « confiance observateur » du site VigieChiro, exigée pour"
+                                + " c'est la « confiance observateur » du site Vigie-Chiro, exigée pour"
                                 + " publier une correction.")
                         .otherwise("Réservé à une observation : validez ou corrigez d'abord la ligne."));
     }

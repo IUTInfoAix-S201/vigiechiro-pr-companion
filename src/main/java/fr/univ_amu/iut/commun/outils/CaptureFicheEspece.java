@@ -89,7 +89,7 @@ public final class CaptureFicheEspece {
                         new SeparatorMenuItem(),
                         new CheckMenuItem("Fiches espèces sur Wikipédia (sinon GBIF)"),
                         new SeparatorMenuItem(),
-                        new MenuItem("🔌 Se connecter à VigieChiro…"));
+                        new MenuItem("🔌 Se connecter à Vigie-Chiro…"));
         return menu;
     }
 

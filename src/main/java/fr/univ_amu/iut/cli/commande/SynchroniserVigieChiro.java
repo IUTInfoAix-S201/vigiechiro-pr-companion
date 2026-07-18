@@ -31,14 +31,14 @@ import picocli.CommandLine.Spec;
 /// jeton est absent, expiré ou le réseau indisponible.
 @Command(
         name = "synchroniser-vigiechiro",
-        description = "Synchronise le référentiel des taxons et vos sites/points depuis VigieChiro"
+        description = "Synchronise le référentiel des taxons et vos sites/points depuis Vigie-Chiro"
                 + " (jamais d'écrasement local).")
 public final class SynchroniserVigieChiro implements Callable<Integer> {
 
     @Option(
             names = "--token",
             paramLabel = "<jeton>",
-            description = "Jeton VigieChiro ponctuel (sinon : variable VIGIECHIRO_TOKEN, sinon la connexion"
+            description = "Jeton Vigie-Chiro ponctuel (sinon : variable VIGIECHIRO_TOKEN, sinon la connexion"
                     + " enregistrée dans l'application).")
     private String token;
 
@@ -72,16 +72,16 @@ public final class SynchroniserVigieChiro implements Callable<Integer> {
                 switch (client.moi()) {
                     case ReponseApi.Succes<ProfilVigieChiro>(ProfilVigieChiro identite) -> identite;
                     case ReponseApi.NonConnecte<ProfilVigieChiro> nonConnecte ->
-                        throw new RegleMetierException("Aucun jeton VigieChiro : fournissez --token, la variable"
+                        throw new RegleMetierException("Aucun jeton Vigie-Chiro : fournissez --token, la variable"
                                 + " VIGIECHIRO_TOKEN, ou enregistrez une connexion dans l'application.");
                     case ReponseApi.Injoignable<ProfilVigieChiro>(String cause) ->
                         throw new RegleMetierException(
-                                "VigieChiro est injoignable (" + cause + ") : vérifiez le réseau et réessayez.");
+                                "Vigie-Chiro est injoignable (" + cause + ") : vérifiez le réseau et réessayez.");
                     case ReponseApi.Refuse<ProfilVigieChiro>(int statut, String corps) ->
                         throw new RegleMetierException(
                                 statut == 401
-                                        ? "Jeton VigieChiro invalide ou expiré : régénérez-en un depuis le site."
-                                        : "VigieChiro a refusé la connexion (HTTP " + statut + ") : " + corps);
+                                        ? "Jeton Vigie-Chiro invalide ou expiré : régénérez-en un depuis le site."
+                                        : "Vigie-Chiro a refusé la connexion (HTTP " + statut + ") : " + corps);
                 };
         PrintWriter sortie = spec.commandLine().getOut();
         sortie.println("Connecté : " + profil.pseudo() + ".");

@@ -63,7 +63,7 @@ final class ActionArchivage {
                 + Formats.octetsLisibles(recuperable)
                 + " ? L'audio (séquences et bruts) sera supprimé du disque ; les observations, les"
                 + " validations, le journal et le relevé restent consultables. Pour réécouter un jour,"
-                + " il faudra réimporter les mêmes fichiers : la plateforme VigieChiro ne rend pas"
+                + " il faudra réimporter les mêmes fichiers : la plateforme Vigie-Chiro ne rend pas"
                 + " l'audio d'un dépôt ZIP, sans eux la perte est définitive.");
         int sansEmpreinte = viewModel.sequencesSansEmpreinte();
         if (sansEmpreinte > 0) {

@@ -76,7 +76,7 @@ class ReconstructionModaleViewTest {
     }
 
     @Test
-    @DisplayName("Les nuits déposées sur VigieChiro et absentes d'ici sont listées")
+    @DisplayName("Les nuits déposées sur Vigie-Chiro et absentes d'ici sont listées")
     void liste_les_nuits_manquantes(FxRobot robot) {
         TableView<ParticipationOrpheline> table =
                 robot.lookup("#tableOrphelines").queryTableView();
@@ -177,7 +177,7 @@ class ReconstructionModaleViewTest {
     @DisplayName("Un refus du service devient un message dans la modale, pas une exception muette")
     void refus_devient_un_message(FxRobot robot) {
         when(service.reconstruire(eq(CONNUE), any(), any()))
-                .thenThrow(new RegleMetierException("VigieChiro ne renvoie aucune donnée : analyse non terminée."));
+                .thenThrow(new RegleMetierException("Vigie-Chiro ne renvoie aucune donnée : analyse non terminée."));
         TableView<ParticipationOrpheline> table =
                 robot.lookup("#tableOrphelines").queryTableView();
         robot.interact(() -> table.getSelectionModel().select(CONNUE));

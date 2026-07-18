@@ -32,12 +32,12 @@ Si le carré est **déjà déclaré**, le motif s'affiche **dans la fenêtre**, 
 est conservée** : corrigez le numéro sans tout recommencer.
 
 Chaque carte porte aussi, quand l'application est [connectée à Vigie-Chiro](../connexion-vigiechiro.md),
-un **badge d'état plateforme** : **« Enregistré sur VigieChiro »** (bleu) quand le carré est relié au
-portail, **« Verrouillé sur VigieChiro »** (vert) quand il est en plus verrouillé par le MNHN -
+un **badge d'état plateforme** : **« Enregistré sur Vigie-Chiro »** (bleu) quand le carré est relié au
+portail, **« Verrouillé sur Vigie-Chiro »** (vert) quand il est en plus verrouillé par le MNHN -
 c'est l'état **favorable**, celui qui autorise le dépôt des nuits. Pas de badge : le site n'est pas
 encore rattaché (connectez-vous ou synchronisez).
 
-Le bouton **Récupérer depuis VigieChiro** (en haut à droite) récupère à la demande vos sites et
+Le bouton **Récupérer depuis Vigie-Chiro** (en haut à droite) récupère à la demande vos sites et
 points déclarés sur le portail : les sites manquants sont créés localement, ceux déjà présents sont
 simplement reliés - vos données locales ne sont **jamais écrasées**. C'est la même synchronisation
 que celle exécutée automatiquement à la connexion ; un message sous le bandeau récapitule ce qui a
@@ -93,7 +93,7 @@ site après coup, sans repasser par sa création.
 Le bouton **Ouvrir sur Vigie-Chiro** ouvre la page de ce site sur le **portail Vigie-Chiro** dans
 votre navigateur : pratique pour vérifier d'un coup d'œil que le rattachement est le bon. Il reste
 grisé tant que le site n'est pas relié au portail (connectez-vous, ou utilisez « Récupérer depuis
-VigieChiro » sur l'écran Mes sites).
+Vigie-Chiro » sur l'écran Mes sites).
 
 ![La fenêtre d'édition de la fiche site : numéro de carré, nom convivial, protocole et commentaire.](../assets/captures/apercu-sites-modale-site.png)
 

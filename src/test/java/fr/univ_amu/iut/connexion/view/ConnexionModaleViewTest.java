@@ -85,9 +85,9 @@ class ConnexionModaleViewTest {
     }
 
     @Test
-    @DisplayName("Étape 1 : « Ouvrir VigieChiro » ouvre la plateforme dans le navigateur")
+    @DisplayName("Étape 1 : « Ouvrir Vigie-Chiro » ouvre la plateforme dans le navigateur")
     void ouvrir_site(FxRobot robot) {
-        robot.clickOn("Ouvrir VigieChiro");
+        robot.clickOn("Ouvrir Vigie-Chiro");
 
         assertThat(urlOuverte.get()).contains("vigiechiro");
     }
@@ -163,13 +163,13 @@ class ConnexionModaleViewTest {
     @Test
     @DisplayName("#1255 : une erreur réseau est restituée dans le bandeau au lieu de verrouiller la modale")
     void connecter_erreur_reseau(FxRobot robot) {
-        when(client.moi()).thenThrow(new RuntimeException("VigieChiro injoignable"));
+        when(client.moi()).thenThrow(new RuntimeException("Vigie-Chiro injoignable"));
 
         robot.clickOn("#champToken").write("jeton-quelconque");
         robot.clickOn("Se connecter");
 
         Label bandeau = robot.lookup("#bandeauStatut").queryAs(Label.class);
-        assertThat(bandeau.getText()).contains("Vérification impossible").contains("VigieChiro injoignable");
+        assertThat(bandeau.getText()).contains("Vérification impossible").contains("Vigie-Chiro injoignable");
         assertThat(robot.lookup("#champToken").queryAs(TextField.class).isDisabled())
                 .as("l'échec ne doit pas laisser la modale verrouillée « en cours »")
                 .isFalse();

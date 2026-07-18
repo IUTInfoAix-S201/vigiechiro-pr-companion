@@ -295,7 +295,7 @@ class ServiceReconstructionPassagesTest {
     }
 
     @Test
-    @DisplayName("Feature « Import VigieChiro » désactivée : refus explicite, aucun passage créé")
+    @DisplayName("Feature « Import Vigie-Chiro » désactivée : refus explicite, aucun passage créé")
     void import_desactive_refuse() {
         bouchonnerPlateforme();
         ServiceReconstructionPassages sansImport = new ServiceReconstructionPassages(
@@ -308,7 +308,7 @@ class ServiceReconstructionPassagesTest {
 
         assertThatThrownBy(() -> sansImport.reconstruire(PARTICIPATION))
                 .isInstanceOf(RegleMetierException.class)
-                .hasMessageContaining("Import VigieChiro");
+                .hasMessageContaining("Import Vigie-Chiro");
         assertThat(passageDao.findAll())
                 .as("le refus tombe avant toute écriture : mieux vaut rien créer que créer à moitié")
                 .isEmpty();

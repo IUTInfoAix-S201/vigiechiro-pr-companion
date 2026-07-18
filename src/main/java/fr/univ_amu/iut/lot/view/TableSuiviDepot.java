@@ -17,7 +17,7 @@ final class TableSuiviDepot {
 
     /// Pose colonnes, cellules et rangées colorées sur `table` (l'alimentation en items reste au controller).
     static void configurer(TableView<LigneDepot> table) {
-        TableSuivi.configurer(table, "Aucun dépôt VigieChiro entamé pour l'instant.", colFichier(), colType());
+        TableSuivi.configurer(table, "Aucun dépôt Vigie-Chiro entamé pour l'instant.", colFichier(), colType());
     }
 
     private static TableColumn<LigneDepot, String> colFichier() {

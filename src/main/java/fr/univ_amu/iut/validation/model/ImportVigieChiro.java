@@ -85,7 +85,7 @@ public class ImportVigieChiro {
     private String participationOuLever(Long idPassage) {
         return participation(idPassage)
                 .orElseThrow(() -> new RegleMetierException("Ce passage n'est rattaché à aucune participation"
-                        + " VigieChiro. Déposez-le d'abord sur VigieChiro (ou rattachez-le à une participation"
+                        + " Vigie-Chiro. Déposez-le d'abord sur Vigie-Chiro (ou rattachez-le à une participation"
                         + " existante)."));
     }
 
@@ -141,14 +141,15 @@ public class ImportVigieChiro {
                 switch (client.donnees(participationId, suivi)) {
                     case ReponseApi.Succes<List<DonneeVigieChiro>>(List<DonneeVigieChiro> liste) -> liste;
                     case ReponseApi.NonConnecte<List<DonneeVigieChiro>> nonConnecte ->
-                        throw new RegleMetierException("Non connecté à VigieChiro : collez un jeton"
-                                + " (menu ☰ > Se connecter à VigieChiro) avant d'importer les observations.");
+                        throw new RegleMetierException("Non connecté à Vigie-Chiro : collez un jeton"
+                                + " (menu ☰ > Se connecter à Vigie-Chiro) avant d'importer les observations.");
                     case ReponseApi.Injoignable<List<DonneeVigieChiro>>(String cause) ->
-                        throw new RegleMetierException("VigieChiro est injoignable (" + cause
+                        throw new RegleMetierException("Vigie-Chiro est injoignable (" + cause
                                 + ") : les observations n'ont pas pu être lues. Vérifiez le réseau et réessayez.");
                     case ReponseApi.Refuse<List<DonneeVigieChiro>>(int statut, String corps) ->
-                        throw new RegleMetierException("VigieChiro a refusé la lecture des observations (HTTP " + statut
-                                + " : " + corps + "). C'est probablement un défaut de l'application : signalez-le.");
+                        throw new RegleMetierException(
+                                "Vigie-Chiro a refusé la lecture des observations (HTTP " + statut + " : " + corps
+                                        + "). C'est probablement un défaut de l'application : signalez-le.");
                 };
         if (donnees.isEmpty()) {
             throw new RegleMetierException(pourquoiRienAImporter(participationId));
@@ -200,24 +201,24 @@ public class ImportVigieChiro {
         Traitement traitement =
                 this.traitement.etat(participationId).enOptionnel().orElse(null);
         if (traitement == null) {
-            return "VigieChiro ne renvoie aucune observation pour cette participation, et l'état du"
+            return "Vigie-Chiro ne renvoie aucune observation pour cette participation, et l'état du"
                     + " traitement n'a pas pu être relu. Réessayez dans un instant.";
         }
         if (traitement.estInconnu()) {
-            return "L'analyse n'a jamais été lancée sur VigieChiro pour cette nuit."
+            return "L'analyse n'a jamais été lancée sur Vigie-Chiro pour cette nuit."
                     + " Lancez-la depuis « Préparer le dépôt », étape ④.";
         }
         return switch (traitement.etat()) {
             case PLANIFIE ->
-                "L'analyse est planifiée sur VigieChiro, mais n'a pas encore démarré."
+                "L'analyse est planifiée sur Vigie-Chiro, mais n'a pas encore démarré."
                         + " Réessayez une fois qu'elle sera terminée (le suivi est affiché dans « Préparer le dépôt »).";
             case EN_COURS, RETRY ->
-                "L'analyse est en cours sur VigieChiro : les observations n'existeront"
+                "L'analyse est en cours sur Vigie-Chiro : les observations n'existeront"
                         + " qu'une fois le calcul terminé. Comptez plusieurs dizaines de minutes.";
             case ERREUR ->
-                "L'analyse a échoué sur VigieChiro : il n'y a aucune observation à importer." + motif(traitement);
+                "L'analyse a échoué sur Vigie-Chiro : il n'y a aucune observation à importer." + motif(traitement);
             case FINI ->
-                "VigieChiro annonce l'analyse terminée, mais ne renvoie aucune observation pour cette"
+                "Vigie-Chiro annonce l'analyse terminée, mais ne renvoie aucune observation pour cette"
                         + " participation. Vérifiez le dépôt (les fichiers sont-ils bien arrivés ?).";
         };
     }

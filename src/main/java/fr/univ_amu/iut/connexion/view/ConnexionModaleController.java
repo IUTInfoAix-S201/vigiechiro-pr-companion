@@ -40,11 +40,11 @@ public class ConnexionModaleController {
     /// place dans le presse-papier (repli `prompt` si l'API clipboard du navigateur est indisponible).
     private static final String MARQUE_PAGE = "javascript:(function(){"
             + "var t=localStorage.getItem('auth-session-token');"
-            + "if(!t){alert('Aucun token : connectez-vous sur VigieChiro puis recliquez ce marque-page.');return;}"
+            + "if(!t){alert('Aucun token : connectez-vous sur Vigie-Chiro puis recliquez ce marque-page.');return;}"
             + "if(navigator.clipboard){navigator.clipboard.writeText(t).then("
-            + "function(){alert('Token VigieChiro copie ('+t.length+' caracteres).');},"
-            + "function(){window.prompt('Copiez votre token VigieChiro :',t);});}"
-            + "else{window.prompt('Copiez votre token VigieChiro :',t);}})();";
+            + "function(){alert('Token Vigie-Chiro copie ('+t.length+' caracteres).');},"
+            + "function(){window.prompt('Copiez votre token Vigie-Chiro :',t);});}"
+            + "else{window.prompt('Copiez votre token Vigie-Chiro :',t);}})();";
 
     /// Familles de couleur sémantiques (design system) du bandeau de statut et du badge d'identité.
     private static final String STATUT_INFO = "badge-info";
@@ -121,14 +121,14 @@ public class ConnexionModaleController {
         IndicateurBlocage.expliquer(
                 enveloppeConnecter,
                 Bindings.when(viewModel.connecteProperty())
-                        .then("Vous êtes déjà connecté à VigieChiro : déconnectez-vous d'abord pour changer de jeton.")
+                        .then("Vous êtes déjà connecté à Vigie-Chiro : déconnectez-vous d'abord pour changer de jeton.")
                         .otherwise(Bindings.when(verificationEnCours)
                                 .then("Vérification du jeton en cours…")
-                                .otherwise("Se connecter à VigieChiro avec le jeton collé ci-dessus.")));
+                                .otherwise("Se connecter à Vigie-Chiro avec le jeton collé ci-dessus.")));
         IndicateurBlocage.expliquer(
                 enveloppeDeconnecter,
                 Bindings.when(viewModel.jetonEnregistreProperty())
-                        .then("Se déconnecter de VigieChiro (efface le jeton mémorisé sur ce poste).")
+                        .then("Se déconnecter de Vigie-Chiro (efface le jeton mémorisé sur ce poste).")
                         .otherwise("Aucune connexion active à interrompre."));
         viewModel.rafraichir();
         majBadgeIdentite(viewModel.connecteProperty().get());
@@ -150,7 +150,7 @@ public class ConnexionModaleController {
         contenu.putString(MARQUE_PAGE);
         Clipboard.getSystemClipboard().setContent(contenu);
         afficherStatut(
-                "Marque-page copié : créez un favori, collez-le comme adresse, puis cliquez-le sur l'onglet VigieChiro.",
+                "Marque-page copié : créez un favori, collez-le comme adresse, puis cliquez-le sur l'onglet Vigie-Chiro.",
                 STATUT_INFO);
     }
 
@@ -162,7 +162,7 @@ public class ConnexionModaleController {
     private void connecter() {
         String token = champToken.getText();
         if (token == null || token.isBlank()) {
-            afficherStatut("Collez d'abord votre token VigieChiro.", STATUT_INFO);
+            afficherStatut("Collez d'abord votre token Vigie-Chiro.", STATUT_INFO);
             return;
         }
         verifierJeton(token);
@@ -205,18 +205,18 @@ public class ConnexionModaleController {
                 champToken.clear();
             }
             case ReponseApi.NonConnecte<ProfilVigieChiro> nonConnecte ->
-                afficherStatut("Collez d'abord votre token VigieChiro.", STATUT_INFO);
+                afficherStatut("Collez d'abord votre token Vigie-Chiro.", STATUT_INFO);
             case ReponseApi.Injoignable<ProfilVigieChiro>(String cause) ->
                 afficherStatut(
-                        "VigieChiro est injoignable (" + cause + ") : impossible de vérifier le jeton."
+                        "Vigie-Chiro est injoignable (" + cause + ") : impossible de vérifier le jeton."
                                 + " Il reste enregistré et sera revérifié à la prochaine ouverture —"
                                 + " le jeton n'est peut-être pas en cause.",
                         STATUT_DANGER);
             case ReponseApi.Refuse<ProfilVigieChiro>(int statut, String corps) ->
                 afficherStatut(
                         statut == 401
-                                ? "Token invalide ou expiré : recollez-en un depuis le site VigieChiro."
-                                : "VigieChiro a refusé la connexion (HTTP " + statut + ") : " + corps,
+                                ? "Token invalide ou expiré : recollez-en un depuis le site Vigie-Chiro."
+                                : "Vigie-Chiro a refusé la connexion (HTTP " + statut + ") : " + corps,
                         STATUT_DANGER);
         }
     }
@@ -225,7 +225,7 @@ public class ConnexionModaleController {
     private void deconnecter() {
         // Confirmation (#798) : la déconnexion efface le jeton VigieChiro enregistré sur ce poste (il faudra
         // en recoller un pour se reconnecter).
-        if (!confirmateur.confirmer("Se déconnecter effacera le jeton VigieChiro enregistré sur ce poste."
+        if (!confirmateur.confirmer("Se déconnecter effacera le jeton Vigie-Chiro enregistré sur ce poste."
                 + " Vous devrez en recoller un pour vous reconnecter. Se déconnecter ?")) {
             return;
         }

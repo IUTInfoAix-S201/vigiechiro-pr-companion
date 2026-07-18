@@ -110,7 +110,7 @@ final class PlateformeReconstruction {
             progres.accept(ProgressionTelechargement.pour(page, totalPages));
         });
         if (donnees.isEmpty()) {
-            throw new RegleMetierException("VigieChiro ne renvoie aucune donnée pour cette participation :"
+            throw new RegleMetierException("Vigie-Chiro ne renvoie aucune donnée pour cette participation :"
                     + " l'analyse n'est probablement pas terminée. Réessayez plus tard.");
         }
         List<String> noms = donnees.stream().map(DonneeVigieChiro::titre).toList();
@@ -141,13 +141,13 @@ final class PlateformeReconstruction {
         return switch (reponse) {
             case ReponseApi.Succes<T>(T valeur) -> valeur;
             case ReponseApi.NonConnecte<T> ignore ->
-                throw new RegleMetierException("Non connecté à VigieChiro : collez un jeton (menu ☰ >"
-                        + " Se connecter à VigieChiro) avant de reconstruire un passage.");
+                throw new RegleMetierException("Non connecté à Vigie-Chiro : collez un jeton (menu ☰ >"
+                        + " Se connecter à Vigie-Chiro) avant de reconstruire un passage.");
             case ReponseApi.Injoignable<T>(String cause) ->
                 throw new RegleMetierException(
-                        "VigieChiro est injoignable (" + cause + ") : " + quoi + " n'a pas pu être lu.");
+                        "Vigie-Chiro est injoignable (" + cause + ") : " + quoi + " n'a pas pu être lu.");
             case ReponseApi.Refuse<T>(int statut, String corps) ->
-                throw new RegleMetierException("VigieChiro a refusé de rendre " + quoi + " (HTTP " + statut + " : "
+                throw new RegleMetierException("Vigie-Chiro a refusé de rendre " + quoi + " (HTTP " + statut + " : "
                         + corps + "). C'est probablement un défaut de l'application : signalez-le.");
         };
     }

@@ -31,7 +31,7 @@ public class DiscussionModule extends ModuleDeFeature {
 
     @Override
     public Fonctionnalite fonctionnalite() {
-        return new Fonctionnalite("discuter-validateur", "Répondre au validateur VigieChiro", Categorie.OPTIONNELLE);
+        return new Fonctionnalite("discuter-validateur", "Répondre au validateur Vigie-Chiro", Categorie.OPTIONNELLE);
     }
 
     @Override

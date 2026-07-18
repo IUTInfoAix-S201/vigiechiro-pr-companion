@@ -96,7 +96,7 @@ class SitesViewModelTest {
         assertThat(vm.cartes())
                 .as("le rechargement voit le site créé par le pull")
                 .hasSize(1);
-        assertThat(vm.messageSynchroProperty().get()).isEqualTo("3 sites synchronisés depuis VigieChiro.");
+        assertThat(vm.messageSynchroProperty().get()).isEqualTo("3 sites synchronisés depuis Vigie-Chiro.");
     }
 
     @Test
@@ -113,7 +113,7 @@ class SitesViewModelTest {
         vm.appliquerSynchro(vm.synchroniserEtRecharger());
 
         assertThat(vm.messageSynchroProperty().get())
-                .isEqualTo("1 site synchronisé, 5 passage(s) rapatrié(s) depuis VigieChiro.");
+                .isEqualTo("1 site synchronisé, 5 passage(s) rapatrié(s) depuis Vigie-Chiro.");
     }
 
     @Test
@@ -132,11 +132,11 @@ class SitesViewModelTest {
     @Test
     @DisplayName("#1212 : un échec de la synchronisation est routé vers son message, jamais un silence")
     void erreur_de_synchro_surfacee() {
-        viewModel.signalerErreurSynchro(new RuntimeException("VigieChiro injoignable"));
+        viewModel.signalerErreurSynchro(new RuntimeException("Vigie-Chiro injoignable"));
 
         assertThat(viewModel.messageSynchroProperty().get())
                 .contains("a échoué")
-                .contains("VigieChiro injoignable");
+                .contains("Vigie-Chiro injoignable");
     }
 
     @Test

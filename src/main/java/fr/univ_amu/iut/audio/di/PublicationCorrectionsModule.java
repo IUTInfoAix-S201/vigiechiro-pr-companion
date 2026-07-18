@@ -31,7 +31,7 @@ public class PublicationCorrectionsModule extends ModuleDeFeature {
     @Override
     public Fonctionnalite fonctionnalite() {
         return new Fonctionnalite(
-                "publier-corrections", "Publication des corrections vers VigieChiro", Categorie.OPTIONNELLE);
+                "publier-corrections", "Publication des corrections vers Vigie-Chiro", Categorie.OPTIONNELLE);
     }
 
     @Override

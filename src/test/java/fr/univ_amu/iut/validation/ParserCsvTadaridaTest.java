@@ -199,7 +199,7 @@ class ParserCsvTadaridaTest {
     }
 
     @Test
-    @DisplayName("Dialecte réel du CSV d'observations VigieChiro (#1565) : validateur_* ignorées, ancrage null")
+    @DisplayName("Dialecte réel du CSV d'observations Vigie-Chiro (#1565) : validateur_* ignorées, ancrage null")
     void parse_le_csv_d_observations_du_serveur() {
         // Entête exacte du serveur (probe #1568) : validateur_taxon / validateur_probabilite en plus,
         // validation_mode en moins, frequence_mediane en flottant. Le parseur repère par nom, lit ce qu'il

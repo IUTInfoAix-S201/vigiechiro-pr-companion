@@ -71,7 +71,7 @@ public class PublicationCorrectionsViewModel {
 
     /// Signale le **début** de la publication (au fil JavaFX, avant le travail en arrière-plan).
     public void marquerEnCours() {
-        message.set("Publication des corrections vers VigieChiro…");
+        message.set("Publication des corrections vers Vigie-Chiro…");
         enCours.set(true);
     }
 
@@ -91,7 +91,7 @@ public class PublicationCorrectionsViewModel {
     /// Résumé lisible d'un bilan : envoyées, écartées par cause, refus (avec la première cause en
     /// exemple : le détail complet vit dans le bilan, la CLI l'imprime intégralement).
     static String resume(BilanPublication bilan) {
-        StringBuilder resume = new StringBuilder("Corrections publiées vers VigieChiro : ")
+        StringBuilder resume = new StringBuilder("Corrections publiées vers Vigie-Chiro : ")
                 .append(bilan.poussees())
                 .append(" envoyée(s)");
         if (bilan.sansCertitude() > 0) {
@@ -102,7 +102,7 @@ public class PublicationCorrectionsViewModel {
             // un oubli de réimport, c'est une nuit sans participation à quoi s'ancrer. Le remède a changé.
             resume.append(", ")
                     .append(bilan.sansAncrage())
-                    .append(" sans ancrage plateforme (rattachez la nuit à sa participation VigieChiro)");
+                    .append(" sans ancrage plateforme (rattachez la nuit à sa participation Vigie-Chiro)");
         }
         if (bilan.horsReferentiel() > 0) {
             resume.append(", ").append(bilan.horsReferentiel()).append(" hors référentiel");

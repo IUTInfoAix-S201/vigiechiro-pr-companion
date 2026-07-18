@@ -59,8 +59,8 @@ final class EtapeDeposerUI {
                                 + " exemple : lancer-traitement-vigiechiro --forcer.")
                         .otherwise(Bindings.when(lot.peutDeposerProperty()
                                         .and(lot.generationEnCoursProperty().not()))
-                                .then("Marquer le passage comme déposé sur VigieChiro.")
+                                .then("Marquer le passage comme déposé sur Vigie-Chiro.")
                                 .otherwise("À faire une fois le dépôt préparé, les archives générées et"
-                                        + " téléversées sur VigieChiro.")));
+                                        + " téléversées sur Vigie-Chiro.")));
     }
 }

@@ -42,7 +42,7 @@ public final class NavigationConnexion {
             Parent vue = loader.load();
             Stage modale = new Stage();
             modale.initModality(Modality.APPLICATION_MODAL);
-            modale.setTitle("Connexion VigieChiro");
+            modale.setTitle("Connexion Vigie-Chiro");
             modale.setScene(new Scene(vue));
             Modales.fermerParEchap(modale);
             modale.show();
@@ -55,9 +55,9 @@ public final class NavigationConnexion {
     /// sinon. Emoji cohérent avec les autres entrées du menu ☰ (💾 / ↩ / 🧹).
     public String libelleMenu() {
         return stockage.profil()
-                .map(profil -> "✅ VigieChiro : "
+                .map(profil -> "✅ Vigie-Chiro : "
                         + (profil.pseudo() == null ? "?" : profil.pseudo())
                         + (profil.role() == null ? "" : " (" + profil.role() + ")"))
-                .orElse("🔌 Se connecter à VigieChiro…");
+                .orElse("🔌 Se connecter à Vigie-Chiro…");
     }
 }

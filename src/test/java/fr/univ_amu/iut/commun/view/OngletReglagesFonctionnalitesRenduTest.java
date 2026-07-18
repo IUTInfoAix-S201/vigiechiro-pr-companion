@@ -44,14 +44,14 @@ class OngletReglagesFonctionnalitesRenduTest {
     @DisplayName("la case d'une feature désactivable persiste feature.<id>.active, et le bandeau est rendu")
     void case_persiste_le_flag_et_bandeau_present() {
         DescripteurReglage.Booleen toggle = new DescripteurReglage.Booleen(
-                "feature.import-vigiechiro.active", "Import depuis VigieChiro", "Effet au prochain démarrage.", true);
+                "feature.import-vigiechiro.active", "Import depuis Vigie-Chiro", "Effet au prochain démarrage.", true);
         OngletReglagesFonctionnalites onglet = new OngletReglagesFonctionnalites(List.of(toggle));
 
         VBox formulaire = (VBox) ControleursReglages.formulaire(onglet, reactifs);
 
         // 1re ligne : la case de la feature (cochée = active par défaut).
         CheckBox caseFeature = (CheckBox) formulaire.getChildren().get(0);
-        assertThat(caseFeature.getText()).isEqualTo("Import depuis VigieChiro");
+        assertThat(caseFeature.getText()).isEqualTo("Import depuis Vigie-Chiro");
         assertThat(caseFeature.isSelected()).isTrue();
 
         // Décocher -> persiste feature.import-vigiechiro.active = false.

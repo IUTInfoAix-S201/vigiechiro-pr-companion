@@ -61,14 +61,14 @@ class PublicationCorrectionsViewModelTest {
 
         vm.appliquerBilan(vm.publier(7L));
         assertThat(vm.enCoursProperty().get()).isFalse();
-        assertThat(vm.messageProperty().get()).isEqualTo("Corrections publiées vers VigieChiro : 2 envoyée(s).");
+        assertThat(vm.messageProperty().get()).isEqualTo("Corrections publiées vers Vigie-Chiro : 2 envoyée(s).");
     }
 
     @Test
     @DisplayName("résumé : les écarts et refus ne sont cités que s'il y en a (première cause en exemple)")
     void resume_cite_les_ecarts_presents() {
         assertThat(PublicationCorrectionsViewModel.resume(new BilanPublication(5, 0, 0, 0, List.of())))
-                .isEqualTo("Corrections publiées vers VigieChiro : 5 envoyée(s).");
+                .isEqualTo("Corrections publiées vers Vigie-Chiro : 5 envoyée(s).");
 
         assertThat(PublicationCorrectionsViewModel.resume(
                         new BilanPublication(1, 2, 1, 3, List.of("Observation 7 : HTTP 404"))))
@@ -85,7 +85,7 @@ class PublicationCorrectionsViewModelTest {
         PublicationCorrectionsViewModel vm = new PublicationCorrectionsViewModel(Optional.empty());
         vm.marquerEnCours();
 
-        vm.echec("VigieChiro injoignable (non connecté, ou réseau indisponible).");
+        vm.echec("Vigie-Chiro injoignable (non connecté, ou réseau indisponible).");
 
         assertThat(vm.enCoursProperty().get()).isFalse();
         assertThat(vm.messageProperty().get()).contains("injoignable");

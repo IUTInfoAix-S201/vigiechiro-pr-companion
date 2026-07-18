@@ -114,7 +114,7 @@ public class MultisiteViewModel {
     public String releverAnalyses(List<Long> nuitsDeposees) {
         Objects.requireNonNull(nuitsDeposees, "nuitsDeposees");
         SuiviTraitement moteur = suivi.orElseThrow(
-                () -> new IllegalStateException("Relevé des analyses indisponible : connectez-vous à VigieChiro."));
+                () -> new IllegalStateException("Relevé des analyses indisponible : connectez-vous à Vigie-Chiro."));
         if (nuitsDeposees.isEmpty()) {
             return "Aucune nuit déposée : il n'y a pas encore d'analyse à relever.";
         }

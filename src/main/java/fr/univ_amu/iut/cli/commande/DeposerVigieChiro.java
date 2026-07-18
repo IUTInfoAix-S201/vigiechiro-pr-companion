@@ -41,7 +41,7 @@ import picocli.CommandLine.Spec;
 /// reprendre.
 @Command(
         name = "deposer-vigiechiro",
-        description = "Téléverse un passage sur VigieChiro (reprenable : seuls les fichiers manquants repartent).")
+        description = "Téléverse un passage sur Vigie-Chiro (reprenable : seuls les fichiers manquants repartent).")
 public final class DeposerVigieChiro implements Callable<Integer> {
 
     @Option(
@@ -54,7 +54,7 @@ public final class DeposerVigieChiro implements Callable<Integer> {
     @Option(
             names = "--token",
             paramLabel = "<jeton>",
-            description = "Jeton VigieChiro ponctuel (sinon : variable VIGIECHIRO_TOKEN, sinon la connexion"
+            description = "Jeton Vigie-Chiro ponctuel (sinon : variable VIGIECHIRO_TOKEN, sinon la connexion"
                     + " enregistrée dans l'application).")
     private String token;
 
@@ -85,7 +85,7 @@ public final class DeposerVigieChiro implements Callable<Integer> {
     @Override
     public Integer call() {
         DepotVigieChiro moteur = depot.orElseThrow(
-                () -> new RegleMetierException("Dépôt VigieChiro indisponible dans ce contexte d'exécution."));
+                () -> new RegleMetierException("Dépôt Vigie-Chiro indisponible dans ce contexte d'exécution."));
         if (token != null && !token.isBlank()) {
             // Jeton ponctuel : consulté par le client à chaque requête (cf. ConnexionModule), sans rien
             // persister — la connexion enregistrée de l'application n'est pas modifiée.

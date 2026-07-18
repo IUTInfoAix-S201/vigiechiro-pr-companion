@@ -72,7 +72,7 @@ public final class Archiver implements Callable<Integer> {
                         + "suppression, pour reconnaître à coup sûr les fichiers réimportés.");
             }
             sortie.println("Pour réécouter un jour, il faudra réimporter les mêmes fichiers : la plateforme "
-                    + "VigieChiro ne rend pas l'audio d'un dépôt ZIP.");
+                    + "Vigie-Chiro ne rend pas l'audio d'un dépôt ZIP.");
             sortie.println("Relancez avec --confirmer pour archiver réellement.");
             return CODE_NON_CONFIRME;
         }

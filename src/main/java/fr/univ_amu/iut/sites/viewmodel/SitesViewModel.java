@@ -104,7 +104,7 @@ public class SitesViewModel {
     /// Route l'échec de la synchronisation vers son message de restitution (fil JavaFX) : jamais un
     /// silence, ni un bouton resté figé (#795/#1212).
     public void signalerErreurSynchro(Throwable erreur) {
-        messageSynchro.set("La synchronisation VigieChiro a échoué : " + erreur.getMessage());
+        messageSynchro.set("La synchronisation Vigie-Chiro a échoué : " + erreur.getMessage());
     }
 
     /// Message de résultat de la synchronisation à la demande, vide tant qu’aucune n’a eu lieu.
@@ -114,7 +114,7 @@ public class SitesViewModel {
 
     private static String messageDe(List<RapportSynchro> rapports) {
         if (rapports.isEmpty()) {
-            return "Aucun site distant récupéré (non connecté, ou aucun site sur VigieChiro).";
+            return "Aucun site distant récupéré (non connecté, ou aucun site sur Vigie-Chiro).";
         }
         // #1284 : une synchronisation EMPECHEE (injoignable, refus) se dit telle quelle, au lieu de se
         // confondre avec « aucun site distant ».
@@ -124,7 +124,7 @@ public class SitesViewModel {
             return "Sites non synchronisés : " + empeche.get().souci() + ".";
         }
         String corps = rapports.stream().map(SitesViewModel::segmentSynchro).collect(Collectors.joining(", "));
-        return corps + " depuis VigieChiro.";
+        return corps + " depuis Vigie-Chiro.";
     }
 
     /// Rend un rapport dans le message du bouton. Les sites gardent leur forme verbale singulier/pluriel

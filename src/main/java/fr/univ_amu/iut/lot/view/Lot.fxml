@@ -116,7 +116,7 @@
       <Button fx:id="btnReinitialiserDepot" text="🔄 Réinitialiser le dépôt"
               styleClass="bouton-secondaire" onAction="#reinitialiserDepot" visible="false" managed="false">
         <tooltip>
-          <Tooltip text="Efface le suivi local de dépôt pour permettre un nouveau téléversement. Les archives ZIP sur disque et la participation VigieChiro sont conservées."/>
+          <Tooltip text="Efface le suivi local de dépôt pour permettre un nouveau téléversement. Les archives ZIP sur disque et la participation Vigie-Chiro sont conservées."/>
         </tooltip>
       </Button>
     </HBox>

@@ -109,7 +109,7 @@ class SaisieCertitudeTest {
     void poser_remplacer_effacer() {
         long id = inserer("Pippip");
         assertThat(certitude(id))
-                .as("jamais préremplie (miroir du site VigieChiro)")
+                .as("jamais préremplie (miroir du site Vigie-Chiro)")
                 .isNull();
 
         saisieCertitude.poser(id, Certitude.PROBABLE);

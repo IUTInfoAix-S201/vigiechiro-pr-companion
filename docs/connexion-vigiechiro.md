@@ -16,7 +16,7 @@ débloque tout ce qui touche à la plateforme :
 ## Obtenir son jeton (méthode du marque-page)
 
 La plateforme n'a pas de « mot de passe d'application » : on récupère le **jeton de session** du
-navigateur, valable **14 jours**. La fenêtre **☰ → Se connecter à VigieChiro…** vous guide en trois
+navigateur, valable **14 jours**. La fenêtre **☰ → Se connecter à Vigie-Chiro…** vous guide en trois
 étapes, sans rien installer :
 
 1. **Ouvrir la plateforme** : connectez-vous sur le portail Vigie-Chiro (compte GitHub ou Google).
@@ -40,23 +40,23 @@ dossier de travail - jamais dans un dépôt git.
   [Mes sites](ecrans/sites.md) (« Enregistré » / « Verrouillé ») reflète ce rattachement.
 
 Cette synchronisation est ensuite **rejouable à la demande**, sans se reconnecter, avec le bouton
-**Récupérer depuis VigieChiro** de l'écran Mes sites.
+**Récupérer depuis Vigie-Chiro** de l'écran Mes sites.
 
 ## Jeton expiré ou absent
 
 Hors connexion (ou jeton expiré), l'application **se dégrade proprement** : les actions liées à la
 plateforme sont grisées avec une explication, tout le reste fonctionne normalement. Rouvrez
-simplement **☰ → Se connecter à VigieChiro…** et recollez un jeton frais.
+simplement **☰ → Se connecter à Vigie-Chiro…** et recollez un jeton frais.
 
 Lors de la vérification d'un jeton, la modale distingue désormais les causes d'échec : **« Token
 invalide ou expiré »** signifie que la plateforme a réellement refusé le jeton (recollez-en un frais),
-tandis que **« VigieChiro est injoignable »** signale un problème de réseau : votre jeton n'est
+tandis que **« Vigie-Chiro est injoignable »** signale un problème de réseau : votre jeton n'est
 peut-être pas en cause, vérifiez la connexion et réessayez. De même, l'import des observations, le
 suivi du traitement et la synchronisation des sites indiquent la vraie raison d'un échec (plateforme
 injoignable, refus du serveur) au lieu d'afficher « aucun résultat ».
 
 !!! tip "En ligne de commande"
-    Les commandes VigieChiro (`synchroniser-vigiechiro`, `deposer-vigiechiro`,
+    Les commandes Vigie-Chiro (`synchroniser-vigiechiro`, `deposer-vigiechiro`,
     `verifier-depot-vigiechiro`, `importer-vigiechiro`) acceptent un **jeton ponctuel** : option
     `--token`, ou variable d'environnement `VIGIECHIRO_TOKEN` (préférable : elle ne laisse pas le
     jeton dans l'historique du shell). À défaut, la connexion enregistrée dans l'application est

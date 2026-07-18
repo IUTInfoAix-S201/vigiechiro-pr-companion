@@ -37,7 +37,7 @@ import picocli.CommandLine.Spec;
 /// séquences non identifiées, ni empreintes — la plateforme ne les connaît pas.
 @Command(
         name = "reconstruire-passage",
-        description = "Liste les participations VigieChiro sans équivalent local (nuits déposées depuis un "
+        description = "Liste les participations Vigie-Chiro sans équivalent local (nuits déposées depuis un "
                 + "autre poste, ou avant l'application) et, avec --participation, en reconstruit une (ou "
                 + "--tout pour les reconstruire toutes) en passage archivé : observations rapatriées, "
                 + "audio absent, réactivable par réimport.")
@@ -77,7 +77,7 @@ public final class ReconstruirePassage implements Callable<Integer> {
         PrintWriter sortie = spec.commandLine().getOut();
         ServiceReconstructionPassages reconstruction = service.get()
                 .orElseThrow(() -> new RegleMetierException("La reconstruction a besoin de la connexion"
-                        + " VigieChiro : renseignez un jeton (VIGIECHIRO_TOKEN) puis recommencez."));
+                        + " Vigie-Chiro : renseignez un jeton (VIGIECHIRO_TOKEN) puis recommencez."));
         if (tout) {
             return reconstruireTout(sortie, reconstruction);
         }
@@ -148,7 +148,7 @@ public final class ReconstruirePassage implements Callable<Integer> {
             return 0;
         }
         if (orphelines.isEmpty()) {
-            sortie.println("Aucune participation orpheline : toutes vos nuits VigieChiro ont un passage local.");
+            sortie.println("Aucune participation orpheline : toutes vos nuits Vigie-Chiro ont un passage local.");
             return 0;
         }
         sortie.println(orphelines.size() + " participation(s) sans équivalent local :");

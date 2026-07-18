@@ -49,14 +49,14 @@ public final class SuiviTraitement {
                     case ReponseApi.Succes<Traitement>(Traitement lu) -> lu;
                     case ReponseApi.NonConnecte<Traitement> nonConnecte ->
                         throw new RegleMetierException(
-                                "Non connecté à VigieChiro : impossible de relever l'état du traitement."
+                                "Non connecté à Vigie-Chiro : impossible de relever l'état du traitement."
                                         + " Le dernier état connu reste affiché.");
                     case ReponseApi.Injoignable<Traitement>(String cause) ->
                         throw new RegleMetierException(
-                                "VigieChiro est injoignable (" + cause
+                                "Vigie-Chiro est injoignable (" + cause
                                         + ") : impossible de relever l'état du traitement. Le dernier état connu reste affiché.");
                     case ReponseApi.Refuse<Traitement>(int statut, String corps) ->
-                        throw new RegleMetierException("VigieChiro a refusé la lecture de la participation (HTTP "
+                        throw new RegleMetierException("Vigie-Chiro a refusé la lecture de la participation (HTTP "
                                 + statut + " : " + corps + ").");
                 };
         releves.enregistrer(new ReleveTraitement(
@@ -118,6 +118,6 @@ public final class SuiviTraitement {
         Objects.requireNonNull(idPassage, "idPassage");
         return liens.objectidPour(LienVigieChiro.ENTITE_PASSAGE, String.valueOf(idPassage))
                 .orElseThrow(() -> new RegleMetierException(
-                        "Aucune participation VigieChiro liée à ce passage : déposez d'abord la nuit."));
+                        "Aucune participation Vigie-Chiro liée à ce passage : déposez d'abord la nuit."));
     }
 }

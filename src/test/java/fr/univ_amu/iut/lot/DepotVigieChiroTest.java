@@ -372,7 +372,7 @@ class DepotVigieChiroTest {
     }
 
     @Test
-    @DisplayName("création refusée par VigieChiro (repli) → refus dur avec le détail de l'API, aucun upload")
+    @DisplayName("création refusée par Vigie-Chiro (repli) → refus dur avec le détail de l'API, aucun upload")
     void participation_refusee() {
         when(participations.participationDe(idPassage)).thenReturn(Optional.empty());
         when(participations.creerPour(idPassage))
@@ -389,7 +389,8 @@ class DepotVigieChiroTest {
     @DisplayName("site non rattaché (repli) → l'exception de la passerelle se propage, aucun upload")
     void site_non_rattache_propage() {
         when(participations.participationDe(idPassage)).thenReturn(Optional.empty());
-        when(participations.creerPour(idPassage)).thenThrow(new RegleMetierException("Site non rattaché à VigieChiro"));
+        when(participations.creerPour(idPassage))
+                .thenThrow(new RegleMetierException("Site non rattaché à Vigie-Chiro"));
 
         assertThatThrownBy(() -> depot.deposer(idPassage, List.of()))
                 .isInstanceOf(RegleMetierException.class)

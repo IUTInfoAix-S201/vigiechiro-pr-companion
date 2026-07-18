@@ -71,7 +71,7 @@ public final class EtatTraitementVigieChiro implements Callable<Integer> {
     @Option(
             names = "--token",
             paramLabel = "<jeton>",
-            description = "Jeton VigieChiro ponctuel (sinon : variable VIGIECHIRO_TOKEN, sinon la connexion"
+            description = "Jeton Vigie-Chiro ponctuel (sinon : variable VIGIECHIRO_TOKEN, sinon la connexion"
                     + " enregistrée dans l'application).")
     private String token;
 
@@ -88,7 +88,7 @@ public final class EtatTraitementVigieChiro implements Callable<Integer> {
     @Override
     public Integer call() {
         SuiviTraitement moteur = suivi.orElseThrow(
-                () -> new RegleMetierException("Suivi VigieChiro indisponible dans ce contexte d'exécution."));
+                () -> new RegleMetierException("Suivi Vigie-Chiro indisponible dans ce contexte d'exécution."));
         if (token != null && !token.isBlank()) {
             // Jeton ponctuel consulté par le client à chaque requête, sans rien persister.
             System.setProperty("vigiechiro.token", token);
@@ -114,7 +114,7 @@ public final class EtatTraitementVigieChiro implements Callable<Integer> {
     private String compteRendu(Traitement traitement) {
         String passage = "Passage " + idPassage + " : ";
         if (traitement.estInconnu()) {
-            return passage + "aucun traitement connu sur VigieChiro : l'analyse n'a jamais été lancée."
+            return passage + "aucun traitement connu sur Vigie-Chiro : l'analyse n'a jamais été lancée."
                     + " Lancez-la (lancer-traitement-vigiechiro).";
         }
         return passage

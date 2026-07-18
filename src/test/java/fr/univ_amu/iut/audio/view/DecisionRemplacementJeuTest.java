@@ -40,10 +40,10 @@ class DecisionRemplacementJeuTest {
                     question.set(message);
                     return true;
                 },
-                "ceux de VigieChiro");
+                "ceux de Vigie-Chiro");
 
         assertThat(decision).contains(true);
-        assertThat(question.get()).contains("remplacer").contains("perdues").contains("ceux de VigieChiro");
+        assertThat(question.get()).contains("remplacer").contains("perdues").contains("ceux de Vigie-Chiro");
     }
 
     @Test

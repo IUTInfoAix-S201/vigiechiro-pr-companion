@@ -128,7 +128,7 @@ public class MesSitesController implements ResumeStatut {
     @FXML
     private void synchroniserVigieChiro() {
         occupation.occuper(
-                "Synchronisation VigieChiro en cours…",
+                "Synchronisation Vigie-Chiro en cours…",
                 viewModel::synchroniserEtRecharger,
                 viewModel::appliquerSynchro,
                 viewModel::signalerErreurSynchro);

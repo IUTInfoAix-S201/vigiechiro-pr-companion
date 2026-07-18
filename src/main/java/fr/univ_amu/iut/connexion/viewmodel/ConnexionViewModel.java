@@ -52,7 +52,7 @@ public class ConnexionViewModel {
         jetonEnregistre.set(stockage.estConnecte());
         identite.set(profil.map(ConnexionViewModel::libelle)
                 .orElseGet(() -> stockage.estConnecte()
-                        ? "Jeton enregistré, non vérifié (VigieChiro était injoignable)"
+                        ? "Jeton enregistré, non vérifié (Vigie-Chiro était injoignable)"
                         : "Non connecté"));
     }
 

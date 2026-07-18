@@ -37,7 +37,7 @@ class AuditEnLigne {
                     CategorieConstat.SERVEUR_INJOIGNABLE,
                     null,
                     "-",
-                    "Vérification en ligne indisponible : connectez-vous à VigieChiro."));
+                    "Vérification en ligne indisponible : connectez-vous à Vigie-Chiro."));
         }
         List<ConstatAudit> constats = new ArrayList<>();
         verificationDepot.ifPresent(moteur -> constats.addAll(auditerDepots(moteur)));

@@ -137,7 +137,7 @@ class PublicationCorrectionsUITest {
         verify(publication)
                 .echec("Rien à publier : 2 sans certitude déclarée, 1 sans ancrage plateforme."
                         + " Déclarez la certitude des observations corrigées, ou rattachez cette nuit à sa"
-                        + " participation VigieChiro pour pouvoir les ancrer.");
+                        + " participation Vigie-Chiro pour pouvoir les ancrer.");
     }
 
     @Test

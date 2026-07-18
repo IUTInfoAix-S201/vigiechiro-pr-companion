@@ -166,7 +166,7 @@ final class TransportVigieChiro {
     /// serveur (`_issues`, « invalid field »…), l'élément le plus diagnostique qui soit - et c'est
     /// précisément ce qui manquait pour comprendre #1844.
     static String resume(String methode, String chemin, ReponseApi<String> reponse, long millis) {
-        return "VigieChiro " + methode + " " + chemin + " → " + issue(reponse) + " (" + millis + " ms)";
+        return "Vigie-Chiro " + methode + " " + chemin + " → " + issue(reponse) + " (" + millis + " ms)";
     }
 
     private static String issue(ReponseApi<String> reponse) {

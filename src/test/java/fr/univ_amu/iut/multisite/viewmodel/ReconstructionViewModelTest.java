@@ -28,7 +28,7 @@ class ReconstructionViewModelTest {
             new ParticipationOrpheline("6a53f5faae21902a597394d3", "130711", "Z41", "2026-07-03T22:00:00+02:00", true);
 
     @Test
-    @DisplayName("Sans connexion VigieChiro, l'action est indisponible : l'appelant la retire du menu")
+    @DisplayName("Sans connexion Vigie-Chiro, l'action est indisponible : l'appelant la retire du menu")
     void indisponible_hors_connexion() {
         ReconstructionViewModel viewModel = new ReconstructionViewModel(Optional.empty());
 

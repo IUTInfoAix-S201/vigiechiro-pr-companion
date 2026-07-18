@@ -120,7 +120,7 @@ public final class DepotVigieChiro {
         String participationId = participations
                 .participationDe(idPassage)
                 .orElseThrow(() -> new RegleMetierException(
-                        "Aucune participation VigieChiro liée à ce passage : déposez d'abord la nuit."));
+                        "Aucune participation Vigie-Chiro liée à ce passage : déposez d'abord la nuit."));
         if (!forcer) {
             switch (traitement.etat(participationId)) {
                 case ReponseApi.Succes<Traitement>(Traitement dejaCalcule) -> {
@@ -321,7 +321,7 @@ public final class DepotVigieChiro {
         ResultatEcriture creation = participations.creerPour(idPassage);
         return creation.id()
                 .orElseThrow(() -> new RegleMetierException(
-                        "Création de la participation refusée par VigieChiro : " + creation.echec()));
+                        "Création de la participation refusée par Vigie-Chiro : " + creation.echec()));
     }
 
     /// Téléverse un fichier en trois temps (déclaration → `PUT` S3 **en flux** → finalisation) et renvoie

@@ -38,7 +38,7 @@ public class DepotVigieChiroModule extends ModuleDeFeature {
     /// Identité de la feature. `COEUR` : socle non désactivable (dépendue par d'autres features).
     @Override
     public Fonctionnalite fonctionnalite() {
-        return new Fonctionnalite("depot-vigiechiro", "Dépôt VigieChiro", Categorie.COEUR);
+        return new Fonctionnalite("depot-vigiechiro", "Dépôt Vigie-Chiro", Categorie.COEUR);
     }
 
     @Override

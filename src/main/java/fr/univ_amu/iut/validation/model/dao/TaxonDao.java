@@ -90,6 +90,8 @@ public class TaxonDao extends DaoGenerique<Taxon, String> {
                 // 1. Taxons officiels absents : insérés sous le groupe catch-all « Référentiel VigieChiro »
                 // (résolu par son nom, comme les souches « Hors référentiel »). Absent = laissé intact.
                 String insertion = "INSERT OR IGNORE INTO taxon (code, latin_name, vernacular_name_fr, group_id)"
+                        // Le libellé du groupe est une **donnée stockée** (V16), pas un libellé d'IHM : il garde
+                        // sa graphie d'origine. L'unifier exigerait une migration, pas une réécriture ici.
                         + " SELECT ?, ?, NULL, g.id FROM taxonomic_group g WHERE g.name = 'Référentiel VigieChiro'";
                 try (PreparedStatement ps = cx.prepareStatement(insertion)) {
                     for (Map.Entry<String, String> entree : codeVersNomLatin.entrySet()) {

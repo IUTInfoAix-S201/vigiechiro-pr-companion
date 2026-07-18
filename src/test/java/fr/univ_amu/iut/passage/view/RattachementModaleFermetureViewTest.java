@@ -96,7 +96,7 @@ class RattachementModaleFermetureViewTest {
     }
 
     @Test
-    @DisplayName("#1839 : VigieChiro refuse l'envoi → la modale RESTE ouverte, la cause à l'écran")
+    @DisplayName("#1839 : Vigie-Chiro refuse l'envoi → la modale RESTE ouverte, la cause à l'écran")
     void refus_laisse_la_modale_ouverte(FxRobot robot) {
         when(synchronisation.pousserVers(7L))
                 .thenReturn(EnvoiParticipation.sansRealignement(ResultatEcriture.echouee("422 champ invalide")));

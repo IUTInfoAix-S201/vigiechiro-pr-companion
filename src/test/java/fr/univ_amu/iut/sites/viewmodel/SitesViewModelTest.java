@@ -149,7 +149,7 @@ class SitesViewModelTest {
 
         vm.rafraichir();
 
-        assertThat(vm.messageErreurProperty().get())
+        assertThat(vm.retourProperty().get().texte())
                 .as("l'échec est surfacé au lieu de remonter non capturé")
                 .contains("base indisponible");
     }

@@ -1,6 +1,7 @@
 package fr.univ_amu.iut.sites.view;
 
 import com.google.inject.Inject;
+import fr.univ_amu.iut.commun.view.BandeauRetour;
 import fr.univ_amu.iut.commun.view.ExecuteurTache;
 import fr.univ_amu.iut.commun.view.IndicateurOccupation;
 import fr.univ_amu.iut.commun.view.ResumeStatut;
@@ -73,6 +74,12 @@ public class MesSitesController implements ResumeStatut {
     private Label lblErreur;
 
     @FXML
+    private HBox bandeauRetour;
+
+    @FXML
+    private Button btnFermerRetour;
+
+    @FXML
     private Button btnSyncVigieChiro;
 
     @FXML
@@ -100,9 +107,9 @@ public class MesSitesController implements ResumeStatut {
         etatVide.visibleProperty().bind(viewModel.videProperty());
         etatVide.managedProperty().bind(viewModel.videProperty());
         // Erreur de chargement (#795) : rendue visible seulement quand un message est présent.
-        lblErreur.textProperty().bind(viewModel.messageErreurProperty());
-        lblErreur.visibleProperty().bind(viewModel.messageErreurProperty().isNotEmpty());
-        lblErreur.managedProperty().bind(viewModel.messageErreurProperty().isNotEmpty());
+        // Bandeau de retour partagé (ADR 0023) : libellé, visibilité, sévérité et croix de fermeture.
+        BandeauRetour.installer(
+                bandeauRetour, lblErreur, btnFermerRetour, viewModel.retourProperty(), viewModel::effacerRetour);
         // Synchronisation à la demande (#1045) : bouton masqué quand la passerelle est absente (#937),
         // message de résultat rendu visible seulement quand il est présent.
         boolean peutRecuperer = viewModel.peutRecuperer();

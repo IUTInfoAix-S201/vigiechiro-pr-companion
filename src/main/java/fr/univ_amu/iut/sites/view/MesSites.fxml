@@ -35,7 +35,11 @@
 
   <!-- Erreur de chargement (#795) : affichée en rouge et masquée tant qu'il n'y a pas d'erreur (un échec
        de lecture des sites restait auparavant silencieux). -->
-  <Label fx:id="lblErreur" styleClass="message-erreur" wrapText="true" visible="false" managed="false"/>
+  <!-- Bandeau de retour partagé (ADR 0023) : sévérité + fermeture. -->
+  <HBox fx:id="bandeauRetour" styleClass="bandeau-retour" alignment="CENTER_LEFT" spacing="10.0">
+    <Label fx:id="lblErreur" wrapText="true" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+    <Button fx:id="btnFermerRetour" text="✕" styleClass="fermer-retour" accessibleText="Fermer le message"/>
+  </HBox>
 
   <!-- Résultat de la synchronisation à la demande (#1045), masqué tant qu'aucune n'a eu lieu. -->
   <Label fx:id="lblSynchro" styleClass="message-synchro" wrapText="true" visible="false" managed="false"/>

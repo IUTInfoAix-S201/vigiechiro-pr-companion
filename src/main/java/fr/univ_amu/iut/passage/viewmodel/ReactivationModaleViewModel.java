@@ -131,6 +131,7 @@ public class ReactivationModaleViewModel {
         }
         ajouterEcarts(texte, rapport.ecarts());
         ajouterIndiceAcoustique(texte, rapport.indiceAcoustique());
+        ajouterRapatriement(texte, rapport.rapatriement());
         texte.append('\n')
                 .append(
                         rapport.complete()
@@ -139,6 +140,19 @@ public class ReactivationModaleViewModel {
                                         + rapport.decompte().presentes() + " séquence(s) sur "
                                         + rapport.decompte().total() + " présentes.");
         return texte.toString();
+    }
+
+    /// Ce que la **phase d'ancrage** a rapatrié (#1904), quand elle s'est déclenchée : les identifiants
+    /// plateforme, et avec eux les **échanges avec le validateur** (#1867). Muet sinon.
+    ///
+    /// C'est ici que ces messages arrivent le plus souvent : la phase ne se déclenche que sur une nuit
+    /// **reconstruite**, dont les observations n'en portaient aucun. Les taire laissait l'observateur les
+    /// découvrir en ouvrant la bonne ligne, par hasard.
+    private static void ajouterRapatriement(StringBuilder texte, String rapatriement) {
+        if (rapatriement == null || rapatriement.isBlank()) {
+            return;
+        }
+        texte.append(rapatriement).append('\n');
     }
 
     /// Concordance acoustique en **indice** (#1682), quand elle a été mesurée (hydratation d'un passage

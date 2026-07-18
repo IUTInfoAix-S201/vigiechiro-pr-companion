@@ -197,8 +197,7 @@ public class ServiceReactivationPassage {
 
         RapportReactivation rapport = conclure(idPassage, session, sequences, bilan, voie);
         jeton.leverSiAnnule();
-        acquerirAncrageSiNecessaire(idPassage, rapport, progresAncrage, jeton);
-        return rapport;
+        return rapport.avecRapatriement(acquerirAncrageSiNecessaire(idPassage, rapport, progresAncrage, jeton));
     }
 
     /// **Phase d'ancrage** (#1571) : acquiert l'ancrage plateforme (`idDonneeVigieChiro` / indice) des
@@ -211,16 +210,16 @@ public class ServiceReactivationPassage {
     /// Ne se déclenche que sur un passage **reconstruit** (rattaché à une participation, ancrage manquant) :
     /// un passage importé normalement porte déjà son ancrage, la phase ne s'y déclenche pas — donc aucune
     /// dépendance réseau n'est imposée à la réactivation d'un passage local ordinaire.
-    private void acquerirAncrageSiNecessaire(
+    /// @return le compte rendu du rapatriement, **prêt à afficher** (dont les échanges rapatriés avec le
+    ///     validateur, #1867), ou une chaîne vide quand il n'y avait rien à acquérir. La réactivation le
+    ///     restitue désormais au lieu de le taire (#1904) : c'est justement ici que des messages arrivent,
+    ///     puisque la phase ne se déclenche que sur une nuit reconstruite.
+    private String acquerirAncrageSiNecessaire(
             Long idPassage, RapportReactivation rapport, Consumer<Progression> progresAncrage, JetonAnnulation jeton) {
         if (importObservations.isEmpty() || rapport.decompte().disponibilite() == DisponibiliteAudio.ABSENTE) {
-            return;
+            return "";
         }
-        // Le compte rendu du rapatriement (dont les échanges avec le validateur, #1867) est ici
-        // volontairement laissé de côté : la publication l'annonce, la réactivation pas encore. Le porter
-        // demanderait un composant de plus à RapportReactivation et à ses six sites de construction, ce
-        // qui appartient au chantier de son compte rendu, pas à celui-ci.
-        AcquisitionAncrage.acquerirSiNecessaire(importObservations.get(), idPassage, progresAncrage, jeton);
+        return AcquisitionAncrage.acquerirSiNecessaire(importObservations.get(), idPassage, progresAncrage, jeton);
     }
 
     /// Reconnaît ce que le dossier contient. Les **séquences** l'emportent sur les **bruts** : quand les

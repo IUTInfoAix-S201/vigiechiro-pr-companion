@@ -148,6 +148,10 @@ disponible, et le décompte vous le dit.
     moment — et n'a lieu que pour ces passages-là (un passage importé normalement garde ce lien depuis le
     départ).
 
+    Elle ramène **au passage les échanges avec le validateur** du Muséum, s'il y en a : les deux voyagent
+    ensemble. Le compte rendu de la réactivation vous dit alors sur combien d'observations le validateur
+    s'est exprimé, plutôt que de vous laisser le découvrir en ouvrant la bonne ligne par hasard.
+
 ### Vous n'avez gardé que vos enregistrements bruts ?
 
 C'est le cas le plus fréquent : on garde volontiers sa **carte SD** (ou sa copie), plus rarement les

@@ -25,6 +25,9 @@ import java.util.List;
 /// @param indiceAcoustique concordance acoustique **non bloquante** (#1682) mesurée lors d'une hydratation
 ///     (passage reconstruit) : combien de séquences rebranchées présentent les cris attendus. `null` pour
 ///     les voies où elle n'est pas mesurée (rebranchement direct, réactivation ordinaire depuis les bruts)
+/// @param rapatriement compte rendu, **prêt à afficher**, de la phase d'ancrage qui a suivi la
+///     réactivation (#1571) : elle ramène aussi les **échanges avec le validateur** (#1867). Chaîne
+///     **vide** quand aucun ancrage n'était à acquérir, ce qui est le cas d'une réactivation ordinaire
 public record RapportReactivation(
         int reactivees,
         int divergentes,
@@ -34,10 +37,51 @@ public record RapportReactivation(
         List<EcartReactivation> ecarts,
         DecompteAudio decompte,
         VoieReactivation voie,
-        IndiceAcoustique indiceAcoustique) {
+        IndiceAcoustique indiceAcoustique,
+        String rapatriement) {
 
     public RapportReactivation {
         ecarts = List.copyOf(ecarts);
+    }
+
+    /// Constructeur de **commodité** sans compte rendu de rapatriement : les voies qui n'acquièrent aucun
+    /// ancrage (réactivation ordinaire) n'ont rien à en dire.
+    public RapportReactivation(
+            int reactivees,
+            int divergentes,
+            int manquantes,
+            int dejaPresentes,
+            NiveauConfiance confianceMinimale,
+            List<EcartReactivation> ecarts,
+            DecompteAudio decompte,
+            VoieReactivation voie,
+            IndiceAcoustique indiceAcoustique) {
+        this(
+                reactivees,
+                divergentes,
+                manquantes,
+                dejaPresentes,
+                confianceMinimale,
+                ecarts,
+                decompte,
+                voie,
+                indiceAcoustique,
+                "");
+    }
+
+    /// Le même rapport, accompagné du compte rendu de la **phase d'ancrage** qui l'a suivi (#1904).
+    public RapportReactivation avecRapatriement(String rapatriement) {
+        return new RapportReactivation(
+                reactivees,
+                divergentes,
+                manquantes,
+                dejaPresentes,
+                confianceMinimale,
+                ecarts,
+                decompte,
+                voie,
+                indiceAcoustique,
+                rapatriement);
     }
 
     /// Constructeur de **commodité** sans indice acoustique (`null`) : préserve les appels des voies qui ne
@@ -51,7 +95,7 @@ public record RapportReactivation(
             List<EcartReactivation> ecarts,
             DecompteAudio decompte,
             VoieReactivation voie) {
-        this(reactivees, divergentes, manquantes, dejaPresentes, confianceMinimale, ecarts, decompte, voie, null);
+        this(reactivees, divergentes, manquantes, dejaPresentes, confianceMinimale, ecarts, decompte, voie, null, "");
     }
 
     /// Une séquence **refusée** : un fichier homonyme était là, mais la vérification l'a écarté.

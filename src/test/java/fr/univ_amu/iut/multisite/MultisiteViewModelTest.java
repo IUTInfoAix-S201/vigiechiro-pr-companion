@@ -14,6 +14,7 @@ import static org.mockito.Mockito.when;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.model.SuiviTraitement;
 import fr.univ_amu.iut.commun.model.Verdict;
+import fr.univ_amu.iut.commun.viewmodel.RetourOperation;
 import fr.univ_amu.iut.multisite.model.CarreAgrege;
 import fr.univ_amu.iut.multisite.model.EtatAnalyse;
 import fr.univ_amu.iut.multisite.model.LignePassage;
@@ -62,9 +63,9 @@ class MultisiteViewModelTest {
         assertThat(vm.lignes()).hasSize(1);
 
         vm.signalerErreur(new IllegalStateException("base indisponible"));
-        assertThat(vm.messageProperty().get()).isEqualTo("base indisponible");
+        assertThat(vm.retourProperty().get().texte()).contains("base indisponible");
         vm.signalerErreur(new IllegalStateException());
-        assertThat(vm.messageProperty().get()).contains("impossible");
+        assertThat(vm.retourProperty().get().texte()).contains("impossible");
     }
 
     // --- Relevé groupé de l'état des analyses (#1338) ---
@@ -95,10 +96,13 @@ class MultisiteViewModelTest {
         List<Long> deposees = vm.nuitsDeposees();
         assertThat(deposees).containsExactly(1L, 3L);
 
-        String compteRendu = vm.releverAnalyses(deposees);
+        var compteRendu = vm.releverAnalyses(deposees);
 
         verify(suivi).releverTout(List.of(1L, 3L));
-        assertThat(compteRendu).contains("2 nuit(s)");
+        assertThat(compteRendu.texte()).contains("2 nuit(s)");
+        assertThat(compteRendu.severite())
+                .as("#1888 : un relevé complet est un succès, ce que le canal String ne disait pas")
+                .isEqualTo(RetourOperation.Severite.SUCCES);
     }
 
     @Test
@@ -107,7 +111,10 @@ class MultisiteViewModelTest {
         SuiviTraitement suivi = mock(SuiviTraitement.class);
         MultisiteViewModel vm = new MultisiteViewModel(service, serviceSites, Optional.of(suivi), ID);
 
-        assertThat(vm.releverAnalyses(List.of())).contains("Aucune nuit déposée");
+        assertThat(vm.releverAnalyses(List.of()).texte()).contains("Aucune nuit déposée");
+        assertThat(vm.releverAnalyses(List.of()).severite())
+                .as("rien à relever est un guidage, pas un échec")
+                .isEqualTo(RetourOperation.Severite.INFO);
         verify(suivi, never()).releverTout(anyList());
     }
 
@@ -118,7 +125,11 @@ class MultisiteViewModelTest {
         when(suivi.releverTout(anyList())).thenReturn(new SuiviTraitement.BilanReleveGroupe(1, 2));
         MultisiteViewModel vm = new MultisiteViewModel(service, serviceSites, Optional.of(suivi), ID);
 
-        assertThat(vm.releverAnalyses(List.of(1L, 2L, 3L)))
+        assertThat(vm.releverAnalyses(List.of(1L, 2L, 3L)).severite())
+                .as("#1888 : un relevé PARTIEL n'est ni un succès (ce serait mentir sur la fraîcheur),"
+                        + " ni une erreur (les données restent affichées)")
+                .isEqualTo(RetourOperation.Severite.INFO);
+        assertThat(vm.releverAnalyses(List.of(1L, 2L, 3L)).texte())
                 .contains("1 nuit(s) sur 3")
                 .contains("2 injoignable(s)")
                 .contains("dernier état connu");
@@ -136,7 +147,7 @@ class MultisiteViewModelTest {
         MultisiteViewModel.ResultatReleve resultat = vm.releverPuisCharger(List.of(1L));
         vm.appliquerReleve(resultat);
 
-        assertThat(vm.messageProperty().get())
+        assertThat(vm.retourProperty().get().texte())
                 .as("le compte rendu doit survivre au rechargement (appliquer efface le message avant)")
                 .contains("relevé pour 1 nuit(s)");
     }
@@ -238,7 +249,7 @@ class MultisiteViewModelTest {
 
         assertThat(ok).isTrue();
         verify(service).exporterCsvVers(eq(Path.of("/tmp/vue-multisite.csv")), anyList());
-        assertThat(vm.messageProperty().get()).contains("exporté");
+        assertThat(vm.retourProperty().get().texte()).contains("exporté");
     }
 
     @Test

@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import fr.univ_amu.iut.commun.model.DepotDispositionColonnes;
 import fr.univ_amu.iut.commun.model.DepotVues;
 import fr.univ_amu.iut.commun.view.ActionVigieChiroPassage;
+import fr.univ_amu.iut.commun.view.BandeauRetour;
 import fr.univ_amu.iut.commun.view.DoubleClicLigne;
 import fr.univ_amu.iut.commun.view.ExecuteurTache;
 import fr.univ_amu.iut.commun.view.GestionnaireColonnes;
@@ -52,6 +53,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
@@ -176,6 +178,12 @@ public class MultisiteController implements RafraichirAuRetour, ResumeStatut {
 
     @FXML
     private Label lblMessage;
+
+    @FXML
+    private HBox bandeauRetour;
+
+    @FXML
+    private Button btnFermerRetour;
 
     @FXML
     private StackPane hoteOccupation;
@@ -346,10 +354,9 @@ public class MultisiteController implements RafraichirAuRetour, ResumeStatut {
                 reconstruction.disponible(),
                 viewModel.releveAnalysesDisponible());
 
-        lblMessage.textProperty().bind(viewModel.messageProperty());
-        var messagePresent = viewModel.messageProperty().isNotEmpty();
-        lblMessage.visibleProperty().bind(messagePresent);
-        lblMessage.managedProperty().bind(messagePresent);
+        // Bandeau de retour partagé (ADR 0023) : libellé, visibilité, sévérité et croix de fermeture.
+        BandeauRetour.installer(
+                bandeauRetour, lblMessage, btnFermerRetour, viewModel.retourProperty(), viewModel::effacerRetour);
 
         // Carte (#152) : le composant réutilisable affiche sites + points. On le remplit en traduisant
         // l'agrégat carte (non filtré) en DonneesCarte à chaque mise à jour. La carte ne dépend pas des

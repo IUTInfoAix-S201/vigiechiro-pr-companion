@@ -3,6 +3,7 @@ package fr.univ_amu.iut.multisite.viewmodel;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.model.SuiviTraitement;
 import fr.univ_amu.iut.commun.viewmodel.Filtres;
+import fr.univ_amu.iut.commun.viewmodel.RetourOperation;
 import fr.univ_amu.iut.multisite.model.CarreAgrege;
 import fr.univ_amu.iut.multisite.model.LignePassage;
 import fr.univ_amu.iut.multisite.model.ServiceMultisite;
@@ -16,6 +17,8 @@ import java.util.Optional;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleObjectProperty;
@@ -63,7 +66,9 @@ public class MultisiteViewModel {
 
     private final ReadOnlyBooleanWrapper nonVide = new ReadOnlyBooleanWrapper(this, "nonVide", false);
     private final ReadOnlyStringWrapper resume = new ReadOnlyStringWrapper(this, "resume", "");
-    private final ReadOnlyStringWrapper message = new ReadOnlyStringWrapper(this, "message", "");
+    /// Retour de la dernière opération, avec sa sévérité, rendu dans le bandeau partagé (ADR 0023).
+    private final ReadOnlyObjectWrapper<RetourOperation> retour =
+            new ReadOnlyObjectWrapper<>(this, "retour", RetourOperation.AUCUN);
 
     /// Socle de filtres composables (#537) : recompose la conjonction sur [#passagesFiltres] puis
     /// publie via [#publierLignes()]. Déclaré après ses dépendances (la liste filtrée).
@@ -81,7 +86,7 @@ public class MultisiteViewModel {
         this.service = Objects.requireNonNull(service, "service");
         this.idUtilisateur = Objects.requireNonNull(idUtilisateur, "idUtilisateur");
         this.suivi = Objects.requireNonNull(suivi, "suivi");
-        this.positionsEnAttente = new PositionsEnAttente(serviceSites, this::rafraichirCarte, message::set);
+        this.positionsEnAttente = new PositionsEnAttente(serviceSites, this::rafraichirCarte, this::rapporterPosition);
         // Le tri nommé ne re-filtre pas : il ré-ordonne la liste publiée. Les filtres sont posés sur
         // [#filtres] par la barre à puces de la vue (#537 étape 6b).
         tri.addListener((obs, ancien, nouveau) -> publierLignes());
@@ -111,25 +116,26 @@ public class MultisiteViewModel {
     /// plutôt que de lire la liste observable depuis le fil de fond. Renvoie le compte rendu prêt à
     /// afficher — ou, si la liste est vide, un message qui le dit plutôt qu'un « 0 relevé » sec.
     /// Précondition : [#releveAnalysesDisponible()] vrai (l'appelant garde le bouton).
-    public String releverAnalyses(List<Long> nuitsDeposees) {
+    public RetourOperation releverAnalyses(List<Long> nuitsDeposees) {
         Objects.requireNonNull(nuitsDeposees, "nuitsDeposees");
         SuiviTraitement moteur = suivi.orElseThrow(
                 () -> new IllegalStateException("Relevé des analyses indisponible : connectez-vous à Vigie-Chiro."));
         if (nuitsDeposees.isEmpty()) {
-            return "Aucune nuit déposée : il n'y a pas encore d'analyse à relever.";
+            // Rien à relever n'est pas un échec : c'est un guidage.
+            return RetourOperation.info("Aucune nuit déposée : il n'y a pas encore d'analyse à relever.");
         }
         return compteRenduReleve(moteur.releverTout(nuitsDeposees));
     }
 
     /// Résultat d'un relevé groupé : le compte rendu à afficher **et** les données rechargées, pour que la
     /// vue applique les deux en une fois (#1338).
-    public record ResultatReleve(String compteRendu, DonneesMultisite donnees) {}
+    public record ResultatReleve(RetourOperation compteRendu, DonneesMultisite donnees) {}
 
     /// Relève l'état des analyses **puis relit** l'écran, le tout **hors du fil JavaFX** (#1338) : le
     /// nouvel état du cache doit se voir dans la colonne « Analyse » dès le retour, sans imbriquer une
     /// seconde occupation ni laisser le compte rendu se faire effacer par un rechargement concurrent.
     public ResultatReleve releverPuisCharger(List<Long> nuitsDeposees) {
-        String compteRendu = releverAnalyses(nuitsDeposees);
+        RetourOperation compteRendu = releverAnalyses(nuitsDeposees);
         return new ResultatReleve(compteRendu, charger());
     }
 
@@ -138,17 +144,20 @@ public class MultisiteViewModel {
     /// via `publierLignes`, donc le compte rendu est posé **après**.
     public void appliquerReleve(ResultatReleve resultat) {
         appliquer(resultat.donnees());
-        message.set(resultat.compteRendu());
+        retour.set(resultat.compteRendu());
     }
 
     /// Compte rendu du relevé groupé : ce qui a été rafraîchi, et ce qui a échoué **sans mentir** sur une
     /// fraîcheur non obtenue (les nuits en échec gardent leur dernier état connu).
-    private static String compteRenduReleve(SuiviTraitement.BilanReleveGroupe bilan) {
+    private static RetourOperation compteRenduReleve(SuiviTraitement.BilanReleveGroupe bilan) {
         if (bilan.echecs() == 0) {
-            return "État des analyses relevé pour " + bilan.rafraichis() + " nuit(s) déposée(s).";
+            return RetourOperation.succes(
+                    "État des analyses relevé pour " + bilan.rafraichis() + " nuit(s)" + " déposée(s).");
         }
-        return "État relevé pour " + bilan.rafraichis() + " nuit(s) sur " + bilan.total() + " : " + bilan.echecs()
-                + " injoignable(s), leur dernier état connu reste affiché.";
+        // Relevé **partiel** : rien n'a échoué au sens technique, mais tout n'a pas été rafraîchi. Ni un
+        // succès (ce serait mentir sur la fraîcheur), ni une erreur (les données restent affichées).
+        return RetourOperation.info("État relevé pour " + bilan.rafraichis() + " nuit(s) sur " + bilan.total() + " : "
+                + bilan.echecs() + " injoignable(s), leur dernier état connu reste affiché.");
     }
 
     /// (Re)charge **tous** les passages de l'utilisateur, puis ré-applique filtres et tri courants.
@@ -182,7 +191,8 @@ public class MultisiteViewModel {
     /// non capturée remontant du fil de fond.
     public void signalerErreur(Throwable erreur) {
         String detail = erreur.getMessage();
-        message.set(detail != null && !detail.isBlank() ? detail : "Chargement des passages impossible.");
+        retour.set(RetourOperation.erreur(
+                detail != null && !detail.isBlank() ? detail : "Chargement des passages impossible."));
     }
 
     /// Callback du socle (`apresApplication`) : ré-ordonne le sous-ensemble filtré selon le tri
@@ -193,7 +203,7 @@ public class MultisiteViewModel {
         lignes.setAll(triees);
         nonVide.set(!lignes.isEmpty());
         resume.set(lignes.size() + " passage(s) affiché(s).");
-        message.set("");
+        retour.set(RetourOperation.AUCUN);
     }
 
     /// (Re)charge l'agrégat des carrés pour la **carte** (#152), vue d'ensemble **non filtrée**.
@@ -232,11 +242,11 @@ public class MultisiteViewModel {
         }
         try {
             service.exporterCsvVers(destination, lignesAExporter);
-            message.set("Tableau exporté vers " + destination.getFileName() + " (" + lignesAExporter.size()
-                    + " ligne(s)).");
+            retour.set(RetourOperation.succes("Tableau exporté vers " + destination.getFileName() + " ("
+                    + lignesAExporter.size() + " ligne(s))."));
             return true;
         } catch (RuntimeException echec) {
-            message.set(echec.getMessage());
+            retour.set(RetourOperation.erreur(echec.getMessage()));
             return false;
         }
     }
@@ -270,7 +280,19 @@ public class MultisiteViewModel {
         return resume.getReadOnlyProperty();
     }
 
-    public ReadOnlyStringProperty messageProperty() {
-        return message.getReadOnlyProperty();
+    /// Reçoit le rapport de [PositionsEnAttente], qui ne parle que d'échecs (motif) ou de leur levée
+    /// (chaîne vide) : le collaborateur reste agnostique de la sévérité, c'est ici qu'elle se décide.
+    private void rapporterPosition(String motif) {
+        retour.set(motif == null || motif.isBlank() ? RetourOperation.AUCUN : RetourOperation.erreur(motif));
+    }
+
+    /// Retour de la **dernière opération** avec sa sévérité, pour le bandeau de l'écran.
+    public ReadOnlyObjectProperty<RetourOperation> retourProperty() {
+        return retour.getReadOnlyProperty();
+    }
+
+    /// Efface le retour (l'utilisateur a lu le bandeau et le ferme).
+    public void effacerRetour() {
+        retour.set(RetourOperation.AUCUN);
     }
 }

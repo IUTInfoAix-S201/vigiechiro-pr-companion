@@ -5,6 +5,7 @@ import fr.univ_amu.iut.commun.model.Horloge;
 import fr.univ_amu.iut.commun.model.LienVigieChiro;
 import fr.univ_amu.iut.commun.model.Protocole;
 import fr.univ_amu.iut.commun.model.dao.LienVigieChiroDao;
+import fr.univ_amu.iut.commun.viewmodel.RetourOperation;
 import fr.univ_amu.iut.passage.model.Passage;
 import fr.univ_amu.iut.passage.model.dao.PassageDao;
 import fr.univ_amu.iut.sites.model.PointDEcoute;
@@ -22,6 +23,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
@@ -55,7 +58,11 @@ public class SitesViewModel {
     private final ObservableList<CarteSite> cartes = FXCollections.observableArrayList();
     private final ReadOnlyStringWrapper sousTitre = new ReadOnlyStringWrapper(this, "sousTitre", "");
     private final ReadOnlyBooleanWrapper vide = new ReadOnlyBooleanWrapper(this, "vide", true);
-    private final ReadOnlyStringWrapper messageErreur = new ReadOnlyStringWrapper(this, "messageErreur", "");
+    /// Retour de la dernière opération, avec sa sévérité, rendu dans le bandeau partagé (ADR 0023).
+    /// Le canal s'appelait `messageErreur` : la sévérité vivait dans son **nom**, elle vit désormais
+    /// dans sa **valeur**, ce qui lui permet enfin de porter autre chose qu'un échec.
+    private final ReadOnlyObjectWrapper<RetourOperation> retour =
+            new ReadOnlyObjectWrapper<>(this, "retour", RetourOperation.AUCUN);
     private final ReadOnlyStringWrapper messageSynchro = new ReadOnlyStringWrapper(this, "messageSynchro", "");
 
     public SitesViewModel(
@@ -154,8 +161,14 @@ public class SitesViewModel {
 
     /// Message d'erreur de chargement, vide quand tout va bien (#795) : un échec de lecture des sites
     /// (base indisponible…) y est routé au lieu d'être avalé, pour que la vue puisse l'afficher.
-    public ReadOnlyStringProperty messageErreurProperty() {
-        return messageErreur.getReadOnlyProperty();
+    /// Retour de la **dernière opération** avec sa sévérité, pour le bandeau de l'écran.
+    public ReadOnlyObjectProperty<RetourOperation> retourProperty() {
+        return retour.getReadOnlyProperty();
+    }
+
+    /// Efface le retour (l'utilisateur a lu le bandeau et le ferme).
+    public void effacerRetour() {
+        retour.set(RetourOperation.AUCUN);
     }
 
     /// Recharge les sites de l'utilisateur courant et recompose toutes les cartes + le sous-titre,
@@ -199,12 +212,12 @@ public class SitesViewModel {
         cartes.setAll(chargement.cartes());
         vide.set(chargement.cartes().isEmpty());
         sousTitre.set(chargement.sousTitre());
-        messageErreur.set("");
+        retour.set(RetourOperation.AUCUN);
     }
 
     /// Route un échec de chargement vers le filet d'erreurs de l'écran (#795), **sur le fil JavaFX**.
     public void signalerErreur(Throwable erreur) {
-        messageErreur.set("Impossible de charger vos sites : " + erreur.getMessage());
+        retour.set(RetourOperation.erreur("Impossible de charger vos sites : " + erreur.getMessage()));
     }
 
     /// Instantané du rechargement des cartes, calculé hors du fil JavaFX ([#charger]) puis appliqué

@@ -18,7 +18,7 @@ import fr.univ_amu.iut.commun.api.ClientVigieChiro;
 import fr.univ_amu.iut.commun.api.DonneeVigieChiro;
 import fr.univ_amu.iut.commun.api.ObservationVigieChiro;
 import fr.univ_amu.iut.commun.api.ReponseApi;
-import fr.univ_amu.iut.commun.api.ResultatCorrection;
+import fr.univ_amu.iut.commun.api.ResultatEcriture;
 import fr.univ_amu.iut.commun.di.RacineInjecteur;
 import fr.univ_amu.iut.commun.model.Certitude;
 import fr.univ_amu.iut.commun.model.JetonAnnulation;
@@ -186,7 +186,7 @@ class ParcoursPublierCorrectionsE2ETest {
                         List.of(new ObservationVigieChiro(
                                 0, "Pippip", 0.8, 45.0, 0.0, 5.0, null, null, null, null, null, List.of()))))));
         when(client.corrigerObservation(anyString(), anyInt(), anyString(), any(), anyBoolean()))
-                .thenReturn(ResultatCorrection.reussie());
+                .thenReturn(ResultatEcriture.reussie());
         return client;
     }
 

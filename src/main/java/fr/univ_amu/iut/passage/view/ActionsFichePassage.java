@@ -20,6 +20,10 @@ import java.util.function.LongSupplier;
 /// rend ces trois gestes **cliquables dans un test**. Jusqu'ici on ne vérifiait que la **présence** de
 /// leurs boutons, jamais leur effet - alors que la suppression emporte la nuit entière et, avec elle,
 /// les validations de l'observateur.
+///
+/// Les refus ne bloquent pas tous (ADR 0023, #1889) : **suppression** et **purge** détruisent, donc
+/// leur échec reste modal pour détromper qui croit avoir détruit. **Annuler le dépôt** ne détruit rien
+/// (transition arrière du workflow, validations conservées) : son refus passe par le bandeau.
 final class ActionsFichePassage {
 
     private final PassageViewModel viewModel;
@@ -81,7 +85,10 @@ final class ActionsFichePassage {
             viewModel.annulerDepot();
             recharger.run();
         } catch (RegleMetierException refus) {
-            signalerRefus("Annulation impossible", refus.getMessage());
+            // Seul refus non bloquant de l'écran (ADR 0023) : annuler un dépôt ne détruit rien, c'est la
+            // transition arrière du workflow. L'utilisateur ne peut pas croire avoir perdu de données, et
+            // le statut affiché le détrompe déjà. Les trois autres refus gardent le modal.
+            viewModel.signalerRefus(refus.getMessage());
         }
     }
 

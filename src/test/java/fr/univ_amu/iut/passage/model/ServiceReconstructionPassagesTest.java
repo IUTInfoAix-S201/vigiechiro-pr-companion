@@ -503,6 +503,36 @@ class ServiceReconstructionPassagesTest {
     }
 
     @Test
+    @DisplayName("#1814 synchro : chaque nuit reçoit SON détail (appariement préservé malgré les appels en parallèle)")
+    void synchroniser_apparie_chaque_nuit_a_son_detail() {
+        ParticipationVigieChiro premiere = new ParticipationVigieChiro(
+                "p-1", "Z41", "2026-07-03T22:00:00+02:00", "Vigiechiro - Point Fixe-130711");
+        ParticipationVigieChiro seconde = new ParticipationVigieChiro(
+                "p-2", "Z41", "2026-07-05T22:00:00+02:00", "Vigiechiro - Point Fixe-130711");
+        when(client.mesParticipations()).thenReturn(new ReponseApi.Succes<>(List.of(premiere, seconde)));
+        when(client.participation("p-1"))
+                .thenReturn(new ReponseApi.Succes<>(detailAvecSerie("p-1", "2026-07-03T22:00:00+02:00", "1111111")));
+        when(client.participation("p-2"))
+                .thenReturn(new ReponseApi.Succes<>(detailAvecSerie("p-2", "2026-07-05T22:00:00+02:00", "2222222")));
+
+        service.synchroniser(client);
+
+        List<Passage> passages = passageDao.findAll();
+        assertThat(passages).hasSize(2);
+        for (Passage passage : passages) {
+            String participation = liens.objectidPour(LienVigieChiro.ENTITE_PASSAGE, String.valueOf(passage.id()))
+                    .orElseThrow();
+            assertThat(passage.idEnregistreur())
+                    .as("la nuit %s doit porter SON n° de série, pas celui de l'autre", participation)
+                    .isEqualTo("p-1".equals(participation) ? "1111111" : "2222222");
+        }
+        assertThat(passages)
+                .as("deux nuits du même point la même année : numéros de passage successifs")
+                .extracting(Passage::numeroPassage)
+                .containsExactlyInAnyOrder(1, 2);
+    }
+
+    @Test
     @DisplayName("#1707 synchro : relancée, elle ne recrée rien et n'annonce rien (idempotence)")
     void synchroniser_idempotent() {
         when(client.mesParticipations()).thenReturn(new ReponseApi.Succes<>(List.of(participation(PARTICIPATION))));
@@ -647,6 +677,19 @@ class ServiceReconstructionPassagesTest {
 
     private static ParticipationVigieChiro participation(String id) {
         return new ParticipationVigieChiro(id, "Z41", "2026-07-03T22:00:00+02:00", "Vigiechiro - Point Fixe-130711");
+    }
+
+    /// Détail minimal portant un n° de série donné : pour vérifier l'appariement nuit → détail.
+    private static ParticipationDetail detailAvecSerie(String id, String debut, String serie) {
+        return new ParticipationDetail(
+                id,
+                "etag-" + id,
+                "Z41",
+                debut,
+                debut,
+                null,
+                Map.of("detecteur_enregistreur_numserie", serie),
+                Traitement.absent());
     }
 
     private static ParticipationDetail detail() {

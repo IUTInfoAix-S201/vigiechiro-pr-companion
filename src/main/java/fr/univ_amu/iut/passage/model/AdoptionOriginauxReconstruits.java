@@ -2,6 +2,7 @@ package fr.univ_amu.iut.passage.model;
 
 import com.google.inject.Inject;
 import fr.univ_amu.iut.commun.model.Horloge;
+import fr.univ_amu.iut.commun.persistence.UniteDeTravail;
 import fr.univ_amu.iut.passage.model.dao.EnregistrementOriginalDao;
 import fr.univ_amu.iut.passage.model.dao.SequenceDao;
 import fr.univ_amu.iut.passage.model.dao.SessionDao;
@@ -22,9 +23,16 @@ import java.util.Objects;
 /// état qu'un passage archivé par purge. Sans ce marqueur, l'audit, une fois l'archivage levé, signalerait
 /// les originaux absents du disque.
 ///
-/// Non transactionnel mais **sûr par l'ordre** : on rattache **toutes** les séquences avant de supprimer un
-/// placeholder, et on ne le supprime que s'il n'en porte plus aucune. Une interruption ne perd donc jamais
-/// de séquence (la suppression `ON DELETE CASCADE` ne s'applique qu'à un placeholder déjà vidé).
+/// **En une seule transaction** pour les écritures de masse. Une nuit reconstruite compte des milliers de
+/// séquences : chaque `INSERT` et chaque rattachement auto-commité, c'est un `fsync` par ordre, et plus de
+/// deux minutes d'attente muette sur une nuit de 2000 bruts. Les écritures passent donc par une
+/// [fr.univ_amu.iut.commun.persistence.UniteDeTravail], comme le fait déjà l'import, qui écrit la même masse.
+///
+/// La sûreté **par l'ordre** est conservée, et renforcée : on rattache **toutes** les séquences avant de
+/// supprimer un placeholder, et on ne le supprime que s'il n'en porte plus aucune. Le nettoyage des
+/// placeholders reste **hors** de la transaction - il ne compte qu'une poignée d'ordres, et il doit lire ce
+/// que la transaction vient de valider. Une interruption entre les deux ne perd donc jamais de séquence :
+/// elle laisse au pire un placeholder vidé, que le nettoyage suivant emportera.
 ///
 /// L'empreinte `sha256` des originaux est celle **capturée lors de la régénération** (#1726) : la
 /// transformation ayant déjà lu chaque brut pour la produire, l'inscrire ne coûte aucune re-lecture. Un
@@ -38,14 +46,20 @@ public class AdoptionOriginauxReconstruits {
     private final EnregistrementOriginalDao originalDao;
     private final SequenceDao sequenceDao;
     private final SessionDao sessionDao;
+    private final UniteDeTravail uniteDeTravail;
     private final Horloge horloge;
 
     @Inject
     public AdoptionOriginauxReconstruits(
-            EnregistrementOriginalDao originalDao, SequenceDao sequenceDao, SessionDao sessionDao, Horloge horloge) {
+            EnregistrementOriginalDao originalDao,
+            SequenceDao sequenceDao,
+            SessionDao sessionDao,
+            UniteDeTravail uniteDeTravail,
+            Horloge horloge) {
         this.originalDao = Objects.requireNonNull(originalDao, "originalDao");
         this.sequenceDao = Objects.requireNonNull(sequenceDao, "sequenceDao");
         this.sessionDao = Objects.requireNonNull(sessionDao, "sessionDao");
+        this.uniteDeTravail = Objects.requireNonNull(uniteDeTravail, "uniteDeTravail");
         this.horloge = Objects.requireNonNull(horloge, "horloge");
     }
 
@@ -64,14 +78,21 @@ public class AdoptionOriginauxReconstruits {
             return;
         }
         Path racineBruts = Path.of(session.cheminRacine()).resolve(SOUS_DOSSIER_BRUTS);
-        for (BrutRebranche brut : bruts) {
-            Long idReel = originalDao
-                    .insert(construireOriginal(session.id(), racineBruts, brut, frequenceAcquisitionHz))
-                    .id();
-            for (SequenceDEcoute sequence : brut.sequences()) {
-                sequenceDao.majOriginal(sequence.id(), idReel);
+        // Le gros de l'écriture, d'un seul tenant : un INSERT par brut et un rattachement par séquence, soit
+        // des milliers d'ordres sur une nuit reconstruite. Auto-commités un à un, ils coûtaient autant de
+        // `fsync` - et l'observateur attendait sans rien voir.
+        uniteDeTravail.executer(connexion -> {
+            for (BrutRebranche brut : bruts) {
+                Long idReel = originalDao
+                        .insert(connexion, construireOriginal(session.id(), racineBruts, brut, frequenceAcquisitionHz))
+                        .id();
+                for (SequenceDEcoute sequence : brut.sequences()) {
+                    sequenceDao.majOriginal(connexion, sequence.id(), idReel);
+                }
             }
-        }
+        });
+        // Hors transaction, à dessein : quelques ordres tout au plus, et la lecture doit voir les
+        // rattachements que l'on vient de valider.
         for (EnregistrementOriginal placeholder : placeholders) {
             if (sequenceDao.findByOriginal(placeholder.id()).isEmpty()) {
                 originalDao.delete(placeholder.id());

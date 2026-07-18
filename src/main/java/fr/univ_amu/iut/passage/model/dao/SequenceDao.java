@@ -20,6 +20,9 @@ import java.util.List;
 /// [#lireIntNullable(ResultSet, String)] pour préserver le `null`.
 public class SequenceDao extends DaoGenerique<SequenceDEcoute, Long> {
 
+    private static final String SQL_MAJ_ORIGINAL =
+            "UPDATE listening_sequence SET original_recording_id = ? WHERE id = ?";
+
     private static final RowMapper<SequenceDEcoute> MAPPER = rs -> new SequenceDEcoute(
             rs.getLong("id"),
             rs.getString("file_name"),
@@ -198,9 +201,13 @@ public class SequenceDao extends DaoGenerique<SequenceDEcoute, Long> {
     /// reconstruit remplace le placeholder par les vrais originaux régénérés, et rebranche chaque séquence
     /// sur le sien. Maj ciblée, sans réécrire les autres colonnes.
     public void majOriginal(long idSequence, long idEnregistrementOriginal) {
-        executerMaj(
-                "UPDATE listening_sequence SET original_recording_id = ? WHERE id = ?",
-                idEnregistrementOriginal,
-                idSequence);
+        executerMaj(SQL_MAJ_ORIGINAL, idEnregistrementOriginal, idSequence);
+    }
+
+    /// Variante transactionnelle de [#majOriginal(long, long)] : écrit sur la **connexion fournie**, pour
+    /// grouper des milliers de rattachements dans une seule [fr.univ_amu.iut.commun.persistence.UniteDeTravail]
+    /// plutôt que d'auto-commiter chacun.
+    public void majOriginal(Connection connexion, long idSequence, long idEnregistrementOriginal) throws SQLException {
+        executerMaj(connexion, SQL_MAJ_ORIGINAL, idEnregistrementOriginal, idSequence);
     }
 }

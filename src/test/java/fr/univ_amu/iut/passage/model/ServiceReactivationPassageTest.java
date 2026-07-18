@@ -27,6 +27,7 @@ import fr.univ_amu.iut.commun.model.Workspace;
 import fr.univ_amu.iut.commun.model.dao.UtilisateurDao;
 import fr.univ_amu.iut.commun.persistence.MigrationSchema;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
+import fr.univ_amu.iut.commun.persistence.UniteDeTravail;
 import fr.univ_amu.iut.importation.model.AnalyseurLogPR;
 import fr.univ_amu.iut.importation.model.InspecteurDossier;
 import fr.univ_amu.iut.importation.model.InventaireParInspection;
@@ -125,7 +126,11 @@ class ServiceReactivationPassageTest {
         // reproduire les tranches à l'identique - la faire jouer ici prouve la chaîne de bout en bout.
         regeneration = new RegenerationParTransformationAudio(new TransformationAudio());
         adoption = new AdoptionOriginauxReconstruits(
-                originalDao, sequenceDao, sessionDao, new HorlogeFigee(LocalDateTime.of(2026, 7, 16, 20, 0)));
+                originalDao,
+                sequenceDao,
+                sessionDao,
+                new UniteDeTravail(source),
+                new HorlogeFigee(LocalDateTime.of(2026, 7, 16, 20, 0)));
         service = new ServiceReactivationPassage(
                 sessionDao,
                 sequenceDao,
@@ -254,6 +259,26 @@ class ServiceReactivationPassageTest {
         avecImport(importObservations).reactiver(idPassage, vide, progres -> {});
 
         verify(importObservations, never()).importer(eq(idPassage), eq(true), any());
+    }
+
+    @Test
+    @DisplayName("Sur une nuit reconstruite, l'écriture en base des fichiers retrouvés se nomme aussi")
+    void l_adoption_des_originaux_se_nomme() throws IOException {
+        reconstruireAvecBrutEtLog();
+        List<Progression> avancement = new ArrayList<>();
+
+        service.reactiver(idPassage, sauvegarde, avancement::add);
+
+        // C'est ce geste qui écrit les milliers de rattachements d'une nuit reconstruite : sur une vraie
+        // nuit, c'est sur SON libellé que l'attente se passe, pas sur ceux qui le suivent. Le nommer après
+        // coup revenait à laisser l'écran muet pendant tout ce temps (constaté : plus de deux minutes).
+        assertThat(avancement)
+                .extracting(Progression::libelle)
+                .as("l'adoption se nomme, et avant les étapes qui la suivent")
+                .containsSubsequence(
+                        "Enregistrement des fichiers retrouvés…",
+                        "Vérification de l'audio disponible…",
+                        "Recherche de ce qu'il reste à récupérer…");
     }
 
     @Test

@@ -59,6 +59,11 @@ import java.util.function.Consumer;
 /// surface : hors du fil JavaFX, progression, annulation, rapport honnête (jamais un simple « c'est fait »).
 public class ServiceReactivationPassage {
 
+    /// Ce que fait la phase disque quand une nuit **reconstruite** vient d'être hydratée : inscrire en base
+    /// les enregistrements retrouvés et y rattacher leurs séquences. Nommé parce que c'est le geste le plus
+    /// long de la fin de phase, et qu'il ne se voyait nulle part.
+    private static final String ADOPTION_ORIGINAUX = "Enregistrement des fichiers retrouvés…";
+
     /// Ce que fait la phase disque une fois les séquences traitées : recompter l'audio présent et remettre
     /// la fiche d'aplomb. Nommé parce que c'est long et que rien d'autre ne le montre.
     private static final String VERIFICATION_AUDIO = "Vérification de l'audio disponible…";
@@ -197,6 +202,9 @@ public class ServiceReactivationPassage {
                 voie = VoieReactivation.BRUTS;
                 ResultatHydratation resultat = hydrate.orElseThrow();
                 bilan = resultat.bilan();
+                // Nommée AVANT de s'exécuter : c'est elle qui écrit les milliers de rattachements, donc
+                // c'est sur son libellé que se passe l'attente, pas sur celui qui la suit.
+                progresRegeneration.accept(new Progression(ADOPTION_ORIGINAUX, 1.0));
                 adopterOriginaux(session, originaux, resultat);
             } else {
                 bilan = rebranchement.rebrancher(sequences, candidats, OrigineCandidats.DOSSIER, progresRegeneration);

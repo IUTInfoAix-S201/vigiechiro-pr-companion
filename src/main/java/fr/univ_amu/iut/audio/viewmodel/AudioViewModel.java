@@ -468,6 +468,13 @@ public class AudioViewModel {
         return messages.retourProperty();
     }
 
+    /// Signale dans le bandeau qu'une action **n'a pas eu lieu**, faute de cible : guidage, pas échec
+    /// technique (sévérité `INFO`). Sert au double-clic sur un taxon sans fiche (#1834), dont le silence
+    /// se lisait comme une panne.
+    public void signaler(String texte) {
+        messages.info(texte);
+    }
+
     /// Efface le retour d'opération (l'utilisateur a lu le bandeau et le ferme). Le bandeau disparaît.
     public void effacerRetour() {
         messages.effacerRetour();

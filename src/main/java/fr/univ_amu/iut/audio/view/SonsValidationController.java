@@ -412,7 +412,9 @@ public class SonsValidationController implements EmplacementNavigation, ResumeSt
         PanneauDiscussion.installer(hoteDiscussion, tableObservations, viewModel, appuis.executeur());
         // Double-clic sur une observation → fiche de l'espèce (#1794), même cible que « Fiche de l'espèce »
         // du menu ☰. Le clic droit sélectionne la ligne survolée sans casser une sélection multiple.
-        DoubleClicLigne.installer(tableObservations, actionsMenu::ouvrirFiche);
+        // Sur un taxon sans fiche (« Bruit », « Oiseau »), le motif part dans le bandeau plutôt que dans le
+        // vide : le geste restait muet et passait pour cassé (#1834).
+        DoubleClicLigne.installer(tableObservations, ligne -> actionsMenu.ouvrirFiche(ligne, viewModel::signaler));
 
         tableObservations.getSelectionModel().selectedItemProperty().addListener((obs, ancienne, nouvelle) -> {
             viewModel.selectionProperty().set(nouvelle);

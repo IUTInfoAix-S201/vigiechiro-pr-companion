@@ -73,14 +73,21 @@ public final class ActionFicheEspece {
 
     /// Ouvre la fiche de `espece` dans le navigateur système **si** une fiche est constructible : une
     /// éventuelle résolution (GBIF recherche → fiche, #922) tourne hors du fil JavaFX, puis l'ouverture est
-    /// reprise sur ce fil ([ExecuteurFiche]). Quand aucune fiche n'est disponible (pseudo-taxons
-    /// `noise`/`piaf`, couple sans binôme), l'appel est **inerte**. Point d'entrée **impératif** partagé
-    /// entre le menu contextuel ([#configurer]) et les autres gestes des vues espèces (double-clic, #1792) :
-    /// une même logique d'ouverture, un seul endroit.
-    public void ouvrir(EspeceIdentifiee espece) {
-        constructeur
-                .lienFiche(espece)
-                .ifPresent(url -> executeur.resoudrePuisOuvrir(() -> resolveur.resoudre(url), ouvreur::ouvrir));
+    /// reprise sur ce fil ([ExecuteurFiche]). Point d'entrée **impératif** partagé entre le menu contextuel
+    /// ([#configurer]) et les autres gestes des vues espèces (double-clic, #1792) : une même logique
+    /// d'ouverture, un seul endroit.
+    ///
+    /// **Rend compte** de ce qu'il advient, au lieu d'être simplement inerte quand aucune fiche n'est
+    /// disponible (pseudo-taxons `noise`/`piaf`, couple sans binôme). Un menu peut griser son item et en
+    /// afficher le motif ([#configurer]) ; un double-clic, lui, n'a pas d'état à montrer avant le geste,
+    /// et son silence se lit comme une panne (#1834). L'appelant apprend donc que rien ne s'est ouvert et
+    /// le signale avec le vocabulaire de son écran.
+    ///
+    /// @return `true` si une fiche a été ouverte, `false` si `espece` n'en a aucune
+    public boolean ouvrir(EspeceIdentifiee espece) {
+        Optional<String> lien = constructeur.lienFiche(espece);
+        lien.ifPresent(url -> executeur.resoudrePuisOuvrir(() -> resolveur.resoudre(url), ouvreur::ouvrir));
+        return lien.isPresent();
     }
 
     private static String libelle(EspeceIdentifiee espece) {

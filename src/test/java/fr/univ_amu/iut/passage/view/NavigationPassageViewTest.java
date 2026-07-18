@@ -14,6 +14,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -58,7 +59,28 @@ class NavigationPassageViewTest {
     @DisplayName("ouvrir(idPassage, contexte) charge l'écran M-Passage via Guice")
     void ouvrir_affiche_l_ecran(FxRobot robot) {
         Label message = robot.lookup("#lblMessage").queryAs(Label.class);
+        // #1889 : le libellé vit désormais DANS le bandeau de retour ; c'est le conteneur qui porte la
+        // visibilité et la sévérité.
+        HBox bandeau = robot.lookup("#bandeauRetour").queryAs(HBox.class);
 
         assertThat(message.getText()).contains("introuvable");
+        assertThat(bandeau.isVisible()).isTrue();
+        assertThat(bandeau.getStyleClass())
+                .as("un passage introuvable est un échec de chargement, pas une information")
+                .contains("retour-erreur");
+    }
+
+    @Test
+    @DisplayName("La croix du bandeau efface le retour et retire le bandeau de la mise en page")
+    void croix_efface_le_retour(FxRobot robot) {
+        HBox bandeau = robot.lookup("#bandeauRetour").queryAs(HBox.class);
+        assertThat(bandeau.isVisible()).isTrue();
+
+        robot.clickOn("#btnFermerRetour");
+
+        assertThat(bandeau.isVisible()).isFalse();
+        assertThat(bandeau.isManaged())
+                .as("le bandeau ne doit pas garder de place vide")
+                .isFalse();
     }
 }

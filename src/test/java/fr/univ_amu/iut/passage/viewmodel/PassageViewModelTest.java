@@ -12,6 +12,7 @@ import fr.univ_amu.iut.commun.model.Verdict;
 import fr.univ_amu.iut.commun.persistence.ServicePurgeOriginaux;
 import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
 import fr.univ_amu.iut.commun.viewmodel.EtatEtape;
+import fr.univ_amu.iut.commun.viewmodel.RetourOperation;
 import fr.univ_amu.iut.passage.model.DecompteAudio;
 import fr.univ_amu.iut.passage.model.DetailPassage;
 import fr.univ_amu.iut.passage.model.MeteoReleve;
@@ -100,7 +101,7 @@ class PassageViewModelTest {
         assertThat(viewModel.volumeBrutsProperty().get()).isEqualTo("4 Ko");
         assertThat(viewModel.volumeTransformesProperty().get()).isEqualTo("1 Ko");
         assertThat(viewModel.dureeEnregistreeProperty().get()).isEqualTo("2 min 30 s");
-        assertThat(viewModel.messageProperty().get()).isEmpty();
+        assertThat(viewModel.retourProperty().get()).isEqualTo(RetourOperation.AUCUN);
     }
 
     @Test
@@ -233,15 +234,39 @@ class PassageViewModelTest {
     }
 
     @Test
-    @DisplayName("Un passage introuvable est restitué dans le message et laisse l'état vide")
+    @DisplayName("Un passage introuvable est restitué en erreur et laisse l'état vide")
     void passage_introuvable() {
         when(service.detailPassage(99L)).thenThrow(new RegleMetierException("Passage introuvable : 99"));
 
         viewModel.ouvrirSur(99L, CONTEXTE);
 
-        assertThat(viewModel.messageProperty().get()).contains("introuvable");
+        assertThat(viewModel.retourProperty().get().texte()).contains("introuvable");
+        assertThat(viewModel.retourProperty().get().severite()).isEqualTo(RetourOperation.Severite.ERREUR);
         assertThat(viewModel.statutProperty().get()).isNull();
         assertThat(viewModel.etapes()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Fermer le bandeau efface le retour sans toucher au reste de la fiche")
+    void effacer_retour() {
+        when(service.detailPassage(99L)).thenThrow(new RegleMetierException("Passage introuvable : 99"));
+        viewModel.ouvrirSur(99L, CONTEXTE);
+
+        viewModel.effacerRetour();
+
+        assertThat(viewModel.retourProperty().get()).isEqualTo(RetourOperation.AUCUN);
+    }
+
+    @Test
+    @DisplayName("Rouvrir la fiche sur un passage valide efface le retour de l'échec précédent")
+    void ouverture_reussie_efface_le_retour_precedent() {
+        when(service.detailPassage(99L)).thenThrow(new RegleMetierException("Passage introuvable : 99"));
+        viewModel.ouvrirSur(99L, CONTEXTE);
+        when(service.detailPassage(ID_PASSAGE)).thenReturn(detail(StatutWorkflow.VERIFIE));
+
+        viewModel.ouvrirSur(ID_PASSAGE, CONTEXTE);
+
+        assertThat(viewModel.retourProperty().get()).isEqualTo(RetourOperation.AUCUN);
     }
 
     @Test

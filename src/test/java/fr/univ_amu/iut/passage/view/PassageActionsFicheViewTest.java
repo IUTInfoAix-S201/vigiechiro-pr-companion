@@ -41,6 +41,8 @@ import java.util.Optional;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
+import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -274,7 +276,7 @@ class PassageActionsFicheViewTest {
     }
 
     @Test
-    @DisplayName("#1405 : refus métier de l'annulation de dépôt : l'utilisateur est averti")
+    @DisplayName("#1889 : refus de l'annulation de dépôt : bandeau d'erreur, sans bloquer (rien n'est détruit)")
     void annulation_du_depot_refusee_par_le_service(FxRobot robot) {
         rouvrirEn(robot, StatutWorkflow.DEPOSE);
         doThrow(new RegleMetierException("Ce passage n'est pas déposé."))
@@ -283,10 +285,14 @@ class PassageActionsFicheViewTest {
 
         cliquer(robot, "#boutonAnnulerDepot");
 
-        assertThat(niveaux).containsExactly(NiveauNotification.AVERTISSEMENT);
+        HBox bandeau = robot.lookup("#bandeauRetour").queryAs(HBox.class);
+        Label message = robot.lookup("#lblMessage").queryAs(Label.class);
+        assertThat(bandeau.isVisible()).isTrue();
+        assertThat(bandeau.getStyleClass()).contains("retour-erreur");
+        assertThat(message.getText()).contains("n'est pas déposé");
         assertThat(annonces)
-                .singleElement()
-                .satisfies(annonce -> assertThat(annonce).contains("Annulation impossible"));
+                .as("annuler un dépôt ne détruit rien : son refus ne doit plus bloquer (ADR 0023)")
+                .isEmpty();
     }
 
     @Test

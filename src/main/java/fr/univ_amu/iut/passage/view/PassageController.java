@@ -5,6 +5,7 @@ import fr.univ_amu.iut.commun.model.CompteurValidations;
 import fr.univ_amu.iut.commun.model.PortailVigieChiro;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.model.Verdict;
+import fr.univ_amu.iut.commun.view.BandeauRetour;
 import fr.univ_amu.iut.commun.view.ConfirmateurModifiable;
 import fr.univ_amu.iut.commun.view.EmplacementNavigation;
 import fr.univ_amu.iut.commun.view.EmplacementPassage;
@@ -148,7 +149,13 @@ public class PassageController implements EmplacementNavigation, RafraichirAuRet
     private HBox stepper;
 
     @FXML
+    private HBox bandeauRetour;
+
+    @FXML
     private Label lblMessage;
+
+    @FXML
+    private Button btnFermerRetour;
 
     @FXML
     private Label lblVolBruts;
@@ -289,10 +296,9 @@ public class PassageController implements EmplacementNavigation, RafraichirAuRet
         viewModel.etapes().addListener((ListChangeListener<EtapeWorkflow>) changement -> majStepper());
         majStepper();
 
-        lblMessage.textProperty().bind(viewModel.messageProperty());
-        var messagePresent = viewModel.messageProperty().isNotEmpty();
-        lblMessage.visibleProperty().bind(messagePresent);
-        lblMessage.managedProperty().bind(messagePresent);
+        // Bandeau de retour partagé (ADR 0023) : libellé, visibilité, sévérité et croix de fermeture.
+        BandeauRetour.installer(
+                bandeauRetour, lblMessage, btnFermerRetour, viewModel.retourProperty(), viewModel::effacerRetour);
 
         // Résumé de la nuit (stats) + cartes d'actions.
         lblVolBruts.textProperty().bind(viewModel.volumeBrutsProperty());

@@ -8,6 +8,7 @@ import fr.univ_amu.iut.commun.persistence.ServicePurgeOriginaux;
 import fr.univ_amu.iut.commun.viewmodel.ContextePassage;
 import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
 import fr.univ_amu.iut.commun.viewmodel.Formats;
+import fr.univ_amu.iut.commun.viewmodel.RetourOperation;
 import fr.univ_amu.iut.passage.model.DetailPassage;
 import fr.univ_amu.iut.passage.model.RapportReactivation;
 import fr.univ_amu.iut.passage.model.ServiceArchivagePassage;
@@ -77,7 +78,8 @@ public class PassageViewModel {
             new ReadOnlyStringWrapper(this, "motifBlocageVerification", "");
     private final ReadOnlyObjectWrapper<ActionRecommandee> actionRecommandee =
             new ReadOnlyObjectWrapper<>(this, "actionRecommandee", ActionRecommandee.AUCUNE);
-    private final ReadOnlyStringWrapper message = new ReadOnlyStringWrapper(this, "message", "");
+    private final ReadOnlyObjectWrapper<RetourOperation> retour =
+            new ReadOnlyObjectWrapper<>(this, "retour", RetourOperation.AUCUN);
 
     /// Identifiant du passage affiché, mémorisé pour les actions (ex. suppression).
     private Long idPassage;
@@ -101,7 +103,7 @@ public class PassageViewModel {
     /// [#appliquer] : conservée pour les enchaînements d'actions déjà sur le fil JavaFX (rechargement
     /// après suppression refusée, annulation du dépôt, purge). L'ouverture d'écran passe, elle, par le
     /// couple charger/appliquer sous le voile d'occupation (#1213). Une erreur (passage introuvable)
-    /// est restituée dans [#messageProperty()] sans lever.
+    /// est restituée dans [#retourProperty()] sans lever.
     public void ouvrirSur(Long idPassage, ContexteSite contexte) {
         try {
             appliquer(idPassage, charger(idPassage), contexte);
@@ -121,15 +123,15 @@ public class PassageViewModel {
     public void appliquer(Long idPassage, DetailPassage detail, ContexteSite contexte) {
         this.idPassage = idPassage;
         appliquer(detail, contexte);
-        message.set("");
+        retour.set(RetourOperation.AUCUN);
     }
 
-    /// Route un échec de chargement vers le message de l'écran (#795), **sur le fil JavaFX** : la
-    /// fiche est réinitialisée pour ne pas exposer l'état d'un autre passage.
+    /// Route un échec de chargement vers le bandeau de retour de l'écran (#795), **sur le fil
+    /// JavaFX** : la fiche est réinitialisée pour ne pas exposer l'état d'un autre passage.
     public void signalerErreur(Long idPassage, Throwable erreur) {
         this.idPassage = idPassage;
         reinitialiser();
-        message.set(erreur.getMessage());
+        retour.set(RetourOperation.erreur(erreur.getMessage()));
     }
 
     /// Supprime le passage courant (action « Supprimer » de M-Passage). Délègue à
@@ -401,8 +403,21 @@ public class PassageViewModel {
         return actionRecommandee.getReadOnlyProperty();
     }
 
-    /// Message d'erreur (passage introuvable), vide en fonctionnement nominal.
-    public ReadOnlyStringProperty messageProperty() {
-        return message.getReadOnlyProperty();
+    /// Compte rendu de l'ouverture de la fiche (passage introuvable), rendu par le bandeau partagé
+    /// (ADR 0023). Vaut [RetourOperation#AUCUN] en fonctionnement nominal.
+    public ReadOnlyObjectProperty<RetourOperation> retourProperty() {
+        return retour.getReadOnlyProperty();
+    }
+
+    /// Publie le refus d'une action **réversible** dans le bandeau de l'écran (ADR 0023) : rien n'a été
+    /// détruit, donc rien ne justifie de bloquer l'utilisateur. Les refus d'actions irréversibles
+    /// (suppression, purge, archivage) restent modaux et ne passent pas par ici.
+    public void signalerRefus(String motif) {
+        retour.set(RetourOperation.erreur(motif));
+    }
+
+    /// Efface le retour (l'utilisateur a lu le bandeau et le ferme).
+    public void effacerRetour() {
+        retour.set(RetourOperation.AUCUN);
     }
 }

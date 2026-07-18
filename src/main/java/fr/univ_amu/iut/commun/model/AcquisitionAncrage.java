@@ -21,7 +21,7 @@ import java.util.function.Consumer;
 /// réactivation dans `passage`, et un pont direct entre elles serait un cycle (ADR 0004).
 public final class AcquisitionAncrage {
 
-    private static final String LIBELLE = "Récupération des identifiants depuis VigieChiro…";
+    private static final String LIBELLE = "Récupération des identifiants depuis Vigie-Chiro…";
 
     private AcquisitionAncrage() {}
 

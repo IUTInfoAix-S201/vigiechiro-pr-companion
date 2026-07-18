@@ -139,7 +139,7 @@ disponible, et le décompte vous le dit.
     La réactivation **copie** : votre dossier source reste intact, et vos observations comme vos
     validations ne sont jamais recalculées — on rebranche des chemins, rien d'autre.
 
-!!! info "Un passage reconstruit depuis VigieChiro"
+!!! info "Un passage reconstruit depuis Vigie-Chiro"
     Si ce passage avait été **reconstruit** (récupéré depuis la plateforme sans que vous ayez conservé
     l'audio localement), la réactivation fait une chose de plus : elle **rétablit le lien** entre vos
     observations et la plateforme, pour que vous puissiez de nouveau **publier vos corrections**. C'est
@@ -169,7 +169,7 @@ rien** : il serait absurde de recalculer des séquences à partir d'un fichier d
 
 !!! info "Un passage *reconstruit* n'avait, lui, aucune empreinte"
     Ce qui précède vaut pour un passage que vous aviez importé puis archivé : ses empreintes avaient été
-    relevées avant l'archivage. Un passage **reconstruit** (récupéré depuis VigieChiro sans que l'audio
+    relevées avant l'archivage. Un passage **reconstruit** (récupéré depuis Vigie-Chiro sans que l'audio
     soit jamais passé par cette machine) n'en a **aucune**, ni sur ses séquences, ni sur ses bruts. La
     réactivation depuis les bruts fonctionne pourtant — c'est même le **seul** moyen de récupérer son
     audio — mais elle s'appuie sur ce dont elle dispose : les tranches régénérées sont un **extrait
@@ -219,10 +219,10 @@ Deux boutons, deux sens :
 
 | Bouton | Ce qu'il fait |
 |---|---|
-| **Récupérer depuis VigieChiro** | lit sur la plateforme la météo, le micro et l'enregistreur de cette nuit, et remplit le formulaire |
-| **Envoyer vers VigieChiro** | pousse vers la plateforme ce que vous venez de saisir |
+| **Récupérer depuis Vigie-Chiro** | lit sur la plateforme la météo, le micro et l'enregistreur de cette nuit, et remplit le formulaire |
+| **Envoyer vers Vigie-Chiro** | pousse vers la plateforme ce que vous venez de saisir |
 
-![La fenêtre « Modifier le passage » connectée : les boutons « Récupérer depuis VigieChiro » et « Envoyer vers VigieChiro » apparaissent en haut.](../assets/captures/apercu-passage-rattachement-connecte.png)
+![La fenêtre « Modifier le passage » connectée : les boutons « Récupérer depuis Vigie-Chiro » et « Envoyer vers Vigie-Chiro » apparaissent en haut.](../assets/captures/apercu-passage-rattachement-connecte.png)
 
 **Récupérer** sert quand la nuit a été préparée sur le **site web** : inutile de ressaisir ce qui existe
 déjà. **Envoyer** fait l'inverse, et vous dit s'il a réussi : en cas d'échec (hors connexion, refus du

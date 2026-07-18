@@ -78,7 +78,7 @@ public sealed interface ReponseApi<T> {
 
         @Override
         public Optional<String> echec() {
-            return Optional.of("non connecté à VigieChiro (aucun jeton).");
+            return Optional.of("non connecté à Vigie-Chiro (aucun jeton).");
         }
     }
 
@@ -113,7 +113,7 @@ public sealed interface ReponseApi<T> {
 
         @Override
         public Optional<String> echec() {
-            return Optional.of("VigieChiro injoignable : " + cause + ".");
+            return Optional.of("Vigie-Chiro injoignable : " + cause + ".");
         }
     }
 

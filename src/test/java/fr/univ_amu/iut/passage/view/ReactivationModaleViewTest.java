@@ -127,7 +127,7 @@ class ReactivationModaleViewTest {
                 (progresRegeneration, progresAncrage, jeton) -> {
                     progresRegeneration.accept(new Progression("Vérification 30/30", 1.0));
                     progresAncrage.accept(
-                            new Progression("Récupération des identifiants depuis VigieChiro… (page 1/2)", 0.5));
+                            new Progression("Récupération des identifiants depuis Vigie-Chiro… (page 1/2)", 0.5));
                     return new RapportReactivation(
                             30,
                             0,
@@ -146,7 +146,7 @@ class ReactivationModaleViewTest {
         // Le libellé dit le sens réel de l'échange (#1853) : cette phase *récupère* les identifiants, elle
         // n'écrit rien sur la plateforme — « Ancrage … sur VigieChiro » laissait croire l'inverse.
         assertThat(robot.lookup("#lblAncrage").queryAs(Label.class).getText())
-                .contains("Récupération des identifiants depuis VigieChiro");
+                .contains("Récupération des identifiants depuis Vigie-Chiro");
     }
 
     @Test
@@ -159,7 +159,7 @@ class ReactivationModaleViewTest {
 
         String compteRendu =
                 robot.lookup("#lblCompteRendu").queryAs(Label.class).getText();
-        assertThat(compteRendu).contains("reconstruit depuis VigieChiro");
+        assertThat(compteRendu).contains("reconstruit depuis Vigie-Chiro");
         assertThat(compteRendu)
                 .as("les fichiers peuvent être présents : ne pas prétendre le contraire")
                 .doesNotContain("introuvables");

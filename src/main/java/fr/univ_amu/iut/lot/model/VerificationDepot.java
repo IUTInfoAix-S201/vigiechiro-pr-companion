@@ -51,7 +51,7 @@ public final class VerificationDepot {
         String participationId = participations
                 .participationDe(idPassage)
                 .orElseThrow(() -> new RegleMetierException(
-                        "Ce passage n’est lié à aucune participation VigieChiro : rien à vérifier"
+                        "Ce passage n’est lié à aucune participation Vigie-Chiro : rien à vérifier"
                                 + " (déposez-le d’abord)."));
         List<DepotUnite> unites = depotUnites.parPassage(idPassage);
         if (unites.isEmpty()) {

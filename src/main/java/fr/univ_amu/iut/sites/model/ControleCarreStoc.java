@@ -42,7 +42,7 @@ public class ControleCarreStoc {
             case ReponseApi.Succes<Optional<String>>(Optional<String> numero) -> verdict(carreDeclare, numero);
             case ReponseApi.NonConnecte<Optional<String>> nonConnecte -> new VerdictCarre.Indisponible();
             case ReponseApi.Injoignable<Optional<String>>(String cause) -> {
-                LOG.log(Level.FINE, () -> "Contrôle du carré STOC ignoré (VigieChiro injoignable : " + cause + ")");
+                LOG.log(Level.FINE, () -> "Contrôle du carré STOC ignoré (Vigie-Chiro injoignable : " + cause + ")");
                 yield new VerdictCarre.Indisponible();
             }
             case ReponseApi.Refuse<Optional<String>>(int statut, String corps) -> {

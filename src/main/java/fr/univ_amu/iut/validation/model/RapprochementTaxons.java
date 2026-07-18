@@ -54,12 +54,12 @@ public class RapprochementTaxons implements RapprochementVigieChiro {
                 case ReponseApi.Succes<List<TaxonVigieChiro>>(List<TaxonVigieChiro> officiels) -> fusionner(officiels);
                 case ReponseApi.NonConnecte<List<TaxonVigieChiro>> nonConnecte -> Optional.empty();
                 case ReponseApi.Injoignable<List<TaxonVigieChiro>>(String cause) ->
-                    Optional.of(RapportSynchro.empechee(LIBELLE_TAXONS, "VigieChiro injoignable : " + cause));
+                    Optional.of(RapportSynchro.empechee(LIBELLE_TAXONS, "Vigie-Chiro injoignable : " + cause));
                 case ReponseApi.Refuse<List<TaxonVigieChiro>>(int statut, String corps) ->
                     Optional.of(RapportSynchro.empechee(LIBELLE_TAXONS, "refus HTTP " + statut));
             };
         } catch (RuntimeException echec) {
-            LOG.log(Level.FINE, echec, () -> "Synchronisation des taxons VigieChiro ignorée (best-effort)");
+            LOG.log(Level.FINE, echec, () -> "Synchronisation des taxons Vigie-Chiro ignorée (best-effort)");
             return Optional.empty();
         }
     }

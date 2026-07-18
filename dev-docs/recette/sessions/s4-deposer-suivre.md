@@ -69,7 +69,7 @@ participation », puis le suivi du traitement. S4 est la première session qui *
 *A3 · Téléverser (refus « site non relié »)*
 
 15. « ☁ Téléverser sur Vigie-Chiro » est présent (l'application est connectée).
-16. Le clic échoue proprement avec « Site non rattaché à VigieChiro… » (640380) : **rien** n'a été écrit.
+16. Le clic échoue proprement avec « Site non rattaché à Vigie-Chiro… » (640380) : **rien** n'a été écrit.
 17. Rien, avant ce clic, n'annonçait le dépôt impossible sur ce site (S4-C01 : le garde-fou arrive après
     la génération).
 18. « 📂 Ouvrir le dossier (dépôt manuel) » ouvre le dossier `depot/`.
@@ -120,7 +120,7 @@ participation », puis le suivi du traitement. S4 est la première session qui *
 43. Modale « Modifier le passage » : le champ **Enregistreur** propose le n° de série lu dans les noms de
     fichiers de la nuit (`LogPR…` / `PaRecPR…`).
 44. Saisir « INCONNU » est **refusé** (ce n'est pas une valeur, c'est un aveu d'ignorance).
-45. « Envoyer vers VigieChiro » affiche un compte rendu, succès **comme** échec.
+45. « Envoyer vers Vigie-Chiro » affiche un compte rendu, succès **comme** échec.
 46. Sur la **fiche web** rechargée : le n° de série **apparaît** dans le champ du formulaire (et pas
     seulement dans le JSON) - c'est le défaut de clé de #1844.
 47. Sur la **fiche web** : les **températures** de début et de fin de nuit apparaissent.
@@ -154,13 +154,13 @@ Ce bloc ne s'automatise pas : il mesure des **durées réelles** contre la plate
 annulation interrompt vraiment un téléchargement en cours. Les tests couvrent la logique ; ils ne
 peuvent pas dire si le premier import « paraît instantané » ni si « Annuler » rend la main.
 
-60. Sur la nuit analysée, « ☰ → Importer depuis VigieChiro… » ramène les observations **sans fenêtre de
+60. Sur la nuit analysée, « ☰ → Importer depuis Vigie-Chiro… » ramène les observations **sans fenêtre de
     progression paginée** (voie CSV) : noter la durée observée.
 61. Les observations sont à l'écran, colonne « Avis validateur » **vide** (le CSV ne la porte pas).
 62. « ☰ → Publier les corrections… » est **actif** (non grisé) sur cette nuit tout juste importée.
 63. Après avoir corrigé une observation et déclaré sa certitude, la confirmation annonce « N prête(s) à
     partir, et M à ancrer d'abord ».
-64. À l'accord, une fenêtre « Récupération des identifiants depuis VigieChiro… (page x/y) » s'affiche et
+64. À l'accord, une fenêtre « Récupération des identifiants depuis Vigie-Chiro… (page x/y) » s'affiche et
     **progresse** : noter la durée totale.
 65. Le bouton **Annuler** de cette fenêtre rend la main **avant** la fin, et le bandeau n'annonce aucune
     publication.
@@ -169,7 +169,7 @@ peuvent pas dire si le premier import « paraît instantané » ni si « Annuler
 67. Sur le portail Vigie-Chiro, l'observation porte le taxon et la certitude déclarés ici.
 68. Republier immédiatement : la publication repart **sans** repasser par la récupération des
     identifiants (ils sont désormais en base).
-69. « ☰ → Réimporter depuis VigieChiro… » repasse, lui, par la fenêtre **paginée**, et la colonne « Avis
+69. « ☰ → Réimporter depuis Vigie-Chiro… » repasse, lui, par la fenêtre **paginée**, et la colonne « Avis
     validateur » se **remplit** si le MNHN a tranché.
 
 ## Constats candidats (desk-check, à confirmer en séance)

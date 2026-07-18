@@ -81,7 +81,7 @@ public final class Reactiver implements Callable<Integer> {
         if (rapport.voie() == VoieReactivation.RECONSTRUIT) {
             // Passage reconstruit depuis la plateforme (#1648) : ni empreinte ni fréquence d'acquisition en
             // base, donc rien à apparier ni à régénérer. On le DIT au lieu de prétendre « introuvables ».
-            return "Passage reconstruit depuis VigieChiro : le nom des "
+            return "Passage reconstruit depuis Vigie-Chiro : le nom des "
                     + rapport.decompte().total()
                     + " séquence(s) est connu, mais pas la correspondance avec les fichiers d'origine ni les"
                     + " empreintes nécessaires pour les régénérer. La réactivation depuis les bruts n'est pas"

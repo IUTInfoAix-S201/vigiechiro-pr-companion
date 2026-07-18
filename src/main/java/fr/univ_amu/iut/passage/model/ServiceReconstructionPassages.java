@@ -349,8 +349,8 @@ public class ServiceReconstructionPassages implements RapprochementVigieChiro {
         // Vérifié AVANT toute écriture : un passage reconstruit sans ses observations ne serait qu'une
         // coquille, et mieux vaut ne rien créer que créer à moitié.
         ImportObservations importateur = importObservations.orElseThrow(() -> new RegleMetierException(
-                "La reconstruction rapatrie les observations depuis VigieChiro, et la fonctionnalité"
-                        + " « Import VigieChiro » est désactivée : réactivez-la (menu ☰ > Fonctionnalités)"
+                "La reconstruction rapatrie les observations depuis Vigie-Chiro, et la fonctionnalité"
+                        + " « Import Vigie-Chiro » est désactivée : réactivez-la (menu ☰ > Fonctionnalités)"
                         + " puis recommencez."));
 
         progres.accept(new Progression("Lecture de la participation…", 0.05));

@@ -35,7 +35,7 @@ public class ImportVigieChiroModule extends ModuleDeFeature {
     /// ne binde aucun contrat `Ouvrir…`) donc désactivable en sécurité : feature de référence.
     @Override
     public Fonctionnalite fonctionnalite() {
-        return new Fonctionnalite("import-vigiechiro", "Import depuis VigieChiro", Categorie.OPTIONNELLE);
+        return new Fonctionnalite("import-vigiechiro", "Import depuis Vigie-Chiro", Categorie.OPTIONNELLE);
     }
 
     @Override

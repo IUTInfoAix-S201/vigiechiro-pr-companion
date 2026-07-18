@@ -185,7 +185,7 @@ d'identification 24 à 48 h plus tard, voir le [parcours](../parcours/index.md))
 d'**importer le fichier CSV** de résultats Tadarida, puis d'**exporter** le fichier `_Vu` réinjectable
 (avec, en option, la trace du mode de validation). Ces actions propres au passage vivent dans le menu « ☰ ».
 
-Plutôt que d'importer le CSV à la main, le menu **☰ → Importer depuis VigieChiro…** récupère les
+Plutôt que d'importer le CSV à la main, le menu **☰ → Importer depuis Vigie-Chiro…** récupère les
 résultats **directement depuis la plateforme** (application [connectée](../connexion-vigiechiro.md),
 passage déposé et traité). Si le passage n'est pas encore relié à une participation, l'application
 propose de choisir la bonne dans la liste de vos participations. L'import CSV reste disponible en
@@ -219,7 +219,7 @@ reste grisée (« passage non lié ») tant que le passage n'a pas de participat
 ### Publier vos corrections vers Vigie-Chiro
 
 Dans l'autre sens, une fois vos observations revues (taxon retenu **et** certitude déclarée), le
-menu **☰ → Publier les corrections vers VigieChiro…** pousse vos décisions vers la plateforme :
+menu **☰ → Publier les corrections vers Vigie-Chiro…** pousse vos décisions vers la plateforme :
 chaque observation publiée y porte alors votre taxon et votre confiance d'observateur, comme si
 vous les aviez saisis sur le site. Une **confirmation récapitule** d'abord ce qui va partir et ce
 qui restera à quai : les observations **sans certitude** (déclarez-la d'abord) et les taxons **hors
@@ -228,7 +228,7 @@ référentiel**. La publication est **rejouable sans risque** : republier rééc
 Vos observations n'ont pas besoin d'être « rattachées » une par une à la plateforme au préalable :
 si ce lien manque, la publication le **récupère elle-même** avant d'envoyer. C'est le cas d'une nuit
 importée rapidement (le fichier d'observations seul) ou reconstruite depuis la plateforme. Une
-fenêtre de progression vous le dit alors (« Récupération des identifiants depuis VigieChiro… »), avec un
+fenêtre de progression vous le dit alors (« Récupération des identifiants depuis Vigie-Chiro… »), avec un
 bouton **Annuler** : cette récupération peut prendre quelques minutes. Elle **préserve vos
 validations** - publier ne vous coûtera jamais votre travail de revue. Elle ramène au passage les
 **échanges avec le validateur** du Muséum, s'il y en a. Une nuit déjà rattachée n'en paie pas le
@@ -236,7 +236,7 @@ coût, et le geste part directement.
 
 Une seule situation reste hors d'atteinte : une nuit qui n'a **aucune participation** sur la
 plateforme, donc rien à quoi se rattacher. L'entrée de menu est alors **grisée** et le dit
-(« rattachez la nuit à sa participation VigieChiro »).
+(« rattachez la nuit à sa participation Vigie-Chiro »).
 
 À savoir : une correction publiée se **remplace** mais ne se **retire** pas de la plateforme, et
 une **relance du traitement serveur** efface les corrections publiées (republiez alors après le

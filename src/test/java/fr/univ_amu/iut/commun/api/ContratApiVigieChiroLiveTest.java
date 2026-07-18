@@ -61,7 +61,7 @@ import org.junit.jupiter.api.Test;
 /// Le contrat live **hebdomadaire** (`api-live.yml`) est en **lecture seule** et doit le rester : il ne
 /// passe aucun de ces trois drapeaux.
 @Tag("api-live")
-@DisplayName("Contrat API VigieChiro (live, lecture) — documentation vivante du schéma")
+@DisplayName("Contrat API Vigie-Chiro (live, lecture) — documentation vivante du schéma")
 class ContratApiVigieChiroLiveTest {
 
     private static String baseUrl;
@@ -137,7 +137,7 @@ class ContratApiVigieChiroLiveTest {
     }
 
     @Test
-    @DisplayName("Dérive client : ClientVigieChiro.mesParticipations() lit encore la collection réelle")
+    @DisplayName("Dérive client : ClientVigie-Chiro.mesParticipations() lit encore la collection réelle")
     void client_lit_les_participations() {
         ClientVigieChiro client = new ClientVigieChiro(baseUrl, () -> Optional.of(token));
 
@@ -145,7 +145,7 @@ class ContratApiVigieChiroLiveTest {
                 client.mesParticipations().enOptionnel().orElseThrow();
 
         assertThat(participations)
-                .as("le parseur ParticipationsVigieChiro lit la réponse réelle")
+                .as("le parseur ParticipationsVigie-Chiro lit la réponse réelle")
                 .isNotEmpty();
         assertThat(participations.getFirst().point())
                 .as("point (code localité) non nul")
@@ -181,7 +181,7 @@ class ContratApiVigieChiroLiveTest {
     }
 
     @Test
-    @DisplayName("Dérive client : ClientVigieChiro.participation(id) lit le détail réel (_etag présent)")
+    @DisplayName("Dérive client : ClientVigie-Chiro.participation(id) lit le détail réel (_etag présent)")
     void client_lit_le_detail_participation() {
         ClientVigieChiro client = new ClientVigieChiro(baseUrl, () -> Optional.of(token));
         String id = client.mesParticipations()
@@ -337,7 +337,7 @@ class ContratApiVigieChiroLiveTest {
     }
 
     @Test
-    @DisplayName("Dérive client (#1565) : ClientVigieChiro.piecesJointes + csvObservations télécharge le CSV"
+    @DisplayName("Dérive client (#1565) : ClientVigie-Chiro.piecesJointes + csvObservations télécharge le CSV"
             + " réel d'un coup (processing_extra -> accesFichier), entête Tadarida BRUT")
     void client_telecharge_le_csv_d_observations() {
         ClientVigieChiro client = new ClientVigieChiro(baseUrl, () -> Optional.of(token));
@@ -542,7 +542,7 @@ class ContratApiVigieChiroLiveTest {
     }
 
     @Test
-    @DisplayName("Dérive client : DonneesVigieChiro lit le _id des donnees réelles (sans lui, aucune"
+    @DisplayName("Dérive client : DonneesVigie-Chiro lit le _id des donnees réelles (sans lui, aucune"
             + " correction n'est adressable)")
     void parseur_lit_l_id_des_donnees_reelles() {
         String corps = api().when()

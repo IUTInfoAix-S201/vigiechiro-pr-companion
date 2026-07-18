@@ -74,7 +74,7 @@ public class TraitementViewModel {
     /// socle [fr.univ_amu.iut.commun.view.ExecuteurTache].
     public Traitement relever(Long idPassage) {
         Objects.requireNonNull(idPassage, "idPassage");
-        return suivi.orElseThrow(() -> new IllegalStateException("Suivi VigieChiro indisponible."))
+        return suivi.orElseThrow(() -> new IllegalStateException("Suivi Vigie-Chiro indisponible."))
                 .relever(idPassage);
     }
 

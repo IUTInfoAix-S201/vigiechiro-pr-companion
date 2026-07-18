@@ -37,7 +37,7 @@ public class ConnexionModule extends ModuleDeFeature {
     /// Identité de la feature. `COEUR` : socle non désactivable (dépendue par d'autres features).
     @Override
     public Fonctionnalite fonctionnalite() {
-        return new Fonctionnalite("connexion", "Connexion VigieChiro", Categorie.COEUR);
+        return new Fonctionnalite("connexion", "Connexion Vigie-Chiro", Categorie.COEUR);
     }
 
     @Override

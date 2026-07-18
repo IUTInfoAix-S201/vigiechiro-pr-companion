@@ -82,11 +82,11 @@ public final class AuditPointsServeur {
         return switch (client.mesSites()) {
             case ReponseApi.Succes<List<SiteVigieChiro>>(List<SiteVigieChiro> distants) -> auditerLesDeuxSens(distants);
             case ReponseApi.NonConnecte<List<SiteVigieChiro>> nonConnecte ->
-                List.of(constatIndisponible("non connecté à VigieChiro (aucun jeton)."));
+                List.of(constatIndisponible("non connecté à Vigie-Chiro (aucun jeton)."));
             case ReponseApi.Injoignable<List<SiteVigieChiro>>(String cause) ->
-                List.of(constatIndisponible("VigieChiro injoignable (" + cause + ")."));
+                List.of(constatIndisponible("Vigie-Chiro injoignable (" + cause + ")."));
             case ReponseApi.Refuse<List<SiteVigieChiro>>(int statut, String corps) ->
-                List.of(constatIndisponible("VigieChiro a refusé la lecture (HTTP " + statut + ")."));
+                List.of(constatIndisponible("Vigie-Chiro a refusé la lecture (HTTP " + statut + ")."));
         };
     }
 
@@ -143,7 +143,7 @@ public final class AuditPointsServeur {
         String citees = dates.stream().limit(NUITS_CITEES).collect(Collectors.joining(", "));
         String reste = dates.size() > NUITS_CITEES ? ", et " + (dates.size() - NUITS_CITEES) + " autre(s)" : "";
         String enumeration = dates.isEmpty() ? "" : " (" + citees + reste + ")";
-        return "VigieChiro connaît cette localité, que vous n'avez pas ici, et elle porte " + nuits.size()
+        return "Vigie-Chiro connaît cette localité, que vous n'avez pas ici, et elle porte " + nuits.size()
                 + " nuit(s) absente(s) d'ici" + enumeration
                 + ". Le prochain rapprochement créerait le point sans rien dire : reconstruisez ces nuits, "
                 + "ou vérifiez que vous travaillez bien sur le bon poste.";

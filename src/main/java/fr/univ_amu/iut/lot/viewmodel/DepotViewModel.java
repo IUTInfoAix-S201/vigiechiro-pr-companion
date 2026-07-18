@@ -88,7 +88,7 @@ public class DepotViewModel {
         Objects.requireNonNull(idPassage, PARAM_ID_PASSAGE);
         Objects.requireNonNull(suivi, "suivi");
         DepotVigieChiro depotVigieChiro =
-                depot.orElseThrow(() -> new RegleMetierException("Dépôt VigieChiro indisponible dans ce contexte."));
+                depot.orElseThrow(() -> new RegleMetierException("Dépôt Vigie-Chiro indisponible dans ce contexte."));
         // Dépôt ZIP par défaut (#984), comme le web : une archive = une unité. Repli WAV seulement si le
         // disque ne permet pas de créer les archives ; sinon invitation à générer d'abord (étape 2).
         List<Path> fichiers = service.fichiersDepotParDefaut(idPassage);
@@ -102,7 +102,7 @@ public class DepotViewModel {
     public ResultatLancement lancerTraitement(Long idPassage) {
         Objects.requireNonNull(idPassage, PARAM_ID_PASSAGE);
         DepotVigieChiro depotVigieChiro =
-                depot.orElseThrow(() -> new RegleMetierException("Dépôt VigieChiro indisponible dans ce contexte."));
+                depot.orElseThrow(() -> new RegleMetierException("Dépôt Vigie-Chiro indisponible dans ce contexte."));
         return depotVigieChiro.lancerTraitement(idPassage);
     }
 
@@ -118,7 +118,7 @@ public class DepotViewModel {
     /// quoi le POST partait sans aucun retour visible (#1543). Contrairement au téléversement, le lancement
     /// n'est pas annulable : pas de jeton à réarmer.
     public void marquerLancementEnCours() {
-        message.set("Lancement de l'analyse sur VigieChiro…");
+        message.set("Lancement de l'analyse sur Vigie-Chiro…");
         enCours.set(true);
     }
 
@@ -134,13 +134,13 @@ public class DepotViewModel {
     /// à faire (souvent : rien).
     private static String libelle(ResultatLancement resultat) {
         return switch (resultat.issue()) {
-            case ACCEPTE -> "🚀 Traitement lancé sur VigieChiro : les résultats arriveront après le calcul serveur.";
-            case DEJA_LANCE -> "🚀 Le traitement est déjà en cours sur VigieChiro : il n'y a plus qu'à attendre.";
+            case ACCEPTE -> "🚀 Traitement lancé sur Vigie-Chiro : les résultats arriveront après le calcul serveur.";
+            case DEJA_LANCE -> "🚀 Le traitement est déjà en cours sur Vigie-Chiro : il n'y a plus qu'à attendre.";
             case RELANCE_BLOQUEE ->
-                "Cette nuit a déjà été analysée par VigieChiro. La relancer effacerait les observations"
+                "Cette nuit a déjà été analysée par Vigie-Chiro. La relancer effacerait les observations"
                         + " du serveur sans pouvoir les recalculer : importez-les plutôt.";
-            case REFUSE -> "VigieChiro a refusé le lancement du traitement.";
-            case INJOIGNABLE -> "VigieChiro est injoignable : le traitement n'a pas pu être lancé.";
+            case REFUSE -> "Vigie-Chiro a refusé le lancement du traitement.";
+            case INJOIGNABLE -> "Vigie-Chiro est injoignable : le traitement n'a pas pu être lancé.";
         };
     }
 
@@ -205,7 +205,7 @@ public class DepotViewModel {
                     + " fichier(s) en ligne. « Reprendre le dépôt » ne renverra que les manquants.");
             return;
         }
-        String resume = "Nuit déposée sur VigieChiro : " + bilan.deposees() + " fichier(s) téléversé(s).";
+        String resume = "Nuit déposée sur Vigie-Chiro : " + bilan.deposees() + " fichier(s) téléversé(s).";
         message.set(bilan.estComplet() ? resume : resume + " " + bilan.echecs().size() + " en échec (à relancer).");
     }
 

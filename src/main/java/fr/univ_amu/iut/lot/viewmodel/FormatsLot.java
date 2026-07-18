@@ -72,7 +72,7 @@ public final class FormatsLot {
         if (etat.statut() == StatutWorkflow.DEPOT_EN_COURS) {
             // Dépôt automatique entamé mais incomplet (#980) : interrompu ou en cours d'exécution. La
             // reprise ne re-téléverse que le manquant (moteur reprenable, #982).
-            return "Dépôt VigieChiro entamé : des fichiers restent à téléverser (reprise possible).";
+            return "Dépôt Vigie-Chiro entamé : des fichiers restent à téléverser (reprise possible).";
         }
         if (etat.aDesEchecs()) {
             return "Cohérence : corrigez les contrôles en échec avant de préparer le dépôt.";

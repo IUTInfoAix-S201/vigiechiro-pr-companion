@@ -245,7 +245,7 @@ class MultisiteViewTest {
     }
 
     @Test
-    @DisplayName("#1396 : hors connexion VigieChiro, « Reconstruire un passage manquant… » se retire du menu")
+    @DisplayName("#1396 : hors connexion Vigie-Chiro, « Reconstruire un passage manquant… » se retire du menu")
     void reconstruction_retiree_hors_connexion(FxRobot robot) {
         MenuButton menu = robot.lookup("#menuActions").queryAs(MenuButton.class);
         MenuItem itemReconstruire = menu.getItems().stream()

@@ -158,7 +158,7 @@ public class ReactivationModaleViewModel {
     /// Compte rendu **honnête** d'un passage reconstruit (#1648) : ni « introuvables », ni fausse promesse.
     /// On explique pourquoi rien n'a pu être relié, et que ce n'est pas la faute des fichiers de l'utilisateur.
     private static String texteReconstruit(RapportReactivation rapport) {
-        return "Ce passage a été reconstruit depuis VigieChiro : l'application connaît le nom de ses "
+        return "Ce passage a été reconstruit depuis Vigie-Chiro : l'application connaît le nom de ses "
                 + rapport.decompte().total()
                 + " séquence(s), mais pas la correspondance avec vos fichiers d'origine, ni les empreintes"
                 + " nécessaires pour les régénérer.\n\n"

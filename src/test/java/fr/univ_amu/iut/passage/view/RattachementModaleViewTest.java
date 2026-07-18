@@ -97,7 +97,7 @@ class RattachementModaleViewTest {
     }
 
     @Test
-    @DisplayName("#1216 : le tir VigieChiro passe par le socle, le bouton est relâché et le message routé")
+    @DisplayName("#1216 : le tir Vigie-Chiro passe par le socle, le bouton est relâché et le message routé")
     void tir_relache_le_bouton_et_route_le_message(FxRobot robot) {
         Button tirer = robot.lookup("#boutonTirerVigieChiro").queryAs(Button.class);
 
@@ -105,14 +105,14 @@ class RattachementModaleViewTest {
 
         // Passerelle absente dans cette fixture : le tir répond « rien récupéré », jamais un silence.
         Label message = robot.lookup("#messageErreur").queryAs(Label.class);
-        assertThat(message.getText()).contains("Aucune participation VigieChiro");
+        assertThat(message.getText()).contains("Aucune participation Vigie-Chiro");
         assertThat(tirer.isDisabled())
                 .as("bouton relâché par binding une fois l'opération finie (exécuteur synchrone)")
                 .isFalse();
     }
 
     @Test
-    @DisplayName("#1839 : « Envoyer vers VigieChiro » rend compte de l'envoi et relâche le bouton")
+    @DisplayName("#1839 : « Envoyer vers Vigie-Chiro » rend compte de l'envoi et relâche le bouton")
     void envoi_rend_compte(FxRobot robot) {
         Button envoyer = robot.lookup("#boutonEnvoyerVigieChiro").queryAs(Button.class);
 
@@ -182,7 +182,7 @@ class RattachementModaleViewTest {
         javafx.scene.Node repere = robot.lookup("#ligneOccupation").query();
 
         assertThat(repere.isVisible())
-                .as("le repère ne s'affiche que pendant un aller-retour VigieChiro")
+                .as("le repère ne s'affiche que pendant un aller-retour Vigie-Chiro")
                 .isFalse();
         assertThat(repere.isManaged()).isFalse();
     }

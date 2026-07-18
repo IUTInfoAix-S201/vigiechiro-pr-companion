@@ -25,7 +25,7 @@ class PanneauDiscussionTest {
 
     /// Raison de blocage : la détection n'existe pas côté plateforme — il n'y a personne à qui parler.
     private static final Optional<String> PAS_SUR_LA_PLATEFORME =
-            Optional.of("Cette détection n'existe pas sur VigieChiro.");
+            Optional.of("Cette détection n'existe pas sur Vigie-Chiro.");
 
     /// Rien ne bloque : l'utilisateur peut écrire.
     private static final Optional<String> PEUT_ECRIRE = Optional.empty();
@@ -45,7 +45,7 @@ class PanneauDiscussionTest {
     }
 
     @Test
-    @DisplayName("#1418 : fil vide mais détection connue de VigieChiro → le panneau S'OUVRE : on peut y"
+    @DisplayName("#1418 : fil vide mais détection connue de Vigie-Chiro → le panneau S'OUVRE : on peut y"
             + " ouvrir la discussion")
     void fil_vide_mais_ecriture_possible_panneau_ouvert() {
         PanneauDiscussion panneau = new PanneauDiscussion();

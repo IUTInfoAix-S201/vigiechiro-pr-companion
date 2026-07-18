@@ -45,7 +45,7 @@ public final class LancerTraitementVigieChiro implements Callable<Integer> {
     @Option(
             names = "--token",
             paramLabel = "<jeton>",
-            description = "Jeton VigieChiro ponctuel (sinon : variable VIGIECHIRO_TOKEN, sinon la connexion"
+            description = "Jeton Vigie-Chiro ponctuel (sinon : variable VIGIECHIRO_TOKEN, sinon la connexion"
                     + " enregistrée dans l'application).")
     private String token;
 
@@ -70,7 +70,7 @@ public final class LancerTraitementVigieChiro implements Callable<Integer> {
     @Override
     public Integer call() {
         DepotVigieChiro moteur = depot.orElseThrow(
-                () -> new RegleMetierException("Dépôt VigieChiro indisponible dans ce contexte d'exécution."));
+                () -> new RegleMetierException("Dépôt Vigie-Chiro indisponible dans ce contexte d'exécution."));
         if (token != null && !token.isBlank()) {
             // Jeton ponctuel consulté par le client à chaque requête, sans rien persister.
             System.setProperty("vigiechiro.token", token);
@@ -88,15 +88,15 @@ public final class LancerTraitementVigieChiro implements Callable<Integer> {
     private String compteRendu(ResultatLancement resultat) {
         return switch (resultat.issue()) {
             case ACCEPTE ->
-                "Traitement lancé sur VigieChiro pour le passage " + idPassage
+                "Traitement lancé sur Vigie-Chiro pour le passage " + idPassage
                         + " : les résultats arriveront après le calcul serveur.";
-            case DEJA_LANCE -> "Le traitement de ce passage est déjà en cours sur VigieChiro : rien à faire.";
+            case DEJA_LANCE -> "Le traitement de ce passage est déjà en cours sur Vigie-Chiro : rien à faire.";
             case RELANCE_BLOQUEE ->
                 "Cette nuit a déjà été analysée. La relancer effacerait les observations du serveur sans"
                         + " pouvoir les recalculer (audio non conservé pour un dépôt en archives) :"
                         + " importez-les plutôt (importer-vigiechiro).";
-            case REFUSE -> "VigieChiro a refusé le lancement du traitement : " + resultat.détail();
-            case INJOIGNABLE -> "VigieChiro est injoignable : le traitement n'a pas pu être lancé.";
+            case REFUSE -> "Vigie-Chiro a refusé le lancement du traitement : " + resultat.détail();
+            case INJOIGNABLE -> "Vigie-Chiro est injoignable : le traitement n'a pas pu être lancé.";
         };
     }
 }

@@ -68,7 +68,7 @@ public sealed interface ResultatReset {
                     .append(sauvegarde.enClair())
                     .append("\n  Filet : ")
                     .append(filet)
-                    .append("\n  Reconstruit depuis VigieChiro : ")
+                    .append("\n  Reconstruit depuis Vigie-Chiro : ")
                     .append(passagesReconstruits)
                     .append(" passage(s) archivé(s).\n  Audit final : ")
                     .append(audit.sain() ? "sain." : audit.nombre(SeveriteConstat.ERREUR) + " erreur(s).");

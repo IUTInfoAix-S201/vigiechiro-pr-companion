@@ -31,8 +31,8 @@ final class ImportVigieChiroUI {
             MenuItem item, Label message, ImportVigieChiroViewModel importVigieChiro, AudioViewModel viewModel) {
         item.textProperty()
                 .bind(Bindings.when(viewModel.resultatsDisponiblesProperty())
-                        .then("🔁 Réimporter depuis VigieChiro…")
-                        .otherwise("☁ Importer depuis VigieChiro…"));
+                        .then("🔁 Réimporter depuis Vigie-Chiro…")
+                        .otherwise("☁ Importer depuis Vigie-Chiro…"));
         item.disableProperty().bind(importVigieChiro.enCoursProperty());
         message.textProperty().bind(importVigieChiro.messageProperty());
         message.visibleProperty().bind(importVigieChiro.messageProperty().isNotEmpty());
@@ -80,7 +80,7 @@ final class ImportVigieChiroUI {
             Supplier<Window> proprietaire,
             Confirmateur confirmateur) {
         DecisionRemplacementJeu.resoudre(
-                        viewModel.resultatsDisponiblesProperty().get(), confirmateur, "ceux de VigieChiro")
+                        viewModel.resultatsDisponiblesProperty().get(), confirmateur, "ceux de Vigie-Chiro")
                 .ifPresent(remplacer -> importerHorsFil(
                         importVigieChiro, viewModel, source, idPassage, remplacer, dialogue, proprietaire));
     }
@@ -100,7 +100,7 @@ final class ImportVigieChiroUI {
             DemandeurDeChoix<ParticipationVigieChiro> demandeur) {
         importVigieChiro.marquerEnCours();
         occupation.occuper(
-                "Lecture de vos participations VigieChiro…",
+                "Lecture de vos participations Vigie-Chiro…",
                 importVigieChiro::participations,
                 reponse -> {
                     // #1370 : une panne ne ressemble plus à « aucune participation sur votre compte ».
@@ -108,12 +108,12 @@ final class ImportVigieChiroUI {
                             instanceof
                             ReponseApi.Succes<List<ParticipationVigieChiro>>(
                                     List<ParticipationVigieChiro> participations))) {
-                        importVigieChiro.echec("Impossible de lister vos participations VigieChiro : "
+                        importVigieChiro.echec("Impossible de lister vos participations Vigie-Chiro : "
                                 + reponse.echec().orElse("issue inattendue"));
                         return;
                     }
                     if (participations.isEmpty()) {
-                        importVigieChiro.echec("Aucune participation VigieChiro sur votre compte :"
+                        importVigieChiro.echec("Aucune participation Vigie-Chiro sur votre compte :"
                                 + " déposez d'abord cette nuit sur la plateforme.");
                         return;
                     }
@@ -141,7 +141,7 @@ final class ImportVigieChiroUI {
         importVigieChiro.marquerEnCours();
         dialogue.lancer(
                 proprietaire.get(),
-                "Import des observations depuis VigieChiro",
+                "Import des observations depuis Vigie-Chiro",
                 (progres, jeton) -> importVigieChiro.importer(idPassage, remplacer, progres, jeton),
                 bilan -> {
                     importVigieChiro.appliquerBilan(bilan);
@@ -157,7 +157,7 @@ final class ImportVigieChiroUI {
     private static Optional<ParticipationVigieChiro> choisirParticipation(
             List<ParticipationVigieChiro> participations, DemandeurDeChoix<ParticipationVigieChiro> demandeur) {
         return demandeur.choisir(
-                "Ce passage n'est pas encore rattaché à une participation VigieChiro.",
+                "Ce passage n'est pas encore rattaché à une participation Vigie-Chiro.",
                 "Rattacher à :",
                 participations,
                 ImportVigieChiroUI::libelle);

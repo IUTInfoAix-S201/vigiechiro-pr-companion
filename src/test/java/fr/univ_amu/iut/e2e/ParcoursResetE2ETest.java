@@ -93,7 +93,7 @@ class ParcoursResetE2ETest {
     }
 
     @Test
-    @DisplayName("#1419 : VigieChiro injoignable → la procédure REFUSE, même perte acceptée : une base"
+    @DisplayName("#1419 : Vigie-Chiro injoignable → la procédure REFUSE, même perte acceptée : une base"
             + " neuve qu'on ne peut pas repeupler est un workspace vide")
     void refuse_quand_la_plateforme_ne_repond_pas() throws Exception {
         ClientVigieChiro injoignable = mock(ClientVigieChiro.class);
@@ -106,7 +106,7 @@ class ParcoursResetE2ETest {
         assertThat(resultat)
                 .as("le repeuplement vient du serveur : sans lui, le reset serait une destruction sèche")
                 .isInstanceOf(ResultatReset.Refuse.class);
-        assertThat(((ResultatReset.Refuse) resultat).motif()).contains("VigieChiro ne répond pas");
+        assertThat(((ResultatReset.Refuse) resultat).motif()).contains("Vigie-Chiro ne répond pas");
         assertThat(new PassageDao(source).findAll())
                 .as("la base d'origine est toujours là — c'est tout l'intérêt de refuser AVANT")
                 .hasSize(1);
@@ -114,7 +114,7 @@ class ParcoursResetE2ETest {
 
     @Test
     @DisplayName("#1419 : perte acceptée et plateforme joignable → sauvegarde, base neuve, repeuplement"
-            + " depuis VigieChiro, audit final SAIN")
+            + " depuis Vigie-Chiro, audit final SAIN")
     void reset_complet_jusqu_a_un_workspace_sain() throws Exception {
         Injector injector = injecteurAvec(plateformeBouchonnee());
         SourceDeDonnees source = preparerBaseAbimee(injector);

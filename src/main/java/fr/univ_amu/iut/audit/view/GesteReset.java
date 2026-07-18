@@ -112,7 +112,7 @@ final class GesteReset {
     /// audio : c'est là toute la différence entre une confirmation et un consentement.
     private static String texteDeConfirmation(BilanRecuperabilite bilan) {
         StringBuilder texte = new StringBuilder("La base va être sauvegardée, puis remise à neuf, puis"
-                + " repeuplée depuis VigieChiro.\n\n"
+                + " repeuplée depuis Vigie-Chiro.\n\n"
                 + bilan.resume()
                 + "\n");
         if (!bilan.perteAnnoncee()) {

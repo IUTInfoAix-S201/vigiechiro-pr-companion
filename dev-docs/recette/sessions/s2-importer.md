@@ -17,7 +17,7 @@ import (copie protégée + renommage + transformation), puis les cas dégradés 
   `sd-prefixee`, `sd-rejets`, `sd-nominale.zip`.
 
 !!! warning "Garde-fou plateforme (règle de séance)"
-    L'import crée la participation VigieChiro **au plus tôt** dès que l'observateur est connecté et le
+    L'import crée la participation Vigie-Chiro **au plus tôt** dès que l'observateur est connecté et le
     site relié (`ServiceImport.creerParticipationSiPossible`). Tous les imports de test se font donc sur
     le **carré 640380** (local, non relié) : **aucune écriture serveur**. Interdiction de rattacher les
     fixtures au carré 130711 (verrouillé). Les écritures plateforme n'arrivent qu'en S4.

@@ -32,9 +32,9 @@ import java.util.Optional;
 /// hors connexion), même patron que `DepotVigieChiro`.
 public final class SynchronisationParticipation {
 
-    private static final String NON_LIE = "Ce passage n'est pas encore lié à une participation VigieChiro.";
+    private static final String NON_LIE = "Ce passage n'est pas encore lié à une participation Vigie-Chiro.";
     private static final String INTROUVABLE =
-            "Participation VigieChiro introuvable (non connecté, ou supprimée côté plateforme).";
+            "Participation Vigie-Chiro introuvable (non connecté, ou supprimée côté plateforme).";
 
     private final ClientVigieChiro client;
     private final LienVigieChiroDao liens;
@@ -78,7 +78,7 @@ public final class SynchronisationParticipation {
         Passage passage = chargerPassage(idPassage);
         InfosPoint point = infosPoint(passage);
         String objectidSite = liens.objectidPour(LienVigieChiro.ENTITE_SITE, String.valueOf(point.idSite()))
-                .orElseThrow(() -> new RegleMetierException("Site non rattaché à VigieChiro : connectez-vous et"
+                .orElseThrow(() -> new RegleMetierException("Site non rattaché à Vigie-Chiro : connectez-vous et"
                         + " synchronisez vos sites avant de créer la participation."));
 
         ParticipationADeposer participation =
@@ -225,7 +225,7 @@ public final class SynchronisationParticipation {
                 client.participation(objectid.get()).enOptionnel();
         if (distant.isEmpty()) {
             return List.of("participation liée injoignable (" + objectid.get()
-                    + ") : hors connexion, ou participation disparue côté VigieChiro");
+                    + ") : hors connexion, ou participation disparue côté Vigie-Chiro");
         }
         List<String> ecarts = new ArrayList<>();
         if (!point.code().equals(distant.get().point())) {

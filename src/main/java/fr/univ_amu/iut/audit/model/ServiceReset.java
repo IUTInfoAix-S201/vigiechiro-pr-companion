@@ -90,7 +90,7 @@ public class ServiceReset {
         // laisserait un workspace vide. Aucune sauvegarde ne rendrait ça acceptable : on refuse ici.
         if (!(client.moi() instanceof ReponseApi.Succes)) {
             return new ResultatReset.Refuse(
-                    "VigieChiro ne répond pas (ou vous n'êtes pas connecté). La base neuve se repeuple"
+                    "Vigie-Chiro ne répond pas (ou vous n'êtes pas connecté). La base neuve se repeuple"
                             + " depuis la plateforme : sans elle, le reset laisserait un workspace vide.",
                     bilan);
         }

@@ -38,13 +38,13 @@ public final class Auditer implements Callable<Integer> {
 
     @Option(
             names = "--online",
-            description = "Ajoute la vérification en ligne : confronte le dépôt au serveur VigieChiro (#1132).")
+            description = "Ajoute la vérification en ligne : confronte le dépôt au serveur Vigie-Chiro (#1132).")
     private boolean online;
 
     @Option(
             names = "--token",
             paramLabel = "<token>",
-            description = "Token VigieChiro pour --online (sinon $VIGIECHIRO_TOKEN ou la connexion enregistrée).")
+            description = "Token Vigie-Chiro pour --online (sinon $VIGIECHIRO_TOKEN ou la connexion enregistrée).")
     private String token;
 
     @Spec

@@ -51,9 +51,9 @@ final class PublicationCorrectionsUI {
         item.disableProperty().bind(publication.enCoursProperty().or(publicationImpossible));
         item.textProperty()
                 .bind(Bindings.when(publicationImpossible)
-                        .then("☁ Publier les corrections vers VigieChiro…"
-                                + " (rattachez la nuit à sa participation VigieChiro)")
-                        .otherwise("☁ Publier les corrections vers VigieChiro…"));
+                        .then("☁ Publier les corrections vers Vigie-Chiro…"
+                                + " (rattachez la nuit à sa participation Vigie-Chiro)")
+                        .otherwise("☁ Publier les corrections vers Vigie-Chiro…"));
         message.textProperty().bind(publication.messageProperty());
         message.visibleProperty().bind(publication.messageProperty().isNotEmpty());
         message.managedProperty().bind(publication.messageProperty().isNotEmpty());
@@ -104,7 +104,7 @@ final class PublicationCorrectionsUI {
         if (tri.publiables().isEmpty() && !apercu.ancrageAVenir()) {
             publication.echec("Rien à publier : " + ecarts(tri, true)
                     + ". Déclarez la certitude des observations corrigées, ou rattachez cette nuit à sa"
-                    + " participation VigieChiro pour pouvoir les ancrer.");
+                    + " participation Vigie-Chiro pour pouvoir les ancrer.");
             return;
         }
         if (!confirmateur.confirmer(recapitulatif(apercu))) {
@@ -113,7 +113,7 @@ final class PublicationCorrectionsUI {
         }
         dialogue.lancer(
                 proprietaire.get(),
-                "Publication des corrections vers VigieChiro",
+                "Publication des corrections vers Vigie-Chiro",
                 (progres, jeton) -> publication.publier(idPassage, progres, jeton),
                 publication::appliquerBilan,
                 () -> publication.echec(""), // renoncé en cours de route : on efface l'état « en cours »
@@ -131,18 +131,18 @@ final class PublicationCorrectionsUI {
             // On se garde d'annoncer un total : une observation à ancrer peut aussi manquer de certitude,
             // et ne partirait donc pas non plus. Promettre un compte que l'envoi démentirait serait pire
             // que de ne rien promettre.
-            message.append("Publier les corrections de ce passage vers VigieChiro ?")
+            message.append("Publier les corrections de ce passage vers Vigie-Chiro ?")
                     .append("\n\n")
                     .append(tri.publiables().size())
                     .append(" prête(s) à partir, et ")
                     .append(tri.sansAncrage())
-                    .append(" à ancrer d'abord : leur ancrage sera rapatrié depuis VigieChiro (vos"
+                    .append(" à ancrer d'abord : leur ancrage sera rapatrié depuis Vigie-Chiro (vos"
                             + " validations sont préservées), ce qui peut prendre quelques minutes. Seules"
                             + " celles dont la certitude est déclarée partiront ensuite.");
         } else {
             message.append("Publier ")
                     .append(tri.publiables().size())
-                    .append(" correction(s) de ce passage vers VigieChiro ?");
+                    .append(" correction(s) de ce passage vers Vigie-Chiro ?");
         }
         String quai = ecarts(tri, !ancrage);
         if (!quai.isEmpty()) {

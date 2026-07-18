@@ -216,7 +216,7 @@ class CorrespondanceParticipationTest {
     }
 
     @Test
-    @DisplayName("#1689 : serieDepuis lit la clé canonique VigieChiro, à défaut la clé de l'app, sinon null")
+    @DisplayName("#1689 : serieDepuis lit la clé canonique Vigie-Chiro, à défaut la clé de l'app, sinon null")
     void serie_depuis_les_deux_cles() {
         assertThat(CorrespondanceParticipation.serieDepuis(Map.of("detecteur_enregistreur_numero_serie", "1997632")))
                 .isEqualTo("1997632");
@@ -224,7 +224,7 @@ class CorrespondanceParticipationTest {
                 .isEqualTo("1925492");
         assertThat(CorrespondanceParticipation.serieDepuis(
                         Map.of("detecteur_enregistreur_numero_serie", "AAA", "detecteur_enregistreur_numserie", "BBB")))
-                .as("les deux présentes : la clé canonique VigieChiro l'emporte")
+                .as("les deux présentes : la clé canonique Vigie-Chiro l'emporte")
                 .isEqualTo("AAA");
         assertThat(CorrespondanceParticipation.serieDepuis(Map.of("micro0_type", "ICS")))
                 .isNull();

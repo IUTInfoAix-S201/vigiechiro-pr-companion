@@ -224,7 +224,7 @@ class ServiceImportTest {
     }
 
     @Test
-    @DisplayName("Phase 1d-B : la participation VigieChiro est créée à l'import (best-effort) pour le passage")
+    @DisplayName("Phase 1d-B : la participation Vigie-Chiro est créée à l'import (best-effort) pour le passage")
     void participation_creee_a_l_import() {
         SynchronisationParticipation sync = mock(SynchronisationParticipation.class);
         ServiceImport avecSync = new ServiceImport(

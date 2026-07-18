@@ -161,7 +161,7 @@ public class RattachementViewModel {
             return CompteRenduEnvoi.rienAFaire();
         }
         if (synchronisation.isEmpty()) {
-            return CompteRenduEnvoi.reussi("Non connecté à VigieChiro : les métadonnées partiront au dépôt.");
+            return CompteRenduEnvoi.reussi("Non connecté à Vigie-Chiro : les métadonnées partiront au dépôt.");
         }
         try {
             EnvoiParticipation envoi = synchronisation.get().pousserVers(idPassage);
@@ -170,14 +170,14 @@ public class RattachementViewModel {
             // dans le champ `id` pour le satisfaire.
             if (!envoi.ecriture().estReussie()) {
                 return CompteRenduEnvoi.echoue(
-                        "VigieChiro a refusé l'envoi : " + envoi.ecriture().echec());
+                        "Vigie-Chiro a refusé l'envoi : " + envoi.ecriture().echec());
             }
             // #1885 : un réalignement a modifié les heures de la nuit. Le taire reviendrait à corriger sa
             // saisie dans son dos, et à le priver du moyen de contester la correction si elle est fausse.
             return envoi.realignement()
                     .map(realignement ->
-                            CompteRenduEnvoi.aSignaler("Métadonnées envoyées à VigieChiro. " + phrase(realignement)))
-                    .orElseGet(() -> CompteRenduEnvoi.reussi("Métadonnées envoyées à VigieChiro."));
+                            CompteRenduEnvoi.aSignaler("Métadonnées envoyées à Vigie-Chiro. " + phrase(realignement)))
+                    .orElseGet(() -> CompteRenduEnvoi.reussi("Métadonnées envoyées à Vigie-Chiro."));
         } catch (RegleMetierException empeche) {
             // La cause EST dite (non lié / participation introuvable / point d'écoute introuvable) au lieu
             // d'être supposée bénigne.
@@ -268,9 +268,9 @@ public class RattachementViewModel {
         if (recupere) {
             DetailPassage rafraichi = service.detailPassage(idPassage);
             conditions.charger(idPassage, rafraichi.meteo(), rafraichi.idEnregistreur());
-            messageErreur.set("Métadonnées récupérées depuis VigieChiro.");
+            messageErreur.set("Métadonnées récupérées depuis Vigie-Chiro.");
         } else {
-            messageErreur.set("Aucune participation VigieChiro liée à ce passage (ou hors connexion).");
+            messageErreur.set("Aucune participation Vigie-Chiro liée à ce passage (ou hors connexion).");
         }
     }
 
@@ -283,7 +283,7 @@ public class RattachementViewModel {
     /// Route l'échec inattendu d'une opération réseau de la modale (météo, tir) vers sa ligne
     /// de message, **sur le fil JavaFX** : jamais un silence, ni un bouton resté figé (#1216).
     public void signalerErreur(Throwable erreur) {
-        messageErreur.set("L'opération VigieChiro a échoué : " + erreur.getMessage());
+        messageErreur.set("L'opération Vigie-Chiro a échoué : " + erreur.getMessage());
     }
 
     /// `true` si appliquer le rattachement courant **renommera effectivement** les séquences sur le disque

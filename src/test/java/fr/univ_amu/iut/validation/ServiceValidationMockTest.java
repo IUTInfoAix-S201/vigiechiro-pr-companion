@@ -291,7 +291,7 @@ class ServiceValidationMockTest {
     }
 
     @Test
-    @DisplayName("#719 : importerDepuisVigieChiro convertit les donnees et insère les observations rattachées")
+    @DisplayName("#719 : importerDepuisVigie-Chiro convertit les donnees et insère les observations rattachées")
     void importer_depuis_vigiechiro() throws Exception {
         Long idPassage = 42L;
         Long idSession = 7L;

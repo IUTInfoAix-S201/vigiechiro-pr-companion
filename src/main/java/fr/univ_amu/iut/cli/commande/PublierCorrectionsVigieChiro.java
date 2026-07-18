@@ -35,7 +35,7 @@ import picocli.CommandLine.Spec;
 /// d'erreur) ou si rien n'est revu.
 @Command(
         name = "publier-corrections-vigiechiro",
-        description = "Publie les corrections observateur d'un passage vers VigieChiro (taxon +"
+        description = "Publie les corrections observateur d'un passage vers Vigie-Chiro (taxon +"
                 + " certitude, un PATCH par observation).")
 public final class PublierCorrectionsVigieChiro implements Callable<Integer> {
 
@@ -45,7 +45,7 @@ public final class PublierCorrectionsVigieChiro implements Callable<Integer> {
     @Option(
             names = "--token",
             paramLabel = "<jeton>",
-            description = "Jeton VigieChiro ponctuel (sinon : variable VIGIECHIRO_TOKEN, sinon la connexion"
+            description = "Jeton Vigie-Chiro ponctuel (sinon : variable VIGIECHIRO_TOKEN, sinon la connexion"
                     + " enregistrée dans l'application).")
     private String token;
 

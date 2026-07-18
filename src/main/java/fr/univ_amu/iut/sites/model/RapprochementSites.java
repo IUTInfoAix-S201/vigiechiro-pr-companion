@@ -63,12 +63,12 @@ public class RapprochementSites implements RapprochementVigieChiro {
                 case ReponseApi.Succes<List<SiteVigieChiro>>(List<SiteVigieChiro> distants) -> importer(distants);
                 case ReponseApi.NonConnecte<List<SiteVigieChiro>> nonConnecte -> Optional.empty();
                 case ReponseApi.Injoignable<List<SiteVigieChiro>>(String cause) ->
-                    Optional.of(RapportSynchro.empechee(LIBELLE_SITES, "VigieChiro injoignable : " + cause));
+                    Optional.of(RapportSynchro.empechee(LIBELLE_SITES, "Vigie-Chiro injoignable : " + cause));
                 case ReponseApi.Refuse<List<SiteVigieChiro>>(int statut, String corps) ->
                     Optional.of(RapportSynchro.empechee(LIBELLE_SITES, "refus HTTP " + statut));
             };
         } catch (RuntimeException echec) {
-            LOG.log(Level.FINE, echec, () -> "Import des sites VigieChiro ignoré (best-effort)");
+            LOG.log(Level.FINE, echec, () -> "Import des sites Vigie-Chiro ignoré (best-effort)");
             return Optional.empty();
         }
     }
@@ -112,7 +112,7 @@ public class RapprochementSites implements RapprochementVigieChiro {
             return Optional.of(new LienVigieChiro(
                     LienVigieChiro.ENTITE_SITE, String.valueOf(local.id()), distant.id(), distant.verrouille()));
         } catch (RuntimeException echecSite) {
-            LOG.log(Level.FINE, echecSite, () -> "Import du site VigieChiro (carré " + carre + ") ignoré");
+            LOG.log(Level.FINE, echecSite, () -> "Import du site Vigie-Chiro (carré " + carre + ") ignoré");
             return Optional.empty();
         }
     }

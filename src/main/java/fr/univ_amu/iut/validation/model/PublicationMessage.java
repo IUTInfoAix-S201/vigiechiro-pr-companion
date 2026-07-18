@@ -57,7 +57,7 @@ public class PublicationMessage {
             return Optional.of("Observation introuvable.");
         }
         if (observation.get().idDonneeVigieChiro() == null) {
-            return Optional.of("Cette détection n'existe pas sur VigieChiro (import CSV ou saisie manuelle) :"
+            return Optional.of("Cette détection n'existe pas sur Vigie-Chiro (import CSV ou saisie manuelle) :"
                     + " il n'y a pas de fil de discussion à alimenter.");
         }
         return Optional.empty();
@@ -87,7 +87,7 @@ public class PublicationMessage {
         if (observation.idDonneeVigieChiro() == null || observation.indiceVigieChiro() == null) {
             return ReponseApi.refuse(
                     0,
-                    "Cette détection n'a pas d'ancrage VigieChiro : elle n'existe pas côté serveur,"
+                    "Cette détection n'a pas d'ancrage Vigie-Chiro : elle n'existe pas côté serveur,"
                             + " aucun message ne peut y être rattaché.");
         }
 

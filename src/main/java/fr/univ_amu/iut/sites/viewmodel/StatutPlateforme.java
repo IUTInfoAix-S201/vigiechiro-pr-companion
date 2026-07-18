@@ -19,19 +19,19 @@ import java.util.Set;
 /// laisse mal deviner (#801).
 public enum StatutPlateforme {
     ABSENT(
-            "Non enregistré sur VigieChiro",
+            "Non enregistré sur Vigie-Chiro",
             "badge-neutre",
-            "Ce carré n'est pas connu de VigieChiro. Déclarez-le sur la plateforme : un site doit y être"
+            "Ce carré n'est pas connu de Vigie-Chiro. Déclarez-le sur la plateforme : un site doit y être"
                     + " enregistré, puis verrouillé, pour que vous puissiez y déposer vos nuits."),
     ENREGISTRE(
-            "Enregistré sur VigieChiro",
+            "Enregistré sur Vigie-Chiro",
             "badge-info",
-            "Ce carré est enregistré sur VigieChiro, mais il n'est pas encore verrouillé : le dépôt de vos"
+            "Ce carré est enregistré sur Vigie-Chiro, mais il n'est pas encore verrouillé : le dépôt de vos"
                     + " nuits n'y est pas encore possible."),
     VERROUILLE(
-            "Verrouillé sur VigieChiro",
+            "Verrouillé sur Vigie-Chiro",
             "badge-succes",
-            "Carré figé côté VigieChiro : le dépôt de vos données y est désormais possible.");
+            "Carré figé côté Vigie-Chiro : le dépôt de vos données y est désormais possible.");
 
     private final String libelle;
     private final String classeBadge;

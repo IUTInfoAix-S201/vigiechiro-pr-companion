@@ -115,7 +115,7 @@ class CliResetGuideTest {
         assertThat(code).isEqualTo(2);
         assertThat(texteSortie())
                 .contains("Reset refusé")
-                .contains("VigieChiro ne répond pas")
+                .contains("Vigie-Chiro ne répond pas")
                 .as("et le refus le dit noir sur blanc : rien n'a bougé")
                 .contains("Rien n'a été modifié");
         assertThat(injecteur.getInstance(PassageDao.class).findAll())

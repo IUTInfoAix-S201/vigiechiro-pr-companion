@@ -153,7 +153,7 @@ class PublicationMessageTest {
     }
 
     @Test
-    @DisplayName("#1418 : détection sans ancrage VigieChiro (import CSV, saisie manuelle) → refus SANS"
+    @DisplayName("#1418 : détection sans ancrage Vigie-Chiro (import CSV, saisie manuelle) → refus SANS"
             + " réseau : il n'y a personne à qui parler")
     void sans_ancrage_aucun_appel() {
         Long idObservation = observationSansAncrage();
@@ -166,7 +166,7 @@ class PublicationMessageTest {
                 .as("et l'IHM sait POURQUOI : elle désactive la saisie en le disant (affordance #789)")
                 .isPresent()
                 .get(org.assertj.core.api.InstanceOfAssertFactories.STRING)
-                .contains("n'existe pas sur VigieChiro");
+                .contains("n'existe pas sur Vigie-Chiro");
     }
 
     @Test

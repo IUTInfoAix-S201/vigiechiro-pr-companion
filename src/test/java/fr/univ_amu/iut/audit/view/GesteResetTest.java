@@ -155,7 +155,7 @@ class GesteResetTest {
     void un_refus_est_affiche_et_ne_ferme_rien() {
         when(recuperabilite.bilan()).thenReturn(bilanAvecPerte());
         when(reset.executer(any(), anyBoolean()))
-                .thenReturn(new ResultatReset.Refuse("VigieChiro ne répond pas.", bilanAvecPerte()));
+                .thenReturn(new ResultatReset.Refuse("Vigie-Chiro ne répond pas.", bilanAvecPerte()));
 
         geste.lancer();
 

@@ -36,7 +36,7 @@ public enum EtatAnalyse {
     JAMAIS_RELEVE(
             "Jamais relevé",
             Familles.NEUTRE,
-            "L'état de l'analyse n'a jamais été demandé à VigieChiro pour cette nuit."
+            "L'état de l'analyse n'a jamais été demandé à Vigie-Chiro pour cette nuit."
                     + " Utilisez « Relever l'état des analyses » pour le savoir."),
 
     /// Le serveur répond, et la nuit **n'a jamais été calculée** : le dépôt ne lance pas l'analyse tout
@@ -44,17 +44,17 @@ public enum EtatAnalyse {
     JAMAIS_LANCEE(
             "Jamais lancée",
             "badge-avertissement",
-            "VigieChiro n'a jamais calculé cette nuit. Lancez l'analyse depuis l'écran de dépôt."),
+            "Vigie-Chiro n'a jamais calculé cette nuit. Lancez l'analyse depuis l'écran de dépôt."),
 
     /// Le serveur travaille (planifiée, en cours, ou relancée après un échec rattrapé) : il n'y a rien à
     /// faire d'autre qu'attendre.
-    EN_COURS("En cours", "badge-info", "VigieChiro analyse cette nuit. Comptez plusieurs dizaines de minutes."),
+    EN_COURS("En cours", "badge-info", "Vigie-Chiro analyse cette nuit. Comptez plusieurs dizaines de minutes."),
 
     /// Analyse **définitivement en échec** côté serveur.
     EN_ECHEC(
             "En échec",
             "badge-danger",
-            "L'analyse a échoué sur VigieChiro. Ouvrez l'écran de dépôt pour en lire le motif et la relancer."),
+            "L'analyse a échoué sur Vigie-Chiro. Ouvrez l'écran de dépôt pour en lire le motif et la relancer."),
 
     /// **Analyse terminée, résultats pas encore récupérés** : la seule ligne sur laquelle l'observateur a
     /// quelque chose à faire. C'est l'état que la vue mémorisée « Résultats à importer » isole.

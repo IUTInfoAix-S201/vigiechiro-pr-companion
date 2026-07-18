@@ -27,7 +27,7 @@ class OngletReglagesFonctionnalitesTest {
     @DisplayName("l'onglet porte l'identité « fonctionnalites », ses descripteurs, et l'échappatoire")
     void contrat_de_l_onglet() {
         DescripteurReglage.Booleen toggle = new DescripteurReglage.Booleen(
-                "feature.import-vigiechiro.active", "Import depuis VigieChiro", "", true);
+                "feature.import-vigiechiro.active", "Import depuis Vigie-Chiro", "", true);
         OngletReglagesFonctionnalites onglet = new OngletReglagesFonctionnalites(List.of(toggle));
 
         assertThat(onglet.idFeature()).isEqualTo("fonctionnalites");

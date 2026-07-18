@@ -164,7 +164,7 @@ public class PublicationCorrections {
     /// du cas connu (`404` = ancrage périmé après un re-compute serveur).
     private static String enClair(Observation o, String echec) {
         String cause = echec.startsWith("HTTP 404")
-                ? echec + " (ancrage périmé : réimportez depuis VigieChiro puis republiez)"
+                ? echec + " (ancrage périmé : réimportez depuis Vigie-Chiro puis republiez)"
                 : echec;
         return "Observation " + o.id() + " (donnée " + o.idDonneeVigieChiro() + ", indice " + o.indiceVigieChiro()
                 + ") : " + cause;

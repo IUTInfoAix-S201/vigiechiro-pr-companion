@@ -77,7 +77,9 @@ class SiteDetailBadgePlateformeViewTest {
     void badge_plateforme_affiche_et_explique(FxRobot robot) {
         Label badge = robot.lookup(".badge").queryAs(Label.class);
 
-        assertThat(badge.getText()).as("l'état est nommé, pas laissé à deviner").isEqualTo("Enregistré sur VigieChiro");
+        assertThat(badge.getText())
+                .as("l'état est nommé, pas laissé à deviner")
+                .isEqualTo("Enregistré sur Vigie-Chiro");
         assertThat(badge.getStyleClass())
                 .as("badge du socle, avec sa famille de couleur sémantique (pas de style ad hoc)")
                 .contains("badge", "badge-info");

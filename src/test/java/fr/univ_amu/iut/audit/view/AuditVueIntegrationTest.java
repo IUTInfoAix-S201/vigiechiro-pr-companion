@@ -109,14 +109,14 @@ class AuditVueIntegrationTest {
     @Test
     @DisplayName("#1254 : un échec de la vérification en ligne est restitué dans le résumé (filet #795)")
     void verifier_en_ligne_restitue_l_echec(FxRobot robot) {
-        when(service.auditerEnLigne()).thenThrow(new RuntimeException("VigieChiro injoignable"));
+        when(service.auditerEnLigne()).thenThrow(new RuntimeException("Vigie-Chiro injoignable"));
 
         robot.clickOn("#boutonVerifierEnLigne");
 
         Label resume = robot.lookup("#lblResume").queryAs(Label.class);
         assertThat(resume.getText())
                 .contains("Vérification en ligne impossible")
-                .contains("VigieChiro injoignable");
+                .contains("Vigie-Chiro injoignable");
         assertThat(robot.lookup("#tableConstats").queryAs(TableView.class).getItems())
                 .as("les constats de l'audit hors ligne restent affichés")
                 .hasSize(2);

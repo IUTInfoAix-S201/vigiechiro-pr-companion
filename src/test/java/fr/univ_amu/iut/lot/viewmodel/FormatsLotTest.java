@@ -50,7 +50,7 @@ class FormatsLotTest {
     @DisplayName("#980 : messageEtat signale un dépôt entamé mais incomplet (reprise possible)")
     void message_etat_depot_en_cours() {
         assertThat(FormatsLot.messageEtat(new EtatLot(StatutWorkflow.DEPOT_EN_COURS, "/ws", 5, 8192L, List.of(), null)))
-                .contains("Dépôt VigieChiro entamé")
+                .contains("Dépôt Vigie-Chiro entamé")
                 .contains("reprise");
     }
 

@@ -120,8 +120,8 @@ public class ReconstructionViewModel {
         erreur.set("");
         message.set(
                 chargees.isEmpty()
-                        ? "Aucune nuit manquante : toutes vos participations VigieChiro ont un passage ici."
-                        : chargees.size() + " nuit(s) déposée(s) sur VigieChiro n'existent pas sur cette machine.");
+                        ? "Aucune nuit manquante : toutes vos participations Vigie-Chiro ont un passage ici."
+                        : chargees.size() + " nuit(s) déposée(s) sur Vigie-Chiro n'existent pas sur cette machine.");
     }
 
     /// **Bloquant** (réseau + base) : reconstruit la participation choisie en passage archivé, en relayant
@@ -206,6 +206,6 @@ public class ReconstructionViewModel {
 
     private ServiceReconstructionPassages exiger() {
         return service.orElseThrow(() -> new RegleMetierException("La reconstruction a besoin de la connexion"
-                + " VigieChiro : connectez-vous (menu ☰ > Se connecter à VigieChiro) puis recommencez."));
+                + " Vigie-Chiro : connectez-vous (menu ☰ > Se connecter à Vigie-Chiro) puis recommencez."));
     }
 }

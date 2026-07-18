@@ -400,7 +400,7 @@ class RattachementViewModelTest {
     // --- Phase 2 : pousser les métadonnées vers la participation VigieChiro (à la validation) ---
 
     @Test
-    @DisplayName("Phase 2 : pousserVersVigieChiro délègue à la passerelle et annonce l'envoi")
+    @DisplayName("Phase 2 : pousserVersVigie-Chiro délègue à la passerelle et annonce l'envoi")
     void pousser_vers_vigiechiro_delegue() {
         SynchronisationParticipation sync = mock(SynchronisationParticipation.class);
         when(sync.pousserVers(ID)).thenReturn(EnvoiParticipation.sansRealignement(ResultatEcriture.reussie("part-1")));
@@ -456,12 +456,12 @@ class RattachementViewModelTest {
 
         RattachementViewModel.CompteRenduEnvoi compteRendu = avecSync.pousserVersVigieChiro();
 
-        assertThat(compteRendu.message()).isEqualTo("Métadonnées envoyées à VigieChiro.");
+        assertThat(compteRendu.message()).isEqualTo("Métadonnées envoyées à Vigie-Chiro.");
         assertThat(compteRendu.peutFermer()).isTrue();
     }
 
     @Test
-    @DisplayName("#1839 : un REFUS de VigieChiro est rapporté avec sa cause, plus jamais avalé")
+    @DisplayName("#1839 : un REFUS de Vigie-Chiro est rapporté avec sa cause, plus jamais avalé")
     void pousser_vers_vigiechiro_refus_rapporte() {
         SynchronisationParticipation sync = mock(SynchronisationParticipation.class);
         when(sync.pousserVers(ID))
@@ -516,7 +516,7 @@ class RattachementViewModelTest {
     // --- Phase 2b : tirer les métadonnées depuis la participation VigieChiro ---
 
     @Test
-    @DisplayName("Phase 2b : tirerDepuisVigieChiro délègue puis rechargerApresTir recharge les champs")
+    @DisplayName("Phase 2b : tirerDepuisVigie-Chiro délègue puis rechargerApresTir recharge les champs")
     void tirer_depuis_vigiechiro_recupere() {
         SynchronisationParticipation sync = mock(SynchronisationParticipation.class);
         RattachementViewModel avecSync =

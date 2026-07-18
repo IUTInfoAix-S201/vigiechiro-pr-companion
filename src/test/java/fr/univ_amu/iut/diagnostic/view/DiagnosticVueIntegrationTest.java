@@ -164,12 +164,14 @@ class DiagnosticVueIntegrationTest {
     @DisplayName("Relevé présent : l'alerte R20 est masquée et aucun message d'erreur n'est affiché")
     void releve_present_masque_l_alerte_et_le_message(FxRobot robot) {
         Label alerteR20 = robot.lookup("#lblReleveAbsent").queryAs(Label.class);
-        Label message = robot.lookup("#lblMessage").queryAs(Label.class);
+        // #1887 : le libellé vit désormais DANS le bandeau de retour ; c'est le conteneur qui porte la
+        // visibilité (le libellé, lui, reste visible à l'intérieur d'un bandeau masqué).
+        HBox bandeau = robot.lookup("#bandeauRetour").queryAs(HBox.class);
 
         // visible ET managed sont liés à releveClimatiqueAbsentProperty (false ici).
         assertThat(alerteR20.isVisible()).isFalse();
         assertThat(alerteR20.isManaged()).isFalse();
-        assertThat(message.isVisible()).isFalse();
+        assertThat(bandeau.isVisible()).as("aucun retour à afficher").isFalse();
     }
 
     @Test
@@ -246,8 +248,12 @@ class DiagnosticVueIntegrationTest {
         ListView<?> anomalies = robot.lookup("#listeAnomalies").queryAs(ListView.class);
         ListView<?> evenements = robot.lookup("#listeEvenements").queryAs(ListView.class);
 
-        assertThat(message.isVisible()).isTrue();
+        HBox bandeau = robot.lookup("#bandeauRetour").queryAs(HBox.class);
+        assertThat(bandeau.isVisible()).isTrue();
         assertThat(message.getText()).contains("introuvable");
+        assertThat(bandeau.getStyleClass())
+                .as("#1887 : un chargement qui échoue s'affiche en erreur, pas en information")
+                .contains("retour-erreur");
         // Réinitialisation : enregistreur (déporté en barre de statut, #693) vidé, listes vides, GPS masqué.
         assertThat(controleur.zonesStatutProperty().get().centre()).isEmpty();
         assertThat(anomalies.getItems()).isEmpty();

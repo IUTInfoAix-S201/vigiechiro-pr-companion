@@ -1,6 +1,7 @@
 package fr.univ_amu.iut.diagnostic.viewmodel;
 
 import fr.univ_amu.iut.commun.viewmodel.Formats;
+import fr.univ_amu.iut.commun.viewmodel.RetourOperation;
 import fr.univ_amu.iut.diagnostic.model.CoherenceHoraire;
 import fr.univ_amu.iut.diagnostic.model.Diagnostic;
 import fr.univ_amu.iut.diagnostic.model.MesureClimatique;
@@ -9,6 +10,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
@@ -34,7 +37,10 @@ public class DiagnosticViewModel {
     private final ObservableList<MesureClimatique> mesures = FXCollections.observableArrayList();
     private final ObservableList<String> anomalies = FXCollections.observableArrayList();
     private final ObservableList<String> evenements = FXCollections.observableArrayList();
-    private final ReadOnlyStringWrapper message = new ReadOnlyStringWrapper(this, "message", "");
+    /// Retour de la dernière opération, avec sa sévérité, rendu dans le bandeau partagé (ADR 0023 :
+    /// le bandeau est le véhicule par défaut, le modal reste réservé à l'irréversible).
+    private final ReadOnlyObjectWrapper<RetourOperation> retour =
+            new ReadOnlyObjectWrapper<>(this, "retour", RetourOperation.AUCUN);
 
     /// Température en début de nuit (#106) : libellé d'affichage (`8,5 °C` / `—`).
     private final ReadOnlyStringWrapper temperature = new ReadOnlyStringWrapper(this, "temperature", "—");
@@ -55,15 +61,15 @@ public class DiagnosticViewModel {
     }
 
     /// Ouvre le diagnostic du passage `idPassage`. Une erreur (passage/session introuvable) est
-    /// restituée dans [#messageProperty()] sans lever, l'écran restant vide.
+    /// restituée dans [#retourProperty()] sans lever, l'écran restant vide.
     public void ouvrirSur(Long idPassage) {
         reinitialiser();
         try {
             appliquer(service.diagnostiquer(idPassage));
-            message.set("");
+            retour.set(RetourOperation.AUCUN);
         } catch (RuntimeException echec) {
             reinitialiser();
-            message.set(echec.getMessage());
+            retour.set(RetourOperation.erreur(echec.getMessage()));
         }
     }
 
@@ -170,7 +176,14 @@ public class DiagnosticViewModel {
     }
 
     /// Message d'erreur (passage/session introuvable), vide en fonctionnement nominal.
-    public ReadOnlyStringProperty messageProperty() {
-        return message.getReadOnlyProperty();
+    /// Retour de la **dernière opération** avec sa sévérité, pour le bandeau de l'écran.
+    /// [RetourOperation#AUCUN] en nominal.
+    public ReadOnlyObjectProperty<RetourOperation> retourProperty() {
+        return retour.getReadOnlyProperty();
+    }
+
+    /// Efface le retour (l'utilisateur a lu le bandeau et le ferme).
+    public void effacerRetour() {
+        retour.set(RetourOperation.AUCUN);
     }
 }

@@ -6,6 +6,7 @@ import fr.univ_amu.iut.commun.model.DepotDispositionColonnes;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.model.Verdict;
 import fr.univ_amu.iut.commun.model.VerdictFichier;
+import fr.univ_amu.iut.commun.view.BandeauRetour;
 import fr.univ_amu.iut.commun.view.ConfirmateurModifiable;
 import fr.univ_amu.iut.commun.view.EmplacementNavigation;
 import fr.univ_amu.iut.commun.view.EmplacementPassage;
@@ -43,6 +44,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 
 /// Controller de l'écran **M-Qualification** (`Qualification.fxml`).
@@ -204,6 +206,12 @@ public class QualificationController implements GardeQuitter, EmplacementNavigat
 
     @FXML
     private Label lblMessage;
+
+    @FXML
+    private HBox bandeauRetour;
+
+    @FXML
+    private Button btnFermerRetour;
 
     /// Erreur de chargement / régénération de la sélection d'écoute (#795), branchée à
     /// `selectionVm.messageProperty()` (jusqu'ici non affichée, donc avalée).
@@ -419,9 +427,10 @@ public class QualificationController implements GardeQuitter, EmplacementNavigat
     /// Branche les deux zones de message d'erreur de l'écran : le verdict (colonne droite) et la sélection
     /// d'écoute (#795, colonne gauche, jusqu'ici non branchée) ; chacune n'apparaît qu'avec un message.
     private void lierMessagesErreur() {
-        lblMessage.textProperty().bind(verdictVm.messageProperty());
-        lblMessage.visibleProperty().bind(verdictVm.messageProperty().isNotEmpty());
-        lblMessage.managedProperty().bind(verdictVm.messageProperty().isNotEmpty());
+        // Bandeau de retour partagé (ADR 0023). Le compte rendu de régénération, lui, RESTE modal : il
+        // suit une action irréversible (régénérer efface la progression d'écoute, d'où sa confirmation).
+        BandeauRetour.installer(
+                bandeauRetour, lblMessage, btnFermerRetour, verdictVm.retourProperty(), verdictVm::effacerRetour);
         lblSelectionMessage.textProperty().bind(selectionVm.messageProperty());
         lblSelectionMessage.visibleProperty().bind(selectionVm.messageProperty().isNotEmpty());
         lblSelectionMessage.managedProperty().bind(selectionVm.messageProperty().isNotEmpty());

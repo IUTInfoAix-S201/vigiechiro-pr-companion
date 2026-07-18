@@ -78,7 +78,9 @@ class DiagnosticViewModelTest {
         assertThat(viewModel.temperatureProperty().get())
                 .as("#106 : température de début de nuit affichée au diagnostic")
                 .isEqualTo("8,5 °C");
-        assertThat(viewModel.messageProperty().get()).isEmpty();
+        assertThat(viewModel.retourProperty().get().present())
+                .as("aucun retour à afficher")
+                .isFalse();
     }
 
     @Test
@@ -153,7 +155,7 @@ class DiagnosticViewModelTest {
 
         viewModel.ouvrirSur(99L);
 
-        assertThat(viewModel.messageProperty().get()).contains("introuvable");
+        assertThat(viewModel.retourProperty().get().texte()).contains("introuvable");
         assertThat(viewModel.enregistreurProperty().get()).isEmpty();
         assertThat(viewModel.mesures()).isEmpty();
     }
@@ -171,6 +173,6 @@ class DiagnosticViewModelTest {
         assertThat(viewModel.mesures()).isEmpty();
         assertThat(viewModel.anomalies()).isEmpty();
         assertThat(viewModel.enregistreurProperty().get()).isEmpty();
-        assertThat(viewModel.messageProperty().get()).contains("introuvable");
+        assertThat(viewModel.retourProperty().get().texte()).contains("introuvable");
     }
 }

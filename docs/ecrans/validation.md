@@ -149,8 +149,13 @@ En pleine revue, pour **lever un doute** sur une identification, un **double-cli
 (ou un **clic droit → « Fiche de l'espèce »**, ou encore le menu **☰ → Fiche de l'espèce**) ouvre dans
 votre **navigateur** une fiche d'information sur la **proposition Tadarida** de la ligne
 sélectionnée. L'entrée s'**adapte à la sélection** : elle nomme l'espèce (par exemple « Fiche de l'espèce
-(Pipistrelle commune) ») et s'ouvre au clic. Pour une séquence **non identifiée** ou un pseudo-taxon
-(bruit), elle est **grisée** avec la mention « aucune fiche disponible ».
+(Pipistrelle commune) ») et s'ouvre au clic.
+
+Toutes les lignes n'ont pas de fiche : une séquence **non identifiée**, un pseudo-taxon (**Bruit**,
+**Oiseau**) ou un couple d'espèces n'en a aucune. Dans le menu, l'entrée est alors **grisée** avec la
+mention « aucune fiche disponible » ; au **double-clic**, rien ne s'ouvre et un **bandeau** vous le dit
+(« Aucune fiche disponible pour « Bruit » »). Sur une nuit réelle, où l'essentiel des lignes est du
+bruit, c'est le cas le plus fréquent : le double-clic ne reste jamais sans réponse.
 
 ![Le menu ☰ de Sons & validation, où « Fiche de l'espèce (Pipistrelle commune) » ouvre la fiche de la proposition Tadarida sélectionnée.](../assets/captures/apercu-fiche-espece.png)
 

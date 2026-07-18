@@ -9,6 +9,7 @@ import fr.univ_amu.iut.commun.view.OuvrirPassage;
 import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
 import fr.univ_amu.iut.validation.model.LigneObservationAudio;
 import java.util.Objects;
+import java.util.function.Consumer;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableView;
@@ -63,11 +64,29 @@ final class ActionsMenuAudio {
         configurerFiche(itemFicheContexte, ligne);
     }
 
-    /// Ouvre la fiche de la proposition Tadarida de `ligne` dans le navigateur (double-clic, #1794) ;
-    /// inerte si `ligne` est nulle ou si le taxon n'a pas de fiche (pseudo-taxon). Même cible que
-    /// l'item « Fiche de l'espèce » du menu ☰.
-    void ouvrirFiche(LigneObservationAudio ligne) {
-        ficheEspece.ouvrir(especeDe(ligne));
+    /// Ouvre la fiche de la proposition Tadarida de `ligne` dans le navigateur (double-clic, #1794), même
+    /// cible que l'item « Fiche de l'espèce » du menu ☰.
+    ///
+    /// Quand le taxon n'a pas de fiche (pseudo-taxons « Bruit » / « Oiseau », couple sans binôme), rien ne
+    /// s'ouvre et le motif part dans `signaler`, qui l'affiche dans le bandeau de retour. Le menu, lui, se
+    /// contente de griser son item : il montre son état **avant** le clic, quand le double-clic n'a rien à
+    /// montrer et passait donc pour cassé (#1834).
+    void ouvrirFiche(LigneObservationAudio ligne, Consumer<String> signaler) {
+        if (ligne != null && !ficheEspece.ouvrir(especeDe(ligne))) {
+            signaler.accept(motifAucuneFiche(ligne));
+        }
+    }
+
+    /// Motif présenté à l'utilisateur, qui nomme le taxon tel qu'il le lit dans la colonne « Proposition
+    /// Tadarida » ; à défaut son code, et en dernier recours une formule sans nom.
+    private static String motifAucuneFiche(LigneObservationAudio ligne) {
+        String nom = ligne.nomTadarida();
+        if (nom == null || nom.isBlank()) {
+            nom = ligne.taxonTadarida();
+        }
+        return nom == null || nom.isBlank()
+                ? "Aucune fiche disponible pour cette observation."
+                : "Aucune fiche disponible pour « " + nom + " ».";
     }
 
     /// Sous-menu « Copier ▸ » de la ligne audio (#1798) : nom latin de la proposition Tadarida et n° de

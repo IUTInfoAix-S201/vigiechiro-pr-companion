@@ -39,6 +39,7 @@ import fr.univ_amu.iut.validation.model.StatutObservation;
 import fr.univ_amu.iut.validation.model.ValidationManuelle;
 import fr.univ_amu.iut.validation.model.dao.ProjectionsAudioDao;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import javafx.fxml.FXMLLoader;
@@ -76,7 +77,17 @@ class SonsValidationArchiveViewTest {
 
     private SonsValidationController controleur;
 
+    /// URLs de fiche réellement ouvertes dans le navigateur, pour distinguer « rien ne s'est ouvert »
+    /// de « la fiche s'est ouverte ».
+    private final List<String> urlsOuvertes = new ArrayList<>();
+
     private static LigneObservationAudio ligne(long id, long seq) {
+        return ligne(id, seq, "Pippip", null);
+    }
+
+    /// Variante nommant le taxon Tadarida et son libellé, pour couvrir un **pseudo-taxon** sans fiche
+    /// (« noise » → « Bruit ») à côté des chiroptères.
+    private static LigneObservationAudio ligne(long id, long seq, String tadarida, String nomTadarida) {
         return new LigneObservationAudio(
                 id,
                 seq,
@@ -86,7 +97,7 @@ class SonsValidationArchiveViewTest {
                 "640380",
                 "A1",
                 "Mon site",
-                "Pippip",
+                tadarida,
                 0.9,
                 null,
                 null,
@@ -95,7 +106,7 @@ class SonsValidationArchiveViewTest {
                 null,
                 45,
                 null,
-                null,
+                nomTadarida,
                 null,
                 "Chiroptères",
                 "PaRec_" + seq + "_000.wav",
@@ -118,7 +129,9 @@ class SonsValidationArchiveViewTest {
         ServiceDisponibiliteAudio disponibilite = mock(ServiceDisponibiliteAudio.class);
         when(service.taxonsDisponibles()).thenReturn(List.of());
         when(service.resultatsDuPassage(7L)).thenReturn(Optional.of(100L));
-        when(projections.lignesAudioDuPassage(7L)).thenReturn(List.of(ligne(1, 10), ligne(2, 11)));
+        // 3e ligne : pseudo-taxon « noise », sans fiche espèce (cas majoritaire d'une vraie nuit).
+        when(projections.lignesAudioDuPassage(7L))
+                .thenReturn(List.of(ligne(1, 10), ligne(2, 11), ligne(3, 12, "noise", "Bruit")));
         when(projections.lignesAudioNonIdentifiees(7L)).thenReturn(List.of());
         when(plageNuit.pour(7L)).thenReturn(Optional.empty());
         when(service.cheminAudio(anyLong())).thenReturn(Optional.empty());
@@ -164,7 +177,7 @@ class SonsValidationArchiveViewTest {
 
                     @Provides
                     OuvreurDeLien ouvreurDeLien() {
-                        return url -> {};
+                        return urlsOuvertes::add;
                     }
 
                     @Provides
@@ -230,5 +243,49 @@ class SonsValidationArchiveViewTest {
         assertThat(robot.lookup("#btnValider").queryAs(Button.class).isDisabled())
                 .as("valider reste un acte sur des données (possible sans écouter, comme aujourd'hui)")
                 .isFalse();
+    }
+
+    @Test
+    @DisplayName("#1834 : double-clic sur un taxon sans fiche : rien ne s'ouvre, et le bandeau dit pourquoi")
+    void double_clic_sans_fiche_affiche_le_motif(FxRobot robot) {
+        Node bandeau = robot.lookup("#bandeauRetour").query();
+        assertThat(bandeau.isVisible()).as("aucun retour au départ").isFalse();
+
+        doubleCliquerLigne(robot, 2); // « Bruit » : pseudo-taxon, aucune fiche à ouvrir
+
+        assertThat(urlsOuvertes)
+                .as("un pseudo-taxon n'a pas de fiche : rien ne doit s'ouvrir")
+                .isEmpty();
+        assertThat(bandeau.isVisible())
+                .as("le geste ne doit plus rester muet : sans retour, il passe pour cassé")
+                .isTrue();
+        assertThat(robot.lookup("#lblMessage").queryAs(Label.class).getText())
+                .as("le motif nomme le taxon tel que l'utilisateur le lit dans la table")
+                .contains("Aucune fiche disponible pour « Bruit »");
+        assertThat(bandeau.getStyleClass())
+                .as("action refusée faute de cible : guidage, pas échec technique")
+                .contains("retour-info");
+    }
+
+    @Test
+    @DisplayName("#1834 : double-clic sur un chiroptère ouvre sa fiche, sans message de refus")
+    void double_clic_avec_fiche_ouvre_et_ne_signale_rien(FxRobot robot) {
+        doubleCliquerLigne(robot, 0); // « Pippip » : chiroptère à fiche PNA
+
+        assertThat(urlsOuvertes)
+                .containsExactly(
+                        "https://plan-actions-chiropteres.fr/les-chauves-souris/les-especes/pipistrelle-commune/");
+        assertThat(robot.lookup("#bandeauRetour").query().isVisible())
+                .as("la fiche s'est ouverte : il n'y a rien à signaler")
+                .isFalse();
+    }
+
+    private void doubleCliquerLigne(FxRobot robot, int index) {
+        Node ligne = robot.lookup("#tableObservations")
+                .lookup(".table-row-cell")
+                .nth(index)
+                .query();
+        robot.doubleClickOn(ligne);
+        WaitForAsyncUtils.waitForFxEvents();
     }
 }

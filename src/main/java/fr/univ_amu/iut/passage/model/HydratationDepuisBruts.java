@@ -133,8 +133,17 @@ final class HydratationDepuisBruts {
         RegenerationSequences moteur = regeneration.orElseThrow();
         Path temporaire = DossierTemporaire.creer("vc-hydrate-");
         try {
+            // Aucun arbitrage de collisions ici, faute de pouvoir le rejouer : l'hydratation part d'un
+            // passage reconstruit, dont la base ne connaît aucun original réel (ni durée, donc ni nombre
+            // de tranches). L'inventaire des bruts ne porte pas non plus les durées. Une tranche ayant
+            // perdu une collision à l'import reste donc non revendiquée sur ce chemin.
             SequencesRegenerees regenerees = moteur.regenerer(
-                    brut.source(), brut.nomOriginal(), prefixe, inventorie.frequenceAcquisitionHz(), temporaire);
+                    brut.source(),
+                    brut.nomOriginal(),
+                    prefixe,
+                    inventorie.frequenceAcquisitionHz(),
+                    temporaire,
+                    List.of());
             List<SequenceDEcoute> sesSequences = sequencesRevendiquees(temporaire, parNom, restantes);
             Optional<BrutRebranche> rebranche = sesSequences.isEmpty()
                     ? Optional.empty()

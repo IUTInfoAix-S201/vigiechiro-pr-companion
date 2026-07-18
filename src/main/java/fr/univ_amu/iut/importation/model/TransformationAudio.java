@@ -2,6 +2,7 @@ package fr.univ_amu.iut.importation.model;
 
 import fr.univ_amu.iut.commun.model.Empreintes;
 import fr.univ_amu.iut.commun.model.FichierWav;
+import fr.univ_amu.iut.commun.model.NommageSequences;
 import fr.univ_amu.iut.commun.model.Prefixe;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -54,7 +55,10 @@ public class TransformationAudio {
 
     /// Durée d'une séquence d'écoute, en secondes **réelles** (au rythme d'acquisition) : une tranche = 5 s
     /// de l'enregistrement d'origine, soit 50 s à l'écoute une fois expansée ×10 (R10).
-    public static final int DUREE_SEQUENCE_SECONDES = 5;
+    ///
+    /// Définie dans [NommageSequences] : la réactivation, qui doit rejouer ce découpage à l'identique, vit
+    /// dans une autre feature et ne peut pas dépendre de celle-ci.
+    public static final int DUREE_SEQUENCE_SECONDES = NommageSequences.DUREE_SEQUENCE_SECONDES;
 
     /// Facteur d'expansion temporelle du protocole Vigie-Chiro (R10).
     public static final int FACTEUR_EXPANSION = 10;
@@ -139,7 +143,7 @@ public class TransformationAudio {
                 // Nommage horodaté (convention Vigie-Chiro/Tadarida) : la tranche d'index k porte l'heure
                 // réelle de son début = horodatage de l'original + k × 5 s, avec un `_000` systématique. Ce
                 // nom est la clé de jointure avec les lignes de l'observations.csv (cf. ServiceValidation).
-                String nomSequence = prefixe.nommerSequence(nomOriginal, index, index * DUREE_SEQUENCE_SECONDES);
+                String nomSequence = NommageSequences.nomSouhaite(prefixe, nomOriginal, index);
                 Path cheminSequence = dossierSortie.resolve(nomSequence);
                 // Reprise (#231) : on réécrit **toujours** la séquence (R11 : bytes déterministes), pour ne
                 // jamais persister une séquence périmée/corrompue par un crash, même de taille identique.
@@ -219,6 +223,6 @@ public class TransformationAudio {
     /// tranche de 5 s **réelles** de l'enregistrement. Exposé pour la lisibilité des tests et de l'IHM
     /// (prévisualisation du volume à produire).
     public static long nombreSequencesAttendu(double dureeSourceSecondes) {
-        return (long) Math.ceil(dureeSourceSecondes / DUREE_SEQUENCE_SECONDES);
+        return NommageSequences.nombreTranches(dureeSourceSecondes);
     }
 }

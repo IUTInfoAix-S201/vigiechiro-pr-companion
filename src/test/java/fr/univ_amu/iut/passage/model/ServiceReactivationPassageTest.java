@@ -176,6 +176,38 @@ class ServiceReactivationPassageTest {
     }
 
     @Test
+    @DisplayName("#1904 : le rapport porte ce que la phase d'ancrage a rapatrié, et rien quand elle n'a pas lieu")
+    void le_rapport_porte_le_compte_rendu_du_rapatriement() throws IOException {
+        archiverAvecSauvegarde(true, true);
+        ImportObservations importObservations = mock(ImportObservations.class);
+        when(importObservations.estRattache(idPassage)).thenReturn(true);
+        when(importObservations.ancrageManquant(idPassage)).thenReturn(true);
+        when(importObservations.importer(eq(idPassage), eq(true), any()))
+                .thenReturn("Observations importées depuis Vigie-Chiro : 40 observation(s)."
+                        + " Le validateur s'est exprimé sur 3 observation(s).");
+
+        RapportReactivation rapport = avecImport(importObservations).reactiver(idPassage, sauvegarde, progres -> {});
+
+        assertThat(rapport.rapatriement())
+                .as("sans cela, les messages du validateur arrivent en base sans que rien ne le dise")
+                .contains("Le validateur s'est exprimé sur 3 observation(s).");
+    }
+
+    @Test
+    @DisplayName("#1904 : sans phase d'ancrage, le rapport n'a rien à dire du rapatriement")
+    void le_rapport_est_muet_sans_phase_d_ancrage() throws IOException {
+        archiverAvecSauvegarde(true, true);
+        ImportObservations importObservations = mock(ImportObservations.class);
+        when(importObservations.estRattache(idPassage)).thenReturn(false); // rien à quoi s'ancrer
+
+        RapportReactivation rapport = avecImport(importObservations).reactiver(idPassage, sauvegarde, progres -> {});
+
+        assertThat(rapport.rapatriement())
+                .as("une réactivation ordinaire ne doit pas afficher de ligne vide ni de « rien à faire »")
+                .isEmpty();
+    }
+
+    @Test
     @DisplayName("Annulation pendant l'ancrage (#1597) : « Annuler » interrompt la phase réseau dès une page")
     void annulation_pendant_l_ancrage() throws IOException {
         archiverAvecSauvegarde(true, true); // l'audio revient complet → la phase d'ancrage se déclenche

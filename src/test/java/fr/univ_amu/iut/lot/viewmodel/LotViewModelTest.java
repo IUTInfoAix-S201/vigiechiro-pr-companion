@@ -10,6 +10,7 @@ import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.viewmodel.EtatEtape;
 import fr.univ_amu.iut.commun.viewmodel.EtatUnite;
+import fr.univ_amu.iut.commun.viewmodel.RetourOperation;
 import fr.univ_amu.iut.lot.model.ArchiveDepot;
 import fr.univ_amu.iut.lot.model.ControleCoherence;
 import fr.univ_amu.iut.lot.model.EtatLot;
@@ -92,7 +93,8 @@ class LotViewModelTest {
         assertThat(viewModel.supprimerArchives()).isTrue();
 
         verify(service).supprimerArchivesDepot(ID_PASSAGE);
-        assertThat(viewModel.messageProperty().get()).contains("libérés");
+        assertThat(viewModel.retourProperty().get().texte()).contains("libérés");
+        assertThat(viewModel.retourProperty().get().severite()).isEqualTo(RetourOperation.Severite.SUCCES);
         // Après recharge (plus d'archives), le bouton se désactive de lui-même.
         assertThat(viewModel.peutSupprimerArchivesProperty().get()).isFalse();
     }
@@ -149,7 +151,8 @@ class LotViewModelTest {
         assertThat(viewModel.peutDeposerProperty().get()).isFalse();
         assertThat(viewModel.deposeProperty().get()).isFalse();
         assertThat(viewModel.controles()).isEmpty();
-        assertThat(viewModel.messageProperty().get()).isEmpty();
+        assertThat(viewModel.etatLotProperty().get()).isEmpty();
+        assertThat(viewModel.retourProperty().get()).isEqualTo(RetourOperation.AUCUN);
     }
 
     @Test
@@ -167,7 +170,9 @@ class LotViewModelTest {
         assertThat(viewModel.controles()).hasSize(1);
         assertThat(viewModel.controles().get(0).estBloquant()).isTrue();
         assertThat(viewModel.controles().get(0).detail()).isEqualTo("Transformation incomplète");
-        assertThat(viewModel.messageProperty().get()).contains("corrigez");
+        assertThat(viewModel.etatLotProperty().get())
+                .as("#1890 : une cohérence en échec décrit l'état du lot, pas le résultat d'une action")
+                .contains("corrigez");
     }
 
     @Test
@@ -214,16 +219,51 @@ class LotViewModelTest {
     }
 
     @Test
-    @DisplayName("#251 : une fois préparé, un message confirme ce que l'étape ① a accompli")
-    void pret_a_deposer_message_confirme_la_preparation() {
+    @DisplayName("#251/#1890 : préparer confirme ce que l'étape ① a accompli, en retour d'opération")
+    void preparer_confirme_ce_que_l_etape_a_accompli() {
+        when(service.consulterLot(ID_PASSAGE)).thenReturn(etat(StatutWorkflow.VERIFIE, List.of(), null));
+        viewModel.ouvrirSur(ID_PASSAGE);
+        when(service.consulterLot(ID_PASSAGE)).thenReturn(etat(StatutWorkflow.PRET_A_DEPOSER, List.of(), null));
+
+        assertThat(viewModel.preparer()).isTrue();
+
+        assertThat(viewModel.retourProperty().get().texte())
+                .contains("Dépôt préparé")
+                .contains("2 séquence")
+                .contains("verrouillée");
+        assertThat(viewModel.retourProperty().get().severite()).isEqualTo(RetourOperation.Severite.SUCCES);
+    }
+
+    @Test
+    @DisplayName("#1890 : l'état du lot et le compte rendu coexistent sans se recouvrir")
+    void l_etat_et_le_retour_ne_se_recouvrent_pas() {
+        // Avant #1890, les deux vivaient dans la MÊME propriété : `supprimerArchives` reposait l'état via
+        // `appliquer` puis écrasait aussitôt avec son bilan. Inverser ces deux lignes changeait ce que
+        // voyait l'utilisateur. Séparés, l'ordre n'a plus d'importance et les deux informations survivent.
+        when(service.consulterLot(ID_PASSAGE)).thenReturn(etat(StatutWorkflow.DEPOSE, List.of(), "2026-06-23T08:00"));
+        when(service.supprimerArchivesDepot(ID_PASSAGE)).thenReturn(2048L);
+        viewModel.ouvrirSur(ID_PASSAGE);
+
+        assertThat(viewModel.supprimerArchives()).isTrue();
+
+        assertThat(viewModel.etatLotProperty().get())
+                .as("l'état de la nuit survit au compte rendu de l'opération")
+                .isEqualTo("Passage déposé le 2026-06-23T08:00.");
+        assertThat(viewModel.retourProperty().get().texte())
+                .as("et le compte rendu survit au rechargement de l'état")
+                .contains("libérés");
+    }
+
+    @Test
+    @DisplayName("#1890 : ouvrir un passage déjà préparé n'annonce pas une préparation qui n'a pas eu lieu")
+    void ouvrir_un_passage_deja_prepare_n_annonce_rien() {
         when(service.consulterLot(ID_PASSAGE)).thenReturn(etat(StatutWorkflow.PRET_A_DEPOSER, List.of(), null));
 
         viewModel.ouvrirSur(ID_PASSAGE);
 
-        assertThat(viewModel.messageProperty().get())
-                .contains("Dépôt préparé")
-                .contains("2 séquence")
-                .contains("verrouillée");
+        assertThat(viewModel.retourProperty().get())
+                .as("le compte rendu appartient à l'action, pas au statut : le stepper dit déjà « Prêt à déposer »")
+                .isEqualTo(RetourOperation.AUCUN);
     }
 
     @Test
@@ -236,7 +276,7 @@ class LotViewModelTest {
         assertThat(viewModel.deposeProperty().get()).isTrue();
         assertThat(viewModel.peutPreparerProperty().get()).isFalse();
         assertThat(viewModel.peutDeposerProperty().get()).isFalse();
-        assertThat(viewModel.messageProperty().get()).isEqualTo("Passage déposé le 2026-06-23T08:00.");
+        assertThat(viewModel.etatLotProperty().get()).isEqualTo("Passage déposé le 2026-06-23T08:00.");
     }
 
     @Test
@@ -277,7 +317,8 @@ class LotViewModelTest {
         viewModel.ouvrirSur(ID_PASSAGE);
 
         assertThat(viewModel.preparer()).isFalse();
-        assertThat(viewModel.messageProperty().get()).contains("impossible");
+        assertThat(viewModel.retourProperty().get().texte()).contains("impossible");
+        assertThat(viewModel.retourProperty().get().severite()).isEqualTo(RetourOperation.Severite.ERREUR);
         assertThat(viewModel.statutProperty().get()).isEqualTo("Vérifié"); // état non vidé
     }
 
@@ -298,7 +339,8 @@ class LotViewModelTest {
         assertThat(ligne.numero()).isEqualTo(1);
         assertThat(ligne.nombreFichiers()).isEqualTo(2);
         assertThat(ligne.etatProperty().get()).isEqualTo(EtatUnite.TERMINEE);
-        assertThat(viewModel.messageProperty().get()).contains("1 archive");
+        assertThat(viewModel.retourProperty().get().texte()).contains("1 archive");
+        assertThat(viewModel.retourProperty().get().severite()).isEqualTo(RetourOperation.Severite.SUCCES);
         assertThat(viewModel.generationEnCoursProperty().get()).isFalse(); // état « en cours » levé en fin
     }
 
@@ -313,9 +355,9 @@ class LotViewModelTest {
         // Étape posée sur le fil JavaFX avant le calcul hors-thread.
         viewModel.marquerGenerationEnCours();
         assertThat(viewModel.generationEnCoursProperty().get()).isTrue();
-        assertThat(viewModel.messageProperty().get())
+        assertThat(viewModel.retourProperty().get())
                 .as("#1886 : démarrer efface le résultat précédent ; le travail en cours s'annonce ailleurs")
-                .isEmpty();
+                .isEqualTo(RetourOperation.AUCUN);
 
         // Calcul hors-thread (aucune mutation observable), puis application sur le fil JavaFX.
         var produites = viewModel.calculerArchivesDepot(progression -> {}, SuiviArchives.inerte());
@@ -336,7 +378,8 @@ class LotViewModelTest {
         viewModel.echecGeneration("Disque plein.");
 
         assertThat(viewModel.generationEnCoursProperty().get()).isFalse();
-        assertThat(viewModel.messageProperty().get()).isEqualTo("Disque plein.");
+        assertThat(viewModel.retourProperty().get().texte()).contains("Disque plein.");
+        assertThat(viewModel.retourProperty().get().severite()).isEqualTo(RetourOperation.Severite.ERREUR);
     }
 
     @Test
@@ -350,7 +393,7 @@ class LotViewModelTest {
         assertThat(viewModel.genererArchives()).isFalse();
 
         assertThat(viewModel.suiviLignes().lignes()).isEmpty();
-        assertThat(viewModel.messageProperty().get()).contains("Aucune séquence");
+        assertThat(viewModel.retourProperty().get().texte()).contains("Aucune séquence");
     }
 
     @Test

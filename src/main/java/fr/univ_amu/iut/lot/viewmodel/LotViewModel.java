@@ -4,6 +4,7 @@ import fr.univ_amu.iut.commun.model.Progression;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.viewmodel.Formats;
 import fr.univ_amu.iut.commun.viewmodel.ProgressionOperation;
+import fr.univ_amu.iut.commun.viewmodel.RetourOperation;
 import fr.univ_amu.iut.lot.model.ArchiveDepot;
 import fr.univ_amu.iut.lot.model.ControleCoherence;
 import fr.univ_amu.iut.lot.model.EtatLot;
@@ -12,11 +13,13 @@ import fr.univ_amu.iut.lot.model.SuiviArchives;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.BooleanExpression;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
@@ -50,14 +53,8 @@ public class LotViewModel {
     private final ReadOnlyBooleanWrapper peutGenererArchives =
             new ReadOnlyBooleanWrapper(this, "peutGenererArchives", false);
 
-    /// Espace disque estimé **suffisant** pour générer les archives (#…) : anticipé au chargement
-    /// (estimation compression comprise vs espace disponible). `true` par défaut / si indéterminé (on ne
-    /// bloque pas). Faux → bouton « Générer » désactivé + [#raisonEspaceInsuffisant] expliquée.
-    private final ReadOnlyBooleanWrapper espaceDepotSuffisant =
-            new ReadOnlyBooleanWrapper(this, "espaceDepotSuffisant", true);
-
-    private final ReadOnlyStringWrapper raisonEspaceInsuffisant =
-            new ReadOnlyStringWrapper(this, "raisonEspaceInsuffisant", "");
+    /// Anticipation de l'espace disque nécessaire aux archives : voir [AnticipationEspaceDisque].
+    private final AnticipationEspaceDisque espaceDisque;
 
     /// Génération des archives en cours (#251) : posée pendant le travail hors fil JavaFX pour afficher
     /// un état « en cours » et désactiver le bouton (l'opération peut être longue sur une grosse nuit).
@@ -75,7 +72,8 @@ public class LotViewModel {
     /// inactif à tort.
     private final BooleanBinding peutSupprimerArchives = Bindings.isNotEmpty(suiviLignes.lignes());
     private final ReadOnlyStringWrapper titreArchives = new ReadOnlyStringWrapper(this, "titreArchives", "");
-    private final ReadOnlyStringWrapper message = new ReadOnlyStringWrapper(this, "message", "");
+    /// Les deux canaux de messages de l'écran, séparés (#1890) : voir [MessagesLot].
+    private final MessagesLot messages = new MessagesLot();
 
     /// Progression déterminée de la génération des archives (#769) : fraction + libellé « Compression X/N »
     /// avec estimation du temps restant. Alimentée par le callback du service (relayé au fil JavaFX).
@@ -83,6 +81,7 @@ public class LotViewModel {
 
     public LotViewModel(ServiceLot service) {
         this.service = Objects.requireNonNull(service, "service");
+        this.espaceDisque = new AnticipationEspaceDisque(service);
         // Titre reflétant le **plafond configuré** (#110) : en Mo base 1000 (cohérent avec la contrainte
         // « 700 Mo » Tadarida), et non Formats.octetsLisibles qui raisonne en base 1024.
         long plafondMo = service.plafondArchiveOctets() / 1_000_000;
@@ -90,7 +89,7 @@ public class LotViewModel {
     }
 
     /// Ouvre l'écran de dépôt du passage `idPassage`. Une erreur (passage introuvable) est restituée
-    /// dans [#messageProperty()] sans lever, l'écran restant vide.
+    /// dans [#retourProperty()] sans lever, l'écran restant vide.
     public void ouvrirSur(Long idPassage) {
         this.idPassage = idPassage;
         reinitialiser();
@@ -98,25 +97,28 @@ public class LotViewModel {
             appliquer(service.consulterLot(idPassage));
         } catch (RuntimeException echec) {
             reinitialiser();
-            message.set(echec.getMessage());
+            messages.erreur(echec.getMessage());
         }
     }
 
     /// Vérifie et prépare le lot (R14 + cohérence) : Vérifié → Prêt à déposer, puis recharge. Sert aussi à
     /// **relancer la vérification** : le bouton reste actionnable tant qu'un contrôle bloque (cf.
     /// [ActionsLotPossibles]) ; en cas de succès, l'état est rechargé (la checklist repasse au vert) ; en cas
-    /// de blocage, la raison est restituée dans [#messageProperty()]. Sans passage ouvert, l'appel est ignoré.
+    /// de blocage, la raison est restituée dans [#retourProperty()]. Sans passage ouvert, l'appel est ignoré.
     ///
     /// @return `true` si la préparation a réussi
     public boolean preparer() {
-        return appliquerAction(() -> service.preparerLot(idPassage));
+        return appliquerAction(
+                () -> service.preparerLot(idPassage),
+                etat -> "Dépôt préparé : " + etat.nombreSequences()
+                        + " séquence(s) validée(s) et verrouillée(s), prêtes à l'archivage.");
     }
 
     /// Marque le passage déposé après téléversement manuel : Prêt à déposer → Déposé, puis recharge.
     ///
     /// @return `true` si le dépôt a été enregistré
     public boolean deposer() {
-        return appliquerAction(() -> service.marquerDepose(idPassage));
+        return appliquerAction(() -> service.marquerDepose(idPassage), etat -> "Passage marqué déposé.");
     }
 
     /// Supprime les **archives ZIP de dépôt** (`depot/*.zip`) une fois le passage déposé, pour libérer
@@ -132,10 +134,10 @@ public class LotViewModel {
             long liberes = service.supprimerArchivesDepot(idPassage);
             suiviLignes.reinitialiser();
             appliquer(service.consulterLot(idPassage));
-            message.set("Archives de dépôt supprimées (" + Formats.octetsLisibles(liberes) + " libérés).");
+            messages.succes("Archives de dépôt supprimées (" + Formats.octetsLisibles(liberes) + " libérés).");
             return true;
         } catch (RuntimeException echec) {
-            message.set(echec.getMessage());
+            messages.erreur(echec.getMessage());
             return false;
         }
     }
@@ -171,7 +173,7 @@ public class LotViewModel {
         // pas au retour d'opération. Celui-ci est **effacé** : laisser le résultat de l'opération
         // précédente (« ✓ Dépôt préparé… ») pendant qu'une nouvelle travaille le ferait passer pour le
         // compte rendu de celle-ci.
-        message.set("");
+        messages.effacerRetour();
         progression.demarrer("Préparation des archives…");
         suiviLignes.reinitialiser();
     }
@@ -198,7 +200,7 @@ public class LotViewModel {
         if (statutCourant != null) {
             majEtapes(statutCourant);
         }
-        message.set(produites.size() + " archive(s) de dépôt générée(s) dans le sous-dossier « depot/ ».");
+        messages.succes(produites.size() + " archive(s) de dépôt générée(s) dans le sous-dossier « depot/ ».");
         generationEnCours.set(false);
         progression.reinitialiser();
     }
@@ -206,7 +208,7 @@ public class LotViewModel {
     /// Restitue l'échec d'une génération (#251) : **à appeler sur le fil JavaFX**. Affiche le message et
     /// lève l'état « en cours ».
     public void echecGeneration(String messageErreur) {
-        message.set(messageErreur);
+        messages.erreur(messageErreur);
         generationEnCours.set(false);
         progression.reinitialiser();
     }
@@ -217,16 +219,24 @@ public class LotViewModel {
         return progression;
     }
 
-    private boolean appliquerAction(Runnable action) {
+    /// Exécute `action`, recharge l'état, et publie `bilan` (calculé sur l'état **rechargé**) au bandeau.
+    ///
+    /// Le bilan est explicite depuis #1890. Avant, le succès de « Préparer » n'était annoncé que par
+    /// effet de bord : `appliquer` reposait le libellé d'état, dont la branche « Prêt à déposer » servait
+    /// de compte rendu. En séparant état et retour, ce compte rendu doit être **dit**, pas déduit du
+    /// statut - sans quoi ouvrir un passage déjà préparé annoncerait une préparation qui n'a pas eu lieu.
+    private boolean appliquerAction(Runnable action, Function<EtatLot, String> bilan) {
         if (idPassage == null) {
             return false;
         }
         try {
             action.run();
-            appliquer(service.consulterLot(idPassage));
+            EtatLot recharge = service.consulterLot(idPassage);
+            appliquer(recharge);
+            messages.succes(bilan.apply(recharge));
             return true;
         } catch (RuntimeException echec) {
-            message.set(echec.getMessage());
+            messages.erreur(echec.getMessage());
             return false;
         }
     }
@@ -254,24 +264,9 @@ public class LotViewModel {
         depose.set(actions.depose());
         peutGenererArchives.set(actions.genererArchives());
         // (peutSupprimerArchives est une liaison vivante sur les lignes : rien à poser ici.)
-        majEspaceDisque(etat);
+        espaceDisque.majDepuis(etat);
         majEtapes(etat.statut());
-        message.set(FormatsLot.messageEtat(etat));
-    }
-
-    /// Anticipe l'espace disque (#…) **au chargement** : compare la taille estimée des archives (compression
-    /// comprise, via le service) à l'espace disponible, pour désactiver « Générer » et l'expliquer AVANT le
-    /// clic. Indéterminé (génération non pertinente, volume/chemin inconnu, disque illisible) → on ne bloque
-    /// pas (`suffisant`).
-    private void majEspaceDisque(EtatLot etat) {
-        boolean generationPertinente =
-                etat.statut() == StatutWorkflow.PRET_A_DEPOSER || etat.statut() == StatutWorkflow.DEPOSE;
-        Long volume = etat.volumeSequencesOctets();
-        long disponible = service.espaceDisqueDisponible(etat.cheminDossier());
-        long requis = volume == null ? 0L : service.estimationTailleDepotOctets(volume);
-        boolean insuffisant = generationPertinente && volume != null && disponible > 0 && disponible < requis;
-        espaceDepotSuffisant.set(!insuffisant);
-        raisonEspaceInsuffisant.set(insuffisant ? FormatsLot.messageEspaceInsuffisant(requis, disponible) : "");
+        messages.etat(FormatsLot.messageEtat(etat));
     }
 
     /// Recompose le stepper du dépôt (#251) depuis [EtapesDepot], selon le statut et la génération
@@ -292,11 +287,10 @@ public class LotViewModel {
         peutDeposer.set(false);
         depose.set(false);
         peutGenererArchives.set(false);
-        espaceDepotSuffisant.set(true);
-        raisonEspaceInsuffisant.set("");
+        espaceDisque.reinitialiser();
         generationEnCours.set(false);
         suiviLignes.reinitialiser(); // repasse peutSupprimerArchives (liaison vivante) à false
-        message.set("");
+        messages.reinitialiser();
     }
 
     /// Libellé du statut workflow courant du passage.
@@ -356,13 +350,13 @@ public class LotViewModel {
     /// `true` si l'espace disque estimé suffit pour générer les archives (#…) ; faux → « Générer » désactivé
     /// et [#raisonEspaceInsuffisantProperty] explique pourquoi.
     public ReadOnlyBooleanProperty espaceDepotSuffisantProperty() {
-        return espaceDepotSuffisant.getReadOnlyProperty();
+        return espaceDisque.suffisantProperty();
     }
 
     /// Explication (non vide) quand l'espace disque est jugé insuffisant pour la génération, affichée en
     /// alerte près du bouton « Générer ». Vide si l'espace suffit ou est indéterminé.
     public ReadOnlyStringProperty raisonEspaceInsuffisantProperty() {
-        return raisonEspaceInsuffisant.getReadOnlyProperty();
+        return espaceDisque.raisonProperty();
     }
 
     /// `true` dès qu'il existe des archives ZIP à supprimer (liaison vivante sur la liste des archives), pour
@@ -389,8 +383,19 @@ public class LotViewModel {
         return titreArchives.getReadOnlyProperty();
     }
 
-    /// Message d'état ou d'erreur (déposé, alertes, échec d'action), vide en fonctionnement nominal.
-    public ReadOnlyStringProperty messageProperty() {
-        return message.getReadOnlyProperty();
+    /// État du lot en prose (déposé, cohérence à corriger), vide en fonctionnement nominal.
+    public ReadOnlyStringProperty etatLotProperty() {
+        return messages.etatLotProperty();
+    }
+
+    /// Compte rendu de la dernière opération, rendu par le bandeau partagé (ADR 0023).
+    /// [RetourOperation#AUCUN] en nominal.
+    public ReadOnlyObjectProperty<RetourOperation> retourProperty() {
+        return messages.retourProperty();
+    }
+
+    /// Efface le retour (l'utilisateur a lu le bandeau et le ferme).
+    public void effacerRetour() {
+        messages.effacerRetour();
     }
 }

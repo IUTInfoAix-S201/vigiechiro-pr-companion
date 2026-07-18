@@ -155,6 +155,9 @@ public final class CaptureLot {
         // Horloge figée : la date de dépôt (marquerDepose) est ainsi **déterministe** dans l'aperçu
         // « déposé » (sinon l'horodatage système changerait le PNG à chaque régénération).
         Injector injecteur = creerInjecteur();
+        // Second injecteur, connecté : il partage la même base (le workspace est un chemin, pas un objet),
+        // donc il voit les mêmes passages. Seuls les deux aperçus connectés passent par lui.
+        Injector connecte = creerInjecteurConnecte();
         SourceDeDonnees source = injecteur.getInstance(SourceDeDonnees.class);
         new MigrationSchema(source).migrer();
         ServiceLot service = injecteur.getInstance(ServiceLot.class);
@@ -184,7 +187,7 @@ public final class CaptureLot {
         // ③ bis (#1890) : mêmes archives, mais **connecté**. L'étape « Téléverser sur Vigie-Chiro » n'est
         // visible que si le dépôt est disponible : sans ce rendu, aucun aperçu ne la montrait.
         rendrePilote(
-                injecteur,
+                connecte,
                 idCoherent,
                 sortie.resolve("apercu-lot-televerser.png"),
                 vm -> vm.appliquerGeneration(archivesDemo(vm)));
@@ -194,7 +197,7 @@ public final class CaptureLot {
         // ④ bis (#1890) : participation liée. Le bouton de l'étape ④ bascule sur son second libellé
         // (« 🚀 Lancer la participation ») — jamais rendu jusqu'ici, faute de lien en base.
         lierParticipation(injecteur, idCoherent);
-        rendre(injecteur, idCoherent, sortie.resolve("apercu-lot-participation.png"));
+        rendre(connecte, idCoherent, sortie.resolve("apercu-lot-participation.png"));
         // Cas bloquant : Vérifié incohérent → zone d'alertes (R14), « Préparer » désactivé.
         rendre(injecteur, idIncoherent, sortie.resolve("apercu-lot-alertes.png"));
     }
@@ -214,43 +217,61 @@ public final class CaptureLot {
     /// (test).
     public static Injector creerInjecteur() {
         return Guice.createInjector(
-                Modules.override(ModuleCaptureCommun.communSynchrone()).with(new AbstractModule() {
-                    @Provides
-                    Horloge horlogeFigee() {
-                        return new HorlogeFigee(LocalDateTime.of(2026, 6, 21, 8, 0));
-                    }
+                Modules.override(ModuleCaptureCommun.communSynchrone()).with(new ModuleCaptureLot()),
+                new PersistenceModule(),
+                new SitesModule(),
+                new PassageModule(),
+                new LotModule());
+    }
 
-                    /// ServiceLot exige le DAO de suivi de dépôt (#981) ; son binding applicatif vit dans
-                    /// DepotVigieChiroModule (non chargé ici, capture sans connexion).
-                    @Provides
-                    DepotUniteDao depotUniteDao(SourceDeDonnees source) {
-                        return new DepotUniteDao(source);
-                    }
-
-                    /// Client **jamais appelé** : aucun aperçu ne fait de réseau.
-                    /// Il n'existe que pour satisfaire le graphe du dépôt, dont seules
-                    /// `disponible()` (présence de l'objet) et `participationLiee()`
-                    /// (lecture de `lien_vigiechiro` en base) sont consultées. Le jeton
-                    /// vaut `Optional.empty()` : un appel partirait en erreur franche
-                    /// plutôt que sur le réseau de la machine de capture.
-                    @Provides
-                    @Singleton
-                    ClientVigieChiro clientSansReseau() {
-                        return new ClientVigieChiro(Optional::empty);
-                    }
-
-                    @Provides
-                    @Singleton
-                    TraitementVigieChiro traitementVigieChiro(ClientVigieChiro client) {
-                        return new TraitementVigieChiro(client);
-                    }
-                }),
+    /// Variante **connectée** de [#creerInjecteur] (#1890) : mêmes modules, plus la liaison du dépôt.
+    ///
+    /// Deux injecteurs et non un seul, parce que les deux modes se rendent différemment et que **les
+    /// deux méritent d'être relus** : le déconnecté masque l'étape ③ et n'offre que le dépôt manuel.
+    /// Tout basculer en connecté aurait simplement déplacé l'angle mort d'un mode à l'autre.
+    public static Injector creerInjecteurConnecte() {
+        return Guice.createInjector(
+                Modules.override(ModuleCaptureCommun.communSynchrone()).with(new ModuleCaptureLot()),
                 new PersistenceModule(),
                 new SitesModule(),
                 new PassageModule(),
                 new SynchronisationParticipationModule(),
                 new LotModule(),
                 new ModuleDepotConnecte());
+    }
+
+    /// Réglages communs aux deux injecteurs de capture : horloge figée (aperçus reproductibles), DAO de
+    /// suivi de dépôt, et un client Vigie-Chiro **jamais appelé**.
+    ///
+    /// Le client n'existe que pour satisfaire le graphe du dépôt : aucun aperçu ne fait de réseau, seules
+    /// `disponible()` (présence de l'objet) et `participationLiee()` (lecture de `lien_vigiechiro` en
+    /// base) sont consultées. Son jeton vaut `Optional.empty()`, pour qu'un appel accidentel parte en
+    /// erreur franche plutôt que sur le réseau de la machine de capture.
+    private static final class ModuleCaptureLot extends AbstractModule {
+
+        @Provides
+        Horloge horlogeFigee() {
+            return new HorlogeFigee(LocalDateTime.of(2026, 6, 21, 8, 0));
+        }
+
+        /// ServiceLot exige le DAO de suivi de dépôt (#981) ; son binding applicatif vit dans
+        /// DepotVigieChiroModule, qui n'est chargé par aucun des deux injecteurs de capture.
+        @Provides
+        DepotUniteDao depotUniteDao(SourceDeDonnees source) {
+            return new DepotUniteDao(source);
+        }
+
+        @Provides
+        @Singleton
+        ClientVigieChiro clientSansReseau() {
+            return new ClientVigieChiro(Optional::empty);
+        }
+
+        @Provides
+        @Singleton
+        TraitementVigieChiro traitementVigieChiro(ClientVigieChiro client) {
+            return new TraitementVigieChiro(client);
+        }
     }
 
     /// Rend le dépôt **disponible** dans l'injecteur de capture (#1890).

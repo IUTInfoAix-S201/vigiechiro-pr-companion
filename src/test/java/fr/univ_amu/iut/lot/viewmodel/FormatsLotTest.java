@@ -21,13 +21,16 @@ class FormatsLotTest {
     }
 
     @Test
-    @DisplayName("messageEtat : déposé / prêt à déposer / vide selon le statut")
+    @DisplayName("messageEtat : déposé / vide selon le statut — un ÉTAT, jamais un compte rendu (#1890)")
     void message_etat() {
         assertThat(FormatsLot.messageEtat(new EtatLot(StatutWorkflow.DEPOSE, "/ws", 5, 8192L, List.of(), "2026-06-22")))
                 .contains("déposé");
-        assertThat(FormatsLot.messageEtat(new EtatLot(StatutWorkflow.PRET_A_DEPOSER, "/ws", 5, 8192L, List.of(), null)))
-                .contains("Dépôt préparé");
         assertThat(FormatsLot.messageEtat(new EtatLot(StatutWorkflow.VERIFIE, "/ws", 5, 8192L, List.of(), null)))
+                .isEmpty();
+        // « Prêt à déposer » ne dit plus « Dépôt préparé » : ce texte rendait compte de l'étape ①, donc il
+        // appartient au retour d'opération de `preparer()`. Déduit du statut, il s'affichait aussi à la
+        // simple ouverture d'un passage préparé la veille, annonçant une action qui n'avait pas eu lieu.
+        assertThat(FormatsLot.messageEtat(new EtatLot(StatutWorkflow.PRET_A_DEPOSER, "/ws", 5, 8192L, List.of(), null)))
                 .isEmpty();
     }
 

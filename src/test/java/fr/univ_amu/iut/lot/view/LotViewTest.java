@@ -18,6 +18,7 @@ import fr.univ_amu.iut.commun.view.NavigationDeTestModule;
 import fr.univ_amu.iut.commun.view.OuvreurDeLien;
 import fr.univ_amu.iut.commun.viewmodel.ContextePassage;
 import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
+import fr.univ_amu.iut.lot.model.ArchiveDepot;
 import fr.univ_amu.iut.lot.model.BilanDepot;
 import fr.univ_amu.iut.lot.model.DepotVigieChiro;
 import fr.univ_amu.iut.lot.model.EtatLot;
@@ -32,6 +33,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -135,9 +137,14 @@ class LotViewTest {
         // Le dépôt passe par le socle (#1253), synchrone en test : le bilan est restitué au retour du clic.
         robot.interact(() -> robot.lookup("#btnTeleverser").queryButton().fire());
 
-        Label message = robot.lookup("#lblDepotMessage").queryAs(Label.class);
+        // #1890 : les deux ViewModels de l'écran partagent un bandeau unique ; le bilan du dépôt y arrive
+        // comme n'importe quel autre compte rendu.
+        Label message = robot.lookup("#lblMessage").queryAs(Label.class);
+        HBox bandeau = robot.lookup("#bandeauRetour").queryAs(HBox.class);
         verify(depot).deposer(eq(42L), any(), any(), any());
         assertThat(message.getText()).contains("1 fichier(s) téléversé(s)");
+        assertThat(bandeau.isVisible()).isTrue();
+        assertThat(bandeau.getStyleClass()).as("un dépôt complet est un succès").contains("retour-succes");
     }
 
     @Test
@@ -164,10 +171,68 @@ class LotViewTest {
 
         robot.interact(() -> robot.lookup("#btnTeleverser").queryButton().fire());
 
-        Label message = robot.lookup("#lblDepotMessage").queryAs(Label.class);
+        Label message = robot.lookup("#lblMessage").queryAs(Label.class);
+        HBox bandeau = robot.lookup("#bandeauRetour").queryAs(HBox.class);
         assertThat(message.getText()).contains("interrompu").contains("Reprendre le dépôt");
+        assertThat(bandeau.getStyleClass())
+                .as("#1890 : une interruption demandée n'est ni un succès ni une erreur")
+                .contains("retour-info");
         assertThat(robot.lookup("#btnAnnulerDepot").queryButton().isVisible())
                 .as("le dépôt est fini : le bouton disparaît")
                 .isFalse();
+    }
+
+    @Test
+    @DisplayName("#1890 : la croix du bandeau efface le retour et le retire de la mise en page")
+    void croix_efface_le_retour(FxRobot robot) {
+        when(service.consulterLot(anyLong()))
+                .thenReturn(new EtatLot(StatutWorkflow.PRET_A_DEPOSER, "/ws/session-42", 2, 8192L, List.of(), null));
+        when(service.sequencesADeposer(42L)).thenReturn(List.of(java.nio.file.Path.of("/ws/a.wav")));
+        when(depot.deposer(eq(42L), any(), any(), any())).thenReturn(new BilanDepot("part-1", 1, List.of()));
+        robot.interact(() -> controleur.ouvrirSur(
+                new ContextePassage(42L, 2, new ContexteSite("640380", "A1", "Étang de la Tuilière"))));
+        robot.interact(() -> robot.lookup("#btnTeleverser").queryButton().fire());
+
+        HBox bandeau = robot.lookup("#bandeauRetour").queryAs(HBox.class);
+        assertThat(bandeau.isVisible()).isTrue();
+
+        robot.clickOn("#btnFermerRetour");
+
+        assertThat(bandeau.isVisible()).isFalse();
+        assertThat(bandeau.isManaged())
+                .as("le bandeau ne doit pas garder de place vide en tête de flux")
+                .isFalse();
+    }
+
+    @Test
+    @DisplayName("#1890 : le bandeau unique montre le compte rendu le plus récent des deux ViewModels")
+    void le_bandeau_unique_montre_le_dernier_compte_rendu(FxRobot robot) {
+        when(service.consulterLot(anyLong()))
+                .thenReturn(new EtatLot(StatutWorkflow.PRET_A_DEPOSER, "/ws/session-42", 2, 8192L, List.of(), null));
+        when(service.sequencesADeposer(42L)).thenReturn(List.of(java.nio.file.Path.of("/ws/a.wav")));
+        when(depot.deposer(eq(42L), any(), any(), any())).thenReturn(new BilanDepot("part-1", 1, List.of()));
+        when(service.supprimerArchivesDepot(42L)).thenReturn(4096L);
+        // La suppression n'est offerte que s'il y a des archives en table (liaison vivante sur les lignes).
+        when(service.archivesDepot("/ws/session-42"))
+                .thenReturn(List.of(new ArchiveDepot(
+                        java.nio.file.Path.of("/ws/session-42/depot/Car640380-2026-Pass2-A1-1.zip"), 1, 2048L, 2)));
+        robot.interact(() -> controleur.ouvrirSur(
+                new ContextePassage(42L, 2, new ContexteSite("640380", "A1", "Étang de la Tuilière"))));
+
+        // Compte rendu du DEPOT (DepotViewModel), puis compte rendu du LOT (LotViewModel).
+        robot.interact(() -> robot.lookup("#btnTeleverser").queryButton().fire());
+        Label message = robot.lookup("#lblMessage").queryAs(Label.class);
+        assertThat(message.getText()).contains("téléversé");
+
+        // Sans stub, la confirmation ouvre un Alert.showAndWait() qui fige TestFX en headless.
+        robot.interact(() -> controleur.confirmateur().definir(texte -> true));
+        assertThat(robot.lookup("#btnSupprimerArchives").queryButton().isDisabled())
+                .as("prérequis du test : des archives sont en table, donc la suppression est offerte")
+                .isFalse();
+        robot.interact(() -> robot.lookup("#btnSupprimerArchives").queryButton().fire());
+
+        assertThat(message.getText())
+                .as("deux ViewModels, un seul bandeau : c'est la dernière opération qui parle")
+                .contains("libérés");
     }
 }

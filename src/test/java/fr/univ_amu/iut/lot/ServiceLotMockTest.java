@@ -12,6 +12,7 @@ import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.model.Verdict;
 import fr.univ_amu.iut.lot.model.CompacteurDepot;
+import fr.univ_amu.iut.lot.model.ModeDepot;
 import fr.univ_amu.iut.lot.model.ServiceLot;
 import fr.univ_amu.iut.lot.model.VerificationCoherence;
 import fr.univ_amu.iut.lot.model.dao.DepotPlanDao;
@@ -76,6 +77,7 @@ class ServiceLotMockTest {
                 new MoteurWorkflowPassage(),
                 new HorlogeFigee(LocalDate.of(2026, 5, 31)),
                 CompacteurDepot::new,
+                () -> ModeDepot.ARCHIVES_ZIP,
                 mock(DepotUniteDao.class),
                 mock(DepotPlanDao.class));
         when(passageDao.findById(1L)).thenReturn(Optional.of(passageAJeter(1L)));

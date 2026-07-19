@@ -26,9 +26,14 @@ import picocli.CommandLine.Spec;
 /// **relançable** telle quelle après une coupure. À ne pas confondre avec `deposer`, le **marquage
 /// manuel** (téléversement fait sur le site web).
 ///
-/// **Ce qui est déposé** (#984) : le **même défaut que M-Lot** — les **archives ZIP** si elles sont
-/// présentes, sinon une invite à les générer (étape 2) quand l'espace disque le permet, sinon un repli
-/// sur les **séquences WAV**. `--archives` et `--wav` forcent explicitement l'un ou l'autre.
+/// **Ce qui est déposé** : le **même défaut que M-Lot**, c'est-à-dire le réglage `depot.mode` (#1997,
+/// Réglages ▸ Dépôt) — archives ZIP par défaut, ou séquences WAV. Ce n'est plus l'espace disque qui
+/// tranche : il ne fait plus que **refuser** un dépôt ZIP qu'il ne peut pas honorer. `--archives` et
+/// `--wav` priment sur le réglage pour un dépôt ponctuel.
+///
+/// Le mode n'est pas qu'une question de vitesse : en ZIP, la plateforme détruit l'archive après
+/// extraction sans conserver les sons (#1244), donc l'audio n'est pas récupérable côté serveur et la
+/// participation ne pourra pas être relancée. Cf. [fr.univ_amu.iut.lot.model.ModeDepot].
 ///
 /// **Jeton** : `--token`, sinon la variable d'environnement `VIGIECHIRO_TOKEN`, sinon la **connexion
 /// enregistrée** dans l'application (préférer la variable d'environnement à `--token`, qui laisse le

@@ -17,8 +17,9 @@ import java.util.function.ToLongFunction;
 ///
 /// ## La regle
 ///
-/// Les **archives ZIP** sont privilegiees, comme le front web. Le **repli WAV** n'intervient que si le
-/// disque ne permet pas de les creer.
+/// Le mode vient du **reglage** `depot.mode` ([ModeDepot], #1997) : archives ZIP par defaut, ou
+/// sequences WAV. Ce n'est plus la place disque qui tranche - elle ne fait plus que **refuser** un
+/// depot ZIP qu'elle ne peut pas honorer, sans jamais changer de mode a la place de l'utilisateur.
 ///
 /// Quand le mode ZIP s'applique, la source rendue est **regenerable**
 /// ([SourceArchivesRegenerables]) : ses identifiants viennent de la partition et non du contenu du
@@ -27,8 +28,7 @@ import java.util.function.ToLongFunction;
 ///
 /// ⚠️ Ce choix n'est pas qu'une question de place : en mode ZIP, la plateforme detruit l'archive apres
 /// extraction et ne remonte pas les WAV sur S3 (#1244), donc l'audio n'est pas recuperable cote serveur
-/// et la participation ne peut pas etre relancee. #1997 rendra ce choix explicite au lieu de le laisser
-/// decider par l'espace disponible.
+/// et la participation ne peut pas etre relancee. C'est pourquoi il se choisit desormais.
 final class ChoixSourceDepot {
 
     private final RepertoireDepot repertoireDepot;
@@ -39,16 +39,26 @@ final class ChoixSourceDepot {
     /// ici le pendant au niveau du lot.
     private final ToLongFunction<String> espaceDisponible;
 
-    ChoixSourceDepot(RepertoireDepot repertoireDepot, Supplier<CompacteurDepot> compacteur) {
-        this(repertoireDepot, compacteur, Objects.requireNonNull(repertoireDepot, "repertoireDepot")::espaceDisponible);
+    /// Mode choisi par l'utilisateur (reglage `depot.mode`, #1997). **Fournisseur** et non valeur : le
+    /// reglage est relu a chaque depot, comme le plafond d'archive.
+    private final Supplier<ModeDepot> mode;
+
+    ChoixSourceDepot(RepertoireDepot repertoireDepot, Supplier<CompacteurDepot> compacteur, Supplier<ModeDepot> mode) {
+        this(
+                repertoireDepot,
+                compacteur,
+                mode,
+                Objects.requireNonNull(repertoireDepot, "repertoireDepot")::espaceDisponible);
     }
 
     ChoixSourceDepot(
             RepertoireDepot repertoireDepot,
             Supplier<CompacteurDepot> compacteur,
+            Supplier<ModeDepot> mode,
             ToLongFunction<String> espaceDisponible) {
         this.repertoireDepot = Objects.requireNonNull(repertoireDepot, "repertoireDepot");
         this.compacteur = Objects.requireNonNull(compacteur, "compacteur");
+        this.mode = Objects.requireNonNull(mode, "mode");
         this.espaceDisponible = Objects.requireNonNull(espaceDisponible, "espaceDisponible");
     }
 
@@ -62,8 +72,16 @@ final class ChoixSourceDepot {
         if (sequences.isEmpty()) {
             throw new RegleMetierException("Aucune séquence transformée à déposer pour ce passage.");
         }
+        if (mode.get() == ModeDepot.SEQUENCES_WAV) {
+            return SourceDepot.desFichiers(sequences);
+        }
+        // Mode ZIP demande, mais le disque ne tient meme pas la fenetre du pipeline : on **refuse** au
+        // lieu de basculer en WAV dans le dos de l'utilisateur. Depuis que le mode se choisit (#1997), un
+        // repli silencieux changerait ce qu'il advient de son audio cote serveur sans qu'il l'ait voulu.
         if (!archivesPresentes(lot) && !disquePermetArchives(lot)) {
-            return SourceDepot.desFichiers(sequences); // repli WAV : le disque ne permet pas les archives
+            throw new RegleMetierException("Espace disque insuffisant pour générer les archives de dépôt."
+                    + " Libérez de la place, ou choisissez « Séquences WAV » dans Réglages ▸ Dépôt (plus"
+                    + " lent, mais sans archive à écrire).");
         }
         return new SourceArchivesRegenerables(
                 sequences,

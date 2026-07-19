@@ -1,8 +1,11 @@
 package fr.univ_amu.iut.lot.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.function.ToLongFunction;
 import org.junit.jupiter.api.DisplayName;
@@ -61,9 +64,48 @@ class ChoixSourceDepotTest {
                 .isFalse();
     }
 
+    @Test
+    @DisplayName("#1997 : le mode WAV choisi dépose les séquences, quel que soit l'état du disque")
+    void mode_wav_choisi_depose_les_sequences() {
+        ChoixSourceDepot choix = new ChoixSourceDepot(
+                new RepertoireDepot(),
+                () -> new CompacteurDepot(PLAFOND),
+                () -> ModeDepot.SEQUENCES_WAV,
+                dossier -> Long.MAX_VALUE);
+
+        SourceDepot source = choix.pour(lot(), List.of(Path.of("/ws/a.wav")), Path.of("/ws/session-42"));
+
+        assertThat(source.identifiants()).containsExactly("a.wav");
+    }
+
+    @Test
+    @DisplayName("#1997 : le mode ZIP choisi mais impossible REFUSE, il ne bascule pas en WAV en douce")
+    void mode_zip_impossible_refuse() {
+        // Avant #1997, un disque trop petit basculait silencieusement en WAV. Ce repli changeait ce qu'il
+        // advient de l'audio côté serveur (#1244) sans que l'utilisateur l'ait voulu : maintenant qu'il
+        // a choisi, on lui dit que ça ne passe pas et on lui donne les deux issues.
+        ChoixSourceDepot choix = new ChoixSourceDepot(
+                new RepertoireDepot(), () -> new CompacteurDepot(PLAFOND), () -> ModeDepot.ARCHIVES_ZIP, dossier -> 1L);
+
+        assertThatThrownBy(() -> choix.pour(lot(), List.of(Path.of("/ws/a.wav")), Path.of("/ws/session-42")))
+                .isInstanceOf(RegleMetierException.class)
+                .hasMessageContaining("Espace disque insuffisant")
+                .hasMessageContaining("Séquences WAV");
+    }
+
+    @Test
+    @DisplayName("un réglage absent ou corrompu retombe sur les archives ZIP, sans empêcher de déposer")
+    void reglage_illisible_retombe_sur_zip() {
+        assertThat(ModeDepot.parValeur(null)).isEqualTo(ModeDepot.ARCHIVES_ZIP);
+        assertThat(ModeDepot.parValeur("")).isEqualTo(ModeDepot.ARCHIVES_ZIP);
+        assertThat(ModeDepot.parValeur("n-importe-quoi")).isEqualTo(ModeDepot.ARCHIVES_ZIP);
+        assertThat(ModeDepot.parValeur("wav")).isEqualTo(ModeDepot.SEQUENCES_WAV);
+    }
+
     private static ChoixSourceDepot choix(long disponible) {
         ToLongFunction<String> espace = dossier -> disponible;
-        return new ChoixSourceDepot(new RepertoireDepot(), () -> new CompacteurDepot(PLAFOND), espace);
+        return new ChoixSourceDepot(
+                new RepertoireDepot(), () -> new CompacteurDepot(PLAFOND), () -> ModeDepot.ARCHIVES_ZIP, espace);
     }
 
     private static EtatLot lot() {

@@ -78,6 +78,7 @@ public class ServiceLot {
             MoteurWorkflowPassage moteurWorkflow,
             Horloge horloge,
             Supplier<CompacteurDepot> compacteur,
+            Supplier<ModeDepot> modeDepot,
             DepotUniteDao depotUnites,
             DepotPlanDao depotPlans) {
         this.passageDao = Objects.requireNonNull(passageDao, "passageDao");
@@ -89,7 +90,8 @@ public class ServiceLot {
         this.compacteur = Objects.requireNonNull(compacteur, "compacteur");
         this.depotUnites = Objects.requireNonNull(depotUnites, "depotUnites");
         this.depotPlans = Objects.requireNonNull(depotPlans, "depotPlans");
-        this.choixSource = new ChoixSourceDepot(repertoireDepot, this.compacteur);
+        this.choixSource =
+                new ChoixSourceDepot(repertoireDepot, this.compacteur, Objects.requireNonNull(modeDepot, "modeDepot"));
     }
 
     /// Suivi de dépôt **persisté** du passage (#981), dans l'ordre du plan : réhydrate la table de

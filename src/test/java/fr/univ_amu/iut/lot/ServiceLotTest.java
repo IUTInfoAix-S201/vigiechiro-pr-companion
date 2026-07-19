@@ -20,6 +20,7 @@ import fr.univ_amu.iut.lot.model.CompacteurDepot;
 import fr.univ_amu.iut.lot.model.DepotUnite;
 import fr.univ_amu.iut.lot.model.EtatLot;
 import fr.univ_amu.iut.lot.model.Lot;
+import fr.univ_amu.iut.lot.model.ModeDepot;
 import fr.univ_amu.iut.lot.model.ServiceLot;
 import fr.univ_amu.iut.lot.model.TypeDepotUnite;
 import fr.univ_amu.iut.lot.model.VerificationCoherence;
@@ -106,6 +107,7 @@ class ServiceLotTest {
                 new MoteurWorkflowPassage(),
                 horloge,
                 CompacteurDepot::new,
+                () -> ModeDepot.ARCHIVES_ZIP,
                 new DepotUniteDao(source),
                 new DepotPlanDao(source));
     }

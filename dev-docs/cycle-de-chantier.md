@@ -252,6 +252,19 @@ plus loin. Puis, sur chaque capture (par ordre de fréquence constatée) :
 
 Ce qui se corrige tout de suite se corrige ; le reste part en issue à la passe suivante.
 
+**Regarder ne suffit pas : il faut regarder d'assez près pour que l'affirmation tienne.** Un aperçu
+s'ouvre à sa taille naturelle, où un glyphe fait douze pixels. À cette échelle, un **pictogramme
+monochrome fin est indistinguable du vide** : on conclut « absent » sur ce qui est simplement discret.
+La clôture de #1933 en a fait les frais, en publiant trois « preuves » d'absence dont **une seule**
+était exacte - recadrées et agrandies ×3, deux des glyphes se rendaient, et un troisième se rendait
+en **forme méconnaissable**, ce que personne n'avait envisagé. Avant d'écrire qu'un élément manque,
+qu'un texte est coupé ou qu'une couleur a bougé, **recadrer la zone et l'agrandir**. Trente secondes,
+et l'affirmation devient un constat.
+
+Corollaire pour la rédaction : un pictogramme littéral n'a pas deux issues mais **trois** - rendu,
+absent, ou déformé. La troisième est la pire pour l'utilisateur, puisqu'elle se lit comme une faute de
+frappe dans le libellé.
+
 ### 9. Passe d'identification des nouveaux chantiers
 
 Un chantier en révèle d'autres (dette assumée, palier différé, idée née en chemin). Les **cadrer** et

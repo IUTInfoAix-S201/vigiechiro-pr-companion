@@ -746,3 +746,74 @@
 .fermer-retour:hover {
     -fx-background-color: rgba(0, 0, 0, 0.08);
 }
+
+
+/* ------------------------------------------------------------------------------------------------
+   COMPTE RENDU (ADR 0031)
+
+   A ne pas confondre avec `.bandeau-retour` : celui-ci porte un retour d'operation, borne, tenant en
+   une ligne. Un compte rendu est extensible - il grandit avec ce qu'il y a a dire - et vit dans sa
+   propre surface : la modale d'une operation longue, un panneau dedie. Jamais un bandeau, ou il serait
+   tronque.
+
+   L'enjeu est qu'on le RECONNAISSE avant de le lire : meme cadre, meme hierarchie titre / faits /
+   details / conclusion, d'un ecran a l'autre. D'ou une classe racine unique.
+
+   Chaque detail est un noeud distinct, avec son propre retrait : c'est ce qui fait qu'une puce trop
+   longue s'aligne sous son texte au lieu de repartir a la marge, ou elle se confondait avec la puce
+   suivante (#1987). */
+.compte-rendu {
+    -fx-spacing: 4;
+    -fx-padding: 4 0;
+}
+
+.compte-rendu-titre {
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-padding: 0 0 4 0;
+}
+
+/* Mise en contexte : elle explique ce qui a ete tente, elle n'est pas un resultat. Moins appuyee que
+   les faits, pour ne pas se disputer leur attention. */
+.compte-rendu-preambule {
+    -fx-text-fill: #4b5563;
+    -fx-padding: 0 0 4 0;
+}
+
+.compte-rendu-fait {
+    -fx-font-size: 13px;
+}
+
+/* Les trois severites teintent le TEXTE du fait, pas un fond : un compte rendu en compte plusieurs a la
+   fois, et autant de pastilles colorees le rendraient illisible. Le bandeau, lui, n'en porte qu'une. */
+.compte-rendu-succes {
+    -fx-text-fill: #14532d;
+}
+
+.compte-rendu-info {
+    -fx-text-fill: #1f2937;
+}
+
+.compte-rendu-erreur {
+    -fx-text-fill: #7f1d1d;
+}
+
+/* Le retrait vit ici, pas dans le texte : la continuation d'une ligne longue s'aligne donc sous le
+   debut du detail, et non sous la puce. */
+.compte-rendu-detail {
+    -fx-padding: 0 0 0 18;
+    -fx-font-size: 12px;
+    -fx-text-fill: #4b5563;
+}
+
+/* Le resume des details masques : meme retrait, en retrait de ton. */
+.compte-rendu-reste {
+    -fx-font-style: italic;
+}
+
+/* Ce qu'il faut retenir : detache des faits, car il les resume au lieu de s'y ajouter. */
+.compte-rendu-conclusion {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 6 0 0 0;
+}

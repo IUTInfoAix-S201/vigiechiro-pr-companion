@@ -172,6 +172,17 @@ public class SequenceDao extends DaoGenerique<SequenceDEcoute, Long> {
                 "UPDATE listening_sequence SET recorded_at = ? WHERE id = ?", texteHorodatage(horodatage), idSequence);
     }
 
+    /// Variante transactionnelle de [#majHorodatage(long, java.time.LocalDateTime)] : écrit sur la
+    /// **connexion fournie**, pour grouper le rétro-remplissage d'un démarrage dans une seule
+    /// [fr.univ_amu.iut.commun.persistence.UniteDeTravail] plutôt que d'auto-commiter chaque ligne.
+    public void majHorodatage(Connection connexion, long idSequence, LocalDateTime horodatage) throws SQLException {
+        executerMaj(
+                connexion,
+                "UPDATE listening_sequence SET recorded_at = ? WHERE id = ?",
+                texteHorodatage(horodatage),
+                idSequence);
+    }
+
     /// Séquences **sans empreinte** (`content_fingerprint` NULL) : cible du rétro-remplissage (#1299),
     /// qui relit les fichiers encore présents sur disque pour poser taille et empreinte rétroactivement.
     public List<SequenceDEcoute> sansEmpreinte() {

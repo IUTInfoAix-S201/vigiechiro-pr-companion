@@ -69,10 +69,20 @@ final class ChoixSourceDepot {
     /// @param racineSession racine du dossier de session (son nom est le prefixe des archives, R22)
     /// @throws RegleMetierException si aucune sequence n'est deposable
     SourceDepot pour(EtatLot lot, List<Path> sequences, Path racineSession) {
+        return pour(lot, sequences, racineSession, mode.get());
+    }
+
+    /// La source a deposer sous un mode **impose**, sans consulter le reglage : c'est ce que forcent les
+    /// options `--archives` / `--wav` de la CLI. Le reglage n'est qu'un defaut, pas une fatalite.
+    ///
+    /// Le mode ZIP passe par la meme [SourceArchivesRegenerables] que le defaut : forcer les archives ne
+    /// doit pas ramener la liste des ZIP **presents**, qui echouait des qu'une archive avait ete liberee
+    /// (#1994).
+    SourceDepot pour(EtatLot lot, List<Path> sequences, Path racineSession, ModeDepot modeImpose) {
         if (sequences.isEmpty()) {
             throw new RegleMetierException("Aucune séquence transformée à déposer pour ce passage.");
         }
-        if (mode.get() == ModeDepot.SEQUENCES_WAV) {
+        if (modeImpose == ModeDepot.SEQUENCES_WAV) {
             return SourceDepot.desFichiers(sequences);
         }
         // Mode ZIP demande, mais le disque ne tient meme pas la fenetre du pipeline : on **refuse** au

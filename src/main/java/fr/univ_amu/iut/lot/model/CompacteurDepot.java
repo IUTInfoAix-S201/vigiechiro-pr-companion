@@ -339,6 +339,11 @@ public final class CompacteurDepot {
     /// Source de l'**espace disque disponible** (en octets) dans un dossier cible, isolée en interface pour
     /// rendre le garde-fou de [#compacter] **testable** : les tests injectent une valeur basse (disque
     /// presque plein) sans dépendre de l'état réel de la machine. Par défaut [#reel()].
+    ///
+    /// **Seule lecture physique de l'espace disque de l'application** : `RepertoireDepot.espaceDisponible`
+    /// s'y adosse pour la vue « session ». Les deux ne traitent pas l'échec pareil, et c'est voulu - ici
+    /// l'`IOException` remonte, parce qu'on est sur le point d'écrire et qu'un doute doit **refuser** ;
+    /// là-bas elle devient `0`, qui signifie « inconnu » et ne bloque rien.
     @FunctionalInterface
     public interface EspaceDisque {
 

@@ -302,6 +302,19 @@ public class ServiceLot {
                 Path.of(chargerSession(idPassage).cheminRacine()));
     }
 
+    /// La source a deposer sous un mode **impose** (CLI `--archives` / `--wav`), sans consulter le
+    /// reglage. Le mode ZIP y est regenerable comme partout ailleurs : forcer les archives ne ramene pas
+    /// la liste des ZIP presents sur le disque (#1994).
+    public SourceDepot sourceDepot(Long idPassage, ModeDepot mode) {
+        Objects.requireNonNull(idPassage, PARAM_ID_PASSAGE);
+        Objects.requireNonNull(mode, "mode");
+        return choixSource.pour(
+                consulterLot(idPassage),
+                sequencesADeposer(idPassage),
+                Path.of(chargerSession(idPassage).cheminRacine()),
+                mode);
+    }
+
     /// Espace disque **disponible** (octets) sur le système de fichiers de la session, pour anticiper (avant
     /// génération) si les archives tiendront. `0` si inconnu/inaccessible (l'IHM ne bloque alors pas).
     public long espaceDisqueDisponible(String cheminDossier) {

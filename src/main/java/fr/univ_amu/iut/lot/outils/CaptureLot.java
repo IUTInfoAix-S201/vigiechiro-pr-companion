@@ -344,6 +344,13 @@ public final class CaptureLot {
     }
 
     /// Charge `Lot.fxml`, l'ouvre sur le passage puis rend la scène hors-écran en PNG.
+    ///
+    /// **La hauteur doit contenir tout l'écran.** L'application monte ses vues dans un `ScrollPane`
+    /// permanent (`MainController.defilementCentral`) : ce qui dépasse défile. Une capture n'a pas ce
+    /// recours - une hauteur trop courte comprime les `Label` en `wrapText`, qui se rabattent sur une
+    /// ligne et s'élident. Les consignes des étapes ③ et « Libérer l'espace disque » se terminaient
+    /// ainsi par une ellipse, ce qui a été pris pour un défaut de mise en page du produit alors que
+    /// c'était un défaut de la capture : elle montrait un écran que l'utilisateur ne voit jamais.
     private static void rendre(Injector injecteur, long idPassage, Path fichier) throws IOException {
         rendrePilote(injecteur, idPassage, fichier, vm -> {});
     }
@@ -376,7 +383,7 @@ public final class CaptureLot {
         // Hauteur généreuse : le flux ordonné à 4 étapes (#251) + la carte « Libérer l'espace disque » (#…)
         // sont hauts ; à l'écran ça défile dans le chrome, mais la capture hors-chrome doit tout rendre
         // (dont le bouton « Supprimer les archives ») sans écraser la zone d'alertes (R14).
-        ApercuFx.enregistrerPng(new Scene(vue, 980, 1040), fichier);
+        ApercuFx.enregistrerPng(new Scene(vue, 980, 1180), fichier);
         System.out.println("Apercu ecrit dans " + fichier.toAbsolutePath());
     }
 

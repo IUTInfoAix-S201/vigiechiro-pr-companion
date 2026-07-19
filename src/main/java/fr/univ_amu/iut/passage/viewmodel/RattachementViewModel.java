@@ -111,11 +111,9 @@ public class RattachementViewModel {
     ///     [#retourProperty])
     public boolean valider() {
         if (numeroPassage.get() < 1) {
-            messages.info("Le numéro de passage doit être supérieur ou égal à 1.");
             return false;
         }
         if (annee.get() < 1000 || annee.get() > 9999) {
-            messages.info("L'année doit comporter quatre chiffres.");
             return false;
         }
         try {

@@ -123,7 +123,6 @@ public class PointEditViewModel {
     ///     règle métier a refusé l'opération (le motif est dans [#retourProperty()])
     public boolean enregistrer() {
         if (!peutEnregistrer.get()) {
-            retour.set(RetourOperation.info("Corrigez les champs en rouge avant d'enregistrer."));
             return false;
         }
         try {

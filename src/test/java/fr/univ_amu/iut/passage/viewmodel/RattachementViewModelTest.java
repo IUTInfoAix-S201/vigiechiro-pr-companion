@@ -188,7 +188,12 @@ class RattachementViewModelTest {
         boolean ok = viewModel.valider();
 
         assertThat(ok).isFalse();
-        assertThat(viewModel.retourProperty().get().texte()).contains("numéro de passage");
+        assertThat(viewModel.retourProperty().get())
+                .as("#1970 : garde MUETTE. Le bouton « Appliquer » est grisé sur ce même prédicat, donc"
+                        + " l'utilisateur ne peut pas déclencher ce chemin ; le motif lui est dit dans"
+                        + " l'infobulle du grisage (cf. RattachementModaleViewTest). Un message ici ne"
+                        + " serait lu que par un appelant programmatique, qui a déjà le retour booléen.")
+                .isEqualTo(RetourOperation.AUCUN);
         verify(rattachement, never()).modifierRattachement(any(), any());
     }
 

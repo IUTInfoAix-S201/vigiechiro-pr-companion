@@ -141,10 +141,11 @@ class QualificationViewModelTest {
 
         viewModel.enregistrer();
 
-        assertThat(viewModel.retourProperty().get().texte()).contains("verdict");
-        assertThat(viewModel.retourProperty().get().severite())
-                .as("l'utilisateur n'a pas encore choisi : c'est un guidage, pas un échec technique")
-                .isEqualTo(RetourOperation.Severite.INFO);
+        assertThat(viewModel.retourProperty().get())
+                .as("#1970 : garde MUETTE. Le bouton d'enregistrement est grisé sur ce même prédicat, et"
+                        + " son infobulle disait DÉJÀ « Choisissez d'abord un verdict… » : le message"
+                        + " d'ici était un doublon que personne ne pouvait lire.")
+                .isEqualTo(RetourOperation.AUCUN);
         verify(service, never()).enregistrerVerdict(any(), any(), any());
     }
 

@@ -105,7 +105,6 @@ public class SiteEditViewModel {
     ///     côté du champ fautif, et non dans une alerte qui s'ouvre après coup par-dessus
     public boolean enregistrer() {
         if (!carreValide.get()) {
-            retour.set(RetourOperation.info("Le numéro de carré doit comporter 6 chiffres."));
             return false;
         }
         try {

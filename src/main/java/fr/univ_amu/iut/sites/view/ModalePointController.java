@@ -3,6 +3,7 @@ package fr.univ_amu.iut.sites.view;
 import com.google.inject.Inject;
 import fr.univ_amu.iut.commun.view.BandeauRetour;
 import fr.univ_amu.iut.commun.view.ExecuteurTache;
+import fr.univ_amu.iut.commun.view.IndicateurBlocage;
 import fr.univ_amu.iut.commun.view.carte.CarreGeo;
 import fr.univ_amu.iut.commun.view.carte.CarteSites;
 import fr.univ_amu.iut.commun.view.carte.DonneesCarte;
@@ -17,6 +18,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
+import javafx.beans.binding.Bindings;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -95,6 +97,10 @@ public class ModalePointController {
     @FXML
     private TextField champLongitude;
 
+    /// Enveloppe non désactivée du bouton : porte l'infobulle du grisage (#789, #1970).
+    @FXML
+    private StackPane enveloppeValider;
+
     @FXML
     private Button boutonValider;
 
@@ -119,7 +125,14 @@ public class ModalePointController {
         champLongitude.textProperty().bindBidirectional(viewModel.longitudeProperty());
         boutonValider.textProperty().bind(viewModel.libelleBoutonProperty());
         boutonValider.disableProperty().bind(viewModel.peutEnregistrer().not());
-        // #1917 : bandeau partagé (ADR 0023). Le libellé s'appelait « lblRetour » et ne pouvait
+        // Le motif du grisage se dit ici (#1970) : la garde du ViewModel teste exactement ce prédicat,
+        // son message n'était donc jamais lisible. Les champs fautifs sont déjà marqués en rouge.
+        IndicateurBlocage.expliquer(
+                enveloppeValider,
+                Bindings.when(viewModel.peutEnregistrer())
+                        .then("Enregistrer ce point d'écoute.")
+                        .otherwise("Corrigez d'abord les champs signalés en rouge (code, latitude, longitude)."));
+        // #1917 : bandeau partagé (ADR 0023). Le libellé s'appelait « messageErreur » et ne pouvait
         // donc rien porter d'autre qu'un échec ; la sévérité vit maintenant dans la valeur.
         BandeauRetour.installer(
                 bandeauRetour, lblRetour, btnFermerRetour, viewModel.retourProperty(), viewModel::effacerRetour);

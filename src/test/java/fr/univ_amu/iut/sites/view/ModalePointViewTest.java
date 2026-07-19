@@ -10,6 +10,7 @@ import fr.univ_amu.iut.commun.model.Utilisateur;
 import fr.univ_amu.iut.commun.model.dao.UtilisateurDao;
 import fr.univ_amu.iut.commun.persistence.MigrationSchema;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
+import fr.univ_amu.iut.commun.view.InfobulleDeBlocage;
 import fr.univ_amu.iut.sites.model.ServiceSites;
 import fr.univ_amu.iut.sites.model.Site;
 import java.nio.file.Files;
@@ -23,6 +24,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.StackPane;
 import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
 import org.junit.jupiter.api.AfterEach;
@@ -154,5 +156,23 @@ class ModalePointViewTest {
     private void ouvrirModale(FxRobot robot) {
         Button ajouter = robot.lookup(BOUTON_AJOUTER).queryButton();
         robot.interact(ajouter::fire);
+    }
+
+    @Test
+    @DisplayName("#1970 : le grisage de « Ajouter » dit POURQUOI, et le motif suit la saisie")
+    void le_grisage_dit_pourquoi(FxRobot robot) {
+        ouvrirModale(robot);
+        StackPane enveloppe = robot.lookup("#enveloppeValider").queryAs(StackPane.class);
+        Button valider = robot.lookup("#boutonValider").queryAs(Button.class);
+
+        assertThat(valider.isDisabled()).isTrue();
+        assertThat(InfobulleDeBlocage.texteDe(enveloppe))
+                .as("le message qui disait cela vivait derrière ce bouton grisé : personne ne le lisait")
+                .contains("rouge");
+
+        robot.interact(() -> robot.lookup("#champCode").queryAs(TextField.class).setText("B2"));
+
+        assertThat(valider.isDisabled()).isFalse();
+        assertThat(InfobulleDeBlocage.texteDe(enveloppe)).doesNotContain("rouge");
     }
 }

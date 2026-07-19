@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import fr.univ_amu.iut.commun.view.BandeauRetour;
 import fr.univ_amu.iut.commun.view.ConfirmateurModifiable;
 import fr.univ_amu.iut.commun.view.ExecuteurTache;
+import fr.univ_amu.iut.commun.view.IndicateurBlocage;
 import fr.univ_amu.iut.commun.view.ValidationFormulaire;
 import fr.univ_amu.iut.passage.model.CouvertureNuageuse;
 import fr.univ_amu.iut.passage.model.MaterielMicro;
@@ -26,6 +27,7 @@ import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
@@ -67,6 +69,10 @@ public class RattachementModaleController {
 
     @FXML
     private Spinner<Integer> spinnerNumero;
+
+    /// Enveloppe non désactivée du bouton : porte l'infobulle du grisage (#789, #1970).
+    @FXML
+    private StackPane enveloppeAppliquer;
 
     @FXML
     private Button boutonAppliquer;
@@ -175,7 +181,7 @@ public class RattachementModaleController {
 
         labelRecap.textProperty().bind(viewModel.recapProperty());
         labelRecap.setWrapText(true);
-        // #1917 : bandeau partagé (ADR 0023). Le canal s'appelait « lblRetour » alors qu'il portait
+        // #1917 : bandeau partagé (ADR 0023). Le canal s'appelait « messageErreur » alors qu'il portait
         // aussi des succès (« Métadonnées récupérées depuis Vigie-Chiro. ») et des guidages de saisie.
         BandeauRetour.installer(
                 bandeauRetour, lblRetour, btnFermerRetour, viewModel.retourProperty(), viewModel::effacerRetour);
@@ -190,6 +196,16 @@ public class RattachementModaleController {
         BooleanBinding numeroValide = Bindings.createBooleanBinding(
                 () -> viewModel.numeroPassageProperty().get() >= 1, viewModel.numeroPassageProperty());
         boutonAppliquer.disableProperty().bind(anneeValide.and(numeroValide).not());
+        // Deux conditions bloquent, et l'infobulle dit LAQUELLE (#1970) : un motif générique obligerait
+        // l'utilisateur à chercher lequel des deux champs pèche. Les messages du ViewModel qui disaient
+        // cela étaient inatteignables, le bouton étant grisé sur ces mêmes prédicats.
+        IndicateurBlocage.expliquer(
+                enveloppeAppliquer,
+                Bindings.when(anneeValide.not())
+                        .then("L'année doit comporter quatre chiffres.")
+                        .otherwise(Bindings.when(numeroValide.not())
+                                .then("Le numéro de passage doit être supérieur ou égal à 1.")
+                                .otherwise("Appliquer les modifications à ce passage.")));
         ValidationFormulaire.marquerInvalide(spinnerAnnee, anneeValide.not());
         ValidationFormulaire.marquerInvalide(spinnerNumero, numeroValide.not());
 

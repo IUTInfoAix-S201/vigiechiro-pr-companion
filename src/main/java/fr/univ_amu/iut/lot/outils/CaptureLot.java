@@ -38,6 +38,7 @@ import fr.univ_amu.iut.lot.di.LotModule;
 import fr.univ_amu.iut.lot.model.ArchiveDepot;
 import fr.univ_amu.iut.lot.model.DepotVigieChiro;
 import fr.univ_amu.iut.lot.model.ServiceLot;
+import fr.univ_amu.iut.lot.model.dao.DepotPlanDao;
 import fr.univ_amu.iut.lot.model.dao.DepotUniteDao;
 import fr.univ_amu.iut.lot.view.LotController;
 import fr.univ_amu.iut.lot.viewmodel.DepotViewModel;
@@ -86,6 +87,9 @@ import javafx.scene.Scene;
 ///   active ;
 /// - `apercu-lot-deposer.png` : passage **Prêt à déposer** (après préparation) — étape ② « Générer les
 ///   archives » active ;
+/// - `apercu-lot-televerser-sans-archives.png` : passage **Prêt à déposer**, application **connectée**,
+///   **aucune archive** sur le disque — l'étape ③ « Téléverser » est courante et l'étape ② n'est plus un
+///   passage obligé (#1998) ;
 /// - `apercu-lot-generation.png` : **génération en cours** — indicateur d'activité, bouton désactivé ;
 /// - `apercu-lot-archives.png` : **archives générées** — liste des ZIP (redimensionnée à son contenu),
 ///   « Ouvrir le dossier » et « Supprimer les archives » actifs, étape ③ « Téléverser » courante ;
@@ -175,6 +179,11 @@ public final class CaptureLot {
         // Après préparation : Prêt à déposer (étape ② à faire), « Générer les archives » actif.
         service.preparerLot(idCoherent);
         rendre(injecteur, idCoherent, sortie.resolve("apercu-lot-deposer.png"));
+        // ② bis (#1998) : **connecté et sans archives**. C'est l'état neuf du chantier — le téléversement
+        // produisant lui-même ce dont il a besoin, l'étape ③ est courante alors qu'aucune archive n'existe
+        // sur le disque. Aucun aperçu ne le montrait : les deux rendus connectés existants partaient tous
+        // d'archives déjà générées, donc de l'ancien flux.
+        rendre(connecte, idCoherent, sortie.resolve("apercu-lot-televerser-sans-archives.png"));
         // ② Génération des archives en cours : indicateur d'activité, bouton désactivé.
         rendrePilote(
                 injecteur,
@@ -267,6 +276,14 @@ public final class CaptureLot {
             return new DepotUniteDao(source);
         }
 
+        /// Le DAO du plan de dépôt (#1993), pour la même raison que [#depotUniteDao] : l'injecteur de
+        /// capture n'a pas `DepotVigieChiroModule`, qui le fournit dans l'application.
+        @Provides
+        @Singleton
+        DepotPlanDao depotPlanDao(SourceDeDonnees source) {
+            return new DepotPlanDao(source);
+        }
+
         @Provides
         @Singleton
         ClientVigieChiro clientSansReseau() {
@@ -309,6 +326,7 @@ public final class CaptureLot {
                 ClientVigieChiro client,
                 TraitementVigieChiro traitement,
                 DepotUniteDao depotUnites,
+                DepotPlanDao depotPlans,
                 PassageDao passageDao,
                 MoteurWorkflowPassage moteurWorkflow,
                 Horloge horloge) {
@@ -318,6 +336,7 @@ public final class CaptureLot {
                     client,
                     traitement,
                     depotUnites,
+                    depotPlans,
                     passageDao,
                     moteurWorkflow,
                     horloge);
@@ -325,6 +344,13 @@ public final class CaptureLot {
     }
 
     /// Charge `Lot.fxml`, l'ouvre sur le passage puis rend la scène hors-écran en PNG.
+    ///
+    /// **La hauteur doit contenir tout l'écran.** L'application monte ses vues dans un `ScrollPane`
+    /// permanent (`MainController.defilementCentral`) : ce qui dépasse défile. Une capture n'a pas ce
+    /// recours - une hauteur trop courte comprime les `Label` en `wrapText`, qui se rabattent sur une
+    /// ligne et s'élident. Les consignes des étapes ③ et « Libérer l'espace disque » se terminaient
+    /// ainsi par une ellipse, ce qui a été pris pour un défaut de mise en page du produit alors que
+    /// c'était un défaut de la capture : elle montrait un écran que l'utilisateur ne voit jamais.
     private static void rendre(Injector injecteur, long idPassage, Path fichier) throws IOException {
         rendrePilote(injecteur, idPassage, fichier, vm -> {});
     }
@@ -357,7 +383,7 @@ public final class CaptureLot {
         // Hauteur généreuse : le flux ordonné à 4 étapes (#251) + la carte « Libérer l'espace disque » (#…)
         // sont hauts ; à l'écran ça défile dans le chrome, mais la capture hors-chrome doit tout rendre
         // (dont le bouton « Supprimer les archives ») sans écraser la zone d'alertes (R14).
-        ApercuFx.enregistrerPng(new Scene(vue, 980, 1040), fichier);
+        ApercuFx.enregistrerPng(new Scene(vue, 980, 1180), fichier);
         System.out.println("Apercu ecrit dans " + fichier.toAbsolutePath());
     }
 

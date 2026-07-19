@@ -5,11 +5,12 @@ import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.lot.model.BilanDepot;
 import fr.univ_amu.iut.lot.model.DepotUnite;
 import fr.univ_amu.iut.lot.model.DepotVigieChiro;
+import fr.univ_amu.iut.lot.model.ModeDepot;
 import fr.univ_amu.iut.lot.model.ServiceLot;
+import fr.univ_amu.iut.lot.model.SourceDepot;
 import fr.univ_amu.iut.lot.model.StatutDepotUnite;
 import fr.univ_amu.iut.lot.model.SuiviDepot;
 import java.io.PrintWriter;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -25,9 +26,14 @@ import picocli.CommandLine.Spec;
 /// **relançable** telle quelle après une coupure. À ne pas confondre avec `deposer`, le **marquage
 /// manuel** (téléversement fait sur le site web).
 ///
-/// **Ce qui est déposé** (#984) : le **même défaut que M-Lot** — les **archives ZIP** si elles sont
-/// présentes, sinon une invite à les générer (étape 2) quand l'espace disque le permet, sinon un repli
-/// sur les **séquences WAV**. `--archives` et `--wav` forcent explicitement l'un ou l'autre.
+/// **Ce qui est déposé** : le **même défaut que M-Lot**, c'est-à-dire le réglage `depot.mode` (#1997,
+/// Réglages ▸ Dépôt) — archives ZIP par défaut, ou séquences WAV. Ce n'est plus l'espace disque qui
+/// tranche : il ne fait plus que **refuser** un dépôt ZIP qu'il ne peut pas honorer. `--archives` et
+/// `--wav` priment sur le réglage pour un dépôt ponctuel.
+///
+/// Le mode n'est pas qu'une question de vitesse : en ZIP, la plateforme détruit l'archive après
+/// extraction sans conserver les sons (#1244), donc l'audio n'est pas récupérable côté serveur et la
+/// participation ne pourra pas être relancée. Cf. [fr.univ_amu.iut.lot.model.ModeDepot].
 ///
 /// **Jeton** : `--token`, sinon la variable d'environnement `VIGIECHIRO_TOKEN`, sinon la **connexion
 /// enregistrée** dans l'application (préférer la variable d'environnement à `--token`, qui laisse le
@@ -91,46 +97,28 @@ public final class DeposerVigieChiro implements Callable<Integer> {
             // persister — la connexion enregistrée de l'application n'est pas modifiée.
             System.setProperty("vigiechiro.token", token);
         }
-        List<Path> fichiers = choisirFichiers();
+        SourceDepot source = choisirSource();
         PrintWriter sortie = spec.commandLine().getOut();
-        BilanDepot bilan = moteur.deposer(idPassage, fichiers, () -> false, new SuiviConsole(sortie));
+        BilanDepot bilan = moteur.deposer(idPassage, source, () -> false, new SuiviConsole(sortie));
         sortie.println(rendreBilan(bilan));
         return bilan.estComplet() ? 0 : 1;
     }
 
-    /// Choix des fichiers à téléverser, **aligné sur M-Lot** :
-    /// - `--archives` : force les ZIP `depot/*.zip` (échoue si aucune n'est présente) ;
-    /// - `--wav` : force les séquences WAV une à une (échoue si le dépôt n'est pas préparé) ;
-    /// - sans option : le **défaut du service** (`fichiersDepotParDefaut`) — ZIP si présentes, invite à
-    ///   générer les archives (étape 2) si l'espace disque le permet, repli WAV sinon.
-    private List<Path> choisirFichiers() {
+    /// Choix de la source à téléverser, **aligné sur M-Lot** : les deux options imposent un [ModeDepot],
+    /// le réglage `depot.mode` servant de défaut quand aucune n'est donnée.
+    ///
+    /// `--archives` ne ramène **pas** la liste des ZIP présents sur le disque : il force le mode ZIP, dont
+    /// la source est régénérable (#1994). Sans cela, l'option échouait dès qu'une archive avait été
+    /// libérée — ce qui est désormais le cas normal après un dépôt, puisque le pipeline libère au fil de
+    /// l'eau (#1995). Elle reproduisait donc exactement le défaut que ce chantier a fermé côté service.
+    private SourceDepot choisirSource() {
         if (archives) {
-            List<Path> zips = cheminsDesArchives();
-            if (zips.isEmpty()) {
-                throw new RegleMetierException(
-                        "Aucune archive de dépôt sur le disque : générez-les d'abord (M-Lot, étape 2).");
-            }
-            return zips;
+            return serviceLot.sourceDepot(idPassage, ModeDepot.ARCHIVES_ZIP);
         }
         if (wav) {
-            List<Path> sequences = serviceLot.sequencesADeposer(idPassage);
-            if (sequences.isEmpty()) {
-                throw new RegleMetierException("Aucune séquence transformée à déposer pour ce passage"
-                        + " (préparez d'abord le dépôt : statut « Prêt à déposer »).");
-            }
-            return sequences;
+            return serviceLot.sourceDepot(idPassage, ModeDepot.SEQUENCES_WAV);
         }
-        return serviceLot.fichiersDepotParDefaut(idPassage);
-    }
-
-    /// Archives ZIP du lot présentes sur le disque (`depot/*.zip`), dans l'ordre des numéros. Le moteur
-    /// les traite comme n'importe quelle unité (type ZIP, mime `application/zip`) : plan, reprise et
-    /// suivi identiques au dépôt de séquences.
-    private List<Path> cheminsDesArchives() {
-        String cheminDossier = serviceLot.consulterLot(idPassage).cheminDossier();
-        return serviceLot.archivesDepot(cheminDossier).stream()
-                .map(fr.univ_amu.iut.lot.model.ArchiveDepot::chemin)
-                .toList();
+        return serviceLot.sourceDepotParDefaut(idPassage);
     }
 
     /// Bilan final : participation, fichiers téléversés cette fois-ci, reste éventuel. Fonction pure

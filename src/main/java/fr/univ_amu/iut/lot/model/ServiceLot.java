@@ -6,6 +6,7 @@ import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.commun.model.ResultatVerification;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.model.Verdict;
+import fr.univ_amu.iut.lot.model.dao.DepotPlanDao;
 import fr.univ_amu.iut.lot.model.dao.DepotUniteDao;
 import fr.univ_amu.iut.passage.model.MoteurWorkflowPassage;
 import fr.univ_amu.iut.passage.model.Passage;
@@ -64,6 +65,10 @@ public class ServiceLot {
     /// assemblés par [fr.univ_amu.iut.lot.di.LotModule], s’appliquent sans redémarrage.
     private final Supplier<CompacteurDepot> compacteur;
     private final DepotUniteDao depotUnites;
+    private final DepotPlanDao depotPlans;
+
+    /// Politique ZIP / WAV du depot, extraite pour la cohesion (#1994) : voir [ChoixSourceDepot].
+    private final ChoixSourceDepot choixSource;
 
     public ServiceLot(
             PassageDao passageDao,
@@ -73,7 +78,9 @@ public class ServiceLot {
             MoteurWorkflowPassage moteurWorkflow,
             Horloge horloge,
             Supplier<CompacteurDepot> compacteur,
-            DepotUniteDao depotUnites) {
+            Supplier<ModeDepot> modeDepot,
+            DepotUniteDao depotUnites,
+            DepotPlanDao depotPlans) {
         this.passageDao = Objects.requireNonNull(passageDao, "passageDao");
         this.sessionDao = Objects.requireNonNull(sessionDao, "sessionDao");
         this.sequenceDao = Objects.requireNonNull(sequenceDao, "sequenceDao");
@@ -82,6 +89,9 @@ public class ServiceLot {
         this.horloge = Objects.requireNonNull(horloge, "horloge");
         this.compacteur = Objects.requireNonNull(compacteur, "compacteur");
         this.depotUnites = Objects.requireNonNull(depotUnites, "depotUnites");
+        this.depotPlans = Objects.requireNonNull(depotPlans, "depotPlans");
+        this.choixSource =
+                new ChoixSourceDepot(repertoireDepot, this.compacteur, Objects.requireNonNull(modeDepot, "modeDepot"));
     }
 
     /// Suivi de dépôt **persisté** du passage (#981), dans l'ordre du plan : réhydrate la table de
@@ -107,50 +117,21 @@ public class ServiceLot {
         return sessionDao
                 .trouverParPassage(idPassage)
                 .map(session -> sequenceDao.findBySession(session.id()).stream()
-                        .map(sequence -> Path.of(sequence.cheminFichier()))
+                        .map(sequence -> resoudreDansSession(session, sequence.cheminFichier()))
                         .toList())
                 .orElseGet(List::of);
     }
 
-    /// Fichiers à déposer **par défaut depuis l'IHM** (#984) : privilégie les **archives ZIP** déjà
-    /// générées (comme le dépôt web : une archive = une unité), et ne se rabat sur les **séquences WAV**
-    /// que si l'espace disque **ne permet pas** de créer les archives. Si aucune archive n'existe encore
-    /// mais que le disque le permet, **refuse** en invitant à générer d'abord (étape 2) : le dépôt ZIP
-    /// reste privilégié et la génération est une étape explicite, jamais implicite.
+    /// Le chemin d'une séquence, résolu contre la racine de sa session s'il est relatif.
     ///
-    /// @throws RegleMetierException si rien n'est déposable, ou si les archives sont absentes alors que le
-    ///     disque permettrait de les générer (invitation à lancer l'étape 2)
-    public List<Path> fichiersDepotParDefaut(Long idPassage) {
-        Objects.requireNonNull(idPassage, PARAM_ID_PASSAGE);
-        EtatLot lot = consulterLot(idPassage);
-        List<Path> archives = lot.cheminDossier() == null
-                ? List.of()
-                : archivesDepot(lot.cheminDossier()).stream()
-                        .map(ArchiveDepot::chemin)
-                        .toList();
-        if (!archives.isEmpty()) {
-            return archives;
-        }
-        List<Path> sequences = sequencesADeposer(idPassage);
-        if (sequences.isEmpty()) {
-            throw new RegleMetierException("Aucune séquence transformée à déposer pour ce passage.");
-        }
-        if (disquePermetArchives(lot)) {
-            throw new RegleMetierException("Générez d'abord les archives de dépôt (étape 2) : le dépôt ZIP"
-                    + " est privilégié et l'espace disque le permet.");
-        }
-        return sequences; // repli WAV : l'espace disque ne permet pas de créer les archives ZIP
-    }
-
-    /// `true` si l'espace disque du dossier de session permet de générer les archives ZIP (estimation
-    /// compression comprise ≤ disponible). Faux si session / volume / disque inconnus (impossible de créer
-    /// des archives → repli WAV assumé).
-    private boolean disquePermetArchives(EtatLot lot) {
-        if (lot.cheminDossier() == null || lot.volumeSequencesOctets() == null) {
-            return false;
-        }
-        long disponible = espaceDisqueDisponible(lot.cheminDossier());
-        return disponible > 0 && estimationTailleDepotOctets(lot.volumeSequencesOctets()) <= disponible;
+    /// **Même règle que [#genererArchivesDepot]**, qui la portait seule : le chemin est absolu en
+    /// production, mais des données héritées le stockent relatif. L'écart ne se voyait pas tant que
+    /// `sequencesADeposer` ne servait qu'à lister des chemins ; depuis #1994 il alimente une source qui
+    /// **lit la taille** des fichiers, donc un chemin non résolu fait échouer le dépôt là où la
+    /// génération, elle, passait.
+    private static Path resoudreDansSession(SessionDEnregistrement session, String cheminSequence) {
+        Path chemin = Path.of(cheminSequence);
+        return chemin.isAbsolute() ? chemin : Path.of(session.cheminRacine()).resolve(chemin);
     }
 
     /// Consulte l'état de dépôt d'un passage **sans le transitionner** (lecture pour l'IHM M-Lot) :
@@ -231,6 +212,9 @@ public class ServiceLot {
     public void reinitialiserDepot(Long idPassage) {
         Passage passage = chargerPassage(idPassage);
         depotUnites.supprimerPlan(idPassage);
+        // Le plan repart a neuf : oublier son empreinte evite que le prochain depot se compare a un lot
+        // revolu et se croie incoherent (#1994).
+        depotPlans.supprimerPlan(idPassage);
         if (passage.statutWorkflow() == StatutWorkflow.DEPOSE
                 || passage.statutWorkflow() == StatutWorkflow.DEPOT_EN_COURS) {
             // Réinitialisation délibérée : le moteur interdit les transitions arrière, on repose donc le
@@ -288,15 +272,43 @@ public class ServiceLot {
         }
         Path racineSession = Path.of(session.cheminRacine());
         String prefixe = racineSession.getFileName().toString(); // R22 : nom du dossier = préfixe R6
-        // Le chemin d'une séquence est absolu en production ; on tolère un chemin relatif (résolu contre
-        // la racine de session) pour rester robuste aux données héritées.
         List<Path> fichiers = sequences.stream()
-                .map(s -> Path.of(s.cheminFichier()))
-                .map(p -> p.isAbsolute() ? p : racineSession.resolve(p))
+                .map(s -> resoudreDansSession(session, s.cheminFichier()))
                 .toList();
         return compacteur
                 .get()
                 .compacter(fichiers, prefixe, repertoireDepot.dossier(session.cheminRacine()), progres, suivi);
+    }
+
+    /// La [SourceDepot] du dépôt **par défaut** du passage (#1994), remplaçante de
+    /// [#sourceDepotParDefaut] pour les appelants qui téléversent.
+    ///
+    /// Même politique qu'avant : les archives ZIP sont privilégiées, le repli WAV n'intervient que si le
+    /// disque ne permet pas de les créer. Une différence, et c'est tout l'objet du lot : quand le mode
+    /// ZIP s'applique, la source est **régénérable** ([SourceArchivesRegenerables]). Ses identifiants
+    /// viennent de la partition et non du contenu du dossier, donc des archives effacées ne font plus
+    /// basculer le dépôt en mode WAV ni perdre la progression déjà acquise : elles sont reproduites.
+    ///
+    /// @throws RegleMetierException si le passage n'a aucune séquence transformée à déposer
+    public SourceDepot sourceDepotParDefaut(Long idPassage) {
+        Objects.requireNonNull(idPassage, PARAM_ID_PASSAGE);
+        return choixSource.pour(
+                consulterLot(idPassage),
+                sequencesADeposer(idPassage),
+                Path.of(chargerSession(idPassage).cheminRacine()));
+    }
+
+    /// La source a deposer sous un mode **impose** (CLI `--archives` / `--wav`), sans consulter le
+    /// reglage. Le mode ZIP y est regenerable comme partout ailleurs : forcer les archives ne ramene pas
+    /// la liste des ZIP presents sur le disque (#1994).
+    public SourceDepot sourceDepot(Long idPassage, ModeDepot mode) {
+        Objects.requireNonNull(idPassage, PARAM_ID_PASSAGE);
+        Objects.requireNonNull(mode, "mode");
+        return choixSource.pour(
+                consulterLot(idPassage),
+                sequencesADeposer(idPassage),
+                Path.of(chargerSession(idPassage).cheminRacine()),
+                mode);
     }
 
     /// Espace disque **disponible** (octets) sur le système de fichiers de la session, pour anticiper (avant

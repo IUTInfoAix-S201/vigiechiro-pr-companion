@@ -12,8 +12,10 @@ import fr.univ_amu.iut.commun.model.SuiviTraitement;
 import fr.univ_amu.iut.commun.view.OuvrirLot;
 import fr.univ_amu.iut.lot.model.CompacteurDepot;
 import fr.univ_amu.iut.lot.model.DepotVigieChiro;
+import fr.univ_amu.iut.lot.model.ModeDepot;
 import fr.univ_amu.iut.lot.model.ServiceLot;
 import fr.univ_amu.iut.lot.model.VerificationCoherence;
+import fr.univ_amu.iut.lot.model.dao.DepotPlanDao;
 import fr.univ_amu.iut.lot.model.dao.DepotUniteDao;
 import fr.univ_amu.iut.lot.view.NavigationLot;
 import fr.univ_amu.iut.lot.viewmodel.DepotViewModel;
@@ -96,6 +98,18 @@ public class LotModule extends ModuleDeFeature {
         return plafondMo * 1000 * 1000;
     }
 
+    /// Mode de dépôt choisi (#1997), par priorité : propriété système `vigiechiro.depot.mode`
+    /// (tests/outils), sinon le réglage persisté, sinon les archives ZIP. Relu à **chaque dépôt**
+    /// (fournisseur dans [ServiceLot]), comme le plafond d'archive.
+    static ModeDepot modeDepot(Reglages reglages) {
+        String surcharge = System.getProperty("vigiechiro.depot.mode");
+        if (surcharge != null && !surcharge.isBlank()) {
+            return ModeDepot.parValeur(surcharge.trim());
+        }
+        return ModeDepot.parValeur(
+                reglages.lireTexte(OngletReglagesDepot.CLE_MODE_DEPOT, ModeDepot.ARCHIVES_ZIP.valeur()));
+    }
+
     @Provides
     @Singleton
     ServiceLot fournirServiceLot(
@@ -106,7 +120,8 @@ public class LotModule extends ModuleDeFeature {
             MoteurWorkflowPassage moteurWorkflow,
             Horloge horloge,
             Reglages reglages,
-            DepotUniteDao depotUnites) {
+            DepotUniteDao depotUnites,
+            DepotPlanDao depotPlans) {
         return new ServiceLot(
                 passageDao,
                 sessionDao,
@@ -115,7 +130,9 @@ public class LotModule extends ModuleDeFeature {
                 moteurWorkflow,
                 horloge,
                 () -> new CompacteurDepot(plafondArchiveOctets(reglages)),
-                depotUnites);
+                () -> modeDepot(reglages),
+                depotUnites,
+                depotPlans);
     }
 
     /// ViewModel de M-Lot. **Non-singleton** (un VM frais par chargement FXML).

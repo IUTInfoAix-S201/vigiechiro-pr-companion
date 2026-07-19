@@ -10,6 +10,7 @@ import fr.univ_amu.iut.commun.api.TraitementVigieChiro;
 import fr.univ_amu.iut.commun.model.Horloge;
 import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
+import fr.univ_amu.iut.lot.model.dao.DepotPlanDao;
 import fr.univ_amu.iut.lot.model.dao.DepotUniteDao;
 import fr.univ_amu.iut.passage.model.MoteurWorkflowPassage;
 import fr.univ_amu.iut.passage.model.Passage;
@@ -18,11 +19,10 @@ import fr.univ_amu.iut.passage.model.dao.PassageDao;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -42,7 +42,12 @@ import java.util.function.DoubleConsumer;
 ///
 /// Le téléversement est **en flux** (`PUT` S3 streamé depuis le disque) : une archive ZIP de dépôt
 /// peut peser ~700 Mo, on ne la charge plus en mémoire. La politique du choix des fichiers (séquences
-/// vs archives) reste décidée par l'appelant qui passe la liste des [Path].
+/// vs archives) reste décidée par l'appelant, qui passe une [SourceDepot].
+///
+/// Le moteur ne connaît **que des identifiants** jusqu'au moment d'envoyer (#1993) : le plan est donc
+/// posable avant que les archives existent, et la [SourceDepot] résout chaque fichier au dernier
+/// moment. C'est ce qui rendra possible de générer au fil de l'eau et de libérer une archive dès
+/// qu'elle est en ligne (#1994, #1995).
 public final class DepotVigieChiro {
 
     /// Nombre de téléversements menés **en parallèle** (#984), calqué sur le front web
@@ -59,6 +64,7 @@ public final class DepotVigieChiro {
     /// Traitement serveur (compute + lecture de l'état) : le client transporte, celui-ci décide (#1261).
     private final TraitementVigieChiro traitement;
     private final DepotUniteDao depotUnites;
+    private final DepotPlanDao depotPlans;
     private final PassageDao passageDao;
     private final MoteurWorkflowPassage moteurWorkflow;
     private final Horloge horloge;
@@ -69,6 +75,7 @@ public final class DepotVigieChiro {
             ClientVigieChiro client,
             TraitementVigieChiro traitement,
             DepotUniteDao depotUnites,
+            DepotPlanDao depotPlans,
             PassageDao passageDao,
             MoteurWorkflowPassage moteurWorkflow,
             Horloge horloge) {
@@ -76,15 +83,23 @@ public final class DepotVigieChiro {
         this.client = Objects.requireNonNull(client, "client");
         this.traitement = Objects.requireNonNull(traitement, "traitement");
         this.depotUnites = Objects.requireNonNull(depotUnites, "depotUnites");
+        this.depotPlans = Objects.requireNonNull(depotPlans, "depotPlans");
         this.passageDao = Objects.requireNonNull(passageDao, "passageDao");
         this.moteurWorkflow = Objects.requireNonNull(moteurWorkflow, "moteurWorkflow");
         this.horloge = Objects.requireNonNull(horloge, "horloge");
         this.reconciliation = new ReconciliationDepot(client, depotUnites, horloge);
     }
 
-    /// Variante sans annulation ni suivi de [#deposer(Long, List, BooleanSupplier, SuiviDepot)].
+    /// Variante sans annulation ni suivi de [#deposer(Long, SourceDepot, BooleanSupplier, SuiviDepot)],
+    /// adossee a des fichiers deja presents sur le disque ([SourceDepot#desFichiers]).
+    ///
+    /// Il n'existe **pas** de variante `List<Path>` a quatre parametres : elle formerait avec celle-ci
+    /// une paire de surcharges que le type d'un argument seul distingue, ce que les matchers `any()`
+    /// des tests ne savent pas departager. Les appelants qui veulent annulation et suivi emballent
+    /// explicitement leur liste.
     public BilanDepot deposer(Long idPassage, List<Path> fichiers) {
-        return deposer(idPassage, fichiers, () -> false, SuiviDepot.inerte());
+        Objects.requireNonNull(fichiers, "fichiers");
+        return deposer(idPassage, SourceDepot.desFichiers(fichiers), () -> false, SuiviDepot.inerte());
     }
 
     /// Lance le **traitement serveur** (compute, #984) de la participation liée au passage `idPassage` :
@@ -165,9 +180,9 @@ public final class DepotVigieChiro {
     ///
     /// @return le bilan (participation + fichiers déposés **cette fois-ci** / en échec)
     /// @throws RegleMetierException si la création de la participation est refusée
-    public BilanDepot deposer(Long idPassage, List<Path> fichiers, BooleanSupplier annule, SuiviDepot suivi) {
+    public BilanDepot deposer(Long idPassage, SourceDepot source, BooleanSupplier annule, SuiviDepot suivi) {
         Objects.requireNonNull(idPassage, PARAM_ID_PASSAGE);
-        Objects.requireNonNull(fichiers, "fichiers");
+        Objects.requireNonNull(source, "source");
         Objects.requireNonNull(annule, "annule");
         Objects.requireNonNull(suivi, "suivi");
         chargerPassage(idPassage); // échec rapide : passage inexistant → refus métier avant toute écriture
@@ -179,8 +194,12 @@ public final class DepotVigieChiro {
         // mauvais endroit » (participations héritées du bug de date, rattachement manuel erroné…).
         verifierCorrespondance(idPassage);
 
-        Map<String, Path> fichiersParIdentifiant = parIdentifiant(fichiers);
-        depotUnites.synchroniserPlan(idPassage, plan(idPassage, fichiersParIdentifiant));
+        exigerLotInchange(idPassage, source);
+        depotUnites.synchroniserPlan(idPassage, plan(idPassage, source.identifiants()));
+        // Empreinte de la liste source (#1993) : posée avec le plan, relue à la reprise pour établir que
+        // les mêmes identifiants désignent bien le même contenu (les archives sont nommées par leur rang
+        // dans une partition qui dépend de la liste source). Le refus s'appuiera dessus en #1994.
+        depotPlans.enregistrer(new DepotPlan(idPassage, source.empreinte(), maintenant()));
         suivi.planEtabli(depotUnites.parPassage(idPassage));
         reconciliation.reconcilier(idPassage, participationId, suivi);
 
@@ -191,11 +210,14 @@ public final class DepotVigieChiro {
 
         AtomicInteger deposees = new AtomicInteger();
         List<String> echecs = Collections.synchronizedList(new ArrayList<>());
-        int parallelisme = Math.max(1, Math.min(NB_UPLOADS_PARALLELES, restantes.size()));
+        // La source peut brider ce parallelisme (#1995) : une source qui **produit** ses fichiers borne
+        // ainsi ce qui existe sur le disque a un instant donne. Le mode WAV, lui, garde les 5 envois.
+        int plafond = Math.min(NB_UPLOADS_PARALLELES, source.parallelismeMax());
+        int parallelisme = Math.max(1, Math.min(plafond, restantes.size()));
         try (ExecutorService executeur = Executors.newFixedThreadPool(parallelisme)) {
             for (DepotUnite unite : restantes) {
-                executeur.submit(() -> deposerUneUnite(
-                        unite, fichiersParIdentifiant, participationId, annule, suivi, deposees, echecs));
+                executeur.submit(
+                        () -> deposerUneUnite(unite, source, participationId, annule, suivi, deposees, echecs));
             }
         } // close() attend la fin de toutes les tâches soumises (ExecutorService AutoCloseable, Java 19+).
 
@@ -212,7 +234,7 @@ public final class DepotVigieChiro {
     /// reprendra l'unité au prochain essai.
     private void deposerUneUnite(
             DepotUnite unite,
-            Map<String, Path> fichiersParIdentifiant,
+            SourceDepot source,
             String participationId,
             BooleanSupplier annule,
             SuiviDepot suivi,
@@ -222,7 +244,8 @@ public final class DepotVigieChiro {
             return;
         }
         try {
-            if (televerserUne(unite, fichiersParIdentifiant.get(unite.identifiantUnite()), participationId, suivi)) {
+            Path fichier = source.resoudre(unite.identifiantUnite()).orElse(null);
+            if (televerserUne(unite, fichier, participationId, suivi, source)) {
                 deposees.incrementAndGet();
             } else {
                 echecs.add(unite.identifiantUnite());
@@ -234,7 +257,8 @@ public final class DepotVigieChiro {
 
     /// Téléverse une unité en persistant son avancement au fil de l'eau : `en_cours` avant l'envoi,
     /// `depose` (avec l'id distant) ou `echec` (avec la raison) après. `false` en cas d'échec.
-    private boolean televerserUne(DepotUnite unite, Path fichier, String participationId, SuiviDepot suivi) {
+    private boolean televerserUne(
+            DepotUnite unite, Path fichier, String participationId, SuiviDepot suivi, SourceDepot source) {
         depotUnites.mettreAJour(unite.id(), StatutDepotUnite.EN_COURS, unite.fichierIdDistant(), null, maintenant());
         suivi.uniteDemarree(unite.identifiantUnite());
         Televersement resultat = fichier == null
@@ -244,6 +268,10 @@ public final class DepotVigieChiro {
         if (resultat.reussi()) {
             depotUnites.mettreAJour(unite.id(), StatutDepotUnite.DEPOSE, resultat.fichierId(), null, maintenant());
             suivi.uniteDeposee(depotUnites.findById(unite.id()).orElse(unite));
+            // L'unite est prouvee en ligne : la source peut liberer ce qu'elle avait materialise (#1995).
+            // Apres le commit et jamais avant, sinon une coupure laisserait une unite ni en ligne ni sur
+            // le disque - la reprise la regenererait, mais on aurait perdu la preuve de l'envoi.
+            source.liberer(unite.identifiantUnite());
             return true;
         }
         depotUnites.mettreAJour(unite.id(), StatutDepotUnite.ECHEC, null, resultat.raison(), maintenant());
@@ -251,23 +279,46 @@ public final class DepotVigieChiro {
         return false;
     }
 
-    /// Plan de dépôt dérivé des fichiers fournis : une unité « à déposer » par fichier, typée d'après
-    /// son extension. La synchronisation (#981) conservera le statut des unités déjà suivies.
-    private List<DepotUnite> plan(Long idPassage, Map<String, Path> fichiersParIdentifiant) {
+    /// Refuse de reprendre un dépôt dont la **liste source a changé** depuis que le plan a été posé
+    /// (#1994), quand quelque chose est déjà en ligne.
+    ///
+    /// Les archives sont nommées par leur rang dans une partition qui dépend de la liste source. Si
+    /// celle-ci change (séquence ajoutée, retirée, re-transformée), l'archive `N` régénérée ne contient
+    /// plus la même chose que celle déjà déposée sous ce nom : reprendre écraserait en ligne une archive
+    /// par une autre, **sans que rien ne le signale**. On refuse donc explicitement.
+    ///
+    /// Le refus ne vaut que si des unités sont **déjà déposées** : tant que rien n'est acquis, changer
+    /// d'avis est légitime et le plan repart simplement à neuf.
+    private void exigerLotInchange(Long idPassage, SourceDepot source) {
+        Optional<DepotPlan> planPose = depotPlans.parPassage(idPassage);
+        if (planPose.isEmpty() || planPose.get().empreinte().equals(source.empreinte())) {
+            return;
+        }
+        long dejaEnLigne = depotUnites.parPassage(idPassage).stream()
+                .filter(unite -> unite.statut() == StatutDepotUnite.DEPOSE)
+                .count();
+        if (dejaEnLigne == 0) {
+            return;
+        }
+        throw new RegleMetierException("Le lot a changé depuis le début de ce dépôt (" + dejaEnLigne
+                + " fichier(s) déjà en ligne) : les archives régénérées ne contiendraient plus la même"
+                + " chose que celles déjà déposées. Réinitialisez le dépôt pour repartir d'un plan"
+                + " cohérent.");
+    }
+
+    /// Plan de dépôt dérivé des **identifiants** de la source : une unité « à déposer » par identifiant,
+    /// typée d'après son extension. La synchronisation (#981) conservera le statut des unités déjà
+    /// suivies.
+    ///
+    /// Le plan ne dépend plus que des identifiants, jamais des fichiers eux-mêmes : c'est ce qui permet
+    /// de le poser **avant que les archives existent** (#1993).
+    private List<DepotUnite> plan(Long idPassage, List<String> identifiants) {
         String maintenant = maintenant();
-        List<DepotUnite> plan = new ArrayList<>(fichiersParIdentifiant.size());
-        for (String identifiant : fichiersParIdentifiant.keySet()) {
+        List<DepotUnite> plan = new ArrayList<>(identifiants.size());
+        for (String identifiant : identifiants) {
             plan.add(DepotUnite.aDeposer(idPassage, identifiant, typeDe(identifiant), maintenant));
         }
         return plan;
-    }
-
-    private static Map<String, Path> parIdentifiant(List<Path> fichiers) {
-        Map<String, Path> parIdentifiant = new LinkedHashMap<>();
-        for (Path fichier : fichiers) {
-            parIdentifiant.put(fichier.getFileName().toString(), fichier);
-        }
-        return parIdentifiant;
     }
 
     /// Applique la transition de statut au passage (« Dépôt en cours » à l'entame, « Déposé » quand tout

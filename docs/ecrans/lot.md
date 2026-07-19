@@ -27,6 +27,18 @@ séquences et écrites dans le sous-dossier `depot/` de la session. La générat
 sur une grosse nuit : elle s'exécute en arrière-plan, avec un indicateur d'activité, et les actions
 sont neutralisées le temps de l'écriture (on ne risque pas de téléverser une archive incomplète).
 
+!!! tip "Si vous êtes connecté, cette étape est facultative"
+    Le téléversement de l'étape ③ **produit lui-même les archives dont il a besoin**, au fur et à
+    mesure, et les efface du disque dès qu'elles sont en ligne. Vous pouvez donc passer directement de
+    la préparation au téléversement : le stepper indique d'ailleurs « 3 · Téléverser » comme étape
+    courante, sans archive sur le disque.
+
+    Générer d'abord reste utile pour un **dépôt manuel** (hors connexion, ou pour déposer depuis le
+    site web) : c'est le seul cas où il faut les archives complètes sur votre machine.
+
+    Conséquence directe : il n'est plus nécessaire d'avoir la place pour **toutes** les archives à la
+    fois. Le téléversement n'en garde que **deux** sur le disque à un instant donné.
+
 ![Génération des archives en cours : indicateur d'activité, actions désactivées.](../assets/captures/apercu-lot-generation.png)
 
 Le tableau de suivi des archives laisse **choisir et réordonner ses colonnes** (clic droit ou menu ☰
@@ -37,7 +49,12 @@ de l'étape ③ offre le même réglage, mémorisé séparément.
 
 ![Archives générées : la liste des ZIP s'affiche et « Ouvrir le dossier » s'active.](../assets/captures/apercu-lot-archives.png)
 
-Une fois les archives produites, deux chemins s'offrent à vous :
+Connecté, vous pouvez téléverser **sans avoir rien généré** : l'étape ③ est déjà l'étape courante, et
+la table des archives est vide.
+
+![L'étape ③ courante sans archives : le téléversement produit lui-même ce dont il a besoin.](../assets/captures/apercu-lot-televerser-sans-archives.png)
+
+Deux chemins s'offrent à vous :
 
 - **Téléversement automatique** (application connectée à Vigie-Chiro) : le bouton
   **« Téléverser sur Vigie-Chiro »** dépose la nuit directement — la participation est créée (ou

@@ -2,6 +2,7 @@ package fr.univ_amu.iut.cli.commande;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -9,7 +10,9 @@ import static org.mockito.Mockito.when;
 import fr.univ_amu.iut.lot.model.BilanDepot;
 import fr.univ_amu.iut.lot.model.DepotUnite;
 import fr.univ_amu.iut.lot.model.DepotVigieChiro;
+import fr.univ_amu.iut.lot.model.ModeDepot;
 import fr.univ_amu.iut.lot.model.ServiceLot;
+import fr.univ_amu.iut.lot.model.SourceDepot;
 import fr.univ_amu.iut.lot.model.StatutDepotUnite;
 import fr.univ_amu.iut.lot.model.SuiviDepot;
 import fr.univ_amu.iut.lot.model.TypeDepotUnite;
@@ -46,7 +49,7 @@ class DeposerVigieChiroTest {
     @Test
     @DisplayName("dépôt complet : une ligne « + » par fichier, bilan « complet », code retour 0")
     void depot_complet_code_zero() {
-        when(serviceLot.fichiersDepotParDefaut(42L)).thenReturn(List.of(Path.of("/ws/a.wav")));
+        when(serviceLot.sourceDepotParDefaut(42L)).thenReturn(SourceDepot.desFichiers(List.of(Path.of("/ws/a.wav"))));
         when(depot.deposer(eq(42L), any(), any(), any())).thenAnswer(invocation -> {
             SuiviDepot suivi = invocation.getArgument(3);
             suivi.planEtabli(List.of(unite("a.wav", StatutDepotUnite.A_DEPOSER)));
@@ -68,7 +71,8 @@ class DeposerVigieChiroTest {
     @Test
     @DisplayName("dépôt incomplet : ligne « ! » avec la raison, bilan « INCOMPLET », code retour 1")
     void depot_incomplet_code_un() {
-        when(serviceLot.fichiersDepotParDefaut(42L)).thenReturn(List.of(Path.of("/ws/a.wav"), Path.of("/ws/b.wav")));
+        when(serviceLot.sourceDepotParDefaut(42L))
+                .thenReturn(SourceDepot.desFichiers(List.of(Path.of("/ws/a.wav"), Path.of("/ws/b.wav"))));
         when(depot.deposer(eq(42L), any(), any(), any())).thenAnswer(invocation -> {
             SuiviDepot suivi = invocation.getArgument(3);
             suivi.uniteEchouee("b.wav", "coupure réseau");
@@ -88,7 +92,7 @@ class DeposerVigieChiroTest {
     @Test
     @DisplayName("--token pose le jeton ponctuel (propriété système), sans toucher à la connexion enregistrée")
     void option_token_pose_le_jeton_ponctuel() {
-        when(serviceLot.fichiersDepotParDefaut(42L)).thenReturn(List.of(Path.of("/ws/a.wav")));
+        when(serviceLot.sourceDepotParDefaut(42L)).thenReturn(SourceDepot.desFichiers(List.of(Path.of("/ws/a.wav"))));
         when(depot.deposer(eq(42L), any(), any(), any())).thenReturn(new BilanDepot("part-1", 1, List.of()));
 
         ligne(Optional.of(depot), new StringWriter()).execute("--passage", "42", "--token", "jeton-essai");
@@ -107,80 +111,64 @@ class DeposerVigieChiroTest {
     @Test
     @DisplayName("#984 : --archives dépose les ZIP du dossier depot/ au lieu des séquences WAV")
     void option_archives_depose_les_zip() {
-        when(serviceLot.consulterLot(42L))
-                .thenReturn(new fr.univ_amu.iut.lot.model.EtatLot(
-                        fr.univ_amu.iut.commun.model.StatutWorkflow.PRET_A_DEPOSER,
-                        "/ws/session-42",
-                        4806,
-                        8192L,
-                        List.of(),
-                        null));
-        when(serviceLot.archivesDepot("/ws/session-42"))
-                .thenReturn(List.of(
-                        new fr.univ_amu.iut.lot.model.ArchiveDepot(
-                                Path.of("/ws/session-42/depot/Car-1.zip"), 1, 2048L, 2),
-                        new fr.univ_amu.iut.lot.model.ArchiveDepot(
-                                Path.of("/ws/session-42/depot/Car-2.zip"), 2, 4096L, 3)));
+        SourceDepot source = SourceDepot.desFichiers(List.of(Path.of("/ws/session-42/depot/Car-1.zip")));
+        when(serviceLot.sourceDepot(42L, ModeDepot.ARCHIVES_ZIP)).thenReturn(source);
         when(depot.deposer(eq(42L), any(), any(), any())).thenReturn(new BilanDepot("part-1", 2, List.of()));
-        StringWriter sortie = new StringWriter();
 
-        int code = ligne(Optional.of(depot), sortie).execute("--passage", "42", "--archives");
+        int code = ligne(Optional.of(depot), new StringWriter()).execute("--passage", "42", "--archives");
 
         assertThat(code).isZero();
-        org.mockito.Mockito.verify(depot)
-                .deposer(
-                        eq(42L),
-                        eq(List.of(
-                                Path.of("/ws/session-42/depot/Car-1.zip"), Path.of("/ws/session-42/depot/Car-2.zip"))),
-                        any(),
-                        any());
-        org.mockito.Mockito.verify(serviceLot, org.mockito.Mockito.never()).sequencesADeposer(42L);
+        org.mockito.Mockito.verify(depot).deposer(eq(42L), eq(source), any(), any());
+        org.mockito.Mockito.verify(serviceLot, org.mockito.Mockito.never()).sourceDepotParDefaut(42L);
     }
 
     @Test
     @DisplayName("#984 : --archives sans archive sur disque → refus explicite, rien n'est tenté")
-    void option_archives_sans_archive_echoue() {
-        when(serviceLot.consulterLot(42L))
-                .thenReturn(new fr.univ_amu.iut.lot.model.EtatLot(
-                        fr.univ_amu.iut.commun.model.StatutWorkflow.PRET_A_DEPOSER,
-                        "/ws/session-42",
-                        4806,
-                        8192L,
-                        List.of(),
-                        null));
-        when(serviceLot.archivesDepot("/ws/session-42")).thenReturn(List.of());
+    void option_archives_sans_archive_regenere_au_lieu_d_echouer() {
+        // Avant #1994, l'option listait les ZIP PRÉSENTS et refusait s'il n'y en avait aucun. C'est
+        // devenu le cas normal : le pipeline libère ses archives au fil de l'eau, donc après un dépôt
+        // interrompu le dossier est vide. Forcer le mode ZIP rend maintenant une source régénérable.
+        SourceDepot regenerable = SourceDepot.desFichiers(List.of(Path.of("/ws/session-42/depot/Car-1.zip")));
+        when(serviceLot.sourceDepot(42L, ModeDepot.ARCHIVES_ZIP)).thenReturn(regenerable);
+        when(depot.deposer(eq(42L), any(), any(), any())).thenReturn(new BilanDepot("part-1", 1, List.of()));
 
         int code = ligne(Optional.of(depot), new StringWriter()).execute("--passage", "42", "--archives");
 
-        assertThat(code).isNotZero();
-        org.mockito.Mockito.verifyNoInteractions(depot);
+        assertThat(code).isZero();
+        org.mockito.Mockito.verify(serviceLot, org.mockito.Mockito.never()).archivesDepot(anyString());
     }
 
     @Test
     @DisplayName("#984 : sans option, le choix des fichiers est celui de M-Lot (ZIP d'abord, repli WAV)")
     void defaut_delegue_le_choix_au_service() {
-        when(serviceLot.fichiersDepotParDefaut(42L)).thenReturn(List.of(Path.of("/ws/session-42/depot/Car-1.zip")));
+        when(serviceLot.sourceDepotParDefaut(42L))
+                .thenReturn(SourceDepot.desFichiers(List.of(Path.of("/ws/session-42/depot/Car-1.zip"))));
         when(depot.deposer(eq(42L), any(), any(), any())).thenReturn(new BilanDepot("part-1", 1, List.of()));
 
         int code = ligne(Optional.of(depot), new StringWriter()).execute("--passage", "42");
 
         assertThat(code).isZero();
         org.mockito.Mockito.verify(depot)
-                .deposer(eq(42L), eq(List.of(Path.of("/ws/session-42/depot/Car-1.zip"))), any(), any());
+                .deposer(
+                        eq(42L),
+                        eq(SourceDepot.desFichiers(List.of(Path.of("/ws/session-42/depot/Car-1.zip")))),
+                        any(),
+                        any());
         org.mockito.Mockito.verify(serviceLot, org.mockito.Mockito.never()).sequencesADeposer(42L);
     }
 
     @Test
     @DisplayName("#984 : --wav force les séquences WAV, même si des archives existent")
     void option_wav_force_les_sequences() {
-        when(serviceLot.sequencesADeposer(42L)).thenReturn(List.of(Path.of("/ws/a.wav")));
+        SourceDepot source = SourceDepot.desFichiers(List.of(Path.of("/ws/a.wav")));
+        when(serviceLot.sourceDepot(42L, ModeDepot.SEQUENCES_WAV)).thenReturn(source);
         when(depot.deposer(eq(42L), any(), any(), any())).thenReturn(new BilanDepot("part-1", 1, List.of()));
 
         int code = ligne(Optional.of(depot), new StringWriter()).execute("--passage", "42", "--wav");
 
         assertThat(code).isZero();
-        org.mockito.Mockito.verify(depot).deposer(eq(42L), eq(List.of(Path.of("/ws/a.wav"))), any(), any());
-        org.mockito.Mockito.verify(serviceLot, org.mockito.Mockito.never()).fichiersDepotParDefaut(42L);
+        org.mockito.Mockito.verify(depot).deposer(eq(42L), eq(source), any(), any());
+        org.mockito.Mockito.verify(serviceLot, org.mockito.Mockito.never()).sourceDepotParDefaut(42L);
     }
 
     @Test

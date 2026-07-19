@@ -224,9 +224,65 @@ public final class CompacteurDepot {
         return (long) (volumeSourceOctets * RATIO_COMPRESSION_ESTIME) + MARGE_SECURITE_OCTETS;
     }
 
+    /// Espace requis pour **deposer en pipeline** (#1996) : la [SourceArchivesRegenerables#FENETRE]
+    /// d'archives au plafond courant, plus la meme marge de securite.
+    ///
+    /// A distinguer de [#estimationTailleDepot], qui dimensionne la generation de **tout** le lot
+    /// (etape ②, dépôt manuel). Le pipeline ne materialise jamais plus que sa fenetre, donc exiger le
+    /// volume total reviendrait a refuser des depots qui passent tres bien - c'est precisement la
+    /// complexite que le sequencement creait lui-meme.
+    public long espaceRequisPourLaFenetre() {
+        return SourceArchivesRegenerables.FENETRE * tailleMaxOctets + MARGE_SECURITE_OCTETS;
+    }
+
     /// Formate un nombre d'octets en gigaoctets (base 1000, une décimale) pour les messages utilisateur.
     private static String enGigaoctets(long octets) {
         return String.format(Locale.FRENCH, "%.1f", octets / 1_000_000_000.0);
+    }
+
+    /// **Planifie sans rien ecrire** (#1994) : la partition des `fichiers` en lots, dont chacun deviendra
+    /// l'archive `<prefixe>-N.zip` avec `N` = son rang, a partir de 1.
+    ///
+    /// Cette partition est le **glouton a ordre preserve** de [PlanificateurArchives] : elle est donc
+    /// deterministe **a liste source inchangee**, ce qui permet de connaitre les noms d'archives avant
+    /// toute ecriture (#1993) et de reproduire a l'identique l'archive `N` qu'on aurait liberee (#1995).
+    /// L'[EmpreinteLot] persistee avec le plan est ce qui garantit que la condition est remplie.
+    ///
+    /// @throws RegleMetierException si un fichier depasse a lui seul le plafond (indecoupable)
+    public List<List<Path>> planifier(List<Path> fichiers) {
+        Objects.requireNonNull(fichiers, "fichiers");
+        try {
+            return planificateur.partitionner(fichiers);
+        } catch (IOException e) {
+            throw new UncheckedIOException("Planification des archives de dépôt impossible", e);
+        }
+    }
+
+    /// Ecrit **une seule** archive du plan : le lot de rang `numero` (1..N) tel que [#planifier] l'a
+    /// decoupe. Utilisee pour regenerer a la demande une archive absente du disque (#1994) sans avoir a
+    /// reproduire tout le lot.
+    ///
+    /// Le garde-fou d'espace disque global de [#compacter] ne s'applique pas ici : on n'ecrit qu'une
+    /// archive, et c'est precisement ce que la fenetre bornee de #1995 exploite.
+    public ArchiveDepot compacterUne(List<Path> lot, String prefixe, Path dossierSortie, int numero) {
+        Objects.requireNonNull(lot, "lot");
+        Objects.requireNonNull(prefixe, "prefixe");
+        Objects.requireNonNull(dossierSortie, "dossierSortie");
+        try {
+            Files.createDirectories(dossierSortie);
+            return ecrireArchive(
+                    lot,
+                    prefixe,
+                    dossierSortie,
+                    numero,
+                    progression -> {},
+                    SuiviArchives.inerte(),
+                    lot.size(),
+                    new AtomicInteger(0));
+        } catch (IOException e) {
+            throw new UncheckedIOException(
+                    "Génération de l'archive de dépôt " + prefixe + "-" + numero + ".zip impossible", e);
+        }
     }
 
     private ArchiveDepot ecrireArchive(
@@ -283,6 +339,11 @@ public final class CompacteurDepot {
     /// Source de l'**espace disque disponible** (en octets) dans un dossier cible, isolée en interface pour
     /// rendre le garde-fou de [#compacter] **testable** : les tests injectent une valeur basse (disque
     /// presque plein) sans dépendre de l'état réel de la machine. Par défaut [#reel()].
+    ///
+    /// **Seule lecture physique de l'espace disque de l'application** : `RepertoireDepot.espaceDisponible`
+    /// s'y adosse pour la vue « session ». Les deux ne traitent pas l'échec pareil, et c'est voulu - ici
+    /// l'`IOException` remonte, parce qu'on est sur le point d'écrire et qu'un doute doit **refuser** ;
+    /// là-bas elle devient `0`, qui signifie « inconnu » et ne bloque rien.
     @FunctionalInterface
     public interface EspaceDisque {
 

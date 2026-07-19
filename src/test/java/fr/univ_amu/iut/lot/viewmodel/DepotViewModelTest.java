@@ -18,6 +18,7 @@ import fr.univ_amu.iut.lot.model.BilanDepot;
 import fr.univ_amu.iut.lot.model.DepotUnite;
 import fr.univ_amu.iut.lot.model.DepotVigieChiro;
 import fr.univ_amu.iut.lot.model.ServiceLot;
+import fr.univ_amu.iut.lot.model.SourceDepot;
 import fr.univ_amu.iut.lot.model.StatutDepotUnite;
 import fr.univ_amu.iut.lot.model.TypeDepotUnite;
 import java.nio.file.Path;
@@ -53,9 +54,9 @@ class DepotViewModelTest {
     @Test
     @DisplayName("televerser dépose les fichiers résolus par ServiceLot (ZIP par défaut) et renvoie le bilan")
     void televerser_depose_les_fichiers_par_defaut() {
-        List<Path> archives =
-                List.of(Path.of("/ws/session-42/depot/Car-1.zip"), Path.of("/ws/session-42/depot/Car-2.zip"));
-        when(service.fichiersDepotParDefaut(ID_PASSAGE)).thenReturn(archives);
+        SourceDepot archives = SourceDepot.desFichiers(
+                List.of(Path.of("/ws/session-42/depot/Car-1.zip"), Path.of("/ws/session-42/depot/Car-2.zip")));
+        when(service.sourceDepotParDefaut(ID_PASSAGE)).thenReturn(archives);
         when(depot.deposer(eq(ID_PASSAGE), any(), any(), any())).thenReturn(new BilanDepot("part-1", 2, List.of()));
 
         BilanDepot bilan = new DepotViewModel(service, Optional.of(depot)).televerser(ID_PASSAGE);
@@ -68,7 +69,8 @@ class DepotViewModelTest {
     @Test
     @DisplayName("#1044 : demanderAnnulation() bascule le drapeau lu par le moteur ; marquerEnCours() le réarme")
     void annulation_cooperative_du_vm() {
-        when(service.fichiersDepotParDefaut(ID_PASSAGE)).thenReturn(List.of(Path.of("/ws/depot/Car-1.zip")));
+        when(service.sourceDepotParDefaut(ID_PASSAGE))
+                .thenReturn(SourceDepot.desFichiers(List.of(Path.of("/ws/depot/Car-1.zip"))));
         DepotViewModel vm = new DepotViewModel(service, Optional.of(depot));
         // Le moteur (mocké) lit le drapeau comme le vrai : avant demande → false, après → true.
         when(depot.deposer(eq(ID_PASSAGE), any(), any(), any())).thenAnswer(invocation -> {
@@ -159,7 +161,7 @@ class DepotViewModelTest {
     @Test
     @DisplayName("refus du service (rien à déposer / archives à générer) propagé, aucun appel réseau")
     void televerser_propage_le_refus_du_service() {
-        when(service.fichiersDepotParDefaut(ID_PASSAGE))
+        when(service.sourceDepotParDefaut(ID_PASSAGE))
                 .thenThrow(new RegleMetierException("Aucune séquence transformée à déposer pour ce passage."));
 
         DepotViewModel vm = new DepotViewModel(service, Optional.of(depot));

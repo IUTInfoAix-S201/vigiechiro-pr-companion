@@ -21,6 +21,13 @@ import javafx.beans.property.ReadOnlyStringWrapper;
 /// Extraite de [LotViewModel] (#1890) : le calcul ne dépend que du service et de l'état chargé, et
 /// l'orchestration du dépôt n'a pas à le porter (cohésion, plafond `GodClass` du portail qualité).
 /// Agnostique de l'IHM (seuls `javafx.beans`).
+///
+/// **Toujours dimensionnée sur le lot entier, et c'est voulu** (#1996). Le dépôt, lui, est passé à un
+/// pipeline qui ne matérialise jamais plus que sa fenêtre : son seuil à lui a donc été rebaissé
+/// (`ChoixSourceDepot`). Mais cette classe garde l'étape ② « Générer les archives », qui écrit
+/// réellement **tout** le lot d'un coup pour le dépôt manuel. Lui appliquer le seuil du pipeline la
+/// laisserait démarrer puis échouer à mi-parcours en laissant des archives partielles — exactement ce
+/// que #769 avait créé ce garde-fou pour empêcher. Deux opérations différentes, deux seuils différents.
 final class AnticipationEspaceDisque {
 
     private final ServiceLot service;

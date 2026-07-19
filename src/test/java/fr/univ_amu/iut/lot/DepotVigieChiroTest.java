@@ -34,8 +34,11 @@ import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
 import fr.univ_amu.iut.lot.model.BilanDepot;
 import fr.univ_amu.iut.lot.model.DepotUnite;
 import fr.univ_amu.iut.lot.model.DepotVigieChiro;
+import fr.univ_amu.iut.lot.model.EmpreinteLot;
+import fr.univ_amu.iut.lot.model.SourceDepot;
 import fr.univ_amu.iut.lot.model.StatutDepotUnite;
 import fr.univ_amu.iut.lot.model.SuiviDepot;
+import fr.univ_amu.iut.lot.model.dao.DepotPlanDao;
 import fr.univ_amu.iut.lot.model.dao.DepotUniteDao;
 import fr.univ_amu.iut.passage.model.Enregistreur;
 import fr.univ_amu.iut.passage.model.MoteurWorkflowPassage;
@@ -52,6 +55,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.DoubleConsumer;
@@ -76,6 +80,7 @@ class DepotVigieChiroTest {
     private ClientVigieChiro client;
     private TraitementVigieChiro traitementServeur;
     private DepotUniteDao depotUnites;
+    private DepotPlanDao depotPlans;
     private PassageDao passageDao;
     private DepotVigieChiro depot;
     private Long idPassage;
@@ -116,14 +121,118 @@ class DepotVigieChiroTest {
                         "1925492"))
                 .id();
         depotUnites = new DepotUniteDao(source);
+        depotPlans = new DepotPlanDao(source);
         depot = new DepotVigieChiro(
                 participations,
                 client,
                 traitementServeur,
                 depotUnites,
+                depotPlans,
                 passageDao,
                 new MoteurWorkflowPassage(),
                 new HorlogeFigee(LocalDate.of(2026, 7, 11)));
+    }
+
+    @Test
+    @DisplayName("#1993 : l'empreinte de la liste source est posée avec le plan")
+    void empreinte_posee_avec_le_plan(@TempDir Path dossier) throws IOException {
+        Path a = fichier(dossier, "Car-1.zip");
+        when(participations.participationDe(idPassage)).thenReturn(Optional.of("part-1"));
+        armerUploadOk();
+
+        depot.deposer(idPassage, List.of(a));
+
+        assertThat(depotPlans.parPassage(idPassage))
+                .get()
+                .extracting(fr.univ_amu.iut.lot.model.DepotPlan::empreinte)
+                .isEqualTo(EmpreinteLot.de(List.of(a)));
+    }
+
+    @Test
+    @DisplayName("#1993 : un lot modifié entre deux tentatives change l'empreinte enregistrée")
+    void empreinte_suit_le_lot(@TempDir Path dossier) throws IOException {
+        // Première tentative en échec : le passage reste « Dépôt en cours », donc reprenable. Un dépôt
+        // complet basculerait « Déposé » et la reprise serait alors refusée par le workflow — ce qui
+        // n'est pas le cas qu'on veut décrire ici.
+        Path a = fichier(dossier, "Car-1.zip");
+        when(participations.participationDe(idPassage)).thenReturn(Optional.of("part-1"));
+        when(client.creerFichier(anyString(), anyString())).thenReturn(ReponseApi.refuse(422, "titre invalide"));
+        depot.deposer(idPassage, List.of(a));
+        String empreinteInitiale =
+                depotPlans.parPassage(idPassage).orElseThrow().empreinte();
+
+        // Une séquence de plus : la partition en archives se décalerait, donc l'empreinte doit bouger.
+        // C'est ce que #1994 comparera avant d'accepter de régénérer une archive libérée.
+        depot.deposer(idPassage, List.of(a, fichier(dossier, "Car-2.zip")));
+
+        assertThat(depotPlans.parPassage(idPassage).orElseThrow().empreinte()).isNotEqualTo(empreinteInitiale);
+    }
+
+    @Test
+    @DisplayName("#1994 : reprendre un dépôt dont le lot a changé est refusé si des fichiers sont en ligne")
+    void reprise_sur_lot_modifie_refusee(@TempDir Path dossier) throws IOException {
+        // Un dépôt partiel : « ok.wav » passe, « ko.wav » échoue. Le passage reste « Dépôt en cours ».
+        Path ok = fichier(dossier, "ok.wav");
+        Path ko = fichier(dossier, "ko.wav");
+        when(participations.participationDe(idPassage)).thenReturn(Optional.of("part-1"));
+        when(client.creerFichier(eq("ok.wav"), anyString()))
+                .thenReturn(ReponseApi.succes(new FichierSigne("f", "https://s3/x")));
+        when(client.creerFichier(eq("ko.wav"), anyString())).thenReturn(ReponseApi.refuse(422, "titre invalide"));
+        when(client.televerserVersS3(anyString(), any(Path.class), anyString(), any()))
+                .thenReturn(true);
+        when(client.finaliserFichier(anyString())).thenReturn(ReponseApi.succes("{}"));
+        depot.deposer(idPassage, List.of(ok, ko));
+
+        // Le lot change entre-temps : une archive régénérée ne contiendrait plus la même chose que celle
+        // déjà en ligne. On refuse plutôt que d'écraser en silence côté serveur.
+        assertThatThrownBy(() -> depot.deposer(idPassage, List.of(ok, ko, fichier(dossier, "tard.wav"))))
+                .isInstanceOf(RegleMetierException.class)
+                .hasMessageContaining("Le lot a changé")
+                .hasMessageContaining("Réinitialisez");
+    }
+
+    @Test
+    @DisplayName("#1994 : un lot modifié avant tout téléversement repart simplement à neuf")
+    void lot_modifie_sans_rien_en_ligne_repart_a_neuf(@TempDir Path dossier) throws IOException {
+        // Rien n'est acquis : changer d'avis est légitime, le plan se repose sans refus.
+        Path a = fichier(dossier, "a.wav");
+        when(participations.participationDe(idPassage)).thenReturn(Optional.of("part-1"));
+        when(client.creerFichier(anyString(), anyString())).thenReturn(ReponseApi.refuse(422, "titre invalide"));
+        depot.deposer(idPassage, List.of(a));
+
+        BilanDepot bilan = depot.deposer(idPassage, List.of(a, fichier(dossier, "b.wav")));
+
+        assertThat(bilan.echecs()).containsExactlyInAnyOrder("a.wav", "b.wav");
+        assertThat(depotUnites.parPassage(idPassage)).hasSize(2);
+    }
+
+    @Test
+    @DisplayName("#1995 : le moteur libère chaque unité une fois qu'elle est prouvée en ligne")
+    void unite_liberee_apres_depot(@TempDir Path dossier) throws IOException {
+        Path a = fichier(dossier, "Car-1.zip");
+        Path b = fichier(dossier, "Car-2.zip");
+        when(participations.participationDe(idPassage)).thenReturn(Optional.of("part-1"));
+        armerUploadOk();
+        List<String> liberees = Collections.synchronizedList(new ArrayList<>());
+        SourceDepot tracante = tracer(SourceDepot.desFichiers(List.of(a, b)), liberees);
+
+        depot.deposer(idPassage, tracante, () -> false, SuiviDepot.inerte());
+
+        assertThat(liberees).containsExactlyInAnyOrder("Car-1.zip", "Car-2.zip");
+    }
+
+    @Test
+    @DisplayName("#1995 : une unité en échec n'est PAS libérée (la reprise en aura besoin)")
+    void unite_en_echec_non_liberee(@TempDir Path dossier) throws IOException {
+        Path a = fichier(dossier, "Car-1.zip");
+        when(participations.participationDe(idPassage)).thenReturn(Optional.of("part-1"));
+        when(client.creerFichier(anyString(), anyString())).thenReturn(ReponseApi.refuse(422, "titre invalide"));
+        List<String> liberees = Collections.synchronizedList(new ArrayList<>());
+        SourceDepot tracante = tracer(SourceDepot.desFichiers(List.of(a)), liberees);
+
+        depot.deposer(idPassage, tracante, () -> false, SuiviDepot.inerte());
+
+        assertThat(liberees).isEmpty();
     }
 
     @Test
@@ -203,7 +312,7 @@ class DepotVigieChiroTest {
                 });
         SuiviDepot suivi = mock(SuiviDepot.class);
 
-        depot.deposer(idPassage, List.of(fichier(dossier, "Car-1.zip")), () -> false, suivi);
+        depot.deposer(idPassage, SourceDepot.desFichiers(List.of(fichier(dossier, "Car-1.zip"))), () -> false, suivi);
 
         verify(suivi).uniteProgresse("Car-1.zip", 0.5);
         verify(suivi).uniteProgresse("Car-1.zip", 1.0);
@@ -344,7 +453,8 @@ class DepotVigieChiroTest {
 
         // En parallèle, chaque worker consulte le garde AVANT de démarrer son upload. Annulation déjà
         // demandée → aucune unité n'est entamée, le passage reste « Dépôt en cours » (reprenable).
-        BilanDepot bilan = depot.deposer(idPassage, List.of(a, b), () -> true, SuiviDepot.inerte());
+        BilanDepot bilan =
+                depot.deposer(idPassage, SourceDepot.desFichiers(List.of(a, b)), () -> true, SuiviDepot.inerte());
 
         assertThat(bilan.deposees()).isZero();
         assertThat(statutPassage()).isEqualTo(StatutWorkflow.DEPOT_EN_COURS);
@@ -490,6 +600,32 @@ class DepotVigieChiroTest {
         when(client.televerserVersS3(anyString(), any(Path.class), anyString(), any()))
                 .thenReturn(true);
         when(client.finaliserFichier(anyString())).thenReturn(ReponseApi.succes("{}"));
+    }
+
+    /// Enveloppe une source en consignant les identifiants qu'on lui demande de **liberer** (#1995) :
+    /// c'est le seul point qu'on veut observer, le reste est delegue tel quel.
+    private static SourceDepot tracer(SourceDepot reelle, List<String> liberees) {
+        return new SourceDepot() {
+            @Override
+            public List<String> identifiants() {
+                return reelle.identifiants();
+            }
+
+            @Override
+            public Optional<Path> resoudre(String identifiant) {
+                return reelle.resoudre(identifiant);
+            }
+
+            @Override
+            public String empreinte() {
+                return reelle.empreinte();
+            }
+
+            @Override
+            public void liberer(String identifiant) {
+                liberees.add(identifiant);
+            }
+        };
     }
 
     private static Path fichier(Path dossier, String nom) throws IOException {

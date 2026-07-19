@@ -64,7 +64,17 @@ final class RepertoireDepot {
     }
 
     /// Espace disque **disponible** (octets) sur le système de fichiers de la session, pour anticiper si
-    /// les archives tiendront. `0` si le chemin est inconnu/inaccessible (l'IHM ne bloque alors pas).
+    /// les archives tiendront.
+    ///
+    /// **`0` veut dire « inconnu », pas « plein »** : chemin absent, dossier introuvable, système de
+    /// fichiers illisible. Les appelants doivent le traiter comme une absence d'information et non
+    /// comme un refus - `ChoixSourceDepot` et `AnticipationEspaceDisque` le font tous deux
+    /// explicitement. C'est l'inverse de la convention de [CompacteurDepot.EspaceDisque], qui laisse
+    /// remonter l'échec pour que la génération **refuse** plutôt que de parier : là-bas on est sur le
+    /// point d'écrire, ici on ne fait qu'anticiper.
+    ///
+    /// La lecture physique elle-même est déléguée à [CompacteurDepot.EspaceDisque#reel] : c'est le seul
+    /// endroit de l'application qui appelle `getUsableSpace`, et il n'y a aucune raison d'en avoir deux.
     long espaceDisponible(String cheminRacineSession) {
         if (cheminRacineSession == null) {
             return 0L;
@@ -72,7 +82,7 @@ final class RepertoireDepot {
         try {
             Path racine = Path.of(cheminRacineSession);
             Path reference = Files.isDirectory(racine) ? racine : racine.getParent();
-            return reference == null ? 0L : Files.getFileStore(reference).getUsableSpace();
+            return reference == null ? 0L : CompacteurDepot.EspaceDisque.reel().disponibleOctets(reference);
         } catch (IOException e) {
             return 0L;
         }

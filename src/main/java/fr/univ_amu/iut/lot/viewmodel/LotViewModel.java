@@ -1,7 +1,6 @@
 package fr.univ_amu.iut.lot.viewmodel;
 
 import fr.univ_amu.iut.commun.model.Progression;
-import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.viewmodel.Formats;
 import fr.univ_amu.iut.commun.viewmodel.ProgressionOperation;
 import fr.univ_amu.iut.commun.viewmodel.RetourOperation;
@@ -39,16 +38,10 @@ public class LotViewModel {
 
     /// Statut workflow du lot couramment chargé, mémorisé pour recomposer le stepper après une génération
     /// d'archives (qui ne recharge pas l'état). `null` tant qu'aucun lot n'est ouvert.
-    private StatutWorkflow statutCourant;
-
-    /// `true` quand le téléversement automatique est disponible (application connectée) : l'étape ② de
-    /// génération n'est alors plus un passage obligé (#1998).
-    private boolean depotAutomatiqueDisponible;
 
     private final ReadOnlyStringWrapper statut = new ReadOnlyStringWrapper(this, "statut", "");
     private final ReadOnlyStringWrapper cheminDossier = new ReadOnlyStringWrapper(this, "cheminDossier", "");
     private final ReadOnlyStringWrapper cheminDepot = new ReadOnlyStringWrapper(this, "cheminDepot", "");
-    private final ObservableList<EtapeDepot> etapes = FXCollections.observableArrayList();
     private final ReadOnlyStringWrapper recap = new ReadOnlyStringWrapper(this, "recap", "");
     private final ObservableList<ControleCoherence> controles = FXCollections.observableArrayList();
     private final ReadOnlyBooleanWrapper peutPreparer = new ReadOnlyBooleanWrapper(this, "peutPreparer", false);
@@ -69,6 +62,9 @@ public class LotViewModel {
     /// d'existence (bouton supprimer, ouvrir le dossier, rôles) et le suivi par archive (pré-remplie au plan,
     /// mise à jour au fil de la compression parallèle, réhydratée du disque à la réouverture).
     private final SuiviLignesArchives suiviLignes = new SuiviLignesArchives();
+
+    private final SuiviEtapesLot suiviEtapes =
+            new SuiviEtapesLot(() -> !suiviLignes.lignes().isEmpty());
 
     /// Suppression des archives possible (#…) : **liaison vivante** sur les lignes — vraie dès qu'il existe
     /// des archives (régénérables), recalculée quand la liste change (génération, réhydratation, suppression).
@@ -201,9 +197,7 @@ public class LotViewModel {
         // peuple ; en génération suivie (#820), les lignes étaient déjà passées « terminée » au fil des
         // événements, on repose simplement le même état final.
         suiviLignes.afficherTerminees(produites);
-        if (statutCourant != null) {
-            majEtapes(statutCourant);
-        }
+        suiviEtapes.recalculer();
         messages.succes(produites.size() + " archive(s) de dépôt générée(s) dans le sous-dossier « depot/ ».");
         generationEnCours.set(false);
         progression.reinitialiser();
@@ -246,7 +240,7 @@ public class LotViewModel {
     }
 
     private void appliquer(EtatLot etat) {
-        statutCourant = etat.statut();
+
         statut.set(etat.statut().libelle());
         String dossier = etat.cheminDossier() == null ? "" : etat.cheminDossier();
         cheminDossier.set(dossier);
@@ -269,7 +263,7 @@ public class LotViewModel {
         peutGenererArchives.set(actions.genererArchives());
         // (peutSupprimerArchives est une liaison vivante sur les lignes : rien à poser ici.)
         espaceDisque.majDepuis(etat);
-        majEtapes(etat.statut());
+        suiviEtapes.appliquer(etat.statut());
         messages.etat(FormatsLot.messageEtat(etat));
     }
 
@@ -279,22 +273,15 @@ public class LotViewModel {
     /// téléversement générant lui-même ses archives (#1998). Posé par le controller, qui est le seul à
     /// connaître les deux ViewModels.
     public void declarerDepotAutomatiqueDisponible(boolean disponible) {
-        this.depotAutomatiqueDisponible = disponible;
-        if (statutCourant != null) {
-            majEtapes(statutCourant);
-        }
-    }
-
-    private void majEtapes(StatutWorkflow statut) {
-        etapes.setAll(EtapesDepot.calculer(statut, !suiviLignes.lignes().isEmpty(), depotAutomatiqueDisponible));
+        suiviEtapes.declarerDepotAutomatiqueDisponible(disponible);
     }
 
     private void reinitialiser() {
-        statutCourant = null;
+
         statut.set("");
         cheminDossier.set("");
         cheminDepot.set("");
-        etapes.clear();
+        suiviEtapes.reinitialiser();
         recap.set("");
         controles.clear();
         peutPreparer.set(false);
@@ -327,7 +314,7 @@ public class LotViewModel {
     /// Étapes ordonnées du dépôt pour le stepper (#251) : ① Préparer · ② Générer les archives ·
     /// ③ Téléverser · ④ Marquer déposé, chacune avec son état d'avancement. Vide si pas de lot ouvert.
     public ObservableList<EtapeDepot> etapes() {
-        return etapes;
+        return suiviEtapes.etapes();
     }
 
     /// Récapitulatif du lot (`N séquences · X Mo`).

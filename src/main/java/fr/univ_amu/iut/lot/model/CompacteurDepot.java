@@ -224,6 +224,17 @@ public final class CompacteurDepot {
         return (long) (volumeSourceOctets * RATIO_COMPRESSION_ESTIME) + MARGE_SECURITE_OCTETS;
     }
 
+    /// Espace requis pour **deposer en pipeline** (#1996) : la [SourceArchivesRegenerables#FENETRE]
+    /// d'archives au plafond courant, plus la meme marge de securite.
+    ///
+    /// A distinguer de [#estimationTailleDepot], qui dimensionne la generation de **tout** le lot
+    /// (etape ②, dépôt manuel). Le pipeline ne materialise jamais plus que sa fenetre, donc exiger le
+    /// volume total reviendrait a refuser des depots qui passent tres bien - c'est precisement la
+    /// complexite que le sequencement creait lui-meme.
+    public long espaceRequisPourLaFenetre() {
+        return SourceArchivesRegenerables.FENETRE * tailleMaxOctets + MARGE_SECURITE_OCTETS;
+    }
+
     /// Formate un nombre d'octets en gigaoctets (base 1000, une décimale) pour les messages utilisateur.
     private static String enGigaoctets(long octets) {
         return String.format(Locale.FRENCH, "%.1f", octets / 1_000_000_000.0);

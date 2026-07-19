@@ -52,7 +52,7 @@ public final class SourceArchivesRegenerables implements SourceDepot {
     /// **Constante et non reglage** : un curseur de plus demanderait sa persistance, sa documentation et
     /// un axe de variation en test, pour un arbitrage que l'utilisateur n'a pas les elements de trancher.
     /// Si le besoin d'ajuster apparait, il deviendra une issue.
-    private static final int FENETRE = 2;
+    static final int FENETRE = 2;
 
     /// Archives que **cette source a produites**, et qu'elle peut donc liberer.
     ///

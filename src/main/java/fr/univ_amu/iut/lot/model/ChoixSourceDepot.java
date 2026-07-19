@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
+import java.util.function.ToLongFunction;
 
 /// **Ce qu'on depose, et sous quelle forme** : la politique ZIP / WAV du depot (#984), extraite de
 /// [ServiceLot] (#1994).
@@ -33,9 +34,22 @@ final class ChoixSourceDepot {
     private final RepertoireDepot repertoireDepot;
     private final Supplier<CompacteurDepot> compacteur;
 
+    /// Espace disque disponible dans le dossier de session, isole pour rendre le seuil **testable** sans
+    /// dependre de l'etat reel de la machine - meme raison que [CompacteurDepot.EspaceDisque], dont c'est
+    /// ici le pendant au niveau du lot.
+    private final ToLongFunction<String> espaceDisponible;
+
     ChoixSourceDepot(RepertoireDepot repertoireDepot, Supplier<CompacteurDepot> compacteur) {
+        this(repertoireDepot, compacteur, Objects.requireNonNull(repertoireDepot, "repertoireDepot")::espaceDisponible);
+    }
+
+    ChoixSourceDepot(
+            RepertoireDepot repertoireDepot,
+            Supplier<CompacteurDepot> compacteur,
+            ToLongFunction<String> espaceDisponible) {
         this.repertoireDepot = Objects.requireNonNull(repertoireDepot, "repertoireDepot");
         this.compacteur = Objects.requireNonNull(compacteur, "compacteur");
+        this.espaceDisponible = Objects.requireNonNull(espaceDisponible, "espaceDisponible");
     }
 
     /// La source a deposer pour ce lot.
@@ -78,15 +92,33 @@ final class ChoixSourceDepot {
         return sequences; // repli WAV : l'espace disque ne permet pas de créer les archives ZIP
     }
 
-    /// `true` si l'espace disque du dossier de session permet de generer les archives ZIP (estimation
-    /// compression comprise <= disponible). Faux si session / volume / disque inconnus (impossible de
-    /// creer des archives -> repli WAV assume).
+    /// `true` si le disque permet de **deposer en ZIP**, c'est-a-dire de materialiser la fenetre du
+    /// pipeline (#1996). Faux si session / volume / disque inconnus (impossible de creer des archives ->
+    /// repli WAV assume).
+    ///
+    /// **Le seuil a change de nature.** Il exigeait la place pour la **totalite** des archives, parce que
+    /// le depot les generait toutes avant d'en televerser une seule. Le pipeline n'en materialise jamais
+    /// plus que sa fenetre : exiger le volume total refuserait maintenant des depots qui passent tres
+    /// bien. C'est la complexite que le sequencement creait lui-meme.
+    ///
+    /// A ne pas confondre avec le garde-fou de la **generation** ([CompacteurDepot#compacter], etape ②) :
+    /// celle-la ecrit reellement tout le lot d'un coup, son seuil reste donc le volume total et
+    /// [AnticipationEspaceDisque] continue de l'anticiper ainsi. Les deux seuils different parce que les
+    /// deux operations different.
     boolean disquePermetArchives(EtatLot lot) {
         if (lot.cheminDossier() == null || lot.volumeSequencesOctets() == null) {
             return false;
         }
-        long disponible = repertoireDepot.espaceDisponible(lot.cheminDossier());
-        return disponible > 0 && CompacteurDepot.estimationTailleDepot(lot.volumeSequencesOctets()) <= disponible;
+        long disponible = espaceDisponible.applyAsLong(lot.cheminDossier());
+        if (disponible <= 0) {
+            return false;
+        }
+        // La fenetre, ou le lot entier s'il est plus petit qu'elle : inutile d'exiger 1,4 Go pour une
+        // nuit qui tient dans une seule archive de 200 Mo.
+        long requis = Math.min(
+                compacteur.get().espaceRequisPourLaFenetre(),
+                CompacteurDepot.estimationTailleDepot(lot.volumeSequencesOctets()));
+        return requis <= disponible;
     }
 
     /// Archives ZIP presentes sur le disque pour ce lot (vide si le lot n'a pas de dossier).

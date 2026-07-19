@@ -12,6 +12,7 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
 
 <!--
   M-Site-detail - fiche d'un site (identité + points d'écoute + tableau des passages).
@@ -53,7 +54,11 @@
       <Button fx:id="boutonSupprimer" text="🗑 Supprimer" styleClass="bouton-danger"
               onAction="#supprimerSite"/>
     </StackPane>
-    <MenuButton fx:id="menuOutils" text="☰" styleClass="menu-actions" accessibleText="Outils : colonnes"/>
+    <MenuButton fx:id="menuOutils" styleClass="menu-actions" accessibleText="Outils : colonnes">
+      <graphic>
+        <FontIcon iconLiteral="fas-bars"/>
+      </graphic>
+    </MenuButton>
   </HBox>
 
   <HBox styleClass="bandeau-infos" spacing="0.0">

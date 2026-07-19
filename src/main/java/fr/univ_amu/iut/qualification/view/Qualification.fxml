@@ -101,7 +101,11 @@
                   onAction="#regenerer">
             <graphic><FontIcon iconLiteral="fas-sync-alt"/></graphic>
           </Button>
-          <MenuButton fx:id="menuOutils" text="☰" styleClass="menu-actions" accessibleText="Outils : colonnes"/>
+          <MenuButton fx:id="menuOutils" styleClass="menu-actions" accessibleText="Outils : colonnes">
+            <graphic>
+              <FontIcon iconLiteral="fas-bars"/>
+            </graphic>
+          </MenuButton>
         </HBox>
 
         <!-- Répartition des verdicts PAR FICHIER (#1524, lot 6a) : barre empilée tricolore (Bon / Mauvais
@@ -230,7 +234,11 @@
            n'offrait ni l'une ni l'autre. -->
       <HBox fx:id="bandeauRetour" styleClass="bandeau-retour" alignment="CENTER_LEFT" spacing="10.0">
         <Label fx:id="lblRetour" wrapText="true" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
-        <Button fx:id="btnFermerRetour" text="✕" styleClass="fermer-retour" accessibleText="Fermer le message"/>
+        <Button fx:id="btnFermerRetour" styleClass="fermer-retour" accessibleText="Fermer le message">
+          <graphic>
+            <FontIcon iconLiteral="fas-times"/>
+          </graphic>
+        </Button>
       </HBox>
 
       <HBox alignment="CENTER_LEFT" spacing="10.0">

@@ -8,6 +8,7 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
 
 <!--
   Modale d'ajout / d'édition d'un point d'écoute (ouverte depuis M-Site-detail dans un Stage
@@ -39,7 +40,11 @@
        la sévérité et interdisait donc d'y dire autre chose qu'un échec (#1917). -->
   <HBox fx:id="bandeauRetour" styleClass="bandeau-retour" alignment="CENTER_LEFT" spacing="10.0">
     <Label fx:id="lblRetour" wrapText="true" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
-    <Button fx:id="btnFermerRetour" text="✕" styleClass="fermer-retour" accessibleText="Fermer le message"/>
+    <Button fx:id="btnFermerRetour" styleClass="fermer-retour" accessibleText="Fermer le message">
+      <graphic>
+        <FontIcon iconLiteral="fas-times"/>
+      </graphic>
+    </Button>
   </HBox>
 
   <Label text="Descriptif (optionnel)" styleClass="field-label"/>

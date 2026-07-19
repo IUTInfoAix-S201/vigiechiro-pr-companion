@@ -3,10 +3,12 @@ package fr.univ_amu.iut.sites.view;
 import com.google.inject.Inject;
 import fr.univ_amu.iut.commun.model.Protocole;
 import fr.univ_amu.iut.commun.view.BandeauRetour;
+import fr.univ_amu.iut.commun.view.IndicateurBlocage;
 import fr.univ_amu.iut.commun.view.ValidationFormulaire;
 import fr.univ_amu.iut.sites.model.Site;
 import fr.univ_amu.iut.sites.viewmodel.SiteEditViewModel;
 import java.util.Objects;
+import javafx.beans.binding.Bindings;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -15,6 +17,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
@@ -64,6 +67,10 @@ public class ModaleSiteController {
     @FXML
     private Button btnFermerRetour;
 
+    /// Enveloppe non désactivée du bouton : porte l'infobulle du grisage (#789, #1970).
+    @FXML
+    private StackPane enveloppeValider;
+
     @FXML
     private Button boutonValider;
 
@@ -101,9 +108,16 @@ public class ModaleSiteController {
         // On EMPÊCHE plutôt que d'avertir après coup (#790) : le bouton reste fermé tant que le carré n'a
         // pas ses six chiffres, et le champ rougit dès qu'il est saisi mais incomplet.
         boutonValider.disableProperty().bind(viewModel.peutEnregistrer().not());
+        // Le motif du grisage se dit ici et non dans un message d'erreur (#1970) : la garde du ViewModel
+        // teste EXACTEMENT ce prédicat, donc son message n'aurait jamais pu être lu par personne.
+        IndicateurBlocage.expliquer(
+                enveloppeValider,
+                Bindings.when(viewModel.peutEnregistrer())
+                        .then("Enregistrer ce site de suivi.")
+                        .otherwise("Renseignez d'abord un numéro de carré à 6 chiffres."));
         ValidationFormulaire.marquerInvalide(champCarre, viewModel.carreInvalideEtSaisi());
 
-        // #1917 : bandeau partagé (ADR 0023). Le libellé s'appelait « lblRetour » et ne pouvait
+        // #1917 : bandeau partagé (ADR 0023). Le libellé s'appelait « messageErreur » et ne pouvait
         // donc rien porter d'autre qu'un échec ; la sévérité vit maintenant dans la valeur.
         BandeauRetour.installer(
                 bandeauRetour, lblRetour, btnFermerRetour, viewModel.retourProperty(), viewModel::effacerRetour);

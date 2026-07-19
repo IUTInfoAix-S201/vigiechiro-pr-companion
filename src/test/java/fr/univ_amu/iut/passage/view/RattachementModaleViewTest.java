@@ -11,6 +11,7 @@ import com.google.inject.Injector;
 import com.google.inject.Provides;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.model.Verdict;
+import fr.univ_amu.iut.commun.view.InfobulleDeBlocage;
 import fr.univ_amu.iut.passage.model.CouvertureNuageuse;
 import fr.univ_amu.iut.passage.model.DecompteAudio;
 import fr.univ_amu.iut.passage.model.DetailPassage;
@@ -33,6 +34,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -301,5 +303,32 @@ class RattachementModaleViewTest {
                 0.0,
                 null,
                 new DecompteAudio(0, 0));
+    }
+
+    @Test
+    @DisplayName("#1970 : le grisage d'« Appliquer » dit LAQUELLE des deux conditions bloque")
+    void le_grisage_dit_laquelle_des_deux_conditions_bloque(FxRobot robot) {
+        StackPane enveloppe = robot.lookup("#enveloppeAppliquer").queryAs(StackPane.class);
+        Button appliquer = robot.lookup("#boutonAppliquer").queryAs(Button.class);
+
+        // Deux gardes du ViewModel disaient chacune leur motif, derrière un bouton grisé sur ces mêmes
+        // prédicats : aucune des deux n'était lisible. Un motif générique obligerait de surcroît
+        // l'utilisateur à chercher lequel des deux champs pèche.
+        robot.interact(() -> viewModel.anneeProperty().set(99));
+        assertThat(appliquer.isDisabled()).isTrue();
+        assertThat(InfobulleDeBlocage.texteDe(enveloppe)).contains("année").contains("quatre chiffres");
+
+        robot.interact(() -> {
+            viewModel.anneeProperty().set(2026);
+            viewModel.numeroPassageProperty().set(0);
+        });
+        assertThat(appliquer.isDisabled()).isTrue();
+        assertThat(InfobulleDeBlocage.texteDe(enveloppe))
+                .as("l'autre condition, l'autre motif")
+                .contains("numéro de passage");
+
+        robot.interact(() -> viewModel.numeroPassageProperty().set(2));
+        assertThat(appliquer.isDisabled()).isFalse();
+        assertThat(InfobulleDeBlocage.texteDe(enveloppe)).doesNotContain("doit");
     }
 }

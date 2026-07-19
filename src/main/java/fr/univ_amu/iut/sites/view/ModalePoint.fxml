@@ -75,7 +75,10 @@
   <HBox alignment="CENTER_RIGHT" spacing="8.0">
     <Region HBox.hgrow="ALWAYS"/>
     <Button text="Annuler" styleClass="bouton-secondaire" onAction="#annuler"/>
-    <Button fx:id="boutonValider" text="+ Ajouter" styleClass="bouton-primaire"
+    <!-- Enveloppe porteuse de l'infobulle (#1970) : un Button désactivé n'affiche pas de tooltip. -->
+    <StackPane fx:id="enveloppeValider">
+      <Button fx:id="boutonValider" text="+ Ajouter" styleClass="bouton-primaire"
             onAction="#valider"/>
+    </StackPane>
   </HBox>
 </VBox>

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
@@ -57,6 +58,10 @@
   <HBox alignment="CENTER_RIGHT" spacing="8.0">
     <Region HBox.hgrow="ALWAYS"/>
     <Button text="Annuler" styleClass="bouton-secondaire" onAction="#annuler"/>
-    <Button fx:id="boutonValider" text="Créer" styleClass="bouton-primaire" onAction="#valider"/>
+    <!-- Enveloppe porteuse de l'infobulle (#1970) : un Button désactivé ne reçoit pas la souris, donc
+         n'affiche aucun tooltip. C'est elle qui dit POURQUOI le bouton est gris. -->
+    <StackPane fx:id="enveloppeValider">
+      <Button fx:id="boutonValider" text="Créer" styleClass="bouton-primaire" onAction="#valider"/>
+    </StackPane>
   </HBox>
 </VBox>

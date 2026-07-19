@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
@@ -160,6 +161,9 @@
   <HBox alignment="CENTER_RIGHT" spacing="8.0">
     <Region HBox.hgrow="ALWAYS"/>
     <Button text="Annuler" styleClass="bouton-secondaire" onAction="#annuler"/>
-    <Button fx:id="boutonAppliquer" text="Appliquer" styleClass="bouton-primaire" onAction="#appliquer"/>
+    <!-- Enveloppe porteuse de l'infobulle (#1970) : un Button désactivé n'affiche pas de tooltip. -->
+    <StackPane fx:id="enveloppeAppliquer">
+      <Button fx:id="boutonAppliquer" text="Appliquer" styleClass="bouton-primaire" onAction="#appliquer"/>
+    </StackPane>
   </HBox>
 </VBox>

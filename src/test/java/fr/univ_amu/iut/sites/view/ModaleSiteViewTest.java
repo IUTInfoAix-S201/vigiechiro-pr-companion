@@ -15,6 +15,7 @@ import com.google.inject.Injector;
 import com.google.inject.Provides;
 import fr.univ_amu.iut.commun.model.Protocole;
 import fr.univ_amu.iut.commun.model.RegleMetierException;
+import fr.univ_amu.iut.commun.view.InfobulleDeBlocage;
 import fr.univ_amu.iut.sites.model.ServiceSites;
 import fr.univ_amu.iut.sites.model.Site;
 import fr.univ_amu.iut.sites.viewmodel.SiteEditViewModel;
@@ -24,6 +25,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -179,5 +181,27 @@ class ModaleSiteViewTest {
 
         verify(service, never()).creerSite(anyString(), any(), any(), any(), anyString());
         assertThat(rafraichissements).isZero();
+    }
+
+    @Test
+    @DisplayName("#1970 : le grisage de « Créer » dit POURQUOI, et le motif suit la saisie")
+    void le_grisage_dit_pourquoi(FxRobot robot) {
+        // Avant #1970, le motif vivait dans un message que le ViewModel n'émettait que si l'on cliquait
+        // - or le bouton est grisé sur EXACTEMENT la condition commentée : personne ne l'a jamais lu.
+        enCreation(robot);
+        StackPane enveloppe = robot.lookup("#enveloppeValider").queryAs(StackPane.class);
+
+        assertThat(valider(robot).isDisabled()).isTrue();
+        assertThat(InfobulleDeBlocage.texteDe(enveloppe))
+                .as("un bouton gris sans explication est lui-même un défaut")
+                .contains("6 chiffres");
+
+        robot.interact(
+                () -> robot.lookup("#champCarre").queryAs(TextField.class).setText("640380"));
+
+        assertThat(valider(robot).isDisabled()).isFalse();
+        assertThat(InfobulleDeBlocage.texteDe(enveloppe))
+                .as("le motif disparaît avec le blocage : l'infobulle dit alors ce que fait l'action")
+                .doesNotContain("6 chiffres");
     }
 }

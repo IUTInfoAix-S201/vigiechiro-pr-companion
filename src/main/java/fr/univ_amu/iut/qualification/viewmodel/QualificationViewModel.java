@@ -208,9 +208,10 @@ public class QualificationViewModel {
     /// décisif n'est choisi. Signale (R14) si « à jeter » exclura le passage du dépôt.
     public void enregistrer() {
         if (!peutEnregistrer.get()) {
-            // Guidage, pas échec technique : l'utilisateur n'a pas encore choisi (sévérité INFO).
-            retour.set(RetourOperation.info(
-                    "Choisissez un verdict (OK, Utilisable ou Inexploitable) avant d'enregistrer."));
+            // Garde **muette** (#1970) : le bouton est grisé sur ce même prédicat, donc aucun utilisateur
+            // ne peut atteindre ce chemin. Le motif lui est dit là où il le lira - dans l'infobulle du
+            // grisage, posée par le controller (#789). Un message ici ne serait lu que par un appelant
+            // programmatique, qui a déjà le retour de la méthode.
             return;
         }
         try {

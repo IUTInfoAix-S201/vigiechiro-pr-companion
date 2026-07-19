@@ -11,35 +11,12 @@
   -fx-padding: 18;
 }
 
-/* Bandeau d'identité : composant partagé bandeau-infos (design.css, #694). */
-
-.message-erreur {
-  -fx-font-size: 12px;
-  -fx-text-fill: #a93226;
-}
-
 /* ---- Hub à plat : résumé (stats) + cartes d'actions ---- */
 .hub-contenu {
   -fx-padding: 0 18 18 18;
 }
 
 /* Résumé de la nuit : composant partagé carte-stat (design.css, #694). */
-
-/* Modale « Modifier le rattachement » (E2.S8). */
-.modale-rattachement {
-  -fx-background-color: white;
-  -fx-padding: 18;
-}
-
-/*
- * Modale « Réactiver ce passage » (#1780). La classe était posée dans le FXML mais définie nulle part :
- * un crochet déclaré, jamais accroché. Sans marges, le titre et les boutons collaient aux bords de la
- * fenêtre, le Stage n'en fournissant aucune.
- */
-.modale-reactivation {
-  -fx-background-color: white;
-  -fx-padding: 18;
-}
 
 /* Récapitulatif des conséquences (quadruplet X -> Y, nombre de fichiers). */
 .recap-rattachement {

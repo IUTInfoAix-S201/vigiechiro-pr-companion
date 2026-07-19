@@ -668,12 +668,49 @@
   -fx-text-fill: -couleur-primaire-sombre;
 }
 
+/* ----- Encarts d'etat (socle, #1974) -----
+
+   Une NOTE CONTEXTUELLE : elle est adossee a ce qu'elle commente (le graphe vide, la fenetre de nuit),
+   elle decrit ce qui EST, elle ne se ferme pas. C'est la forme de l'**etat** au sens de l'ADR 0031, a
+   distinguer du `.bandeau-retour` (retour d'operation, borne, fermable) et du `.compte-rendu`
+   (extensible, dans sa propre surface).
+
+   Elle existait deja deux fois sous deux noms - `.alerte-r20` cote Diagnostic et `.avertissement` cote
+   Qualification - **rigoureusement identiques sur leurs sept proprietes**, sans que rien ne relie les
+   copies. Une troisieme, `.insp-avertissement` cote Import, dit la meme chose avec cinq valeurs
+   differentes : personne ne peut dire si l'ecart est voulu.
+
+   Forme et severite se separent (convention `.badge` / `.badge-frais` du socle) : une note d'etat en
+   information ou en erreur n'aura pas besoin d'une classe de plus. C'est la combinatoire recopiee cas
+   par cas qui a produit les doublons. */
+.encart {
+    -fx-font-size: 12px;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-padding: 8;
+}
+
+.encart-avertissement {
+    -fx-text-fill: #7e5109;
+    -fx-background-color: #fef9e7;
+    -fx-border-color: #b9770e;
+}
+
 /* ----- Formulaires modaux (socle, #1431) -----
    L application compte cinq modales de saisie (point d ecoute, site, rattachement, reconstruction,
    selection d ecoute). Ces classes etaient dupliquees a l identique dans sites.css et importation.css ;
    elles vivent desormais ici, une fois. Les feuilles de feature restent libres de les surcharger : elles
    sont chargees apres celle-ci. */
-.modale-point {
+/* Forme des modales de SAISIE, les six (point d'ecoute, site, selection d'ecoute, rattachement,
+   reconstruction, reactivation).
+
+   Elle s'appelait `.modale-point` : le nom d'UN de ses usagers pour une forme partagee par tous. Trois
+   modales creees ensuite ont donc defini la leur - meme fond, marge 18 au lieu de 20/24 - sans que rien
+   ne signale qu'elles reinventaient le socle (#1935 reparait une marge absente ; il fallait une valeur,
+   pas necessairement une autre). Le nom est desormais neutre, et il n'y a plus qu'une valeur.
+
+   La marge est asymetrique a dessein : un formulaire a besoin de plus d'air horizontal que vertical. */
+.modale-saisie {
     -fx-padding: 20 24 20 24;
     -fx-background-color: #ffffff;
 }
@@ -701,6 +738,13 @@
     -fx-text-fill: #6a737d;
 }
 
+/* Texte d'erreur simple, SANS encart : un libelle rouge adosse a son champ ou a sa section, la ou
+   `.encart` porte une note encadree et `.bandeau-retour` un retour d'operation fermable.
+
+   Cette regle etait recopiee a l'identique dans cinq feuilles de feature (#1974), qui la surchargeaient
+   donc sans rien changer. Une sixieme copie subsiste dans `importation.css` : elle a DERIVE (13px gras
+   contre 12px normal) et la retirer changerait le rendu de l'import - elle se traite avec #2004, qui
+   revoit precisement les messages de cet ecran. */
 .message-erreur {
     -fx-font-size: 12px;
     -fx-text-fill: #a93226;

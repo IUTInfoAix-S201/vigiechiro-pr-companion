@@ -26,7 +26,7 @@
       fx:id="racine"
       fx:controller="fr.univ_amu.iut.passage.view.RattachementModaleController"
       stylesheets="@../../commun/view/palette.css, @../../commun/view/design.css, @passage.css"
-      styleClass="modale-rattachement"
+      styleClass="modale-saisie"
       prefWidth="560.0"
       spacing="12.0">
 

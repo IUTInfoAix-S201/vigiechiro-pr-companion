@@ -7,21 +7,6 @@
   -fx-padding: 18;
 }
 
-.alerte-r20 {
-  -fx-font-size: 12px;
-  -fx-text-fill: #7e5109;
-  -fx-background-color: #fef9e7;
-  -fx-border-color: #b9770e;
-  -fx-border-radius: 4;
-  -fx-background-radius: 4;
-  -fx-padding: 8;
-}
-
-.message-erreur {
-  -fx-font-size: 12px;
-  -fx-text-fill: #a93226;
-}
-
 /*
  * Ligne d'état GPS du point d'écoute (#1497) : repère permanent, coloré selon l'état posé par le
  * controller (marqueur vert « disponible » / triangle ambre « non renseigné »). Rôles sémantiques
@@ -58,7 +43,7 @@
   -fx-icon-size: 13px;
 }
 
-.ecran-diagnostic .alerte-r20 .ikonli-font-icon {
+.ecran-diagnostic .encart-avertissement .ikonli-font-icon {
   -fx-icon-color: #7e5109;
   -fx-icon-size: 13px;
 }

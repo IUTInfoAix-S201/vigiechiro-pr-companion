@@ -21,7 +21,7 @@
       fx:id="racine"
       fx:controller="fr.univ_amu.iut.sites.view.ModalePointController"
       stylesheets="@../../commun/view/palette.css, @../../commun/view/design.css, @sites.css"
-      styleClass="modale-point"
+      styleClass="modale-saisie"
       prefWidth="560.0"
       spacing="10.0">
 

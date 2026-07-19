@@ -294,17 +294,6 @@
   -fx-border-color: #a93226;
 }
 
-/* ---- Messages + actions ---- */
-.avertissement {
-  -fx-font-size: 12px;
-  -fx-text-fill: #7e5109;
-  -fx-background-color: #fef9e7;
-  -fx-border-color: #b9770e;
-  -fx-border-radius: 4;
-  -fx-background-radius: 4;
-  -fx-padding: 8;
-}
-
 .apercu-r14 {
   -fx-font-size: 12px;
   -fx-text-fill: #7e5109;
@@ -313,11 +302,6 @@
   -fx-border-radius: 4;
   -fx-background-radius: 4;
   -fx-padding: 6 8 6 8;
-}
-
-.message-erreur {
-  -fx-font-size: 12px;
-  -fx-text-fill: #a93226;
 }
 
 /*

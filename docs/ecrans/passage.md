@@ -135,6 +135,21 @@ Le rapport final dit combien de séquences sont **revenues** (et **sur quelle pr
 est revenu, le passage redevient pleinement écoutable ; s'il en manque, il reste **partiellement**
 disponible, et le décompte vous le dit.
 
+Ce qui manque est **nommé**, avec la raison :
+
+```
+  • PaRecPR1997632_20260703_223507.wav : enregistrement absent du dossier (7 séquences)
+  • PaRecPR1997632_20260703_212006_001.wav : tranche non régénérée depuis son enregistrement
+```
+
+La distinction compte. **« Enregistrement absent du dossier »** veut dire que la copie que vous avez
+désignée est incomplète : cherchez le fichier ailleurs, sur une autre sauvegarde ou sur la carte
+d'origine. **« Tranche non régénérée »** veut dire que le fichier était bien là mais que
+l'application n'a pas su en reproduire cette séquence : c'est un défaut de notre côté, à signaler.
+
+La modale en détaille les premières et résume le reste, pour rester lisible. La commande
+`vigiechiro reactiver` en donne la **liste complète**, si vous avez besoin de tout voir.
+
 !!! tip "Les fichiers de votre sauvegarde ne sont jamais touchés"
     La réactivation **copie** : votre dossier source reste intact, et vos observations comme vos
     validations ne sont jamais recalculées — on rebranche des chemins, rien d'autre.

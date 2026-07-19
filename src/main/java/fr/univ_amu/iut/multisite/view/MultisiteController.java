@@ -44,6 +44,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
@@ -229,9 +230,9 @@ public class MultisiteController implements RafraichirAuRetour, ResumeStatut {
     private double derniereDivision = 0.42;
 
     /// Chevrons des poignées de repli (pointent vers le panneau qui va se replier / se rouvrir).
-    private static final String FLECHE_GAUCHE = "◀";
+    private static final String CHEVRON_GAUCHE = "fas-chevron-left";
 
-    private static final String FLECHE_DROITE = "▶";
+    private static final String CHEVRON_DROITE = "fas-chevron-right";
 
     /// Focalisation « voir sur la carte » (carré ou point) déléguée, pour garder le controller mince.
     private final FocalisationCarte focalisation = new FocalisationCarte(carte, this::degagerLaCarte);
@@ -407,22 +408,26 @@ public class MultisiteController implements RafraichirAuRetour, ResumeStatut {
         StackPane.setMargin(legende, new Insets(8));
         zoneCarte.getChildren().add(legende);
 
-        Button recadrer = new Button("⤢");
-        StyleControlesCarte.overlay(recadrer, "bouton-recadrer", "Recadrer la carte sur les éléments visibles");
+        Button recadrer = new Button();
+        StyleControlesCarte.overlay(
+                recadrer, "bouton-recadrer", "fas-expand", "Recadrer la carte sur les éléments visibles");
         recadrer.setOnAction(evenement -> carte.recadrer());
         StackPane.setAlignment(recadrer, Pos.TOP_RIGHT);
         StackPane.setMargin(recadrer, new Insets(8));
         zoneCarte.getChildren().add(recadrer);
 
-        boutonEditerPositions = new ToggleButton("✎");
+        boutonEditerPositions = new ToggleButton();
         boutonEditerPositions.setId("boutonEditerPositions");
         StyleControlesCarte.overlay(
-                boutonEditerPositions, "bouton-editer-positions", "Éditer les positions des points");
+                boutonEditerPositions, "bouton-editer-positions", "fas-pen", "Éditer les positions des points");
         boutonEditerPositions.setOnAction(evenement -> basculerEdition());
-        boutonEnregistrerPositions = new Button("💾");
+        boutonEnregistrerPositions = new Button();
         boutonEnregistrerPositions.setId("boutonEnregistrerPositions");
         StyleControlesCarte.overlay(
-                boutonEnregistrerPositions, "bouton-editer-positions", "Enregistrer les positions déplacées");
+                boutonEnregistrerPositions,
+                "bouton-editer-positions",
+                "fas-save",
+                "Enregistrer les positions déplacées");
         boutonEnregistrerPositions.setOnAction(evenement -> enregistrerPositions());
         VBox controlesEdition = new VBox(6, boutonEditerPositions, boutonEnregistrerPositions);
         controlesEdition.setPickOnBounds(false);
@@ -486,12 +491,16 @@ public class MultisiteController implements RafraichirAuRetour, ResumeStatut {
 
         StyleControlesCarte.poignee(
                 boutonReplierCarte,
-                (carteVisible ? FLECHE_GAUCHE : FLECHE_DROITE) + " Carte",
+                "Carte",
+                carteVisible ? CHEVRON_GAUCHE : CHEVRON_DROITE,
+                ContentDisplay.LEFT,
                 carteVisible ? "Masquer la carte" : "Afficher la carte",
                 tableauVisible);
         StyleControlesCarte.poignee(
                 boutonReplierTableau,
-                "Tableau " + (tableauVisible ? FLECHE_DROITE : FLECHE_GAUCHE),
+                "Tableau",
+                tableauVisible ? CHEVRON_DROITE : CHEVRON_GAUCHE,
+                ContentDisplay.RIGHT,
                 tableauVisible ? "Masquer le tableau" : "Afficher le tableau",
                 carteVisible);
     }

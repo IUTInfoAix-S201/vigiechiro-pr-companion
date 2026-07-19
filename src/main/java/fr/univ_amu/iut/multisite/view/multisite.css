@@ -35,6 +35,13 @@
   -fx-font-size: 12px;
 }
 
+/* Le chevron est une FontIcon (#1564). Sa TAILLE suit le -fx-font-size ci-dessus (mesure faite : une
+   FontIcon se dimensionne sur la police heritee). Sa COULEUR, elle, ignore -fx-text-fill : sans
+   -fx-icon-color elle serait noire la ou le texte est #34495e. */
+.bascule-legende .ikonli-font-icon {
+  -fx-icon-color: #34495e;
+}
+
 /* Contrôles superposés à la carte (#339 recadrer en haut-droite, #154 éditer/enregistrer en haut-gauche) :
    fond OPAQUE + ombre portée pour bien se détacher du fond cartographique (sinon ils s'y fondent). */
 .bouton-recadrer,
@@ -48,6 +55,12 @@
   -fx-font-size: 15px;
   -fx-padding: 2 8 2 8;
   -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 7, 0.1, 0, 2);
+}
+
+/* Meme remarque que pour .bascule-legende : la taille suit la police, la couleur non. */
+.bouton-recadrer .ikonli-font-icon,
+.bouton-editer-positions .ikonli-font-icon {
+  -fx-icon-color: #34495e;
 }
 
 .bouton-recadrer:hover,

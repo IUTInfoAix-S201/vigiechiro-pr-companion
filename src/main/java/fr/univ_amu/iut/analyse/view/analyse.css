@@ -70,3 +70,10 @@
     -fx-font-size: 13px;
     -fx-padding: 2 8 2 8;
 }
+
+/* L'icone du bouton (#1564) : sa taille suit le -fx-font-size ci-dessus, mais sa couleur ignore
+   -fx-text-fill. Meme teinte que son jumeau de la carte multi-sites, dont ce bouton reprend deja
+   l'infobulle. */
+.carte-recadrer .ikonli-font-icon {
+    -fx-icon-color: #34495e;
+}

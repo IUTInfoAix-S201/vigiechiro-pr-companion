@@ -23,6 +23,7 @@ import javafx.scene.paint.CycleMethod;
 import javafx.scene.paint.LinearGradient;
 import javafx.scene.paint.Stop;
 import javafx.scene.shape.Rectangle;
+import org.kordamp.ikonli.javafx.FontIcon;
 
 /// **Carte de répartition** de l'écran « Espèces & observations » : encapsule le composant socle
 /// [CarteSites] et ses overlays (légende de richesse, bouton « recadrer »), et tient son contenu à jour à
@@ -57,7 +58,8 @@ final class CarteRepartition {
         StackPane.setMargin(legende, new Insets(8));
         zone.getChildren().add(legende);
 
-        Button recadrer = new Button("⤢");
+        Button recadrer = new Button();
+        recadrer.setGraphic(new FontIcon("fas-expand"));
         recadrer.getStyleClass().add("carte-recadrer");
         recadrer.setAccessibleText("Recadrer la carte");
         // Infobulle visible au survol, à parité avec le même bouton en multisite (#794).

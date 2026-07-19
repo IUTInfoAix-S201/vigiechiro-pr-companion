@@ -173,6 +173,13 @@
     -fx-font-size: 0.85em;
 }
 
+/* La croix de la puce est une icône (#1933) : sa taille et sa couleur se règlent ici, pas par la
+   taille de police du bouton, qui ne l'atteint plus. */
+.puce-filtre-retirer .ikonli-font-icon {
+    -fx-icon-color: -couleur-primaire-sombre;
+    -fx-icon-size: 10px;
+}
+
 .puce-filtre-retirer:hover {
     -fx-background-color: rgba(0, 0, 0, 0.08);
 }
@@ -743,6 +750,13 @@
     -fx-cursor: hand;
 }
 
+/* Idem pour la croix du bandeau de retour : le glyphe littéral suivait `-fx-font-size`, l'icône suit
+   `-fx-icon-size`. La couleur reste celle du texte alentour, le bandeau portant déjà sa sévérité. */
+.fermer-retour .ikonli-font-icon {
+    -fx-icon-color: -couleur-texte;
+    -fx-icon-size: 12px;
+}
+
 .fermer-retour:hover {
     -fx-background-color: rgba(0, 0, 0, 0.08);
 }
@@ -816,4 +830,13 @@
     -fx-font-size: 13px;
     -fx-font-weight: bold;
     -fx-padding: 6 0 0 0;
+}
+
+/* Le ☰ des menus d'outils et d'actions (#1933) : même dimension apparente que le glyphe qu'il
+   remplace, à la couleur du texte. Posé dans le socle, les feuilles d'écran ne réglaient que la
+   taille de police - qui n'atteint plus une icône. */
+.menu-outils .ikonli-font-icon,
+.menu-actions .ikonli-font-icon {
+    -fx-icon-color: -couleur-texte;
+    -fx-icon-size: 14px;
 }

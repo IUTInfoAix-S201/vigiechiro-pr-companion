@@ -55,8 +55,11 @@
         <!-- Menu ☰ (outils) peuplé en CODE par MainController depuis les ActionMenu contribuées (#930) :
              sauvegarde/restauration, purge, préférences, réglages, connexion, plus toute entrée future
              ajoutée par une feature. Le socle n'énumère plus les items ici. -->
-        <MenuButton fx:id="menuOutils" text="☰" styleClass="menu-outils"
+        <MenuButton fx:id="menuOutils" styleClass="menu-outils"
                     accessibleText="Outils : sauvegarde, restauration, purge, connexion Vigie-Chiro">
+          <graphic>
+            <FontIcon iconLiteral="fas-bars"/>
+          </graphic>
           <tooltip>
             <Tooltip text="Outils : sauvegarde, restauration, purge, connexion Vigie-Chiro"/>
           </tooltip>

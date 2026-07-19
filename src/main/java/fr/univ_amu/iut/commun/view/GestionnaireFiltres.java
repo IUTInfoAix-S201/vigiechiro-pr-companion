@@ -19,6 +19,7 @@ import javafx.scene.control.Slider;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import org.kordamp.ikonli.javafx.FontIcon;
 
 /// Barre de filtres d'une table, patron **« à la Notion »** (#470/#471/#537), **générique** sur le type de
 /// ligne `T` : une **recherche texte permanente**, un bouton **« + Filtre »** qui liste les critères non
@@ -136,7 +137,8 @@ public final class GestionnaireFiltres<T> {
         if (editeur != null) {
             puce.getChildren().add(editeur);
         }
-        Button retirer = new Button("✕");
+        Button retirer = new Button();
+        retirer.setGraphic(new FontIcon("fas-times"));
         retirer.getStyleClass().add("puce-filtre-retirer");
         retirer.setAccessibleText("Retirer le filtre " + critere.libelle());
         retirer.setOnAction(evenement -> retirerPuce(critere, puce));

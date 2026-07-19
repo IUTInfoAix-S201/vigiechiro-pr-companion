@@ -13,6 +13,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
+import org.kordamp.ikonli.javafx.FontIcon;
 
 /// Légende de la carte multisite (#152) : explique le **code couleur des marqueurs** (statut workflow du
 /// dernier passage d'un point) et le **remplissage des carrés** (densité de passages). Construite depuis la
@@ -20,6 +21,11 @@ import javafx.scene.shape.Rectangle;
 ///
 /// Accessibilité (#163) : chaque entrée associe une couleur **et un libellé** (jamais la seule couleur).
 final class LegendeCarte {
+
+    /// Chevron de la bascule : vers le bas quand la légende est dépliée, vers la droite sinon.
+    private static final String CHEVRON_OUVERT = "fas-chevron-down";
+
+    private static final String CHEVRON_FERME = "fas-chevron-right";
 
     private LegendeCarte() {}
 
@@ -41,14 +47,14 @@ final class LegendeCarte {
             boolean ouverte = !corps.isVisible();
             corps.setVisible(ouverte);
             corps.setManaged(ouverte);
-            bascule.setText(ouverte ? "▾" : "▸");
+            bascule.setGraphic(new FontIcon(ouverte ? CHEVRON_OUVERT : CHEVRON_FERME));
             bascule.setAccessibleText(ouverte ? "Replier la légende" : "Déplier la légende");
         });
         // #337 : repliée par défaut. Étalée, la légende recouvre les carrés/points du coin où elle est
         // posée (gênant sur petit écran) ; l'utilisateur la déplie au besoin via le chevron.
         corps.setVisible(false);
         corps.setManaged(false);
-        bascule.setText("▸");
+        bascule.setGraphic(new FontIcon(CHEVRON_FERME));
         bascule.setAccessibleText("Déplier la légende");
 
         Label entete = titre("Légende");

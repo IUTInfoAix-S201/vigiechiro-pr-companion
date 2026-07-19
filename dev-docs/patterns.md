@@ -885,9 +885,12 @@ bouton à icône qui n'a pas dit son nom. Le raisonnement complet est dans
 
 **Trois pièges.**
 
-- **`-fx-font-size` n'atteint pas un `FontIcon`.** C'est `-fx-icon-size` et `-fx-icon-color`. La
-  substitution compile, les tests passent, et l'icône se retrouve à la taille par défaut sans que rien
-  ne le dise.
+- **`-fx-text-fill` ne colore pas un `FontIcon`** : c'est `-fx-icon-color`. En convertissant un
+  caractère en icône dans un contrôle déjà stylé, la **taille** est conservée (une `FontIcon` suit le
+  `-fx-font-size` hérité, au même titre que `-fx-icon-size`), mais la **couleur retombe au noir**. La
+  substitution compile, les tests passent, et l'icône est noire au milieu d'un contrôle gris ardoise.
+  Mesures et garde-fou dans
+  [ADR 0035](decisions/0035-un-pictogramme-est-une-icone-pas-un-caractere.md).
 - **Une icône se réévalue comme son libellé.** Une entrée de menu dont le texte change d'état (« Se
   connecter… » / « Vigie-Chiro : pseudo ») doit changer d'icône avec lui. `ConstructeurMenuOutils`
   réévalue les deux à chaque `setOnShowing`, en réutilisant le `FontIcon` en place.

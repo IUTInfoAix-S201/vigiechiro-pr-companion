@@ -32,7 +32,17 @@ La frontière se dit mécaniquement, par **bloc Unicode** : les flèches (U+2190
 ## Conséquences
 
 - **Un cliquet tient la règle** : `PictogrammesFxmlTest` analyse statiquement les `.fxml` et échoue sur tout pictogramme littéral. Sans lui, #1933 aurait le même avenir que #700 — la règle était déjà écrite, elle n'était pas gardée.
-- **Un `FontIcon` ne se dimensionne pas comme du texte** : `-fx-icon-size` et `-fx-icon-color`, jamais `-fx-font-size`. La substitution compile, les tests passent, et l'icône se retrouve à la taille par défaut sans que rien ne le signale.
+- **Un `FontIcon` se dimensionne comme du texte, mais ne se colore pas comme lui.** Corrigé après mesure (#1564) : cette conséquence disait d'abord que `-fx-font-size` « n'atteint pas » l'icône, ce qui est faux pour la taille et vrai pour la couleur. Relevé sur une sonde, une `FontIcon` seule dans une scène :
+
+    | Règle appliquée | Taille | Couleur |
+    |---|---|---|
+    | aucune | 13 px | noir |
+    | `-fx-font-size: 22px` | **22 px** | noir |
+    | `-fx-icon-size: 22px` | **22 px** | noir |
+    | `-fx-text-fill: rouge` | 13 px | **noir** |
+    | `-fx-icon-color: rouge` | 13 px | **rouge** |
+
+    Conséquence pratique : en convertissant un caractère en icône dans un contrôle déjà stylé, la **taille est conservée** par le `-fx-font-size` en place, mais la **couleur retombe au noir** — il faut ajouter `-fx-icon-color`. C'est le sens de lecture inverse de l'intuition (« tout le CSS d'une icône est séparé ») : **seule la couleur l'est**. `StyleControlesCarteTest` garde la règle.
 - **Une icône se réévalue comme son libellé.** Une entrée de menu dont le texte change d'état doit changer d'icône avec lui. Le socle réévaluait le libellé à chaque ouverture du menu et posait l'icône une fois pour toutes : l'asymétrie était sans conséquence tant qu'aucune icône ne bougeait, fatale à la première.
 - **Tout ne peut pas devenir une icône.** Un `promptText` est une **chaîne** : il n'accueille pas de nœud. Le `🔍` du champ de recherche ne pouvait donc pas être converti — il a été retiré, le mot « Rechercher » disant déjà la chose. Le jour où un champ de recherche doit porter une loupe, elle se pose **à côté** du champ, pas dedans.
 - Les libellés bâtis en **Java** restent hors du cliquet et hors de ce chantier : ils sont suivis par #1564.

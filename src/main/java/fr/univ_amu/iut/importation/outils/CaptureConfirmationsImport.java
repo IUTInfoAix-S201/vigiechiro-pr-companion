@@ -3,7 +3,9 @@ package fr.univ_amu.iut.importation.outils;
 import fr.univ_amu.iut.commun.outils.ApercuFx;
 import fr.univ_amu.iut.commun.view.ConfirmationNavigation;
 import fr.univ_amu.iut.importation.model.ApercuEcrasement;
+import fr.univ_amu.iut.importation.model.PassageExistant;
 import fr.univ_amu.iut.importation.view.ConfirmationsImport;
+import fr.univ_amu.iut.importation.viewmodel.AvertissementsInspection;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,9 +46,13 @@ public final class CaptureConfirmationsImport {
     /// seul (cf. [#enrouler]).
     private static final int LARGEUR_LIGNE = 70;
 
-    /// Nuit de démonstration déjà importée : le texte que l'assistant compose réellement (#147).
-    private static final String AVERTISSEMENT_DOUBLON =
-            "Cette nuit (carré 640380, point A1, passage n°2, 2026) semble déjà avoir été importée" + " le 22/06/2026.";
+    /// Nuit de démonstration déjà importée (#147) : **les passages**, et non une phrase. La question est
+    /// composée par le code de production, comme le dialogue qui la porte.
+    ///
+    /// Cette constante portait auparavant une phrase écrite à la main, que l'application ne produisait
+    /// pas. La capture était donc une fiction plausible : le dialogue était authentique, son contenu
+    /// inventé - et rien ne pouvait le signaler, puisque aucun test ne compare une capture au réel.
+    private static final List<PassageExistant> DOUBLONS = List.of(new PassageExistant(2, 2026, "640380", "A1"));
 
     /// Passage écrasé de démonstration : 342 séquences, dont 87 validations observateur (#279).
     private static final ApercuEcrasement ECRASEMENT = new ApercuEcrasement(342, 87);
@@ -79,7 +85,7 @@ public final class CaptureConfirmationsImport {
 
         // On rejoue les gestes réels ; le double intercepte, sans jamais confirmer (rien ne s'exécute).
         ConfirmateurCapturant doublon = new ConfirmateurCapturant();
-        new ConfirmationsImport(doublon).confirmerImportNuitDejaImportee(AVERTISSEMENT_DOUBLON);
+        new ConfirmationsImport(doublon).confirmerImportNuitDejaImportee(AvertissementsInspection.question(DOUBLONS));
 
         ConfirmateurCapturant ecrasement = new ConfirmateurCapturant(true);
         new ConfirmationsImport(ecrasement).confirmerEcrasement(ECRASEMENT);

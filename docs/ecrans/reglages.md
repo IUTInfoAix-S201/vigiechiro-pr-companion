@@ -1,7 +1,7 @@
 # Réglages
 
 L'écran **Réglages** regroupe les **préférences de l'application**, organisées par domaine. Il est
-accessible à tout moment depuis le menu **☰** (en haut à droite) → **⚙ Réglages…**.
+accessible à tout moment depuis le menu **☰** (en haut à droite) → **Réglages…**.
 
 ![L'écran Réglages : un onglet par domaine (Général, Import, Fonctionnalités).](../assets/captures/apercu-reglages.png)
 

@@ -67,7 +67,7 @@ de la barre du haut permet de la **protéger** :
 ## Repartir d'une base neuve
 
 Il arrive qu'on veuille **tout reprendre à zéro** : base corrompue, expérimentation qui a mal tourné,
-poste que l'on veut remettre à neuf. Le menu **« ☰ » → « ♻ Repartir d'une base neuve… »** mène cette
+poste que l'on veut remettre à neuf. Le menu **« ☰ » → « Repartir d'une base neuve… »** mène cette
 procédure de bout en bout — et surtout, **refuse de la commencer** si elle vous ferait perdre quelque
 chose sans que vous l'ayez voulu.
 
@@ -104,7 +104,7 @@ fichiers « bruts »). Ils constituent une archive de sécurité mais **ne serve
 validation (celles-ci s'appuient sur les séquences transformées) et peuvent peser **plusieurs gigaoctets
 par nuit**.
 
-Le menu **« ☰ » → « 🧹 Purger les originaux importés… »** supprime ces fichiers « bruts » **pour toutes
+Le menu **« ☰ » → « Purger les originaux importés… »** supprime ces fichiers « bruts » **pour toutes
 les nuits** afin de libérer de l'espace. L'application **annonce l'espace récupérable** et demande
 **confirmation** avant de supprimer ; les **séquences d'écoute, les validations et les dépôts sont
 conservés**. Cette suppression est **définitive**.

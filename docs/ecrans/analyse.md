@@ -46,7 +46,7 @@ détecté cette espèce ? », toutes nuits confondues.
 
 Sélectionnez une observation, puis :
 
-- **« 🎧 Écouter / valider »** ouvre l'écran de validation Tadarida du passage **droit sur cette
+- **« Écouter / valider »** ouvre l'écran de validation Tadarida du passage **droit sur cette
   détection** : la séquence est prête à être **réécoutée**, **validée** ou **corrigée**, sans avoir à la
   retrouver dans la liste. C'est l'écoute transverse : depuis n'importe quelle espèce, on saute à la bonne
   séquence. Au retour sur l'écran, l'inventaire reflète vos décisions.
@@ -69,7 +69,7 @@ Le geste ne reste jamais sans réponse.
 
 ## La carte de répartition
 
-Le bouton **« 🗺️ Carte »** bascule la zone du haut entre le **tableau** et une **carte**. Par défaut, la
+Le bouton **« Carte »** bascule la zone du haut entre le **tableau** et une **carte**. Par défaut, la
 carte est une **choroplèthe de richesse** : chaque **carré** est d'autant plus **vert** qu'il abrite
 **d'espèces distinctes** (une légende « faible → élevée » le rappelle). Le survol d'un carré affiche ses
 mini-statistiques (espèces, détections, période).
@@ -80,7 +80,7 @@ Quand une **espèce est sélectionnée** (mode *Par espèce*), la carte montre s
 **où elle est présente** gardent leur **teinte de richesse** (un vert plus ou moins soutenu selon le nombre
 d'espèces du carré), les autres sont **atténués**. On répond ainsi d'un coup d'œil à « **où est ma
 biodiversité la plus riche ?** » et « **où ai-je vu cette espèce ?** ». Le filtre **Statut** recolore la
-carte ; **« 📋 Tableau »** revient à la liste.
+carte ; **« Tableau »** revient à la liste.
 
 ## Filtrer par niveau de confiance
 
@@ -97,7 +97,7 @@ validée (résultats Tadarida), l'écran invite à le faire.
 
 Le champ **Filtrer** restreint la table à la volée (insensible à la casse et aux accents) : par **nom ou
 code d'espèce** en mode *Par espèce*, par **numéro de carré ou nom de site** en mode *Par carré*. Le
-bouton **« 📤 Exporter… »** enregistre l'inventaire **affiché** (tel que filtré) en **CSV**, prêt pour un
+bouton **« Exporter… »** enregistre l'inventaire **affiché** (tel que filtré) en **CSV**, prêt pour un
 tableur ou un partage.
 
 ## Vues sauvegardées
@@ -105,5 +105,5 @@ tableur ou un partage.
 Une combinaison de filtres utile peut être **enregistrée sous un nom** pour être rejouée d'un clic. Les
 vues enregistrées s'affichent comme des **onglets** au-dessus de l'inventaire : cliquer sur le nom d'un
 onglet **rejoue** sa combinaison de filtres. Le bouton **« + Vue »**, au bout de la barre d'onglets,
-enregistre les filtres **courants** sous un nouveau nom. Sur chaque onglet, **« ✎ »** le renomme et
-**« ✕ »** le supprime.
+enregistre les filtres **courants** sous un nouveau nom. Sur chaque onglet, le **crayon** le renomme et
+la **croix** le supprime.

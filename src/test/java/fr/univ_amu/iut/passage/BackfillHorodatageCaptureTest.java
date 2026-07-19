@@ -9,6 +9,7 @@ import fr.univ_amu.iut.commun.model.Workspace;
 import fr.univ_amu.iut.commun.model.dao.UtilisateurDao;
 import fr.univ_amu.iut.commun.persistence.MigrationSchema;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
+import fr.univ_amu.iut.commun.persistence.UniteDeTravail;
 import fr.univ_amu.iut.passage.model.BackfillHorodatageCapture;
 import fr.univ_amu.iut.passage.model.EnregistrementOriginal;
 import fr.univ_amu.iut.passage.model.Enregistreur;
@@ -78,7 +79,7 @@ class BackfillHorodatageCaptureTest {
                 .insert(new EnregistrementOriginal(null, "orig.wav", "bruts/orig.wav", 12.0, 384000, null, idSession))
                 .id();
         sequenceDao = new SequenceDao(source);
-        backfill = new BackfillHorodatageCapture(sequenceDao);
+        backfill = new BackfillHorodatageCapture(sequenceDao, new UniteDeTravail(source));
     }
 
     private long insererSansHorodatage(String nom) {

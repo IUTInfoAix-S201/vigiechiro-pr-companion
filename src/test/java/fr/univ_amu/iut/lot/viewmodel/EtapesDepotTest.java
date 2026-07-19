@@ -61,6 +61,17 @@ class EtapesDepotTest {
                 .forEach(etape -> assertThat(etape.etat()).isEqualTo(EtatEtape.FRANCHIE));
     }
 
+    @Test
+    @DisplayName("avant la préparation, l'étape ① est courante quel que soit le reste")
+    void avant_preparation_on_est_a_la_premiere_etape() {
+        // Branche jamais atteinte par les tests : PIT la signalait en NO_COVERAGE.
+        assertThat(etatDe(EtapesDepot.calculer(StatutWorkflow.TRANSFORME, false, CONNECTE), 1))
+                .isEqualTo(EtatEtape.COURANTE);
+        assertThat(etatDe(EtapesDepot.calculer(StatutWorkflow.TRANSFORME, true, CONNECTE), 1))
+                .as("des archives d'une session précédente ne font pas sauter la préparation")
+                .isEqualTo(EtatEtape.COURANTE);
+    }
+
     private static EtatEtape etatDe(java.util.List<EtapeDepot> etapes, int rang) {
         return etapes.get(rang - 1).etat();
     }

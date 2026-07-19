@@ -2,6 +2,7 @@ package fr.univ_amu.iut.lot;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import fr.univ_amu.iut.lot.model.EmpreinteLot;
 import fr.univ_amu.iut.lot.model.SourceDepot;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -63,6 +64,28 @@ class SourceDepotTest {
         Path archive = fichier(dossier, "Car-1.zip");
 
         assertThat(SourceDepot.desFichiers(List.of(archive))).isEqualTo(SourceDepot.desFichiers(List.of(archive)));
+    }
+
+    @Test
+    @DisplayName("l'empreinte d'une source de fichiers est celle de sa liste, dans l'ordre")
+    void empreinte_de_la_liste(@TempDir Path dossier) throws IOException {
+        Path a = fichier(dossier, "a.wav");
+        Path b = fichier(dossier, "b.wav");
+
+        assertThat(SourceDepot.desFichiers(List.of(a, b)).empreinte())
+                .isEqualTo(EmpreinteLot.de(List.of(a, b)))
+                .isNotEqualTo(SourceDepot.desFichiers(List.of(b, a)).empreinte());
+    }
+
+    @Test
+    @DisplayName("une source de fichiers ne libère rien : en mode WAV, ce sont les séquences de la nuit")
+    void une_source_de_fichiers_ne_libere_rien(@TempDir Path dossier) throws IOException {
+        Path sequence = fichier(dossier, "a.wav");
+        SourceDepot source = SourceDepot.desFichiers(List.of(sequence));
+
+        source.liberer("a.wav");
+
+        assertThat(sequence).as("libérer ici détruirait la nuit").exists();
     }
 
     private static Path fichier(Path dossier, String nom) throws IOException {

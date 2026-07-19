@@ -97,13 +97,47 @@ class SourceArchivesRegenerablesTest {
             Files.deleteIfExists(depot(dossier).resolve(identifiant));
         }
 
-        assertThat(source.empreinte()).isEqualTo(empreinte);
+        // `isNotBlank` n'est pas décoratif : sans lui, muter empreinte() en "" laisse les deux côtés
+        // égaux et le test passe quand même. PIT l'a signalé.
+        assertThat(source.empreinte()).isNotBlank().isEqualTo(empreinte);
     }
 
     private static List<String> entrees(Path archive) throws IOException {
         try (ZipFile zip = new ZipFile(archive.toFile())) {
             return zip.stream().map(entree -> entree.getName()).sorted().toList();
         }
+    }
+
+    @Test
+    @DisplayName("bornes exactes : la première et la DERNIÈRE archive du lot se résolvent")
+    void bornes_exactes_du_lot(@TempDir Path racine) throws IOException {
+        // La borne haute était mutable en `>=` sans échec : aucun test ne résolvait la dernière archive,
+        // seulement celle d'après. PIT l'a signalé.
+        SourceArchivesRegenerables source = source(racine, 6);
+        int derniere = source.nombreArchives();
+
+        assertThat(source.resoudre(PREFIXE + "-1.zip")).as("première").isPresent();
+        assertThat(source.resoudre(PREFIXE + "-" + derniere + ".zip"))
+                .as("dernière")
+                .isPresent();
+    }
+
+    @Test
+    @DisplayName("un identifiant hors motif, hors préfixe ou hors bornes ne se résout pas")
+    void identifiants_hors_lot_ne_se_resolvent_pas(@TempDir Path racine) throws IOException {
+        SourceArchivesRegenerables source = source(racine, 3);
+
+        assertThat(source.resoudre(PREFIXE + "-pas-un-rang.zip"))
+                .as("rang non numérique")
+                .isEmpty();
+        assertThat(source.resoudre(PREFIXE + "-1.txt")).as("mauvaise extension").isEmpty();
+        assertThat(source.resoudre("AutreLot-1.zip"))
+                .as("préfixe d'un autre lot")
+                .isEmpty();
+        assertThat(source.resoudre(PREFIXE + "-0.zip")).as("rang sous la borne").isEmpty();
+        assertThat(source.resoudre(PREFIXE + "-" + (source.nombreArchives() + 1) + ".zip"))
+                .as("rang au-delà du lot")
+                .isEmpty();
     }
 
     private static Path depot(Path dossier) throws IOException {

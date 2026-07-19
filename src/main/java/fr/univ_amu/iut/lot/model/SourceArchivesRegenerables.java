@@ -155,6 +155,10 @@ public final class SourceArchivesRegenerables implements SourceDepot {
 
     /// Rang de l'archive d'apres son nom (`<prefixe>-N.zip`), ou `-1` si le nom ne suit pas ce motif ou
     /// ne porte pas le prefixe de ce lot.
+    ///
+    /// La sentinelle vaut `-1` par convention, mais **n'importe quelle valeur sous 1 conviendrait** :
+    /// l'unique appelant la confronte a `numero < 1`. PIT signale donc `return 0` comme survivant sur les
+    /// deux sorties d'echec : ce sont des mutants **equivalents**, pas des trous de test.
     private int numeroDe(String identifiant) {
         String attendu = prefixe + "-";
         if (!identifiant.startsWith(attendu) || !identifiant.endsWith(EXTENSION)) {

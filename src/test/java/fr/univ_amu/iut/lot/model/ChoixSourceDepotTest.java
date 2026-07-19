@@ -5,11 +5,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.function.ToLongFunction;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 /// [ChoixSourceDepot] (#1996) : la bascule ZIP / WAV, et surtout **le seuil qui la décide**.
 ///
@@ -94,12 +97,69 @@ class ChoixSourceDepotTest {
     }
 
     @Test
+    @DisplayName("les valeurs persistées sont stables : des bases les portent, on ne les renomme pas")
+    void valeurs_persistees_stables() {
+        // Ce n'est pas un test de getter : `valeur()` est la clé écrite dans `app_setting`. La changer
+        // ferait silencieusement retomber tous les postes sur le défaut.
+        assertThat(ModeDepot.ARCHIVES_ZIP.valeur()).isEqualTo("zip");
+        assertThat(ModeDepot.SEQUENCES_WAV.valeur()).isEqualTo("wav");
+        assertThat(ModeDepot.ARCHIVES_ZIP.libelle()).isNotBlank().contains("ZIP");
+        assertThat(ModeDepot.SEQUENCES_WAV.libelle()).isNotBlank().contains("WAV");
+    }
+
+    @Test
     @DisplayName("un réglage absent ou corrompu retombe sur les archives ZIP, sans empêcher de déposer")
     void reglage_illisible_retombe_sur_zip() {
         assertThat(ModeDepot.parValeur(null)).isEqualTo(ModeDepot.ARCHIVES_ZIP);
         assertThat(ModeDepot.parValeur("")).isEqualTo(ModeDepot.ARCHIVES_ZIP);
         assertThat(ModeDepot.parValeur("n-importe-quoi")).isEqualTo(ModeDepot.ARCHIVES_ZIP);
         assertThat(ModeDepot.parValeur("wav")).isEqualTo(ModeDepot.SEQUENCES_WAV);
+    }
+
+    @Test
+    @DisplayName("borne exacte : un disque qui vaut tout juste le requis suffit, un octet de moins non")
+    void borne_exacte_du_seuil() {
+        // PIT mutait `requis <= disponible` en `<` sans qu'aucun test ne bronche : la borne elle-même
+        // n'était pas décrite.
+        long requis = new CompacteurDepot(PLAFOND).espaceRequisPourLaFenetre();
+
+        assertThat(choix(requis).disquePermetArchives(lot()))
+                .as("pile le compte")
+                .isTrue();
+        assertThat(choix(requis - 1).disquePermetArchives(lot()))
+                .as("un octet de moins")
+                .isFalse();
+    }
+
+    @Test
+    @DisplayName("borne exacte : un octet disponible n'est pas « illisible », zéro l'est")
+    void borne_exacte_du_disque_illisible() {
+        // `disponible <= 0` distingue « je ne sais pas lire le disque » de « il est plein ». La frontière
+        // était mutable en `< 0` sans échec.
+        assertThat(choix(0).disquePermetArchives(lot())).as("illisible").isFalse();
+        assertThat(choix(1).disquePermetArchives(lot()))
+                .as("lisible mais insuffisant : refus par le seuil, pas par l'illisibilité")
+                .isFalse();
+        assertThat(choix(Long.MAX_VALUE).disquePermetArchives(lot())).isTrue();
+    }
+
+    @Test
+    @DisplayName("#1995 : le mode ZIP praticable rend une source régénérable, pas les séquences")
+    void mode_zip_rend_une_source_regenerable(@TempDir Path racine) throws IOException {
+        Path session = racine.resolve("session-42");
+        Files.createDirectories(session);
+        Path sequence = session.resolve("a.wav");
+        Files.write(sequence, new byte[1024]);
+        ChoixSourceDepot choix = new ChoixSourceDepot(
+                new RepertoireDepot(),
+                () -> new CompacteurDepot(PLAFOND),
+                () -> ModeDepot.ARCHIVES_ZIP,
+                dossier -> Long.MAX_VALUE);
+
+        SourceDepot source = choix.pour(lot(), List.of(sequence), session);
+
+        assertThat(source).isInstanceOf(SourceArchivesRegenerables.class);
+        assertThat(source.identifiants()).allSatisfy(id -> assertThat(id).endsWith(".zip"));
     }
 
     private static ChoixSourceDepot choix(long disponible) {

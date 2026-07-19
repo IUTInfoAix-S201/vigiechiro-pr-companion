@@ -129,6 +129,9 @@ final class ChoixSourceDepot {
         }
         long disponible = espaceDisponible.applyAsLong(lot.cheminDossier());
         if (disponible <= 0) {
+            // Zero signale un disque **illisible**, pas un disque plein : on ne parie pas. PIT signale la
+            // mutation en `< 0` comme survivante, mais elle est **equivalente** - a zero disponible, le
+            // seuil qui suit refuse de toute facon, puisqu'il est toujours strictement positif.
             return false;
         }
         // La fenetre, ou le lot entier s'il est plus petit qu'elle : inutile d'exiger 1,4 Go pour une

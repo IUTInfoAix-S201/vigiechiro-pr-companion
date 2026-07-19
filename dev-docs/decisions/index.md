@@ -76,4 +76,7 @@ Les premières entrées sont **rétroactives** : elles consignent, à partir des
 | [0027](0027-une-attente-porte-toujours-un-nom.md) | Une attente porte toujours un nom, et c'est l'étape qui va attendre qui le pose | #1931, #1951, #1959 |
 | [0028](0028-un-etat-n-est-pas-un-compte-rendu.md) | Un état n'est pas un compte rendu, et ils ne partagent pas de canal | EPIC #1870 |
 | [0031](0031-un-retour-n-est-pas-un-compte-rendu.md) | Un retour d'opération n'est pas un compte rendu : le mot « compte rendu » se libère pour l'extensible | EPIC #1990 |
+| [0032](0032-le-plan-precede-l-ecriture.md) | Le plan de dépôt précède l'écriture des archives | EPIC #1991 |
+| [0033](0033-la-fenetre-borne-le-disque.md) | Une fenêtre bornée, pas un pipeline unitaire, et deux seuils disque au lieu d'un | EPIC #1991 |
+| [0034](0034-la-forme-du-depot-se-choisit.md) | La forme du dépôt se choisit, elle ne se déduit pas de la place disponible | EPIC #1991 |
 | [0035](0035-un-pictogramme-est-une-icone-pas-un-caractere.md) | Un pictogramme d'IHM est une icône ; un caractère dans une phrase reste un caractère | #1933, #700 |

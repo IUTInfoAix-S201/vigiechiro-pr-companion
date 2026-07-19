@@ -524,12 +524,15 @@ class RattachementViewModelTest {
         RattachementViewModel.Envoi issue = viewModel.pousserVersVigieChiro();
 
         assertThat(issue)
-                .as("hors connexion n'est pas un échec : les métadonnées partiront au dépôt")
-                .isInstanceOf(RattachementViewModel.Envoi.Abouti.class);
+                .as("hors connexion n'est ni un échec ni un succès : rien n'est parti, et ça se dit")
+                .isInstanceOf(RattachementViewModel.Envoi.ALire.class);
         assertThat(issue.peutFermer())
-                .as("rien ne retient l'utilisateur : il peut refermer")
-                .isTrue();
-        assertThat(issue.retour().texte()).contains("Non connecté");
+                .as("l'utilisateur croit avoir envoyé : la modale le retient le temps qu'il lise")
+                .isFalse();
+        assertThat(issue.retour().severite())
+                .as("un guidage est une INFO, pas un succès vert (ADR 0028)")
+                .isEqualTo(RetourOperation.Severite.INFO);
+        assertThat(issue.retour().texte()).contains("Non connecté").doesNotContain("✅");
     }
 
     // --- Phase 2b : tirer les métadonnées depuis la participation VigieChiro ---

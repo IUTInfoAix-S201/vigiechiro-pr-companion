@@ -163,7 +163,10 @@ public class RattachementViewModel {
             return new Envoi.SansObjet();
         }
         if (synchronisation.isEmpty()) {
-            return new Envoi.Abouti("Non connecté à Vigie-Chiro : les métadonnées partiront au dépôt.");
+            // Un `ALire`, pas un `Abouti` : rien n'a été envoyé. L'annoncer en vert (« ✅ Non connecté »)
+            // était un contresens - c'est un **guidage**, que l'ADR 0028 range en `INFO`. La modale retient
+            // donc l'utilisateur le temps qu'il le lise : il croit avoir envoyé, il faut le détromper.
+            return new Envoi.ALire("Non connecté à Vigie-Chiro : les métadonnées partiront au dépôt.");
         }
         try {
             EnvoiParticipation envoi = synchronisation.get().pousserVers(idPassage);

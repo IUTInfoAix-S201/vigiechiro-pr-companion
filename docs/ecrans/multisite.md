@@ -115,5 +115,5 @@ le site et le point dans **Mes sites**. La rattacher à un autre point produirai
 Une combinaison de filtres utile peut être **enregistrée sous un nom** pour être rejouée d'un clic.
 Les vues enregistrées s'affichent comme des **onglets** au-dessus du tableau : cliquer sur le nom d'un
 onglet **rejoue** sa combinaison de filtres. Le bouton **« + Vue »**, au bout de la barre d'onglets,
-enregistre les filtres **courants** sous un nouveau nom. Sur chaque onglet, **« ✎ »** le renomme et
-**« ✕ »** le supprime.
+enregistre les filtres **courants** sous un nouveau nom. Sur chaque onglet, le **crayon** le renomme et
+la **croix** le supprime.

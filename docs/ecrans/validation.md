@@ -57,8 +57,8 @@ La revue **au fil de l'eau** est déjà mémorisée automatiquement (vous retrou
 la réouverture). Au-delà, une combinaison de filtres utile peut être **enregistrée sous un nom** pour être
 rejouée d'un clic : les vues enregistrées s'affichent comme des **onglets** au-dessus de la barre de
 filtres. Cliquer sur le nom d'un onglet **rejoue** sa combinaison ; le bouton **« + Vue »**, au bout de la
-barre, enregistre les filtres **courants** sous un nouveau nom ; sur chaque onglet, **« ✎ »** le renomme et
-**« ✕ »** le supprime.
+barre, enregistre les filtres **courants** sous un nouveau nom ; sur chaque onglet, le **crayon** le renomme
+et la **croix** le supprime.
 
 ## Choisir et organiser les colonnes
 
@@ -303,7 +303,8 @@ rien à faire pour l'obtenir : il apparaît dès qu'un expert s'est prononcé su
 ### Lire le fil de discussion
 
 Quand le validateur vous **écrit**, un **panneau s'ouvre à droite du lecteur** : vous lisez la discussion
-**en écoutant le cri**, sans changer d'écran. La colonne « 🗣 » de la table indique le nombre de messages,
+**en écoutant le cri**, sans changer d'écran. La colonne **Discussion** (une bulle en en-tête) indique le
+nombre de messages,
 pour repérer d'un coup d'œil les détections dont il faut parler.
 
 Chaque message dit **qui** parle (« Vous », « Le validateur ») et **quand**.

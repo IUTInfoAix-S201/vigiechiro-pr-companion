@@ -70,7 +70,7 @@ en ligne. Le passage ne devient « Déposé » que lorsque **tous** les fichiers
 Le bouton de cette dernière étape **change selon votre situation**.
 
 **Vous avez téléversé depuis l'application** (une participation est rattachée à la nuit) : le bouton
-devient **« 🚀 Lancer la participation »**. Il demande à Vigie-Chiro de **traiter** les fichiers que
+devient **« Lancer la participation »**. Il demande à Vigie-Chiro de **traiter** les fichiers que
 vous venez de déposer : la plateforme décompresse les archives, puis lance l'identification Tadarida.
 
 !!! warning "Téléverser ne suffit pas : il faut lancer la participation"
@@ -79,7 +79,7 @@ vous venez de déposer : la plateforme décompresse les archives, puis lance l'i
     n'arrivera. C'est une action volontaire, et le seul moyen de déclencher le calcul depuis
     l'application (vous pouvez aussi le faire depuis la page de la participation, sur le site).
 
-**Vous avez téléversé depuis le navigateur** (repli manuel) : le bouton reste **« ✅ Marquer
+**Vous avez téléversé depuis le navigateur** (repli manuel) : le bouton reste **« Marquer
 déposé »**. Il fait passer le passage au statut « Déposé » (ce qui déverrouille la validation
 Tadarida) et trace la date du dépôt — c'est une **écriture locale**, l'application ne peut pas deviner
 seule ce que vous avez déposé à la main.
@@ -100,7 +100,7 @@ vous dit où en est le calcul :
 | **L'analyse a échoué** | Le motif est indiqué. |
 
 L'application **n'interroge pas la plateforme en permanence** : elle affiche le dernier état qu'elle
-connaît, en précisant de quand il date — y compris hors connexion. Le bouton **« 🔄 Actualiser »**
+connaît, en précisant de quand il date — y compris hors connexion. Le bouton **« Actualiser »**
 redemande l'état à Vigie-Chiro, et vous pouvez fermer l'application entre-temps : le calcul se
 poursuit sur le serveur.
 

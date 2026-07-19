@@ -1,6 +1,6 @@
 # Recherche globale
 
-La **recherche globale** est le champ **« 🔍 Rechercher »** posé en haut à droite du bandeau, présent
+La **recherche globale** est le champ **« Rechercher »** posé en haut à droite du bandeau, présent
 sur **tous les écrans**. Elle permet de **sauter directement** à un site, un point d'écoute ou un
 passage, sans repasser par l'accueil ni la navigation : on tape quelques lettres, on choisit, on y est.
 

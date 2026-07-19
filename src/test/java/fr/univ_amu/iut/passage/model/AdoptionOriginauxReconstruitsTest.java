@@ -4,24 +4,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import fr.univ_amu.iut.commun.model.HorlogeFigee;
-import fr.univ_amu.iut.commun.model.Protocole;
-import fr.univ_amu.iut.commun.model.StatutWorkflow;
-import fr.univ_amu.iut.commun.model.Utilisateur;
 import fr.univ_amu.iut.commun.model.Workspace;
-import fr.univ_amu.iut.commun.model.dao.UtilisateurDao;
 import fr.univ_amu.iut.commun.persistence.DataAccessException;
 import fr.univ_amu.iut.commun.persistence.MigrationSchema;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
 import fr.univ_amu.iut.commun.persistence.UniteDeTravail;
+import fr.univ_amu.iut.fixture.JeuDeDonneesPassage;
 import fr.univ_amu.iut.passage.model.dao.EnregistrementOriginalDao;
-import fr.univ_amu.iut.passage.model.dao.EnregistreurDao;
-import fr.univ_amu.iut.passage.model.dao.PassageDao;
 import fr.univ_amu.iut.passage.model.dao.SequenceDao;
 import fr.univ_amu.iut.passage.model.dao.SessionDao;
-import fr.univ_amu.iut.sites.model.PointDEcoute;
-import fr.univ_amu.iut.sites.model.Site;
-import fr.univ_amu.iut.sites.model.dao.PointDao;
-import fr.univ_amu.iut.sites.model.dao.SiteDao;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -45,9 +36,6 @@ import org.junit.jupiter.api.io.TempDir;
 /// nuit se retrouverait avec des enregistrements dont les séquences ne pointent nulle part.
 class AdoptionOriginauxReconstruitsTest {
 
-    private static final String ID_USER = "u-1";
-    private static final String SERIE = "1925492";
-    private static final String PLACEHOLDER = "reconstruit.wav";
     private static final int FREQUENCE_HZ = 384_000;
 
     @TempDir
@@ -58,71 +46,52 @@ class AdoptionOriginauxReconstruitsTest {
     private EnregistrementOriginalDao originalDao;
     private SequenceDao sequenceDao;
     private SessionDEnregistrement session;
+    private long idPlaceholder;
+    private Path bruts;
 
     @BeforeEach
     void preparer() {
         source = new SourceDeDonnees(new Workspace(dossier));
         new MigrationSchema(source).migrer();
-        new UtilisateurDao(source).insert(new Utilisateur(ID_USER, "Testeur"));
-        Site site = new SiteDao(source)
-                .insert(new Site(null, "640380", null, Protocole.STANDARD, null, "2026-05-01", ID_USER));
-        Long idPoint = new PointDao(source)
-                .insert(new PointDEcoute(null, "A1", null, null, null, site.id()))
-                .id();
-        new EnregistreurDao(source).insert(new Enregistreur(SERIE, null, null));
-        Long idPassage = new PassageDao(source)
-                .insert(new Passage(
-                        null,
-                        1,
-                        2026,
-                        "2026-06-20",
-                        "21:30:00",
-                        "05:15:00",
-                        null,
-                        StatutWorkflow.IMPORTE,
-                        null,
-                        null,
-                        null,
-                        null,
-                        idPoint,
-                        SERIE))
-                .id();
+        // Topologie semée par la fixture partagée (#1258) : ce test parle d'adoption, pas de plomberie.
+        // Son enregistrement original tient lieu de placeholder - c'est exactement son rôle sur une nuit
+        // reconstruite : porter les séquences en attendant les vrais.
+        JeuDeDonneesPassage jeu = JeuDeDonneesPassage.dans(source).semer();
         sessionDao = new SessionDao(source);
         originalDao = new EnregistrementOriginalDao(source);
         sequenceDao = new SequenceDao(source);
-        session = sessionDao.insert(
-                new SessionDEnregistrement(null, dossier.resolve("session") + "", null, null, idPassage));
+        session = sessionDao.trouverParPassage(jeu.idPassage()).orElseThrow();
+        idPlaceholder = jeu.idOriginal();
+        // Les bruts vivent sous le @TempDir : seul leur CHEMIN inscrit en base dérive de la session,
+        // la lecture, elle, porte sur le fichier réel que la fixture nous laisse placer où on veut.
+        bruts = dossier.resolve("bruts");
     }
 
     @Test
     @DisplayName("#1959 : une écriture qui échoue en route ne laisse aucun original à moitié adopté")
     void une_ecriture_qui_echoue_ne_laisse_rien_de_moitie_adopte() throws IOException {
-        EnregistrementOriginal placeholder = insererPlaceholder();
-        List<BrutRebranche> bruts = List.of(
-                brutAvecSaSequence("PaRec_001.wav", placeholder.id()),
-                brutAvecSaSequence("PaRec_002.wav", placeholder.id()));
+        List<BrutRebranche> rebranches =
+                List.of(brutAvecSaSequence("PaRec_001.wav"), brutAvecSaSequence("PaRec_002.wav"));
         // Échoue au SECOND rattachement : le premier original est donc déjà inséré quand la panne survient.
         AdoptionOriginauxReconstruits adoption = adoptionAvec(new SequenceDaoQuiLache(source, 2));
 
-        assertThatThrownBy(() -> adoption.adopter(session, List.of(placeholder), bruts, FREQUENCE_HZ))
+        assertThatThrownBy(() -> adoption.adopter(session, placeholders(), rebranches, FREQUENCE_HZ))
                 .as("l'échec d'écriture remonte, il n'est pas avalé")
                 .isInstanceOf(RuntimeException.class);
 
         assertThat(originalDao.findBySession(session.id()))
                 .as("tout est annulé : seul le placeholder subsiste, aucun original n'a été adopté à moitié")
-                .extracting(EnregistrementOriginal::nomFichier)
-                .containsExactly(PLACEHOLDER);
+                .extracting(EnregistrementOriginal::id)
+                .containsExactly(idPlaceholder);
     }
 
     @Test
     @DisplayName("Le chemin nominal adopte les originaux et retire le placeholder devenu orphelin")
     void le_chemin_nominal_adopte_et_nettoie() throws IOException {
-        EnregistrementOriginal placeholder = insererPlaceholder();
-        List<BrutRebranche> bruts = List.of(
-                brutAvecSaSequence("PaRec_001.wav", placeholder.id()),
-                brutAvecSaSequence("PaRec_002.wav", placeholder.id()));
+        List<BrutRebranche> rebranches =
+                List.of(brutAvecSaSequence("PaRec_001.wav"), brutAvecSaSequence("PaRec_002.wav"));
 
-        adoptionAvec(sequenceDao).adopter(session, List.of(placeholder), bruts, FREQUENCE_HZ);
+        adoptionAvec(sequenceDao).adopter(session, placeholders(), rebranches, FREQUENCE_HZ);
 
         assertThat(originalDao.findBySession(session.id()))
                 .extracting(EnregistrementOriginal::nomFichier)
@@ -141,17 +110,16 @@ class AdoptionOriginauxReconstruitsTest {
                 new HorlogeFigee(LocalDateTime.of(2026, 7, 19, 12, 0)));
     }
 
-    private EnregistrementOriginal insererPlaceholder() {
-        // Un passage reconstruit ne porte qu'un original sans fréquence ni fichier : c'est ce que l'adoption
-        // remplace.
-        return originalDao.insert(
-                new EnregistrementOriginal(null, PLACEHOLDER, PLACEHOLDER, null, null, null, session.id(), null));
+    /// Le placeholder de la nuit : l'unique original que porte un passage reconstruit, et que l'adoption
+    /// remplace par les vrais.
+    private List<EnregistrementOriginal> placeholders() {
+        return List.of(originalDao.findById(idPlaceholder).orElseThrow());
     }
 
     /// Un brut sur disque, et **sa** séquence en base, rattachée au placeholder comme après une
     /// reconstruction.
-    private BrutRebranche brutAvecSaSequence(String nomBrut, Long idPlaceholder) throws IOException {
-        Path bruts = Files.createDirectories(dossier.resolve("session").resolve("bruts"));
+    private BrutRebranche brutAvecSaSequence(String nomBrut) throws IOException {
+        Files.createDirectories(bruts);
         Path source = Files.write(bruts.resolve(nomBrut), new byte[4096]);
         SequenceDEcoute sequence = sequenceDao.insert(new SequenceDEcoute(
                 null,

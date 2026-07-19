@@ -31,7 +31,7 @@
       fx:id="racine"
       fx:controller="fr.univ_amu.iut.passage.view.ReactivationModaleController"
       stylesheets="@../../commun/view/palette.css, @../../commun/view/design.css, @passage.css"
-      styleClass="modale-reactivation"
+      styleClass="modale-saisie"
       prefWidth="600.0"
       spacing="12.0">
 

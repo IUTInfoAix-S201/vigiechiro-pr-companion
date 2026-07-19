@@ -24,7 +24,7 @@
       fx:id="racine"
       fx:controller="fr.univ_amu.iut.qualification.view.ModaleSelectionController"
       stylesheets="@../../commun/view/palette.css, @../../commun/view/design.css"
-      styleClass="modale-point"
+      styleClass="modale-saisie"
       prefWidth="480.0"
       spacing="10.0">
 

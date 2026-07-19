@@ -193,7 +193,7 @@
 }
 
 /* ----- Modale d edition de point -----
-   Les classes communes aux formulaires modaux (.modale-point, .modale-titre, .section-label,
+   Les classes communes aux formulaires modaux (.modale-saisie, .modale-titre, .section-label,
    .field-label, .field-hint, .message-erreur) vivent desormais dans commun/view/design.css (#1431) :
    cinq modales les partagent, et elles etaient dupliquees ici a l identique. */
 /* Contrôle du carré STOC (#733), modale de point : la grille officielle confirme le carré du site (vert,

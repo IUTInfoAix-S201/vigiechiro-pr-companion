@@ -229,7 +229,7 @@
                   promptText="Ex. vent fort vers 02:00, sons à vérifier ultérieurement."/>
       </VBox>
 
-      <Label fx:id="lblAvertissement" styleClass="avertissement" wrapText="true"/>
+      <Label fx:id="lblAvertissement" styleClass="encart, encart-avertissement" wrapText="true"/>
       <!-- Bandeau de retour partagé (ADR 0023) : sévérité + fermeture, là où le libellé ad hoc
            n'offrait ni l'une ni l'autre. -->
       <HBox fx:id="bandeauRetour" styleClass="bandeau-retour" alignment="CENTER_LEFT" spacing="10.0">

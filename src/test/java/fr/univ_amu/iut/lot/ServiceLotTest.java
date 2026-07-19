@@ -22,6 +22,7 @@ import fr.univ_amu.iut.lot.model.EtatLot;
 import fr.univ_amu.iut.lot.model.Lot;
 import fr.univ_amu.iut.lot.model.ModeDepot;
 import fr.univ_amu.iut.lot.model.ServiceLot;
+import fr.univ_amu.iut.lot.model.SourceDepot;
 import fr.univ_amu.iut.lot.model.TypeDepotUnite;
 import fr.univ_amu.iut.lot.model.VerificationCoherence;
 import fr.univ_amu.iut.lot.model.dao.DepotPlanDao;
@@ -157,9 +158,13 @@ class ServiceLotTest {
 
         List<Path> sequences = service.sequencesADeposer(passage.id());
 
-        assertThat(sequences)
-                .hasSize(2)
-                .allSatisfy(chemin -> assertThat(chemin.toString()).startsWith("transformes/"));
+        // Les chemins sont désormais RÉSOLUS contre la racine de session : `genererArchivesDepot`
+        // appliquait déjà cette règle, `sequencesADeposer` la rendait brute. L'écart ne se voyait pas
+        // tant qu'on ne faisait que lister ; depuis #1994 la source lit les tailles.
+        assertThat(sequences).hasSize(2).allSatisfy(chemin -> {
+            assertThat(chemin.isAbsolute()).as("résolu contre la session").isTrue();
+            assertThat(chemin.getParent().getFileName().toString()).isEqualTo("transformes");
+        });
     }
 
     @Test
@@ -318,55 +323,26 @@ class ServiceLotTest {
     }
 
     @Test
-    @DisplayName("#984 : fichiersDepotParDefaut privilégie les archives ZIP présentes (dépôt ZIP par défaut)")
-    void fichiers_depot_par_defaut_prefere_les_archives() throws IOException {
+    @DisplayName("#1994 : la source par défaut est régénérable, même sans archive sur le disque")
+    void source_par_defaut_est_regenerable() throws IOException {
+        // Remplace trois tests de `fichiersDepotParDefaut`, supprimée : elle rendait la liste des ZIP
+        // PRÉSENTS, refusait s'il n'y en avait aucun, et se repliait en WAV en silence quand le disque
+        // ne garantissait rien. Les trois comportements sont ceux que #1994 et #1997 ont bannis.
         Passage passage = creerPassage(Verdict.OK);
         creerSessionCoherente(passage.id());
-        Path depot = Files.createDirectories(
-                dossier.resolve(PREFIXE.nomDossierSession()).resolve("depot"));
-        Files.createFile(depot.resolve(PREFIXE.nomDossierSession() + "-1.zip"));
+        Path transformes = Files.createDirectories(
+                dossier.resolve(PREFIXE.nomDossierSession()).resolve("transformes"));
+        for (int i = 0; i < 2; i++) {
+            Files.write(transformes.resolve(PREFIXE.nommerSequence(NOM_ORIGINAL, i)), new byte[1024]);
+        }
+        // Séquences présentes sur le disque, AUCUNE archive générée.
 
-        List<Path> fichiers = service.fichiersDepotParDefaut(passage.id());
+        SourceDepot source = service.sourceDepotParDefaut(passage.id());
 
-        assertThat(fichiers)
-                .singleElement()
-                .satisfies(p -> assertThat(p.getFileName().toString()).endsWith(".zip"));
-    }
-
-    @Test
-    @DisplayName("#984 : sans archives mais espace disque suffisant → refus invitant à générer d'abord (étape 2)")
-    void fichiers_depot_par_defaut_sans_archives_invite_a_generer() {
-        Passage passage = creerPassage(Verdict.OK);
-        creerSessionCoherente(passage.id()); // séquences présentes (volume connu), aucune archive générée
-
-        assertThatThrownBy(() -> service.fichiersDepotParDefaut(passage.id()))
-                .isInstanceOf(RegleMetierException.class)
-                .hasMessageContaining("étape 2");
-    }
-
-    @Test
-    @DisplayName("#984 : repli WAV quand la création d'archives ne peut être garantie (volume inconnu)")
-    void fichiers_depot_par_defaut_repli_wav() {
-        Passage passage = creerPassage(Verdict.OK);
-        // Session sans volume calculé : impossible de garantir que les archives ZIP tiendraient sur le
-        // disque → repli WAV (dépose les séquences déjà présentes, aucun espace supplémentaire requis).
-        Long idSession = sessionDao
-                .insert(new SessionDEnregistrement(
-                        null, dossier.resolve(PREFIXE.nomDossierSession()).toString(), null, null, passage.id()))
-                .id();
-        Long idOriginal = originalDao
-                .insert(new EnregistrementOriginal(
-                        null, NOM_ORIGINAL, "bruts/" + NOM_ORIGINAL, 12.0, 384000, null, idSession))
-                .id();
-        String nom = PREFIXE.nommerSequence(NOM_ORIGINAL, 0);
-        sequenceDao.insert(
-                new SequenceDEcoute(null, nom, idOriginal, 0, 0.0, 5.0, "transformes/" + nom, true, idSession));
-
-        List<Path> fichiers = service.fichiersDepotParDefaut(passage.id());
-
-        assertThat(fichiers)
-                .singleElement()
-                .satisfies(p -> assertThat(p.toString()).startsWith("transformes/"));
+        assertThat(source.identifiants())
+                .as("le mode ZIP par défaut nomme ses archives sans qu'elles existent")
+                .isNotEmpty()
+                .allSatisfy(id -> assertThat(id).endsWith(".zip"));
     }
 
     @Test

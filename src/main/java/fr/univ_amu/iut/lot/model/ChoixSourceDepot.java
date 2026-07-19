@@ -100,26 +100,6 @@ final class ChoixSourceDepot {
                 compacteur.get());
     }
 
-    /// Les chemins a deposer, forme historique de [#pour] conservee pour les appelants qui raisonnent
-    /// encore en liste (verification, audit). Le mode ZIP exige ici que les archives **existent** : sans
-    /// resolution paresseuse, on ne peut pas promettre un chemin qu'il faudrait produire.
-    ///
-    /// @throws RegleMetierException si rien n'est deposable, ou si les archives restent a generer
-    List<Path> fichiers(EtatLot lot, List<Path> sequences) {
-        List<Path> archives = archivesDe(lot);
-        if (!archives.isEmpty()) {
-            return archives;
-        }
-        if (sequences.isEmpty()) {
-            throw new RegleMetierException("Aucune séquence transformée à déposer pour ce passage.");
-        }
-        if (disquePermetArchives(lot)) {
-            throw new RegleMetierException("Générez d'abord les archives de dépôt (étape 2) : le dépôt ZIP"
-                    + " est privilégié et l'espace disque le permet.");
-        }
-        return sequences; // repli WAV : l'espace disque ne permet pas de créer les archives ZIP
-    }
-
     /// `true` si le disque permet de **deposer en ZIP**, c'est-a-dire de materialiser la fenetre du
     /// pipeline (#1996). Faux si session / volume / disque inconnus (impossible de creer des archives ->
     /// repli WAV assume).

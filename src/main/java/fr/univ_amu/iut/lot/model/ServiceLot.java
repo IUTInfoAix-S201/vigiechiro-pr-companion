@@ -117,22 +117,21 @@ public class ServiceLot {
         return sessionDao
                 .trouverParPassage(idPassage)
                 .map(session -> sequenceDao.findBySession(session.id()).stream()
-                        .map(sequence -> Path.of(sequence.cheminFichier()))
+                        .map(sequence -> resoudreDansSession(session, sequence.cheminFichier()))
                         .toList())
                 .orElseGet(List::of);
     }
 
-    /// Fichiers à déposer **par défaut depuis l'IHM** (#984) : privilégie les **archives ZIP** déjà
-    /// générées (comme le dépôt web : une archive = une unité), et ne se rabat sur les **séquences WAV**
-    /// que si l'espace disque **ne permet pas** de créer les archives. Si aucune archive n'existe encore
-    /// mais que le disque le permet, **refuse** en invitant à générer d'abord (étape 2) : le dépôt ZIP
-    /// reste privilégié et la génération est une étape explicite, jamais implicite.
+    /// Le chemin d'une séquence, résolu contre la racine de sa session s'il est relatif.
     ///
-    /// @throws RegleMetierException si rien n'est déposable, ou si les archives sont absentes alors que le
-    ///     disque permettrait de les générer (invitation à lancer l'étape 2)
-    public List<Path> fichiersDepotParDefaut(Long idPassage) {
-        Objects.requireNonNull(idPassage, PARAM_ID_PASSAGE);
-        return choixSource.fichiers(consulterLot(idPassage), sequencesADeposer(idPassage));
+    /// **Même règle que [#genererArchivesDepot]**, qui la portait seule : le chemin est absolu en
+    /// production, mais des données héritées le stockent relatif. L'écart ne se voyait pas tant que
+    /// `sequencesADeposer` ne servait qu'à lister des chemins ; depuis #1994 il alimente une source qui
+    /// **lit la taille** des fichiers, donc un chemin non résolu fait échouer le dépôt là où la
+    /// génération, elle, passait.
+    private static Path resoudreDansSession(SessionDEnregistrement session, String cheminSequence) {
+        Path chemin = Path.of(cheminSequence);
+        return chemin.isAbsolute() ? chemin : Path.of(session.cheminRacine()).resolve(chemin);
     }
 
     /// Consulte l'état de dépôt d'un passage **sans le transitionner** (lecture pour l'IHM M-Lot) :
@@ -273,11 +272,8 @@ public class ServiceLot {
         }
         Path racineSession = Path.of(session.cheminRacine());
         String prefixe = racineSession.getFileName().toString(); // R22 : nom du dossier = préfixe R6
-        // Le chemin d'une séquence est absolu en production ; on tolère un chemin relatif (résolu contre
-        // la racine de session) pour rester robuste aux données héritées.
         List<Path> fichiers = sequences.stream()
-                .map(s -> Path.of(s.cheminFichier()))
-                .map(p -> p.isAbsolute() ? p : racineSession.resolve(p))
+                .map(s -> resoudreDansSession(session, s.cheminFichier()))
                 .toList();
         return compacteur
                 .get()
@@ -285,7 +281,7 @@ public class ServiceLot {
     }
 
     /// La [SourceDepot] du dépôt **par défaut** du passage (#1994), remplaçante de
-    /// [#fichiersDepotParDefaut] pour les appelants qui téléversent.
+    /// [#sourceDepotParDefaut] pour les appelants qui téléversent.
     ///
     /// Même politique qu'avant : les archives ZIP sont privilégiées, le repli WAV n'intervient que si le
     /// disque ne permet pas de les créer. Une différence, et c'est tout l'objet du lot : quand le mode

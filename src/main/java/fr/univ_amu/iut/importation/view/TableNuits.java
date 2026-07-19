@@ -1,5 +1,6 @@
 package fr.univ_amu.iut.importation.view;
 
+import fr.univ_amu.iut.commun.view.ColonneBadge;
 import fr.univ_amu.iut.importation.viewmodel.NuitVM;
 import java.util.function.Function;
 import javafx.beans.binding.Bindings;
@@ -44,7 +45,7 @@ final class TableNuits {
         table.getColumns().add(colonneInclure());
         table.getColumns().add(colonneTexte("Nuit du", 110, nuit -> nuit.date().toString()));
         table.getColumns().add(colonneTexte("Fichiers", 80, nuit -> Integer.toString(nuit.nombreFichiers())));
-        table.getColumns().add(colonneTexte("État", 190, TableNuits::libelleComplete));
+        table.getColumns().add(colonneEtat());
         table.getColumns().add(colonnePassage());
         table.getColumns().add(colonneDejaImportee());
         return table;
@@ -90,8 +91,17 @@ final class TableNuits {
         return colonne;
     }
 
-    /// Libellé d'état d'une nuit : « ✓ complète » ou « ⚠ incomplète (motif) ».
-    private static String libelleComplete(NuitVM nuit) {
-        return nuit.estComplete() ? "✓ complète" : "⚠ incomplète (" + nuit.motifIncompletude() + ")";
+    /// Colonne « État » : **pastille** de complétude, dont la couleur est dérivée de la nuit, et dont
+    /// l'infobulle porte le motif de troncature.
+    ///
+    /// La cellule écrivait auparavant sa sévérité dans son texte (« ✓ complète », « ⚠ incomplète
+    /// (motif) »), ce qui la disait deux fois dès qu'une pastille l'aurait colorée, et faisait dépendre
+    /// le marqueur des polices de la machine (#2036). Le motif quitte au passage la cellule pour
+    /// l'infobulle : il pouvait être long, et une colonne de 190 px le tronquait.
+    private static TableColumn<NuitVM, String> colonneEtat() {
+        // 190 px calibraient « ⚠ incomplète (carte SD pleine) » ; il ne reste qu'un mot.
+        TableColumn<NuitVM, String> colonne = colonneTexte("État", 130, NuitVM::badge);
+        colonne.setCellFactory(c -> ColonneBadge.cellule(NuitVM::classeBadge, NuitVM::motifIncompletude));
+        return colonne;
     }
 }

@@ -63,6 +63,16 @@ public class NuitVM {
         return nuit.complete() ? "complète" : "incomplète";
     }
 
+    /// Classe CSS de la pastille de complétude, **dérivée** de l'état (jamais stockée). Le mapping reste
+    /// côté feature : `commun` ne connaît que les énums de `commun.model`, sous peine de cycle
+    /// d'architecture (même partage que `Fraicheur.classeBadge`).
+    ///
+    /// Une nuit tronquée est un **avertissement**, pas une erreur : elle s'importe et se dépose
+    /// normalement, la troncature se constate.
+    public String classeBadge() {
+        return nuit.complete() ? "badge-succes" : "badge-avertissement";
+    }
+
     /// Motif de troncature (« carte SD pleine »…) quand la nuit est incomplète, sinon `null`.
     public String motifIncompletude() {
         return nuit.motifIncompletude();

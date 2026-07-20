@@ -44,6 +44,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.MenuButton;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 
@@ -120,6 +121,7 @@ public final class CaptureMultisite {
         rendreEcranCartePleine(injecteur, sortie.resolve("apercu-multisite-carte-pleine.png"));
         rendreModaleReconstruction(injecteur, sortie.resolve("apercu-multisite-reconstruction.png"));
         rendreImportGroupe(injecteur, sortie.resolve("apercu-multisite-reconstruction-groupe.png"));
+        rendreMenuActions(injecteur, sortie.resolve("apercu-multisite-menu-actions.png"));
     }
 
     /// Rend la **modale « Reconstruire un passage manquant »** (#1396) : les nuits déposées sur
@@ -178,6 +180,27 @@ public final class CaptureMultisite {
                         "6a53f5faae21902a597394d5", CARRE_DEMO, "C3", "2026-06-20T21:38:00+02:00", true)));
         controleur.apercuImportGroupeEnCours("Nuit 2 / 3…", 2.0 / 3.0, "Import des observations…", 0.96);
         ApercuFx.enregistrerPng(new Scene(vue), fichier);
+    }
+
+    /// Photographie le **menu ☰ ouvert** de « Carte & passages » (#2065). Il n'était ouvert par aucune
+    /// capture : ses cinq entrées - dont « Exporter… » et « Écouter la sélection filtrée », converties en
+    /// icônes par #1564 - n'apparaissaient **nulle part**, et leur rendu n'était donc vérifiable par
+    /// personne.
+    ///
+    /// La mécanique est celle d'[ApercuFx#enregistrerMenuOuvert] : le vrai menu, jamais reconstruit.
+    private static void rendreMenuActions(Injector injecteur, Path fichier) throws IOException {
+        FXMLLoader loader = new FXMLLoader(MultisiteController.class.getResource(FXML));
+        loader.setControllerFactory(injecteur::getInstance);
+        Parent vue = loader.load();
+        if (!(vue.lookup("#menuActions") instanceof MenuButton menuActions)) {
+            System.out.println("[capture-multisite-menu] menu ☰ introuvable : capture ignorée.");
+            return;
+        }
+        if (!ApercuFx.enregistrerMenuOuvert(menuActions, fichier)) {
+            System.out.println("[capture-multisite-menu] popup non rendu (headless) : " + fichier + " ignoré.");
+            return;
+        }
+        System.out.println("Apercu ecrit dans " + fichier.toAbsolutePath());
     }
 
     /// Injecteur (partiel) utilisé par cet outil de capture. Exposé pour le garde-fou de câblage

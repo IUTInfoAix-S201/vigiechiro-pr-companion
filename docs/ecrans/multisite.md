@@ -53,6 +53,12 @@ passage : le tableau se replie automatiquement pour centrer l'attention sur la c
 colonne (Année et N° de passage se trient numériquement), en plus du sélecteur d'ordres. Un
 **double-clic** sur une ligne ouvre l'écran du passage correspondant.
 
+![Le menu ☰ de « Carte & passages » : écouter le passage sélectionné (grisé tant qu'aucune ligne n'est choisie), écouter la sélection filtrée, exporter, et le réglage des colonnes.](../assets/captures/apercu-multisite-menu-actions.png)
+
+Une entrée **grisée** dit ce qui lui manque : « Écouter le passage sélectionné » n'est active qu'une
+fois une ligne choisie. Deux autres entrées n'apparaissent que dans leur contexte : **Reconstruire un
+passage manquant…** en mode connecté, et **Reculer les analyses** quand un relevé est possible.
+
 Un **clic droit** sur une ligne réunit les actions de ce passage : **ouvrir le passage**,
 **écouter le passage**, ouvrir sa page **Vigie-Chiro** (grisée si le passage n'est pas lié à la
 plateforme) et **copier** son n° de carré. Le même menu laisse **choisir et réordonner les colonnes**

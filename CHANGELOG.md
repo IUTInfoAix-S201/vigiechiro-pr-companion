@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+## [2.26.1](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v2.26.0...v2.26.1) (2026-07-20)
+
+
+### Bug Fixes
+
+* **release:** l'entrée de menu Linux porte enfin une catégorie valide ([#2183](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2183)) ([02a4012](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/02a4012a35d148702d681ad5fd3610b6eca52eec)), closes [#2111](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2111) [#2104](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2104)
+
 # [2.26.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v2.25.0...v2.26.0) (2026-07-20)
 
 

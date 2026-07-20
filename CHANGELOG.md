@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [2.24.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v2.23.0...v2.24.0) (2026-07-20)
+
+
+### Features
+
+* **parallele:** ouvrir le socle aux phases de pipeline (1/3) ([#2174](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2174)) ([4601d03](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/4601d03cd33dcef2c6e2f1baa31c320d902affeb)), closes [#2039](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2039) [#2039](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2039) [#12](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/12) [#155](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/155)
+
 # [2.23.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v2.22.0...v2.23.0) (2026-07-20)
 
 

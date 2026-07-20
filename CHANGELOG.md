@@ -2,6 +2,14 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [2.21.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v2.20.2...v2.21.0) (2026-07-20)
+
+
+### Features
+
+* **ihm:** l'application porte enfin une icône, celle de l'enregistreur passif ([#2146](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2146)) ([b7c082f](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/b7c082ff2702ab1b54aac9213451c9840c422a8e)), closes [#2104](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2104)
+* **release:** une AppImage, un fichier unique qu'on rend exécutable et qu'on lance ([#2142](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2142)) ([5183d80](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/5183d80ed39dec8d250d9fc7a362d44792d33e27)), closes [#2107](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2107) [#2104](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2104)
+
 ## [2.20.2](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v2.20.1...v2.20.2) (2026-07-20)
 
 

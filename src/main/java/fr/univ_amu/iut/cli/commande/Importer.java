@@ -9,9 +9,9 @@ import fr.univ_amu.iut.commun.model.Reglages;
 import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.importation.model.PassageExistant;
 import fr.univ_amu.iut.importation.model.RapportImport;
+import fr.univ_amu.iut.importation.model.ReglageConservationOriginaux;
 import fr.univ_amu.iut.importation.model.ResultatImport;
 import fr.univ_amu.iut.importation.model.ServiceImport;
-import fr.univ_amu.iut.importation.viewmodel.PreferenceConservation;
 import fr.univ_amu.iut.passage.model.Passage;
 import fr.univ_amu.iut.passage.model.dao.PassageDao;
 import fr.univ_amu.iut.sites.model.PointDEcoute;
@@ -168,7 +168,7 @@ public final class Importer implements Callable<Integer> {
         } else if (conserverOriginaux != null) {
             conserver = conserverOriginaux;
         } else {
-            conserver = reglages.lireBooleen(PreferenceConservation.CLE_PUBLIQUE, false);
+            conserver = reglages.lireBooleen(ReglageConservationOriginaux.CLE, ReglageConservationOriginaux.DEFAUT);
         }
         return service.importer(source, point, prefixe, p -> {}, JetonAnnulation.neutre(), conserver);
     }

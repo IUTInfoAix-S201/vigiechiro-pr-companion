@@ -61,10 +61,10 @@ class LibelleRetourTest {
     @DisplayName("Chaque sévérité a sa classe, et une seule à la fois")
     void une_classe_par_severite() {
         Map<RetourOperation, String> attendu = new LinkedHashMap<>();
-        attendu.put(RetourOperation.succes("fait"), "libelle-succes");
-        attendu.put(RetourOperation.info("à savoir"), "libelle-info");
-        attendu.put(RetourOperation.avertissement("attention"), "libelle-avertissement");
-        attendu.put(RetourOperation.erreur("raté"), "libelle-erreur");
+        attendu.put(RetourOperation.succes("fait"), "encart-succes");
+        attendu.put(RetourOperation.info("à savoir"), "encart-info");
+        attendu.put(RetourOperation.avertissement("attention"), "encart-avertissement");
+        attendu.put(RetourOperation.erreur("raté"), "encart-erreur");
 
         attendu.forEach((valeur, classe) -> {
             retour.set(valeur);
@@ -86,6 +86,6 @@ class LibelleRetourTest {
 
         // `setAll` et non `add` : sans cela le libellé porterait les deux classes, et la couleur
         // dépendrait de l'ordre de la feuille de style plutôt que de la valeur.
-        assertThat(libelle.getStyleClass()).doesNotContain("libelle-erreur");
+        assertThat(libelle.getStyleClass()).doesNotContain("encart-erreur");
     }
 }

@@ -234,6 +234,96 @@ class ExecutionParalleleTest {
                 .isEqualTo(1);
     }
 
+    @Test
+    @DisplayName("Phase de pipeline : la fraction part du décalage et n'atteint 100 % qu'au bout du pipeline")
+    void phase_de_pipeline_decale_la_fraction() {
+        // Deux originaux copiés, sur un pipeline de quatre étapes (copie puis transformation). La copie
+        // doit s'arrêter à la moitié : c'est tout l'objet de #2039. Avec la forme autonome, le deuxième
+        // élément amenait la barre à 100 % alors que la moitié du travail restait à faire.
+        List<Progression> points = new ArrayList<>();
+
+        new ExecutionParallele(1)
+                .cartographier(
+                        List.of("a", "b"),
+                        termine -> "Copie " + termine.faits() + "/" + termine.total(),
+                        new EchelleProgression(0, 4),
+                        (index, element) -> element,
+                        points::add,
+                        JetonAnnulation.neutre());
+
+        assertThat(points).extracting(Progression::fraction).containsExactly(0.25, 0.5);
+        assertThat(points).extracting(Progression::libelle).containsExactly("Copie 1/2", "Copie 2/2");
+    }
+
+    @Test
+    @DisplayName("Phase de pipeline : la seconde phase reprend au décalage laissé par la première")
+    void seconde_phase_reprend_au_decalage() {
+        List<Progression> points = new ArrayList<>();
+
+        new ExecutionParallele(1)
+                .cartographier(
+                        List.of("a", "b"),
+                        termine -> "Transformation " + termine.faits() + "/" + termine.total(),
+                        new EchelleProgression(2, 4),
+                        (index, element) -> element,
+                        points::add,
+                        JetonAnnulation.neutre());
+
+        assertThat(points)
+                .as("la barre reprend à 50 % et finit à 100 %")
+                .extracting(Progression::fraction)
+                .containsExactly(0.75, 1.0);
+    }
+
+    @Test
+    @DisplayName("Le libellé peut dépendre du RÉSULTAT, connu seulement après la tâche")
+    void libelle_derive_du_resultat() {
+        // « (déjà présent) » de PreparationOriginaux ne se sait qu'une fois la copie examinée : c'est
+        // pourquoi le socle passe le résultat au constructeur de libellé, et pas seulement l'élément.
+        List<String> libelles = new ArrayList<>();
+
+        new ExecutionParallele(1)
+                .cartographier(
+                        List.of("neuf", "deja-la"),
+                        termine -> "Copie " + termine.element() + (termine.resultat() ? " (déjà présent)" : ""),
+                        EchelleProgression.autonome(2),
+                        (index, element) -> element.startsWith("deja"),
+                        progres -> libelles.add(progres.libelle()),
+                        JetonAnnulation.neutre());
+
+        // Sans ordre imposé : le socle garantit l'ordre des RÉSULTATS, pas celui des points de
+        // progression, qui suivent l'ordre d'achèvement. Ce que ce test prouve, c'est que le libellé
+        // voit le résultat - pas qui a fini le premier.
+        assertThat(libelles).containsExactlyInAnyOrder("Copie neuf", "Copie deja-la (déjà présent)");
+    }
+
+    @Test
+    @DisplayName("La tâche reçoit l'index de son élément, dans l'ordre de la liste")
+    void la_tache_recoit_l_index() {
+        // DecoupageParallele en tire un dossier temporaire isolé par original, PreparationOriginaux un
+        // numéro de plan. Sans l'index, les deux devraient pré-zipper leur liste.
+        List<String> indexes = new ExecutionParallele(4)
+                .cartographier(
+                        List.of("a", "b", "c"),
+                        termine -> "T",
+                        EchelleProgression.autonome(3),
+                        (index, element) -> index + ":" + element,
+                        progres -> {},
+                        JetonAnnulation.neutre());
+
+        assertThat(indexes).containsExactly("0:a", "1:b", "2:c");
+    }
+
+    @Test
+    @DisplayName("Une échelle incohérente est refusée à la construction, pas silencieusement corrigée")
+    void echelle_incoherente_refusee() {
+        assertThatThrownBy(() -> new EchelleProgression(0, 0)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> new EchelleProgression(-1, 4)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> new EchelleProgression(5, 4))
+                .as("un décalage au-delà du total produirait une fraction supérieure à 1")
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
     /// Sommeil bref, **interruptible**. Rend `false` si la tâche a été interrompue : c'est ainsi que
     /// [#un_echec_laisse_les_taches_deja_lancees_s_achever] distingue une tâche menée à son terme d'une
     /// tâche abattue en vol par un `cancel(true)`.

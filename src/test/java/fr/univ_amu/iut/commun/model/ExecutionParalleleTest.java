@@ -137,6 +137,116 @@ class ExecutionParalleleTest {
                 .isZero();
     }
 
+    @Test
+    @DisplayName("L'échec d'une tâche remonte TEL QUEL, sans être enveloppé")
+    void echec_d_une_tache_remonte_tel_quel() {
+        // Contrat annoncé en tête de `ExecutionParallele` et jamais gardé jusqu'ici (#2039). Il est le
+        // pivot de la migration du découpage : c'est parce que le socle propage que `DecoupageParallele`
+        // peut convertir ses rejets DANS la tâche et laisser le reste tomber.
+        IllegalStateException panne = new IllegalStateException("disque plein");
+
+        assertThatThrownBy(() -> new ExecutionParallele(4)
+                        .cartographier(
+                                List.of(1, 2, 3, 4),
+                                "T",
+                                x -> {
+                                    if (x == 3) {
+                                        throw panne;
+                                    }
+                                    return x;
+                                },
+                                progres -> {},
+                                JetonAnnulation.neutre()))
+                .as("l'appelant doit pouvoir filtrer sur son propre type d'exception")
+                .isSameAs(panne);
+    }
+
+    @Test
+    @DisplayName("Une tâche qui échoue n'empêche pas les autres déjà lancées de s'achever")
+    void un_echec_laisse_les_taches_deja_lancees_s_achever() {
+        // La Javadoc promet que les tâches soumises s'achèvent avant que l'exception ne remonte. Sans ce
+        // test, rien n'empêcherait de « corriger » le socle en abattant tout au premier échec - ce qui
+        // laisserait des travaux à moitié écrits sur le disque.
+        //
+        // Le test doit rendre l'échec VISIBLE : une première version, dont les tâches étaient
+        // instantanées, passait même en ajoutant `cancel(true)` sur les restantes. Annulées ou non,
+        // elles avaient déjà fini. Il faut donc que les autres soient encore EN VOL quand l'échec
+        // survient - d'où l'attente croisée ci-dessous, et le sommeil qu'une interruption tronquerait.
+        AtomicInteger achevees = new AtomicInteger();
+        CountDownLatch lesTroisOntDemarre = new CountDownLatch(3);
+
+        assertThatThrownBy(() -> new ExecutionParallele(4)
+                        .cartographier(
+                                List.of(1, 2, 3, 4),
+                                "T",
+                                x -> {
+                                    if (x == 1) {
+                                        // N'échoue qu'une fois les trois autres parties : sinon l'échec
+                                        // pourrait précéder leur démarrage, et le test ne prouverait rien.
+                                        attendre(lesTroisOntDemarre);
+                                        throw new IllegalStateException("échec de la première");
+                                    }
+                                    lesTroisOntDemarre.countDown();
+                                    if (!dormirJusquAuBout()) {
+                                        return x; // interrompue : le travail n'est PAS compté comme achevé
+                                    }
+                                    achevees.incrementAndGet();
+                                    return x;
+                                },
+                                progres -> {},
+                                JetonAnnulation.neutre()))
+                .isInstanceOf(IllegalStateException.class);
+
+        assertThat(achevees.get())
+                .as("les trois autres tâches vont à leur terme : l'exécuteur est fermé avant la remontée")
+                .isEqualTo(3);
+    }
+
+    @Test
+    @DisplayName("Une annulation EN VOL arrête les tâches restantes au lieu de les laisser toutes passer")
+    void annulation_en_vol_arrete_les_restantes() {
+        // Le test existant n'annule qu'AVANT le départ. Celui-ci exerce l'annulation en cours de route.
+        //
+        // C'est la PREMIÈRE tâche à passer, quelle qu'elle soit, qui annule - et non un élément désigné
+        // d'avance. Une première version ciblait l'élément 2 en supposant que les tâches passent dans
+        // l'ordre de soumission ; elle a échoué avec 4 exécutions au lieu de 2. Le `Semaphore` n'est pas
+        // équitable et six threads virtuels se disputent le créneau : l'ordre de passage n'est pas celui
+        // de la liste, et le socle ne l'a jamais promis (seul l'ordre des RÉSULTATS est garanti).
+        JetonAnnulation jeton = new JetonAnnulation();
+        AtomicInteger executees = new AtomicInteger();
+
+        assertThatThrownBy(() -> new ExecutionParallele(1)
+                        .cartographier(
+                                List.of(1, 2, 3, 4, 5, 6),
+                                "T",
+                                x -> {
+                                    if (executees.incrementAndGet() == 1) {
+                                        jeton.annuler();
+                                    }
+                                    return x;
+                                },
+                                progres -> {},
+                                jeton))
+                .isInstanceOf(OperationAnnuleeException.class);
+
+        assertThat(executees.get())
+                .as("les cinq tâches restantes butent sur le point de contrôle et ne travaillent pas")
+                .isEqualTo(1);
+    }
+
+    /// Sommeil bref, **interruptible**. Rend `false` si la tâche a été interrompue : c'est ainsi que
+    /// [#un_echec_laisse_les_taches_deja_lancees_s_achever] distingue une tâche menée à son terme d'une
+    /// tâche abattue en vol par un `cancel(true)`.
+    private static boolean dormirJusquAuBout() {
+        try {
+            Thread.sleep(300);
+            return true;
+        } catch (InterruptedException interruption) {
+            Thread.currentThread().interrupt();
+            return false;
+        }
+    }
+
     private static boolean attendre(CountDownLatch latch) {
         try {
             return latch.await(2, TimeUnit.SECONDS);

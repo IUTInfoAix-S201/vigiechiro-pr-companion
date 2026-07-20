@@ -30,15 +30,6 @@ public final class BandeauRetour {
 
     /// Icône par sévérité, pendant de [#CLASSE] : le bandeau dit la même chose en couleur et en forme,
     /// pour qui distingue mal les couleurs comme pour qui lit vite.
-    /// L'erreur a **cédé le triangle** à l'avertissement, dont c'est le glyphe usuel, et pris le cercle
-    /// barré. Les faire cohabiter sur la même forme aurait vidé la promesse ci-dessus de son sens : deux
-    /// niveaux distincts qui se ressemblent ne se distinguent plus quand la couleur manque.
-    private static final Map<RetourOperation.Severite, String> ICONE = Map.of(
-            RetourOperation.Severite.SUCCES, "fas-check-circle",
-            RetourOperation.Severite.INFO, "fas-info-circle",
-            RetourOperation.Severite.AVERTISSEMENT, "fas-exclamation-triangle",
-            RetourOperation.Severite.ERREUR, "fas-times-circle");
-
     private BandeauRetour() {}
 
     /// Installe le bandeau : `conteneur` (couleur + visibilité), `texte` (libellé), `fermer` (la croix,
@@ -67,6 +58,6 @@ public final class BandeauRetour {
     private static void rendreSeverite(HBox conteneur, FontIcon icone, RetourOperation retour) {
         conteneur.getStyleClass().removeAll(CLASSE.values());
         conteneur.getStyleClass().add(CLASSE.get(retour.severite()));
-        icone.setIconLiteral(ICONE.get(retour.severite()));
+        icone.setIconLiteral(IconesSeverite.glyphe(retour.severite()));
     }
 }

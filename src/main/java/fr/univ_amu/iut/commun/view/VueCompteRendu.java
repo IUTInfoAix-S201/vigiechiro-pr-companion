@@ -58,8 +58,7 @@ public final class VueCompteRendu {
         ajouterSiRenseigne(racine, rendu.titre(), "compte-rendu-titre");
         ajouterSiRenseigne(racine, rendu.preambule(), "compte-rendu-preambule");
         for (Constat constat : rendu.constats()) {
-            racine.getChildren()
-                    .add(ligne(constat.fait(), "compte-rendu-fait", CLASSE_CONSTAT.get(constat.severite())));
+            racine.getChildren().add(constat(constat));
             ajouterDetails(racine, constat.details(), plafondDetails);
         }
         ajouterSiRenseigne(racine, rendu.conclusion(), "compte-rendu-conclusion");
@@ -90,6 +89,20 @@ public final class VueCompteRendu {
         if (!texte.isBlank()) {
             racine.getChildren().add(ligne(texte, classe));
         }
+    }
+
+    /// Un constat : son fait, précédé de l'**icône de sa sévérité**.
+    ///
+    /// La couleur seule ne suffisait pas. Un avertissement rendu en ambre au milieu de lignes neutres
+    /// est indiscernable d'une information pour qui distingue mal les couleurs - or c'est précisément
+    /// ce que la migration des avertissements d'import a produit : trois signaux (glyphe, encadré,
+    /// couleur) réduits à un seul. L'icône rétablit la promesse que [BandeauRetour] tient déjà, avec la
+    /// **même table** ([IconesSeverite]) pour que les deux surfaces ne puissent pas se contredire.
+    private static Label constat(Constat constat) {
+        String classe = CLASSE_CONSTAT.get(constat.severite());
+        Label label = ligne(constat.fait(), "compte-rendu-fait", classe);
+        label.setGraphic(IconesSeverite.icone(constat.severite(), "compte-rendu-icone", classe));
+        return label;
     }
 
     private static Label ligne(String texte, String... classes) {

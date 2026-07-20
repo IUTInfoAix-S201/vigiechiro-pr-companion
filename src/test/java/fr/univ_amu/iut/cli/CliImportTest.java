@@ -50,7 +50,10 @@ class CliImportTest {
                     + "22/04/26 - 16:02:21 PR1925492 Sonde température/hygrométrie présente, lecture toutes"
                     + " les 600s\n"
                     + "22/04/26 - 16:02:21 PR1925492 Paramètres : Acquisi. 20:25-07:47, Fe384kHz FL N FPH"
-                    + " 00, S. R. 16dB 1dt. GN0, Bd. Freq. 8-120kHz, Wav 2-30s SD 99%\n";
+                    + " 00, S. R. 16dB 1dt. GN0, Bd. Freq. 8-120kHz, Wav 2-30s SD 99%\n"
+                    // Un « Wakeup » sans « ALARM » est un réveil non programmé pour
+                    // AnalyseurLogPR : de quoi éprouver la restitution des anomalies.
+                    + "22/04/26 - 03:12:00 PR1925492 Wakeup\n";
 
     @TempDir
     Path racine;
@@ -237,5 +240,20 @@ class CliImportTest {
         buf.putInt(pcm.length);
         buf.put(pcm);
         Files.write(fichier, buf.array());
+    }
+
+    @Test
+    @DisplayName("#2004 : la sortie rapporte les anomalies du journal, comme l'écran depuis #2044")
+    void importer_rapporte_les_anomalies_du_journal() {
+        ByteArrayOutputStream sortie = new ByteArrayOutputStream();
+        int code = cli.executer(
+                new String[] {"importer", "--source", sd.toString(), "--point", String.valueOf(idPoint)},
+                new PrintStream(sortie, true, StandardCharsets.UTF_8),
+                new PrintStream(sortie, true, StandardCharsets.UTF_8));
+
+        assertThat(code).isEqualTo(Cli.CODE_SUCCES);
+        // Ces anomalies étaient transportées jusqu'au ViewModel et affichées NULLE PART. #2044 les a
+        // rendues visibles à l'écran ; sans cette ligne, la commande resterait la moitié muette.
+        assertThat(sortie.toString(StandardCharsets.UTF_8)).contains("Anomalie").contains("Réveil non programmé");
     }
 }

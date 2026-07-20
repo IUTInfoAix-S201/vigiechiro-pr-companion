@@ -15,20 +15,27 @@ import javafx.scene.control.Label;
 /// **section** et reste tant que la situation dure. Les confondre reviendrait à faire remonter en tête
 /// d'écran un avertissement qui ne veut rien dire loin du champ qu'il concerne.
 ///
-/// La sévérité pilote la classe CSS, comme dans le bandeau, et **le message ne porte plus de marqueur** :
+/// La forme vient de `.encart` (socle, #1974) ; seule la sévérité change de classe. Le message, lui, ne
+/// porte plus de marqueur :
 /// avant #2050 ces libellés commençaient par un « ⚠ » écrit dans la chaîne, faute d'un niveau
 /// `AVERTISSEMENT` dans le type (#2045).
 public final class LibelleRetour {
 
     /// Classe CSS par sévérité. Le fond, la bordure et la couleur du texte vivent dans `design.css`.
     private static final Map<Severite, String> CLASSE = Map.of(
-            Severite.SUCCES, "libelle-succes",
-            Severite.INFO, "libelle-info",
-            Severite.AVERTISSEMENT, "libelle-avertissement",
-            Severite.ERREUR, "libelle-erreur");
+            Severite.SUCCES, "encart-succes",
+            Severite.INFO, "encart-info",
+            Severite.AVERTISSEMENT, "encart-avertissement",
+            Severite.ERREUR, "encart-erreur");
 
-    /// Classe de base, portée en permanence : forme de l'encadré, indépendante de la sévérité.
-    public static final String CLASSE_BASE = "libelle-retour";
+    /// Classe de base, portée en permanence : la **forme** de l'encart, indépendante de la sévérité.
+    ///
+    /// C'est celle du socle (`.encart`, #1974), pas une famille propre à ce composant. La première
+    /// version en avait créé une - `.libelle-retour` + quatre sévérités - sans voir que `.encart` +
+    /// `.encart-avertissement` venait d'être posé pour exactement ce concept, et sur exactement ce
+    /// principe (« la forme et la sévérité se séparent »). C'est le défaut que #1974 corrigeait, refait
+    /// sur la PR d'après, et rattrapé à la clôture de #2004.
+    public static final String CLASSE_BASE = "encart";
 
     private LibelleRetour() {}
 
@@ -47,7 +54,14 @@ public final class LibelleRetour {
         rendreSeverite(libelle, retour.getValue());
     }
 
+    /// La sévérité, **deux fois** : la classe CSS (couleur) et le glyphe (forme).
+    ///
+    /// Les encarts déclarés en FXML - Diagnostic, Qualification - portent tous leur icône ; celui-ci
+    /// serait le seul de la famille à n'avoir que la couleur. La table est celle de [IconesSeverite],
+    /// partagée avec le bandeau et le compte rendu, pour qu'un même niveau ait partout la même forme.
     private static void rendreSeverite(Label libelle, RetourOperation retour) {
-        libelle.getStyleClass().setAll(CLASSE_BASE, CLASSE.get(retour.severite()));
+        String classe = CLASSE.get(retour.severite());
+        libelle.getStyleClass().setAll(CLASSE_BASE, classe);
+        libelle.setGraphic(IconesSeverite.icone(retour.severite()));
     }
 }

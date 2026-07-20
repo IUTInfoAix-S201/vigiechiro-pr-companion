@@ -696,6 +696,53 @@
     -fx-border-color: #b9770e;
 }
 
+/* L'icone d'un encart prend la couleur de sa severite (cloture #2004).
+
+   Les encarts declares en FXML (Diagnostic, Qualification) portent deja la leur : `diagnostic.css` avait
+   sa propre regle, locale. Ces quatre-ci la generalisent au socle, ce dont `LibelleRetour` a besoin - il
+   pose ses icones par code, sans classe propre, donc c'est le CONTENEUR qui doit les colorer.
+
+   Note pour le prochain lecteur : en ecrivant ceci j'ai d'abord cru corriger un defaut - un triangle
+   « sombre » sur un texte ambre, vu sur une capture agrandie. La mesure du pixel disait #7e5109, soit
+   exactement la couleur attendue. Agrandir suffit a juger une FORME absente ou deformee ; pour une
+   COULEUR, il faut mesurer. */
+.encart-avertissement .ikonli-font-icon {
+    -fx-icon-color: #7e5109;
+}
+
+.encart-succes .ikonli-font-icon {
+    -fx-icon-color: #14532d;
+}
+
+.encart-info .ikonli-font-icon {
+    -fx-icon-color: #0c4a6e;
+}
+
+.encart-erreur .ikonli-font-icon {
+    -fx-icon-color: #a4413a;
+}
+
+/* Les trois autres severites, ajoutees par #2004 : `LibelleRetour` rend un `RetourOperation` dans un
+   encart, et un retour peut etre un succes, une information ou une erreur autant qu'un avertissement.
+   La famille etait incomplete parce que ses deux premiers usagers n'avaient besoin que de l'ambre. */
+.encart-succes {
+    -fx-text-fill: #14532d;
+    -fx-background-color: #d4edda;
+    -fx-border-color: #28a745;
+}
+
+.encart-info {
+    -fx-text-fill: #0c4a6e;
+    -fx-background-color: #d1ecf1;
+    -fx-border-color: #17a2b8;
+}
+
+.encart-erreur {
+    -fx-text-fill: #a4413a;
+    -fx-background-color: #fdecea;
+    -fx-border-color: #e74c3c;
+}
+
 /* ----- Formulaires modaux (socle, #1431) -----
    L application compte cinq modales de saisie (point d ecoute, site, rattachement, reconstruction,
    selection d ecoute). Ces classes etaient dupliquees a l identique dans sites.css et importation.css ;
@@ -830,39 +877,6 @@
     -fx-icon-color: #842029;
 }
 
-/* ----- Libelle de retour inline (#2050) : jumeau du bandeau, pose a cote de ce qu'il commente ----- */
-/* La forme est commune ; seule la couleur dit la severite, comme dans le bandeau. */
-.libelle-retour {
-    -fx-font-size: 13px;
-    -fx-border-radius: 4;
-    -fx-background-radius: 4;
-    -fx-padding: 6 10 6 10;
-}
-
-.libelle-succes {
-    -fx-text-fill: #14532d;
-    -fx-background-color: #d4edda;
-    -fx-border-color: #28a745;
-}
-
-.libelle-info {
-    -fx-text-fill: #0c4a6e;
-    -fx-background-color: #d1ecf1;
-    -fx-border-color: #17a2b8;
-}
-
-.libelle-avertissement {
-    -fx-text-fill: #8a6d3b;
-    -fx-background-color: #fcf3e3;
-    -fx-border-color: #e8a838;
-}
-
-.libelle-erreur {
-    -fx-text-fill: #a4413a;
-    -fx-background-color: #fdecea;
-    -fx-border-color: #e74c3c;
-}
-
 /* Croix de fermeture : bouton plat qui herite de la couleur de severite, plus marque au survol. */
 .fermer-retour {
     -fx-background-color: transparent;
@@ -917,6 +931,12 @@
     -fx-padding: 0 0 4 0;
 }
 
+/* L'icone de severite d'un constat (#2004) : sa COULEUR vient de la classe de severite portee en
+   commun avec le texte, donc les deux ne peuvent pas diverger. Seule la taille se regle ici. */
+.compte-rendu-icone {
+    -fx-icon-size: 13px;
+}
+
 .compte-rendu-fait {
     -fx-font-size: 13px;
 }
@@ -925,18 +945,22 @@
    fois, et autant de pastilles colorees le rendraient illisible. Le bandeau, lui, n'en porte qu'une. */
 .compte-rendu-succes {
     -fx-text-fill: -couleur-succes;
+    -fx-icon-color: -couleur-succes;
 }
 
 .compte-rendu-info {
     -fx-text-fill: -couleur-texte;
+    -fx-icon-color: -couleur-texte;
 }
 
 .compte-rendu-avertissement {
     -fx-text-fill: -couleur-avertissement;
+    -fx-icon-color: -couleur-avertissement;
 }
 
 .compte-rendu-erreur {
     -fx-text-fill: -couleur-danger;
+    -fx-icon-color: -couleur-danger;
 }
 
 /* Le retrait vit ici, pas dans le texte : la continuation d'une ligne longue s'aligne donc sous le

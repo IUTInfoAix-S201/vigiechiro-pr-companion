@@ -9,6 +9,7 @@ import fr.univ_amu.iut.commun.view.EmplacementNavigation;
 import fr.univ_amu.iut.commun.view.EmplacementPassage;
 import fr.univ_amu.iut.commun.view.ExecuteurTache;
 import fr.univ_amu.iut.commun.view.GestionnaireColonnes;
+import fr.univ_amu.iut.commun.view.IconesSeverite;
 import fr.univ_amu.iut.commun.view.IndicateurBlocage;
 import fr.univ_amu.iut.commun.view.Lieu;
 import fr.univ_amu.iut.commun.view.MenuCopier;
@@ -20,6 +21,7 @@ import fr.univ_amu.iut.commun.view.ResumeStatut;
 import fr.univ_amu.iut.commun.view.Stepper;
 import fr.univ_amu.iut.commun.viewmodel.ContextePassage;
 import fr.univ_amu.iut.commun.viewmodel.NavigationViewModel;
+import fr.univ_amu.iut.commun.viewmodel.RetourOperation.Severite;
 import fr.univ_amu.iut.commun.viewmodel.ZonesStatut;
 import fr.univ_amu.iut.lot.model.ArchiveDepot;
 import fr.univ_amu.iut.lot.model.ArchivePlanifiee;
@@ -494,18 +496,14 @@ public class LotController implements EmplacementNavigation, ResumeStatut {
     private void majChecklist() {
         checklist.getChildren().clear();
         for (ControleCoherence controle : viewModel.controles()) {
-            String icone =
-                    switch (controle.statut()) {
-                        case OK -> "✓";
-                        case ECHEC -> "✗";
-                        case AVERTISSEMENT -> "⚠";
-                    };
             // Satisfait : le libellé court suffit ; en échec/avertissement : le détail est déjà parlant
             // (et nomme le contrôle), on l'affiche tel quel pour ne pas répéter le libellé.
-            String texte = controle.statut() == StatutControle.OK
-                    ? icone + " " + controle.libelle()
-                    : icone + " " + controle.detail();
+            String texte = controle.statut() == StatutControle.OK ? controle.libelle() : controle.detail();
             Label ligne = new Label(texte);
+            // La sévérité était dite DEUX fois : par la classe CSS `controle-*`, et par un glyphe
+            // recopié dans un switch. Le glyphe devient une icône (#2099, ADR 0035) et vient de la
+            // table partagée, donc un même statut a la même forme ici et dans le bandeau.
+            ligne.setGraphic(IconesSeverite.icone(severite(controle.statut()), "controle-icone"));
             ligne.setWrapText(true);
             ligne.getStyleClass()
                     .addAll(
@@ -513,6 +511,16 @@ public class LotController implements EmplacementNavigation, ResumeStatut {
                             "controle-" + controle.statut().name().toLowerCase(Locale.ROOT));
             checklist.getChildren().add(ligne);
         }
+    }
+
+    /// La sévérité d'un contrôle de cohérence. Les deux échelles disent la même chose : un contrôle
+    /// satisfait est un succès, un contrôle en échec une erreur.
+    private static Severite severite(StatutControle statut) {
+        return switch (statut) {
+            case OK -> Severite.SUCCES;
+            case ECHEC -> Severite.ERREUR;
+            case AVERTISSEMENT -> Severite.AVERTISSEMENT;
+        };
     }
 
     /// Ouvre l'écran sur le passage `passage`. Appelée par [NavigationLot] après le chargement FXML ;

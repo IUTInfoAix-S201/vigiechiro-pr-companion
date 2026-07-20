@@ -292,26 +292,28 @@ public class ImportationController implements GardeQuitter, AuDepartEcran, Resum
 
         // 2. Inspection : section visible une fois le dossier inspecté.
         lierVisibiliteGeree(sectionInspection, inspection.inspecteProperty());
-        labelJournal
-                .textProperty()
-                .bind(Bindings.createStringBinding(
+        // Présence dite par l'icône et la couleur, plus par un glyphe dans le texte (#2099, ADR 0035).
+        DetailInspection.lier(
+                labelJournal,
+                inspection.aUnJournalProperty(),
+                Bindings.createStringBinding(
                         () -> inspection.aUnJournalProperty().get()
-                                ? "✓ Journal du capteur : "
+                                ? "Journal du capteur : "
                                         + inspection.resumeJournalProperty().get()
-                                : "⚠ Aucun journal LogPR — import en mode dégradé (enregistreur déduit des"
+                                : "Aucun journal LogPR — import en mode dégradé (enregistreur déduit des"
                                         + " fichiers, paramètres limités)",
                         inspection.aUnJournalProperty(),
                         inspection.resumeJournalProperty()));
-        labelReleve
-                .textProperty()
-                .bind(Bindings.createStringBinding(
+        DetailInspection.lier(
+                labelReleve,
+                inspection.aUnReleveClimatiqueProperty(),
+                Bindings.createStringBinding(
                         () -> inspection.aUnReleveClimatiqueProperty().get()
-                                ? "✓ Relevé climatique détecté"
-                                : "⚠ Relevé climatique absent",
+                                ? "Relevé climatique détecté"
+                                : "Relevé climatique absent",
                         inspection.aUnReleveClimatiqueProperty()));
-        labelOriginaux
-                .textProperty()
-                .bind(inspection.nombreOriginauxProperty().asString("✓ %d enregistrement(s) WAV détecté(s)"));
+        DetailInspection.lierPresent(
+                labelOriginaux, inspection.nombreOriginauxProperty().asString("%d enregistrement(s) WAV détecté(s)"));
         labelNommage
                 .textProperty()
                 .bind(Bindings.createStringBinding(

@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+## [2.20.1](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v2.20.0...v2.20.1) (2026-07-20)
+
+
+### Bug Fixes
+
+* **a11y:** le gris du texte discret franchit le seuil AA, de cinq points ([#2139](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2139)) ([3c67bf2](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/3c67bf2b6cbca4424b59dc67ce40ddaf16448e79)), closes [#2085](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2085)
+
 # [2.20.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v2.19.0...v2.20.0) (2026-07-20)
 
 

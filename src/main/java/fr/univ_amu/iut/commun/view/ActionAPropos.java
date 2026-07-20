@@ -45,8 +45,10 @@ public final class ActionAPropos implements ActionMenu {
     private final NotificateurModifiable notificateur =
             new NotificateurModifiable(new NotificationDialogue(() -> proprietaire));
 
+    /// Public pour que l'outil de capture construise l'action et rende le **vrai** message
+    /// ([#resume()]) plutôt qu'une copie.
     @Inject
-    ActionAPropos(VersionApplication version, Workspace workspace) {
+    public ActionAPropos(VersionApplication version, Workspace workspace) {
         this.version = Objects.requireNonNull(version, "version");
         this.workspace = Objects.requireNonNull(workspace, "workspace");
     }
@@ -79,10 +81,15 @@ public final class ActionAPropos implements ActionMenu {
         return "fas-info-circle";
     }
 
-    @Override
-    public void executer(Window proprietaire) {
-        this.proprietaire = proprietaire;
-        notificateur.notifier(NiveauNotification.INFORMATION, "VigieChiro - compagnon PR", """
+    /// En-tête du dialogue, exposé avec [#resume()] pour que l'aperçu montre le **vrai** dialogue.
+    public static final String ENTETE = "VigieChiro - compagnon PR";
+
+    /// Le texte présenté à l'utilisateur.
+    ///
+    /// Public pour que l'outil de capture rende le message **réel** au lieu d'en recopier un
+    /// « à l'identique » qui finirait par diverger (ADR 0025, et l'incident #1468).
+    public String resume() {
+        return """
                 Version : %s
 
                 Compagnon du protocole Vigie-Chiro : préparation et dépôt des nuits
@@ -96,7 +103,7 @@ public final class ActionAPropos implements ActionMenu {
                 Système : %s (%s)
                 Dossier de travail : %s
 
-                Les quatre dernières lignes sont utiles pour signaler une anomalie.""".formatted(
+                La version, le système et le dossier de travail sont utiles pour signaler une anomalie.""".formatted(
                         version.libelle(),
                         EDITEUR,
                         LICENCE,
@@ -104,6 +111,12 @@ public final class ActionAPropos implements ActionMenu {
                         System.getProperty("java.version"),
                         System.getProperty("os.name"),
                         System.getProperty("os.arch"),
-                        workspace.racine()));
+                        workspace.racine());
+    }
+
+    @Override
+    public void executer(Window proprietaire) {
+        this.proprietaire = proprietaire;
+        notificateur.notifier(NiveauNotification.INFORMATION, ENTETE, resume());
     }
 }

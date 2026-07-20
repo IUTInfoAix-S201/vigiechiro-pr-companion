@@ -83,6 +83,14 @@ class ActionAProposTest {
                 .contains("Sébastien Nedjar")
                 .contains("GNU General Public License v3.0")
                 .contains("github.com/IUTInfoAix-S201/vigiechiro-pr-companion");
+
+        // Le message DÉSIGNE ce qu'on ira chercher : il nommait « les quatre dernières lignes »
+        // alors qu'il y en a trois, la version étant en tête. Une capture l'a montré, aucun test
+        // ne pouvait le voir - d'où cette vérification sur ce que le texte nomme, pas sur sa forme.
+        assertThat(espion.messages.getLast())
+                .as("le message ne doit pas compter des lignes, il doit les nommer")
+                .doesNotContain("dernières lignes")
+                .contains("La version, le système et le dossier de travail");
     }
 
     @Test

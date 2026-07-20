@@ -1,5 +1,8 @@
 package fr.univ_amu.iut.commun.outils;
 
+import fr.univ_amu.iut.commun.model.VersionApplication;
+import fr.univ_amu.iut.commun.model.Workspace;
+import fr.univ_amu.iut.commun.view.ActionAPropos;
 import fr.univ_amu.iut.commun.view.ConfirmationNavigation;
 import fr.univ_amu.iut.commun.view.GardeQuitter;
 import java.nio.file.Path;
@@ -9,6 +12,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 
 /// Outil de capture/mesure, utilisable tel quel.
 ///
@@ -53,6 +57,7 @@ public final class CaptureDialogues {
     private static void capturer() {
         Path sortie = Path.of(System.getProperty("capture.outDir", ".github/assets"));
         enregistrer(messageGardeSaisie(), sortie.resolve("apercu-navigation-garde-saisie.png"));
+        enregistrerAPropos(sortie.resolve("apercu-a-propos.png"));
     }
 
     /// Rend le dialogue **de production** ([ConfirmationNavigation#dialogue]) portant le message réel.
@@ -63,6 +68,26 @@ public final class CaptureDialogues {
         // Le dialogue est celui de la PRODUCTION ([ConfirmationNavigation#dialogue]) : même type, mêmes
         // boutons, même titre. Seul le message est enroulé (cf. [#enrouler]).
         Alert alerte = new ConfirmationNavigation().dialogue(ApercuFx.enrouler(message));
+        alerte.getDialogPane().setPrefWidth(540);
+        ApercuFx.enregistrerDialogPane(alerte.getDialogPane(), styles(), fichier);
+        System.out.println("Apercu ecrit dans " + fichier.toAbsolutePath());
+    }
+
+    /// Dialogue **« À propos »** (#2144), avec le message que l'action produit réellement.
+    ///
+    /// Le texte n'est pas recopié : on **exécute** [ActionAPropos] avec un notificateur qui le capte.
+    /// Ce fichier porte déjà la trace d'un message recopié « à l'identique » qui avait fini par
+    /// diverger (#1468) - une capture qui recompose son sujet ment tôt ou tard (ADR 0025).
+    ///
+    /// Le dossier de travail est figé : sans cela l'aperçu porterait le chemin de la machine qui l'a
+    /// rendu, et changerait à chaque régénération.
+    private static void enregistrerAPropos(Path fichier) {
+        String resume = new ActionAPropos(
+                        new VersionApplication(),
+                        new Workspace(Path.of("/home/naturaliste/Documents/VigieChiro-Companion")))
+                .resume();
+        Alert alerte = new Alert(Alert.AlertType.INFORMATION, ApercuFx.enrouler(resume), ButtonType.OK);
+        alerte.setHeaderText(ActionAPropos.ENTETE);
         alerte.getDialogPane().setPrefWidth(540);
         ApercuFx.enregistrerDialogPane(alerte.getDialogPane(), styles(), fichier);
         System.out.println("Apercu ecrit dans " + fichier.toAbsolutePath());

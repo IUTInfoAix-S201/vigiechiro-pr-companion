@@ -123,8 +123,19 @@ gh pr create --fill
 Un **chantier** est une évolution d'ampleur **EPIC**, répartie sur **plusieurs PR** (le §4 décrit
 _une_ PR ; ici on décrit l'ensemble). Il **s'ouvre** par une analyse et **se clôt** par 10 passes.
 
-**À l'ouverture** : cartographier l'existant (réutiliser les patterns en place plutôt que réinventer),
-rédiger un plan, découper en **issues reliées à un EPIC**.
+**À l'ouverture**, dans cet ordre : **trier et regrouper les issues existantes** (balayage **par
+concept** et non par mot-clé, recherche des EPIC vivants et des issues « différées de #N », décision des
+rattachements, recadrage des titres et des corps déplacés) ; puis cartographier l'existant (réutiliser
+les patterns en place plutôt que réinventer) ; puis rédiger un plan ; puis découper en **issues reliées
+à un EPIC**.
+
+Le triage vient **en premier** parce qu'une issue est rattachée au chantier qui a remarqué son
+**symptôme**, pas à celui qui traite sa **cause** : deux issues sur le même sujet, écrites depuis deux
+angles, ne se ressemblent pas, et le recoupement se découvre alors au **conflit de fusion**.
+
+**Au commencement de chaque issue**, avant la première ligne de code : dire **ce qu'il y a à faire**,
+**pourquoi maintenant**, et **dans quelle continuité** ça s'inscrit. Le troisième est celui qu'on saute,
+et le seul qui ne se retrouve pas après coup.
 
 **À la clôture** (dans l'ordre) :
 
@@ -167,6 +178,10 @@ rédiger un plan, découper en **issues reliées à un EPIC**.
    relecture **juste après** elle.
 9. **Nouveaux chantiers** identifiés + **issues** créées.
 10. **Bilan** : ce qui a été livré, dette restante, décisions (qui **renvoient aux ADR** de la passe 3).
+    **Et il se montre** : la passe 10 produit un **artefact visuel avant / après**, une ligne par
+    conséquence visible, soumis **avant** de clore l'EPIC. Un chantier d'IHM se juge sur ce qu'il change
+    à l'écran, et un bilan écrit demande qu'on le croie là où une capture le montre. Ce qui n'a **pas**
+    été corrigé y figure aussi : une troncature montrée et assumée vaut mieux qu'une omission.
 
 **Les suites se closent aussi.** Les issues créées en passe 9, une fois livrées, forment un **nouveau
 delta** : il se clôt par les **mêmes 10 passes**, appliquées à lui seul. Et un bilan est une

@@ -21,6 +21,8 @@ Le principe : un chantier ne se termine pas au dernier `feat:` mergé. Une fois 
 
 Avant d'écrire du code :
 
+0. **Trier et regrouper les issues existantes** — **avant** la cartographie et le plan. Voir
+   ci-dessous : c'est l'étape qui décide de quoi le chantier est fait.
 1. **Cartographier l'existant.** Repérer les **patterns déjà en place** qui répondent (au moins en
    partie) au besoin, pour les **réutiliser** plutôt que réinventer. La plupart des extensions du
    socle se calquent sur un pattern existant (`Multibinder<ActiviteAccueil>`, contrats `Ouvrir*`,
@@ -29,6 +31,54 @@ Avant d'écrire du code :
    règles ArchUnit de [Tests et qualité](tests-et-qualite.md)), risques, ordre des paliers.
 3. **Découper en issues** reliées à un **EPIC** (une issue « parapluie » avec la task-list des
    sous-issues). Chaque sous-issue porte son palier et ses dépendances.
+
+### Étape 0 : le triage, avant tout le reste
+
+**Rien ne garantit qu'une issue soit rattachée au bon chantier.** Elles naissent une par une, souvent
+en passe 9 d'une clôture, avec le vocabulaire du chantier qui les a trouvées plutôt que celui du
+problème qu'elles décrivent. Deux issues sur le même sujet, écrites depuis deux angles, ne se
+ressemblent pas — et le recoupement ne se découvre qu'au **conflit de fusion**, quand deux chantiers
+ont déjà construit deux chemins.
+
+Avant de cartographier quoi que ce soit, donc :
+
+1. **Balayer les issues ouvertes**, pas seulement celles qu'on croit concernées. Le tri se fait par
+   **concept**, pas par mot-clé : « la sévérité s'écrit dans le texte » et « des avertissements vivent
+   hors du système de restitution » sont le même sujet sous deux noms.
+2. **Chercher les EPIC vivants** qui pourraient déjà couvrir le besoin, et **les issues fermées**
+   qui l'ont différé : une issue qui dit « différé de #N » signale un parent, éventuellement clos, dont
+   la moitié restante n'a plus de toit.
+3. **Décider des rattachements** : une issue appartient au chantier qui traite sa **cause**, pas celui
+   qui a remarqué son symptôme. Quand deux chantiers se recoupent, **découper le périmètre
+   explicitement** et l'écrire dans les deux, plutôt que de laisser la fusion arbitrer.
+4. **Recadrer titre et corps** des issues déplacées. Un recadrage laissé en commentaire sous un corps
+   périmé ne recadre rien : qui lit en diagonale retient la première version.
+
+!!! warning "Pourquoi cette étape existe"
+    Elle a été ajoutée après un cas réel. La passe 7 d'un chantier a compté 28 endroits écrivant leur
+    sévérité dans du texte, et en a fait une issue. Une autre issue couvrait déjà **six des huit cas les
+    plus profonds**, avec un remède plus juste — et son prérequis a fusionné pendant que le doublon
+    s'écrivait. Le recoupement n'a été vu qu'en lisant un commit apparu sur `main`.
+
+    **Un audit de clôture produit un comptage, pas une lecture.** Le comptage était exact ; il mélangeait
+    deux problèmes de profondeur différente, et l'un des deux avait déjà une analyse ailleurs.
+
+### Au commencement de chaque issue : rappeler ce qu'on fait et pourquoi maintenant
+
+Un chantier s'enchaîne vite : issue, PR, CI, fusion, issue suivante. À ce rythme, le **pourquoi** se
+perd — celui qui suit le fil (ou le relit trois semaines plus tard) voit une succession de correctifs
+sans savoir ce qu'ils construisent.
+
+**Avant d'ouvrir la première ligne de code d'une issue**, énoncer trois choses :
+
+- **ce qu'il y a à faire**, en une phrase, dans les termes du problème et non de la solution ;
+- **pourquoi maintenant** : ce qui la rend traitable (un prérequis fusionné, une mesure qui vient de
+  tomber) ou urgente (elle bloque autre chose) ;
+- **dans quelle continuité** elle s'inscrit : de quel chantier elle vient, quelle issue elle suit, ce
+  qu'elle rend possible ensuite.
+
+Le troisième point est celui qu'on saute, et c'est le seul qui ne se retrouve pas après coup. Une issue
+sans continuité écrite devient un correctif isolé dont personne ne sait s'il a été fini.
 
 ## À la clôture : les 10 passes
 
@@ -278,6 +328,29 @@ pourquoi. Elle se dépose dans le corps de l'EPIC (au moment de le clore) et, si
 règle du dépôt, se répercute dans `CLAUDE.md` / `CONTRIBUTING.md`. Le bilan **renvoie** aux
 [ADR](decisions/index.md) écrites en passe 3 plutôt que de redérouler le raisonnement des décisions.
 
+**Et il se montre.** Un chantier d'IHM se juge sur ce qu'il change à l'écran, or le bilan est un texte :
+il décrit des captures que son lecteur n'a pas sous les yeux. La passe 8 les a pourtant toutes ouvertes,
+recadrées et regardées — ce travail reste dans la tête de qui l'a fait.
+
+La passe 10 produit donc un **artefact visuel** : une page qui met les états **avant / après** côte à
+côte, une ligne par conséquence visible du chantier, avec la phrase qui dit ce qu'on doit y voir. Elle
+sert deux fois :
+
+- **pour valider** — c'est le seul support sur lequel un relecteur peut dire « non, ça ne va pas » sans
+  relire le code. Un bilan qui affirme « les huit boutons s'affichent en entier » demande qu'on le
+  croie ; une capture le montre ;
+- **pour dater** — elle fige à quoi ressemblait l'écran à la clôture, ce que le prochain chantier pourra
+  comparer.
+
+Elle est **soumise avant de clore l'EPIC**, pas après : son objet est d'obtenir un assentiment, pas de
+documenter une décision déjà prise.
+
+!!! tip "Ce qu'elle contient, au minimum"
+    Une entrée par écran touché : la capture **avant**, la capture **après**, et une phrase qui nomme ce
+    qui a changé. Les défauts trouvés en chemin y figurent aussi, **recadrés et agrandis** — un glyphe de
+    douze pixels ne se juge pas à l'échelle 1 (cf. passe 8). Ce qui n'a **pas** été corrigé y a sa place :
+    une troncature laissée en l'état, montrée et assumée, vaut mieux qu'une omission.
+
 ## Les suites d'une clôture se closent aussi
 
 La passe 9 crée des issues ; la passe 10 les nomme « dette restante » et clôt l'EPIC. Ces issues, une
@@ -305,6 +378,12 @@ trompé : une analyse fausse laissée en place oriente le chantier suivant.
 ## Modèle de clôture (à coller dans l'EPIC)
 
 ```markdown
+## Ouverture de chantier
+- [ ] 0. Triage : issues ouvertes balayées **par concept**, EPIC vivants et issues « différées de #N » cherchés, rattachements décidés, titres/corps recadrés
+- [ ] 1. Cartographie de l'existant (patterns réutilisables)
+- [ ] 2. Plan (découpage, contraintes, risques, ordre des paliers)
+- [ ] 3. Issues créées et reliées à l'EPIC
+
 ## Clôture de chantier
 - [ ] 1. Audit d'intégration (rebase sur `main`, points d'accroche, régressions)
 - [ ] 2. Cohérence CLI ↔ UI (capacités métier exposées des deux côtés, ou « sans objet »)
@@ -315,5 +394,13 @@ trompé : une analyse fausse laissée en place oriente le chantier suivant.
 - [ ] 7. Harmonisation : **audit global** (ce qui ressemble / bénéficierait, exhaustif) puis **refactoring de conceptualisation** (lisibilité ; duplication et abstraction = outils) ; **choix, doutes, conséquences discutés avec l'utilisateur**
 - [ ] 8. Revue visuelle : **toute conséquence visible** couverte par une capture (captures **ajoutées** si besoin), régénérées et ouvertes une par une
 - [ ] 9. Nouveaux chantiers identifiés + issues créées
-- [ ] 10. Bilan (livré / dette / décisions)
+- [ ] 10. Bilan (livré / dette / décisions) **+ artefact visuel avant/après soumis avant de clore**
+```
+
+## Modèle de commencement d'issue (à écrire avant la première ligne de code)
+
+```markdown
+**Ce qu'il y a à faire** : <une phrase, dans les termes du problème>
+**Pourquoi maintenant** : <ce qui la rend traitable ou urgente>
+**Dans quelle continuité** : <le chantier d'où elle vient, l'issue qu'elle suit, ce qu'elle permet ensuite>
 ```

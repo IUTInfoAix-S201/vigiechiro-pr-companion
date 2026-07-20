@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [2.20.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v2.19.0...v2.20.0) (2026-07-20)
+
+
+### Features
+
+* **release:** publier les empreintes SHA-256, faute de signature ([#2138](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2138)) ([d9c36a2](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/d9c36a26679d2c1fb1f97c30fc924419c2368559)), closes [#2107](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2107) [#2104](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2104)
+
 # [2.19.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v2.18.0...v2.19.0) (2026-07-20)
 
 

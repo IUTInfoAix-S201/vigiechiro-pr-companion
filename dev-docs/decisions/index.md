@@ -84,3 +84,4 @@ Les premières entrées sont **rétroactives** : elles consignent, à partir des
 | [0037](0037-une-barre-d-actions-plie-elle-ne-tronque-pas.md) | Une barre d'actions plie ; et tout texte coupé n'est pas une barre qui ne plie pas | #2012, #1641, #1873 |
 | [0038](0038-l-echelle-de-severite-a-quatre-niveaux.md) | L'échelle de sévérité compte quatre niveaux, et son ordre de déclaration porte la sémantique | #1990, #2004 |
 | [0039](0039-une-barre-de-statut-est-neutre.md) | Une barre de statut dit où l'on en est, pas si c'est bien ou mal | #1990, #2004 |
+| [0040](0040-le-sujet-de-commit-est-une-syntaxe.md) | Le sujet d'un commit est une syntaxe, pas une phrase française : le `:` ne prend pas d'espace | EPIC #2104, #2105 |

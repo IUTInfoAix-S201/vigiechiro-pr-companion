@@ -5,7 +5,7 @@ Un fichier audio sortant directement de l'enregistreur, après **copie protégé
 | Attribut | Type | Contraintes | Notes |
 |---|---|---|---|
 | nom de fichier | texte | format `Car<carre>-<annee>-<passage>-<point>-PaRecPR<sn>_<AAAAMMJJ>_<HHMMSS>.wav` | Ex. `Car640380-2026-Pass2-Z1-PaRecPR1925492_20260422_202623.wav`. |
-| chemin sur disque | texte | obligatoire | Dans le sous-dossier `bruts/` de la session d'enregistrement (cf. [R22](Règles%20métier.md#r22)). |
+| chemin sur disque | texte | obligatoire | Dans le sous-dossier `bruts/` de la session **si les originaux sont conservés** (cf. [R22](Règles%20métier.md#r22)) ; sinon le chemin **sur la carte de l'utilisateur**, qui vaut alors comme **provenance** et non comme emplacement : la carte sera démontée. Aucun parcours de récupération ne s'appuie sur ce chemin - l'identité d'un original se prouve par son empreinte. |
 | durée | décimal (s) | typiquement 2-30 s | Déclenchée par seuil sur l'enregistreur. |
 | échantillonnage | entier (Hz) | 384 000 | Mono 16 bits. |
 | empreinte SHA-256 | hex | optionnelle | Si l'on veut garantir l'intégrité bit-à-bit dans le temps. |
@@ -15,7 +15,7 @@ Un fichier audio sortant directement de l'enregistreur, après **copie protégé
 - [R6](Règles%20métier.md#r6) - préfixe `CarXXXXXX-AAAA-PassN-YY-` (tirets du 6).
 - [R7](Règles%20métier.md#r7) - suffixe original de l'enregistreur conservé.
 - [R9](Règles%20métier.md#r9) - copie protégée (aucune écriture sur la SD).
-- [R22](Règles%20métier.md#r22) - emplacement sur disque : sous-dossier `bruts/` de la session d'enregistrement.
+- [R22](Règles%20métier.md#r22) - emplacement sur disque : sous-dossier `bruts/` de la session, **quand les originaux sont conservés** (option de ré-analyse, absente par défaut).
 
 ## Voisins dans le modèle
 

@@ -12,7 +12,7 @@ L'agrégat de données produit par un passage : tous les enregistrements origina
 
 - [R9](Règles%20métier.md#r9) - copie protégée à l'import (aucune écriture sur la SD).
 - [R21](Règles%20métier.md#r21) - une session d'enregistrement vit dans le workspace utilisateur (configurable, défaut `<Documents>/VigieChiro-Companion/`).
-- [R22](Règles%20métier.md#r22) - structure d'une session d'enregistrement : nom du dossier = préfixe, sous-dossiers `bruts/` et `transformes/`, journal et relevé à la racine.
+- [R22](Règles%20métier.md#r22) - structure d'une session d'enregistrement : nom du dossier = préfixe, sous-dossier `transformes/` (et `bruts/` **seulement si les originaux sont conservés**), journal et relevé à la racine.
 
 ## Voisins dans le modèle
 

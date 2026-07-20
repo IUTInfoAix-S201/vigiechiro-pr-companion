@@ -3,6 +3,7 @@ package fr.univ_amu.iut.commun.view;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import javafx.beans.property.SimpleStringProperty;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.layout.StackPane;
 import org.junit.jupiter.api.DisplayName;
@@ -16,6 +17,32 @@ import org.testfx.framework.junit5.ApplicationExtension;
 /// désactivable indépendamment, l'enveloppe reçoit le survol pour le tooltip).
 @ExtendWith(ApplicationExtension.class)
 class IndicateurBlocageTest {
+
+    @Test
+    @DisplayName("#2115 : l'explication d'un blocage n'est atteignable qu'au survol, pas au clavier")
+    void l_explication_est_hors_de_portee_du_clavier() {
+        // Constat mesuré à l'exécution, pas déduit du code : `IndicateurBlocage` explique pourquoi un
+        // contrôle est grisé (#789), et c'est le SEUL endroit où le motif est dit. Or il vit dans un
+        // Tooltip, que JavaFX ne déclenche qu'au survol.
+        //
+        // Ce test ne corrige rien : il FIXE l'état actuel pour qu'une correction future le fasse
+        // rougir, et il documente les trois faits qui, ensemble, mettent l'explication hors de portée
+        // de qui n'utilise pas la souris.
+        Button bouton = new Button("Déposer");
+        bouton.setDisable(true);
+        StackPane enveloppe = IndicateurBlocage.enrober(bouton, "Préparez d'abord le dépôt.");
+        new Scene(enveloppe);
+
+        assertThat(enveloppe.isFocusTraversable())
+                .as("l'enveloppe qui PORTE l'explication n'est pas atteignable au Tab")
+                .isFalse();
+        assertThat(bouton.isDisabled())
+                .as("et le contrôle qu'elle entoure est désactivé, donc hors de l'ordre de tabulation")
+                .isTrue();
+        assertThat(enveloppe.getAccessibleText())
+                .as("aucun texte accessible ne relaie le motif pour un lecteur d'écran")
+                .isNull();
+    }
 
     @Test
     @DisplayName("enrober (texte fixe) renvoie une enveloppe StackPane entourant le contrôle")

@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiConsumer;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Group;
@@ -117,7 +118,9 @@ public final class CaptureImport {
                         injecteur.getInstance(ExecuteurTache.class))
                 : injecteur.getInstance(type));
         Parent vue = loader.load();
-        Scene scene = new Scene(vue, 1100, 860);
+        // Seule la LARGEUR compte ici : chaque rendu se fait ensuite à la hauteur de son propre contenu
+        // (cf. [#rendreAjuste]). La hauteur donnée n'est que celle de la mise en page de départ.
+        Scene scene = new Scene(vue, 1100, 900);
 
         // État « décompression d'un .zip » (#146) : avant toute inspection, la barre de progression
         // déterminée « X / N fichiers » s'affiche avec un temps restant estimé et un bouton « Annuler »
@@ -191,36 +194,40 @@ public final class CaptureImport {
                         "Fréquence source 44100 Hz non divisible par 10"),
                 new LigneRapport("notes-terrain.txt", StatutImportFichier.IGNORE, "fichier non pertinent")));
         vm.marquerTermine(new ResultatImport(null, null, "1925492", 1, 3, List.of(), rapport));
-        rendreEnPied(scene, sortie.resolve("apercu-import-rejets.png"));
+        rendre(scene, sortie.resolve("apercu-import-rejets.png"));
     }
 
-    /// Hauteur du gabarit « pied de formulaire » : le bas de l'assistant (bouton, barre de statut,
-    /// compte rendu d'import, liste des rejets) tombe sous les 860 px de la scène commune.
-    private static final int HAUTEUR_PIED = 1290;
-
-    /// Rend le **bas** du formulaire, que le gabarit commun coupe.
+    /// Rend le contenu **à sa hauteur naturelle**, quel que soit l'état de l'assistant à cet instant.
     ///
-    /// La capture nommée `apercu-import-rejets.png` ne montrait aucun rejet : le contenu s'arrêtait bien
-    /// au-dessus. Une capture qui ne montre pas ce que son nom annonce ne valide rien, et personne ne le
-    /// voyait puisque personne n'avait de raison de l'ouvrir.
+    /// Les six états capturés ici n'ont pas la même hauteur : la zone de progression, les bandeaux
+    /// (mélange, incohérence), la table des nuits et le compte rendu de rejets apparaissent puis
+    /// disparaissent. Une scène de hauteur fixe convient donc à **un** état et comprime les autres - et
+    /// elle les comprimait, de deux façons. La consigne de la section « espace disque » se rabattait sur
+    /// une ligne terminée par une ellipse (#2049) ; et la liste des rejets tombait franchement hors cadre,
+    /// au point qu'un gabarit « pied de formulaire » de 1290 px avait été ajouté pour cette seule capture.
+    /// Mesurer le contenu répond aux deux d'un coup, et se passe de constante à ré-ajuster.
     ///
-    /// On reparente la racine dans une scène plus haute le temps du cliché, puis on la rend à la scène
-    /// d'origine : un nœud n'appartient qu'à une scène, et les captures suivantes réutilisent celle-ci.
-    private static void rendreEnPied(Scene scene, Path fichier) {
+    /// On reparente la racine le temps du cliché, puis on la rend à la scène d'origine : un nœud
+    /// n'appartient qu'à une scène, et les rendus suivants réutilisent celle-ci.
+    private static void rendreAjuste(Scene scene, Path fichier, BiConsumer<Scene, Path> capture) {
         Parent racine = scene.getRoot();
+        // Mesure sur la racine encore attachée : sans passe CSS, les libellés n'ont pas leurs métriques de
+        // police et la hauteur demandée est fausse.
+        racine.applyCss();
+        racine.layout();
+        double hauteur = racine.prefHeight(scene.getWidth());
         scene.setRoot(new Group());
-        Scene haute = new Scene(racine, scene.getWidth(), HAUTEUR_PIED);
-        haute.getStylesheets().setAll(scene.getStylesheets());
-        rendre(haute, fichier);
-        haute.setRoot(new Group());
+        Scene ajustee = new Scene(racine, scene.getWidth(), hauteur);
+        ajustee.getStylesheets().setAll(scene.getStylesheets());
+        capture.accept(ajustee, fichier);
+        ajustee.setRoot(new Group());
         scene.setRoot(racine);
+        System.out.println("Apercu ecrit dans " + fichier.toAbsolutePath());
     }
 
-    /// Rend `scene` hors-écran en PNG et journalise (helper : évite la répétition du libellé de log,
-    /// interdite par PMD `AvoidDuplicateLiterals` au-delà de 3 occurrences).
+    /// Rend `scene` hors-écran en PNG, à la hauteur de son contenu.
     private static void rendre(Scene scene, Path fichier) {
-        ApercuFx.enregistrerPng(scene, fichier);
-        System.out.println("Apercu ecrit dans " + fichier.toAbsolutePath());
+        rendreAjuste(scene, fichier, ApercuFx::enregistrerPng);
     }
 
     /// Comme [#rendre], mais **après attente des tuiles OSM** : la carte de rattachement (composant
@@ -228,8 +235,10 @@ public final class CaptureImport {
     /// asynchrone ; sans cette attente, le PNG la fige avant l'arrivée des tuiles (carte vide). Même
     /// mécanisme que les autres captures à carte (CaptureMultisite).
     private static void rendreAvecCarte(Scene scene, Path fichier) {
-        ApercuFx.capturerApresPreparation(scene, CaptureImport::attendreTuiles, fichier);
-        System.out.println("Apercu ecrit dans " + fichier.toAbsolutePath());
+        rendreAjuste(
+                scene,
+                fichier,
+                (ajustee, cible) -> ApercuFx.capturerApresPreparation(ajustee, CaptureImport::attendreTuiles, cible));
     }
 
     /// Laisse tourner le fil JavaFX (boucle d'évènements imbriquée) le temps que les tuiles OSM arrivées

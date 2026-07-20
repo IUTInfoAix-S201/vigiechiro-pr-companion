@@ -139,17 +139,21 @@ public final class CaptureMultisite {
                 ? new ReconstructionModaleController(viewModel, executeur)
                 : injecteur.getInstance(type));
         Parent vue = loader.load();
-        Scene scene = new Scene(vue);
         // `initialize()` a tenté de lire la plateforme (absente ici) : on publie ensuite la liste, qui
         // remplace le message. C'est l'état où arrive l'utilisateur connecté.
-        ApercuFx.capturerApresPreparation(
-                scene,
-                () -> viewModel.appliquer(List.of(
-                        new ParticipationOrpheline(
-                                "6a53f5faae21902a597394d3", CARRE_DEMO, "A1", "2026-06-18T21:42:00+02:00", true),
-                        new ParticipationOrpheline(
-                                "6a53f5faae21902a597394e7", "130711", "Z41", "2026-07-03T22:00:00+02:00", false))),
-                fichier);
+        //
+        // La publication a lieu AVANT la scène, qui se dimensionne alors sur le contenu réellement affiché
+        // (#2049). Publier après - ce que faisait `capturerApresPreparation` ici - laissait la scène à la
+        // taille du contenu d'AVANT : le paragraphe d'explication et le bandeau de retour, apparus ensuite,
+        // se rabattaient sur une ligne terminée par une ellipse. `charger()` étant lancé sur un
+        // [ExecuteurTache] **synchrone** dans les captures, tout est retombé quand `load()` rend la main :
+        // rien ne reste à attendre après coup.
+        viewModel.appliquer(List.of(
+                new ParticipationOrpheline(
+                        "6a53f5faae21902a597394d3", CARRE_DEMO, "A1", "2026-06-18T21:42:00+02:00", true),
+                new ParticipationOrpheline(
+                        "6a53f5faae21902a597394e7", "130711", "Z41", "2026-07-03T22:00:00+02:00", false)));
+        ApercuFx.enregistrerPng(new Scene(vue), fichier);
     }
 
     /// Rend la modale en **import groupé en cours** (#1708) : les **deux** barres de progression - le **lot**

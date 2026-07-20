@@ -13,11 +13,13 @@ import com.google.inject.Injector;
 import com.google.inject.Provides;
 import fr.univ_amu.iut.commun.model.Horloge;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
+import fr.univ_amu.iut.commun.view.IconesSeverite;
 import fr.univ_amu.iut.commun.view.Lieu;
 import fr.univ_amu.iut.commun.view.NavigationDeTestModule;
 import fr.univ_amu.iut.commun.view.OuvreurDeLien;
 import fr.univ_amu.iut.commun.viewmodel.ContextePassage;
 import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
+import fr.univ_amu.iut.commun.viewmodel.RetourOperation.Severite;
 import fr.univ_amu.iut.lot.model.ArchiveDepot;
 import fr.univ_amu.iut.lot.model.ArchivePlanifiee;
 import fr.univ_amu.iut.lot.model.ControleCoherence;
@@ -46,6 +48,7 @@ import javafx.stage.Stage;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.kordamp.ikonli.javafx.FontIcon;
 import org.testfx.api.FxRobot;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
@@ -144,7 +147,7 @@ class LotVueIntegrationTest {
     }
 
     @Test
-    @DisplayName("#254 : conforme → checklist tout en ✓, message masqué, préparer actif / déposer inactif")
+    @DisplayName("#254 : conforme → checklist tout satisfait, message masqué, préparer actif / déposer inactif")
     void conforme_checklist_tout_ok_et_preparer_actif(FxRobot robot) {
         // Checklist entièrement satisfaite (la fixture de départ en a une vide ; on re-stube).
         reouvrirAvec(
@@ -171,8 +174,10 @@ class LotVueIntegrationTest {
         assertThat(controleur.zonesStatutProperty().get().centre()).isEqualTo("Vérifié · 2 séquences · 8 Ko");
         // #251 : la cible du téléversement est le sous-dossier depot/ (archives ZIP), pas la session.
         assertThat(chemin.getText()).isEqualTo("/ws/session-42/depot");
-        // #254 : la checklist reste affichée même quand tout est satisfait (chaque ligne en ✓).
-        assertThat(textesChecklist(checklist)).hasSize(3).allMatch(t -> t.startsWith("✓"));
+        // #254 : la checklist reste affichée même quand tout est satisfait (chaque ligne cochée).
+        assertThat(glyphesChecklist(checklist))
+                .hasSize(3)
+                .allMatch(glyphe -> glyphe.equals(IconesSeverite.glyphe(Severite.SUCCES)));
         // Pas de message d'état en fonctionnement nominal, et aucun compte rendu tant qu'on n'a rien fait.
         assertThat(message.isVisible()).isFalse();
         assertThat(robot.lookup("#bandeauRetour").queryAs(HBox.class).isVisible())
@@ -183,7 +188,7 @@ class LotVueIntegrationTest {
     }
 
     @Test
-    @DisplayName("#254 : un contrôle en échec → checklist ✓/✗, re-vérification possible, suite neutralisée")
+    @DisplayName("#254 : un contrôle en échec → checklist mixte, re-vérification possible, suite neutralisée")
     void controle_en_echec_checklist_reverifiable_suite_neutralisee(FxRobot robot) {
         reouvrirAvec(
                 robot,
@@ -205,10 +210,20 @@ class LotVueIntegrationTest {
         Button genererArchives = robot.lookup("#btnGenererArchives").queryAs(Button.class);
 
         var textes = textesChecklist(checklist);
+        var glyphes = glyphesChecklist(checklist);
         assertThat(textes).hasSize(3);
-        assertThat(textes.get(0)).startsWith("✓").contains("Verdict de vérification");
-        assertThat(textes).anyMatch(t -> t.startsWith("✗") && t.contains("Transformation incomplète"));
-        assertThat(textes).anyMatch(t -> t.startsWith("✗") && t.contains("Préfixe de fichier non conforme"));
+        assertThat(textes.get(0)).contains("Verdict de vérification");
+        assertThat(glyphes.get(0)).isEqualTo(IconesSeverite.glyphe(Severite.SUCCES));
+        // Le statut et son libellé se lisent ensemble : une icône juste sur la mauvaise ligne serait
+        // aussi trompeuse qu'une icône fausse.
+        for (int i = 0; i < textes.size(); i++) {
+            if (textes.get(i).contains("Transformation incomplète")
+                    || textes.get(i).contains("Préfixe de fichier non conforme")) {
+                assertThat(glyphes.get(i)).isEqualTo(IconesSeverite.glyphe(Severite.ERREUR));
+            }
+        }
+        assertThat(textes).anyMatch(t -> t.contains("Transformation incomplète"));
+        assertThat(textes).anyMatch(t -> t.contains("Préfixe de fichier non conforme"));
         // Un contrôle bloque : « Vérifier et préparer » reste actionnable pour RELANCER la vérification, mais la
         // suite (génération des archives) est NEUTRALISÉE tant que la cohérence n'est pas rétablie.
         assertThat(preparer.isDisabled()).isFalse();
@@ -583,6 +598,14 @@ class LotVueIntegrationTest {
     private static List<String> textesChecklist(VBox checklist) {
         return checklist.getChildren().stream()
                 .map(noeud -> ((Label) noeud).getText())
+                .toList();
+    }
+
+    /// Les glyphes de la checklist. Depuis #2099 le statut n'est plus écrit en tête du texte mais posé
+    /// en icône : le fait est le même, son porteur a changé.
+    private static List<String> glyphesChecklist(VBox checklist) {
+        return checklist.getChildren().stream()
+                .map(noeud -> ((FontIcon) ((Label) noeud).getGraphic()).getIconLiteral())
                 .toList();
     }
 

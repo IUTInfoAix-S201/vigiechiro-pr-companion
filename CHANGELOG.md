@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+## [2.26.2](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v2.26.1...v2.26.2) (2026-07-20)
+
+
+### Bug Fixes
+
+* **ihm:** le dialogue « À propos » ne compte plus des lignes, il les nomme ([#2189](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2189)) ([28db0d3](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/28db0d383c053ac795098588ebd163b4c6416453)), closes [#2104](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2104) [#1468](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/1468) [#2104](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2104) [#2144](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2144)
+
 ## [2.26.1](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v2.26.0...v2.26.1) (2026-07-20)
 
 

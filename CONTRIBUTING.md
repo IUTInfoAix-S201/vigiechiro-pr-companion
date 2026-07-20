@@ -86,6 +86,22 @@ chore(deps): bump assertj 3.27.7
 - **petits commits** logiques (un par préoccupation), message axé sur le **pourquoi** ;
 - toujours **créer** un nouveau commit plutôt qu'amender.
 
+> [!IMPORTANT]
+> **Pas d'espace avant les deux-points** : `feat(passage): …`, jamais `feat(passage) : …`. Ici le `:`
+> est un **token de syntaxe**, pas une ponctuation de phrase : la règle typographique française ne s'y
+> applique pas, comme elle ne s'applique pas au `:` d'un `switch` Java. Le sujet qui suit, lui, reste
+> du français avec sa typographie.
+>
+> Ce n'est pas un détail de style. Un espace rend le sujet **illisible pour semantic-release**, qui
+> cesse alors de publier **sans rien faire rougir**. Le dépôt l'a vécu : 58 commits releasables
+> accumulés sans aucune version, CI verte tout du long (cf.
+> [ADR 0040](dev-docs/decisions/0040-le-sujet-de-commit-est-une-syntaxe.md)).
+
+**Le titre de votre PR compte plus que vos messages de commit.** Les PR sont fusionnées en **squash**,
+et c'est le **titre de la PR** qui devient le sujet du commit sur `main` : c'est donc lui que
+semantic-release lira, et lui que la CI vérifie (`.github/workflows/titre-pr.yml`). Il doit suivre la
+même convention.
+
 Le **type** du commit pilote la version publiée (cf. §7) : `feat:` → mineure, `fix:` → patch,
 `BREAKING CHANGE:` → majeure. Les autres types (`docs`, `chore`, `test`, `refactor`...) ne déclenchent
 pas de release.

@@ -10,6 +10,7 @@ publication.
 | [maven.yml](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/.github/workflows/maven.yml) | push `main` + PR | « Java CI » : `./mvnw -B verify -Djacoco.haltOnFailure=true` (compilation + tous les tests dont ArchUnit + **seuils de couverture JaCoCo bloquants**) | **Oui** |
 | [lint.yml](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/.github/workflows/lint.yml) | push `main` + PR | « Quality gate » (statique) : `spotless:check` + complétude des captures + `./mvnw -Pquality-gate compile pmd:check` (**PMD bloquant**) | **Oui** |
 | [docs.yml](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/.github/workflows/docs.yml) | push/PR sur la doc | Construit les **deux** sites MkDocs (`--strict`) ; déploie Pages (dormant tant que `ENABLE_PAGES` ≠ true) | Build oui |
+| [titre-pr.yml](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/.github/workflows/titre-pr.yml) | PR (dont `edited`) | Le **titre de la PR** suit Conventional Commits (c'est lui que semantic-release lira, cf. ci-dessous) | **Oui** |
 | [capture-vues.yml](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/.github/workflows/capture-vues.yml) | push `main` | Régénère les aperçus PNG (cf. [Captures](captures.md)) | — |
 | [release.yml](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/.github/workflows/release.yml) | push `main` | Version + Release + installeurs natifs (dormant tant que `ENABLE_RELEASE` ≠ true) | — |
 | [devcontainer-image.yml](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/.github/workflows/devcontainer-image.yml) | push `solution` | Build/push de l'image devcontainer | — |
@@ -81,6 +82,20 @@ principal `vigiechiro-*.jar` reste **mince**. jpackage empaquette donc le `-shad
     `fix:` → patch, `feat:` → minor, `BREAKING CHANGE` → major. Le `[skip ci]` du commit de CHANGELOG
     évite que la release se redéclenche en boucle. Détails de conventions :
     [CONTRIBUTING.md](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/CONTRIBUTING.md).
+
+!!! danger "Ce que semantic-release lit réellement : le titre de la PR"
+    Les PR sont fusionnées en **squash** (`squash_merge_commit_title = PR_TITLE`) : le **titre de la
+    PR** devient le sujet du commit sur `main`, et les messages des commits de branche sont écartés à
+    la fusion. C'est donc le titre qui pilote la version, et c'est lui que valide
+    [titre-pr.yml](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/.github/workflows/titre-pr.yml).
+
+    **Pas d'espace avant le `:`** : `feat(scope): …` publie, `feat(scope) : …` ne publie rien. Cette
+    seconde forme a arrêté la publication du 18 au 20 juillet 2026, en accumulant 58 commits
+    releasables **sans faire rougir quoi que ce soit** - « aucun changement pertinent » est un verdict
+    vert. `.releaserc.json` élargit désormais le `headerPattern` pour tolérer l'espace (sur le
+    `commit-analyzer` **et** le `release-notes-generator`, faute de quoi les notes sortiraient vides),
+    mais le garde-fou reste le contrôle du titre. Cf.
+    [ADR 0040](decisions/0040-le-sujet-de-commit-est-une-syntaxe.md).
 
 ## Dépendances
 

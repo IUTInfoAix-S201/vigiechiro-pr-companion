@@ -1,0 +1,33 @@
+# Garde-fou de la convention de commit (#2105) : le titre de la PR devient le sujet du commit sur
+# `main` (fusion en squash, `squash_merge_commit_title = PR_TITLE`), donc c'est lui que
+# semantic-release lira. La règle et son pourquoi sont dans .github/scripts/verifie-titre-pr.sh
+# et l'ADR 0040.
+name: Titre de PR
+
+on:
+  pull_request:
+    # `edited` est indispensable : sans lui, corriger le titre d'une PR déjà ouverte ne relancerait
+    # jamais le contrôle, et la PR resterait rouge sur un titre devenu valide.
+    types: [opened, edited, reopened, synchronize]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  titre:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Le titre suit Conventional Commits
+        env:
+          # Passé par l'environnement plutôt qu'interpolé dans le script : un titre de PR est une
+          # donnée non fiable (il peut contenir des quotes, des backticks, un `$(...)`).
+          TITRE: ${{ github.event.pull_request.title }}
+        run: |
+          chmod +x .github/scripts/verifie-titre-pr.sh
+          ./.github/scripts/verifie-titre-pr.sh "${TITRE}"

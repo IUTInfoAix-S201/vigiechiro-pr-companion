@@ -7,7 +7,8 @@ publication.
 
 | Workflow | Déclencheur | Rôle | Bloque la PR ? |
 |---|---|---|---|
-| [maven.yml](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/.github/workflows/maven.yml) | push `main` + PR | « Java CI » : `./mvnw -B verify -Djacoco.haltOnFailure=true` (compilation + tous les tests dont ArchUnit + **seuils de couverture JaCoCo bloquants**) | **Oui** |
+| [maven.yml](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/.github/workflows/maven.yml) · job `build` | push `main` + PR | « Java CI » : `./mvnw -B verify -Djacoco.haltOnFailure=true` (compilation + tous les tests dont ArchUnit + **seuils de couverture JaCoCo bloquants**) | **Oui** |
+| [maven.yml](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/.github/workflows/maven.yml) · job `paquet` | push `main` + PR | Assemblage du fat-jar (`package -DskipTests`) puis smoke-test, **E2E CLI bats** et idempotence du packaging. **En parallèle** de `build` | **Oui** |
 | [lint.yml](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/.github/workflows/lint.yml) | push `main` + PR | « Quality gate » (statique) : `spotless:check` + complétude des captures + `./mvnw -Pquality-gate compile pmd:check` (**PMD bloquant**) | **Oui** |
 | [docs.yml](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/.github/workflows/docs.yml) | push/PR sur la doc | Construit les **deux** sites MkDocs (`--strict`) ; déploie Pages (dormant tant que `ENABLE_PAGES` ≠ true) | Build oui |
 | [titre-pr.yml](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/.github/workflows/titre-pr.yml) | PR (dont `edited`) | Le **titre de la PR** suit Conventional Commits (c'est lui que semantic-release lira, cf. ci-dessous) | **Oui** |
@@ -34,6 +35,30 @@ captures + PMD), `maven.yml` porte les **tests + couverture**. Localement :
 - `./mvnw -Pquality-gate verify` reproduit le build complet **avec** la couverture bloquante (comme `maven.yml`).
 
 **Spotless** (Palantir Java Format) formate via un *hook* pre-commit et est vérifié par `lint.yml` (`spotless:check`).
+
+## Pourquoi `build` et `paquet` sont deux jobs
+
+`maven.yml` portait auparavant quatre préoccupations à la file dans un seul job. Deux coûts en
+découlaient. Le premier, mesuré : 449 s de tests, puis 148 s d'E2E bats, puis 9 s d'idempotence **en
+série**, soit ~10 min avant le moindre verdict. Le second, plus gênant, était une **dépendance
+fausse** : les étapes de packaging ne s'exécutaient qu'après le succès des tests, donc une suite rouge
+**masquait** l'état du packaging, qu'on n'apprenait qu'au tour suivant.
+
+Or ces étapes ne dépendent que de l'**assemblage** : `package -DskipTests` suffit (~20 s en local, et
+les 21 tests bats passent sur ce seul artefact). D'où la séparation :
+
+| Job | Ce dont il dépend | Ce qu'il prouve |
+|---|---|---|
+| `build` | la suite de tests | le comportement, et la couverture au seuil |
+| `paquet` | l'assemblage du fat-jar | que le jar **démarre**, que la CLI répond, que le shade est idempotent |
+
+Les deux tournent **en parallèle** et rendent leur verdict indépendamment : le chemin critique se
+ramène au plus long des deux, et un packaging cassé rougit même quand les tests échouent.
+
+!!! warning "Ce qui ne gagne rien à être optimisé"
+    L'installation d'`apt`/`bats` coûte **9 s**, pas davantage : c'est vérifié. Les ~140 s du harnais
+    sont les **21 tests eux-mêmes**, qui lancent chacun un JVM sur le fat-jar. Chercher un cache apt
+    ici ne rapporte rien - l'hypothèse a été faite, mesurée, et démentie.
 
 ## La release (semantic-release + jpackage)
 

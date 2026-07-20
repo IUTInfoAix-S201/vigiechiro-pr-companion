@@ -30,6 +30,8 @@ Le message nomme le libellé fautif et **chiffre** ce qui lui manque : sans le c
 
 **5. Un composant tiers est hors du contrôle.** `AudioView` vient d'un artefact séparé : ses boutons de transport tronquent, et aucun FXML d'ici ne peut y remédier. Un verrou qui exige une correction impossible ne protège rien, il bloque. Ces défauts se traitent en amont (audio-view#56) et l'exclusion tombera quand ce sera publié.
 
+> **Levée le 2026-07-20.** audio-view#56 est corrigée (sa barre de transport est passée en `FlowPane`, elle plie au lieu de tronquer) et publiée en **1.15.1**. L'exclusion est **retirée** : le sous-arbre `AudioView` repasse sous le contrôle. Le principe énoncé ici reste valide et se réappliquera si un composant tiers redevient infixable d'ici — mais tant qu'une chaîne *peut* être verte, la rendre aveugle coûterait plus qu'elle ne rapporte : une régression amont ne se verrait plus.
+
 ## Conséquences
 
 - La troncature cesse d'être un défaut qu'on découvre en regardant : elle arrête la chaîne.

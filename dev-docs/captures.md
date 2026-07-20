@@ -107,8 +107,11 @@ rentrer le contenu d'une barre, cela le fait déborder. La règle est de désign
 métadonnée (qui se relisent ailleurs) plutôt qu'un libellé d'action (qui ne se relit nulle part). La
 tolérance s'hérite jusqu'aux libellés internes des contrôles composés (`ComboBox`, `MenuButton`).
 
-Le sous-arbre d'`AudioView` est **hors du contrôle** : le composant vient d'un artefact séparé, ses
-défauts se traitent en amont.
+**Le contrôle ne connaît pas d'exception par composant.** Le sous-arbre d'`AudioView` a été exclu un
+temps, parce que sa barre de transport tronquait et qu'aucun FXML d'ici n'y pouvait rien. Le défaut a
+été corrigé en amont (audio-view#56, publié en 1.15.1) et l'exclusion retirée. Si un composant tiers
+redevenait infixable, la même mesure s'imposerait — mais tant qu'une chaîne *peut* être verte, mieux
+vaut la garder voyante : une régression amont se signale alors d'elle-même.
 
 !!! warning "Le poste de développement sous-mesure"
     Les polices d'un poste et celles d'un runner de CI **ne mesurent pas le texte à l'identique** :

@@ -1,6 +1,7 @@
 package fr.univ_amu.iut.audit.model;
 
 import fr.univ_amu.iut.commun.model.Prefixe;
+import fr.univ_amu.iut.commun.model.Severite;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
@@ -33,7 +34,7 @@ class BalayageDisque {
                         .map(BalayageDisque::normaliser)
                         .filter(chemin -> !cheminsConnus.contains(chemin))
                         .forEach(chemin -> constats.add(new ConstatAudit(
-                                SeveriteConstat.AVERTISSEMENT,
+                                Severite.AVERTISSEMENT,
                                 CategorieConstat.DISQUE_ORPHELIN,
                                 idPassage,
                                 chemin,
@@ -58,7 +59,7 @@ class BalayageDisque {
                     .map(BalayageDisque::normaliser)
                     .filter(chemin -> !racinesSessionConnues.contains(chemin))
                     .forEach(chemin -> constats.add(new ConstatAudit(
-                            SeveriteConstat.AVERTISSEMENT,
+                            Severite.AVERTISSEMENT,
                             CategorieConstat.DOSSIER_ORPHELIN,
                             null,
                             chemin,

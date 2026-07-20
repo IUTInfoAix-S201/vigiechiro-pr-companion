@@ -12,7 +12,6 @@ import com.google.inject.Injector;
 import com.google.inject.util.Modules;
 import fr.univ_amu.iut.audit.model.ResultatReset;
 import fr.univ_amu.iut.audit.model.ServiceReset;
-import fr.univ_amu.iut.audit.model.SeveriteConstat;
 import fr.univ_amu.iut.commun.api.ClientVigieChiro;
 import fr.univ_amu.iut.commun.api.DonneeVigieChiro;
 import fr.univ_amu.iut.commun.api.ObservationVigieChiro;
@@ -26,6 +25,7 @@ import fr.univ_amu.iut.commun.api.TaxonVigieChiro;
 import fr.univ_amu.iut.commun.api.Traitement;
 import fr.univ_amu.iut.commun.di.RacineInjecteur;
 import fr.univ_amu.iut.commun.model.Protocole;
+import fr.univ_amu.iut.commun.model.Severite;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.model.Utilisateur;
 import fr.univ_amu.iut.commun.model.dao.UtilisateurDao;
@@ -144,7 +144,7 @@ class ParcoursResetE2ETest {
         assertThat(fait.audit().constats())
                 .as("le workspace remis à neuf est SAIN : aucune erreur. C'est la réciproque de l'EPIC —"
                         + " un audit qui crierait sur un état normal ne vaudrait rien")
-                .noneMatch(constat -> constat.severite() == SeveriteConstat.ERREUR);
+                .noneMatch(constat -> constat.severite() == Severite.ERREUR);
 
         assertThat(fait.aRetablir())
                 .as("et ce qui manque est DIT : l'audio ne revient pas du serveur, il faut le rebrancher")

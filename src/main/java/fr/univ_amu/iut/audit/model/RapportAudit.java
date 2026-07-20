@@ -1,5 +1,6 @@
 package fr.univ_amu.iut.audit.model;
 
+import fr.univ_amu.iut.commun.model.Severite;
 import java.util.List;
 import java.util.Objects;
 
@@ -13,7 +14,7 @@ public record RapportAudit(List<ConstatAudit> constats) {
     }
 
     /// Nombre de constats d'une gravité donnée.
-    public long nombre(SeveriteConstat severite) {
+    public long nombre(Severite severite) {
         return constats.stream().filter(c -> c.severite() == severite).count();
     }
 
@@ -22,8 +23,8 @@ public record RapportAudit(List<ConstatAudit> constats) {
         return constats.isEmpty();
     }
 
-    /// `true` si au moins un constat est une [SeveriteConstat#ERREUR] (pilote le code de sortie CLI).
+    /// `true` si au moins un constat est une [Severite#ERREUR] (pilote le code de sortie CLI).
     public boolean aDesErreurs() {
-        return nombre(SeveriteConstat.ERREUR) > 0;
+        return nombre(Severite.ERREUR) > 0;
     }
 }

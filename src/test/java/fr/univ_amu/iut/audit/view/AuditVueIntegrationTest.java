@@ -12,8 +12,8 @@ import fr.univ_amu.iut.audit.model.CategorieConstat;
 import fr.univ_amu.iut.audit.model.ConstatAudit;
 import fr.univ_amu.iut.audit.model.RapportAudit;
 import fr.univ_amu.iut.audit.model.ServiceAuditCoherence;
-import fr.univ_amu.iut.audit.model.SeveriteConstat;
 import fr.univ_amu.iut.audit.viewmodel.AuditViewModel;
+import fr.univ_amu.iut.commun.model.Severite;
 import fr.univ_amu.iut.commun.view.OuvrirPassage;
 import java.util.List;
 import javafx.fxml.FXMLLoader;
@@ -43,13 +43,13 @@ class AuditVueIntegrationTest {
         when(service.auditerTout())
                 .thenReturn(new RapportAudit(List.of(
                         new ConstatAudit(
-                                SeveriteConstat.ERREUR,
+                                Severite.ERREUR,
                                 CategorieConstat.DEPOT_DIVERGENT,
                                 12L,
                                 "Car040962-2026-Pass2-A1-1.zip",
                                 "Renommage après dépôt, divergence base / serveur."),
                         new ConstatAudit(
-                                SeveriteConstat.AVERTISSEMENT,
+                                Severite.AVERTISSEMENT,
                                 CategorieConstat.DISQUE_ORPHELIN,
                                 null,
                                 "/ws/x.wav",
@@ -89,7 +89,7 @@ class AuditVueIntegrationTest {
     void verifier_en_ligne_ajoute_les_constats_serveur(FxRobot robot) {
         when(service.auditerEnLigne())
                 .thenReturn(new RapportAudit(List.of(new ConstatAudit(
-                        SeveriteConstat.ERREUR,
+                        Severite.ERREUR,
                         CategorieConstat.DEPOT_DIVERGENT,
                         14L,
                         "Car040962-2026-Pass2-B2-1.zip",

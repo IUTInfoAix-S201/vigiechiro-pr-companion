@@ -118,6 +118,30 @@ Le **format d'archive** est choisi pour ce qu'il préserve, et ce n'est pas inte
     `gh release upload` échoue sur un répertoire. L'étape supprime donc `VigieChiro/` (ou
     `VigieChiro.app`) une fois l'archive faite, sans quoi le téléversement casse toute la publication.
 
+### Les empreintes SHA-256 (#2107)
+
+Les installeurs ne sont **pas signés**. Sans empreinte, un utilisateur n'a donc **aucun moyen** de
+vérifier ce qu'il télécharge. Chaque version porte un fichier `SHA256SUMS.txt` unique, qui permet la
+vérification d'un seul geste (`sha256sum -c`) plutôt qu'un fichier par artefact.
+
+Il est produit par le job `publish`, et deux détails de ce choix comptent :
+
+- **les empreintes portent sur les artefacts téléchargés depuis la Release**, pas sur ceux sortis du
+  build. C'est ce que l'utilisateur recevra qui est haché, donc le **transfert lui-même** se trouve
+  couvert. Le coût est un aller-retour de quelques centaines de mégaoctets, dans le réseau GitHub ;
+- **l'étape précède la publication.** La Release est encore un brouillon quand les empreintes sont
+  calculées : personne ne peut donc télécharger un artefact avant que son empreinte n'existe.
+
+!!! danger "Le fichier ne doit pas figurer dans sa propre liste"
+    Un `SHA256SUMS.txt` laissé par une exécution précédente serait re-téléchargé puis haché avec les
+    autres, produisant une ligne qui ne peut jamais être vraie. L'étape le supprime donc avant de
+    lister. C'est vérifié par répétition sur les artefacts réels d'une version publiée.
+
+**Ce qu'une empreinte prouve, et ce qu'elle ne prouve pas.** Elle atteste que le fichier est
+**identique** à celui publié : elle détecte un téléchargement corrompu ou tronqué. Elle ne remplace
+**pas** une signature - publiée au même endroit que les fichiers, elle n'atteste d'aucune identité.
+La signature de code reste cadrée en #2112, où elle est suspendue à une décision de financement.
+
 Chaque installeur embarque son **runtime** (jpackage, profil `-Pinstaller`) : l'utilisateur final
 **n'installe pas Java**. Construire un installeur localement :
 

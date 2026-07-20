@@ -35,6 +35,24 @@
 }
 
 /* Checklist vivante (#254) : couleur par statut du contrôle (✓ / ✗ / ⚠). */
+/* L'icone d'un controle (#2099) : sa couleur vient de la classe de statut, portee en commun avec le
+   texte. Un FontIcon ne descend pas de -fx-text-fill, d'ou ces trois regles. */
+.controle-icone {
+  -fx-icon-size: 13px;
+}
+
+.controle-ok .ikonli-font-icon {
+  -fx-icon-color: #1e8449;
+}
+
+.controle-echec .ikonli-font-icon {
+  -fx-icon-color: #a93226;
+}
+
+.controle-avertissement .ikonli-font-icon {
+  -fx-icon-color: #b7950b;
+}
+
 .controle-ok {
   -fx-text-fill: #1e8449;
 }

@@ -33,6 +33,20 @@
 }
 
 /* ----- Lignes d'inspection ----- */
+/* L'icone de presence (#2099) : sa COULEUR vient de .insp-ok / .insp-absent, portees en commun avec le
+   texte, donc les deux ne peuvent pas se contredire. Seule la taille se regle ici. */
+.insp-icone {
+    -fx-icon-size: 13px;
+}
+
+.insp-ok .ikonli-font-icon {
+    -fx-icon-color: #1e8449;
+}
+
+.insp-absent .ikonli-font-icon {
+    -fx-icon-color: #b9770e;
+}
+
 .insp-ok {
     -fx-font-size: 13px;
     -fx-text-fill: #1e8449;

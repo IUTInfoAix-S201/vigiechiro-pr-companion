@@ -24,6 +24,25 @@
   <url type="bugtracker">https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues</url>
   <url type="vcs-browser">https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion</url>
 
+  <screenshots>
+    <screenshot type="default">
+      <image>https://raw.githubusercontent.com/IUTInfoAix-S201/vigiechiro-pr-companion/main/.github/assets/apercu-accueil.png</image>
+      <caption>L'accueil et ses activités : sites, import, écoute et validation, carte.</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/IUTInfoAix-S201/vigiechiro-pr-companion/main/.github/assets/apercu-import-assistant.png</image>
+      <caption>L'import d'une nuit depuis la carte SD d'un enregistreur passif.</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/IUTInfoAix-S201/vigiechiro-pr-companion/main/.github/assets/apercu-sons-validation.png</image>
+      <caption>L'écoute et la validation des espèces détectées.</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/IUTInfoAix-S201/vigiechiro-pr-companion/main/.github/assets/apercu-multisite.png</image>
+      <caption>La carte des sites et le tableau des passages.</caption>
+    </screenshot>
+  </screenshots>
+
   <content_rating type="oars-1.1"/>
 
   <releases>

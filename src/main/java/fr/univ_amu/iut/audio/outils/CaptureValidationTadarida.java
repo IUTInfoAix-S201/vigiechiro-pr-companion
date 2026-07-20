@@ -74,19 +74,11 @@ import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 import javafx.application.Platform;
-import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.SnapshotParameters;
-import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.TableView;
-import javafx.scene.image.WritableImage;
-import javafx.scene.layout.StackPane;
-import javafx.scene.paint.Color;
-import javafx.stage.Stage;
-import javax.imageio.ImageIO;
 
 /// Outil de capture/mesure, utilisable tel quel.
 ///
@@ -281,13 +273,10 @@ public final class CaptureValidationTadarida {
     /// corrections vers Vigie-Chiro… ») n'apparaissait donc **nulle part**, alors que c'est la surface qui
     /// bouge le plus.
     ///
-    /// [MenuButton] n'expose pas la scène de son popup. On reprend donc ses **vrais** [MenuItem] dans un
-    /// [ContextMenu] que l'on montre : textes, visibilité et grisages restent ceux de l'application, ce
-    /// qu'une reconstruction à l'identique ne garantirait pas. Le menu d'origine s'en trouve vidé, sans
-    /// conséquence : fermé, il n'affiche que son « ☰ », et le processus se termine après.
-    ///
-    /// Repli défensif comme [CaptureMenuLigne] : en headless, un popup peut ne pas se rendre. On abandonne
-    /// alors proprement plutôt que d'échouer le job de capture.
+    /// La mécanique (reprendre les **vrais** items dans un [ContextMenu] montré hors-écran, replier
+    /// proprement si le popup ne se rend pas en headless) vit désormais dans
+    /// [fr.univ_amu.iut.commun.outils.ApercuFx#enregistrerMenuOuvert] : elle allait être recopiée pour le
+    /// ☰ multi-sites, et deux autres écrans en ont besoin (#2065).
     private static void rendreMenuActions(Injector injecteur, long idPassage, Path fichier) throws IOException {
         FXMLLoader loader = new FXMLLoader(SonsValidationController.class.getResource("SonsValidation.fxml"));
         loader.setControllerFactory(injecteur::getInstance);
@@ -302,29 +291,10 @@ public final class CaptureValidationTadarida {
             System.out.println("[capture-menu-actions] menu ☰ introuvable : capture ignorée.");
             return;
         }
-        ContextMenu apercu = new ContextMenu();
-        apercu.getItems().addAll(List.copyOf(menuActions.getItems()));
-
-        Stage hote = new Stage();
-        hote.setScene(new Scene(new StackPane(), 500, 300));
-        hote.show();
-        apercu.show(hote);
-
-        Scene scenePopup = apercu.getScene();
-        if (scenePopup == null || scenePopup.getRoot() == null) {
+        if (!ApercuFx.enregistrerMenuOuvert(menuActions, fichier)) {
             System.out.println("[capture-menu-actions] popup non rendu (headless) : " + fichier + " ignoré.");
             return;
         }
-        Parent racine = scenePopup.getRoot();
-        racine.applyCss();
-        racine.layout();
-
-        SnapshotParameters params = new SnapshotParameters();
-        params.setFill(Color.WHITE);
-        WritableImage image = racine.snapshot(params, null);
-        ImageIO.write(SwingFXUtils.fromFXImage(image, null), "png", fichier.toFile());
-        apercu.hide();
-        hote.hide();
         System.out.println("Apercu ecrit dans " + fichier.toAbsolutePath());
     }
 

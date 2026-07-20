@@ -8,7 +8,12 @@ import java.util.ArrayList;
 import java.util.List;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.Scene;
+import javafx.scene.SnapshotParameters;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuButton;
+import javafx.scene.control.MenuItem;
 import javafx.scene.image.WritableImage;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javax.imageio.ImageIO;
 
@@ -62,6 +67,60 @@ public final class ApercuFx {
         WritableImage image = scene.snapshot(null);
         stageTransitoire.hide();
         ecrire(image, fichier);
+    }
+
+    /// Capture un **menu ouvert** (le popup d'un [MenuButton]) hors-écran, et l'écrit en PNG.
+    ///
+    /// Un `MenuButton` fermé n'affiche que son bouton : les entrées qu'il contient - leurs libellés, leurs
+    /// icônes, leurs grisages - ne se voient sur **aucun** aperçu. Or c'est là que se logent les défauts que
+    /// seule une capture révèle : un glyphe qui ne se rend pas, un libellé trop long, une entrée restée
+    /// active alors qu'elle devrait être grisée.
+    ///
+    /// Le menu montré est **le vrai** : ses items sont repris tels quels dans un [ContextMenu] transitoire,
+    /// jamais reconstruits. Textes, visibilités et grisages restent donc ceux de l'application, ce qu'une
+    /// reconstruction à l'identique ne garantirait pas (ADR 0025 : une capture passe par le code de
+    /// production, elle ne le reconstruit pas).
+    ///
+    /// Le menu source **n'est pas altéré** : mesure faite, ajouter des [MenuItem] à un [ContextMenu] ne
+    /// les retire pas de la liste du [MenuButton] d'origine, les deux listes étant indépendantes. Le code
+    /// dont cette méthode est extraite affirmait le contraire (« le menu d'origine s'en trouve vidé, sans
+    /// conséquence : le processus se termine après »), ce qui le rendait inutilisable par un appelant qui
+    /// capture autre chose ensuite - `CaptureMultisite` est précisément dans ce cas. La copie défensive
+    /// et [ApercuFxMenuTest] tiennent la propriété.
+    ///
+    /// En *headless*, un popup peut ne pas se rendre. La méthode renvoie alors `false` sans rien écrire,
+    /// à charge pour l'appelant de le dire et de continuer : un aperçu manquant ne doit pas faire échouer
+    /// tout un job de capture.
+    ///
+    /// @param menu le bouton de menu dont on veut montrer le contenu déployé
+    /// @param fichier le PNG à écrire
+    /// @return `true` si l'aperçu a été écrit, `false` si le popup ne s'est pas rendu
+    public static boolean enregistrerMenuOuvert(MenuButton menu, Path fichier) {
+        List<MenuItem> items = List.copyOf(menu.getItems());
+        ContextMenu apercu = new ContextMenu();
+        apercu.getItems().addAll(items);
+
+        Stage hote = new Stage();
+        hote.setScene(new Scene(new javafx.scene.layout.StackPane(), 500, 300));
+        hote.show();
+        apercu.show(hote);
+        try {
+            Scene scenePopup = apercu.getScene();
+            if (scenePopup == null || scenePopup.getRoot() == null) {
+                return false;
+            }
+            javafx.scene.Parent racine = scenePopup.getRoot();
+            racine.applyCss();
+            racine.layout();
+            SnapshotParameters params = new SnapshotParameters();
+            params.setFill(Color.WHITE);
+            ecrire(racine.snapshot(params, null), fichier);
+            return true;
+        } finally {
+            apercu.hide();
+            hote.hide();
+            apercu.getItems().clear();
+        }
     }
 
     private static void ecrire(WritableImage image, Path fichier) {

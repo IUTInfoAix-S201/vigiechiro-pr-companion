@@ -172,7 +172,7 @@
 /* #154 : deux points trop proches (sous le seuil) - avertissement orange, non bloquant. */
 .carte-point-alerte {
     -fx-font-size: 12px;
-    -fx-text-fill: #b9770e;
+    -fx-text-fill: -couleur-avertissement-texte;
     -fx-font-weight: bold;
 }
 
@@ -183,13 +183,13 @@
 .gps-ok {
     -fx-font-size: 12px;
     -fx-font-weight: bold;
-    -fx-text-fill: #1e8449;
+    -fx-text-fill: -couleur-succes;
 }
 
 .gps-manquant {
     -fx-font-size: 12px;
     -fx-font-weight: bold;
-    -fx-text-fill: #b9770e;
+    -fx-text-fill: -couleur-avertissement-texte;
 }
 
 /* ----- Modale d edition de point -----

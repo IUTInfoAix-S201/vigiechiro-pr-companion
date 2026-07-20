@@ -40,22 +40,22 @@
 }
 
 .insp-ok .ikonli-font-icon {
-    -fx-icon-color: #1e8449;
+    -fx-icon-color: -couleur-succes;
 }
 
 .insp-absent .ikonli-font-icon {
-    -fx-icon-color: #b9770e;
+    -fx-icon-color: -couleur-avertissement;
 }
 
 .insp-ok {
     -fx-font-size: 13px;
-    -fx-text-fill: #1e8449;
+    -fx-text-fill: -couleur-succes;
     -fx-font-weight: bold;
 }
 
 .insp-absent {
     -fx-font-size: 13px;
-    -fx-text-fill: #b9770e;
+    -fx-text-fill: -couleur-avertissement-texte;
     -fx-font-weight: bold;
 }
 

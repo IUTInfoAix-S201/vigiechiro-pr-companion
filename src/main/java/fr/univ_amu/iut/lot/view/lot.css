@@ -42,7 +42,7 @@
 }
 
 .controle-ok .ikonli-font-icon {
-  -fx-icon-color: #1e8449;
+  -fx-icon-color: -couleur-succes;
 }
 
 .controle-echec .ikonli-font-icon {
@@ -50,11 +50,11 @@
 }
 
 .controle-avertissement .ikonli-font-icon {
-  -fx-icon-color: #b7950b;
+  -fx-icon-color: -couleur-avertissement;
 }
 
 .controle-ok {
-  -fx-text-fill: #1e8449;
+  -fx-text-fill: -couleur-succes;
 }
 
 .controle-echec {
@@ -63,7 +63,7 @@
 }
 
 .controle-avertissement {
-  -fx-text-fill: #b7950b;
+  -fx-text-fill: -couleur-avertissement-texte;
 }
 
 /*

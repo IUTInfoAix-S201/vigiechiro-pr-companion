@@ -105,6 +105,7 @@ jobs:
           ./mvnw -B -Pinstaller \
             -Djpackage.type=${{ matrix.type }} \
             -Djpackage.appVersion="$VERSION" \
+            -Dapp.version="$VERSION" \
             -DskipTests -Dpmd.skip=true -Djacoco.skip=true \
             clean verify
       - name: Nommer les installeurs par architecture (évite la collision macOS arm64/Intel)
@@ -133,6 +134,7 @@ jobs:
           ./mvnw -B -Pinstaller \
             -Djpackage.type=app-image \
             -Djpackage.appVersion="$VERSION" \
+            -Dapp.version="$VERSION" \
             -DskipTests -Dpmd.skip=true -Djacoco.skip=true \
             verify
 

@@ -13,7 +13,10 @@ import picocli.CommandLine.Spec;
 /// de texte d'aide maintenu à la main.
 @Command(
         name = "vigiechiro",
-        version = "VigieChiro — compagnon PR (CLI)",
+        // Fournisseur plutôt que chaîne figée : la version vient du manifeste, donc n'est connue
+        // qu'à l'exécution. L'attribut `version` portait jusqu'ici un libellé sans numéro, qui
+        // répondait à `--version` sans rien apprendre (#2108).
+        versionProvider = FournisseurVersion.class,
         mixinStandardHelpOptions = true,
         sortOptions = false,
         synopsisSubcommandLabel = "<commande>",

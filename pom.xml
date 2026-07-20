@@ -25,6 +25,14 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.release>25</maven.compiler.release>
 
+        <!-- Version inscrite au manifeste, et donc rendue par « À propos » et par l'option version
+             de la CLI (#2108). Distincte de la balise version ci-dessus, qui reste 1.0-SNAPSHOT :
+             semantic-release calcule la version au moment de publier et ne touche PAS au pom. Sans
+             cette propriété, tout artefact publié annoncerait « 1.0-SNAPSHOT » : l'application
+             mentirait sur elle-même précisément là où on l'interroge, dans un signalement d'anomalie.
+             La CI la surcharge par app.version, comme elle le fait déjà pour jpackage.appVersion. -->
+        <app.version>${project.version}</app.version>
+
         <audio.view.version>1.15.0</audio.view.version>
 
         <maven.compiler.plugin.version>3.15.0</maven.compiler.plugin.version>
@@ -342,6 +350,25 @@
                 </executions>
             </plugin>
 
+            <!-- Manifeste du jar MINCE : y inscrit Implementation-Title et Implementation-Version,
+                 que `Package.getImplementationVersion()` lit à l'exécution. Sans cela l'application
+                 ignore sa propre version (#2108) - un utilisateur qui signale une anomalie ne peut
+                 pas dire laquelle il utilise, et aucune vérification de mise à jour n'est possible.
+                 Le fat-jar, lui, reconstruit son manifeste : cf. le transformer du shade ci-dessous. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.4.2</version>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <Implementation-Title>${project.name}</Implementation-Title>
+                            <Implementation-Version>${app.version}</Implementation-Version>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -380,6 +407,15 @@
                                 <transformer
                                     implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass>fr.univ_amu.iut.Launcher</mainClass>
+                                    <!-- Le fat-jar a son PROPRE manifeste, reconstruit par le shade :
+                                         les entrées du jar mince n'y arrivent pas toutes seules. Sans
+                                         cela, l'application distribuée ignore sa version alors que le
+                                         jar mince la connaît - or c'est le fat-jar qui est empaqueté
+                                         par jpackage, donc celui que l'utilisateur exécute (#2108). -->
+                                    <manifestEntries>
+                                        <Implementation-Title>${project.name}</Implementation-Title>
+                                        <Implementation-Version>${app.version}</Implementation-Version>
+                                    </manifestEntries>
                                 </transformer>
                                 <!-- Fusionne les META-INF/services de toutes les dépendances (sinon
                                      les fournisseurs Ikonli FontAwesome sont perdus -> icônes fas-*
@@ -710,7 +746,12 @@
                                         <argument>--app-version</argument>
                                         <argument>${jpackage.appVersion}</argument>
                                         <argument>--vendor</argument>
-                                        <argument>IUT d'Aix-Marseille</argument>
+                                        <!-- Éditeur du produit, affiché dans les propriétés de
+                                             l'installeur Windows et les métadonnées du paquet
+                                             Debian. C'est une personne, non l'établissement :
+                                             ce dépôt est né d'une SAÉ mais n'en est plus le
+                                             dépôt (#2108). -->
+                                        <argument>Sébastien Nedjar</argument>
                                         <argument>--input</argument>
                                         <argument>${project.build.directory}/jpackage-input</argument>
                                         <argument>--main-jar</argument>

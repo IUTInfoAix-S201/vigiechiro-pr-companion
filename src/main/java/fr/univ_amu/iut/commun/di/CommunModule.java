@@ -20,6 +20,7 @@ import fr.univ_amu.iut.commun.model.dao.DispositionColonnesDao;
 import fr.univ_amu.iut.commun.model.dao.VueSauvegardeeDao;
 import fr.univ_amu.iut.commun.persistence.DeclarationPurgeOriginaux;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
+import fr.univ_amu.iut.commun.view.ActionAPropos;
 import fr.univ_amu.iut.commun.view.ActionMenu;
 import fr.univ_amu.iut.commun.view.ActionOuvrirJournaux;
 import fr.univ_amu.iut.commun.view.ActionOuvrirReglages;
@@ -103,6 +104,9 @@ public class CommunModule extends AbstractModule {
         // « Ouvrir le dossier des journaux » (#1523) : accès direct aux logs pour joindre la trace d'un
         // incident à un signalement.
         actions.addBinding().to(ActionOuvrirJournaux.class);
+        // « À propos » (#2108) : version, JDK, système et dossier de travail. Voisine des journaux
+        // parce qu'on cherche les deux au même moment, pour renseigner un signalement.
+        actions.addBinding().to(ActionAPropos.class);
         actions.addBinding().to(ActionSourceEspece.class);
         actions.addBinding().to(ActionOuvrirReglages.class);
         // Recherche globale du chrome (#144) : OptionalBinder VIDE (feature `recherche` désactivable, #1087).

@@ -25,7 +25,7 @@ class ActionMenuWiringTest {
     }
 
     @Test
-    @DisplayName("Le socle contribue les 6 entrées du menu ☰, dans l'ordre (groupe puis ordre)")
+    @DisplayName("Le menu ☰ agrège les entrées du socle dans l'ordre (groupe puis ordre)")
     void agrege_et_ordonne(@TempDir Path tmp) {
         System.setProperty("vigiechiro.workspace", tmp.toString());
         Injector injector = RacineInjecteur.creer();
@@ -43,6 +43,9 @@ class ActionMenuWiringTest {
         // « Repartir d'une base neuve » (#1419) ferme le groupe : c'est l'action la plus lourde et la plus
         // rare, et les quatre qui la précèdent en sont le prérequis. L'ordre du menu se lit comme la
         // procédure elle-même — on sauvegarde, puis seulement on recommence.
+        //
+        // « À propos » (#2108) suit immédiatement « Ouvrir le dossier des journaux » : les deux servent
+        // le même geste — renseigner un signalement d'anomalie — et on les cherche au même moment.
         assertThat(ordonnees)
                 .containsExactly(
                         "ActionSauvegarder",
@@ -52,6 +55,7 @@ class ActionMenuWiringTest {
                         "ActionResetGuide",
                         "ActionPurger",
                         "ActionOuvrirJournaux",
+                        "ActionAPropos",
                         "ActionSourceEspece",
                         "ActionOuvrirReglages",
                         "ActionConnexion");

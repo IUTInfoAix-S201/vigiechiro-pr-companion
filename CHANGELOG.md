@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [2.27.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v2.26.3...v2.27.0) (2026-07-20)
+
+
+### Features
+
+* **qualification:** l’avertissement « à jeter » porte sa sévérité, plus une classe CSS figée ([#2200](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2200)) ([7e7a082](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/7e7a082792bd143929f7145be253773205b8b16b)), closes [#2050](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2050) [#2054](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2054) [#2069](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2069) [#2072](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2072) [#2075](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2075) [#2050](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2050) [#2050](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2050) [#2188](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2188)
+
 ## [2.26.3](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v2.26.2...v2.26.3) (2026-07-20)
 
 

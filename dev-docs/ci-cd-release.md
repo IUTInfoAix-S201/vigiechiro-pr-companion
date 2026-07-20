@@ -81,16 +81,42 @@ sequenceDiagram
     SR->>GH: tag vX.Y.Z + Release (brouillon)
     SR->>Main: commit CHANGELOG.md [skip ci]
     Rel->>Rel: job installers (matrice, profil -Pinstaller)
-    Rel->>GH: attache .deb / .dmg / .msi à la Release
+    Rel->>GH: attache installeurs + archives portables à la Release
 ```
 
-Les trois cibles :
+Chaque runner produit **deux** artefacts, à partir du même profil `installer` :
 
-| Runner | Installeur | Architecture |
-|---|---|---|
-| `ubuntu-latest` | `.deb` | x64 |
-| `macos-latest` | `.dmg` | arm64 (Apple Silicon) |
-| `windows-latest` | `.msi` | x64 |
+| Runner | Installeur | Archive portable | Architecture |
+|---|---|---|---|
+| `ubuntu-latest` | `.deb` | `…-linux-x64-portable.tar.gz` | x64 |
+| `macos-latest` | `.dmg` | `…-macos-arm64-portable.zip` | arm64 (Apple Silicon) |
+| `windows-latest` | `.msi` | `…-windows-x64-portable.zip` | x64 |
+
+### L'archive portable (#2107)
+
+L'installeur demande des **droits d'administration**. C'est un obstacle pour qui veut simplement
+essayer le produit, ou l'utiliser sur une machine qu'il n'administre pas - un poste de laboratoire, un
+ordinateur prêté. L'archive portable est la **marche du bas** : on décompresse, on lance, rien ne
+s'installe.
+
+Elle vient du **même profil `installer`**, avec `-Djpackage.type=app-image` : jpackage produit alors
+le dossier autonome (lanceur natif + runtime + fat-jar) au lieu de l'emballer dans un installeur.
+Aucune configuration Maven supplémentaire n'a été nécessaire.
+
+```bash
+./mvnw -Pinstaller -Djpackage.type=app-image -DskipTests verify   # -> target/dist/VigieChiro/
+```
+
+Le **format d'archive** est choisi pour ce qu'il préserve, et ce n'est pas interchangeable :
+
+- **`tar.gz`** (Linux) garde le **bit exécutable** du lanceur ;
+- **`ditto`** (macOS) est le seul outil qui préserve un bundle `.app` intact - un `zip -r` casse ses
+  liens symboliques et ses permissions, et l'application ne s'ouvre plus ;
+- **`zip`** (Windows), où la notion de bit exécutable n'existe pas.
+
+!!! warning "Le dossier est retiré après empaquetage"
+    `gh release upload` échoue sur un répertoire. L'étape supprime donc `VigieChiro/` (ou
+    `VigieChiro.app`) une fois l'archive faite, sans quoi le téléversement casse toute la publication.
 
 Chaque installeur embarque son **runtime** (jpackage, profil `-Pinstaller`) : l'utilisateur final
 **n'installe pas Java**. Construire un installeur localement :

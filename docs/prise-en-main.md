@@ -44,6 +44,46 @@ Dans les deux cas, tout le nécessaire est embarqué : **aucune installation de 
     ouverture (Gatekeeper sur macOS, SmartScreen sur Windows) : autorisez l'application pour
     continuer.
 
+### Vérifier ce que vous avez téléchargé
+
+Faute de signature, c'est **l'empreinte** qui atteste qu'un fichier est bien celui publié et qu'il est
+arrivé entier. Chaque version porte un fichier `SHA256SUMS.txt` listant l'empreinte de tous ses
+artefacts.
+
+Téléchargez-le à côté de votre fichier, puis, **dans le dossier de téléchargement**, en remplaçant le
+nom par celui que vous avez pris :
+
+=== "Linux"
+
+    ```bash
+    grep 'VigieChiro-2.18.0-linux-x64-portable.tar.gz' SHA256SUMS.txt | sha256sum -c
+    ```
+
+=== "macOS"
+
+    ```bash
+    grep 'VigieChiro-2.18.0-arm64.dmg' SHA256SUMS.txt | shasum -a 256 -c
+    ```
+
+=== "Windows (PowerShell)"
+
+    ```powershell
+    (Get-FileHash .\VigieChiro-2.18.0-x64.msi -Algorithm SHA256).Hash.ToLower()
+    Select-String -Path .\SHA256SUMS.txt -Pattern 'VigieChiro-2.18.0-x64.msi'
+    ```
+
+Le `grep` isole la ligne du fichier que vous avez réellement téléchargé : inutile de récupérer les six
+artefacts pour en contrôler un.
+
+Une réponse `OK` (ou, sous Windows, deux empreintes identiques) signifie que le fichier est intact. Un
+`FAILED` signifie qu'il **ne correspond pas** : ne l'ouvrez pas, retéléchargez-le.
+
+!!! warning "Ce que l'empreinte prouve, et ce qu'elle ne prouve pas"
+    Elle prouve que le fichier est **identique** à celui publié sur la page des Releases : elle
+    détecte un téléchargement corrompu ou tronqué. Elle ne remplace pas une **signature** : elle
+    n'atteste pas de l'identité de l'auteur, puisqu'elle est publiée au même endroit que les
+    fichiers. Sa confiance vaut celle que vous accordez à la page du projet.
+
 ## Lancer depuis les sources
 
 Si vous travaillez à partir du code (par exemple avant la première version publiée), l'application

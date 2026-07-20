@@ -234,7 +234,9 @@
                   promptText="Ex. vent fort vers 02:00, sons à vérifier ultérieurement."/>
       </VBox>
 
-      <Label fx:id="lblAvertissement" styleClass="encart, encart-avertissement" wrapText="true"/>
+      <!-- Sévérité (couleur + icône) posée à l'exécution par LibelleRetour, depuis le RetourOperation
+           du ViewModel (#2050) : ne pas figer ici encart-avertissement, elle serait écrasée. -->
+      <Label fx:id="lblAvertissement" styleClass="encart" wrapText="true"/>
       <!-- Bandeau de retour partagé (ADR 0023) : sévérité + fermeture, là où le libellé ad hoc
            n'offrait ni l'une ni l'autre. -->
       <HBox fx:id="bandeauRetour" styleClass="bandeau-retour" alignment="CENTER_LEFT" spacing="10.0">

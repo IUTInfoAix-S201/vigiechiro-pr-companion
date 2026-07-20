@@ -59,8 +59,12 @@ public class QualificationViewModel {
     private final StringProperty commentaire = new SimpleStringProperty(this, "commentaire", "");
     private final ReadOnlyObjectWrapper<EtatVerdict> etatVerdict =
             new ReadOnlyObjectWrapper<>(this, "etatVerdict", EtatVerdict.BROUILLON);
-    private final ReadOnlyStringWrapper avertissementAJeter =
-            new ReadOnlyStringWrapper(this, "avertissementAJeter", "");
+    /// Avertissement R14 « passage à jeter » : un [RetourOperation] plutôt qu'une chaîne, pour que sa
+    /// sévérité (AVERTISSEMENT) soit portée par la **donnée** et non par une classe CSS figée dans le
+    /// FXML. Rendu par [LibelleRetour][fr.univ_amu.iut.commun.view.LibelleRetour], comme les
+    /// avertissements de l'inspection (#2050).
+    private final ReadOnlyObjectWrapper<RetourOperation> avertissementAJeter =
+            new ReadOnlyObjectWrapper<>(this, "avertissementAJeter", RetourOperation.AUCUN);
     /// Retour de la dernière opération, avec sa sévérité, rendu dans le bandeau partagé (ADR 0023).
     private final ReadOnlyObjectWrapper<RetourOperation> retour =
             new ReadOnlyObjectWrapper<>(this, "retour", RetourOperation.AUCUN);
@@ -161,7 +165,7 @@ public class QualificationViewModel {
         verdictChoisi.set(null);
         commentaire.set("");
         etatVerdict.set(EtatVerdict.BROUILLON);
-        avertissementAJeter.set("");
+        avertissementAJeter.set(RetourOperation.AUCUN);
     }
 
     /// Ré-arme l'état « brouillon » dès qu'une modification survient **après** un enregistrement : le
@@ -219,7 +223,10 @@ public class QualificationViewModel {
             verdictActuel.set(verdictChoisi.get());
             statut.set(StatutWorkflow.VERIFIE);
             avertissementAJeter.set(
-                    service.estAJeter(idPassage) ? "Passage marqué « à jeter » : il ne pourra pas être déposé." : "");
+                    service.estAJeter(idPassage)
+                            ? RetourOperation.avertissement(
+                                    "Passage marqué « à jeter » : il ne pourra pas être déposé.")
+                            : RetourOperation.AUCUN);
             retour.set(RetourOperation.AUCUN);
             etatVerdict.set(EtatVerdict.ENREGISTRE);
         } catch (RuntimeException refus) {
@@ -309,8 +316,9 @@ public class QualificationViewModel {
         return etatVerdict.getReadOnlyProperty();
     }
 
-    /// Avertissement R14 affiché après l'enregistrement d'un verdict « à jeter », vide sinon.
-    public ReadOnlyStringProperty avertissementAJeterProperty() {
+    /// Avertissement R14 affiché après l'enregistrement d'un verdict « à jeter », [RetourOperation#AUCUN]
+    /// sinon.
+    public ReadOnlyObjectProperty<RetourOperation> avertissementAJeterProperty() {
         return avertissementAJeter.getReadOnlyProperty();
     }
 

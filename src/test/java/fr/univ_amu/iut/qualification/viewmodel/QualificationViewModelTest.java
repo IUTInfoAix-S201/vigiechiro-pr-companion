@@ -167,7 +167,7 @@ class QualificationViewModelTest {
         assertThat(viewModel.etatVerdictProperty().get()).isEqualTo(EtatVerdict.ENREGISTRE);
         assertThat(viewModel.verdictActuelProperty().get()).isEqualTo(Verdict.OK);
         assertThat(viewModel.statutProperty().get()).isEqualTo(StatutWorkflow.VERIFIE);
-        assertThat(viewModel.avertissementAJeterProperty().get()).isEmpty();
+        assertThat(viewModel.avertissementAJeterProperty().get()).isEqualTo(RetourOperation.AUCUN);
     }
 
     @Test
@@ -183,9 +183,11 @@ class QualificationViewModelTest {
 
         assertThat(viewModel.etatVerdictProperty().get()).isEqualTo(EtatVerdict.ENREGISTRE);
         // #258 : message affiché (lié à lblAvertissement) → pas de code de règle visible.
-        assertThat(viewModel.avertissementAJeterProperty().get())
+        assertThat(viewModel.avertissementAJeterProperty().get().texte())
                 .contains("à jeter")
                 .doesNotContain("R14");
+        // #2050 : la sévérité est portée par la donnée, plus par la classe CSS figée du FXML.
+        assertThat(viewModel.avertissementAJeterProperty().get().severite()).isEqualTo(Severite.AVERTISSEMENT);
     }
 
     @Test

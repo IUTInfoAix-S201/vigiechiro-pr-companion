@@ -2,6 +2,7 @@ package fr.univ_amu.iut.commun.view;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import fr.univ_amu.iut.commun.model.Severite;
 import fr.univ_amu.iut.commun.viewmodel.RetourOperation;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.kordamp.ikonli.javafx.FontIcon;
 import org.testfx.framework.junit5.ApplicationExtension;
 
 /// Contrat du [LibelleRetour], jumeau **inline** du [BandeauRetour] (#2050).
@@ -76,6 +78,23 @@ class LibelleRetourTest {
         assertThat(Set.copyOf(attendu.values()))
                 .as("deux sévérités qui partageraient une classe seraient indiscernables")
                 .hasSize(attendu.size());
+    }
+
+    @Test
+    @DisplayName("L'icône suit la sévérité, pas seulement la couleur")
+    void l_icone_suit_la_severite() {
+        // La couleur seule ne distingue rien pour qui ne la perçoit pas : la forme doit changer aussi
+        // (ADR 0035). Sans cette assertion, on pouvait vider `setGraphic` sans rien faire rougir - c'est
+        // exactement le trou que la Javadoc de cette classe reproche à BandeauRetour d'avoir eu (#2050).
+        for (Severite severite : Severite.values()) {
+            retour.set(new RetourOperation("message", severite));
+            assertThat(libelle.getGraphic())
+                    .as("sévérité %s : une icône est posée", severite)
+                    .isInstanceOf(FontIcon.class);
+            assertThat(((FontIcon) libelle.getGraphic()).getIconLiteral())
+                    .as("sévérité %s : le glyphe est celui de la table partagée", severite)
+                    .isEqualTo(IconesSeverite.glyphe(severite));
+        }
     }
 
     @Test

@@ -15,6 +15,7 @@ import fr.univ_amu.iut.commun.view.GardeQuitter;
 import fr.univ_amu.iut.commun.view.GestionnaireColonnes;
 import fr.univ_amu.iut.commun.view.IndicateurBlocage;
 import fr.univ_amu.iut.commun.view.IndicateurOccupation;
+import fr.univ_amu.iut.commun.view.LibelleRetour;
 import fr.univ_amu.iut.commun.view.Lieu;
 import fr.univ_amu.iut.commun.view.NotificateurModifiable;
 import fr.univ_amu.iut.commun.view.OuvrirPassage;
@@ -391,13 +392,7 @@ public class QualificationController implements GardeQuitter, EmplacementNavigat
         lblApercuR14.visibleProperty().bind(apercuAJeter);
         lblApercuR14.managedProperty().bind(apercuAJeter);
 
-        lblAvertissement.textProperty().bind(verdictVm.avertissementAJeterProperty());
-        lblAvertissement
-                .visibleProperty()
-                .bind(verdictVm.avertissementAJeterProperty().isNotEmpty());
-        lblAvertissement
-                .managedProperty()
-                .bind(verdictVm.avertissementAJeterProperty().isNotEmpty());
+        LibelleRetour.installer(lblAvertissement, verdictVm.avertissementAJeterProperty());
         lierMessagesErreur();
 
         // Confirmation de succès locale (#797) : le badge « ✓ Verdict enregistré » apparaît une fois le

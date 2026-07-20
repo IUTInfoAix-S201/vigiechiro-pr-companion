@@ -81,7 +81,7 @@
            dire, ce qui est le cas le plus fréquent : il ne prend alors aucune place.
            Peuplé par BandeauAnnonce depuis les AnnonceChrome contribuées (le socle ne connaît aucune
            feature). Sous la barre de navigation, pour ne pas la pousser hors de vue. -->
-      <HBox fx:id="bandeauAnnonce" styleClass="bandeau-retour"
+      <HBox fx:id="bandeauAnnonce" styleClass="bandeau-annonce"
             alignment="CENTER_LEFT" spacing="10.0" visible="false" managed="false">
         <FontIcon iconLiteral="fas-arrow-alt-circle-up"/>
         <Label fx:id="texteAnnonce" wrapText="true" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>

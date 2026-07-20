@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+## [2.20.2](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v2.20.1...v2.20.2) (2026-07-20)
+
+
+### Bug Fixes
+
+* **a11y:** le vert franchit le seuil, l'ambre se dédouble pour le franchir sans se perdre ([#2143](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2143)) ([257f0b5](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/257f0b5f61385537fdafa528cb984515e5fde39c)), closes [#1e8449](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/1e8449) [#1b8146](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/1b8146)
+
 ## [2.20.1](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v2.20.0...v2.20.1) (2026-07-20)
 
 

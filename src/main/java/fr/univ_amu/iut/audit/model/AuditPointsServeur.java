@@ -6,6 +6,7 @@ import fr.univ_amu.iut.commun.api.ReponseApi;
 import fr.univ_amu.iut.commun.api.SiteVigieChiro;
 import fr.univ_amu.iut.commun.model.LienVigieChiro;
 import fr.univ_amu.iut.commun.model.RegleMetierException;
+import fr.univ_amu.iut.commun.model.Severite;
 import fr.univ_amu.iut.commun.model.dao.LienVigieChiroDao;
 import fr.univ_amu.iut.passage.model.ParticipationOrpheline;
 import fr.univ_amu.iut.passage.model.ServiceReconstructionPassages;
@@ -118,7 +119,7 @@ public final class AuditPointsServeur {
 
         return parLocalite.entrySet().stream()
                 .map(localite -> new ConstatAudit(
-                        SeveriteConstat.AVERTISSEMENT,
+                        Severite.AVERTISSEMENT,
                         CategorieConstat.POINT_SERVEUR_IGNORE,
                         null,
                         localite.getKey(),
@@ -151,7 +152,7 @@ public final class AuditPointsServeur {
 
     private static ConstatAudit constatIndisponible(String precision) {
         return new ConstatAudit(
-                SeveriteConstat.INFO,
+                Severite.INFO,
                 CategorieConstat.SERVEUR_INJOIGNABLE,
                 null,
                 "-",
@@ -188,14 +189,14 @@ public final class AuditPointsServeur {
         String cible = site.numeroCarre() + " / " + local.code();
         if (distant == null) {
             constats.add(new ConstatAudit(
-                    SeveriteConstat.AVERTISSEMENT,
+                    Severite.AVERTISSEMENT,
                     CategorieConstat.POINT_DIVERGENT,
                     null,
                     cible,
                     "Point local inconnu du serveur (créé localement, ou supprimé côté serveur)."));
         } else if (positionDiffere(local, distant)) {
             constats.add(new ConstatAudit(
-                    SeveriteConstat.AVERTISSEMENT,
+                    Severite.AVERTISSEMENT,
                     CategorieConstat.POINT_DIVERGENT,
                     null,
                     cible,

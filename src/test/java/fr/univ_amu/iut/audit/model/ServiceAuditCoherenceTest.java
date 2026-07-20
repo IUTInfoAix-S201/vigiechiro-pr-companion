@@ -6,6 +6,7 @@ import static org.mockito.Mockito.when;
 
 import fr.univ_amu.iut.commun.model.Prefixe;
 import fr.univ_amu.iut.commun.model.Protocole;
+import fr.univ_amu.iut.commun.model.Severite;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.model.Utilisateur;
 import fr.univ_amu.iut.commun.model.Verdict;
@@ -119,7 +120,7 @@ class ServiceAuditCoherenceTest {
         AuditPointsServeur points = mock(AuditPointsServeur.class);
         when(points.auditer())
                 .thenReturn(List.of(new ConstatAudit(
-                        SeveriteConstat.AVERTISSEMENT,
+                        Severite.AVERTISSEMENT,
                         CategorieConstat.POINT_DIVERGENT,
                         null,
                         "040962 / A1",
@@ -141,7 +142,7 @@ class ServiceAuditCoherenceTest {
         List<ConstatAudit> constats = service.auditerEnLigne().constats();
 
         assertThat(constats).singleElement().satisfies(c -> {
-            assertThat(c.severite()).isEqualTo(SeveriteConstat.INFO);
+            assertThat(c.severite()).isEqualTo(Severite.INFO);
             assertThat(c.categorie()).isEqualTo(CategorieConstat.SERVEUR_INJOIGNABLE);
         });
     }
@@ -163,7 +164,7 @@ class ServiceAuditCoherenceTest {
         List<ConstatAudit> constats = service.auditerPassage(idPassage).constats();
 
         assertThat(constats).singleElement().satisfies(c -> {
-            assertThat(c.severite()).isEqualTo(SeveriteConstat.ERREUR);
+            assertThat(c.severite()).isEqualTo(Severite.ERREUR);
             assertThat(c.categorie()).isEqualTo(CategorieConstat.DISQUE_MANQUANT);
         });
     }
@@ -182,7 +183,7 @@ class ServiceAuditCoherenceTest {
                 .as("archivé volontairement n'est pas corrompu : code de sortie CLI 0")
                 .isFalse();
         assertThat(rapport.constats()).singleElement().satisfies(c -> {
-            assertThat(c.severite()).isEqualTo(SeveriteConstat.INFO);
+            assertThat(c.severite()).isEqualTo(Severite.INFO);
             assertThat(c.categorie()).isEqualTo(CategorieConstat.AUDIO_ARCHIVE);
             assertThat(c.detail())
                     .as("#1304 : le constat porte la disponibilité et le décompte (parité CLI)")
@@ -210,7 +211,7 @@ class ServiceAuditCoherenceTest {
                 .as("un squelette (synchronisé, pas encore importé) n'est pas corrompu")
                 .isFalse();
         assertThat(rapport.constats()).singleElement().satisfies(c -> {
-            assertThat(c.severite()).isEqualTo(SeveriteConstat.INFO);
+            assertThat(c.severite()).isEqualTo(Severite.INFO);
             assertThat(c.categorie()).isEqualTo(CategorieConstat.AUDIO_ARCHIVE);
             assertThat(c.detail()).contains("0/0 séquence(s)");
         });
@@ -254,7 +255,7 @@ class ServiceAuditCoherenceTest {
         List<ConstatAudit> constats = service.auditerPassage(idPassage).constats();
 
         assertThat(constats).singleElement().satisfies(c -> {
-            assertThat(c.severite()).isEqualTo(SeveriteConstat.AVERTISSEMENT);
+            assertThat(c.severite()).isEqualTo(Severite.AVERTISSEMENT);
             assertThat(c.categorie()).isEqualTo(CategorieConstat.DISQUE_ORPHELIN);
             assertThat(c.cible()).endsWith("intrus.wav");
         });
@@ -273,7 +274,7 @@ class ServiceAuditCoherenceTest {
         List<ConstatAudit> constats = service.auditerPassage(idPassage).constats();
 
         assertThat(constats).singleElement().satisfies(c -> {
-            assertThat(c.severite()).isEqualTo(SeveriteConstat.ERREUR);
+            assertThat(c.severite()).isEqualTo(Severite.ERREUR);
             assertThat(c.categorie()).isEqualTo(CategorieConstat.PREFIXE_NON_CONFORME);
         });
     }
@@ -304,7 +305,7 @@ class ServiceAuditCoherenceTest {
         List<ConstatAudit> constats = service.auditerPassage(idPassage).constats();
 
         assertThat(constats).singleElement().satisfies(c -> {
-            assertThat(c.severite()).isEqualTo(SeveriteConstat.ERREUR);
+            assertThat(c.severite()).isEqualTo(Severite.ERREUR);
             assertThat(c.categorie()).isEqualTo(CategorieConstat.DISQUE_MANQUANT);
         });
     }
@@ -322,7 +323,7 @@ class ServiceAuditCoherenceTest {
         List<ConstatAudit> constats = service.auditerPassage(idPassage).constats();
 
         assertThat(constats).singleElement().satisfies(c -> {
-            assertThat(c.severite()).isEqualTo(SeveriteConstat.INFO);
+            assertThat(c.severite()).isEqualTo(Severite.INFO);
             assertThat(c.categorie()).isEqualTo(CategorieConstat.DISQUE_MANQUANT);
         });
     }
@@ -339,7 +340,7 @@ class ServiceAuditCoherenceTest {
         List<ConstatAudit> constats = service.auditerPassage(idPassage).constats();
 
         assertThat(constats).singleElement().satisfies(c -> {
-            assertThat(c.severite()).isEqualTo(SeveriteConstat.ERREUR);
+            assertThat(c.severite()).isEqualTo(Severite.ERREUR);
             assertThat(c.categorie()).isEqualTo(CategorieConstat.DEPOT_DIVERGENT);
             assertThat(c.cible()).isEqualTo(nomDivergent);
         });
@@ -353,7 +354,7 @@ class ServiceAuditCoherenceTest {
         List<ConstatAudit> constats = service.auditerPassage(idPassage).constats();
 
         assertThat(constats).singleElement().satisfies(c -> {
-            assertThat(c.severite()).isEqualTo(SeveriteConstat.INFO);
+            assertThat(c.severite()).isEqualTo(Severite.INFO);
             assertThat(c.categorie()).isEqualTo(CategorieConstat.SESSION_ABSENTE);
         });
     }
@@ -366,7 +367,7 @@ class ServiceAuditCoherenceTest {
         List<ConstatAudit> constats = service.auditerTout().constats();
 
         assertThat(constats).singleElement().satisfies(c -> {
-            assertThat(c.severite()).isEqualTo(SeveriteConstat.AVERTISSEMENT);
+            assertThat(c.severite()).isEqualTo(Severite.AVERTISSEMENT);
             assertThat(c.categorie()).isEqualTo(CategorieConstat.DOSSIER_ORPHELIN);
         });
     }

@@ -16,7 +16,6 @@ import com.google.inject.util.Modules;
 import fr.univ_amu.iut.audit.model.CategorieConstat;
 import fr.univ_amu.iut.audit.model.RapportAudit;
 import fr.univ_amu.iut.audit.model.ServiceAuditCoherence;
-import fr.univ_amu.iut.audit.model.SeveriteConstat;
 import fr.univ_amu.iut.commun.api.ClientVigieChiro;
 import fr.univ_amu.iut.commun.api.DonneeVigieChiro;
 import fr.univ_amu.iut.commun.api.ObservationVigieChiro;
@@ -32,6 +31,7 @@ import fr.univ_amu.iut.commun.api.Traitement;
 import fr.univ_amu.iut.commun.di.RacineInjecteur;
 import fr.univ_amu.iut.commun.model.FichierWav;
 import fr.univ_amu.iut.commun.model.LienVigieChiro;
+import fr.univ_amu.iut.commun.model.Severite;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.model.dao.LienVigieChiroDao;
 import fr.univ_amu.iut.commun.persistence.MigrationSchema;
@@ -205,7 +205,7 @@ class ParcoursRestaurationDepuisVigieChiroE2ETest {
         RapportAudit audit = injector.getInstance(ServiceAuditCoherence.class).auditerTout();
         assertThat(audit.constats())
                 .as("aucune ERREUR : un passage restauré est archivé, pas corrompu (#1303)")
-                .noneMatch(constat -> constat.severite() == SeveriteConstat.ERREUR);
+                .noneMatch(constat -> constat.severite() == Severite.ERREUR);
         assertThat(audit.constats())
                 .as("le passage restauré porte le VRAI préfixe R6 : un préfixe fabriqué serait signalé à vie")
                 .noneMatch(constat -> constat.categorie() == CategorieConstat.PREFIXE_NON_CONFORME);
@@ -216,7 +216,7 @@ class ParcoursRestaurationDepuisVigieChiroE2ETest {
                 .as("il reste ce qu'il doit rester : UN constat, informatif, qui dit que l'audio est archivé")
                 .singleElement()
                 .satisfies(constat -> {
-                    assertThat(constat.severite()).isEqualTo(SeveriteConstat.INFO);
+                    assertThat(constat.severite()).isEqualTo(Severite.INFO);
                     assertThat(constat.categorie()).isEqualTo(CategorieConstat.AUDIO_ARCHIVE);
                 });
     }

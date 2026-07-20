@@ -5,8 +5,8 @@ import com.google.inject.Provider;
 import fr.univ_amu.iut.audit.model.ConstatAudit;
 import fr.univ_amu.iut.audit.model.RapportAudit;
 import fr.univ_amu.iut.audit.model.ServiceAuditCoherence;
-import fr.univ_amu.iut.audit.model.SeveriteConstat;
 import fr.univ_amu.iut.cli.FormatJson;
+import fr.univ_amu.iut.commun.model.Severite;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -20,7 +20,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Spec;
 
 /// Commande `audit-coherence` : audit de cohérence disque / base en lecture seule. Code de sortie `1`
-/// dès qu'un constat de gravité [SeveriteConstat#ERREUR] est relevé (pilotage par script), `0` sinon.
+/// dès qu'un constat de gravité [Severite#ERREUR] est relevé (pilotage par script), `0` sinon.
 @Command(
         name = "audit-coherence",
         description = "Audite la cohérence disque / base en lecture seule : fichiers manquants ou orphelins, "
@@ -115,11 +115,11 @@ public final class Auditer implements Callable<Integer> {
         }
         texte.append(rapport.constats().size())
                 .append(" constat(s) : ")
-                .append(rapport.nombre(SeveriteConstat.ERREUR))
+                .append(rapport.nombre(Severite.ERREUR))
                 .append(" erreur(s), ")
-                .append(rapport.nombre(SeveriteConstat.AVERTISSEMENT))
+                .append(rapport.nombre(Severite.AVERTISSEMENT))
                 .append(" avertissement(s), ")
-                .append(rapport.nombre(SeveriteConstat.INFO))
+                .append(rapport.nombre(Severite.INFO))
                 .append(" info(s).");
         return texte.toString();
     }

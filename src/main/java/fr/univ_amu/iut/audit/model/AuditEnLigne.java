@@ -1,6 +1,7 @@
 package fr.univ_amu.iut.audit.model;
 
 import fr.univ_amu.iut.commun.model.RegleMetierException;
+import fr.univ_amu.iut.commun.model.Severite;
 import fr.univ_amu.iut.lot.model.BilanVerification;
 import fr.univ_amu.iut.lot.model.VerificationDepot;
 import fr.univ_amu.iut.passage.model.Passage;
@@ -33,7 +34,7 @@ class AuditEnLigne {
     List<ConstatAudit> auditer() {
         if (verificationDepot.isEmpty() && auditPointsServeur.isEmpty()) {
             return List.of(new ConstatAudit(
-                    SeveriteConstat.INFO,
+                    Severite.INFO,
                     CategorieConstat.SERVEUR_INJOIGNABLE,
                     null,
                     "-",
@@ -63,7 +64,7 @@ class AuditEnLigne {
         List<ConstatAudit> constats = new ArrayList<>();
         if (!bilan.journalDisponible()) {
             constats.add(new ConstatAudit(
-                    SeveriteConstat.INFO,
+                    Severite.INFO,
                     CategorieConstat.SERVEUR_INJOIGNABLE,
                     idPassage,
                     bilan.participationId(),
@@ -72,7 +73,7 @@ class AuditEnLigne {
         }
         for (String manquante : bilan.manquantes()) {
             constats.add(new ConstatAudit(
-                    SeveriteConstat.AVERTISSEMENT,
+                    Severite.AVERTISSEMENT,
                     CategorieConstat.SERVEUR_MANQUANT,
                     idPassage,
                     manquante,

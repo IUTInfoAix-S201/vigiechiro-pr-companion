@@ -11,6 +11,7 @@ import fr.univ_amu.iut.commun.api.SiteVigieChiro;
 import fr.univ_amu.iut.commun.model.LienVigieChiro;
 import fr.univ_amu.iut.commun.model.Protocole;
 import fr.univ_amu.iut.commun.model.RegleMetierException;
+import fr.univ_amu.iut.commun.model.Severite;
 import fr.univ_amu.iut.commun.model.Utilisateur;
 import fr.univ_amu.iut.commun.model.Workspace;
 import fr.univ_amu.iut.commun.model.dao.LienVigieChiroDao;
@@ -149,7 +150,7 @@ class AuditPointsServeurTest {
 
         assertThat(audit.auditer()).singleElement().satisfies(constat -> {
             assertThat(constat.categorie()).isEqualTo(CategorieConstat.POINT_SERVEUR_IGNORE);
-            assertThat(constat.severite()).isEqualTo(SeveriteConstat.AVERTISSEMENT);
+            assertThat(constat.severite()).isEqualTo(Severite.AVERTISSEMENT);
             assertThat(constat.cible()).isEqualTo("040962 / B2");
             // Le constat nomme le travail : c'est lui qui rend l'écart intéressant, pas la localité.
             assertThat(constat.detail())
@@ -187,7 +188,7 @@ class AuditPointsServeurTest {
         when(reconstruction.orphelines()).thenThrow(new RegleMetierException("Vigie-Chiro est injoignable (timeout)"));
 
         assertThat(audit.auditer()).singleElement().satisfies(constat -> {
-            assertThat(constat.severite()).isEqualTo(SeveriteConstat.INFO);
+            assertThat(constat.severite()).isEqualTo(Severite.INFO);
             assertThat(constat.categorie()).isEqualTo(CategorieConstat.SERVEUR_INJOIGNABLE);
             assertThat(constat.detail()).contains("injoignable");
         });

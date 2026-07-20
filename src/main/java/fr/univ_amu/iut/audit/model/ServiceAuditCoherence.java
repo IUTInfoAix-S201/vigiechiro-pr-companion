@@ -3,6 +3,7 @@ package fr.univ_amu.iut.audit.model;
 import fr.univ_amu.iut.commun.model.Prefixe;
 import fr.univ_amu.iut.commun.model.PresenceFichiers;
 import fr.univ_amu.iut.commun.model.PresenceFichiers.Presence;
+import fr.univ_amu.iut.commun.model.Severite;
 import fr.univ_amu.iut.commun.model.Workspace;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
 import fr.univ_amu.iut.lot.model.DepotUnite;
@@ -116,7 +117,7 @@ public class ServiceAuditCoherence {
         List<ConstatAudit> constats = new ArrayList<>();
         if (sessionOpt.isEmpty()) {
             constats.add(new ConstatAudit(
-                    SeveriteConstat.INFO,
+                    Severite.INFO,
                     CategorieConstat.SESSION_ABSENTE,
                     passage.id(),
                     ciblePassage(passage.id()),
@@ -153,7 +154,7 @@ public class ServiceAuditCoherence {
     /// **Passage archivé** (#1348, #1300) : l'audio (séquences + originaux) a été supprimé
     /// **volontairement**, marqueur explicite à l'appui : le contrôler fichier par fichier
     /// produirait des milliers d'erreurs fantômes. Il est remplacé par **un seul constat**
-    /// [SeveriteConstat#INFO] ([CategorieConstat#AUDIO_ARCHIVE]) ; le journal, le relevé et les
+    /// [Severite#INFO] ([CategorieConstat#AUDIO_ARCHIVE]) ; le journal, le relevé et les
     /// résultats Tadarida, eux, **survivent** à l'archivage : leur absence reste un vrai problème,
     /// contrôlé comme avant.
     private void controleExistence(
@@ -187,20 +188,19 @@ public class ServiceAuditCoherence {
         }
         if (originauxAudites) {
             for (EnregistrementOriginal original : originaux) {
-                signalerAbsence(constats, idPassage, original.cheminFichier(), SeveriteConstat.ERREUR, presences);
+                signalerAbsence(constats, idPassage, original.cheminFichier(), Severite.ERREUR, presences);
             }
         }
         if (audioAudite) {
             for (SequenceDEcoute sequence : sequences) {
-                signalerAbsence(constats, idPassage, sequence.cheminFichier(), SeveriteConstat.ERREUR, presences);
+                signalerAbsence(constats, idPassage, sequence.cheminFichier(), Severite.ERREUR, presences);
             }
         }
-        journal.ifPresent(
-                j -> signalerAbsence(constats, idPassage, j.cheminFichier(), SeveriteConstat.ERREUR, presences));
+        journal.ifPresent(j -> signalerAbsence(constats, idPassage, j.cheminFichier(), Severite.ERREUR, presences));
         releve.ifPresent(
-                r -> signalerAbsence(constats, idPassage, r.cheminFichier(), SeveriteConstat.AVERTISSEMENT, presences));
+                r -> signalerAbsence(constats, idPassage, r.cheminFichier(), Severite.AVERTISSEMENT, presences));
         resultats.ifPresent(
-                r -> signalerAbsence(constats, idPassage, r.cheminFichier(), SeveriteConstat.AVERTISSEMENT, presences));
+                r -> signalerAbsence(constats, idPassage, r.cheminFichier(), Severite.AVERTISSEMENT, presences));
     }
 
     /// Constat informatif d'un passage **archivé** : la disponibilité de son audio, avec le décompte
@@ -215,7 +215,7 @@ public class ServiceAuditCoherence {
                 .filter(sequence -> presences.get(sequence.cheminFichier()) == Presence.PRESENTE)
                 .count();
         return new ConstatAudit(
-                SeveriteConstat.INFO,
+                Severite.INFO,
                 CategorieConstat.AUDIO_ARCHIVE,
                 idPassage,
                 ciblePassage(idPassage),
@@ -225,14 +225,14 @@ public class ServiceAuditCoherence {
     }
 
     /// Ajoute un constat si le fichier est absent du verdict groupé. Un chemin **hors workspace**
-    /// (carte SD externe) est signalé en [SeveriteConstat#INFO] (média peut-être non monté) ; sous le
+    /// (carte SD externe) est signalé en [Severite#INFO] (média peut-être non monté) ; sous le
     /// workspace, la gravité passée s'applique. Les chemins vides, ignorés du balayage, sont sans
     /// constat (comme avant #1298).
     private void signalerAbsence(
             List<ConstatAudit> constats,
             Long idPassage,
             String chemin,
-            SeveriteConstat severiteSousWorkspace,
+            Severite severiteSousWorkspace,
             Map<String, Presence> presences) {
         Presence verdict = presences.get(chemin);
         if (verdict == null || verdict == Presence.PRESENTE) {
@@ -240,7 +240,7 @@ public class ServiceAuditCoherence {
         }
         boolean interne = verdict == Presence.ABSENTE;
         constats.add(new ConstatAudit(
-                interne ? severiteSousWorkspace : SeveriteConstat.INFO,
+                interne ? severiteSousWorkspace : Severite.INFO,
                 CategorieConstat.DISQUE_MANQUANT,
                 idPassage,
                 chemin,
@@ -257,7 +257,7 @@ public class ServiceAuditCoherence {
         Optional<Prefixe> prefixeOpt = prefixeAttendu(passage);
         if (prefixeOpt.isEmpty()) {
             constats.add(new ConstatAudit(
-                    SeveriteConstat.ERREUR,
+                    Severite.ERREUR,
                     CategorieConstat.PREFIXE_NON_CONFORME,
                     passage.id(),
                     ciblePassage(passage.id()),
@@ -276,7 +276,7 @@ public class ServiceAuditCoherence {
     private void signalerPrefixe(List<ConstatAudit> constats, Long idPassage, String nom, String prefixe) {
         if (nom != null && !nom.startsWith(prefixe)) {
             constats.add(new ConstatAudit(
-                    SeveriteConstat.ERREUR,
+                    Severite.ERREUR,
                     CategorieConstat.PREFIXE_NON_CONFORME,
                     idPassage,
                     nom,
@@ -296,7 +296,7 @@ public class ServiceAuditCoherence {
             String nom = unite.identifiantUnite();
             if (nom != null && !nom.startsWith(prefixe)) {
                 constats.add(new ConstatAudit(
-                        SeveriteConstat.ERREUR,
+                        Severite.ERREUR,
                         CategorieConstat.DEPOT_DIVERGENT,
                         passage.id(),
                         nom,

@@ -5,7 +5,7 @@ import fr.univ_amu.iut.audit.model.ConstatAudit;
 import fr.univ_amu.iut.audit.model.ContexteAuditPassage;
 import fr.univ_amu.iut.audit.model.RapportAudit;
 import fr.univ_amu.iut.audit.model.ServiceAuditCoherence;
-import fr.univ_amu.iut.audit.model.SeveriteConstat;
+import fr.univ_amu.iut.commun.model.Severite;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -83,11 +83,11 @@ public class AuditViewModel {
         }
         return rapport.constats().size()
                 + " écart(s) : "
-                + rapport.nombre(SeveriteConstat.ERREUR)
+                + rapport.nombre(Severite.ERREUR)
                 + " erreur(s), "
-                + rapport.nombre(SeveriteConstat.AVERTISSEMENT)
+                + rapport.nombre(Severite.AVERTISSEMENT)
                 + " avertissement(s), "
-                + rapport.nombre(SeveriteConstat.INFO)
+                + rapport.nombre(Severite.INFO)
                 + " info(s).";
     }
 

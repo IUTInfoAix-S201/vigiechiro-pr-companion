@@ -1,5 +1,6 @@
 package fr.univ_amu.iut.audit.model;
 
+import fr.univ_amu.iut.commun.model.Severite;
 import fr.univ_amu.iut.commun.persistence.BilanSauvegarde;
 import java.nio.file.Path;
 import java.util.List;
@@ -71,7 +72,7 @@ public sealed interface ResultatReset {
                     .append("\n  Reconstruit depuis Vigie-Chiro : ")
                     .append(passagesReconstruits)
                     .append(" passage(s) archivé(s).\n  Audit final : ")
-                    .append(audit.sain() ? "sain." : audit.nombre(SeveriteConstat.ERREUR) + " erreur(s).");
+                    .append(audit.sain() ? "sain." : audit.nombre(Severite.ERREUR) + " erreur(s).");
             if (!aRetablir.isEmpty()) {
                 texte.append("\n\nIl reste l'audio à rétablir — le serveur ne l'a pas :");
                 aRetablir.forEach(nuit -> texte.append("\n  - ").append(nuit));

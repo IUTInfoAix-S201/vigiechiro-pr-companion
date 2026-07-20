@@ -175,6 +175,35 @@ jobs:
     if: needs.release.outputs.tag != ''
     runs-on: ubuntu-latest
     steps:
+      - name: Publier les empreintes SHA-256 des artefacts
+        # Les installeurs ne sont PAS signés (la doc utilisateur le dit) : sans empreinte, personne
+        # ne peut vérifier ce qu'il télécharge. Un fichier unique `SHA256SUMS.txt` permet la
+        # vérification d'un seul geste (`sha256sum -c`), plutôt qu'un fichier par artefact.
+        #
+        # Les empreintes sont calculées sur les artefacts TÉLÉCHARGÉS depuis la Release, et non sur
+        # ceux produits par le build : c'est ce que l'utilisateur recevra qui est haché, donc le
+        # transfert lui-même se trouve couvert. Le coût est un aller-retour de quelques centaines de
+        # mégaoctets, à l'intérieur du réseau GitHub.
+        #
+        # Cette étape précède la publication : la Release est encore un brouillon, donc personne ne
+        # peut télécharger un artefact avant que son empreinte n'existe.
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          TAG="${{ needs.release.outputs.tag }}"
+          mkdir -p empreintes
+          cd empreintes
+          gh release download "$TAG" --clobber
+          # Une exécution précédente a pu déposer ce fichier sur la Release : il ne doit pas
+          # figurer dans sa propre liste d'empreintes.
+          rm -f SHA256SUMS.txt
+          sha256sum -- * > ../SHA256SUMS.txt
+          cd ..
+          cat SHA256SUMS.txt
+          gh release upload "$TAG" SHA256SUMS.txt --clobber
+
       - name: Publier la Release (retirer le brouillon)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

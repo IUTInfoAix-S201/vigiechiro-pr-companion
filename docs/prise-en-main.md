@@ -6,18 +6,38 @@ d'enregistrement.
 
 ## Installer l'application
 
-Une fois une version publiée, des installeurs prêts à l'emploi sont disponibles sur la page
-[Releases](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/releases) du projet.
-Téléchargez celui qui correspond à votre système, puis installez-le comme une application classique :
+Les fichiers sont sur la page
+[Releases](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/releases) du projet. Deux
+formes vous sont proposées pour chaque système, et le choix n'est pas anodin.
 
-| Système | Fichier à télécharger |
+### Installer, ou simplement décompresser
+
+**L'installeur** place l'application dans votre système comme n'importe quel logiciel : elle apparaît
+dans le menu Démarrer ou le Launchpad. Il demande en revanche les **droits d'administration**.
+
+| Système | Installeur |
 |---|---|
-| Windows | `.msi` (ou `.exe`) |
-| macOS | `.dmg` (ou `.pkg`) |
-| Linux | `.deb` (Debian, Ubuntu) ou `.rpm` (Fedora) |
+| Windows | `VigieChiro-…-x64.msi` |
+| macOS (Apple Silicon) | `VigieChiro-…-arm64.dmg` |
+| Linux (Debian, Ubuntu) | `vigiechiro_…_amd64-x64.deb` |
 
-L'installeur embarque tout le nécessaire : **aucune installation de Java** n'est requise pour
-utiliser l'application.
+**L'archive portable** ne s'installe pas : vous la décompressez où vous voulez, et vous lancez.
+Aucun droit particulier n'est requis. C'est la bonne option pour **essayer le produit**, ou pour
+travailler sur un **ordinateur que vous n'administrez pas** - un poste de laboratoire, une machine
+prêtée.
+
+| Système | Archive portable | Pour lancer |
+|---|---|---|
+| Windows | `…-windows-x64-portable.zip` | décompressez, puis `VigieChiro\VigieChiro.exe` |
+| macOS | `…-macos-arm64-portable.zip` | décompressez, puis ouvrez `VigieChiro.app` |
+| Linux | `…-linux-x64-portable.tar.gz` | `tar -xzf …tar.gz` puis `VigieChiro/bin/VigieChiro` |
+
+Dans les deux cas, tout le nécessaire est embarqué : **aucune installation de Java** n'est requise.
+
+!!! tip "Et pour mettre à jour ?"
+    Avec l'archive portable, remplacez simplement le dossier décompressé par celui de la nouvelle
+    version. Vos données (base et journaux) vivent **ailleurs**, dans votre dossier personnel : elles
+    ne sont pas touchées.
 
 !!! note "Avertissement de sécurité possible"
     Les installeurs ne sont pas signés. Votre système peut afficher un avertissement à la première

@@ -350,7 +350,7 @@
 }
 
 .apercu-r14 .ikonli-font-icon {
-  -fx-icon-color: #b9770e;
+  -fx-icon-color: -couleur-avertissement;
 }
 
 .badge-succes .ikonli-font-icon {

@@ -124,6 +124,80 @@ class ContrasteAATest {
     /// pas une.
     private static final List<String> SOUS_LE_SEUIL_AA = List.of();
 
+    /// **Valeurs littérales retirées pour insuffisance de contraste** (#322) : un jeton corrigé les a
+    /// remplacées, et elles ne doivent pas réapparaître comme couleur de **texte ou d'icône**.
+    ///
+    /// C'est la classe de défaut qui revient, trois fois observée : le jeton est corrigé pour le
+    /// contraste, mais ses copies littérales dans les feuilles de features restent en arrière et
+    /// gardent l'ancienne valeur. Le gris (#2102), puis le vert et l'ambre (#322) ont tous suivi ce
+    /// chemin. Ce cliquet le rend impossible à recréer : il ne juge pas un contraste, il interdit une
+    /// **valeur périmée**, à référencer désormais par son jeton.
+    ///
+    /// Distinct de la tokenisation générale (#1974) : on n'interdit **pas** tout littéral égal à un
+    /// jeton (`#2c3e50` ou `#ffffff` ont un contraste parfait). On interdit les seules valeurs qu'un
+    /// correctif de contraste a écartées.
+    private static final Map<String, String> VALEURS_RETIREES = new LinkedHashMap<>();
+
+    static {
+        VALEURS_RETIREES.put("#6a737d", "-couleur-texte-discret (#2102, gris à 4,45:1)");
+        VALEURS_RETIREES.put("#1e8449", "-couleur-succes (#2115, vert à 4,36:1)");
+        VALEURS_RETIREES.put("#b7950b", "-couleur-avertissement-texte / -couleur-avertissement (#322, ambre à 2,65:1)");
+        VALEURS_RETIREES.put(
+                "#b9770e (en -fx-text-fill)", "-couleur-avertissement-texte (#322, ambre d'icône en texte)");
+    }
+
+    private static final Pattern TEXTE_OU_ICONE =
+            Pattern.compile("-fx-(text-fill|icon-color)\\s*:\\s*(#[0-9a-fA-F]{6})\\b");
+
+    @Test
+    @DisplayName("Une valeur littérale retirée pour insuffisance de contraste ne réapparaît pas")
+    void aucune_valeur_retiree_ne_reapparait() {
+        List<String> fautifs = new ArrayList<>();
+
+        for (Path feuille : feuillesDeStyle()) {
+            String nom = feuille.getFileName().toString();
+            if (nom.equals("palette.css")) {
+                continue; // la palette EST le lieu où ces valeurs ont légitimement vécu, avant correction
+            }
+            Matcher m = TEXTE_OU_ICONE.matcher(lire(feuille));
+            while (m.find()) {
+                String role = m.group(1); // "text-fill" ou "icon-color"
+                String valeur = m.group(2).toLowerCase();
+                // #b9770e reste légitime comme couleur d'ICÔNE (c'est -couleur-avertissement, 3,40:1,
+                // au-dessus du seuil des éléments) : il n'est retiré que comme couleur de TEXTE.
+                boolean retiree =
+                        switch (valeur) {
+                            case "#6a737d", "#1e8449", "#b7950b" -> true;
+                            case "#b9770e" -> role.equals("text-fill");
+                            default -> false;
+                        };
+                if (retiree) {
+                    fautifs.add(nom + " : -fx-" + role + ": " + valeur);
+                }
+            }
+        }
+
+        assertThat(fautifs)
+                .as("""
+                        Une couleur retirée pour insuffisance de contraste réapparaît en littéral.
+
+                        Ces valeurs ont été écartées parce qu'elles passaient sous le seuil WCAG AA, et
+                        un jeton corrigé les a remplacées. Les réécrire en littéral recrée exactement le
+                        défaut qui a coûté trois passages (gris #2102, vert et ambre #322) : le jeton est
+                        à jour, la copie reste en arrière.
+
+                        Référencez le jeton, ne recopiez pas la valeur :
+                        %s
+
+                        Ce cliquet n'interdit PAS tout littéral égal à un jeton (#2c3e50, #ffffff ont un
+                        contraste parfait) : seulement les valeurs qu'un correctif de contraste a
+                        écartées. La tokenisation générale relève de #1974, pas d'ici.
+                        """.formatted(VALEURS_RETIREES.entrySet().stream()
+                        .map(e -> "  " + e.getKey() + " -> " + e.getValue())
+                        .reduce("", (a, b) -> a.isEmpty() ? b : a + "\n" + b)))
+                .isEmpty();
+    }
+
     @Test
     @DisplayName("La dette de contraste ne peut que rétrécir : aucun nouveau couple sous le seuil AA")
     void la_dette_de_contraste_ne_peut_que_retrecir() {

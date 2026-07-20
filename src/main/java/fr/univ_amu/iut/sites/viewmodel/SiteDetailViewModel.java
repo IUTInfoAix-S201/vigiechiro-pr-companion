@@ -305,9 +305,16 @@ public class SiteDetailViewModel {
         return site.nomConvivial() == null ? prefixe : prefixe + " — " + site.nomConvivial();
     }
 
+    /// Sous-titre de la barre de statut : commune (si connue) puis protocole.
+    ///
+    /// Sans repère de lieu (#1564). Le « 📍 » qui ouvrait cette chaîne **ne se rendait pas** sur les
+    /// aperçus - vérifié à la loupe - et il ne pouvait pas devenir une icône ici : le sous-titre part
+    /// dans `ZonesStatut`, un contrat fait de **chaînes** et partagé par tous les écrans. Le convertir
+    /// demanderait d'y faire passer un nœud, ce qui dépasse de loin un repère décoratif. Rien n'est
+    /// perdu : rien ne s'affichait.
     private String composerSousTitre() {
         String base = "Protocole " + site.protocole().libelle();
-        return site.commentaire() == null ? base : "📍 " + site.commentaire() + " · " + base;
+        return site.commentaire() == null ? base : site.commentaire() + " · " + base;
     }
 
     private String departementDeCarre(String carre) {

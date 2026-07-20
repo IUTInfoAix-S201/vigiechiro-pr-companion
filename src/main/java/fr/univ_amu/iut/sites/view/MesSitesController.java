@@ -27,6 +27,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import org.kordamp.ikonli.javafx.FontIcon;
 
 /// Controller de l'écran d'accueil **M-Sites** (`MesSites.fxml`).
 ///
@@ -188,7 +189,7 @@ public class MesSitesController implements ResumeStatut {
         Site site = carte.site();
         Label numero = new Label("Carré " + site.numeroCarre());
         numero.getStyleClass().add("carte-titre");
-        Label nom = new Label(libelleNom(site));
+        Label nom = new Label(libelleNom(site), new FontIcon("fas-map-marker-alt"));
         nom.getStyleClass().add("carte-sous-titre");
         Label badge = new Label(carte.libelleFraicheur());
         badge.getStyleClass().addAll("badge", carte.fraicheur().classeBadge());
@@ -254,9 +255,12 @@ public class MesSitesController implements ResumeStatut {
         return region;
     }
 
+    /// Nom du site et sa localisation. Le repère de lieu est **une icône posée sur le Label** (#1564) :
+    /// le « 📍 » qui préfixait cette chaîne ne se rendait pas du tout sur les aperçus régénérés en CI,
+    /// vérifié à la loupe.
     private static String libelleNom(Site site) {
         String localisation = site.commentaire() == null ? "" : " (" + site.commentaire() + ")";
-        return "📍 " + (site.nomConvivial() == null ? "Sans nom" : site.nomConvivial()) + localisation;
+        return (site.nomConvivial() == null ? "Sans nom" : site.nomConvivial()) + localisation;
     }
 
     private static String libelleComplementPassages(CarteSite carte) {

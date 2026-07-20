@@ -35,6 +35,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Popup;
+import org.kordamp.ikonli.javafx.FontIcon;
 
 /// Gestionnaire **réutilisable** des colonnes d'une [TableView] : un panneau unique (façon table Notion)
 /// où l'on **réordonne** les colonnes par glisser-déposer et où l'on **affiche/masque** chacune via une
@@ -314,7 +315,10 @@ public final class GestionnaireColonnes {
         private final StackPane enveloppeVisible = new StackPane(visible);
         private final Tooltip infoVerrou =
                 new Tooltip("Colonne toujours affichée : sa visibilité est verrouillée (colonne d'identité).");
-        private final Label poignee = new Label("⋮⋮");
+        /// Poignée de glisser-déposer : une icône, pas un caractère (#1564). Le « ⋮⋮ » qu'elle
+        /// portait se rend, étant un opérateur mathématique BMP - mais un signe typographique seul
+        /// sur un nœud est une icône qui s'ignore, et il ne suivait ni la couleur ni l'état.
+        private final Label poignee = new Label("", new FontIcon("fas-grip-vertical"));
         private final HBox contenu = new HBox(8, poignee, enveloppeVisible);
         private BooleanProperty lieeA;
 

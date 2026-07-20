@@ -108,29 +108,7 @@ public final class ApercuFx {
                 && !libelle.getText().isBlank()
                 && !libelle.getStyleClass().contains(ABREGEABLE)
                 && !dansUnParentAbregeable(libelle)
-                && !dansUnComposantTiers(libelle)
                 && largeurManquante(libelle) > TOLERANCE_PX;
-    }
-
-    /// Nom du composant audio embarque, dont les controles ne se corrigent pas depuis ce depot.
-    private static final String COMPOSANT_TIERS = "AudioView";
-
-    /// Vrai si `libelle` appartient a un composant que ce depot ne peut pas modifier.
-    ///
-    /// `AudioView` vient d'un artefact separe : ses boutons de transport (« Temps + », « Freq. - »,
-    /// l'horloge) tronquent de 3 a 5 px, et aucun FXML d'ici ne peut y remedier. Un verrou qui exige une
-    /// correction impossible ne protege rien, il bloque. Suivi en amont : audio-view#56.
-    ///
-    /// L'exclusion a ete mise a l'epreuve : on a d'abord soupconne notre propre capture, qui comprimait
-    /// l'`AudioView` au point d'en escamoter la barre de transport (#2129). Hauteur corrigee, le
-    /// composant pleinement rendu, la CI mesure exactement le meme manque. Le defaut est bien en amont.
-    private static boolean dansUnComposantTiers(Labeled libelle) {
-        for (Node parent = libelle.getParent(); parent != null; parent = parent.getParent()) {
-            if (COMPOSANT_TIERS.equals(parent.getClass().getSimpleName())) {
-                return true;
-            }
-        }
-        return false;
     }
 
     /// Un controle compose (`ComboBox`, `MenuButton`) rend son texte dans un libelle **interne**, que le

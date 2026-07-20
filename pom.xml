@@ -33,7 +33,7 @@
              La CI la surcharge par app.version, comme elle le fait déjà pour jpackage.appVersion. -->
         <app.version>${project.version}</app.version>
 
-        <audio.view.version>1.15.0</audio.view.version>
+        <audio.view.version>1.15.1</audio.view.version>
 
         <maven.compiler.plugin.version>3.15.0</maven.compiler.plugin.version>
         <maven.surefire.plugin.version>3.5.6</maven.surefire.plugin.version>

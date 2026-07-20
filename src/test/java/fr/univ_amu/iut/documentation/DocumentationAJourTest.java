@@ -12,11 +12,17 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -171,6 +177,116 @@ class DocumentationAJourTest {
             return Files.readString(fichier);
         } catch (IOException echec) {
             throw new UncheckedIOException("lecture de " + fichier, echec);
+        }
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // Journal des ADR (#1881)
+    // ---------------------------------------------------------------------------------------------
+
+    private static final Path DECISIONS = Path.of("dev-docs", "decisions");
+
+    private static final Path INDEX_ADR = DECISIONS.resolve("index.md");
+
+    /// Un fichier d'ADR : quatre chiffres, un tiret, un titre en kebab-case.
+    private static final Pattern FICHIER_ADR = Pattern.compile("^(\\d{4})-[a-z0-9-]+\\.md$");
+
+    /// L'en-tête d'une ADR, qui doit porter le même numéro que son nom de fichier.
+    ///
+    /// Deux formes coexistent dans le journal (`# ADR 0035 — …` et `# 0026 - …`) et le test **tolère les
+    /// deux** : il garde le **numéro**, pas le style de titre. Le rendre strict sur la forme le ferait
+    /// rougir sur une variation de rédaction, ce qui est le meilleur moyen de le faire désactiver.
+    private static final Pattern ENTETE_ADR = Pattern.compile("^#\\s+(?:ADR\\s+)?(\\d{4})\\b");
+
+    @Test
+    @DisplayName("Deux ADR ne portent jamais le même numéro")
+    void les_numeros_d_adr_sont_uniques() {
+        Map<String, List<String>> parNumero = new TreeMap<>();
+        for (String fichier : fichiersAdr()) {
+            Matcher m = FICHIER_ADR.matcher(fichier);
+            if (m.matches()) {
+                parNumero
+                        .computeIfAbsent(m.group(1), numero -> new ArrayList<>())
+                        .add(fichier);
+            }
+        }
+        Map<String, List<String>> collisions = new TreeMap<>();
+        parNumero.forEach((numero, fichiers) -> {
+            if (fichiers.size() > 1) {
+                collisions.put(numero, fichiers);
+            }
+        });
+
+        assertThat(collisions)
+                .as("deux chantiers parallèles ont réservé le même numéro d'ADR. C'est arrivé pour de "
+                        + "bon (#1881) : la collision ne se découvre alors qu'au conflit de fusion, sur "
+                        + "une branche déjà poussée, dans un index que tout le monde édite. Renumérote "
+                        + "la plus récente, en balayant TOUTES les branches distantes et pas seulement "
+                        + "`main` : une PR ouverte réserve son numéro sans qu'il apparaisse nulle part.")
+                .isEmpty();
+    }
+
+    @Test
+    @DisplayName("Le numéro écrit dans l'en-tête d'une ADR est celui de son nom de fichier")
+    void l_entete_d_une_adr_porte_son_numero() {
+        SoftAssertions verifs = new SoftAssertions();
+        for (String fichier : fichiersAdr()) {
+            Matcher nom = FICHIER_ADR.matcher(fichier);
+            if (!nom.matches()) {
+                continue;
+            }
+            String premiereLigne =
+                    lire(DECISIONS.resolve(fichier)).lines().findFirst().orElse("");
+            Matcher entete = ENTETE_ADR.matcher(premiereLigne);
+            verifs.assertThat(entete.find() ? entete.group(1) : null)
+                    .as(
+                            "%s : l'en-tête annonce « %s » au lieu du numéro du fichier. C'est le piège d'une "
+                                    + "renumérotation faite à moitié : le fichier change de nom, l'en-tête reste, "
+                                    + "et l'ADR se met à porter deux numéros.",
+                            fichier, premiereLigne)
+                    .isEqualTo(nom.group(1));
+        }
+        verifs.assertAll();
+    }
+
+    @Test
+    @DisplayName("Chaque ADR est au journal, et chaque ligne du journal pointe vers une ADR existante")
+    void le_journal_des_adr_et_les_fichiers_se_correspondent() {
+        String journal = lire(INDEX_ADR);
+        List<String> fichiers = fichiersAdr();
+
+        SoftAssertions verifs = new SoftAssertions();
+        for (String fichier : fichiers) {
+            verifs.assertThat(journal)
+                    .as(
+                            "%s n'a pas de ligne dans le journal (`%s`) : une ADR absente de l'index est une "
+                                    + "décision qu'on ne retrouvera pas.",
+                            fichier, INDEX_ADR)
+                    .contains(fichier);
+        }
+
+        Matcher lien = Pattern.compile("\\((\\d{4}-[a-z0-9-]+\\.md)\\)").matcher(journal);
+        while (lien.find()) {
+            verifs.assertThat(fichiers)
+                    .as(
+                            "le journal renvoie vers « %s », qui n'existe pas. Une renumérotation a laissé "
+                                    + "sa ligne derrière elle.",
+                            lien.group(1))
+                    .contains(lien.group(1));
+        }
+        verifs.assertAll();
+    }
+
+    /// Les fichiers d'ADR présents sur le disque, `index.md` exclue (c'est le journal, pas une décision).
+    private static List<String> fichiersAdr() {
+        try (Stream<Path> pages = Files.list(DECISIONS)) {
+            return pages.map(page -> page.getFileName().toString())
+                    .filter(nom -> nom.endsWith(".md"))
+                    .filter(nom -> !"index.md".equals(nom))
+                    .sorted(Comparator.naturalOrder())
+                    .toList();
+        } catch (IOException echec) {
+            throw new UncheckedIOException("lecture de " + DECISIONS, echec);
         }
     }
 }

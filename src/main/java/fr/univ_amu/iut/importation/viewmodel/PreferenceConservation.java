@@ -1,6 +1,7 @@
 package fr.univ_amu.iut.importation.viewmodel;
 
 import fr.univ_amu.iut.commun.model.Reglages;
+import fr.univ_amu.iut.importation.model.ReglageConservationOriginaux;
 import java.util.Objects;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -16,26 +17,18 @@ import javafx.beans.property.SimpleBooleanProperty;
 /// jamais `javafx.scene`. La persistance passe par le service socle [Reglages] (jamais un DAO).
 public final class PreferenceConservation {
 
-    /// Clé du réglage persisté (cf. [Reglages]).
-    static final String CLE = "import.conserver-originaux";
-
-    /// La même clé, lisible hors du paquet : `ImportationModule` en fait le défaut du service, pour que
-    /// la CLI et les variantes courtes suivent le réglage au lieu de conserver en dur (#2064).
-    public static final String CLE_PUBLIQUE = CLE;
+    /// Clé du réglage persisté, **et** son défaut : tous deux dans [ReglageConservationOriginaux], parce
+    /// que la commande CLI `importer` les lit aussi et ne peut pas citer le `viewmodel` d'une autre
+    /// feature (#2181). Le motif de ce défaut y est écrit une fois pour toutes.
+    static final String CLE = ReglageConservationOriginaux.CLE;
 
     private final Reglages reglages;
     private final BooleanProperty conserverOriginaux = new SimpleBooleanProperty(this, "conserverOriginaux", false);
 
     public PreferenceConservation(Reglages reglages) {
         this.reglages = Objects.requireNonNull(reglages, "reglages");
-        // Restaure le dernier choix. Défaut : **ne pas conserver** (#2063). Copier les bruts coûte
-        // plusieurs Go et les deux tiers du temps d'import, pour un service dont rien dans
-        // l'application ne dépend : c'est une option de ré-analyse, pas un dû.
-        //
-        // Une installation qui a déjà importé porte sa valeur en base : `lireBooleen` ne retombe sur le
-        // défaut que si la clé est absente. On ne change donc pas dans son dos le choix de quelqu'un
-        // qui l'a déjà fait — seules les installations neuves basculent.
-        conserverOriginaux.set(reglages.lireBooleen(CLE, false));
+        // Restaure le dernier choix, ou le défaut si la clé est absente en base.
+        conserverOriginaux.set(reglages.lireBooleen(CLE, ReglageConservationOriginaux.DEFAUT));
     }
 
     /// Propriété **éditable** : la vue y lie bidirectionnellement sa case à cocher (`true` = copie dans

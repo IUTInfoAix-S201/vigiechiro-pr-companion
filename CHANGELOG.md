@@ -2,6 +2,18 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [2.19.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v2.18.0...v2.19.0) (2026-07-20)
+
+
+### Bug Fixes
+
+* **captures:** refuser un libellé rendu avec une ellipse horizontale ([#2127](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2127)) ([ae43e61](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/ae43e61bc857e2fd4575c09cd7dc14ca0230c95d)), closes [#2049](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2049) [#1641](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/1641) [#1701](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/1701) [#1873](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/1873) [#1579](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/1579) [#2012](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2012)
+
+
+### Features
+
+* **ihm:** « Colonnes… » prend son icône, comme le reste de son menu ([#2134](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2134)) ([8421dd4](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/8421dd45ad14b84d1ace476102d64976fe22d93b)), closes [#2065](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2065)
+
 # [2.18.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v2.17.0...v2.18.0) (2026-07-20)
 
 

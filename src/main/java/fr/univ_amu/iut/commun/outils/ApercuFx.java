@@ -7,9 +7,12 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.embed.swing.SwingFXUtils;
+import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Labeled;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.image.WritableImage;
@@ -30,6 +33,60 @@ public final class ApercuFx {
 
     private ApercuFx() {}
 
+    /// Tolerance de comparaison, en pixels : la mise en page produit des ecarts d'arrondi qui ne sont
+    /// pas des elisions.
+    private static final double TOLERANCE_PX = 1.0;
+
+    /// Refuse la capture si un libelle enroulable y a ete **comprime**, plutot que d'ecrire une image
+    /// qui ment.
+    ///
+    /// L'application monte ses vues dans un `ScrollPane` permanent : ce qui deborde **defile**. La
+    /// capture n'a pas ce recours - elle rend une scene de taille fixe, et ce qui deborde se
+    /// **comprime**. Un `Label` en `wrapText` se rabat alors sur une ligne et se termine par une
+    /// ellipse. Rien ne le signalait : la capture etait produite, elle avait l'air normale, et elle
+    /// mentait (#2049).
+    ///
+    /// Le critere porte sur **le libelle**, pas sur la scene : un libelle comprime occupe moins de
+    /// hauteur que celle qu'il demanderait pour la largeur dont il dispose. Comparer plutot la hauteur
+    /// du contenu a celle de la scene ne marcherait pas - mesure sur Diagnostic, cet ecart vaut 1,6 sur
+    /// un ecran ou **rien** n'est elide, ses conteneurs extensibles absorbant la place sans rien perdre.
+    private static void refuserToutLibelleComprime(Scene scene) {
+        List<String> comprimes = new ArrayList<>();
+        collecterComprimes(scene.getRoot(), comprimes);
+        if (!comprimes.isEmpty()) {
+            throw new IllegalStateException("Capture tronquee : " + comprimes.size()
+                    + " libelle(s) comprime(s) par une scene trop courte, donc rendus avec une ellipse."
+                    + " Augmenter la hauteur de cette scene. En cause : " + String.join(" | ", comprimes));
+        }
+    }
+
+    private static void collecterComprimes(Node noeud, List<String> comprimes) {
+        // Un noeud masque a une hauteur nulle tout en gardant une hauteur preferee : sans ce filtre, tout
+        // libelle conditionnel passe pour comprime. C'est le premier faux positif rencontre - le repere GPS
+        // du Diagnostic, absent quand le passage est introuvable.
+        if (!noeud.isVisible()) {
+            return;
+        }
+        if (noeud instanceof Labeled libelle && libelle.isWrapText() && libelle.getWidth() > 0) {
+            double manque = libelle.prefHeight(libelle.getWidth()) - libelle.getHeight();
+            if (manque > TOLERANCE_PX) {
+                comprimes.add(resumer(libelle) + " (manque " + Math.round(manque) + " px)");
+            }
+        }
+        if (noeud instanceof Parent parent) {
+            parent.getChildrenUnmodifiable().forEach(enfant -> collecterComprimes(enfant, comprimes));
+        }
+    }
+
+    /// De quoi retrouver le libelle fautif : son identifiant s'il en a un, sinon le debut de son texte.
+    private static String resumer(Labeled libelle) {
+        if (libelle.getId() != null && !libelle.getId().isBlank()) {
+            return "#" + libelle.getId();
+        }
+        String texte = libelle.getText() == null ? "" : libelle.getText();
+        return "« " + (texte.length() > 40 ? texte.substring(0, 40) + "…" : texte) + " »";
+    }
+
     /// Capture `scene` hors-ecran et l'ecrit en PNG dans `fichier` (cree les dossiers parents).
     ///
     /// La scene est attachee a un [Stage] transitoire que l'on montre brievement : cela garantit une
@@ -41,6 +98,7 @@ public final class ApercuFx {
         stageTransitoire.show();
         scene.getRoot().applyCss();
         scene.getRoot().layout();
+        refuserToutLibelleComprime(scene);
         WritableImage image = scene.snapshot(null);
         stageTransitoire.hide();
         ecrire(image, fichier);
@@ -64,6 +122,7 @@ public final class ApercuFx {
         preparation.run();
         scene.getRoot().applyCss();
         scene.getRoot().layout();
+        refuserToutLibelleComprime(scene);
         WritableImage image = scene.snapshot(null);
         stageTransitoire.hide();
         ecrire(image, fichier);

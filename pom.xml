@@ -58,7 +58,7 @@
         <archunit.version>1.4.2</archunit.version>
         <!-- Suite de contrat API « vivante » (profil -Papi-live, hors CI) : REST-assured tape l'API
              VigieChiro réelle et valide les réponses contre les JSON Schema de src/test/resources. -->
-        <restassured.version>5.5.1</restassured.version>
+        <restassured.version>6.0.1</restassured.version>
 
         <!-- Lecture des specs YAML du générateur de cartes SD de recette (scope test uniquement,
              cf. recette/fixtures/spec/ ; jamais embarqué dans le binaire distribué). -->

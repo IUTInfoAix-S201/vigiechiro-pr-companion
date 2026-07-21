@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+## [2.30.5](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v2.30.4...v2.30.5) (2026-07-21)
+
+
+### Bug Fixes
+
+* **socle:** le confirmateur injectable délègue le compte rendu, et la suppression de passage l’utilise ([#2223](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2223)) ([#2239](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2239)) ([5c6abb2](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/5c6abb2c153ff4146a25aad6c2dbe68433dcc8ed)), closes [#2060](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2060) [#1013](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/1013) [#2060](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2060) [#2060](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2060) [#2225](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2225) [#2060](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2060)
+
 ## [2.30.4](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v2.30.3...v2.30.4) (2026-07-21)
 
 

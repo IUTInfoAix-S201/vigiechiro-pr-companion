@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+## [2.30.2](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v2.30.1...v2.30.2) (2026-07-21)
+
+
+### Bug Fixes
+
+* **qualification:** retirer le glyphe de sévérité de la barre de statut ([#2221](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2221)) ([#2228](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2228)) ([e5925b8](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/e5925b865d9265f87d80830cbf3a7463083ca5bb)), closes [#1506](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/1506) [#2225](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2225)
+
 ## [2.30.1](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v2.30.0...v2.30.1) (2026-07-21)
 
 

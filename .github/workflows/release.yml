@@ -131,12 +131,26 @@ jobs:
         run: |
           TAG="${{ needs.release.outputs.tag }}"
           VERSION="${TAG#v}"
-          ./mvnw -B -Pinstaller \
+          # Les profils OS (jpackage-linux/-windows) ajoutent des options d'INSTALLEUR
+          # (--linux-menu-group, --win-upgrade-uuid, --win-per-user-install…) valides pour deb/msi
+          # mais INVALIDES avec --type app-image : jpackage s'arrête sur « Option [...] is not valid
+          # with type [app-image] » (#2256). On désactive donc le profil OS pour cette forme. Sur
+          # Windows, l'icône .ico qu'il portait doit être réinjectée à la main (jpackage y refuse un
+          # PNG). Le profil jpackage-mac reste actif : son --mac-package-identifier EST valide pour
+          # app-image (le job macOS passait déjà).
+          PROFILS="installer"
+          ICONE=()
+          case "${{ matrix.portable }}" in
+            linux)   PROFILS="installer,!jpackage-linux" ;;
+            windows) PROFILS="installer,!jpackage-windows"
+                     ICONE=("-Djpackage.icon=${GITHUB_WORKSPACE}/icone/derive/vigiechiro.ico") ;;
+          esac
+          ./mvnw -B -P"$PROFILS" \
             -Djpackage.type=app-image \
             -Djpackage.appVersion="$VERSION" \
             -Dapp.version="$VERSION" \
             -DskipTests -Dpmd.skip=true -Djacoco.skip=true \
-            verify
+            "${ICONE[@]}" verify
 
       - name: Construire l'AppImage (Linux)
         # Un fichier unique et exécutable : l'utilisateur le rend exécutable et le lance, sans rien

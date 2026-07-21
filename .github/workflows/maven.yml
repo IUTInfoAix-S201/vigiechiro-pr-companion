@@ -125,3 +125,17 @@ jobs:
             echo "original-*.jar présent : shade a remplacé l'artefact principal !" && exit 1
           fi
           test "${tailleMince}" -lt 6000000                     # le jar principal doit rester mince (< 6 Mo)
+
+      - name: Garde-fou app-image (jpackage --type app-image, #2256)
+        # release.yml construit l'app-image APRÈS l'installeur, mais ce build n'était exercé sur AUCUNE
+        # PR : la régression #2215 (options d'installeur invalides pour --type app-image) a cassé 6
+        # releases sans qu'un seul check ne rougisse. On l'exerce donc ici, avec la MÊME désactivation
+        # de profil OS que release.yml, pour attraper toute rupture au plus tôt (le trou de test qui a
+        # laissé passer la panne). Linux uniquement (le runner du job) : suffit à couvrir la forme.
+        run: |
+          set -euo pipefail
+          ./mvnw -q -B -Pinstaller,'!jpackage-linux' -Djpackage.type=app-image \
+            -Djpackage.appVersion=0.0.0 -Dapp.version=0.0.0 \
+            -DskipTests -Dpmd.skip=true -Djacoco.skip=true verify
+          test -x target/dist/VigieChiroCompanion/bin/VigieChiroCompanion
+          echo "app-image construite : $(ls -d target/dist/VigieChiroCompanion)"

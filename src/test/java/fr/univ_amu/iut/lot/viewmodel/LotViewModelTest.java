@@ -113,7 +113,9 @@ class LotViewModelTest {
         assertThat(viewModel.raisonEspaceInsuffisantProperty().get())
                 .contains("insuffisant")
                 .contains("9")
-                .contains("5");
+                .contains("5")
+                // #2221 : la sévérité est rendue par le rouge du badge, pas par un glyphe dans la chaîne.
+                .doesNotContain("⚠");
     }
 
     @Test

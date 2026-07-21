@@ -2,6 +2,7 @@ package fr.univ_amu.iut.importation.outils;
 
 import fr.univ_amu.iut.commun.outils.ApercuFx;
 import fr.univ_amu.iut.commun.view.ConfirmationNavigation;
+import fr.univ_amu.iut.commun.viewmodel.CompteRendu;
 import fr.univ_amu.iut.importation.model.ApercuEcrasement;
 import fr.univ_amu.iut.importation.model.PassageExistant;
 import fr.univ_amu.iut.importation.view.ConfirmationsImport;
@@ -85,14 +86,26 @@ public final class CaptureConfirmationsImport {
 
         // On rejoue les gestes réels ; le double intercepte, sans jamais confirmer (rien ne s'exécute).
         ConfirmateurCapturant doublon = new ConfirmateurCapturant();
-        new ConfirmationsImport(doublon).confirmerImportNuitDejaImportee(AvertissementsInspection.question(DOUBLONS));
+        new ConfirmationsImport(doublon)
+                .confirmerImportNuitDejaImportee(AvertissementsInspection.questionNuitDejaImportee(DOUBLONS));
 
         ConfirmateurCapturant ecrasement = new ConfirmateurCapturant(true);
         new ConfirmationsImport(ecrasement).confirmerEcrasement(ECRASEMENT);
 
-        enregistrer(doublon.messages().get(0), sortie.resolve("apercu-import-doublon.png"));
+        // Le doublon est désormais un compte rendu structuré (#2060) : le dialogue l'aligne par
+        // VueCompteRendu, sans enroulement manuel. L'écrasement reste une phrase.
+        enregistrerCompteRendu(doublon.comptesRendus().get(0), sortie.resolve("apercu-import-doublon.png"));
         enregistrer(ecrasement.messages().get(0), sortie.resolve("apercu-import-ecrasement-principe.png"));
         enregistrer(ecrasement.messages().get(1), sortie.resolve("apercu-import-ecrasement.png"));
+    }
+
+    /// Rend le dialogue **de production** portant un **compte rendu structuré** (#2060), tel qu'il sera
+    /// montré. Pas d'enroulement manuel : [VueCompteRendu] met chaque détail sur sa propre ligne alignée.
+    private static void enregistrerCompteRendu(CompteRendu compteRendu, Path fichier) {
+        Alert alerte = new ConfirmationNavigation().dialogue(compteRendu);
+        alerte.getDialogPane().setPrefWidth(540);
+        ApercuFx.enregistrerDialogPane(alerte.getDialogPane(), styles(), fichier);
+        System.out.println("Apercu ecrit dans " + fichier.toAbsolutePath());
     }
 
     /// Rend le dialogue **de production** ([ConfirmationNavigation#dialogue]) portant le message réel.
@@ -149,6 +162,7 @@ public final class CaptureConfirmationsImport {
     private static final class ConfirmateurCapturant implements fr.univ_amu.iut.commun.view.Confirmateur {
 
         private final List<String> messages = new ArrayList<>();
+        private final List<CompteRendu> comptesRendus = new ArrayList<>();
 
         /// `true` pour enchaîner sur la confirmation suivante (l'écrasement en demande **deux**).
         private final boolean poursuivre;
@@ -167,8 +181,20 @@ public final class CaptureConfirmationsImport {
             return poursuivre;
         }
 
+        /// On surcharge pour **intercepter le compte rendu tel quel** (#2060) : le laisser retomber sur le
+        /// repli textuel du port l'aplatirait, et la capture perdrait la structure qu'on veut montrer.
+        @Override
+        public boolean confirmer(CompteRendu compteRendu) {
+            comptesRendus.add(compteRendu);
+            return poursuivre;
+        }
+
         List<String> messages() {
             return messages;
+        }
+
+        List<CompteRendu> comptesRendus() {
+            return comptesRendus;
         }
     }
 }

@@ -163,21 +163,24 @@ class AvertissementsInspectionTest {
     }
 
     @Test
-    @DisplayName("La question de confirmation liste les passages, une par ligne")
+    @DisplayName("La question de confirmation est un compte rendu : un passage par détail, plus la question")
     void question_de_confirmation() {
-        String question = AvertissementsInspection.question(
+        CompteRendu question = AvertissementsInspection.questionNuitDejaImportee(
                 List.of(new PassageExistant(2, 2026, "640380", "A1"), new PassageExistant(7, 2026, "130711", "Z4")));
 
-        // La modale a la place de tout dire. La phrase d'origine joignait les passages par des
-        // points-virgules, sur une seule ligne, et se terminait par la question.
-        assertThat(question).isEqualTo("""
-                        Cette nuit a déjà été importée :
-                          - n° 2 (2026) au carré 640380, point A1
-                          - n° 7 (2026) au carré 130711, point Z4
+        // #2060 : un compte rendu structuré, PAS une chaîne à puces qui se briserait au retour à la ligne.
+        // Chaque passage est un détail (une ligne alignée) ; la question est la conclusion.
+        assertThat(question.constats()).singleElement().satisfies(constat -> {
+            assertThat(constat.fait()).contains("déjà été importée");
+            assertThat(constat.severite()).isEqualTo(Severite.AVERTISSEMENT);
+            assertThat(constat.details())
+                    .extracting(Detail::sujet)
+                    .containsExactly("n° 2 (2026) au carré 640380, point A1", "n° 7 (2026) au carré 130711, point Z4");
+        });
+        assertThat(question.conclusion()).isEqualTo("Importer quand même comme nouveau passage ?");
 
-                        Importer quand même comme nouveau passage ?""");
-        assertThat(AvertissementsInspection.question(List.of()))
+        assertThat(AvertissementsInspection.questionNuitDejaImportee(List.of()).estVide())
                 .as("rien à confirmer : l'import part sans poser de question")
-                .isEmpty();
+                .isTrue();
     }
 }

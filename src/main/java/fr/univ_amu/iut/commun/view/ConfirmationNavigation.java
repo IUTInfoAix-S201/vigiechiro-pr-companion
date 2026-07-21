@@ -1,5 +1,6 @@
 package fr.univ_amu.iut.commun.view;
 
+import fr.univ_amu.iut.commun.viewmodel.CompteRendu;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
@@ -25,10 +26,18 @@ public final class ConfirmationNavigation implements Confirmateur {
 
     @Override
     public boolean confirmer(String message) {
-        return dialogue(message)
-                .showAndWait()
-                .filter(bouton -> bouton == ButtonType.OK)
-                .isPresent();
+        return confirme(dialogue(message));
+    }
+
+    /// Confirmation d'un **compte rendu structuré** (#2060) : le dialogue montre un intitulé et ses détails
+    /// alignés ([VueCompteRendu]) plutôt qu'une chaîne à puces qui se brise au retour à la ligne.
+    @Override
+    public boolean confirmer(CompteRendu compteRendu) {
+        return confirme(dialogue(compteRendu));
+    }
+
+    private static boolean confirme(Alert alerte) {
+        return alerte.showAndWait().filter(bouton -> bouton == ButtonType.OK).isPresent();
     }
 
     /// Le dialogue **tel qu'il sera montré**, sans le montrer (#1468).
@@ -42,6 +51,22 @@ public final class ConfirmationNavigation implements Confirmateur {
     /// l'utilisateur verra.
     public Alert dialogue(String message) {
         Alert alerte = new Alert(AlertType.CONFIRMATION, message, ButtonType.OK, ButtonType.CANCEL);
+        if (titre != null) {
+            alerte.setTitle(titre);
+            alerte.setHeaderText(null);
+        }
+        return alerte;
+    }
+
+    /// Le dialogue portant un **compte rendu structuré** (#2060), tel qu'il sera montré, sans le montrer.
+    ///
+    /// Le contenu du `DialogPane` n'est plus un texte mais le rendu de [VueCompteRendu] : un `Label` par
+    /// détail, dont le retrait est porté par le CSS, de sorte que la continuation d'une ligne longue
+    /// s'aligne sous le début du détail et non sous la puce. Comme [#dialogue(String)], il passe par le
+    /// **code de production** pour que la capture montre ce que l'utilisateur verra (ADR 0025).
+    public Alert dialogue(CompteRendu compteRendu) {
+        Alert alerte = new Alert(AlertType.CONFIRMATION, "", ButtonType.OK, ButtonType.CANCEL);
+        alerte.getDialogPane().setContent(VueCompteRendu.rendre(compteRendu, VueCompteRendu.SANS_PLAFOND));
         if (titre != null) {
             alerte.setTitle(titre);
             alerte.setHeaderText(null);

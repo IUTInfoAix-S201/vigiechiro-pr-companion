@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+## [2.32.1](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v2.32.0...v2.32.1) (2026-07-21)
+
+
+### Bug Fixes
+
+* **release:** construire l'app-image sans les options d'installeur ([#2259](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2259)) ([3299351](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/32993516b3d90f9b268ee58640c6a3f8e8584eef)), closes [#2256](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2256) [#2215](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2215) [#2215](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2215) [#2256](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2256)
+
 # [2.32.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v2.31.0...v2.32.0) (2026-07-21)
 
 

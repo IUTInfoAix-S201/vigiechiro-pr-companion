@@ -353,3 +353,18 @@
 .badge-succes .ikonli-font-icon {
   -fx-icon-color: -badge-succes-texte;
 }
+
+/*
+ * Marqueurs d'état d'écoute de la colonne « Écouté » (#2237) : la FORME distingue les deux états
+ * (CHECK plein / cercle creux), la couleur reste NEUTRE - ce ✓ dit « écouté », pas « succès », donc
+ * pas le vert des feux ni le CHECK_CIRCLE de la sévérité. Écouté : encre franche ; en attente : discret.
+ */
+.marqueur-ecoute-oui {
+  -fx-icon-color: #2c3e50;
+  -fx-icon-size: 14px;
+}
+
+.marqueur-ecoute-non {
+  -fx-icon-color: -couleur-texte-discret;
+  -fx-icon-size: 14px;
+}

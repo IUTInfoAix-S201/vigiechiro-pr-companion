@@ -47,6 +47,8 @@ import javafx.stage.Stage;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.kordamp.ikonli.fontawesome5.FontAwesomeRegular;
+import org.kordamp.ikonli.fontawesome5.FontAwesomeSolid;
 import org.kordamp.ikonli.javafx.FontIcon;
 import org.testfx.api.FxRobot;
 import org.testfx.framework.junit5.ApplicationExtension;
@@ -238,9 +240,27 @@ class QualificationVueIntegrationTest {
         assertThat((String) colPosition.getCellData(0)).isEqualTo("1");
         assertThat((String) colFichier.getCellData(0)).isEqualTo("PaRec_0.wav");
         assertThat((String) colDuree.getCellData(0)).contains("5").endsWith("s");
-        assertThat((String) colEcoute.getCellData(0)).isEqualTo("○"); // séquence non encore écoutée
+        assertThat((Boolean) colEcoute.getCellData(0))
+                .isFalse(); // séquence non encore écoutée (#2237 : booléen, plus une chaîne)
         // #1524 : le verdict par fichier vaut NON_JUGE tant qu'aucune écoute n'a été rendue.
         assertThat((VerdictFichier) colVerdict.getCellData(0)).isEqualTo(VerdictFichier.NON_JUGE);
+    }
+
+    @Test
+    @DisplayName("#2237 : l'état d'écoute est POSÉ en icône selon l'état (CHECK / cercle), pas écrit en glyphe")
+    void marqueur_ecoute_pose_une_icone_selon_l_etat() {
+        // Écoutée : un CHECK plein - une FORME distincte du CHECK_CIRCLE de la sévérité, pour que
+        // « écouté » ne se confonde pas avec « succès ». Non écoutée : un cercle creux. La table pose
+        // donc l'état, elle ne l'écrit plus dans une chaîne « ✓/○ » (ADR 0035).
+        FontIcon ecoutee = MarqueurEcoute.icone(true);
+        assertThat(ecoutee.getIconCode()).isEqualTo(FontAwesomeSolid.CHECK);
+        assertThat(ecoutee.getStyleClass()).contains("marqueur-ecoute-oui");
+        assertThat(ecoutee.getAccessibleText()).isEqualTo("écoutée");
+
+        FontIcon nonEcoutee = MarqueurEcoute.icone(false);
+        assertThat(nonEcoutee.getIconCode()).isEqualTo(FontAwesomeRegular.CIRCLE);
+        assertThat(nonEcoutee.getStyleClass()).contains("marqueur-ecoute-non");
+        assertThat(nonEcoutee.getAccessibleText()).isEqualTo("non écoutée");
     }
 
     @Test
@@ -304,13 +324,13 @@ class QualificationVueIntegrationTest {
         TableView<?> table = robot.lookup("#tableSequences").queryAs(TableView.class);
         AudioView audio = robot.lookup("#audioView").queryAs(AudioView.class);
         TableColumn<?, ?> colEcoute = table.getColumns().get(3);
-        assertThat((String) colEcoute.getCellData(0)).isEqualTo("○");
+        assertThat((Boolean) colEcoute.getCellData(0)).isFalse();
 
         robot.interact(() -> table.getSelectionModel().select(0));
         robot.interact(() -> audio.setPlaying(true)); // début de lecture → marquage écouté (R10)
         WaitForAsyncUtils.waitForFxEvents();
 
-        assertThat((String) colEcoute.getCellData(0)).isEqualTo("✓");
+        assertThat((Boolean) colEcoute.getCellData(0)).isTrue();
     }
 
     @Test
@@ -325,13 +345,13 @@ class QualificationVueIntegrationTest {
         robot.interact(() -> table.getSelectionModel().select(0));
         robot.interact(() -> audio.setPlaying(true));
         WaitForAsyncUtils.waitForFxEvents();
-        assertThat((String) colEcoute.getCellData(0)).isEqualTo("✓");
+        assertThat((Boolean) colEcoute.getCellData(0)).isTrue();
 
         // ... puis on régénère : la sélection est rechargée, l'écoute repart de zéro (R12).
         robot.interact(regenerer::fire);
         WaitForAsyncUtils.waitForFxEvents();
 
-        assertThat((String) colEcoute.getCellData(0)).isEqualTo("○"); // liste rechargée, rien d'écouté
+        assertThat((Boolean) colEcoute.getCellData(0)).isFalse(); // liste rechargée, rien d'écouté
     }
 
     @Test

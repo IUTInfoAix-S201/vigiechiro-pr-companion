@@ -151,7 +151,7 @@ public class QualificationController implements GardeQuitter, EmplacementNavigat
     private TableColumn<SequenceEnSelection, String> colDuree;
 
     @FXML
-    private TableColumn<SequenceEnSelection, String> colEcoute;
+    private TableColumn<SequenceEnSelection, Boolean> colEcoute;
 
     /// Colonne « Verdict » : badge du verdict par fichier de chaque séquence (#1524, lot 6a).
     @FXML
@@ -324,8 +324,9 @@ public class QualificationController implements GardeQuitter, EmplacementNavigat
                 c -> new ReadOnlyStringWrapper(c.getValue().sequence().nomFichier()));
         colDuree.setCellValueFactory(c -> new ReadOnlyStringWrapper(
                 Formats.dureeSecondes(c.getValue().sequence().dureeSecondes())));
-        colEcoute.setCellValueFactory(
-                c -> new ReadOnlyStringWrapper(c.getValue().ecoutee() ? "✓" : "○"));
+        // État d'écoute posé en icône, pas écrit en glyphe (#2237) : un pictogramme d'état binaire se
+        // pose comme le badge de verdict, il ne se glisse pas dans une chaîne « ✓/○ ».
+        MarqueurEcoute.lier(colEcoute);
         // Verdict par fichier (#1524, lot 6a) : 3 boutons sur la séquence courante + colonne badge,
         // externalisés pour garder le contrôleur sous les plafonds PMD (GodClass / NcssCount).
         VerdictParFichier.lier(selectionVm, boutonBon, boutonMauvais, boutonInexploitable, colVerdict);
@@ -613,9 +614,12 @@ public class QualificationController implements GardeQuitter, EmplacementNavigat
         // Sans les étiquettes « Fichier » et « durée » : la carte s'intitule déjà « Séquence
         // sélectionnée », le « s » dit l'unité, et cette ligne était la plus longue de la colonne - il lui
         // manquait 60 px, elle se terminait donc par une ellipse qui mangeait la fin du nom de fichier.
+        // « écoutée / non écoutée » suffit : les mots portent l'état, le glyphe ✓/○ était un
+        // pictogramme écrit que l'ADR 0035 proscrit (#2237). Ici pas d'icône à poser (libellé composé),
+        // on laisse simplement partir le glyphe.
         return ligne.sequence().nomFichier()
                 + " · "
                 + Formats.dureeSecondes(ligne.sequence().dureeSecondes())
-                + (ligne.ecoutee() ? " · ✓ écoutée" : " · ○ non écoutée");
+                + (ligne.ecoutee() ? " · écoutée" : " · non écoutée");
     }
 }

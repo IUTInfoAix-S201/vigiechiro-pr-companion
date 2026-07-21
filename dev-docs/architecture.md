@@ -54,7 +54,7 @@ Chaque feature (ex. `sites/`) suit le même découpage, **du métier vers l'IHM*
 !!! info "Une feature peut être *sans écran*"
     Toutes n'ont pas les 4 couches. `recherche/` (#144) est une feature **de service** : `model` + `di`
     seulement, **pas de `view`**. La recherche globale est exposée par un contrat
-    [`commun.model.RechercheGlobale`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/model/RechercheGlobale.java)
+    [`commun.model.RechercheGlobale`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/model/RechercheGlobale.java)
     (*Separated Interface*), implémenté par `recherche.model.ServiceRechercheGlobale` qui **agrège**
     les autres features, et **surfacé par le chrome** (la barre de recherche de `MainView`) plutôt que
     par un écran dédié.
@@ -62,7 +62,7 @@ Chaque feature (ex. `sites/`) suit le même découpage, **du métier vers l'IHM*
 ## Les règles d'architecture sont des tests
 
 Ces frontières ne sont pas qu'une convention : elles sont **vérifiées automatiquement** par
-[**ArchUnit**](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/test/java/fr/univ_amu/iut/architecture/ArchitectureTest.java).
+[**ArchUnit**](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/test/java/fr/univ_amu/iut/architecture/ArchitectureTest.java).
 Casser une frontière fait **échouer la CI**.
 
 | Test | Ce qu'il garantit |
@@ -77,17 +77,17 @@ Casser une frontière fait **échouer la CI**.
 ## Navigation et découplage inter-feature
 
 Le chrome (fenêtre + zone centrale + fil d'Ariane) est porté par le socle
-[`commun.view`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/tree/main/src/main/java/fr/univ_amu/iut/commun/view) :
+[`commun.view`](https://github.com/echonuit/vigiechiro-pr-companion/tree/main/src/main/java/fr/univ_amu/iut/commun/view) :
 
-- [`Navigateur`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/view/Navigateur.java)
+- [`Navigateur`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/view/Navigateur.java)
   pilote la zone centrale et l'historique (pile d'écrans `EtapeNavigation`). Les écrans restent
   **vivants** au retour (état préservé).
 - Contrats **optionnels** qu'un écran peut implémenter sur son controller :
-  [`GardeQuitter`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/view/GardeQuitter.java)
+  [`GardeQuitter`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/view/GardeQuitter.java)
   (confirmer la sortie si saisie non enregistrée),
-  [`EmplacementNavigation`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/view/EmplacementNavigation.java)
+  [`EmplacementNavigation`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/view/EmplacementNavigation.java)
   (fil d'Ariane hiérarchique),
-  [`RafraichirAuRetour`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/view/RafraichirAuRetour.java)
+  [`RafraichirAuRetour`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/view/RafraichirAuRetour.java)
   (recharger ses données quand on y revient).
 
 **Comment une feature en ouvre une autre sans en dépendre** (inversion de dépendance) : le socle
@@ -122,10 +122,10 @@ Ainsi `sites` ouvre M-Passage **sans dépendre de `passage.view`** : la règle A
 
 **SQLite** (fichier `vigiechiro.db` dans l'espace de travail), via des **DAO** écrits en
 `PreparedStatement` (**pas d'ORM**). Le schéma évolue par **migrations versionnées**
-[`src/main/resources/db/migration/V0x__*.sql`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/tree/main/src/main/resources/db/migration),
+[`src/main/resources/db/migration/V0x__*.sql`](https://github.com/echonuit/vigiechiro-pr-companion/tree/main/src/main/resources/db/migration),
 appliquées par
-[`MigrationSchema`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/persistence)
-sur la [`SourceDeDonnees`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/persistence).
+[`MigrationSchema`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/persistence)
+sur la [`SourceDeDonnees`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/persistence).
 
 Le cœur du domaine est l'**agrégat « nuit de capture »** (feature `passage`), qui avance dans un
 **workflow à états** :
@@ -138,7 +138,7 @@ migrations) sur [Persistance](persistance.md).
 
 ## Injection de dépendances
 
-[`RacineInjecteur`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/di)
+[`RacineInjecteur`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/di)
 assemble le socle + tous les modules `*/di/*Module.java` des features. Les `Controller` FXML sont
 eux aussi **injectés** via une `controllerFactory` posée sur le `FXMLLoader`. Certaines valeurs
 transverses sont fournies par binding nommé (ex. `@Named("idUtilisateurCourant")`, l'utilisateur

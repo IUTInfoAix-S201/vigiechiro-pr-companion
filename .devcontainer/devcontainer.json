@@ -5,7 +5,7 @@
     // déjà bakées : le démarrage d'un Codespace ne fait que pull cette image,
     // sans aucun appel SDKMAN/noVNC -> fini les échecs sur HTTP 504 SDKMAN.
     // Recette de l'image : .devcontainer/image/devcontainer.json.
-    "image": "ghcr.io/iutinfoaix-s201/vigiechiro-pr-companion-devcontainer:latest",
+    "image": "ghcr.io/echonuit/vigiechiro-pr-companion-devcontainer:latest",
     "forwardPorts": [6080, 5901],
     // onCreateCommand : pré-télécharge les dépendances (dependency:go-offline)
     // pour que le LSP Java et le premier build ne soient pas bloqués par le

@@ -34,7 +34,7 @@ public final class ActionAPropos implements ActionMenu {
     /// quelles conditions il le reçoit et où en obtenir les sources.
     private static final String LICENCE = "GNU General Public License v3.0";
 
-    private static final String DEPOT = "https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion";
+    private static final String DEPOT = "https://github.com/echonuit/vigiechiro-pr-companion";
 
     /// Fenêtre propriétaire du dialogue, posée au clic : l'action la lit **paresseusement**, car elle
     /// n'existe pas encore quand l'entrée de menu est construite (même montage qu'[ActionPurger]).

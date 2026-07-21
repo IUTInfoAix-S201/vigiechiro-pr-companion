@@ -15,18 +15,18 @@
 </p>
 
 <p align="center">
-  <a href="https://iutinfoaix-s201.github.io/vigiechiro-pr-companion/"><img alt="Documentation en ligne" src="https://img.shields.io/badge/%F0%9F%93%96_documentation-en_ligne-1e8449"></a>
-  <a href="https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/releases"><img alt="Dernière version" src="https://img.shields.io/github/v/release/IUTInfoAix-S201/vigiechiro-pr-companion?label=release&color=3f51b5"></a>
-  <a href="https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/actions/workflows/maven.yml"><img alt="Intégration continue" src="https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/actions/workflows/maven.yml/badge.svg"></a>
-  <a href="https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/actions/workflows/lint.yml"><img alt="Portail qualité" src="https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/actions/workflows/lint.yml/badge.svg"></a>
+  <a href="https://companion.echonuit.fr/"><img alt="Documentation en ligne" src="https://img.shields.io/badge/%F0%9F%93%96_documentation-en_ligne-1e8449"></a>
+  <a href="https://github.com/echonuit/vigiechiro-pr-companion/releases"><img alt="Dernière version" src="https://img.shields.io/github/v/release/echonuit/vigiechiro-pr-companion?label=release&color=3f51b5"></a>
+  <a href="https://github.com/echonuit/vigiechiro-pr-companion/actions/workflows/maven.yml"><img alt="Intégration continue" src="https://github.com/echonuit/vigiechiro-pr-companion/actions/workflows/maven.yml/badge.svg"></a>
+  <a href="https://github.com/echonuit/vigiechiro-pr-companion/actions/workflows/lint.yml"><img alt="Portail qualité" src="https://github.com/echonuit/vigiechiro-pr-companion/actions/workflows/lint.yml/badge.svg"></a>
   <a href="LICENSE"><img alt="Licence GPLv3" src="https://img.shields.io/badge/licence-GPLv3-blue"></a>
   <a href="https://doi.org/10.5281/zenodo.20492247"><img alt="Jeu de données exemple sur Zenodo" src="https://img.shields.io/badge/donn%C3%A9es_exemple-DOI%20Zenodo-1682d4"></a>
 </p>
 
 <p align="center">
-  <a href="https://iutinfoaix-s201.github.io/vigiechiro-pr-companion/"><b>📖 Lire la documentation</b></a>
+  <a href="https://companion.echonuit.fr/"><b>📖 Lire la documentation</b></a>
   &nbsp;·&nbsp;
-  <a href="https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/releases"><b>⬇️ Télécharger l'application</b></a>
+  <a href="https://github.com/echonuit/vigiechiro-pr-companion/releases"><b>⬇️ Télécharger l'application</b></a>
   &nbsp;·&nbsp;
   <a href="#-lécosystème-vigie-chiro"><b>🌐 L'écosystème</b></a>
 </p>
@@ -59,10 +59,10 @@ espèces quelques jours plus tard.
 
 | Étape | Ce que vous faites | Écran |
 |---|---|---|
-| **Importer** | Copier la carte SD, renommer et transformer les enregistrements (ultrason vers audible) | [Importation](https://iutinfoaix-s201.github.io/vigiechiro-pr-companion/ecrans/importation/) |
-| **Vérifier** | Contrôler la qualité (pré-check + écoute) et poser un verdict | [Qualification](https://iutinfoaix-s201.github.io/vigiechiro-pr-companion/ecrans/qualification/) |
-| **Déposer** | Préparer le lot, le téléverser sur Vigie-Chiro, le marquer déposé | [Lot](https://iutinfoaix-s201.github.io/vigiechiro-pr-companion/ecrans/lot/) |
-| **Valider** | Relire et corriger les espèces identifiées par Tadarida | [Validation](https://iutinfoaix-s201.github.io/vigiechiro-pr-companion/ecrans/validation/) |
+| **Importer** | Copier la carte SD, renommer et transformer les enregistrements (ultrason vers audible) | [Importation](https://companion.echonuit.fr/ecrans/importation/) |
+| **Vérifier** | Contrôler la qualité (pré-check + écoute) et poser un verdict | [Qualification](https://companion.echonuit.fr/ecrans/qualification/) |
+| **Déposer** | Préparer le lot, le téléverser sur Vigie-Chiro, le marquer déposé | [Lot](https://companion.echonuit.fr/ecrans/lot/) |
+| **Valider** | Relire et corriger les espèces identifiées par Tadarida | [Validation](https://companion.echonuit.fr/ecrans/validation/) |
 
 ## 📖 Découvrir les écrans
 
@@ -71,35 +71,35 @@ ouvrir sa page de documentation** (rôle, captures commentées, astuces).
 
 <table>
   <tr>
-    <td align="center" width="33%"><a href="https://iutinfoaix-s201.github.io/vigiechiro-pr-companion/ecrans/sites/"><img src=".github/assets/apercu-sites-mes-sites.png" alt="Mes sites"></a><br><b>Sites</b><br><sub>Carrés de suivi et points d'écoute</sub></td>
-    <td align="center" width="33%"><a href="https://iutinfoaix-s201.github.io/vigiechiro-pr-companion/ecrans/importation/"><img src=".github/assets/apercu-import-assistant.png" alt="Importer une nuit"></a><br><b>Importation</b><br><sub>Carte SD, renommage, transformation</sub></td>
-    <td align="center" width="33%"><a href="https://iutinfoaix-s201.github.io/vigiechiro-pr-companion/ecrans/passage/"><img src=".github/assets/apercu-passage.png" alt="Passage"></a><br><b>Passage</b><br><sub>Le pivot d'une nuit (statut, actions)</sub></td>
+    <td align="center" width="33%"><a href="https://companion.echonuit.fr/ecrans/sites/"><img src=".github/assets/apercu-sites-mes-sites.png" alt="Mes sites"></a><br><b>Sites</b><br><sub>Carrés de suivi et points d'écoute</sub></td>
+    <td align="center" width="33%"><a href="https://companion.echonuit.fr/ecrans/importation/"><img src=".github/assets/apercu-import-assistant.png" alt="Importer une nuit"></a><br><b>Importation</b><br><sub>Carte SD, renommage, transformation</sub></td>
+    <td align="center" width="33%"><a href="https://companion.echonuit.fr/ecrans/passage/"><img src=".github/assets/apercu-passage.png" alt="Passage"></a><br><b>Passage</b><br><sub>Le pivot d'une nuit (statut, actions)</sub></td>
   </tr>
   <tr>
-    <td align="center" width="33%"><a href="https://iutinfoaix-s201.github.io/vigiechiro-pr-companion/ecrans/qualification/"><img src=".github/assets/apercu-qualification.png" alt="Qualification"></a><br><b>Qualification</b><br><sub>Écoute (sono + spectrogramme) et verdict</sub></td>
-    <td align="center" width="33%"><a href="https://iutinfoaix-s201.github.io/vigiechiro-pr-companion/ecrans/lot/"><img src=".github/assets/apercu-lot-preparer.png" alt="Lot"></a><br><b>Lot</b><br><sub>Préparer et déposer un lot vérifié</sub></td>
-    <td align="center" width="33%"><a href="https://iutinfoaix-s201.github.io/vigiechiro-pr-companion/ecrans/validation/"><img src=".github/assets/apercu-sons-validation.png" alt="Sons & validation"></a><br><b>Sons &amp; validation</b><br><sub>Écoute, validation, sons de référence</sub></td>
+    <td align="center" width="33%"><a href="https://companion.echonuit.fr/ecrans/qualification/"><img src=".github/assets/apercu-qualification.png" alt="Qualification"></a><br><b>Qualification</b><br><sub>Écoute (sono + spectrogramme) et verdict</sub></td>
+    <td align="center" width="33%"><a href="https://companion.echonuit.fr/ecrans/lot/"><img src=".github/assets/apercu-lot-preparer.png" alt="Lot"></a><br><b>Lot</b><br><sub>Préparer et déposer un lot vérifié</sub></td>
+    <td align="center" width="33%"><a href="https://companion.echonuit.fr/ecrans/validation/"><img src=".github/assets/apercu-sons-validation.png" alt="Sons & validation"></a><br><b>Sons &amp; validation</b><br><sub>Écoute, validation, sons de référence</sub></td>
   </tr>
   <tr>
-    <td align="center" width="33%"><a href="https://iutinfoaix-s201.github.io/vigiechiro-pr-companion/ecrans/multisite/"><img src=".github/assets/apercu-multisite.png" alt="Multisite"></a><br><b>Multisite</b><br><sub>Vue agrégée (tri, filtres, vues)</sub></td>
-    <td align="center" width="33%"><a href="https://iutinfoaix-s201.github.io/vigiechiro-pr-companion/ecrans/diagnostic/"><img src=".github/assets/apercu-diagnostic.png" alt="Diagnostic"></a><br><b>Diagnostic</b><br><sub>Climat, anomalies du capteur</sub></td>
-    <td align="center" width="33%"><a href="https://iutinfoaix-s201.github.io/vigiechiro-pr-companion/ecrans/recherche/"><img src=".github/assets/apercu-recherche.png" alt="Recherche globale"></a><br><b>Recherche</b><br><sub>Sites, points, passages (Ctrl+F)</sub></td>
+    <td align="center" width="33%"><a href="https://companion.echonuit.fr/ecrans/multisite/"><img src=".github/assets/apercu-multisite.png" alt="Multisite"></a><br><b>Multisite</b><br><sub>Vue agrégée (tri, filtres, vues)</sub></td>
+    <td align="center" width="33%"><a href="https://companion.echonuit.fr/ecrans/diagnostic/"><img src=".github/assets/apercu-diagnostic.png" alt="Diagnostic"></a><br><b>Diagnostic</b><br><sub>Climat, anomalies du capteur</sub></td>
+    <td align="center" width="33%"><a href="https://companion.echonuit.fr/ecrans/recherche/"><img src=".github/assets/apercu-recherche.png" alt="Recherche globale"></a><br><b>Recherche</b><br><sub>Sites, points, passages (Ctrl+F)</sub></td>
   </tr>
   <tr>
-    <td align="center" width="33%"><a href="https://iutinfoaix-s201.github.io/vigiechiro-pr-companion/ecrans/analyse/"><img src=".github/assets/apercu-analyse.png" alt="Espèces & observations"></a><br><b>Espèces &amp; observations</b><br><sub>Inventaire par espèce / par carré</sub></td>
-    <td align="center" width="33%"><a href="https://iutinfoaix-s201.github.io/vigiechiro-pr-companion/ecrans/analyse/"><img src=".github/assets/apercu-analyse-carte.png" alt="Carte de répartition"></a><br><b>Carte de répartition</b><br><sub>Richesse par carré sur la carte</sub></td>
+    <td align="center" width="33%"><a href="https://companion.echonuit.fr/ecrans/analyse/"><img src=".github/assets/apercu-analyse.png" alt="Espèces & observations"></a><br><b>Espèces &amp; observations</b><br><sub>Inventaire par espèce / par carré</sub></td>
+    <td align="center" width="33%"><a href="https://companion.echonuit.fr/ecrans/analyse/"><img src=".github/assets/apercu-analyse-carte.png" alt="Carte de répartition"></a><br><b>Carte de répartition</b><br><sub>Richesse par carré sur la carte</sub></td>
     <td width="33%"></td>
   </tr>
 </table>
 
-<p align="center"><a href="https://iutinfoaix-s201.github.io/vigiechiro-pr-companion/"><b>→ Ouvrir la documentation complète</b></a> &nbsp;|&nbsp; <a href=".github/assets/README.md">galerie de tous les états</a></p>
+<p align="center"><a href="https://companion.echonuit.fr/"><b>→ Ouvrir la documentation complète</b></a> &nbsp;|&nbsp; <a href=".github/assets/README.md">galerie de tous les états</a></p>
 
 ## ⬇️ Installer et lancer
 
 ### Installer l'application
 
 Téléchargez l'installeur de votre système sur la page
-[Releases](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/releases) : il embarque son
+[Releases](https://github.com/echonuit/vigiechiro-pr-companion/releases) : il embarque son
 propre *runtime* (**aucun Java à installer**).
 
 | Système | Fichier | Java requis ? |
@@ -109,7 +109,7 @@ propre *runtime* (**aucun Java à installer**).
 | Linux (Debian/Ubuntu) | `.deb` | Non (embarqué) |
 
 La prise en main pas à pas est dans la
-[documentation utilisateur](https://iutinfoaix-s201.github.io/vigiechiro-pr-companion/prise-en-main/).
+[documentation utilisateur](https://companion.echonuit.fr/prise-en-main/).
 
 ### Lancer depuis les sources
 
@@ -117,7 +117,7 @@ Prérequis : un **JDK 25 standard** (Temurin / `25.0.2-open`). Tout le reste pas
 Wrapper** `./mvnw` (aucune installation de Maven) ; JavaFX 26 vient des dépendances Maven.
 
 ```bash
-git clone https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion.git
+git clone https://github.com/echonuit/vigiechiro-pr-companion.git
 cd vigiechiro-pr-companion
 ./mvnw verify      # compile + tests + controles qualite (doit afficher BUILD SUCCESS)
 ./mvnw javafx:run  # lance l'application
@@ -132,9 +132,9 @@ scientifique nationale. Il s'appuie sur, et complète, plusieurs projets ouverts
 |---|---|---|
 | **Vigie-Chiro** | Programme national de suivi des chauves-souris (Vigie-Nature, MNHN) et plateforme de dépôt + analyse automatique **Tadarida** | [Programme](https://www.vigienature.fr/fr/chauves-souris) · [Plateforme](https://vigiechiro.herokuapp.com) |
 | **Passive Recorder (Teensy)** | L'**enregistreur open-hardware** posé sur le terrain : firmware open-source qui capte les ultrasons toute la nuit | [framagit · PassiveRecorder](https://framagit.org/PiBatRecorderProjects/TeensyRecorders/-/tree/master/PassiveRecorder) |
-| **audio-view** | Le **composant JavaFX** (sonogramme + spectrogramme) utilisé pour l'écoute, publié sur Maven Central | [github.com/IUTInfoAix-S201/audio-view](https://github.com/IUTInfoAix-S201/audio-view) |
-| **Jeu de données exemple** | Une **nuit complète** de capture (échantillon audio + observations), pour tester sans matériel | [Dépôt](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion-exemple-nuit) · [DOI Zenodo](https://doi.org/10.5281/zenodo.20492247) |
-| **Le brief** | Le **brief projet** : contexte, besoin, parcours utilisateurs, *story mapping* (document de conception vivant) | [iutinfoaix-s201.github.io/brief](https://iutinfoaix-s201.github.io/brief/) |
+| **audio-view** | Le **composant JavaFX** (sonogramme + spectrogramme) utilisé pour l'écoute, publié sur Maven Central | [github.com/echonuit/audio-view](https://github.com/echonuit/audio-view) |
+| **Jeu de données exemple** | Une **nuit complète** de capture (échantillon audio + observations), pour tester sans matériel | [Dépôt](https://github.com/echonuit/vigiechiro-pr-companion-exemple-nuit) · [DOI Zenodo](https://doi.org/10.5281/zenodo.20492247) |
+| **Le brief** | Le **brief projet** : contexte, besoin, parcours utilisateurs, *story mapping* (document de conception vivant) | [brief.echonuit.fr](https://brief.echonuit.fr/) |
 
 ## 🛠️ Sous le capot (pour les développeuses et développeurs)
 
@@ -145,7 +145,7 @@ frontière MVVM et l'absence de cycles sont **vérifiées automatiquement** (Arc
 échouent si un `viewmodel` touche `javafx.scene`, ou si un `model` parle JavaFX.
 
 > 📖 **Documentation développeur** (architecture détaillée, « ajouter une fonctionnalité », tests et
-> qualité) : **<https://iutinfoaix-s201.github.io/vigiechiro-pr-companion/dev/>**
+> qualité) : **<https://companion-dev.echonuit.fr/>**
 
 <details>
 <summary><b>Détail de l'architecture et des fonctionnalités</b></summary>
@@ -185,21 +185,21 @@ workflow à états : `IMPORTE → TRANSFORME → VERIFIE → PRET_A_DEPOSER → 
 **SQLite** via des **DAO** en `PreparedStatement` (pas d'ORM) avec des **migrations** versionnées.
 
 Chaque fonctionnalité est un **paquet** autonome ; son nom renvoie à la **documentation de l'écran**,
-son **parcours** au **[brief](https://iutinfoaix-s201.github.io/brief/)** (l'énoncé d'origine).
+son **parcours** au **[brief](https://brief.echonuit.fr/)** (l'énoncé d'origine).
 
 | Fonctionnalité | Parcours (brief) | Rôle |
 |---|---|---|
-| [`sites`](https://iutinfoaix-s201.github.io/vigiechiro-pr-companion/ecrans/sites/) | [P1](https://iutinfoaix-s201.github.io/brief/Analyse%20et%20conception/Parcours%20utilisateurs/P1%20-%20D%C3%A9clarer%20un%20site%20de%20suivi/) | Gérer les sites de suivi et leurs points d'écoute |
-| [`passage`](https://iutinfoaix-s201.github.io/vigiechiro-pr-companion/ecrans/passage/) | [P2](https://iutinfoaix-s201.github.io/brief/Analyse%20et%20conception/Parcours%20utilisateurs/P2%20-%20Importer%20une%20nuit%20d%27enregistrement/) | Écran pivot d'une nuit (fiche, statut, navigation, suppression) |
-| [`importation`](https://iutinfoaix-s201.github.io/vigiechiro-pr-companion/ecrans/importation/) | [P2](https://iutinfoaix-s201.github.io/brief/Analyse%20et%20conception/Parcours%20utilisateurs/P2%20-%20Importer%20une%20nuit%20d%27enregistrement/) | Importer une nuit depuis la carte SD (copie, renommage, transformation) |
-| [`qualification`](https://iutinfoaix-s201.github.io/vigiechiro-pr-companion/ecrans/qualification/) | [P3](https://iutinfoaix-s201.github.io/brief/Analyse%20et%20conception/Parcours%20utilisateurs/P3%20-%20V%C3%A9rifier%20l%27enregistrement%20par%20%C3%A9chantillonnage/) | Écouter les séquences et poser un verdict de qualité |
-| [`lot`](https://iutinfoaix-s201.github.io/vigiechiro-pr-companion/ecrans/lot/) | [P4](https://iutinfoaix-s201.github.io/brief/Analyse%20et%20conception/Parcours%20utilisateurs/P4%20-%20Pr%C3%A9parer%20un%20lot%20pr%C3%AAt%20%C3%A0%20d%C3%A9poser/) | Préparer et déposer un lot vérifié |
-| [`validation`](https://iutinfoaix-s201.github.io/vigiechiro-pr-companion/ecrans/validation/) | [P7](https://iutinfoaix-s201.github.io/brief/Analyse%20et%20conception/Parcours%20utilisateurs/P7%20-%20Valider%20les%20r%C3%A9sultats%20Tadarida/) | Revue des observations Tadarida (espèces), import/export CSV `_Vu` |
-| [`multisite`](https://iutinfoaix-s201.github.io/vigiechiro-pr-companion/ecrans/multisite/) | [P5](https://iutinfoaix-s201.github.io/brief/Analyse%20et%20conception/Parcours%20utilisateurs/P5%20-%20Naviguer%20dans%20plusieurs%20sites%20et%20passages/) | Vue agrégée des passages (tri, filtres, vues sauvegardées) |
-| [`diagnostic`](https://iutinfoaix-s201.github.io/vigiechiro-pr-companion/ecrans/diagnostic/) | [P6](https://iutinfoaix-s201.github.io/brief/Analyse%20et%20conception/Parcours%20utilisateurs/P6%20-%20Diagnostiquer%20le%20mat%C3%A9riel/) | Diagnostic d'une nuit (courbe climat, anomalies) |
-| `bibliotheque` (modèle) | [P10](https://iutinfoaix-s201.github.io/brief/Analyse%20et%20conception/Parcours%20utilisateurs/P10%20-%20Exporter%20une%20biblioth%C3%A8que%20de%20sons%20de%20r%C3%A9f%C3%A9rence/) | Corpus de sons de référence + export, désormais servis par la vue audio unifiée (source References) |
-| [`analyse`](https://iutinfoaix-s201.github.io/vigiechiro-pr-companion/ecrans/analyse/) | transverse | Inventaire des espèces détectées (prisme biodiversité), regroupé par espèce ou par carré et filtrable par statut |
-| [`recherche`](https://iutinfoaix-s201.github.io/vigiechiro-pr-companion/ecrans/recherche/) | transverse | Recherche globale du chrome (Ctrl+F) : sauter à un site, un point ou un passage, résultats groupés |
+| [`sites`](https://companion.echonuit.fr/ecrans/sites/) | [P1](https://brief.echonuit.fr/Analyse%20et%20conception/Parcours%20utilisateurs/P1%20-%20D%C3%A9clarer%20un%20site%20de%20suivi/) | Gérer les sites de suivi et leurs points d'écoute |
+| [`passage`](https://companion.echonuit.fr/ecrans/passage/) | [P2](https://brief.echonuit.fr/Analyse%20et%20conception/Parcours%20utilisateurs/P2%20-%20Importer%20une%20nuit%20d%27enregistrement/) | Écran pivot d'une nuit (fiche, statut, navigation, suppression) |
+| [`importation`](https://companion.echonuit.fr/ecrans/importation/) | [P2](https://brief.echonuit.fr/Analyse%20et%20conception/Parcours%20utilisateurs/P2%20-%20Importer%20une%20nuit%20d%27enregistrement/) | Importer une nuit depuis la carte SD (copie, renommage, transformation) |
+| [`qualification`](https://companion.echonuit.fr/ecrans/qualification/) | [P3](https://brief.echonuit.fr/Analyse%20et%20conception/Parcours%20utilisateurs/P3%20-%20V%C3%A9rifier%20l%27enregistrement%20par%20%C3%A9chantillonnage/) | Écouter les séquences et poser un verdict de qualité |
+| [`lot`](https://companion.echonuit.fr/ecrans/lot/) | [P4](https://brief.echonuit.fr/Analyse%20et%20conception/Parcours%20utilisateurs/P4%20-%20Pr%C3%A9parer%20un%20lot%20pr%C3%AAt%20%C3%A0%20d%C3%A9poser/) | Préparer et déposer un lot vérifié |
+| [`validation`](https://companion.echonuit.fr/ecrans/validation/) | [P7](https://brief.echonuit.fr/Analyse%20et%20conception/Parcours%20utilisateurs/P7%20-%20Valider%20les%20r%C3%A9sultats%20Tadarida/) | Revue des observations Tadarida (espèces), import/export CSV `_Vu` |
+| [`multisite`](https://companion.echonuit.fr/ecrans/multisite/) | [P5](https://brief.echonuit.fr/Analyse%20et%20conception/Parcours%20utilisateurs/P5%20-%20Naviguer%20dans%20plusieurs%20sites%20et%20passages/) | Vue agrégée des passages (tri, filtres, vues sauvegardées) |
+| [`diagnostic`](https://companion.echonuit.fr/ecrans/diagnostic/) | [P6](https://brief.echonuit.fr/Analyse%20et%20conception/Parcours%20utilisateurs/P6%20-%20Diagnostiquer%20le%20mat%C3%A9riel/) | Diagnostic d'une nuit (courbe climat, anomalies) |
+| `bibliotheque` (modèle) | [P10](https://brief.echonuit.fr/Analyse%20et%20conception/Parcours%20utilisateurs/P10%20-%20Exporter%20une%20biblioth%C3%A8que%20de%20sons%20de%20r%C3%A9f%C3%A9rence/) | Corpus de sons de référence + export, désormais servis par la vue audio unifiée (source References) |
+| [`analyse`](https://companion.echonuit.fr/ecrans/analyse/) | transverse | Inventaire des espèces détectées (prisme biodiversité), regroupé par espèce ou par carré et filtrable par statut |
+| [`recherche`](https://companion.echonuit.fr/ecrans/recherche/) | transverse | Recherche globale du chrome (Ctrl+F) : sauter à un site, un point ou un passage, résultats groupés |
 
 S'ajoutent la fonctionnalité transverse **`cli`** (import/export en ligne de commande) et le paquet
 **`perf/`** (mesures de performance, cf. [`docs/benchmarks/`](docs/benchmarks/README.md)).
@@ -226,7 +226,7 @@ Le projet embarque une chaîne qualité **professionnelle**, exécutée à chaqu
 
 ## 🆘 Besoin d'aide ?
 
-La **[FAQ](https://iutinfoaix-s201.github.io/vigiechiro-pr-companion/faq/)** répond aux questions les
+La **[FAQ](https://companion.echonuit.fr/faq/)** répond aux questions les
 plus courantes (où sont mes données, comment écouter une séquence...). Quelques pièges côté
 développement :
 

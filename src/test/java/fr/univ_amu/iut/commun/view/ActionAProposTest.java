@@ -82,7 +82,7 @@ class ActionAProposTest {
         assertThat(espion.messages.getLast())
                 .contains("Sébastien Nedjar")
                 .contains("GNU General Public License v3.0")
-                .contains("github.com/IUTInfoAix-S201/vigiechiro-pr-companion");
+                .contains("github.com/echonuit/vigiechiro-pr-companion");
 
         // Le message DÉSIGNE ce qu'on ira chercher : il nommait « les quatre dernières lignes »
         // alors qu'il y en a trois, la version étant en tête. Une capture l'a montré, aucun test

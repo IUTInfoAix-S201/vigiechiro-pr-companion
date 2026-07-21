@@ -7,14 +7,14 @@ publication.
 
 | Workflow | Déclencheur | Rôle | Bloque la PR ? |
 |---|---|---|---|
-| [maven.yml](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/.github/workflows/maven.yml) · job `build` | push `main` + PR | « Java CI » : `./mvnw -B verify -Djacoco.haltOnFailure=true` (compilation + tous les tests dont ArchUnit + **seuils de couverture JaCoCo bloquants**) | **Oui** |
-| [maven.yml](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/.github/workflows/maven.yml) · job `paquet` | push `main` + PR | Assemblage du fat-jar (`package -DskipTests`) puis smoke-test, **E2E CLI bats** et idempotence du packaging. **En parallèle** de `build` | **Oui** |
-| [lint.yml](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/.github/workflows/lint.yml) | push `main` + PR | « Quality gate » (statique) : `spotless:check` + complétude des captures + `./mvnw -Pquality-gate compile pmd:check` (**PMD bloquant**) | **Oui** |
-| [docs.yml](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/.github/workflows/docs.yml) | push/PR sur la doc | Construit les **deux** sites MkDocs (`--strict`) ; déploie Pages (dormant tant que `ENABLE_PAGES` ≠ true) | Build oui |
-| [titre-pr.yml](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/.github/workflows/titre-pr.yml) | PR (dont `edited`) | Le **titre de la PR** suit Conventional Commits (c'est lui que semantic-release lira, cf. ci-dessous) | Non - **informatif**, et volontairement (cf. ci-dessous) |
-| [capture-vues.yml](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/.github/workflows/capture-vues.yml) | push `main` | Régénère les aperçus PNG (cf. [Captures](captures.md)) | — |
-| [release.yml](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/.github/workflows/release.yml) | push `main` | Version + Release + installeurs natifs (dormant tant que `ENABLE_RELEASE` ≠ true) | — |
-| [devcontainer-image.yml](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/.github/workflows/devcontainer-image.yml) | push `solution` | Build/push de l'image devcontainer | — |
+| [maven.yml](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/.github/workflows/maven.yml) · job `build` | push `main` + PR | « Java CI » : `./mvnw -B verify -Djacoco.haltOnFailure=true` (compilation + tous les tests dont ArchUnit + **seuils de couverture JaCoCo bloquants**) | **Oui** |
+| [maven.yml](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/.github/workflows/maven.yml) · job `paquet` | push `main` + PR | Assemblage du fat-jar (`package -DskipTests`) puis smoke-test, **E2E CLI bats** et idempotence du packaging. **En parallèle** de `build` | **Oui** |
+| [lint.yml](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/.github/workflows/lint.yml) | push `main` + PR | « Quality gate » (statique) : `spotless:check` + complétude des captures + `./mvnw -Pquality-gate compile pmd:check` (**PMD bloquant**) | **Oui** |
+| [docs.yml](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/.github/workflows/docs.yml) | push/PR sur la doc | Construit les **deux** sites MkDocs (`--strict`) ; déploie Pages (dormant tant que `ENABLE_PAGES` ≠ true) | Build oui |
+| [titre-pr.yml](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/.github/workflows/titre-pr.yml) | PR (dont `edited`) | Le **titre de la PR** suit Conventional Commits (c'est lui que semantic-release lira, cf. ci-dessous) | Non - **informatif**, et volontairement (cf. ci-dessous) |
+| [capture-vues.yml](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/.github/workflows/capture-vues.yml) | push `main` | Régénère les aperçus PNG (cf. [Captures](captures.md)) | — |
+| [release.yml](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/.github/workflows/release.yml) | push `main` | Version + Release + installeurs natifs (dormant tant que `ENABLE_RELEASE` ≠ true) | — |
+| [devcontainer-image.yml](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/.github/workflows/devcontainer-image.yml) | push `solution` | Build/push de l'image devcontainer | — |
 
 !!! info "Workflows « dormants »"
     Pages et release ne s'activent que via des **variables de dépôt** (`ENABLE_PAGES`,
@@ -126,7 +126,7 @@ l'archive portable pour qui préfère un fichier à un dossier, et le seul des d
 **s'intégrer au menu des applications**, grâce à son `.desktop`.
 
 Elle est construite par
-[`.github/scripts/construit-appimage.sh`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/.github/scripts/construit-appimage.sh),
+[`.github/scripts/construit-appimage.sh`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/.github/scripts/construit-appimage.sh),
 à partir de trois éléments versionnés dans `.github/appimage/` (le point d'entrée `AppRun`, le
 `.desktop`, et l'icône reprise de celle que jpackage dépose dans `lib/`). Le script est **lançable à
 la main**, ce qui permet de le vérifier sans passer par une release :
@@ -211,13 +211,13 @@ principal `vigiechiro-*.jar` reste **mince**. jpackage empaquette donc le `-shad
 !!! note "Le type de commit pilote la version"
     `fix:` → patch, `feat:` → minor, `BREAKING CHANGE` → major. Le `[skip ci]` du commit de CHANGELOG
     évite que la release se redéclenche en boucle. Détails de conventions :
-    [CONTRIBUTING.md](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/CONTRIBUTING.md).
+    [CONTRIBUTING.md](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/CONTRIBUTING.md).
 
 !!! danger "Ce que semantic-release lit réellement : le titre de la PR"
     Les PR sont fusionnées en **squash** (`squash_merge_commit_title = PR_TITLE`) : le **titre de la
     PR** devient le sujet du commit sur `main`, et les messages des commits de branche sont écartés à
     la fusion. C'est donc le titre qui pilote la version, et c'est lui que valide
-    [titre-pr.yml](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/.github/workflows/titre-pr.yml).
+    [titre-pr.yml](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/.github/workflows/titre-pr.yml).
 
     **Pas d'espace avant le `:`** : `feat(scope): …` publie, `feat(scope) : …` ne publie rien. Cette
     seconde forme a arrêté la publication du 18 au 20 juillet 2026, en accumulant 58 commits
@@ -254,7 +254,7 @@ attrapé la PR #2122 le jour même - et cette information suffit. Le bénéfice 
 mesuré. Cf. [ADR 0041](decisions/0041-un-check-requis-gouverne-la-branche.md).
 
 !!! note "Le check publié par le bot des captures est resté"
-    [capture-vues.yml](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/.github/workflows/capture-vues.yml)
+    [capture-vues.yml](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/.github/workflows/capture-vues.yml)
     exécute lui-même la validation, avec le **même script**, et publie le résultat comme check run.
     Ce mécanisme est né du besoin de débloquer, mais il se justifie encore sans lui : sans ce
     passage, une PR d'aperçus ne serait validée par **rien du tout**. Il ne publie jamais un succès
@@ -266,7 +266,7 @@ le check y rapportera.
 
 ## Flatpak (#2111)
 
-Le manifeste vit dans [`flatpak/`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/tree/main/flatpak),
+Le manifeste vit dans [`flatpak/`](https://github.com/echonuit/vigiechiro-pr-companion/tree/main/flatpak),
 qui porte aussi le mode d'emploi de construction et de soumission. Trois points valent d'être connus
 d'ici :
 
@@ -290,7 +290,7 @@ robot de Flathub. Publier une version ne demande aucun geste côté paquet.
 ## Dépendances
 
 Les mises à jour sont proposées par **Dependabot**
-([`.github/dependabot.yml`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/.github/dependabot.yml)),
+([`.github/dependabot.yml`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/.github/dependabot.yml)),
 **mensuellement**, pour `maven` et `github-actions`. **JavaFX (`org.openjfx:*`) est volontairement
 exclu** de l'automatisation : ses bumps ont un impact fort (rendu, Headless Platform) et se décident à
 la main.

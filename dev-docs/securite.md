@@ -3,7 +3,7 @@
 VigieChiro traite des **données naturalistes**. La règle la plus importante n'est pas technique mais
 **écologique** : ne jamais exposer la localisation d'espèces protégées. Cette page est la version
 développeur de
-[**SECURITY.md**](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/SECURITY.md)
+[**SECURITY.md**](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/SECURITY.md)
 (source canonique).
 
 !!! danger "Données sensibles : chiroptères"

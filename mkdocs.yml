@@ -2,9 +2,9 @@ site_name: VigieChiro Companion
 site_description: >-
   Documentation utilisateur de VigieChiro Companion, l'application d'aide au traitement
   des nuits de capture acoustique de chauves-souris.
-site_url: https://iutinfoaix-s201.github.io/vigiechiro-pr-companion/
-repo_url: https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion
-repo_name: IUTInfoAix-S201/vigiechiro-pr-companion
+site_url: https://companion.echonuit.fr/
+repo_url: https://github.com/echonuit/vigiechiro-pr-companion
+repo_name: echonuit/vigiechiro-pr-companion
 edit_uri: edit/main/docs/
 copyright: Sébastien Nedjar
 docs_dir: docs

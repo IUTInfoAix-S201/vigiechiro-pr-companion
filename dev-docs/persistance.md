@@ -1,7 +1,7 @@
 # Persistance
 
 La persistance est **locale** : une base **SQLite** fichier, sans serveur. La couche vit dans
-[`commun.persistence`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/tree/main/src/main/java/fr/univ_amu/iut/commun/persistence)
+[`commun.persistence`](https://github.com/echonuit/vigiechiro-pr-companion/tree/main/src/main/java/fr/univ_amu/iut/commun/persistence)
 (infra technique) ; le **SQL métier** de chaque entité vit dans les `*/model/dao/` de sa feature.
 
 !!! abstract "Cette page = le *mécanisme*, pas le *modèle*"
@@ -16,7 +16,7 @@ La persistance est **locale** : une base **SQLite** fichier, sans serveur. La co
 
 ## La source de données
 
-[`SourceDeDonnees`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/persistence/SourceDeDonnees.java)
+[`SourceDeDonnees`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/persistence/SourceDeDonnees.java)
 est l'**unique** classe qui connaît l'URL JDBC (`jdbc:sqlite:<workspace>/vigiechiro.db`). Bindée en
 **singleton** Guice, elle fournit des `Connection` ; DAO, unité de travail et migration la reçoivent
 et ignorent tout du driver.
@@ -28,9 +28,9 @@ et ignorent tout du driver.
 
 ## Les migrations de schéma
 
-[`MigrationSchema`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/persistence/MigrationSchema.java)
+[`MigrationSchema`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/persistence/MigrationSchema.java)
 applique des scripts **versionnés**
-[`src/main/resources/db/migration/V0x__*.sql`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/tree/main/src/main/resources/db/migration)
+[`src/main/resources/db/migration/V0x__*.sql`](https://github.com/echonuit/vigiechiro-pr-companion/tree/main/src/main/resources/db/migration)
 et trace les versions dans une table `schema_version`. C'est **idempotent** : à la réouverture d'une
 base existante, les versions déjà présentes sont ignorées (« base présente → réutilisée »).
 
@@ -76,7 +76,7 @@ Trois précautions, les mêmes pour les trois gestes :
 ## Le patron DAO
 
 Pas d'ORM : des **DAO** en `PreparedStatement`. La base technique
-[`DaoGenerique<T, ID>`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/persistence/DaoGenerique.java)
+[`DaoGenerique<T, ID>`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/persistence/DaoGenerique.java)
 offre `findAll` / `findById` / `delete` **gratuitement** dès qu'un DAO concret fournit son `table()`,
 sa `colonneCle()` et son `RowMapper`. Seules les écritures dépendant des colonnes
 (`insert` / `update`) restent à écrire, via les helpers `executerMaj(...)` et
@@ -84,7 +84,7 @@ sa `colonneCle()` et son `RowMapper`. Seules les écritures dépendant des colon
 
 Depuis #1193, la mécanique de **lecture** (connexion, liaison des paramètres, itération du
 `ResultSet` vers un `RowMapper`) vit dans
-[`ProjectionGenerique`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/persistence/ProjectionGenerique.java),
+[`ProjectionGenerique`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/persistence/ProjectionGenerique.java),
 dont hérite `DaoGenerique`. Les **DAO de projection** en lecture seule (`ProjectionsAnalyseDao`,
 `ProjectionsAudioDao` sur la table `observation`) étendent directement cette base : une projection
 transverse ne porte ni table propre ni écriture, le contrat CRUD `Dao` ne s'applique pas à elle.
@@ -119,14 +119,14 @@ classDiagram
 
 (Les classes sont génériques : `Dao<T, ID>`, `DaoGenerique<T, ID>`, `RowMapper<T>`.)
 
-Le [`RowMapper<T>`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/persistence/RowMapper.java)
+Le [`RowMapper<T>`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/persistence/RowMapper.java)
 transforme une ligne de `ResultSet` en entité (un `record` immuable).
 
 ## Transactions
 
 Par défaut, chaque appel DAO **s'auto-commit**. Quand plusieurs écritures doivent réussir ou échouer
 **ensemble** (ex. créer un passage *et* sa session), on les regroupe dans une
-[`UniteDeTravail`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/persistence/UniteDeTravail.java) :
+[`UniteDeTravail`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/persistence/UniteDeTravail.java) :
 
 ```java
 uniteDeTravail.executer(connexion -> {
@@ -136,7 +136,7 @@ uniteDeTravail.executer(connexion -> {
 
 Une exception dans le bloc déclenche un **rollback** : la base reste cohérente (objectif intégrité /
 résilience O7). Les erreurs SQL sont remontées en
-[`DataAccessException`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/persistence/DataAccessException.java)
+[`DataAccessException`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/persistence/DataAccessException.java)
 (non vérifiée).
 
 ---

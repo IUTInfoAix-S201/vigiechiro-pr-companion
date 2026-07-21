@@ -12,16 +12,16 @@ benchmark** (calibrer les cibles sur la machine cible) et d'outil de **non-régr
 
 !!! info "Source canonique"
     Le protocole détaillé, les commandes exactes et les **relevés chiffrés** vivent dans
-    [`docs/benchmarks/README.md`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/docs/benchmarks/README.md)
+    [`docs/benchmarks/README.md`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/docs/benchmarks/README.md)
     (dans le dépôt). Cette page en donne la **carte** et les **ordres de grandeur**.
 
 ## Les outils du banc
 
 | Outil | Rôle |
 |---|---|
-| [`GenerateurJeuDeDonnees`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/perf/outils/GenerateurJeuDeDonnees.java) | Peuple une base SQLite déterministe (déf. 1000 passages + 4031 observations). |
-| [`BancMesure`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/perf/outils/BancMesure.java) | Chronomètre les opérations **O5** à froid / à chaud et imprime l'`EXPLAIN QUERY PLAN`. |
-| [`BancImport`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/perf/outils/BancImport.java) | Génère une **nuit synthétique** de vrais WAV + `LogPR`, lance le **vrai** import et mesure temps / débit / **mémoire crête** (**O3**). |
+| [`GenerateurJeuDeDonnees`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/perf/outils/GenerateurJeuDeDonnees.java) | Peuple une base SQLite déterministe (déf. 1000 passages + 4031 observations). |
+| [`BancMesure`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/perf/outils/BancMesure.java) | Chronomètre les opérations **O5** à froid / à chaud et imprime l'`EXPLAIN QUERY PLAN`. |
+| [`BancImport`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/perf/outils/BancImport.java) | Génère une **nuit synthétique** de vrais WAV + `LogPR`, lance le **vrai** import et mesure temps / débit / **mémoire crête** (**O3**). |
 
 On les lance via `exec-maven-plugin`, avec le **JDK 25 standard** (comme la CI) ; les commandes
 complètes (avec les propriétés `-Dperf.*` de dimensionnement) sont dans le README du banc.
@@ -72,7 +72,7 @@ Deux questions distinctes, qu'il est tentant de confondre :
 - **Quelle borne ?** Elle se chiffre sur **ce qu'elle protège**, pas sur le mécanisme : la politesse
   envers la plateforme (5 ou 8), le pic disque (fenêtre 2), les cœurs, ou le débit du support source.
 
-Le socle est [`ExecutionParallele`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/model/ExecutionParallele.java) :
+Le socle est [`ExecutionParallele`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/model/ExecutionParallele.java) :
 fils virtuels bornés, ordre préservé, progression monotone, annulation coopérative. Le détail et la
 seule exception tolérée sont dans
 l'[ADR 0044](decisions/0044-le-mecanisme-de-parallelisme-suit-la-nature-de-l-attente.md).

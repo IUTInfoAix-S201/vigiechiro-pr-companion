@@ -4,7 +4,7 @@ Le domaine s'organise autour d'une **nuit de capture**. Cette page relie le **mo
 d'origine (le brief) à son **implémentation** (entités-`record` + tables SQLite).
 
 !!! abstract "La source conceptuelle : le brief"
-    Le **[modèle conceptuel du brief](https://iutinfoaix-s201.github.io/brief/Analyse%20et%20conception/Mod%C3%A8le%20conceptuel/)**
+    Le **[modèle conceptuel du brief](https://brief.echonuit.fr/Analyse%20et%20conception/Mod%C3%A8le%20conceptuel/)**
     définit les 15 entités (C1–C15), leurs **cardinalités** et les **règles métier**, avec un
     diagramme de classes. Les **noms y sont ceux de l'IHM** (langage utilisateur). Cette page-ci montre
     comment ces concepts deviennent des records Java et des tables SQL.
@@ -42,7 +42,7 @@ associations*.
 Le **schéma physique** est plus proche de la machine. On le donne en notation **pattes-de-corbeille**
 (IE / *crow's foot*, celle de Mermaid) : relations binaires, clés étrangères explicites. C'est la
 traduction du MCD ci-dessus. 19 tables, créées par
-[`V01__schema.sql`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/resources/db/migration/V01__schema.sql),
+[`V01__schema.sql`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/resources/db/migration/V01__schema.sql),
 clés étrangères **`ON DELETE CASCADE`** (supprimer un passage emporte sa session, ses séquences, ses
 observations…).
 
@@ -165,7 +165,7 @@ S'ajoutent des tables techniques : `saved_view` (vues sauvegardées de M-Multisi
 Un **enregistrement original** (`original_recording`) est un ultrason mono 16 bits échantillonné très
 vite (**384 kHz**), donc **inaudible**. L'import le transforme en **séquences d'écoute**
 (`listening_sequence`) que l'humain peut écouter et que Tadarida a analysées. Le point dur est
-[`TransformationAudio`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/importation/model/TransformationAudio.java) ;
+[`TransformationAudio`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/importation/model/TransformationAudio.java) ;
 l'**ordre des opérations reproduit fidèlement la chaîne Vigie-Chiro/Tadarida** (condition pour que
 l'`observations.csv`, produit sur les mêmes séquences, se raccroche à l'audio) :
 
@@ -202,11 +202,11 @@ et `ServiceValidation` **relie une observation à sa séquence par ce nom** (san
 **Collisions.** Des enregistrements peuvent se **chevaucher sur la grille de 5 s** : la séquence de
 queue d'un long (ex. `…_225332` de 10 s → séquence `…_225342_000`) tombe sur l'heure de début d'un
 enregistrement plus récent (`…_225342`, dont la tête vise aussi `…_225342_000`).
-[`ReconciliationNoms`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/importation/model/ReconciliationNoms.java)
+[`ReconciliationNoms`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/importation/model/ReconciliationNoms.java)
 tranche de façon **déterministe** : le **plus ancien enregistrement garde le `_000`** (c'est ce que
 référence l'`observations.csv`), le perdant passe en **`_001`** (disponible à l'écoute, sans
 observation associée — **aucune donnée perdue**). Comme le découpage est parallèle
-([`DecoupageParallele`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/importation/model/DecoupageParallele.java)),
+([`DecoupageParallele`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/importation/model/DecoupageParallele.java)),
 chaque original écrit d'abord dans un **dossier temporaire propre**, puis les noms définitifs sont
 attribués en une passe séquentielle qui déplace les fichiers vers `transformes/`.
 
@@ -217,7 +217,7 @@ quadruplet) réécrit des fichiers **identiques au bit près**.
 ## Énumérations du domaine
 
 Plutôt que des codes magiques, les états sont des **énums** dans `commun.model` :
-[`StatutWorkflow`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/model/StatutWorkflow.java)
+[`StatutWorkflow`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/model/StatutWorkflow.java)
 (`IMPORTE → … → DEPOSE`), `Verdict` (OK / Douteux / À jeter), `MethodeSelection`, `Protocole`,
 `ModeValidation`. Chacune porte un **libellé** d'affichage, et les transitions de statut sont gardées
 par [`MoteurWorkflowPassage`](patterns.md#machine-a-etats-moteurworkflowpassage).

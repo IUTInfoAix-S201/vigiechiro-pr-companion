@@ -7,7 +7,7 @@ d'enregistrement.
 ## Installer l'application
 
 Les fichiers sont sur la page
-[Releases](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/releases) du projet. Deux
+[Releases](https://github.com/echonuit/vigiechiro-pr-companion/releases) du projet. Deux
 formes vous sont proposées pour chaque système, et le choix n'est pas anodin.
 
 ### Installer, ou simplement décompresser

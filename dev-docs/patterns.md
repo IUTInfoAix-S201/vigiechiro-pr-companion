@@ -319,7 +319,7 @@ impossible à substituer en test, et le câblage est dispersé partout.
 **La solution.** Les objets **reçoivent** leurs dépendances (constructeur), et **un seul** endroit, la
 *Composition Root*, assemble le graphe complet.
 
-**Dans cette application.** [`RacineInjecteur`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/di/RacineInjecteur.java)
+**Dans cette application.** [`RacineInjecteur`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/di/RacineInjecteur.java)
 installe le socle + les 10 modules de feature (Guice). Même les controllers FXML sont injectés (cf.
 *Factory* plus bas). En test, on substitue une base jetable sans changer le code de production.
 
@@ -365,9 +365,9 @@ ArchUnit l'interdit).
 **La solution.** Publier une **interface dans le socle**, l'implémenter dans la feature cible :
 l'appelant dépend de l'**abstraction**, jamais de l'implémentation. La dépendance est **inversée**.
 
-**Dans cette application.** [`OuvrirPassage`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/view/OuvrirPassage.java)
+**Dans cette application.** [`OuvrirPassage`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/view/OuvrirPassage.java)
 (socle) est implémenté par
-[`NavigationPassage`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/passage/view/NavigationPassage.java)
+[`NavigationPassage`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/passage/view/NavigationPassage.java)
 (feature `passage`) et **bindé** par `PassageModule`. `sites` injecte `OuvrirPassage`.
 
 ```mermaid
@@ -398,7 +398,7 @@ quels chez chaque appelant, ils seraient verbeux et fragiles.
 **La solution.** Une **façade** par feature expose une opération **simple** (`ouvrir(...)`) qui
 orchestre ces gestes en interne.
 
-**Dans cette application.** [`NavigationPassage`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/passage/view/NavigationPassage.java)
+**Dans cette application.** [`NavigationPassage`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/passage/view/NavigationPassage.java)
 (et ses homologues `Navigation*`) implémente le contrat `Ouvrir*` en **cachant** le `FXMLLoader` et le
 `Navigateur` : l'appelant ne voit qu'`ouvrir(idPassage, contexte)`. Le `Navigateur` lui-même est une
 façade sur la zone centrale du chrome + l'historique.
@@ -462,9 +462,9 @@ implémente **seulement si** la capacité le concerne. Le `Navigateur` les déte
 
 | Interface (1 rôle) | Implémentée par les écrans qui… |
 |---|---|
-| [`GardeQuitter`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/view/GardeQuitter.java) | ont une **saisie non enregistrée** |
-| [`EmplacementNavigation`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/view/EmplacementNavigation.java) | ont une **place hiérarchique** (fil d'Ariane) |
-| [`RafraichirAuRetour`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/view/RafraichirAuRetour.java) | affichent des **données mutables** |
+| [`GardeQuitter`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/view/GardeQuitter.java) | ont une **saisie non enregistrée** |
+| [`EmplacementNavigation`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/view/EmplacementNavigation.java) | ont une **place hiérarchique** (fil d'Ariane) |
+| [`RafraichirAuRetour`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/view/RafraichirAuRetour.java) | affichent des **données mutables** |
 
 Un écran lecture seule n'implémente **aucune** des trois.
 
@@ -497,7 +497,7 @@ le `ResultSet`, fermer. Beaucoup de **duplication**.
 **La solution.** Une classe de base fixe le **squelette** de l'algorithme (`findAll`, `findById`,
 `delete`) et **délègue** les détails variables à des méthodes que les sous-classes remplissent.
 
-**Dans cette application.** [`DaoGenerique<T, ID>`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/persistence/DaoGenerique.java)
+**Dans cette application.** [`DaoGenerique<T, ID>`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/persistence/DaoGenerique.java)
 fournit les opérations communes ; un DAO concret donne seulement `table()`, `colonneCle()` et son
 `RowMapper`.
 
@@ -533,7 +533,7 @@ ou passée au client.
 
 **Dans cette application.** Deux usages :
 
-- [`RowMapper<T>`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/persistence/RowMapper.java)
+- [`RowMapper<T>`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/persistence/RowMapper.java)
   (`@FunctionalInterface`) : « transformer **une** ligne en entité » varie par DAO (souvent une
   lambda) ; l'itération reste dans `DaoGenerique`.
 
@@ -542,7 +542,7 @@ ou passée au client.
   public interface RowMapper<T> { T mapper(ResultSet rs) throws SQLException; }
   ```
 
-- [`GenerateurSelection`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/qualification/model/GenerateurSelection.java) :
+- [`GenerateurSelection`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/qualification/model/GenerateurSelection.java) :
   `selectionner(sequences, methode, taille)` choisit un sous-ensemble selon la `MethodeSelection`
   (répartition temporelle vs aléatoire vs manuel) — une **règle pure**, sans base ni IHM.
 
@@ -1048,7 +1048,7 @@ session » doit être **atomique** : si la 2ᵉ échoue, la 1ʳᵉ ne doit pas r
 **La solution.** Regrouper les écritures dans **une transaction** : tout réussit (commit), ou tout est
 annulé (rollback).
 
-**Dans cette application.** [`UniteDeTravail`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/persistence/UniteDeTravail.java)
+**Dans cette application.** [`UniteDeTravail`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/persistence/UniteDeTravail.java)
 exécute un bloc sur **une seule connexion** :
 
 ```java
@@ -1106,10 +1106,10 @@ patron d'un simple `try`/`finally` de nettoyage.
 
 | Où | Matérialise | Libère | Ce qui borne le pic |
 |---|---|---|---|
-| [`DecoupageParallele`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/importation/model/DecoupageParallele.java) | un sous-dossier `.tmp-decoupage/<i>` par original | après le nommage définitif | le `Semaphore` de la campagne |
-| [`ReactivationDepuisBruts`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/passage/model/ReactivationDepuisBruts.java) | `DossierTemporaire.creer("vc-regen-…")` | en `finally`, après rebranchement | **un brut à la fois** |
-| [`HydratationDepuisBruts`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/passage/model/HydratationDepuisBruts.java) | un temporaire par brut, sur un fil d'`ExecutionParallele` | en `finally` | le `Semaphore` d'`ExecutionParallele` |
-| [`SourceArchivesRegenerables`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/lot/model/SourceArchivesRegenerables.java) | une archive ZIP à la résolution | après le commit `DEPOSE` | la fenêtre 2, relayée par `parallelismeMax()` |
+| [`DecoupageParallele`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/importation/model/DecoupageParallele.java) | un sous-dossier `.tmp-decoupage/<i>` par original | après le nommage définitif | le `Semaphore` de la campagne |
+| [`ReactivationDepuisBruts`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/passage/model/ReactivationDepuisBruts.java) | `DossierTemporaire.creer("vc-regen-…")` | en `finally`, après rebranchement | **un brut à la fois** |
+| [`HydratationDepuisBruts`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/passage/model/HydratationDepuisBruts.java) | un temporaire par brut, sur un fil d'`ExecutionParallele` | en `finally` | le `Semaphore` d'`ExecutionParallele` |
+| [`SourceArchivesRegenerables`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/lot/model/SourceArchivesRegenerables.java) | une archive ZIP à la résolution | après le commit `DEPOSE` | la fenêtre 2, relayée par `parallelismeMax()` |
 
 ```mermaid
 sequenceDiagram
@@ -1139,7 +1139,7 @@ l'envoi.
     Trois des quatre occurrences **avalent** l'échec de libération : ne pas avoir pu rendre de la place
     n'est pas une raison de faire échouer une opération par ailleurs réussie. Le reliquat sera repris
     par « Libérer l'espace disque ». C'est le contrat que portent
-    [`DossierTemporaire.supprimer`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/passage/model/DossierTemporaire.java)
+    [`DossierTemporaire.supprimer`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/passage/model/DossierTemporaire.java)
     (« efface **au mieux** ») et `SourceDepot.liberer`, formulé deux fois de façon indépendante.
 
     `DecoupageParallele` **échoue dur**, et c'est la bonne asymétrie : son temporaire n'est pas un
@@ -1208,7 +1208,7 @@ peuvent **pas** recevoir de dépendances injectées.
 
 **Dans cette application.** `loader.setControllerFactory(injector::getInstance)` : chaque controller est
 instancié **par le conteneur**, donc reçoit ses ViewModels/services par constructeur (cf.
-[`App`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/App.java)).
+[`App`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/App.java)).
 Diagramme de séquence du bootstrap : [Injection](injection.md#des-controllers-fxml-injectes).
 
 **Principes.** **DIP** (le controller ne construit pas ses dépendances) et **IoC**.
@@ -1224,10 +1224,10 @@ services serait fragile.
 **La solution.** Centraliser les **transitions autorisées** dans un objet dédié : depuis un état, une
 seule cible permise (le successeur immédiat).
 
-**Dans cette application.** [`MoteurWorkflowPassage`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/passage/model/MoteurWorkflowPassage.java)
+**Dans cette application.** [`MoteurWorkflowPassage`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/passage/model/MoteurWorkflowPassage.java)
 porte l'ordre et expose `suivant(...)` / `estTransitionAutorisee(...)` / `exigerTransitionAutorisee(...)`.
 La logique est **isolée** de l'énum
-[`StatutWorkflow`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/model/StatutWorkflow.java)
+[`StatutWorkflow`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/model/StatutWorkflow.java)
 (simple porteur de libellés).
 
 ```mermaid

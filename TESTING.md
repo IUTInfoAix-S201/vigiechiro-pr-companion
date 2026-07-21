@@ -5,7 +5,7 @@ Ce document décrit la **suite de tests** : comment l'exécuter, ce qu'elle cont
 le [README §4](README.md#4-développement-et-qualité) (vue d'ensemble).
 
 > 📖 Version structurée (mêmes infos, navigation + recherche) :
-> [doc dev · Tests et qualité](https://iutinfoaix-s201.github.io/vigiechiro-pr-companion/dev/tests-et-qualite/).
+> [doc dev · Tests et qualité](https://companion-dev.echonuit.fr/tests-et-qualite/).
 
 ---
 

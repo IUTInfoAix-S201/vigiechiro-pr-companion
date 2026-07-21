@@ -69,13 +69,13 @@ modules:
     sources:
       - type: file
         dest-filename: vigiechiro.deb
-        url: https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/releases/download/v2.26.0/vigiechiro_2.26.0_amd64-x64.deb
+        url: https://github.com/echonuit/vigiechiro-pr-companion/releases/download/v2.26.0/vigiechiro_2.26.0_amd64-x64.deb
         sha256: 391595b095d82fa825eaa8bbf6c3c59666a081970a2b480a376e75402a8e32ab
         # Le robot de Flathub détecte les nouvelles versions et ouvre la mise à jour tout seul :
         # c'est ce qui rend la maintenance quasi nulle une fois le paquet accepté.
         x-checker-data:
           type: json
-          url: https://api.github.com/repos/IUTInfoAix-S201/vigiechiro-pr-companion/releases/latest
+          url: https://api.github.com/repos/echonuit/vigiechiro-pr-companion/releases/latest
           version-query: .tag_name | ltrimstr("v")
           timestamp-query: .published_at
           url-query: .assets[] | select(.name=="vigiechiro_" + $version + "_amd64-x64.deb")

@@ -5,9 +5,9 @@ Toutes les dépendances sont câblées par **Guice 7** : services, DAO, ViewMode
 
 ## La racine de composition
 
-[`RacineInjecteur`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/di/RacineInjecteur.java)
+[`RacineInjecteur`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/di/RacineInjecteur.java)
 assemble le graphe : le **socle** (`CommunModule` + `PersistenceModule`), installé **explicitement**,
-et les **modules de feature**, **auto-découverts** via `ServiceLoader<`[`ModuleDeFeature`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/di/ModuleDeFeature.java)`>`.
+et les **modules de feature**, **auto-découverts** via `ServiceLoader<`[`ModuleDeFeature`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/di/ModuleDeFeature.java)`>`.
 
 ```java
 public static List<Module> modules() {
@@ -50,7 +50,7 @@ nom de classe garantit seulement la **reproductibilité**. Une feature peut êtr
 ## Feature-flags
 
 Chaque `ModuleDeFeature` déclare son **identité** via `fonctionnalite()` :
-[`Fonctionnalite`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/di/Fonctionnalite.java)`(id, libellé, `[`Categorie`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/di/Categorie.java)`)`.
+[`Fonctionnalite`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/di/Fonctionnalite.java)`(id, libellé, `[`Categorie`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/di/Categorie.java)`)`.
 La **catégorie** décide de la **désactivabilité** :
 
 | Catégorie | Désactivable ? | Défaut | Pour… |
@@ -59,7 +59,7 @@ La **catégorie** décide de la **désactivabilité** :
 | `OPTIONNELLE` | oui | active | feature autonome, activée par défaut |
 | `EXPERIMENTALE` | oui | **inactive** | feature en cours de dev, mergée derrière un flag OFF |
 
-Le registre [`Fonctionnalites`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/di/Fonctionnalites.java)
+Le registre [`Fonctionnalites`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/di/Fonctionnalites.java)
 résout l'état actif de chaque feature, consulté par `RacineInjecteur.modules()` **à la composition**
 (donc **au démarrage** : changer un flag prend effet au prochain lancement). Précédence, de la plus
 forte à la plus faible :
@@ -87,10 +87,10 @@ masquant son point d'entrée si absent) : `diagnostic`, `lot`, `qualification`, 
 
 ## Ce que publie un module de feature
 
-Un module de feature hérite de [`ModuleDeFeature`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/di/ModuleDeFeature.java)
+Un module de feature hérite de [`ModuleDeFeature`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/di/ModuleDeFeature.java)
 (lui-même un `AbstractModule`), qui ajoute un petit **DSL de contribution** masquant le boilerplate des
 `Multibinder`. Sur le patron de
-[`PassageModule`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/passage/di/PassageModule.java) :
+[`PassageModule`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/passage/di/PassageModule.java) :
 
 ```java
 public class PassageModule extends ModuleDeFeature {
@@ -127,7 +127,7 @@ Mécanismes à retenir :
 ## Des controllers FXML injectés
 
 C'est la clé du câblage Vue↔ViewModel.
-[`App`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/App.java)
+[`App`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/App.java)
 pose une **`controllerFactory`** sur le `FXMLLoader` : chaque controller est alors **instancié par
 Guice** (injection par constructeur), donc reçoit ses ViewModels/services.
 

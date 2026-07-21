@@ -32,7 +32,7 @@ C'est pourquoi « Importer depuis VigieChiro » et « Récupérer depuis VigieCh
 - « Importer / Réimporter depuis VigieChiro » **reste**. Ce n'est pas une exception tolérée par lassitude : c'est l'application de la règle 2. La question ne se rouvre pas au prochain chantier qui touchera ce menu.
 - La commande CLI `synchroniser-vigiechiro` était le dernier résidu du vocabulaire écarté par #1855 : elle devient `recuperer-vigiechiro`, l'ancien nom restant comme **alias** pour ne pas casser les scripts existants (la parité CLI ↔ IHM de l'[ADR 0014](0014-parite-cli-ihm.md) porte aussi sur les mots).
 - Un libellé partagé par deux gestes se change **en plusieurs endroits** : la source, la doc utilisateur, la fiche de recette, et la capture qui le montre. #1838 a livré le remède structurel — quand deux gestes partagent un libellé, il vit dans **une constante** (`AcquisitionAncrage.LIBELLE`) et non dans deux chaînes jumelles. Sans quoi le renommage se fait une fois sur deux, et rien ne le dit.
-- Les termes vus par l'utilisateur sont désormais définis dans le [glossaire utilisateur](https://iutinfoaix-s201.github.io/vigiechiro-pr-companion/glossaire/) ; leur sens interne, dans le [glossaire du domaine](../glossaire.md). Une divergence entre les deux reste un défaut de vocabulaire à corriger, comme le pose déjà ce dernier.
+- Les termes vus par l'utilisateur sont désormais définis dans le [glossaire utilisateur](https://companion.echonuit.fr/glossaire/) ; leur sens interne, dans le [glossaire du domaine](../glossaire.md). Une divergence entre les deux reste un défaut de vocabulaire à corriger, comme le pose déjà ce dernier.
 
 ## Alternatives écartées
 

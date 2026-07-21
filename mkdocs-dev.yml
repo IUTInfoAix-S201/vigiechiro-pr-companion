@@ -1,9 +1,10 @@
 # Documentation DÉVELOPPEUR de VigieChiro Companion.
 #
 # Site MkDocs **autonome**, volontairement séparé du site utilisateur (mkdocs.yml + docs/) :
-# la doc dev vit près du code et pourra rester ici si la doc utilisateur déménage un jour dans
-# son propre dépôt. Construit dans `site/dev/` pour être publié sous le sous-chemin `/dev/` du
-# même GitHub Pages (cf. .github/workflows/docs.yml).
+# les deux docs vivent près du code, et chacune est PUBLIÉE dans son propre dépôt, sur son
+# propre domaine (publication symétrique) : ce site part dans `echonuit/companion-dev` et sert
+# `companion-dev.echonuit.fr`, tandis que la doc utilisateur part dans `echonuit/companion`.
+# Construit dans `site-dev/` (plus imbriqué sous le site user) — cf. .github/workflows/docs.yml.
 #
 # Build :   mkdocs build -f mkdocs-dev.yml --strict
 # Aperçu :  mkdocs serve -f mkdocs-dev.yml
@@ -11,13 +12,13 @@ site_name: VigieChiro Companion · Doc développeur
 site_description: >-
   Documentation développeur de VigieChiro Companion : architecture, conventions,
   et comment contribuer au code.
-site_url: https://iutinfoaix-s201.github.io/vigiechiro-pr-companion/dev/
-repo_url: https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion
-repo_name: IUTInfoAix-S201/vigiechiro-pr-companion
+site_url: https://companion-dev.echonuit.fr/
+repo_url: https://github.com/echonuit/vigiechiro-pr-companion
+repo_name: echonuit/vigiechiro-pr-companion
 edit_uri: edit/main/dev-docs/
 copyright: Sébastien Nedjar
 docs_dir: dev-docs
-site_dir: site/dev
+site_dir: site-dev
 
 theme:
   name: material

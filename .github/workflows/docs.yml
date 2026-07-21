@@ -1,11 +1,15 @@
-# Documentation MkDocs Material : site UTILISATEUR (docs/) + site DÉVELOPPEUR (dev-docs/, sous /dev/).
+# Documentation MkDocs Material : site UTILISATEUR (docs/) et site DÉVELOPPEUR (dev-docs/),
+# deux sites autonomes publiés SÉPARÉMENT, chacun sur son domaine :
+#   docs/      -> echonuit/companion      -> https://companion.echonuit.fr/
+#   dev-docs/  -> echonuit/companion-dev  -> https://companion-dev.echonuit.fr/
 #
-# - build : construit les deux sites à chaque push/PR touchant la doc (mkdocs build --strict).
-#   Toujours actif : valide que la doc compile (liens, nav) sans rien publier.
-# - deploy : publie sur GitHub Pages, mais DORMANT tant que la variable de dépôt
-#   ENABLE_PAGES != 'true'. À activer quand le dépôt est public et Pages configuré
-#   (Settings -> Pages -> Source: GitHub Actions, puis variable ENABLE_PAGES=true).
-#   Tant que c'est dormant, aucune étape ne rougit la CI.
+# - construction : les deux sites sont bâtis à chaque push/PR touchant la doc
+#   (mkdocs build --strict). Toujours actif : valide que la doc compile (liens, nav).
+# - publication : deux pushes vers les dépôts de publication ci-dessus, DORMANTS tant que
+#   la variable ENABLE_PAGES != 'true' OU que le secret DOCS_DEPLOY_TOKEN n'est pas posé,
+#   et jamais sur une PR. Tant que c'est dormant, aucune étape ne rougit la CI.
+#   Les Pages de CE dépôt ne servent plus rien (désactivées) : les URLs de doc ne
+#   dépendent donc plus de son nom ni de son organisation.
 # - republication : un déclencheur workflow_run reconstruit et publie le site après
 #   chaque régénération des captures, pour que les images en ligne suivent le code.
 #
@@ -51,8 +55,9 @@ on:
     types: [completed]
   workflow_dispatch: {}
 
-# Permissions minimales par défaut (le job build ne fait que lire le code) ;
-# les droits Pages sont accordés au seul job deploy.
+# Permissions minimales : le job ne fait que LIRE ce dépôt. La publication passe par un PAT
+# (DOCS_DEPLOY_TOKEN) vers les dépôts de publication, pas par le GITHUB_TOKEN — aucun droit
+# `pages:`/`id-token:` n'est donc nécessaire ici.
 permissions:
   contents: read
 
@@ -75,53 +80,54 @@ jobs:
         run: pip install -r docs/requirements.txt
       - name: Garde-fou captures de doc
         run: bash .github/assets/check-doc-images.sh
-      - name: Construire le site (strict)
+      - name: Construire le site utilisateur (strict)
         run: mkdocs build --strict
-      # Site DÉVELOPPEUR (config autonome) construit dans site/dev/ -> publié sous /dev/.
-      # APRÈS le site user : `mkdocs build` ci-dessus nettoie site/, donc on bâtit le sous-site ensuite.
+      # Site DÉVELOPPEUR (config autonome) construit dans site-dev/, plus imbriqué sous le site
+      # user : les deux sites sont désormais publiés SÉPARÉMENT, chacun sur son domaine.
       - name: Construire le site développeur (strict)
         run: mkdocs build -f mkdocs-dev.yml --strict
-      - name: Téléverser l'artefact Pages
-        uses: actions/upload-pages-artifact@v5
+
+      # Publication SYMÉTRIQUE : chaque site est poussé dans son propre dépôt de publication,
+      # qui porte son domaine custom. Conséquences voulues :
+      #   - les sources des DEUX docs restent près du code (l'injection des captures par
+      #     scripts/mkdocs_hooks.py continue de fonctionner) ;
+      #   - le dépôt de code n'est plus lui-même un site (ses Pages sont désactivées), donc les
+      #     URLs de doc ne dépendent plus de son nom ni de son organisation.
+      # Dormant tant que ENABLE_PAGES n'est pas 'true', et jamais sur une PR (la construction,
+      # elle, tourne sur les PR : c'est elle qui valide `--strict`).
+      # Garde d'inertie (même patron que winget.yml) : sans le secret, on saute la publication
+      # EN VERT au lieu de rougir. Permet de fusionner ce changement avant que le PAT existe ;
+      # la publication démarre d'elle-même le jour où il est posé.
+      - name: Vérifier la présence du secret DOCS_DEPLOY_TOKEN
+        id: garde
+        env:
+          DOCS_DEPLOY_TOKEN: ${{ secrets.DOCS_DEPLOY_TOKEN }}
+        run: |
+          if [ -z "$DOCS_DEPLOY_TOKEN" ]; then
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::DOCS_DEPLOY_TOKEN absent : publication des docs ignorée (voir l'en-tête du workflow)."
+          else
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publier la doc utilisateur (companion.echonuit.fr)
+        if: github.event_name != 'pull_request' && vars.ENABLE_PAGES == 'true' && steps.garde.outputs.present == 'true'
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          path: site
+          personal_token: ${{ secrets.DOCS_DEPLOY_TOKEN }}
+          external_repository: echonuit/companion
+          publish_branch: gh-pages
+          publish_dir: ./site
+          cname: companion.echonuit.fr
+          full_commit_message: "docs(user): publication depuis ${{ github.sha }}"
 
-  deploy:
-    needs: build
-    # Dormant tant que ENABLE_PAGES n'est pas 'true' (et jamais sur une PR).
-    if: github.event_name != 'pull_request' && vars.ENABLE_PAGES == 'true'
-    permissions:
-      pages: write
-      id-token: write
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.d1.outputs.page_url || steps.d2.outputs.page_url || steps.d3.outputs.page_url }}
-    steps:
-      # actions/deploy-pages échoue parfois sur une erreur TRANSITOIRE d'infra GitHub
-      # (« Deployment failed, try again later »). On retente jusqu'à 3 fois avant
-      # d'abandonner, ce qui absorbe ces aléas sans intervention manuelle. Seul le
-      # dernier essai peut faire rougir le job (les précédents sont continue-on-error).
-      - name: Déployer sur GitHub Pages (essai 1)
-        id: d1
-        continue-on-error: true
-        uses: actions/deploy-pages@v5
-
-      - name: Attente avant réessai
-        if: steps.d1.outcome == 'failure'
-        run: sleep 20
-
-      - name: Déployer sur GitHub Pages (essai 2)
-        id: d2
-        if: steps.d1.outcome == 'failure'
-        continue-on-error: true
-        uses: actions/deploy-pages@v5
-
-      - name: Attente avant réessai
-        if: steps.d1.outcome == 'failure' && steps.d2.outcome == 'failure'
-        run: sleep 45
-
-      - name: Déployer sur GitHub Pages (essai 3, dernier)
-        id: d3
-        if: steps.d1.outcome == 'failure' && steps.d2.outcome == 'failure'
-        uses: actions/deploy-pages@v5
+      - name: Publier la doc développeur (companion-dev.echonuit.fr)
+        if: github.event_name != 'pull_request' && vars.ENABLE_PAGES == 'true' && steps.garde.outputs.present == 'true'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          personal_token: ${{ secrets.DOCS_DEPLOY_TOKEN }}
+          external_repository: echonuit/companion-dev
+          publish_branch: gh-pages
+          publish_dir: ./site-dev
+          cname: companion-dev.echonuit.fr
+          full_commit_message: "docs(dev): publication depuis ${{ github.sha }}"

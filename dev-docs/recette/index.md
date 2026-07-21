@@ -12,7 +12,7 @@ test**, si bien que la campagne **laisse derrière elle un filet** qui la rejoue
     l'**EPIC de recette** sur GitHub (label `recette`). Les comptes-rendus de session y sont postés
     **en commentaires** : *GitHub est la mémoire de la campagne ; cette page en est la méthode.*
     Campagne courante :
-    [#1363](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/1363).
+    [#1363](https://github.com/echonuit/vigiechiro-pr-companion/issues/1363).
 
 ## Le déroulé d'une campagne
 

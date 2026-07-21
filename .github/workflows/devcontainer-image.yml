@@ -32,7 +32,7 @@ jobs:
   build-and-push:
     # Ne tourne que sur le repo canonique : les forks étudiants (org Classroom)
     # consomment l'image centrale publique, ils ne la (re)construisent pas.
-    if: github.repository == 'IUTInfoAix-S201/vigiechiro-pr-companion'
+    if: github.repository == 'echonuit/vigiechiro-pr-companion'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -54,6 +54,6 @@ jobs:
           devcontainer build \
             --workspace-folder . \
             --config .devcontainer/image/devcontainer.json \
-            --image-name ghcr.io/iutinfoaix-s201/vigiechiro-pr-companion-devcontainer:latest \
+            --image-name ghcr.io/echonuit/vigiechiro-pr-companion-devcontainer:latest \
             --platform linux/amd64 \
             --push

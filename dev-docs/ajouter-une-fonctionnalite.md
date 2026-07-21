@@ -71,7 +71,7 @@ public class MaFeatureController {
 
 !!! tip "Tables : densité uniforme et colonnes configurables"
     Deux aides du socle
-    [`commun.view`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/tree/main/src/main/java/fr/univ_amu/iut/commun/view)
+    [`commun.view`](https://github.com/echonuit/vigiechiro-pr-companion/tree/main/src/main/java/fr/univ_amu/iut/commun/view)
     rendent une table cohérente avec le reste de l'application :
 
     - **`TableDonnees.uniformiser(table)`** (ou `uniformiserNavigable`) : densité, `placeholder` et
@@ -150,7 +150,7 @@ Pour qu'un **autre** écran ouvre le vôtre **sans dépendre de votre `view`**, 
 2. **L'implémenter** dans `mafeature/view/NavigationMaFeature.java` (charge le FXML via la
    `controllerFactory` Guice, appelle `controleur.ouvrirSur(...)`, puis `navigateur.empiler(...)`).
    Calquez
-   [`NavigationPassage`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/passage/view/NavigationPassage.java).
+   [`NavigationPassage`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/passage/view/NavigationPassage.java).
 3. **Le binder** dans `MaFeatureModule` : `bind(OuvrirMaFeature.class).to(NavigationMaFeature.class);`.
 4. L'écran appelant **injecte** `OuvrirMaFeature` et appelle `ouvrir(...)`.
 
@@ -161,7 +161,7 @@ Pour qu'un **autre** écran ouvre le vôtre **sans dépendre de votre `view`**, 
 
 !!! note "Données modifiées par une sous-activité ?"
     Si votre écran affiche des données qu'un écran ouvert par-dessus peut changer, implémentez
-    [`RafraichirAuRetour`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/view/RafraichirAuRetour.java)
+    [`RafraichirAuRetour`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/view/RafraichirAuRetour.java)
     sur le controller : le `Navigateur` le recharge au retour.
 
 ### Développer une feature derrière un flag
@@ -198,18 +198,18 @@ Les écrans documentés ont un aperçu PNG régénéré en CI. Pour le vôtre :
 
 - Écrivez `mafeature/outils/CaptureMaFeature.java` sur le patron des `Capture*` existants : il rend la
   vue **hors-écran** via
-  [`ApercuFx`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/outils/ApercuFx.java)
+  [`ApercuFx`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/outils/ApercuFx.java)
   (Headless Platform), sur une base SQLite jetable seedée.
 - Ajoutez la classe à
-  [`.github/assets/capture-screenshots.sh`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/.github/assets/capture-screenshots.sh)
+  [`.github/assets/capture-screenshots.sh`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/.github/assets/capture-screenshots.sh)
   et l'aperçu au manifeste `.github/assets/captures.manifest`.
 - Le workflow **« Aperçus des vues »** régénère les PNG à chaque push sur `main`.
 
 !!! tip "Écran avec écoute audio ?"
     Réutilisez
-    [`SonDemo`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/outils/SonDemo.java)
+    [`SonDemo`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/outils/SonDemo.java)
     (WAV de synthèse) +
-    [`AttenteAudio`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/outils/AttenteAudio.java)
+    [`AttenteAudio`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/outils/AttenteAudio.java)
     pour afficher un spectrogramme réel dans la capture.
 
 ## 8. Tester
@@ -251,7 +251,7 @@ publiée (`feat:` mineure, `fix:` patch, `BREAKING CHANGE:` majeure ; cf.
 
 !!! info "Le flux complet de contribution"
     Le parcours **fork → branche → PR** (reviewer automatique, identité git à vérifier) est décrit
-    dans [CONTRIBUTING.md](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/CONTRIBUTING.md).
+    dans [CONTRIBUTING.md](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/CONTRIBUTING.md).
 
 ## Checklist avant la PR
 
@@ -261,4 +261,4 @@ publiée (`feat:` mineure, `fix:` patch, `BREAKING CHANGE:` majeure ; cf.
 - [ ] Capture + manifeste si l'écran est documenté.
 - [ ] Tests verts et **`./mvnw -Pquality-gate verify`** vert (PMD + couverture).
 - [ ] Commits en **Conventional Commits** (cf.
-      [CONTRIBUTING.md](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/CONTRIBUTING.md)).
+      [CONTRIBUTING.md](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/CONTRIBUTING.md)).

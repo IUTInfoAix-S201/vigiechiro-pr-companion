@@ -8,7 +8,7 @@ import java.util.Optional;
 ///
 /// Une écriture refusée doit être **expliquée** à l'utilisateur - message exploitable, jamais un booléen
 /// opaque. C'est la même exigence que l'[ADR
-/// 0008](https://iutinfoaix-s201.github.io/vigiechiro-pr-companion/dev/decisions/0008-aucun-echec-silencieux-severite-a-l-emission/)
+/// 0008](https://companion-dev.echonuit.fr/decisions/0008-aucun-echec-silencieux-severite-a-l-emission/)
 /// (aucun échec silencieux) appliquée au sens montant.
 ///
 /// **Le succès se lit sur [#echec], pas sur [#id].** Ce type remplace les deux records qui disaient la

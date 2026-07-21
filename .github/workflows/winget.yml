@@ -13,7 +13,7 @@
 #
 # PRÉREQUIS DE CONFIGURATION (deux gestes manuels, cf. #2213) :
 #   1. Un FORK de `microsoft/winget-pkgs` sous le propriétaire du dépôt
-#      (IUTInfoAix-S201 par défaut, cf. `fork-user` ci-dessous). C'est depuis ce
+#      (echonuit par défaut, cf. `fork-user` ci-dessous). C'est depuis ce
 #      fork que la PR est proposée au dépôt communautaire.
 #   2. Un SECRET de dépôt `WINGET_TOKEN` : un PAT « classic » avec le scope
 #      `public_repo`, appartenant à un compte ayant accès en écriture au fork.
@@ -69,7 +69,7 @@ jobs:
           # Lien vers les notes de version (déjà rédigées par semantic-release).
           release-notes-url: ${{ github.event.release.html_url }}
           # fork-user vaut par défaut ${{ github.repository_owner }} =
-          # IUTInfoAix-S201. Si le fork winget-pkgs vit sous un autre compte
+          # echonuit. Si le fork winget-pkgs vit sous un autre compte
           # (celui du PAT), décommenter et renseigner :
           # fork-user: <compte-du-fork>
           token: ${{ secrets.WINGET_TOKEN }}

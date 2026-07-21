@@ -10,7 +10,7 @@
 
     <packaging>jar</packaging>
     <version>1.0-SNAPSHOT</version>
-    <url>https://github.com/IUTInfoAix-S201</url>
+    <url>https://github.com/echonuit</url>
 
     <!-- Licence GPLv3 : conséquence de la dépendance Gluon Maps (carte interactive #152), elle-même GPL. -->
     <licenses>

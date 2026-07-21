@@ -1,9 +1,9 @@
 # Navigation et chrome
 
 Le **chrome** (la fenêtre : barre de navigation, zone centrale, pied) est porté par le socle
-[`commun.view`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/tree/main/src/main/java/fr/univ_amu/iut/commun/view).
+[`commun.view`](https://github.com/echonuit/vigiechiro-pr-companion/tree/main/src/main/java/fr/univ_amu/iut/commun/view).
 Les **fonctionnalités** n'ont pas de fenêtre à elles : elles publient un écran dans la **zone
-centrale** via le [`Navigateur`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/view/Navigateur.java).
+centrale** via le [`Navigateur`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/view/Navigateur.java).
 
 ## Le chrome (`MainView` + `MainController`)
 
@@ -16,7 +16,7 @@ centrale** via le [`Navigateur`](https://github.com/IUTInfoAix-S201/vigiechiro-p
   compteurs/état vivant), alimentée par `NavigationViewModel.zonesStatut` (cf. `ResumeStatut`
   ci-dessous). Elle est **masquée** tant qu'aucune zone n'a de contenu.
 
-Le [`MainController`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/view/MainController.java)
+Le [`MainController`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/view/MainController.java)
 lie le centre à la `vueCentraleProperty()` du `Navigateur`, reconstruit le fil d'Ariane à chaque
 changement d'historique, et pose les raccourcis (Alt+← retour, Alt+Début accueil). Les changements
 d'écran arrivent en léger fondu.
@@ -42,16 +42,16 @@ ré-affiche l'instance précédente, **état préservé**.
 
 ## Les contrats optionnels d'un écran
 
-[`EtapeNavigation`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/view/EtapeNavigation.java)
+[`EtapeNavigation`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/view/EtapeNavigation.java)
 mémorise le `controller` de l'écran et en dérive, par `instanceof`, des **contrats optionnels** que le
 `Navigateur` honore :
 
 | Contrat (`commun.view`) | Quand l'implémenter | Effet |
 |---|---|---|
-| [`GardeQuitter`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/view/GardeQuitter.java) | L'écran a une **saisie non enregistrée** | Demande confirmation avant de quitter |
-| [`EmplacementNavigation`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/view/EmplacementNavigation.java) | L'écran a une **place hiérarchique** (ex. `Mes sites › Carré N › Passage`) | Alimente le fil d'Ariane (segments cliquables) |
-| [`RafraichirAuRetour`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/view/RafraichirAuRetour.java) | L'écran affiche des données qu'une **sous-activité peut modifier** | Recharge ses données quand on y **revient** |
-| [`ResumeStatut`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/view/ResumeStatut.java) | L'écran a une **info vivante** à afficher en pied (compteurs, avancement) | Alimente les **3 zones de la barre de statut** |
+| [`GardeQuitter`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/view/GardeQuitter.java) | L'écran a une **saisie non enregistrée** | Demande confirmation avant de quitter |
+| [`EmplacementNavigation`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/view/EmplacementNavigation.java) | L'écran a une **place hiérarchique** (ex. `Mes sites › Carré N › Passage`) | Alimente le fil d'Ariane (segments cliquables) |
+| [`RafraichirAuRetour`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/view/RafraichirAuRetour.java) | L'écran affiche des données qu'une **sous-activité peut modifier** | Recharge ses données quand on y **revient** |
+| [`ResumeStatut`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/view/ResumeStatut.java) | L'écran a une **info vivante** à afficher en pied (compteurs, avancement) | Alimente les **3 zones de la barre de statut** |
 
 !!! example "Pourquoi `RafraichirAuRetour` existe"
     M-Passage ouvre M-Qualification ; un verdict y fait avancer le statut. Sans contrat, revenir
@@ -61,7 +61,7 @@ mémorise le `controller` de l'écran et en dérive, par `instanceof`, des **con
 ### Convention de la barre de statut (`ResumeStatut`)
 
 La barre de statut du chrome se lit en **3 zones**, alimentées par le `ResumeStatut` de l'écran au
-sommet ([`ZonesStatut`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/viewmodel/ZonesStatut.java),
+sommet ([`ZonesStatut`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/viewmodel/ZonesStatut.java),
 value object) :
 
 | Zone | Rôle | Exemple |

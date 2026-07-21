@@ -2,7 +2,7 @@
 
 Le **vocabulaire** employé dans le code, les revues et les issues. Cette page fixe *les mots* ; le
 [Modèle de données & domaine](modele-de-donnees.md) fixe *les entités et le schéma* ; le
-**[glossaire utilisateur](https://iutinfoaix-s201.github.io/vigiechiro-pr-companion/glossaire/)** fixe
+**[glossaire utilisateur](https://companion.echonuit.fr/glossaire/)** fixe
 les définitions vues par l'utilisateur final. Une divergence de mot entre ces trois surfaces est un
 **défaut de vocabulaire** à corriger.
 
@@ -32,7 +32,7 @@ capture physique d'un côté, l'entité protocolaire numérotée de l'autre).
     - Côté IHM et doc utilisateur : « lot » est **purgé** (« préparer le **dépôt** »…).
     - Côté code : le package `fr.univ_amu.iut.lot` **conserve son nom pour l'instant** ; son
       renommage est tracé dans une issue de refactor dédiée du chantier
-      [#1524](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/1524).
+      [#1524](https://github.com/echonuit/vigiechiro-pr-companion/issues/1524).
 
 Le mot « lot » subsiste par ailleurs au sens générique de *jeu de fichiers* (l'entrée du classifieur
 Tadarida, une écoute filtrée sur plusieurs sites). Là aussi on préfère « **jeu** » ou
@@ -66,7 +66,7 @@ tricolore de la sélection, et sa dérivation (`AgregationVerdict`) propose le v
 | `Mauvais` | mauvaise qualité, mais pas inutilisable |
 | `Inexploitable` | rien d'exploitable |
 
-Les enums vivent dans [`commun/model/Verdict`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/model/Verdict.java) et [`commun/model/VerdictFichier`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/model/VerdictFichier.java).
+Les enums vivent dans [`commun/model/Verdict`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/model/Verdict.java) et [`commun/model/VerdictFichier`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/model/VerdictFichier.java).
 
 !!! note "Bascule de vocabulaire livrée (chantier #1524, lot 6b)"
     Le lexique du **verdict final** a basculé de `À vérifier / OK / Douteux / À jeter` vers `Non vérifié
@@ -108,6 +108,6 @@ d'écart, ce mot a menti (#1855, #1838) : d'où la règle de l'[ADR 0022](decisi
 
 Les termes du **domaine vus par l'utilisateur** (carré, point d'écoute, préfixe, séquence, sonogramme,
 spectrogramme, statut, Tadarida, passage archivé, réactivation…) sont définis dans le
-**[glossaire utilisateur](https://iutinfoaix-s201.github.io/vigiechiro-pr-companion/glossaire/)**.
+**[glossaire utilisateur](https://companion.echonuit.fr/glossaire/)**.
 Cette page-ci ne reprend que les termes dont le **sens interne** mérite une précision pour qui lit ou
 modifie le code.

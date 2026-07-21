@@ -7,7 +7,7 @@ Le détail des tests est dans [TESTING.md](TESTING.md) ; la politique de sécuri
 [SECURITY.md](SECURITY.md).
 
 > 📖 **Documentation développeur** (architecture, navigation, persistance, injection, captures,
-> CI/CD…, avec diagrammes) : **<https://iutinfoaix-s201.github.io/vigiechiro-pr-companion/dev/>**.
+> CI/CD…, avec diagrammes) : **<https://companion-dev.echonuit.fr/>**.
 > Ce fichier reste le point d'entrée « contribution » ; la doc dev en est la version approfondie.
 
 ---
@@ -19,7 +19,7 @@ Tout passe par le **Maven Wrapper** `./mvnw` (aucune installation de Maven). Le 
 des dépendances Maven, et la *Headless Platform* est purement logicielle (cf. [TESTING.md](TESTING.md)).
 
 ```bash
-git clone https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion.git
+git clone https://github.com/echonuit/vigiechiro-pr-companion.git
 cd vigiechiro-pr-companion
 ./mvnw verify        # premier appel : télécharge Maven + dépendances, puis tout est en cache
 ```
@@ -37,11 +37,11 @@ Chaque feature vit dans `src/main/java/fr/univ_amu/iut/<feature>/` et se découp
 `viewmodel/`, `view/`, `di/`.
 
 > 📖 En détail dans la doc dev :
-> [Architecture](https://iutinfoaix-s201.github.io/vigiechiro-pr-companion/dev/architecture/) ·
-> [Navigation](https://iutinfoaix-s201.github.io/vigiechiro-pr-companion/dev/navigation/) ·
-> [Persistance](https://iutinfoaix-s201.github.io/vigiechiro-pr-companion/dev/persistance/) ·
-> [Injection](https://iutinfoaix-s201.github.io/vigiechiro-pr-companion/dev/injection/) ·
-> [Ajouter une fonctionnalité](https://iutinfoaix-s201.github.io/vigiechiro-pr-companion/dev/ajouter-une-fonctionnalite/).
+> [Architecture](https://companion-dev.echonuit.fr/architecture/) ·
+> [Navigation](https://companion-dev.echonuit.fr/navigation/) ·
+> [Persistance](https://companion-dev.echonuit.fr/persistance/) ·
+> [Injection](https://companion-dev.echonuit.fr/injection/) ·
+> [Ajouter une fonctionnalité](https://companion-dev.echonuit.fr/ajouter-une-fonctionnalite/).
 
 Points d'attention :
 
@@ -173,7 +173,7 @@ question reste le travail du triage.
    ouvrir une issue. « Sans objet » si le chantier est purement présentationnel.
 3. **Doc développeur** (site `dev-docs/`) à jour **+ une ADR** (`dev-docs/decisions/`) pour toute **décision structurante** prise pendant le chantier.
 4. **Doc utilisateur** (site `docs/`) + **captures** autant que nécessaire.
-5. **Brief projet** : répercuter dans le **brief projet** (dépôt `IUTInfoAix-S201/brief`, document de
+5. **Brief projet** : répercuter dans le **brief projet** (dépôt `echonuit/brief`, document de
    conception vivant : besoin, parcours utilisateurs, maquettes, MCD - **pas** un sujet pédagogique) les
    évolutions qui changent un de ces **éléments de conception**.
 6. **Tests** : chaque usage couvert par des tests d'**intégration** (TestFX) et **E2E**. L'inventaire
@@ -216,7 +216,7 @@ delta** : il se clôt par les **mêmes 10 passes**, appliquées à lui seul. Et 
 s'il s'est trompé.
 
 > 📖 Raison d'être et mode opératoire de chaque passe, avec le **modèle de clôture** à coller dans
-> l'EPIC : [doc dev · Cycle de vie d'un chantier](https://iutinfoaix-s201.github.io/vigiechiro-pr-companion/dev/cycle-de-chantier/).
+> l'EPIC : [doc dev · Cycle de vie d'un chantier](https://companion-dev.echonuit.fr/cycle-de-chantier/).
 
 ---
 
@@ -241,7 +241,7 @@ Les autres workflows : `capture-vues.yml` (régénère les aperçus de la doc), 
 (construit/publie le site de documentation), `devcontainer-image.yml` (image GHCR pré-buildée).
 
 > 📖 Carte complète des workflows et du portail qualité :
-> [doc dev · CI/CD et release](https://iutinfoaix-s201.github.io/vigiechiro-pr-companion/dev/ci-cd-release/).
+> [doc dev · CI/CD et release](https://companion-dev.echonuit.fr/ci-cd-release/).
 
 ---
 

@@ -31,7 +31,7 @@ public final class DerniereVersionGitHub implements DerniereVersionPubliee {
 
     private static final Logger LOG = Logger.getLogger(DerniereVersionGitHub.class.getName());
 
-    private static final String DEPOT = "IUTInfoAix-S201/vigiechiro-pr-companion";
+    private static final String DEPOT = "echonuit/vigiechiro-pr-companion";
 
     /// Court à dessein : au démarrage, mieux vaut renoncer que faire attendre. Le délai s'applique à
     /// la connexion comme à la requête.

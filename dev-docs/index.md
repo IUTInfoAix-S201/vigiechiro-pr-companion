@@ -4,9 +4,9 @@ Bienvenue dans la doc **technique** de VigieChiro Companion. Elle s'adresse à q
 modifier ou étendre le code** (humain comme assistant IA).
 
 !!! tip "Vous cherchez plutôt à *utiliser* l'application ?"
-    Voir la **[documentation utilisateur](https://iutinfoaix-s201.github.io/vigiechiro-pr-companion/)**
+    Voir la **[documentation utilisateur](https://companion.echonuit.fr/)**
     (prise en main, écrans, parcours). Le **besoin métier** d'origine est dans le
-    **[brief](https://iutinfoaix-s201.github.io/brief/)**.
+    **[brief](https://brief.echonuit.fr/)**.
 
 ## La pile en bref
 
@@ -42,7 +42,7 @@ vigiechiro-pr-companion/
 Prérequis : un **JDK 25 standard** (Temurin / `25.0.2-open`). Tout passe par `./mvnw`.
 
 ```bash
-git clone https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion.git
+git clone https://github.com/echonuit/vigiechiro-pr-companion.git
 cd vigiechiro-pr-companion
 ./mvnw verify      # compile + tests + contrôles qualité (doit afficher BUILD SUCCESS)
 ./mvnw javafx:run  # lance l'application
@@ -92,14 +92,14 @@ cd vigiechiro-pr-companion
 -   :material-source-pull: **Contribuer**
 
     Le flux fork → branche → PR et les conventions de commit :
-    [CONTRIBUTING.md](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/CONTRIBUTING.md).
+    [CONTRIBUTING.md](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/CONTRIBUTING.md).
 
 </div>
 
 !!! info "Documents de référence au repo-root"
-    [CONTRIBUTING.md](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/CONTRIBUTING.md)
-    · [TESTING.md](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/TESTING.md)
-    · [SECURITY.md](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/SECURITY.md)
-    · [note de performance](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/docs/benchmarks/README.md).
+    [CONTRIBUTING.md](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/CONTRIBUTING.md)
+    · [TESTING.md](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/TESTING.md)
+    · [SECURITY.md](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/SECURITY.md)
+    · [note de performance](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/docs/benchmarks/README.md).
     Ces pages restent la **source canonique** ; cette doc les met en perspective et les approfondit
     côté dév : [Sécurité et données sensibles](securite.md) · [Performance et benchmarks](performance.md).

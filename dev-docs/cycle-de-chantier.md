@@ -3,7 +3,7 @@
 Un **chantier** est un lot de travail d'ampleur **EPIC** : une évolution qui ne tient pas dans une
 seule PR et se découpe en plusieurs (ex. l'EPIC « Réglages auto-découverts → feature = plugin »). Là
 où [Ajouter une fonctionnalité](ajouter-une-fonctionnalite.md) décrit une **PR** et
-[CONTRIBUTING.md](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/CONTRIBUTING.md)
+[CONTRIBUTING.md](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/CONTRIBUTING.md)
 le **flux de contribution**, cette page décrit le niveau au-dessus : comment on **ouvre** et on
 **clôt** un chantier entier.
 
@@ -13,7 +13,7 @@ Le principe : un chantier ne se termine pas au dernier `feat:` mergé. Une fois 
 
 !!! note "Où est la règle courte ?"
     La version concise pour les contributeurs vit dans la section « Cycle de vie d'un chantier » de
-    [CONTRIBUTING.md](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/CONTRIBUTING.md).
+    [CONTRIBUTING.md](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/CONTRIBUTING.md).
     Cette page en est la version approfondie : la **raison d'être** et le **mode opératoire** de
     chaque passe.
 
@@ -183,7 +183,7 @@ capture est une fonctionnalité à moitié livrée.
 
 ### 5. Passe de brief projet
 
-Le **brief projet** (dépôt [`IUTInfoAix-S201/brief`](https://github.com/IUTInfoAix-S201/brief)) est le
+Le **brief projet** (dépôt [`echonuit/brief`](https://github.com/echonuit/brief)) est le
 document de **conception** vivant du produit : le besoin, les **parcours utilisateurs** (P1-P10), les
 maquettes, le modèle conceptuel. Ce n'est **pas** un sujet pédagogique - son lecteur est un
 **contributeur** du produit, pas un étudiant. Quand un chantier change un de ces **éléments de
@@ -425,7 +425,7 @@ trompé : une analyse fausse laissée en place oriente le chantier suivant.
 - [ ] 2. Cohérence CLI ↔ UI (capacités métier exposées des deux côtés, ou « sans objet »)
 - [ ] 3. Doc développeur (dev-docs) à jour + ADR pour toute décision structurante (dev-docs/decisions/)
 - [ ] 4. Doc utilisateur (docs/) + captures
-- [ ] 5. Brief projet (IUTInfoAix-S201/brief) répercuté si un élément de conception change
+- [ ] 5. Brief projet (echonuit/brief) répercuté si un élément de conception change
 - [ ] 6. Tests : inventaire des usages **depuis le diff** (chemins non nominaux, parité CLI ↔ IHM), E2E qui **traversent les coutures**, non-automatisable reporté en **recette**
 - [ ] 7. Harmonisation : **audit global** (ce qui ressemble / bénéficierait, exhaustif) puis **refactoring de conceptualisation** (lisibilité ; duplication et abstraction = outils) ; **choix, doutes, conséquences discutés avec l'utilisateur**
 - [ ] 8. Revue visuelle : **toute conséquence visible** couverte par une capture (captures **ajoutées** si besoin), régénérées et ouvertes une par une

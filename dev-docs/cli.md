@@ -1,7 +1,7 @@
 # Interface en ligne de commande (CLI)
 
 À côté de l'IHM JavaFX, VigieChiro Companion expose un **point d'entrée sans interface graphique** :
-[`fr.univ_amu.iut.cli.Cli`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/cli/Cli.java).
+[`fr.univ_amu.iut.cli.Cli`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/cli/Cli.java).
 Il répond au besoin de **scriptabilité** (parcours A10 : enchaîner des imports/exports sans clics,
 pour les utilisateurs avancés). La CLI **n'a pas de logique propre** : elle orchestre les **services
 métier existants** (`ServiceImport`, `ServiceLot`, `ServiceValidation`, DAO multi-features).
@@ -35,9 +35,9 @@ flowchart LR
     child --> svc["ServiceImport · ServiceLot<br/>ServiceValidation · DAO"]
 ```
 
-[`CliModule`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/cli/di/CliModule.java)
+[`CliModule`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/cli/di/CliModule.java)
 n'apporte qu'une chose :
-[`RegistrePassages`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/cli/model/RegistrePassages.java),
+[`RegistrePassages`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/cli/model/RegistrePassages.java),
 une **lecture transverse** qui croise les DAO de `passage` et `sites` pour reconstituer le contexte
 « carré / point » de chaque passage. La dépendance va `cli → <feature>.model.dao` (jamais vers une
 `view`/`viewmodel`) : c'est l'unique entorse autorisée par la règle ArchUnit assouplie, et `cli` reste
@@ -101,24 +101,24 @@ un **puits** (aucune feature ne dépend de lui), donc le graphe reste acyclique.
 Le CLI repose sur **[picocli](https://picocli.info) 4.7.7** : chaque commande est une classe annotée
 `@Command` de `cli.commande` (`ListerPassages`, `Importer`, `ExporterLot`, `ExporterVu`) déclarant son nom,
 ses `@Option` (types convertis automatiquement) et son aide. La **commande racine**
-[`CommandeRacine`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/cli/commande/CommandeRacine.java)
+[`CommandeRacine`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/cli/commande/CommandeRacine.java)
 liste les sous-commandes ; l'**aide, l'usage et la liste des commandes sont générés** par picocli (plus de
 texte d'aide maintenu à la main). Les commandes restent des **façades** : aucune logique propre, elles
 appellent les services.
 
 - **Instanciation par Guice** :
-  [`FabriqueGuice`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/cli/FabriqueGuice.java)
+  [`FabriqueGuice`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/cli/FabriqueGuice.java)
   (une `IFactory` picocli) fait **construire chaque commande par l'injecteur**, pour que ses services
   `@Inject` soient fournis ; picocli renseigne ensuite les champs `@Option`. Le module étant un
   `open module`, aucun `opens ... to info.picocli` n'est nécessaire.
 - **Migration** : `Cli.executer` migre la base (idempotent) **avant** d'exécuter une sous-commande (pas
   pour l'aide seule), via une `IExecutionStrategy`.
 - **Sortie `--json`** : convention uniforme pour les commandes de lecture (scriptabilité), sérialisée par
-  [`FormatJson`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/cli/FormatJson.java)
+  [`FormatJson`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/cli/FormatJson.java)
   (écrivain JSON minimal, sans dépendance supplémentaire).
 - **Erreurs** : les erreurs de parsing (commande inconnue, argument requis manquant) sont reformulées en
   français et sortent en code `2` ; une
-  [`ErreurUsage`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/cli/model/ErreurUsage.java)
+  [`ErreurUsage`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/cli/model/ErreurUsage.java)
   levée dans la logique (ex. point introuvable) sort aussi en `2` ; toute autre exception métier en `1`
   (message seul, jamais la trace).
 
@@ -223,10 +223,10 @@ export JAVA_HOME=~/.sdkman/candidates/java/25.0.2-open
 ## Tests
 
 La CLI est couverte par
-[`CliTest`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/test/java/fr/univ_amu/iut/cli/CliTest.java)
+[`CliTest`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/test/java/fr/univ_amu/iut/cli/CliTest.java)
 (dispatch, codes de sortie, aide),
-[`CliImportTest`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/test/java/fr/univ_amu/iut/cli/CliImportTest.java)
+[`CliImportTest`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/test/java/fr/univ_amu/iut/cli/CliImportTest.java)
 et
-[`CliExportVuTest`](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/src/test/java/fr/univ_amu/iut/cli/CliExportVuTest.java).
+[`CliExportVuTest`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/test/java/fr/univ_amu/iut/cli/CliExportVuTest.java).
 Ils positionnent `vigiechiro.workspace` sur un `@TempDir` et capturent les flux `sortie`/`erreur` :
 aucun JavaFX, donc des tests **rapides et déterministes**.

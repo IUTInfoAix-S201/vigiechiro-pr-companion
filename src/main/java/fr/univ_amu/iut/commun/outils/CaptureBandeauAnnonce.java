@@ -40,7 +40,7 @@ public final class CaptureBandeauAnnonce {
     private static final AnnonceChrome ANNONCE_FIGEE = () -> Optional.of(new AnnonceChrome.Annonce(
             "La version 2.23.0 est disponible (vous utilisez la 2.21.3).",
             "Voir cette version",
-            "https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/releases/latest"));
+            "https://github.com/echonuit/vigiechiro-pr-companion/releases/latest"));
 
     private CaptureBandeauAnnonce() {}
 

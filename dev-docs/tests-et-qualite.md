@@ -2,7 +2,7 @@
 
 La chaîne qualité tourne à **chaque push** (CI) et localement via `./mvnw`. Cette page est la
 référence structurée ; le repo-root garde un mémo
-[**TESTING.md**](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/TESTING.md).
+[**TESTING.md**](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/TESTING.md).
 
 ## Les commandes
 
@@ -279,8 +279,8 @@ introduites, et vérifier à la main les garde-fous que PIT ne peut pas atteindr
 
 | Workflow | Commande | Bloquant ? |
 |---|---|---|
-| « Java CI » ([maven.yml](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/.github/workflows/maven.yml)) — tests **+ couverture** | `./mvnw -B verify -Djacoco.haltOnFailure=true` | **Oui** |
-| « Quality gate » ([lint.yml](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/blob/main/.github/workflows/lint.yml)) — formatage | `./mvnw -B spotless:check` | **Oui** |
+| « Java CI » ([maven.yml](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/.github/workflows/maven.yml)) — tests **+ couverture** | `./mvnw -B verify -Djacoco.haltOnFailure=true` | **Oui** |
+| « Quality gate » ([lint.yml](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/.github/workflows/lint.yml)) — formatage | `./mvnw -B spotless:check` | **Oui** |
 | « Quality gate » — portail PMD | `./mvnw -B -Pquality-gate compile pmd:check` | **Oui** |
 
 `lint.yml` vérifie aussi la **complétude des captures** (cf. [Captures](captures.md)). Une PR doit

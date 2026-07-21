@@ -143,7 +143,7 @@ jobs:
         # décompresser. Complément de l'archive portable pour qui préfère un fichier à un dossier, et
         # seul format des deux à s'intégrer au menu des applications (via le .desktop).
         #
-        # Placée AVANT l'empaquetage de l'archive portable, qui supprime target/dist/VigieChiro : les
+        # Placée AVANT l'empaquetage de l'archive portable, qui supprime target/dist/VigieChiroCompanion : les
         # deux formats partent de la même app-image, il ne faut donc pas la retirer entre-temps.
         if: matrix.portable == 'linux'
         shell: bash
@@ -169,15 +169,15 @@ jobs:
           set -euo pipefail
           TAG="${{ needs.release.outputs.tag }}"
           VERSION="${TAG#v}"
-          BASE="VigieChiro-${VERSION}-${{ matrix.portable }}-${{ matrix.arch }}-portable"
+          BASE="VigieChiroCompanion-${VERSION}-${{ matrix.portable }}-${{ matrix.arch }}-portable"
           cd target/dist
           case "${RUNNER_OS}" in
-            Linux)   tar -czf "${BASE}.tar.gz" VigieChiro ;;
-            macOS)   ditto -c -k --sequesterRsrc --keepParent VigieChiro.app "${BASE}.zip" ;;
-            Windows) 7z a -tzip "${BASE}.zip" VigieChiro > /dev/null ;;
+            Linux)   tar -czf "${BASE}.tar.gz" VigieChiroCompanion ;;
+            macOS)   ditto -c -k --sequesterRsrc --keepParent VigieChiroCompanion.app "${BASE}.zip" ;;
+            Windows) 7z a -tzip "${BASE}.zip" VigieChiroCompanion > /dev/null ;;
             *)       echo "::error::Système non pris en charge : ${RUNNER_OS}" && exit 1 ;;
           esac
-          rm -rf VigieChiro VigieChiro.app
+          rm -rf VigieChiroCompanion VigieChiroCompanion.app
           ls -l
 
       - name: Calculer l'empreinte SHA-256 de chaque artefact

@@ -9,4 +9,4 @@
 # sortie de l'application, et les signaux (Ctrl+C, arrêt de session) lui parviennent directement.
 set -eu
 ICI="$(dirname "$(readlink -f "$0")")"
-exec "${ICI}/usr/bin/VigieChiro" "$@"
+exec "${ICI}/usr/bin/VigieChiroCompanion" "$@"

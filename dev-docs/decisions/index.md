@@ -92,3 +92,4 @@ Les premières entrées sont **rétroactives** : elles consignent, à partir des
 | [0045](0045-l-upgradecode-windows-est-une-constante-d-identite.md) | L'UpgradeCode et le scope de l'installeur Windows sont des constantes d'identité, figées avant la première soumission winget | EPIC #2104, #2110, #2213 |
 | [0046](0046-une-classe-css-a-une-seule-feuille.md) | Une classe CSS a une seule feuille pour maison ; un cliquet refuse tout nom en double | #1974 |
 | [0047](0047-l-identite-de-distribution-est-le-projet-echonuit.md) | L'identité de distribution est le projet Echonuit : produit « VigieChiro Companion », app-id `fr.echonuit`, éditeur Echonuit (fait évoluer #2108) | #2240, #2213, #2111 |
+| [0048](0048-l-utilisateur-possede-ses-fichiers-l-app-observe.md) | L'utilisateur possède ses fichiers : l'application observe la disponibilité de l'audio au lieu de l'archiver, et peut le référencer en place (reformule #1038) | #1038, #2028, EPIC #1297 |

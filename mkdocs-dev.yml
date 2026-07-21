@@ -109,6 +109,7 @@ nav:
     - 0045 · L'UpgradeCode Windows est une constante d'identité: decisions/0045-l-upgradecode-windows-est-une-constante-d-identite.md
     - 0046 · Une classe CSS a une seule feuille: decisions/0046-une-classe-css-a-une-seule-feuille.md
     - 0047 · L'identité de distribution est le projet Echonuit: decisions/0047-l-identite-de-distribution-est-le-projet-echonuit.md
+    - 0048 · L'utilisateur possède ses fichiers, l'app observe: decisions/0048-l-utilisateur-possede-ses-fichiers-l-app-observe.md
   - Recette (acceptation):
     - Méthode: recette/index.md
     - Fixtures (générateur de cartes SD): recette/fixtures.md

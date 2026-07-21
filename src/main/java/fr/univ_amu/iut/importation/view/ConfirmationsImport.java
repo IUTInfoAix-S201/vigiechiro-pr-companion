@@ -1,6 +1,7 @@
 package fr.univ_amu.iut.importation.view;
 
 import fr.univ_amu.iut.commun.view.Confirmateur;
+import fr.univ_amu.iut.commun.viewmodel.CompteRendu;
 import fr.univ_amu.iut.importation.model.ApercuEcrasement;
 import java.util.Objects;
 
@@ -18,12 +19,13 @@ public final class ConfirmationsImport {
         this.confirmateur = Objects.requireNonNull(confirmateur, "confirmateur");
     }
 
-    /// `true` si l'import peut se poursuivre : soit la nuit n'a jamais été importée (`avertissement` vide),
+    /// `true` si l'import peut se poursuivre : soit la nuit n'a jamais été importée (compte rendu vide),
     /// soit l'utilisateur confirme explicitement « importer quand même » comme nouveau passage (#147).
-    public boolean confirmerImportNuitDejaImportee(String question) {
+    public boolean confirmerImportNuitDejaImportee(CompteRendu question) {
         // La question est rédigée par le ViewModel, qui détient les passages concernés : la vue ne
-        // recompose plus une phrase à partir d'un avertissement d'écran (#2050).
-        return question.isEmpty() || confirmateur.confirmer(question);
+        // recompose plus une phrase (#2050). C'est un compte rendu structuré, pas une chaîne à puces qui se
+        // briserait au retour à la ligne (#2060) : la modale l'aligne par VueCompteRendu.
+        return question.estVide() || confirmateur.confirmer(question);
     }
 
     /// `true` si l'utilisateur confirme l'**écrasement** destructif d'un passage existant (#279) : **double

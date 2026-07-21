@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /// Ce que l'inspection d'un dossier a relevé **avant** l'import : mélange d'enregistreurs (#33),
 /// désaccord entre le journal et les fichiers (#33), nuit déjà importée (#147).
@@ -111,23 +110,24 @@ public final class AvertissementsInspection {
                 passage.numeroPassage(), passage.annee(), passage.carre(), passage.codePoint());
     }
 
-    /// La question posée avant d'importer une nuit déjà présente, **vide** s'il n'y en a pas.
+    /// La question posée avant d'importer une nuit déjà présente, en **compte rendu** (#2060), **vide**
+    /// s'il n'y en a pas.
     ///
-    /// Publique parce que la capture d'écran l'appelle : `apercu-import-doublon.png` montrait jusqu'ici
-    /// une phrase **écrite en dur** dans l'outil de capture, présentée en commentaire comme « le texte que
-    /// l'assistant compose réellement ». Elle ne l'était pas - l'application en produisait une autre. Le
-    /// dialogue passait par le code de production, son contenu non (ADR 0025).
+    /// C'était une chaîne : un intitulé, les passages joints par des puces « \n  - », et la question. Cette
+    /// mise à plat perdait son alignement dès qu'un libellé dépassait la largeur du dialogue - la
+    /// continuation repartait sous la puce suivante (#2060). Ici le même constat que l'inspection
+    /// ([#nuitExistanteConstat]) est enveloppé d'une conclusion : chaque passage redevient un détail, une
+    /// ligne alignée, et la donnée n'est mise en forme qu'à un seul endroit.
     ///
-    /// Une modale a la place de tout dire : les passages y sont listés un par ligne, et non joints par des
-    /// points-virgules comme le faisait la phrase d'origine. C'est la même rédaction que les détails du
-    /// compte rendu - la donnée n'est mise en forme qu'ici.
-    public static String question(List<PassageExistant> existants) {
-        if (existants == null || existants.isEmpty()) {
-            return "";
-        }
-        String liste =
-                existants.stream().map(passage -> "\n  - " + libelle(passage)).collect(Collectors.joining());
-        return "Cette nuit a déjà été importée :" + liste + "\n\nImporter quand même comme nouveau passage ?";
+    /// Publique parce que la capture d'écran l'appelle : `apercu-import-doublon.png` montrait jusqu'ici une
+    /// phrase **écrite en dur** dans l'outil de capture, alors que l'application en composait une autre. Le
+    /// dialogue passait par le code de production, son contenu non (ADR 0025). Désormais les deux passent
+    /// par ce compte rendu.
+    public static CompteRendu questionNuitDejaImportee(List<PassageExistant> existants) {
+        return nuitExistanteConstat(existants)
+                .map(constat ->
+                        new CompteRendu("", "", List.of(constat), "Importer quand même comme nouveau passage ?"))
+                .orElse(CompteRendu.de("", List.of()));
     }
 
     private static String dates(Iterable<LocalDate> nuits) {

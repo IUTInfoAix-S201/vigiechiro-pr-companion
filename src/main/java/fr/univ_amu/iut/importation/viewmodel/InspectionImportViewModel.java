@@ -311,10 +311,11 @@ public class InspectionImportViewModel {
         return avertissements.getReadOnlyProperty();
     }
 
-    /// La question à poser avant d'importer une nuit déjà présente (#147), **vide** s'il n'y a rien à
-    /// confirmer. Elle liste les passages un par ligne, là où le libellé d'écran les joint en détails.
-    public String questionNuitDejaImportee() {
-        return AvertissementsInspection.question(passagesDejaImportes);
+    /// La question à poser avant d'importer une nuit déjà présente (#147), en **compte rendu** structuré
+    /// (#2060), **vide** s'il n'y a rien à confirmer. Chaque passage est un détail sur sa propre ligne
+    /// alignée, que la modale rend via [fr.univ_amu.iut.commun.view.VueCompteRendu].
+    public CompteRendu questionNuitDejaImportee() {
+        return AvertissementsInspection.questionNuitDejaImportee(passagesDejaImportes);
     }
 
     /// Message d'erreur **propre à l'inspection** (dossier non choisi, chemin invalide), vide après un

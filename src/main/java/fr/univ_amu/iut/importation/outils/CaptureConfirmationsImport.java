@@ -3,6 +3,8 @@ package fr.univ_amu.iut.importation.outils;
 import fr.univ_amu.iut.commun.outils.ApercuFx;
 import fr.univ_amu.iut.commun.view.ConfirmationNavigation;
 import fr.univ_amu.iut.commun.viewmodel.CompteRendu;
+import fr.univ_amu.iut.commun.viewmodel.CompteRendu.Constat;
+import fr.univ_amu.iut.commun.viewmodel.CompteRendu.Detail;
 import fr.univ_amu.iut.importation.model.ApercuEcrasement;
 import fr.univ_amu.iut.importation.model.PassageExistant;
 import fr.univ_amu.iut.importation.view.ConfirmationsImport;
@@ -92,25 +94,45 @@ public final class CaptureConfirmationsImport {
         ConfirmateurCapturant ecrasement = new ConfirmateurCapturant(true);
         new ConfirmationsImport(ecrasement).confirmerEcrasement(ECRASEMENT);
 
-        // Doublon (#2060) et 2ᵉ confirmation d'écrasement (#2223) sont des comptes rendus structurés : le
-        // dialogue les aligne par VueCompteRendu, sans enroulement manuel. La 1ʳᵉ d'écrasement (le principe)
-        // reste une phrase.
+        // Doublon (#2060) et 2ᵉ confirmation d'écrasement (#2223) sont des comptes rendus structurés,
+        // alignés par VueCompteRendu et réenroulés pour le snapshot (#2243). La 1ʳᵉ d'écrasement (le
+        // principe) reste une phrase.
         enregistrerCompteRendu(doublon.comptesRendus().get(0), sortie.resolve("apercu-import-doublon.png"));
         enregistrer(ecrasement.messages().get(0), sortie.resolve("apercu-import-ecrasement-principe.png"));
         enregistrerCompteRendu(ecrasement.comptesRendus().get(0), sortie.resolve("apercu-import-ecrasement.png"));
     }
 
     /// Rend le dialogue **de production** portant un **compte rendu structuré** (#2060), tel qu'il sera
-    /// montré. Pas d'enroulement manuel : [VueCompteRendu] met chaque détail sur sa propre ligne alignée.
+    /// montré. [VueCompteRendu] met chaque détail sur sa propre ligne alignée.
+    ///
+    /// Le compte rendu est d'abord **réenroulé** (#2243) : hors `showAndWait`, un libellé `wrapText`
+    /// **long** ne s'enroule pas de lui-même au snapshot et se couperait par une ellipse - exactement le
+    /// contournement déjà appliqué aux messages **texte** ([#enrouler]), étendu ici aux libellés
+    /// structurés. Aucun mot n'est changé, seuls des retours à la ligne sont insérés aux espaces ; la
+    /// modale de production, elle, s'enroule d'elle-même à l'affichage.
     private static void enregistrerCompteRendu(CompteRendu compteRendu, Path fichier) {
-        Alert alerte = new ConfirmationNavigation().dialogue(compteRendu);
+        Alert alerte = new ConfirmationNavigation().dialogue(enrouler(compteRendu));
         alerte.getDialogPane().setPrefWidth(540);
-        // Limite connue (#2243) : hors `showAndWait`, un détail **long** de `VueCompteRendu` ne s'enroule
-        // pas au snapshot et se coupe par une ellipse - les libellés texte le contournent par `enrouler`,
-        // sans équivalent structuré. En production le dialogue s'enroule ; la capture d'un détail court
-        // (le doublon) est fidèle, celle d'un détail long (l'écrasement) est tronquée.
         ApercuFx.enregistrerDialogPane(alerte.getDialogPane(), styles(), fichier);
         System.out.println("Apercu ecrit dans " + fichier.toAbsolutePath());
+    }
+
+    /// Réenroule tous les textes d'un compte rendu (mêmes mots, retours à la ligne insérés aux espaces),
+    /// pour le snapshot (#2243). Localisé à la capture : la production s'enroule d'elle-même. Le sujet et
+    /// la précision d'un détail sont enroulés séparément - [VueCompteRendu] les rejoint au rendu.
+    private static CompteRendu enrouler(CompteRendu rendu) {
+        List<Constat> constats = rendu.constats().stream()
+                .map(CaptureConfirmationsImport::enrouler)
+                .toList();
+        return new CompteRendu(rendu.titre(), enrouler(rendu.preambule()), constats, enrouler(rendu.conclusion()));
+    }
+
+    /// Réenroule le fait d'un constat et chacun de ses détails (sujet et précision).
+    private static Constat enrouler(Constat constat) {
+        List<Detail> details = constat.details().stream()
+                .map(detail -> new Detail(enrouler(detail.sujet()), enrouler(detail.precision())))
+                .toList();
+        return new Constat(enrouler(constat.fait()), constat.severite(), details);
     }
 
     /// Rend le dialogue **de production** ([ConfirmationNavigation#dialogue]) portant le message réel.

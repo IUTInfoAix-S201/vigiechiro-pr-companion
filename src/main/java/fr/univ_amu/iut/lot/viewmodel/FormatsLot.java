@@ -16,8 +16,12 @@ public final class FormatsLot {
 
     /// Alerte « espace disque insuffisant » (gigaoctets base 1000) affichée AVANT génération (#…) : volume
     /// estimé des archives (compression comprise) vs espace disponible.
+    ///
+    /// Sans le « ⚠ » d'antan (#2221) : le libellé s'affiche dans un bandeau `badge-danger`, et un **badge**
+    /// rend sa sévérité par la **couleur** (rouge), pas par une icône ni un glyphe écrit dans la chaîne -
+    /// l'écrire ici le disait une seconde fois, à la merci des polices.
     static String messageEspaceInsuffisant(long requisOctets, long disponibleOctets) {
-        return "⚠ Espace disque insuffisant : environ " + enGigaoctets(requisOctets)
+        return "Espace disque insuffisant : environ " + enGigaoctets(requisOctets)
                 + " Go estimés pour les archives, seulement " + enGigaoctets(disponibleOctets)
                 + " Go disponibles. Libérez de l'espace avant de générer.";
     }

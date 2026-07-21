@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [2.29.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v2.28.0...v2.29.0) (2026-07-21)
+
+
+### Features
+
+* **socle:** un Confirmateur peut confirmer un compte rendu, plus seulement une chaîne ([#2211](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2211)) ([477db0b](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/477db0bb1aaeebc2729b2373ff7a78a6fa26c655)), closes [#1987](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/1987) [#2050](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2050) [#2060](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2060) [#2188](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2188)
+
 # [2.28.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v2.27.1...v2.28.0) (2026-07-20)
 
 

@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+## [2.30.3](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v2.30.2...v2.30.3) (2026-07-21)
+
+
+### Bug Fixes
+
+* **sites:** les pictogrammes de la feature sites se posent, ils ne s’écrivent plus ([#2221](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2221)) ([#2232](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2232)) ([c237229](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/c237229213345bad936a18cdb3b6a128a2d6aba9)), closes [#2036](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2036) [#2228](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2228) [#2225](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2225)
+
 ## [2.30.2](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v2.30.1...v2.30.2) (2026-07-21)
 
 

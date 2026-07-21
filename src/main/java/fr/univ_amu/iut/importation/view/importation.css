@@ -15,17 +15,10 @@
 
 /* ----- Sections numérotées : composant partagé carte-section (design.css, #694). ----- */
 
-/* ----- Champs ----- */
-.field-label {
-    -fx-font-size: 13px;
-    -fx-font-weight: bold;
-    -fx-text-fill: #2c3e50;
-}
-
-.field-hint {
-    -fx-font-size: 12px;
-    -fx-text-fill: -couleur-texte-discret;
-}
+/* ----- Champs -----
+   `.field-label` et `.field-hint` sont définis une seule fois dans design.css (#1974) : les copies
+   qui vivaient ici étaient identiques et surchargeaient sans rien changer. Importation charge
+   design.css, la définition partagée s'applique. */
 
 .champ-lecture-seule {
     -fx-background-color: #f6f8fa;

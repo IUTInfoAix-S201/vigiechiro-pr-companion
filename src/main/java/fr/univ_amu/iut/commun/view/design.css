@@ -780,7 +780,7 @@
 .field-label {
     -fx-font-size: 13px;
     -fx-font-weight: bold;
-    -fx-text-fill: #2c3e50;
+    -fx-text-fill: -couleur-texte;
 }
 
 .field-hint {

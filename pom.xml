@@ -742,7 +742,7 @@
                                         <argument>--type</argument>
                                         <argument>${jpackage.type}</argument>
                                         <argument>--name</argument>
-                                        <argument>VigieChiro</argument>
+                                        <argument>VigieChiroCompanion</argument>
                                         <argument>--app-version</argument>
                                         <argument>${jpackage.appVersion}</argument>
                                         <!-- Description : sans elle, jpackage recopie le NOM dans le
@@ -881,7 +881,7 @@
                                              l'application. -->
                                         <argument>--win-menu</argument>
                                         <argument>--win-menu-group</argument>
-                                        <argument>VigieChiro</argument>
+                                        <argument>VigieChiro Companion</argument>
                                     </arguments>
                                 </configuration>
                             </execution>

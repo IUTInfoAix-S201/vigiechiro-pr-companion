@@ -17,8 +17,8 @@ dans le menu Démarrer ou le Launchpad. Il demande en revanche les **droits d'ad
 
 | Système | Installeur |
 |---|---|
-| Windows | `VigieChiro-…-x64.msi` |
-| macOS (Apple Silicon) | `VigieChiro-…-arm64.dmg` |
+| Windows | `VigieChiroCompanion-…-x64.msi` |
+| macOS (Apple Silicon) | `VigieChiroCompanion-…-arm64.dmg` |
 | Linux (Debian, Ubuntu) | `vigiechiro_…_amd64-x64.deb` |
 
 **L'archive portable** ne s'installe pas : vous la décompressez où vous voulez, et vous lancez.
@@ -28,16 +28,16 @@ prêtée.
 
 | Système | Archive portable | Pour lancer |
 |---|---|---|
-| Windows | `…-windows-x64-portable.zip` | décompressez, puis `VigieChiro\VigieChiro.exe` |
-| macOS | `…-macos-arm64-portable.zip` | décompressez, puis ouvrez `VigieChiro.app` |
-| Linux | `…-linux-x64-portable.tar.gz` | `tar -xzf …tar.gz` puis `VigieChiro/bin/VigieChiro` |
+| Windows | `…-windows-x64-portable.zip` | décompressez, puis `VigieChiroCompanion\VigieChiroCompanion.exe` |
+| macOS | `…-macos-arm64-portable.zip` | décompressez, puis ouvrez `VigieChiroCompanion.app` |
+| Linux | `…-linux-x64-portable.tar.gz` | `tar -xzf …tar.gz` puis `VigieChiroCompanion/bin/VigieChiroCompanion` |
 
 **Sous Linux, une troisième forme** existe : l'**AppImage**, un fichier unique et exécutable. Rien à
 décompresser, et elle s'ajoute au menu des applications.
 
 ```bash
-chmod +x VigieChiro-2.20.0-linux-x86_64.AppImage
-./VigieChiro-2.20.0-linux-x86_64.AppImage
+chmod +x VigieChiroCompanion-2.20.0-linux-x86_64.AppImage
+./VigieChiroCompanion-2.20.0-linux-x86_64.AppImage
 ```
 
 Dans tous les cas, tout le nécessaire est embarqué : **aucune installation de Java** n'est requise.
@@ -63,20 +63,20 @@ Téléchargez-le à côté du vôtre, puis, **dans le dossier de téléchargemen
 === "Linux"
 
     ```bash
-    sha256sum -c VigieChiro-2.21.1-linux-x64-portable.tar.gz.sha256
+    sha256sum -c VigieChiroCompanion-2.21.1-linux-x64-portable.tar.gz.sha256
     ```
 
 === "macOS"
 
     ```bash
-    shasum -a 256 -c VigieChiro-2.21.1-arm64.dmg.sha256
+    shasum -a 256 -c VigieChiroCompanion-2.21.1-arm64.dmg.sha256
     ```
 
 === "Windows (PowerShell)"
 
     ```powershell
-    (Get-FileHash .\VigieChiro-2.21.1-x64.msi -Algorithm SHA256).Hash.ToLower()
-    Get-Content .\VigieChiro-2.21.1-x64.msi.sha256
+    (Get-FileHash .\VigieChiroCompanion-2.21.1-x64.msi -Algorithm SHA256).Hash.ToLower()
+    Get-Content .\VigieChiroCompanion-2.21.1-x64.msi.sha256
     ```
 
 Une réponse `OK` (ou, sous Windows, deux empreintes identiques) signifie que le fichier est intact. Un

@@ -5,7 +5,7 @@
 # sans décompresser ni installer. C'est le complément de l'archive portable, pour qui préfère un
 # fichier à un dossier, et cela apporte l'intégration au menu des applications via le .desktop.
 #
-# Prérequis : `./mvnw -Pinstaller -Djpackage.type=app-image … verify` a produit target/dist/VigieChiro.
+# Prérequis : `./mvnw -Pinstaller -Djpackage.type=app-image … verify` a produit target/dist/VigieChiroCompanion.
 # Usage : construit-appimage.sh <version> <arch>      (ex. construit-appimage.sh 2.20.0 x86_64)
 set -euo pipefail
 
@@ -13,9 +13,9 @@ VERSION="${1:?version attendue (ex. 2.20.0)}"
 ARCH="${2:-x86_64}"
 
 RACINE="$(cd "$(dirname "$0")/../.." && pwd)"
-SOURCE="${RACINE}/target/dist/VigieChiro"
+SOURCE="${RACINE}/target/dist/VigieChiroCompanion"
 APPDIR="${RACINE}/target/AppDir"
-SORTIE="${RACINE}/target/dist/VigieChiro-${VERSION}-linux-${ARCH}.AppImage"
+SORTIE="${RACINE}/target/dist/VigieChiroCompanion-${VERSION}-linux-${ARCH}.AppImage"
 
 if [ ! -d "${SOURCE}" ]; then
     echo "::error::${SOURCE} est absent : construire d'abord l'app-image jpackage." >&2
@@ -44,7 +44,7 @@ install -m 644 "${RACINE}/.github/appimage/vigiechiro.desktop" "${APPDIR}/vigiec
 
 # jpackage dépose l'icône de l'application dans lib/. On la reprend plutôt que d'en versionner une
 # seconde copie, qui divergerait le jour où l'icône change.
-ICONE="${APPDIR}/usr/lib/VigieChiro.png"
+ICONE="${APPDIR}/usr/lib/VigieChiroCompanion.png"
 if [ ! -f "${ICONE}" ]; then
     echo "::error::icône introuvable (${ICONE}) : jpackage a changé sa disposition ?" >&2
     exit 1

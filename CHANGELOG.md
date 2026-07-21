@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [2.32.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v2.31.0...v2.32.0) (2026-07-21)
+
+
+### Features
+
+* **captures:** montrer les deux avertissements migrés en LibelleRetour ([#2222](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2222)) ([#2250](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2250)) ([636e4cc](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/636e4cca55d16ca72541663cffda41fdb6fb0509)), closes [#2050](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2050) [#2097](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2097) [#2225](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2225) [#2050](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2050) [#2097](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2097)
+
 # [2.31.0](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v2.30.5...v2.31.0) (2026-07-21)
 
 

@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+## [2.30.4](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v2.30.3...v2.30.4) (2026-07-21)
+
+
+### Bug Fixes
+
+* **lot:** retirer le glyphe de l’alerte espace disque, le badge le rend en couleur ([#2221](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2221)) ([#2234](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2234)) ([3c967e9](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/commit/3c967e9a748dc5a313ec5b294eb566f673bea9d2)), closes [#2225](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/issues/2225)
+
 ## [2.30.3](https://github.com/IUTInfoAix-S201/vigiechiro-pr-companion/compare/v2.30.2...v2.30.3) (2026-07-21)
 
 

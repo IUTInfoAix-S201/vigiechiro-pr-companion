@@ -19,7 +19,6 @@ import fr.univ_amu.iut.commun.model.JetonAnnulation;
 import fr.univ_amu.iut.commun.model.PortailVigieChiro;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.model.Verdict;
-import fr.univ_amu.iut.commun.persistence.ServicePurgeOriginaux;
 import fr.univ_amu.iut.commun.view.FiltreFichier;
 import fr.univ_amu.iut.commun.view.OuvreurDeLien;
 import fr.univ_amu.iut.commun.view.OuvrirDiagnostic;
@@ -101,7 +100,6 @@ class PassageReactivationViewTest {
                         150.0,
                         null,
                         new DecompteAudio(0, 30)));
-        ServicePurgeOriginaux purge = mock(ServicePurgeOriginaux.class);
 
         Injector injector = Guice.createInjector(new AbstractModule() {
             @Override
@@ -120,7 +118,7 @@ class PassageReactivationViewTest {
 
             @Provides
             PassageViewModel viewModel() {
-                return new PassageViewModel(service, purge, reactivation);
+                return new PassageViewModel(service, reactivation);
             }
 
             @Provides

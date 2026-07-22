@@ -53,7 +53,6 @@ class ActionMenuWiringTest {
                         "ActionRestaurer",
                         "ActionRestaurerComplet",
                         "ActionResetGuide",
-                        "ActionPurger",
                         "ActionOuvrirJournaux",
                         "ActionAPropos",
                         "ActionSourceEspece",

@@ -144,8 +144,8 @@ pas des pannes.
 La **croix** à droite referme le bandeau quand vous l'avez lu. Il repart aussi de lui-même dès que vous
 lancez l'action suivante : ce que vous voyez concerne toujours votre dernier geste.
 
-Deux exceptions volontaires. Les actions **irréversibles** - supprimer un passage, purger des
-enregistrements - rendent compte dans une fenêtre qui **bloque** tant que vous ne
+Deux exceptions volontaires. Les actions **irréversibles** - supprimer un passage, par exemple -
+rendent compte dans une fenêtre qui **bloque** tant que vous ne
 l'avez pas lue, parce qu'il serait fâcheux de manquer le résultat d'une destruction. Et ce qui décrit
 l'**état** d'une nuit (« Passage déposé le… ») n'est pas un compte rendu : ce libellé-là reste affiché
 et ne se ferme pas.

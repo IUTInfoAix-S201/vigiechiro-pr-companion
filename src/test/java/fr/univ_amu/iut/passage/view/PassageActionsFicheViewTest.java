@@ -19,7 +19,6 @@ import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.commun.model.Severite;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.model.Verdict;
-import fr.univ_amu.iut.commun.persistence.ServicePurgeOriginaux;
 import fr.univ_amu.iut.commun.view.Confirmateur;
 import fr.univ_amu.iut.commun.view.NiveauNotification;
 import fr.univ_amu.iut.commun.view.OuvreurDeLien;
@@ -39,7 +38,6 @@ import fr.univ_amu.iut.passage.viewmodel.PassageViewModel;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -94,13 +92,11 @@ class PassageActionsFicheViewTest {
     private int validationsMenacees;
 
     private ServicePassage service;
-    private ServicePurgeOriginaux purge;
     private PassageController controleur;
 
     @Start
     void start(Stage stage) throws Exception {
         service = mock(ServicePassage.class);
-        purge = mock(ServicePurgeOriginaux.class);
         when(service.detailPassage(anyLong())).thenReturn(detail(StatutWorkflow.VERIFIE));
         ServiceReactivationPassage reactivation = mock(ServiceReactivationPassage.class);
 
@@ -121,7 +117,7 @@ class PassageActionsFicheViewTest {
 
             @Provides
             PassageViewModel viewModel() {
-                return new PassageViewModel(service, purge, reactivation);
+                return new PassageViewModel(service, reactivation);
             }
 
             @Provides
@@ -317,50 +313,5 @@ class PassageActionsFicheViewTest {
         assertThat(annonces)
                 .as("annuler un dépôt ne détruit rien : son refus ne doit plus bloquer (ADR 0023)")
                 .isEmpty();
-    }
-
-    @Test
-    @DisplayName("#1405 : « Purger les originaux » confirmé : les bruts de la nuit partent, et le geste est marqué")
-    void purge_de_la_nuit_confirmee(FxRobot robot) {
-        when(service.cheminSession(ID_PASSAGE)).thenReturn(Optional.of(SESSION));
-
-        cliquer(robot, "#boutonPurger");
-
-        assertThat(confirmations)
-                .singleElement()
-                .satisfies(message -> assertThat(message)
-                        .contains("cette suppression est définitive")
-                        .as("ce qui reste après la purge est ce qui décide l'utilisateur")
-                        .contains("Les séquences d'écoute, la validation et le dépôt sont conservés"));
-        verify(purge).purgerSession(SESSION);
-        // Sans ce marquage, l'audit prendrait les bruts purgés pour une corruption.
-        verify(service).marquerOriginauxPurges(ID_PASSAGE);
-    }
-
-    @Test
-    @DisplayName("#1405 : « Purger les originaux » refusé : les bruts de la nuit sont intacts")
-    void purge_de_la_nuit_refusee(FxRobot robot) {
-        confirme = false;
-
-        cliquer(robot, "#boutonPurger");
-
-        verify(purge, never()).purgerSession(SESSION);
-        verify(service, never()).marquerOriginauxPurges(anyLong());
-        assertThat(annonces).isEmpty();
-    }
-
-    @Test
-    @DisplayName("#1405 : purge interrompue (disque) : l'utilisateur est averti")
-    void purge_de_la_nuit_interrompue_avertit(FxRobot robot) {
-        when(service.cheminSession(ID_PASSAGE)).thenReturn(Optional.of(SESSION));
-        doThrow(new IllegalStateException("fichier verrouillé")).when(purge).purgerSession(SESSION);
-
-        cliquer(robot, "#boutonPurger");
-
-        assertThat(niveaux).containsExactly(NiveauNotification.AVERTISSEMENT);
-        assertThat(annonces)
-                .singleElement()
-                .satisfies(annonce ->
-                        assertThat(annonce).contains("Purge impossible").contains("fichier verrouillé"));
     }
 }

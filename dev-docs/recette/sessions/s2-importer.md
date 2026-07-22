@@ -56,54 +56,53 @@ import (copie protégée + renommage + transformation), puis les cas dégradés 
 23. Le résumé affiche volume bruts, volume transformé, durée, nombre de séquences.
 24. « Voir la participation » est grisé (passage non lié) avec explication.
 25. « 🗑 Supprimer » est actif (passage non déposé).
-26. « 🧹 Purger les originaux » est visible (des bruts existent).
-27. « ♻ Réactiver ce passage » est absent ou grisé quand l'audio est complet, avec explication.
+26. « ♻ Réactiver ce passage » est absent ou grisé quand l'audio est complet, avec explication.
 
 **Étape 3 · Modale « Modifier le passage »**
 
-28. Le libellé du bouton et le titre de la modale sont « Modifier le passage » (la doc dit « Modifier le
+27. Le libellé du bouton et le titre de la modale sont « Modifier le passage » (la doc dit « Modifier le
     rattachement » : S2-C04).
-29. Les spinners Année et N° de passage fonctionnent.
-30. La météo se saisit (températures, vent, couverture).
-31. « Récupérer la météo » remplit les champs.
-32. Le matériel micro se saisit (position, hauteur, type en liste fermée).
-33. Le récapitulatif se met à jour en direct.
-34. Changer le numéro de passage déclenche la confirmation de renommage disque (garde).
+28. Les spinners Année et N° de passage fonctionnent.
+29. La météo se saisit (températures, vent, couverture).
+30. « Récupérer la météo » remplit les champs.
+31. Le matériel micro se saisit (position, hauteur, type en liste fermée).
+32. Le récapitulatif se met à jour en direct.
+33. Changer le numéro de passage déclenche la confirmation de renommage disque (garde).
 
 **Étape 4 · Diagnostic (depuis le passage)**
 
 *Écran refondu depuis la passe du 14/07 (#1673 ; #1497 GPS et #1498 soin de l'écran corrigés) : items
 alignés sur l'écran actuel, à confirmer au re-jeu.*
 
-35. La courbe climatique T°/hygrométrie s'affiche, l'axe **gradué en heures**.
-36. Les anomalies détectées s'affichent (ou leur placeholder).
-37. Les évènements du journal s'affichent (ou leur placeholder).
-38. La cohérence horaire indique la fenêtre nocturne (coucher/lever du soleil), avec l'alerte
+34. La courbe climatique T°/hygrométrie s'affiche, l'axe **gradué en heures**.
+35. Les anomalies détectées s'affichent (ou leur placeholder).
+36. Les évènements du journal s'affichent (ou leur placeholder).
+37. La cohérence horaire indique la fenêtre nocturne (coucher/lever du soleil), avec l'alerte
     « hors nuit » si l'enregistrement déborde.
-39. L'état GPS du **point d'écoute** est **toujours visible** : « disponible » ou « non renseigné
+38. L'état GPS du **point d'écoute** est **toujours visible** : « disponible » ou « non renseigné
     (compléter la fiche site) ».
-40. La **barre de statut** (bas de fenêtre) affiche l'enregistreur diagnostiqué et le **nombre de
+39. La **barre de statut** (bas de fenêtre) affiche l'enregistreur diagnostiqué et le **nombre de
     mesures climatiques**.
 
 **Étape 5 · Cas dégradés (un import ou une inspection par fixture)**
 
-41. `sd-melange` : bandeau « mélange » (2 enregistreurs), non bloquant.
-42. `sd-incoherente` : bandeau « incohérence » journal↔wav (série et date), plus ferme.
-43. `sd-multi-nuits` : la table des nuits apparaît (3 lignes, n° automatiques, cases Inclure).
-44. `sd-sans-journal` : l'absence de journal est signalée, l'import reste possible (mode dégradé).
-45. `sd-journal-corrompu` : l'inspection échoue avec un message compréhensible.
-46. `sd-prefixee` : bandeau « discordance de préfixe » si le rattachement ne correspond pas.
-47. `sd-rejets` : l'import aboutit malgré le faux wav, la zone des rejets liste « nom - raison ».
-48. `sd-nominale.zip` : la décompression affiche sa barre et son bouton Annuler avant l'inspection.
-49. Ré-inspection de `sd-nominale` : bandeau « nuit déjà importée », informatif.
-50. Rattachement au même point + année + n° : bandeau « n° déjà pris » avec « Utiliser ce n° » et
+40. `sd-melange` : bandeau « mélange » (2 enregistreurs), non bloquant.
+41. `sd-incoherente` : bandeau « incohérence » journal↔wav (série et date), plus ferme.
+42. `sd-multi-nuits` : la table des nuits apparaît (3 lignes, n° automatiques, cases Inclure).
+43. `sd-sans-journal` : l'absence de journal est signalée, l'import reste possible (mode dégradé).
+44. `sd-journal-corrompu` : l'inspection échoue avec un message compréhensible.
+45. `sd-prefixee` : bandeau « discordance de préfixe » si le rattachement ne correspond pas.
+46. `sd-rejets` : l'import aboutit malgré le faux wav, la zone des rejets liste « nom - raison ».
+47. `sd-nominale.zip` : la décompression affiche sa barre et son bouton Annuler avant l'inspection.
+48. Ré-inspection de `sd-nominale` : bandeau « nuit déjà importée », informatif.
+49. Rattachement au même point + année + n° : bandeau « n° déjà pris » avec « Utiliser ce n° » et
 
 **Bloc · Gestes de ligne (EPIC #1792)** — non automatisable (rendu du popup).
 
-51. Pendant un import, clic droit sur une ligne du **suivi des fichiers** : le menu s'ouvre,
+50. Pendant un import, clic droit sur une ligne du **suivi des fichiers** : le menu s'ouvre,
     entièrement lisible.
-52. « Copier ▸ Nom du fichier » place le nom de l'enregistrement dans le presse-papier.
-53. « Colonnes… » y figure **en dernier** ; la disposition choisie n'est **pas** mémorisée
+51. « Copier ▸ Nom du fichier » place le nom de l'enregistrement dans le presse-papier.
+52. « Colonnes… » y figure **en dernier** ; la disposition choisie n'est **pas** mémorisée
     d'un import à l'autre (écran transitoire, assumé).
     « 🗑 Écraser et réimporter » ; « Écraser » enchaîne deux confirmations (principe, puis liste de ce
     qui sera supprimé).

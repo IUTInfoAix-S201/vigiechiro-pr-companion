@@ -37,7 +37,7 @@ public final class ActionAPropos implements ActionMenu {
     private static final String DEPOT = "https://github.com/echonuit/vigiechiro-pr-companion";
 
     /// Fenêtre propriétaire du dialogue, posée au clic : l'action la lit **paresseusement**, car elle
-    /// n'existe pas encore quand l'entrée de menu est construite (même montage qu'[ActionPurger]).
+    /// n'existe pas encore quand l'entrée de menu est construite.
     private Window proprietaire;
 
     private final VersionApplication version;

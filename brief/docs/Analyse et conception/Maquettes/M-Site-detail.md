@@ -188,7 +188,7 @@ Cette vue présente **un site et tout ce qui s'y rattache** : sa fiche d'identit
 ### Annotations
 
 - **Bandeau d'infos clés** : la fiche d'identité du site (n° de carré, département déduit des 2 premiers chiffres du carré [R1](../Modèle%20conceptuel/Règles%20métier.md#r1), protocole, date de création, dernière nuit importée, total passages de l'année).
-- **Cartes points d'écoute** : pour A1 et B2 (géolocalisés), le lien vert **« ✓ GPS - voir sur la carte »** ouvre la carte multi-sites centrée sur le point. Pour C3 (sans GPS), le lien ambré **« ⚠ GPS manquant - placer sur la carte »** ouvre la carte sur le carré, **mode édition actif**, pour glisser le point à sa position ([R26](../Modèle%20conceptuel/Règles%20métier.md#r26), [R27](../Modèle%20conceptuel/Règles%20métier.md#r27)). Chaque carte indique le nombre de passages rattachés ; une carte qui en porte ne peut pas être supprimée ([R28](../Modèle%20conceptuel/Règles%20métier.md#r28)).
+- **Cartes points d'écoute** : pour A1 et B2 (géolocalisés), le lien vert **« GPS - voir sur la carte »**, précédé d'une **icône de validation**, ouvre la carte multi-sites centrée sur le point. Pour C3 (sans GPS), le lien ambré **« GPS manquant - placer sur la carte »**, précédé d'une **icône d'avertissement**, ouvre la carte sur le carré, **mode édition actif**, pour glisser le point à sa position ([R26](../Modèle%20conceptuel/Règles%20métier.md#r26), [R27](../Modèle%20conceptuel/Règles%20métier.md#r27)). Chaque carte indique le nombre de passages rattachés ; une carte qui en porte ne peut pas être supprimée ([R28](../Modèle%20conceptuel/Règles%20métier.md#r28)).
 - **Tableau passages** : colonnes Date, Point, N° de passage, Statut, Verdict, Enregistreur, Déposé le. Le **statut** suit le cycle `Importé → Transformé → Vérifié → Prêt à déposer → Déposé` (couleur dérivée du statut).
 
 ### Interactions clés
@@ -200,7 +200,7 @@ Cette vue présente **un site et tout ce qui s'y rattache** : sa fiche d'identit
 | Bouton **🗺 Voir sur la carte** | Ouvre [M-MultiSite](M-MultiSite.md) centré sur le carré du site |
 | Bouton **✏ Modifier** | Ouvre le formulaire d'édition du site (mêmes champs que la création) |
 | Bouton **🗑 Supprimer** | Désactivé tant que des passages sont rattachés au site ([R28](../Modèle%20conceptuel/Règles%20métier.md#r28)) ; sinon confirmation |
-| Lien **✓ GPS / ⚠ GPS manquant** d'une carte | Ouvre la carte (voir / placer le point) |
+| Lien **GPS / GPS manquant** d'une carte (icône de validation ou d'avertissement) | Ouvre la carte (voir / placer le point) |
 | **✏ / 🗑** d'une carte de point | Édite le point (modale) / le supprime (bloqué si passages, [R28](../Modèle%20conceptuel/Règles%20métier.md#r28)) |
 | Double-clic sur une ligne du tableau | Ouvre [M-Passage](M-Passage.md) du passage sélectionné |
 

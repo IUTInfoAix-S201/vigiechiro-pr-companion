@@ -26,6 +26,10 @@ import picocli.CommandLine.Spec;
         description = "Restaure une sauvegarde (base seule, ou base + audio avec --complet). Destructif.")
 public final class Restaurer implements Callable<Integer> {
 
+    /// Code de sortie d'un refus faute de `--confirmer` : la commande **n'a rien fait**, et un script
+    /// doit pouvoir le distinguer d'un échec en cours de route (`1`), qui laisserait l'état incertain.
+    private static final int CODE_REFUS = 2;
+
     @Parameters(
             index = "0",
             paramLabel = "<source>",
@@ -57,8 +61,13 @@ public final class Restaurer implements Callable<Integer> {
     public Integer call() {
         PrintWriter sortie = spec.commandLine().getOut();
         if (!confirmer) {
-            sortie.println("Restauration refusée : elle écrase l'état local. Relancez avec --confirmer.");
-            return 1;
+            // Le refus part sur stderr, et sort en 2 : la commande n'a RIEN fait. En rendant 1 - le code
+            // de l'échec d'exécution - elle laissait un script incapable de distinguer « j'ai refusé,
+            // l'état local est intact » de « j'ai échoué en route », sur une commande destructive (#2294).
+            spec.commandLine()
+                    .getErr()
+                    .println("Restauration refusée : elle écrase l'état local. Relancez avec --confirmer.");
+            return CODE_REFUS;
         }
         ServiceSauvegarde sauvegarde = service.get();
         if (complet) {

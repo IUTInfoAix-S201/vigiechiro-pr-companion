@@ -135,7 +135,17 @@ défaut est `<Documents>/VigieChiro-Companion`.
 |---|---|
 | `0` | succès |
 | `1` | échec d'exécution (règle métier refusée, accès aux données, E/S) |
-| `2` | mauvaise invocation (commande inconnue, argument requis manquant ou mal formé) |
+| `2` | mauvaise invocation (commande inconnue, argument requis manquant ou mal formé) **ou refus d'agir** |
+
+**`2` dit aussi « j'ai refusé, je n'ai rien fait ».** Les commandes **destructives** exigent un drapeau
+explicite (`--confirmer`, `--ecraser`) : sans lui, elles **chiffrent la perte** et sortent en `2` sans
+rien toucher. C'est volontairement **distinct de `1`** — après un `1`, l'état est incertain ; après un
+`2`, il est **intact**, et un script peut s'arrêter sans avoir à vérifier quoi que ce soit. Le message
+de refus part sur **stderr**, pour ne pas se mêler au compte rendu.
+
+Suivent cette règle : `supprimer-passage`, `importer --ecraser`, `restaurer`, `reset-guide --executer`,
+`discussion`, `sauvegarder` (incomplète). `restaurer` rendait `1` sur stdout jusqu'à #2294 — la
+convention n'était écrite nulle part, et c'est ainsi qu'elle a dérivé.
 
 `deposer-vigiechiro` étend la convention : `0` **seulement si le dépôt est complet** ; `1` si des
 fichiers restent à reprendre (relancer la même commande ne re-téléverse que les manquants). Le jeton

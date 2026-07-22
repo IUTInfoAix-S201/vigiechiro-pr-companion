@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+## [2.34.4](https://github.com/echonuit/vigiechiro-pr-companion/compare/v2.34.3...v2.34.4) (2026-07-22)
+
+
+### Bug Fixes
+
+* **flatpak:** ne pas embarquer le repertoire de construction dans la PR ([#2315](https://github.com/echonuit/vigiechiro-pr-companion/issues/2315)) ([25031d6](https://github.com/echonuit/vigiechiro-pr-companion/commit/25031d6e67e8ab217ce91d7ff461cf5f9b1d1a8a)), closes [#2247](https://github.com/echonuit/vigiechiro-pr-companion/issues/2247)
+
 ## [2.34.3](https://github.com/echonuit/vigiechiro-pr-companion/compare/v2.34.2...v2.34.3) (2026-07-22)
 
 

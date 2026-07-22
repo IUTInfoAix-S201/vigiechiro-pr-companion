@@ -1,0 +1,175 @@
+site_name: VigieChiro Companion · Brief projet
+site_description: >-
+  Dossier de conception de VigieChiro Companion : besoin, modèle de données,
+  parcours utilisateurs, maquettes et story mapping.
+site_url: https://brief.echonuit.fr/
+repo_url: https://github.com/echonuit/brief
+repo_name: echonuit/brief
+edit_uri: edit/main/
+
+docs_dir: docs
+site_dir: site
+
+theme:
+  name: material
+  language: fr
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.indexes
+    - navigation.top
+    - navigation.footer
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.action.edit
+    - content.action.view
+    - content.code.copy
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: deep orange
+      toggle:
+        icon: material/weather-sunny
+        name: Mode sombre
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: deep orange
+      toggle:
+        icon: material/weather-night
+        name: Mode clair
+  icon:
+    repo: fontawesome/brands/github
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - footnotes
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+plugins:
+  - search:
+      lang: fr
+
+extra_css:
+  - stylesheets/extra.css
+
+nav:
+  - Accueil: index.md
+  - 1. Présentation du projet: Présentation du projet.md
+  - 2. Stack technique et architecture: Contraintes techniques.md
+  - 3. Objectifs qualités:
+      - Vue d'ensemble: Objectifs qualités/index.md
+      - Catégories ISO 25010: Objectifs qualités/Catégorie de qualité.md
+      - Critères ISO 25010: Objectifs qualités/Critère de qualité.md
+      - Objectifs:
+          - Vue d'ensemble: Objectifs qualités/Objectifs qualités/index.md
+          - O1 - Portabilité multi-OS: Objectifs qualités/Objectifs qualités/O1.md
+          - O2 - Facilité d'apprentissage: Objectifs qualités/Objectifs qualités/O2.md
+          - O3 - Tenue dans la durée: Objectifs qualités/Objectifs qualités/O3.md
+          - O4 - Exactitude lecture audio: Objectifs qualités/Objectifs qualités/O4.md
+          - O5 - Capacité CSV: Objectifs qualités/Objectifs qualités/O5.md
+          - O6 - Modularité protocoles: Objectifs qualités/Objectifs qualités/O6.md
+          - O7 - Intégrité annotations: Objectifs qualités/Objectifs qualités/O7.md
+          - O8 - Confidentialité identifiants: Objectifs qualités/Objectifs qualités/O8.md
+      - Scénarios:
+          - Vue d'ensemble: Objectifs qualités/Scénario/index.md
+          - SC1 - Onboarding: Objectifs qualités/Scénario/SC1.md
+          - SC2 - Aucune fuite d'identifiants: Objectifs qualités/Scénario/SC2.md
+          - SC3 - Ajout d'un protocole: Objectifs qualités/Scénario/SC3.md
+          - SC4 - Internationalisation: Objectifs qualités/Scénario/SC4.md
+  - 4. Expression du besoin: Expression du besoin.md
+  - 5. Analyse et conception:
+      - Vue d'ensemble: Analyse et conception/index.md
+      - Modèle conceptuel:
+          - Vue d'ensemble: Analyse et conception/Modèle conceptuel/index.md
+          - C1 - Utilisateur: Analyse et conception/Modèle conceptuel/C1 - Utilisateur.md
+          - C2 - Site de suivi: Analyse et conception/Modèle conceptuel/C2 - Site de suivi.md
+          - C3 - Point d'écoute: Analyse et conception/Modèle conceptuel/C3 - Point d'écoute.md
+          - C4 - Enregistreur: Analyse et conception/Modèle conceptuel/C4 - Enregistreur.md
+          - C4bis - Micro: Analyse et conception/Modèle conceptuel/C4bis - Micro.md
+          - C5 - Passage: Analyse et conception/Modèle conceptuel/C5 - Passage.md
+          - C6 - Session d'enregistrement: Analyse et conception/Modèle conceptuel/C6 - Session d'enregistrement.md
+          - C7 - Enregistrement original: Analyse et conception/Modèle conceptuel/C7 - Enregistrement original.md
+          - C8 - Séquence d'écoute: Analyse et conception/Modèle conceptuel/C8 - Séquence d'écoute.md
+          - C9 - Journal du capteur: Analyse et conception/Modèle conceptuel/C9 - Journal du capteur.md
+          - C10 - Relevé climatique: Analyse et conception/Modèle conceptuel/C10 - Relevé climatique.md
+          - C11 - Sélection d'écoute: Analyse et conception/Modèle conceptuel/C11 - Sélection d'écoute.md
+          - C12 - Résultats d'identification: Analyse et conception/Modèle conceptuel/C12 - Résultats d'identification.md
+          - C13 - Observation: Analyse et conception/Modèle conceptuel/C13 - Observation.md
+          - C14 - Taxon: Analyse et conception/Modèle conceptuel/C14 - Taxon.md
+          - C15 - Groupe taxonomique: Analyse et conception/Modèle conceptuel/C15 - Groupe taxonomique.md
+          - Cardinalités: Analyse et conception/Modèle conceptuel/Cardinalités.md
+          - Règles métier: Analyse et conception/Modèle conceptuel/Règles métier.md
+          - Glossaire métier: Analyse et conception/Modèle conceptuel/Glossaire métier.md
+          - Glossaire outils: Analyse et conception/Modèle conceptuel/Glossaire outils.md
+          - Diagramme plein écran: Analyse et conception/Modèle conceptuel/Diagramme - plein écran.md
+      - Personas:
+          - Vue d'ensemble: Analyse et conception/Personas/index.md
+          - Marie: Analyse et conception/Personas/Marie.md
+          - Karim: Analyse et conception/Personas/Karim.md
+          - Samuel: Analyse et conception/Personas/Samuel.md
+      - Parcours utilisateurs:
+          - Vue d'ensemble: Analyse et conception/Parcours utilisateurs/index.md
+          - P0 - Première nuit de Marie (fil rouge): Analyse et conception/Parcours utilisateurs/P0 - Première nuit de Marie.md
+          - P0 plein écran: Analyse et conception/Parcours utilisateurs/P0 - plein écran.md
+          - P1 - Déclarer un site de suivi: Analyse et conception/Parcours utilisateurs/P1 - Déclarer un site de suivi.md
+          - P2 - Importer une nuit d'enregistrement: Analyse et conception/Parcours utilisateurs/P2 - Importer une nuit d'enregistrement.md
+          - P3 - Vérifier l'enregistrement: Analyse et conception/Parcours utilisateurs/P3 - Vérifier l'enregistrement par échantillonnage.md
+          - P4 - Préparer le lot à déposer: Analyse et conception/Parcours utilisateurs/P4 - Préparer un lot prêt à déposer.md
+          - P5 - Naviguer multi-sites: Analyse et conception/Parcours utilisateurs/P5 - Naviguer dans plusieurs sites et passages.md
+          - P6 - Diagnostiquer le matériel: Analyse et conception/Parcours utilisateurs/P6 - Diagnostiquer le matériel.md
+          - P7 - Valider les résultats Tadarida: Analyse et conception/Parcours utilisateurs/P7 - Valider les résultats Tadarida.md
+          - P8 - Rechercher globalement: Analyse et conception/Parcours utilisateurs/P8 - Rechercher globalement.md
+          - P9 - Regrouper les nuits par point: Analyse et conception/Parcours utilisateurs/P9 - Regrouper les nuits successives par point.md
+          - P10 - Exporter sons de référence: Analyse et conception/Parcours utilisateurs/P10 - Exporter une bibliothèque de sons de référence.md
+          - P11 - Inventaire des espèces: Analyse et conception/Parcours utilisateurs/P11 - Inventaire des espèces détectées.md
+          - P12 - Récupérer une nuit déposée: Analyse et conception/Parcours utilisateurs/P12 - Récupérer une nuit déposée sur VigieChiro.md
+          - Topologie plein écran: Analyse et conception/Parcours utilisateurs/Topologie - plein écran.md
+      - Story mapping:
+          - Vue d'ensemble: Analyse et conception/Story mapping/index.md
+          - E0 - Fondations de persistance: Analyse et conception/Story mapping/E0 - Fondations de persistance.md
+          - E1 - Gérer ses sites et points de suivi: Analyse et conception/Story mapping/E1 - Gérer ses sites et points de suivi.md
+          - E2 - Importer et transformer une nuit: Analyse et conception/Story mapping/E2 - Importer et transformer une nuit.md
+          - E3 - Vérifier la qualité d'enregistrement: Analyse et conception/Story mapping/E3 - Vérifier la qualité d'enregistrement.md
+          - E4 - Préparer et tracer le dépôt VigieChiro: Analyse et conception/Story mapping/E4 - Préparer et tracer le dépôt VigieChiro.md
+          - E5 - Naviguer dans le volume multi-sites: Analyse et conception/Story mapping/E5 - Naviguer dans le volume multi-sites.md
+          - E6 - Diagnostiquer le matériel: Analyse et conception/Story mapping/E6 - Diagnostiquer le matériel.md
+          - E7 - Valider les résultats Tadarida: Analyse et conception/Story mapping/E7 - Valider les résultats Tadarida.md
+          - E8 - Productivité avancée Tadarida: Analyse et conception/Story mapping/E8 - Productivité avancée Tadarida.md
+      - Maquettes:
+          - Vue d'ensemble: Analyse et conception/Maquettes/index.md
+          - M-Accueil: Analyse et conception/Maquettes/M-Accueil.md
+          - M-Sites: Analyse et conception/Maquettes/M-Sites.md
+          - M-Site-detail: Analyse et conception/Maquettes/M-Site-detail.md
+          - M-Import: Analyse et conception/Maquettes/M-Import.md
+          - M-Passage: Analyse et conception/Maquettes/M-Passage.md
+          - M-Qualification: Analyse et conception/Maquettes/M-Qualification.md
+          - M-SonsValidation: Analyse et conception/Maquettes/M-SonsValidation.md
+          - M-Lot: Analyse et conception/Maquettes/M-Lot.md
+          - M-MultiSite: Analyse et conception/Maquettes/M-MultiSite.md
+          - M-Diagnostic: Analyse et conception/Maquettes/M-Diagnostic.md
+          - M-Analyse: Analyse et conception/Maquettes/M-Analyse.md
+          - M-Recherche: Analyse et conception/Maquettes/M-Recherche.md

@@ -143,7 +143,8 @@ La source de vérité est [`.github/workflows/maven.yml`](.github/workflows/mave
 ## 5. Couverture et mutation
 
 - **JaCoCo** mesure la couverture à chaque `verify`. Sous `-Pquality-gate`, les seuils deviennent
-  **bloquants** : **85 % de lignes** et **70 % de branches** au niveau `BUNDLE`. En CI, ce seuil est
+  **bloquants** au niveau `BUNDLE`. Leurs valeurs et la justification de chacune vivent dans le
+  [`pom.xml`](pom.xml), **seule source** : les répéter ici les ferait diverger. En CI, ce seuil est
   rendu bloquant par **`maven.yml`** (`verify -Djacoco.haltOnFailure=true`), pas par `lint.yml` qui ne
   fait que le statique (Spotless, captures, PMD). Les outils
   (`**/outils/**` : capture d'écran, bancs de mesure) sont **exclus** du calcul (ils sont validés

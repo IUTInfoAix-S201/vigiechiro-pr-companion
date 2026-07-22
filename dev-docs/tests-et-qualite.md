@@ -302,9 +302,12 @@ l'écart tient en trois lignes, le bloc ci-dessus suffit.
 
 ### Couverture et mutation
 
-- **JaCoCo** : sous `-Pquality-gate`, seuils **bloquants** au niveau `BUNDLE` — **85 % de lignes** et
-  **70 % de branches**. Les `**/outils/**` (capture d'écran, bancs de mesure) sont **exclus** : ils
-  sont validés par exécution, pas par tests unitaires.
+- **JaCoCo** : sous `-Pquality-gate`, seuils **bloquants** au niveau `BUNDLE`. Leurs valeurs, la
+  raison de chacune et la recette pour re-mesurer la couverture vivent dans le
+  [`pom.xml`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/pom.xml), **seule
+  source** : les répéter ici les ferait diverger au premier resserrage. Les `**/outils/**` (capture
+  d'écran, bancs de mesure) sont **exclus** : ils sont validés par exécution, pas par tests
+  unitaires.
 - **PIT** (`-Pmutation`) évalue si les tests **détectent** des mutations du code. Lent sur tout le
   dépôt, mais **rapide ciblé** sur la classe qu'on vient d'écrire - et c'est ainsi qu'il sert le mieux :
 

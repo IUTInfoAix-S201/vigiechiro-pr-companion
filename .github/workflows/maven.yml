@@ -58,9 +58,9 @@ jobs:
       - name: Build + tests + couverture (headless)
         # Tests UI en headless via la Headless Platform JavaFX 26 (glass.platform=Headless,
         # cf. pom.xml) : aucun display X11 requis, plus besoin de xvfb.
-        # jacoco.haltOnFailure=true rend le seuil de couverture bloquant (85 % lignes,
-        # 70 % branches, cf. pom.xml) : les tests ne s'exécutant que dans ce job, le gate de
-        # couverture doit vivre ici et non dans lint.yml.
+        # jacoco.haltOnFailure=true rend le seuil de couverture bloquant (valeurs et
+        # justification dans pom.xml, seule source) : les tests ne s'exécutant que dans ce
+        # job, le gate de couverture doit vivre ici et non dans lint.yml.
         run: ./mvnw -B verify -Djacoco.haltOnFailure=true --file pom.xml
 
   paquet:

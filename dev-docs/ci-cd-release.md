@@ -26,7 +26,7 @@ Le profil Maven `quality-gate` rend **bloquants** des contrôles tolérants par 
 
 - **PMD** : `failOnViolation=true` (sinon simple rapport), exécuté par `lint.yml` (`compile pmd:check`) ;
 - **JaCoCo** : le seuil de couverture devient bloquant, exécuté par `maven.yml`
-  (`verify -Djacoco.haltOnFailure=true`, **85 % de lignes**).
+  (`verify -Djacoco.haltOnFailure=true`). Les valeurs vivent dans le `pom.xml`, seule source.
 
 Ces deux contrôles sont **répartis sur deux workflows** : `lint.yml` porte le **statique** (Spotless +
 captures + PMD), `maven.yml` porte les **tests + couverture**. Localement :

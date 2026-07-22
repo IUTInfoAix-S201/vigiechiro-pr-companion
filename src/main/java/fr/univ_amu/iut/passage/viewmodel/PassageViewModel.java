@@ -4,7 +4,6 @@ import fr.univ_amu.iut.commun.model.JetonAnnulation;
 import fr.univ_amu.iut.commun.model.Progression;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.model.Verdict;
-import fr.univ_amu.iut.commun.persistence.ServicePurgeOriginaux;
 import fr.univ_amu.iut.commun.viewmodel.ContextePassage;
 import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
 import fr.univ_amu.iut.commun.viewmodel.Formats;
@@ -37,7 +36,6 @@ import javafx.collections.ObservableList;
 public class PassageViewModel {
 
     private final ServicePassage service;
-    private final ServicePurgeOriginaux purge;
     private final ServiceReactivationPassage reactivation;
 
     private final ReadOnlyStringWrapper titreContexte = new ReadOnlyStringWrapper(this, "titreContexte", "");
@@ -61,7 +59,6 @@ public class PassageViewModel {
             new ReadOnlyBooleanWrapper(this, "suppressionPossible", false);
     private final ReadOnlyBooleanWrapper renommagePossible =
             new ReadOnlyBooleanWrapper(this, "renommagePossible", false);
-    private final ReadOnlyBooleanWrapper purgeDisponible = new ReadOnlyBooleanWrapper(this, "purgeDisponible", false);
     private final ReadOnlyBooleanWrapper reactivationPossible =
             new ReadOnlyBooleanWrapper(this, "reactivationPossible", false);
     private final ReadOnlyStringWrapper motifBlocageReactivation =
@@ -82,10 +79,8 @@ public class PassageViewModel {
     /// n'est chargé.
     private int numeroPassage;
 
-    public PassageViewModel(
-            ServicePassage service, ServicePurgeOriginaux purge, ServiceReactivationPassage reactivation) {
+    public PassageViewModel(ServicePassage service, ServiceReactivationPassage reactivation) {
         this.service = Objects.requireNonNull(service, "service");
-        this.purge = Objects.requireNonNull(purge, "purge");
         this.reactivation = Objects.requireNonNull(reactivation, "reactivation");
     }
 
@@ -137,16 +132,6 @@ public class PassageViewModel {
     /// l'affiche. Le rechargement de l'affichage est à la charge de l'appelant (rejeu de [#ouvrirSur]).
     public void annulerDepot() {
         service.annulerDepot(idPassage);
-    }
-
-    /// Purge les **originaux** (`bruts/`) du passage courant pour récupérer l'espace disque : supprime les
-    /// fichiers via [ServicePurgeOriginaux] (socle) puis marque les originaux purgés en base
-    /// ([ServicePassage#marquerOriginauxPurges]). Les séquences transformées, la validation et le dépôt
-    /// sont **conservés**. Le rechargement de l'affichage (volume bruts → 0) est à la charge de l'appelant
-    /// (rejeu de [#ouvrirSur]).
-    public void purgerOriginaux() {
-        service.cheminSession(idPassage).ifPresent(purge::purgerSession);
-        service.marquerOriginauxPurges(idPassage);
     }
 
     /// Réactive le passage courant depuis `dossierSource` (action « Réactiver » de M-Passage, #1302) :
@@ -213,8 +198,6 @@ public class PassageViewModel {
         // l'identité de ses fichiers côté serveur, le service refuse alors le renommage. Gating amont.
         renommagePossible.set(
                 detail.statut() != StatutWorkflow.DEPOSE && detail.statut() != StatutWorkflow.DEPOT_EN_COURS);
-        // Purge possible tant qu'il reste des originaux sur disque (volume > 0) ; après purge, il tombe à 0.
-        purgeDisponible.set(detail.volumeOriginauxOctets() > 0);
         // Réactivation (#1302) : gating en amont (#789), le motif alimente le tooltip de
         // l'enveloppe. Règles pures extraites dans GatingReactivation.
         reactivationPossible.set(GatingReactivation.reactivationPossible(detail));
@@ -241,7 +224,6 @@ public class PassageViewModel {
         annulationDepotDisponible.set(false);
         suppressionPossible.set(false);
         renommagePossible.set(false);
-        purgeDisponible.set(false);
         reactivationPossible.set(false);
         motifBlocageReactivation.set("");
         actionRecommandee.set(ActionRecommandee.AUCUNE);
@@ -338,12 +320,6 @@ public class PassageViewModel {
         return renommagePossible.getReadOnlyProperty();
     }
 
-    /// `true` quand des **originaux** sont encore stockés (volume bruts > 0) : la purge est alors proposée
-    /// pour récupérer l'espace disque.
-    public ReadOnlyBooleanProperty purgeDisponibleProperty() {
-        return purgeDisponible.getReadOnlyProperty();
-    }
-
     public ReadOnlyBooleanProperty reactivationPossibleProperty() {
         return reactivationPossible.getReadOnlyProperty();
     }
@@ -370,7 +346,7 @@ public class PassageViewModel {
 
     /// Publie le refus d'une action **réversible** dans le bandeau de l'écran (ADR 0023) : rien n'a été
     /// détruit, donc rien ne justifie de bloquer l'utilisateur. Les refus d'actions irréversibles
-    /// (suppression, purge) restent modaux et ne passent pas par ici.
+    /// (suppression) restent modaux et ne passent pas par ici.
     public void signalerRefus(String motif) {
         retour.set(RetourOperation.erreur(motif));
     }

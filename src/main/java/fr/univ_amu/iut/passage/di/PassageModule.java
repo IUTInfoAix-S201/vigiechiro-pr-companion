@@ -12,8 +12,6 @@ import fr.univ_amu.iut.commun.model.ImportObservations;
 import fr.univ_amu.iut.commun.model.PointParLocalite;
 import fr.univ_amu.iut.commun.model.ReferentielPoint;
 import fr.univ_amu.iut.commun.model.Workspace;
-import fr.univ_amu.iut.commun.persistence.DeclarationPurgeOriginaux;
-import fr.univ_amu.iut.commun.persistence.ServicePurgeOriginaux;
 import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
 import fr.univ_amu.iut.commun.persistence.UniteDeTravail;
 import fr.univ_amu.iut.commun.view.OuvrirDiagnostic;
@@ -22,7 +20,6 @@ import fr.univ_amu.iut.commun.view.OuvrirPassage;
 import fr.univ_amu.iut.commun.view.OuvrirVerification;
 import fr.univ_amu.iut.passage.model.AdoptionOriginauxReconstruits;
 import fr.univ_amu.iut.passage.model.CrisAttendus;
-import fr.univ_amu.iut.passage.model.DeclarationPurgeParSessions;
 import fr.univ_amu.iut.passage.model.FenetreObserveeNuit;
 import fr.univ_amu.iut.passage.model.FournisseurMeteo;
 import fr.univ_amu.iut.passage.model.InventaireBrutsSource;
@@ -132,13 +129,6 @@ public class PassageModule extends ModuleDeFeature {
         // Rattrapage des métadonnées en lot (#1861) : même patron, il s'appuie sur la passerelle de
         // synchronisation. SynchronisationParticipationModule pose le binding avec elle.
         OptionalBinder.newOptionalBinder(binder(), RattrapageMetadonnees.class);
-
-        // Port DeclarationPurgeOriginaux (#1303) : cette feature possède les sessions, elle fournit
-        // donc la déclaration réelle de la purge globale (marqueur originals_purged_at posé sur
-        // chaque session, consommé par la purge du chrome).
-        OptionalBinder.newOptionalBinder(binder(), DeclarationPurgeOriginaux.class)
-                .setBinding()
-                .to(DeclarationPurgeParSessions.class);
 
         // Contrats de navigation vers M-Diagnostic, M-Qualification et M-Lot : OptionalBinder VIDE (features
         // `diagnostic`, `qualification` et `lot` désactivables, #1087). Chaque module réel fait `setBinding`
@@ -324,9 +314,8 @@ public class PassageModule extends ModuleDeFeature {
     /// ViewModel de l'écran M-Passage. **Non-singleton** (un VM frais par chargement FXML, comme les
     /// autres features) : un écran rouvert ne réutilise pas l'état d'un précédent.
     @Provides
-    PassageViewModel fournirPassageViewModel(
-            ServicePassage service, ServicePurgeOriginaux purge, ServiceReactivationPassage reactivation) {
-        return new PassageViewModel(service, purge, reactivation);
+    PassageViewModel fournirPassageViewModel(ServicePassage service, ServiceReactivationPassage reactivation) {
+        return new PassageViewModel(service, reactivation);
     }
 
     /// Numéros de série à proposer quand l'utilisateur doit désigner l'enregistreur lui-même (#1828) :

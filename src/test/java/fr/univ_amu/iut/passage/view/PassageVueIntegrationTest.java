@@ -14,7 +14,6 @@ import fr.univ_amu.iut.commun.model.CompteurValidations;
 import fr.univ_amu.iut.commun.model.PortailVigieChiro;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.model.Verdict;
-import fr.univ_amu.iut.commun.persistence.ServicePurgeOriginaux;
 import fr.univ_amu.iut.commun.view.OuvreurDeLien;
 import fr.univ_amu.iut.commun.view.OuvrirDiagnostic;
 import fr.univ_amu.iut.commun.view.OuvrirLot;
@@ -265,7 +264,6 @@ class PassageVueIntegrationTest {
     /// À appeler sur le fil JavaFX (chargement FXML).
     private Parent charger(StatutWorkflow statut, int numero) {
         ServicePassage service = mock(ServicePassage.class);
-        ServicePurgeOriginaux purge = mock(ServicePurgeOriginaux.class);
         ServiceReactivationPassage reactivation = mock(ServiceReactivationPassage.class);
         when(service.detailPassage(anyLong())).thenReturn(detail(statut, numero));
         Injector injector = Guice.createInjector(new AbstractModule() {
@@ -284,7 +282,7 @@ class PassageVueIntegrationTest {
 
             @Provides
             PassageViewModel viewModel() {
-                return new PassageViewModel(service, purge, reactivation);
+                return new PassageViewModel(service, reactivation);
             }
 
             @Provides

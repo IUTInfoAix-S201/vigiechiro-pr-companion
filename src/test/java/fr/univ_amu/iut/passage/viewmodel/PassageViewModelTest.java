@@ -10,7 +10,6 @@ import fr.univ_amu.iut.commun.model.RegleMetierException;
 import fr.univ_amu.iut.commun.model.Severite;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.model.Verdict;
-import fr.univ_amu.iut.commun.persistence.ServicePurgeOriginaux;
 import fr.univ_amu.iut.commun.viewmodel.ContexteSite;
 import fr.univ_amu.iut.commun.viewmodel.EtatEtape;
 import fr.univ_amu.iut.commun.viewmodel.RetourOperation;
@@ -20,7 +19,6 @@ import fr.univ_amu.iut.passage.model.MeteoReleve;
 import fr.univ_amu.iut.passage.model.ServicePassage;
 import fr.univ_amu.iut.passage.model.ServiceReactivationPassage;
 import java.nio.file.Path;
-import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -42,16 +40,13 @@ class PassageViewModelTest {
     private ServicePassage service;
 
     @Mock
-    private ServicePurgeOriginaux purge;
-
-    @Mock
     private ServiceReactivationPassage reactivation;
 
     private PassageViewModel viewModel;
 
     @BeforeEach
     void preparer() {
-        viewModel = new PassageViewModel(service, purge, reactivation);
+        viewModel = new PassageViewModel(service, reactivation);
     }
 
     private static DetailPassage detail(StatutWorkflow statut) {
@@ -340,29 +335,6 @@ class PassageViewModelTest {
         viewModel.annulerDepot();
 
         verify(service).annulerDepot(ID_PASSAGE);
-    }
-
-    @Test
-    @DisplayName("La purge est proposée tant qu'il reste des originaux (volume bruts > 0)")
-    void purge_disponible_si_originaux_presents() {
-        when(service.detailPassage(ID_PASSAGE)).thenReturn(detail(StatutWorkflow.TRANSFORME)); // volume bruts = 4096
-        viewModel.ouvrirSur(ID_PASSAGE, CONTEXTE);
-
-        assertThat(viewModel.purgeDisponibleProperty().get()).isTrue();
-    }
-
-    @Test
-    @DisplayName("purgerOriginaux supprime les bruts/ de la session puis marque les originaux purgés en base")
-    void purger_originaux_supprime_et_marque() {
-        Path racineSession = Path.of("/ws/Car640380-2026-Pass2-A1");
-        when(service.detailPassage(ID_PASSAGE)).thenReturn(detail(StatutWorkflow.TRANSFORME));
-        when(service.cheminSession(ID_PASSAGE)).thenReturn(Optional.of(racineSession));
-        viewModel.ouvrirSur(ID_PASSAGE, CONTEXTE);
-
-        viewModel.purgerOriginaux();
-
-        verify(purge).purgerSession(racineSession);
-        verify(service).marquerOriginauxPurges(ID_PASSAGE);
     }
 
     @Test

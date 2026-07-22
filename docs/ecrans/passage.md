@@ -57,19 +57,15 @@ votre travail de validation, il rouvre seulement l'étape de dépôt (par exempl
 avant de redéposer). Le bouton n'apparaît que lorsqu'il a un sens, c'est-à-dire sur un passage
 effectivement déposé.
 
-## Purger les originaux
+## Le volume des bruts
 
-Le **Résumé de la nuit** affiche le **volume des bruts** : la copie des enregistrements d'origine
-conservée sur le disque au moment de l'import. Ces fichiers ne servent **pas** à l'écoute ni à la
-validation (celles-ci s'appuient sur les séquences transformées) et peuvent être **volumineux**.
+Le **Résumé de la nuit** affiche le **volume des bruts** : la copie des enregistrements d'origine, si
+l'import l'a conservée. Ces fichiers ne servent **pas** à l'écoute ni à la validation (celles-ci
+s'appuient sur les séquences transformées) et peuvent être **volumineux**.
 
-Un bouton **Purger les originaux** (barre du haut) permet, après **confirmation**, de **supprimer** ces
-fichiers bruts pour **récupérer de l'espace disque**. Les **séquences d'écoute, la validation et le
-dépôt sont conservés** : seul le volume des bruts tombe à **0**. Le bouton n'apparaît que si la nuit
-conserve encore des originaux. Cette suppression est **définitive**.
-
-> Pour purger **toutes les nuits** d'un coup, utilisez le menu « ☰ → Purger les originaux importés… »
-> (voir [Accueil et navigation](index.md)).
+L'application ne les supprime pas pour vous : si vous voulez récupérer cet espace, effacez le
+sous-dossier `bruts/` de la nuit avec votre gestionnaire de fichiers. Rien ne sera perdu de votre
+travail, et l'audit ne s'en alarmera pas - il sait que ces copies sont optionnelles.
 
 ## Quand l'audio n'est plus là
 

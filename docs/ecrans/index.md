@@ -97,18 +97,13 @@ revient pas tout seul** : l'**audio**. L'application **nomme les nuits** concern
 sachiez exactement quels fichiers rebrancher (réimportez-les depuis vos disques, ou depuis votre
 sauvegarde complète).
 
-## Récupérer de l'espace disque : purger les originaux
+## Récupérer de l'espace disque
 
-À chaque import, l'application conserve par défaut une copie des **enregistrements d'origine** (les
-fichiers « bruts »). Ils constituent une archive de sécurité mais **ne servent pas** à l'écoute ni à la
-validation (celles-ci s'appuient sur les séquences transformées) et peuvent peser **plusieurs gigaoctets
-par nuit**.
+Ce qui pèse, ce sont les **enregistrements d'origine** (les fichiers « bruts »), qui peuvent atteindre
+**plusieurs gigaoctets par nuit**. Ils **ne servent pas** à l'écoute ni à la validation, lesquelles
+s'appuient sur les séquences transformées.
 
-Le menu **« ☰ » → « Purger les originaux importés… »** supprime ces fichiers « bruts » **pour toutes
-les nuits** afin de libérer de l'espace. L'application **annonce l'espace récupérable** et demande
-**confirmation** avant de supprimer ; les **séquences d'écoute, les validations et les dépôts sont
-conservés**. Cette suppression est **définitive**.
-
-> Pour ne purger qu'**une seule nuit**, utilisez le bouton « Purger les originaux » de sa fiche
-> (voir [Passage](passage.md)). Et pour ne **plus jamais** conserver les originaux, décochez « Conserver
-> les originaux » lors de l'[import](importation.md).
+L'application ne conserve **plus** ces copies par défaut : décocher « Conserver les originaux » à
+l'[import](importation.md) reste la façon la plus simple de ne pas remplir son disque. Pour l'espace
+déjà occupé, supprimez les sous-dossiers `bruts/` avec votre gestionnaire de fichiers - **vous** êtes
+maître de vos fichiers, l'application n'en efface aucun.

@@ -185,9 +185,6 @@ public class PassageController implements EmplacementNavigation, RafraichirAuRet
     private Button boutonAnnulerDepot;
 
     @FXML
-    private Button boutonPurger;
-
-    @FXML
     private Button boutonReactiver;
 
     /// Enveloppe (non désactivée) du bouton « Réactiver » : porte le tooltip expliquant le blocage
@@ -354,9 +351,6 @@ public class PassageController implements EmplacementNavigation, RafraichirAuRet
         // de place) que dans ce cas, au lieu de rester grisé en permanence dans la barre d'actions.
         boutonAnnulerDepot.visibleProperty().bind(viewModel.annulationDepotDisponibleProperty());
         boutonAnnulerDepot.managedProperty().bind(viewModel.annulationDepotDisponibleProperty());
-        // « Purger les originaux » n'apparaît que si des originaux sont encore stockés (volume bruts > 0).
-        boutonPurger.visibleProperty().bind(viewModel.purgeDisponibleProperty());
-        boutonPurger.managedProperty().bind(viewModel.purgeDisponibleProperty());
         // « Réactiver ce passage » (#1302) : gaté en amont (#789). L'action n'apparaît utile que s'il
         // manque de l'audio (fichiers déplacés ou supprimés, disque incomplet).
         boutonReactiver
@@ -486,8 +480,8 @@ public class PassageController implements EmplacementNavigation, RafraichirAuRet
         return new ContextePassage(idPassage, viewModel.getNumeroPassage(), contexte);
     }
 
-    /// « Supprimer », « Annuler le dépôt » et « Purger les originaux » : confirmation, action et
-    /// message d'erreur délégués à [ActionsFichePassage] (le contrôleur reste du pur câblage).
+    /// « Supprimer » et « Annuler le dépôt » : confirmation, action et message d'erreur délégués à
+    /// [ActionsFichePassage] (le contrôleur reste du pur câblage).
     @FXML
     private void supprimer() {
         actionsFiche().supprimer();
@@ -496,11 +490,6 @@ public class PassageController implements EmplacementNavigation, RafraichirAuRet
     @FXML
     private void annulerDepot() {
         actionsFiche().annulerDepot();
-    }
-
-    @FXML
-    private void purgerOriginaux() {
-        actionsFiche().purgerOriginaux();
     }
 
     /// Actions de la fiche, construites à l'usage (elles capturent le passage **courant**).

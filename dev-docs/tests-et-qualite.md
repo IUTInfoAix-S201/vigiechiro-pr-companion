@@ -89,9 +89,8 @@ Outils : **JUnit 5 + AssertJ + Mockito** ; **ApprovalTests** pour les sorties ve
 ### Tester un geste, pas un bouton
 
 Un test qui vérifie qu'un bouton est **présent et actif** ne dit rien de ce qu'il fait. C'était
-pourtant tout ce qu'on avait sur les actions **irréversibles** - purger les originaux de toutes les
-nuits, restaurer la base, supprimer un passage et sa nuit, réimporter par-dessus les validations de
-l'observateur. Et pas par négligence : un `showAndWait()` **fige** un test headless, donc le clic
+pourtant tout ce qu'on avait sur les actions **irréversibles** - restaurer la base, supprimer un
+passage et sa nuit, réimporter par-dessus les validations de l'observateur. Et pas par négligence : un `showAndWait()` **fige** un test headless, donc le clic
 était **impossible**.
 
 Les dialogues d'une action sont désormais des **ports** remplaçables (`Confirmateur`, `Notificateur`,

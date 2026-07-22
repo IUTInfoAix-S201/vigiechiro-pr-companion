@@ -61,13 +61,6 @@
             <FontIcon iconLiteral="fas-undo"/>
           </graphic>
         </Button>
-        <Button fx:id="boutonPurger" text="Purger les originaux"
-                styleClass="bouton-secondaire" onAction="#purgerOriginaux"
-                visible="false" managed="false">
-          <graphic>
-            <FontIcon iconLiteral="fas-broom"/>
-          </graphic>
-        </Button>
         <!-- Enveloppe (#789) : le tooltip explique pourquoi la réactivation est bloquée (rien à
              réactiver : audio déjà là, ou aucune séquence importée) et survit à la désactivation (#1302). -->
         <StackPane fx:id="enveloppeReactiver">

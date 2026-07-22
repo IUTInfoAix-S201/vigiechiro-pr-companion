@@ -695,9 +695,9 @@ nommée (#1405) :
 
 > On ne testait que le **grisage** des boutons. Jamais leur **effet**.
 
-Et cela portait précisément sur les gestes qu'on veut couvrir : purger les originaux de toutes les
-nuits, restaurer la base, supprimer un passage et sa nuit, réimporter par-dessus les validations de
-l'observateur. Tous irréversibles, tous non testés.
+Et cela portait précisément sur les gestes qu'on veut couvrir : restaurer la base, supprimer un
+passage et sa nuit, réimporter par-dessus les validations de l'observateur. Tous irréversibles, tous
+non testés.
 
 **La solution.** Rendre **remplaçable** chaque forme de dialogue. **Quatre** familles, bâties sur le même
 triplet - un **contrat neutre**, une **implémentation réelle**, un **porteur injectable** :

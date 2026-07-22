@@ -7,9 +7,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import fr.univ_amu.iut.commun.persistence.BilanSauvegarde;
-import fr.univ_amu.iut.commun.persistence.DeclarationPurgeOriginaux;
-import fr.univ_amu.iut.commun.persistence.ServicePurgeOriginaux;
-import fr.univ_amu.iut.commun.persistence.ServicePurgeOriginaux.ResultatPurge;
 import fr.univ_amu.iut.commun.persistence.ServiceSauvegarde;
 import fr.univ_amu.iut.commun.viewmodel.NavigationViewModel;
 import java.nio.file.Path;
@@ -39,7 +36,6 @@ class ActionsMenuChromeTest {
     private static final Path FICHIER = Path.of("/tmp/sauvegardes/vigiechiro.db");
 
     private final ServiceSauvegarde sauvegarde = mock(ServiceSauvegarde.class);
-    private final ServicePurgeOriginaux purge = mock(ServicePurgeOriginaux.class);
     private final Navigateur navigateur = new Navigateur(new NavigationViewModel());
     private final OccupationChrome occupation =
             new OccupationChrome(new ExecuteurTacheSynchrone(), new NavigationViewModel());
@@ -122,22 +118,5 @@ class ActionsMenuChromeTest {
 
         verify(sauvegarde).restaurerComplet(DOSSIER);
         verify(sauvegarde, never()).restaurer(any());
-    }
-
-    @Test
-    @DisplayName("#1405 : « Purger les originaux » purge, déclare le geste, et ne touche pas à la sauvegarde")
-    void entree_purger() {
-        DeclarationPurgeOriginaux declaration = mock(DeclarationPurgeOriginaux.class);
-        ActionPurger entree = new ActionPurger(purge, navigateur, occupation, Optional.of(declaration));
-        entree.actions().confirmateur().definir(message -> true);
-        entree.actions().notificateur().definir((niveau, entete, message) -> {});
-        when(purge.volumeRecuperable()).thenReturn(4_294_967_296L);
-        when(purge.purgerTout()).thenReturn(new ResultatPurge(3, 4_294_967_296L));
-
-        entree.executer(null);
-
-        verify(purge).purgerTout();
-        // Sans cette déclaration (#1303), l'audit prendrait les bruts purgés pour une corruption.
-        verify(declaration).declarerPurgeGlobale();
     }
 }

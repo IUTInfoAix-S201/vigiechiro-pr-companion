@@ -7,7 +7,6 @@ import static org.mockito.Mockito.when;
 import fr.univ_amu.iut.commun.model.PortailVigieChiro;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.model.Verdict;
-import fr.univ_amu.iut.commun.persistence.ServicePurgeOriginaux;
 import fr.univ_amu.iut.commun.view.ExecuteurTacheSynchrone;
 import fr.univ_amu.iut.commun.view.Lieu;
 import fr.univ_amu.iut.commun.view.OuvrirDiagnostic;
@@ -38,9 +37,6 @@ class PassageControllerEmplacementTest {
 
     @Mock
     private ServicePassage service;
-
-    @Mock
-    private ServicePurgeOriginaux purge;
 
     @Mock
     private ServiceReactivationPassage reactivation;
@@ -82,7 +78,7 @@ class PassageControllerEmplacementTest {
                         150.0,
                         null,
                         new DecompteAudio(0, 0)));
-        PassageViewModel vm = new PassageViewModel(service, purge, reactivation);
+        PassageViewModel vm = new PassageViewModel(service, reactivation);
         List<String> ouvertures = new ArrayList<>();
         OuvrirSite ouvrirSite = new OuvrirSite() {
             @Override
@@ -117,7 +113,7 @@ class PassageControllerEmplacementTest {
     @Test
     @DisplayName("Sans contexte (passage non ouvert), l'emplacement se limite au segment courant")
     void emplacement_sans_contexte() {
-        PassageViewModel vm = new PassageViewModel(service, purge, reactivation);
+        PassageViewModel vm = new PassageViewModel(service, reactivation);
         OuvrirSite ouvrirSite = new OuvrirSite() {
             @Override
             public void ouvrirListe() {}

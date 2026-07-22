@@ -60,16 +60,17 @@ résultats, que vous **importez** ensuite dans l'écran [Validation](ecrans/vali
 
 ### Mon disque est plein : que puis-je supprimer sans rien perdre d'important ?
 
-Deux niveaux, du plus anodin au plus engageant.
+**Les « bruts »** (les enregistrements d'origine) sont ce qui pèse le plus lourd, et ils ne servent
+ni à l'écoute ni à la validation : celles-ci s'appuient sur les séquences transformées. Vous pouvez
+donc les supprimer **vous-même**, avec votre gestionnaire de fichiers, sans conséquence sur votre
+travail.
 
-1. **Purger les originaux** (les « bruts ») : ces fichiers ne servent ni à l'écoute ni à la
-   validation, qui s'appuient sur les séquences transformées. Vous pouvez les supprimer pour une nuit
-   (écran [Passage](ecrans/passage.md)) ou pour toutes (menu « ☰ »), sans aucune conséquence sur
-   votre travail.
+L'application ne les conserve d'ailleurs **plus par défaut** : sur vos imports récents, il n'y a
+probablement rien à supprimer. Voir [Importer une nuit](ecrans/importation.md).
 
-    L'application ne conserve plus ces copies par défaut : vous n'aurez donc rien à purger sur vos
-    imports récents, et ces boutons n'apparaissent que s'il reste effectivement des originaux à
-    supprimer. Voir [Importer une nuit](ecrans/importation.md).
+!!! note "L'application ne supprime jamais vos fichiers"
+    Vous en gardez la maîtrise : il n'y a pas de bouton qui efface votre audio. Si vous rangez ou
+    effacez des fichiers, l'application s'en aperçoit et le dit, sans jamais crier à la corruption.
 ### L'audio d'une nuit a disparu, puis-je le récupérer ?
 
 Oui, **si vous avez encore les fichiers** : le bouton **Réactiver ce passage** les rebranche depuis un

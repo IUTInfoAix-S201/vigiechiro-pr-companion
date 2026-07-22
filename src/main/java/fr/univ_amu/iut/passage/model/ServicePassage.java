@@ -125,10 +125,8 @@ public class ServicePassage {
                 decompteAudio(idPassage));
     }
 
-    /// Dossier de session (`root_path`) d'un passage, s'il en a une : sert à **localiser** ses `bruts/` à
-    /// purger sur disque. La suppression elle-même est déléguée à `ServicePurgeOriginaux` (socle commun),
-    /// pour ne pas coupler `passage` au balayage du workspace. [Optional#empty()] si le passage n'a pas de
-    /// session.
+    /// Dossier de session (`root_path`) d'un passage, s'il en a une : sert à **localiser** ses fichiers
+    /// sur disque. [Optional#empty()] si le passage n'a pas de session.
     public Optional<Path> cheminSession(Long idPassage) {
         Objects.requireNonNull(idPassage, ID_PASSAGE);
         return sessionDao.trouverParPassage(idPassage).map(s -> Path.of(s.cheminRacine()));

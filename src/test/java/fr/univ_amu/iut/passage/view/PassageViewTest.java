@@ -14,7 +14,6 @@ import fr.univ_amu.iut.commun.model.CompteurValidations;
 import fr.univ_amu.iut.commun.model.PortailVigieChiro;
 import fr.univ_amu.iut.commun.model.StatutWorkflow;
 import fr.univ_amu.iut.commun.model.Verdict;
-import fr.univ_amu.iut.commun.persistence.ServicePurgeOriginaux;
 import fr.univ_amu.iut.commun.view.OuvreurDeLien;
 import fr.univ_amu.iut.commun.view.OuvrirDiagnostic;
 import fr.univ_amu.iut.commun.view.OuvrirLot;
@@ -67,7 +66,6 @@ class PassageViewTest {
     @Start
     void start(Stage stage) throws Exception {
         ServicePassage service = mock(ServicePassage.class);
-        ServicePurgeOriginaux purge = mock(ServicePurgeOriginaux.class);
         ServiceReactivationPassage reactivation = mock(ServiceReactivationPassage.class);
         when(service.detailPassage(anyLong()))
                 .thenReturn(new DetailPassage(
@@ -102,7 +100,7 @@ class PassageViewTest {
 
             @Provides
             PassageViewModel viewModel() {
-                return new PassageViewModel(service, purge, reactivation);
+                return new PassageViewModel(service, reactivation);
             }
 
             @Provides
@@ -240,16 +238,6 @@ class PassageViewTest {
         Button supprimer = robot.lookup("#boutonSupprimer").queryAs(Button.class);
 
         assertThat(supprimer.isDisabled()).isFalse();
-    }
-
-    @Test
-    @DisplayName("Le bouton « Purger les originaux » est présent et visible quand la nuit conserve des originaux")
-    void bouton_purger_present(FxRobot robot) {
-        Button purger = robot.lookup("#boutonPurger").queryAs(Button.class);
-
-        assertThat(purger.isVisible())
-                .as("volume bruts > 0 dans la fixture → purge proposée")
-                .isTrue();
     }
 
     @Test

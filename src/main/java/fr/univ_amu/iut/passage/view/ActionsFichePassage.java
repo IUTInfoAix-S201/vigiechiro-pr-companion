@@ -95,23 +95,6 @@ final class ActionsFichePassage {
         }
     }
 
-    /// « Purger les originaux » : supprime les `bruts/` de cette nuit pour récupérer l'espace disque,
-    /// puis recharge l'écran (le volume bruts tombe à 0). Les séquences transformées, la validation
-    /// Tadarida et le dépôt sont **conservés** (ils n'utilisent pas les originaux).
-    void purgerOriginaux() {
-        if (!confirmateur.confirmer("Supprimer les enregistrements originaux (bruts) de cette nuit pour libérer de "
-                + "l'espace disque ? Les séquences d'écoute, la validation et le dépôt sont conservés ; "
-                + "cette suppression est définitive.")) {
-            return;
-        }
-        try {
-            viewModel.purgerOriginaux();
-            recharger.run();
-        } catch (RuntimeException echec) {
-            signalerRefus("Purge impossible", echec.getMessage());
-        }
-    }
-
     /// La demande de confirmation de suppression, en **compte rendu** structuré (#2223) : la question, et -
     /// si le passage porte des validations observateur (taxon corrigé, référence, commentaire) - un constat
     /// **erreur** au-dessus, car elles seront **définitivement perdues** avec la cascade (contrairement à une

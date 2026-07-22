@@ -19,7 +19,7 @@ import javafx.stage.Window;
 /// [ActionsSauvegarde#confirmateur], [ActionsSauvegarde#notificateur]) puis déclenche l'entrée.
 ///
 /// **Un porteur, pas un geste.** Le préfixe `Geste*` désigne ailleurs l'action **elle-même**, avec ses
-/// dialogues (`GesteReset`, #1419) - le pendant d'[ActionsSauvegarde] et d'[ActionsPurge]. Cette
+/// dialogues (`GesteReset`, #1419) - le pendant d'[ActionsSauvegarde]. Cette
 /// classe-ci ne *fait* rien : elle **porte** l'action et lui tend la fenêtre du clic. C'est le même
 /// sens de « porteur » que [ConfirmateurModifiable] ou [NotificateurModifiable], qui portent une
 /// stratégie sans en être une.

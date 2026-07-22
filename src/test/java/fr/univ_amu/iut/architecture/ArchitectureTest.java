@@ -27,6 +27,27 @@ import org.junit.jupiter.api.Test;
 /// Écrit avec l'API « core » d'ArchUnit ([ClassFileImporter] + `@Test`) plutôt
 /// qu'avec `@AnalyzeClasses`/`@ArchTest` : c'est la convention du projet (cf.
 /// IMPL-CONVENTIONS).
+///
+/// ## Ce que le vert de ces règles ne couvre PAS (#2181)
+///
+/// ArchUnit lit le **bytecode**. Une dépendance qui se réduit à une **constante compile-time** n'y laisse
+/// aucune trace : le compilateur inline la valeur sur le site d'appel (JLS 13.1, *constant variables*), et
+/// le `.class` ne référence jamais la classe qui la déclarait. **Toutes** les règles ci-dessous sont donc
+/// aveugles à ce cas - ce n'est pas un faux négatif isolé mais une **catégorie**, qui vaut pour toute
+/// `String`, `int` ou `boolean` constant.
+///
+/// Le défaut n'est pas théorique : `cli.commande.Importer` a cité `importation.viewmodel` pour une clé de
+/// réglage sans qu'aucune règle ne bronche (#2181). Mesuré de nouveau en juillet 2026 : en réintroduisant
+/// volontairement une telle dépendance, ces **six** règles restent **vertes** tandis que
+/// [IsolationFeatureSourcesTest] échoue.
+///
+/// Ce dernier est le **doublon au niveau des sources** de la règle d'isolation inter-feature : l'`import`
+/// est dans le `.java` quoi qu'en fasse le compilateur. Il ne couvre que **cette** règle ; les cinq autres
+/// restent sans jumeau, faute de cas réel observé (une constante compile-time exposée par JavaFX ou JDBC
+/// et importée pour elle seule reste possible, mais ne s'est jamais produite ici).
+///
+/// À retenir en lisant un vert d'ici : il dit « aucune dépendance **dans le bytecode** », pas « aucune
+/// dépendance ».
 class ArchitectureTest {
 
     private static JavaClasses classes;

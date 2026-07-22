@@ -206,6 +206,73 @@ class CliImportTest {
                 .contains("Transformé");
     }
 
+    @Test
+    @DisplayName("#2278 : une collision de numéro sans --ecraser chiffre la perte et n'importe RIEN (2)")
+    void collision_sans_ecraser_ne_touche_a_rien() {
+        assertThat(importerAvec()).isEqualTo(Cli.CODE_SUCCES);
+        Long idAvant = injecteur
+                .getInstance(PassageDao.class)
+                .findByPoint(idPoint)
+                .getFirst()
+                .id();
+
+        ByteArrayOutputStream tamponSortie = new ByteArrayOutputStream();
+        ByteArrayOutputStream tamponErreur = new ByteArrayOutputStream();
+        int code = cli.executer(
+                argsImport(),
+                new PrintStream(tamponSortie, true, StandardCharsets.UTF_8),
+                new PrintStream(tamponErreur, true, StandardCharsets.UTF_8));
+
+        assertThat(code)
+                .as("2 arrête un script qui enchaînerait, sans le confondre avec un échec (1)")
+                .isEqualTo(2);
+        assertThat(tamponSortie.toString(StandardCharsets.UTF_8))
+                .as("la perte se chiffre AVANT d'agir, comme la double confirmation de l'IHM")
+                .contains("déjà utilisé")
+                .contains("Suppression DÉFINITIVE");
+        assertThat(tamponErreur.toString(StandardCharsets.UTF_8)).contains("--ecraser");
+        assertThat(injecteur.getInstance(PassageDao.class).findByPoint(idPoint))
+                .as("un refus qui aurait déjà détruit serait pire que pas de refus du tout")
+                .singleElement()
+                .extracting(Passage::id)
+                .isEqualTo(idAvant);
+    }
+
+    @Test
+    @DisplayName("#2278 : avec --ecraser, la nuit existante est remplacée par la nouvelle")
+    void collision_avec_ecraser_remplace_la_nuit() {
+        assertThat(importerAvec()).isEqualTo(Cli.CODE_SUCCES);
+        Long idAvant = injecteur
+                .getInstance(PassageDao.class)
+                .findByPoint(idPoint)
+                .getFirst()
+                .id();
+
+        assertThat(importerAvec("--ecraser")).isEqualTo(Cli.CODE_SUCCES);
+
+        assertThat(injecteur.getInstance(PassageDao.class).findByPoint(idPoint))
+                .as("le quadruplet reste unique : l'ancien passage a bien été remplacé, pas doublé")
+                .singleElement()
+                .extracting(Passage::id)
+                .isNotEqualTo(idAvant);
+    }
+
+    @Test
+    @DisplayName("#2278 : sans collision, la sortie nominale ne dit RIEN d'un écrasement")
+    void sans_collision_aucune_ligne_ecrasement() {
+        ByteArrayOutputStream tamponSortie = new ByteArrayOutputStream();
+        int code = cli.executer(
+                argsImport(),
+                new PrintStream(tamponSortie, true, StandardCharsets.UTF_8),
+                new PrintStream(tamponSortie, true, StandardCharsets.UTF_8));
+
+        assertThat(code).isEqualTo(Cli.CODE_SUCCES);
+        assertThat(tamponSortie.toString(StandardCharsets.UTF_8))
+                .as("le chemin nominal est inchangé — un golden compare cette sortie mot pour mot")
+                .doesNotContain("déjà utilisé")
+                .doesNotContain("Suppression DÉFINITIVE");
+    }
+
     // --- Fixture carte SD (autonome, calquée sur ServiceImportTest) -------------
 
     private Path preparerCarteSD(Path dossier) throws IOException {

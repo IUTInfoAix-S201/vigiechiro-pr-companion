@@ -7,6 +7,7 @@ import fr.univ_amu.iut.commun.model.JetonAnnulation;
 import fr.univ_amu.iut.commun.model.Prefixe;
 import fr.univ_amu.iut.commun.model.Reglages;
 import fr.univ_amu.iut.commun.model.RegleMetierException;
+import fr.univ_amu.iut.importation.model.ApercuEcrasement;
 import fr.univ_amu.iut.importation.model.PassageExistant;
 import fr.univ_amu.iut.importation.model.RapportImport;
 import fr.univ_amu.iut.importation.model.ReglageConservationOriginaux;
@@ -36,6 +37,10 @@ import picocli.CommandLine.Spec;
         name = "importer",
         description = "Importe une nuit d'enregistrement (copie, renommage, transformation) pour un point.")
 public final class Importer implements Callable<Integer> {
+
+    /// Code de sortie d'un refus faute de `--ecraser` : distinct du succès (0) et de l'échec (1).
+    /// Rien n'a été importé, et rien n'a été détruit.
+    private static final int CODE_REFUS = 2;
 
     @Option(
             names = "--source",
@@ -72,6 +77,13 @@ public final class Importer implements Callable<Integer> {
             description = "Force la transformation directe depuis la source, sans copier les bruts, quel que"
                     + " soit le réglage. Incompatible avec --conserver-originaux.")
     private boolean sansOriginaux;
+
+    @Option(
+            names = "--ecraser",
+            description = "Écrase le passage existant qui porte déjà ce numéro : sa nuit entière (séquences,"
+                    + " validations Tadarida) est DÉFINITIVEMENT perdue. Sans cette option, une collision"
+                    + " chiffre la perte et n'importe rien.")
+    private boolean ecraser;
 
     @Spec
     private CommandSpec spec;
@@ -115,7 +127,21 @@ public final class Importer implements Callable<Integer> {
         int numeroEffectif = numeroPassage != null ? numeroPassage : prochainNumero(passageDao, point);
         Prefixe prefixe = new Prefixe(site.numeroCarre(), anneeEffective, numeroEffectif, pointDEcoute.code());
 
-        ResultatImport resultat = importerSelonLeMode(source, point, prefixe);
+        // Collision de numéro : c'est le seul cas où l'import détruit quelque chose. On chiffre la perte
+        // AVANT d'agir, comme la double confirmation de l'IHM, et sans --ecraser on n'importe rien (#2278).
+        // Rien de tout cela ne s'imprime sur le chemin nominal : un numéro libre ne déclenche aucune ligne.
+        boolean collision = service.numeroPassageDejaUtilise(point, anneeEffective, numeroEffectif);
+        if (collision) {
+            annoncerEcrasement(sortie, service.apercuEcrasement(point, anneeEffective, numeroEffectif), numeroEffectif);
+            if (!ecraser) {
+                spec.commandLine()
+                        .getErr()
+                        .println("Rien n'a été importé. Ajoutez --ecraser pour assumer cette perte.");
+                return CODE_REFUS;
+            }
+        }
+
+        ResultatImport resultat = importerSelonLeMode(source, point, prefixe, collision);
 
         sortie.println("Import réussi.");
         sortie.println("  Passage     : #" + resultat.passage().id());
@@ -157,7 +183,7 @@ public final class Importer implements Callable<Integer> {
     /// courte du service qui conservait en **dur** : la CLI gardait donc toujours les originaux quel que
     /// soit le réglage, et le même geste ne faisait pas la même chose des deux côtés (#2064,
     /// [ADR 0014]). Le service, lui, n'a pas à connaître une préférence d'interface.
-    private ResultatImport importerSelonLeMode(Path source, long point, Prefixe prefixe) {
+    private ResultatImport importerSelonLeMode(Path source, long point, Prefixe prefixe, boolean ecraserLExistant) {
         if (conserverOriginaux != null && sansOriginaux) {
             throw new RegleMetierException("--conserver-originaux et --sans-originaux s'excluent :"
                     + " choisissez l'un ou l'autre, ou aucun pour suivre le réglage.");
@@ -170,7 +196,23 @@ public final class Importer implements Callable<Integer> {
         } else {
             conserver = reglages.lireBooleen(ReglageConservationOriginaux.CLE, ReglageConservationOriginaux.DEFAUT);
         }
-        return service.importer(source, point, prefixe, p -> {}, JetonAnnulation.neutre(), conserver);
+        // L'écrasement est une méthode DÉDIÉE du service, pas un drapeau : elle sauvegarde d'abord, protège
+        // l'ancienne session sur disque, et supprime l'ancien passage dans la transaction d'insertion.
+        return ecraserLExistant
+                ? service.ecraserEtImporter(source, point, prefixe, p -> {}, JetonAnnulation.neutre(), conserver)
+                : service.importer(source, point, prefixe, p -> {}, JetonAnnulation.neutre(), conserver);
+    }
+
+    /// Chiffre ce que l'écrasement détruirait, avec les mots de l'IHM ([ConfirmationsImport]) : les deux
+    /// surfaces doivent dire la même chose d'un même geste.
+    private static void annoncerEcrasement(PrintWriter sortie, ApercuEcrasement apercu, int numeroPassage) {
+        sortie.println("Le n° de passage " + numeroPassage + " est déjà utilisé pour ce point.");
+        sortie.println(
+                "  Suppression DÉFINITIVE du passage existant et de ses " + apercu.sequences() + " séquence(s).");
+        if (apercu.validations() > 0) {
+            sortie.println("  Dont " + apercu.validations()
+                    + " validation(s) Tadarida (correction, référence, commentaire) définitivement perdue(s).");
+        }
     }
 
     private static int prochainNumero(PassageDao passageDao, long idPoint) {

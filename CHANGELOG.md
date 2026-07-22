@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+## [2.38.1](https://github.com/echonuit/vigiechiro-pr-companion/compare/v2.38.0...v2.38.1) (2026-07-22)
+
+
+### Bug Fixes
+
+* **flatpak:** retirer un declencheur qui ne s'est jamais declenche ([#2345](https://github.com/echonuit/vigiechiro-pr-companion/issues/2345)) ([e97b7fa](https://github.com/echonuit/vigiechiro-pr-companion/commit/e97b7fa10657177310e183afd91eca70e62ed548)), closes [#2344](https://github.com/echonuit/vigiechiro-pr-companion/issues/2344) [#2191](https://github.com/echonuit/vigiechiro-pr-companion/issues/2191) [#2247](https://github.com/echonuit/vigiechiro-pr-companion/issues/2247)
+
 # [2.38.0](https://github.com/echonuit/vigiechiro-pr-companion/compare/v2.37.0...v2.38.0) (2026-07-22)
 
 

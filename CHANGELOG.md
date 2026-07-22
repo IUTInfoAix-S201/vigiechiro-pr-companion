@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+## [2.34.2](https://github.com/echonuit/vigiechiro-pr-companion/compare/v2.34.1...v2.34.2) (2026-07-22)
+
+
+### Bug Fixes
+
+* **paquet:** le runtime livre ne contient pas java.net.http, l'application ne demarre pas ([#2300](https://github.com/echonuit/vigiechiro-pr-companion/issues/2300)) ([13d9359](https://github.com/echonuit/vigiechiro-pr-companion/commit/13d9359f972a556a07d9a03bd63c8277b43a7827)), closes [#2299](https://github.com/echonuit/vigiechiro-pr-companion/issues/2299)
+
 ## [2.34.1](https://github.com/echonuit/vigiechiro-pr-companion/compare/v2.34.0...v2.34.1) (2026-07-22)
 
 

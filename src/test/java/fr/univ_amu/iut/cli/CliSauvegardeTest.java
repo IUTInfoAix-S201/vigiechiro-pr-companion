@@ -36,6 +36,7 @@ class CliSauvegardeTest {
     private Injector injecteur;
     private Cli cli;
     private ByteArrayOutputStream tamponSortie;
+    private ByteArrayOutputStream tamponErreur;
     private PrintStream sortie;
     private PrintStream erreur;
 
@@ -48,7 +49,8 @@ class CliSauvegardeTest {
         injecteur.getInstance(UtilisateurDao.class).insert(new Utilisateur("u1", "Alice"));
         tamponSortie = new ByteArrayOutputStream();
         sortie = new PrintStream(tamponSortie, true, StandardCharsets.UTF_8);
-        erreur = new PrintStream(new ByteArrayOutputStream(), true, StandardCharsets.UTF_8);
+        tamponErreur = new ByteArrayOutputStream();
+        erreur = new PrintStream(tamponErreur, true, StandardCharsets.UTF_8);
     }
 
     @AfterEach
@@ -103,13 +105,17 @@ class CliSauvegardeTest {
     }
 
     @Test
-    @DisplayName("restaurer sans --confirmer : refus (l'opération écrase l'état local)")
+    @DisplayName("restaurer sans --confirmer : refus en 2 sur stderr, rien n'a été fait (#2294)")
     void restaurer_sans_confirmation_refuse() {
         int code = cli.executer(
                 new String[] {"restaurer", workspace.resolve("peu-importe.db").toString()}, sortie, erreur);
 
-        assertThat(code).isEqualTo(1);
-        assertThat(texteSortie()).contains("--confirmer");
+        // 1 est le code de l'ÉCHEC d'exécution : le rendre ici laissait un script incapable de distinguer
+        // « j'ai refusé, l'état local est intact » de « j'ai échoué en route », sur une commande destructive.
+        assertThat(code).as("un refus se dit 2 : la commande n'a rien fait").isEqualTo(2);
+        assertThat(tamponErreur.toString(StandardCharsets.UTF_8))
+                .as("un refus part sur stderr, pour ne pas se mêler au compte rendu")
+                .contains("--confirmer");
     }
 
     private Path seederSession(String nom) throws IOException {

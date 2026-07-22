@@ -30,6 +30,16 @@ Cette section regroupe les **maquettes basse fidélité** de l'application *Vigi
 | [M-Diagnostic](M-Diagnostic.md) | Diagnostic matériel d'un passage | Vue secondaire (depuis M-Passage) | [P6](../Parcours%20utilisateurs/P6%20-%20Diagnostiquer%20le%20matériel.md) | [E6](../Story%20mapping/E6%20-%20Diagnostiquer%20le%20matériel.md) |
 | [M-Analyse](M-Analyse.md) | Espèces & observations (inventaire transverse) | Vue plein écran | [P11](../Parcours%20utilisateurs/P11%20-%20Inventaire%20des%20espèces%20détectées.md) | prisme biodiversité |
 | [M-Recherche](M-Recherche.md) | Recherche globale (liste déroulante du chrome) | Transverse (tous écrans) | [P8](../Parcours%20utilisateurs/P8%20-%20Rechercher%20globalement.md) | recherche transverse |
+| [M-Synthese](M-Synthese.md) | Synthèse d'une nuit (activité replacée dans son référentiel) | Vue secondaire (depuis M-Passage) | [P11](../Parcours%20utilisateurs/P11%20-%20Inventaire%20des%20espèces%20détectées.md), [P7](../Parcours%20utilisateurs/P7%20-%20Valider%20les%20résultats%20Tadarida.md) | prisme biodiversité |
+| [M-Activite](M-Activite.md) | Activité de la nuit (courbes horaires par espèce) | Vue secondaire (depuis M-Passage) | [P11](../Parcours%20utilisateurs/P11%20-%20Inventaire%20des%20espèces%20détectées.md), [P6](../Parcours%20utilisateurs/P6%20-%20Diagnostiquer%20le%20matériel.md) | prisme biodiversité |
+| [M-Saison](M-Saison.md) | Solde de la saison (reste à faire, point par point) | Vue plein écran (depuis l'accueil) | [P5](../Parcours%20utilisateurs/P5%20-%20Naviguer%20dans%20plusieurs%20sites%20et%20passages.md), [P9](../Parcours%20utilisateurs/P9%20-%20Regrouper%20les%20nuits%20successives%20par%20point.md) | prisme collecte & passages |
+| [M-CompteRendu](M-CompteRendu.md) | Compte rendu chiffré d'une opération lourde | Composant transverse | [P2](../Parcours%20utilisateurs/P2%20-%20Importer%20une%20nuit%20d%27enregistrement.md), [P4](../Parcours%20utilisateurs/P4%20-%20Préparer%20un%20lot%20prêt%20à%20déposer.md), [P12](../Parcours%20utilisateurs/P12%20-%20Récupérer%20une%20nuit%20déposée%20sur%20VigieChiro.md) | transverse |
+
+!!! info "Quatre maquettes décidées, pas encore livrées"
+    [M-Synthese](M-Synthese.md), [M-Activite](M-Activite.md), [M-Saison](M-Saison.md) et
+    [M-CompteRendu](M-CompteRendu.md) décrivent des écrans **à construire**, rattachés aux chantiers
+    #2348, #2349 et #2350. Les autres maquettes de ce tableau décrivent l'application **livrée**.
+    Chaque fiche porte l'issue qui la met en oeuvre.
 
 ## Comment lire une maquette
 
@@ -57,19 +67,26 @@ flowchart TB
     Lot[📦 M-Lot]
     Analyse[🪶 M-Analyse]
     SonsVal[🔊 M-SonsValidation]
+    Saison[🗓 M-Saison]
+    Synthese[📊 M-Synthese]
+    Activite[📈 M-Activite]
 
     Accueil --> Sites
     Accueil --> MultiSite
     Accueil --> Analyse
     Accueil --> SonsVal
+    Accueil --> Saison
     Sites --> Detail
     Sites --> Import
     MultiSite -.alternative.- Sites
     Detail --> Passage
     Import --> Passage
     MultiSite --> Passage
+    Saison --> Passage
     Passage --> Qualif
     Passage --> SonsVal
+    Passage --> Synthese
+    Passage --> Activite
     Qualif --> Lot
     Passage --> Lot
     Lot -.dépôt VigieChiro<br/>+ retour Tadarida.-> SonsVal
@@ -80,16 +97,21 @@ flowchart TB
     classDef main fill:#1e8449,stroke:#0e5128,color:#fff,stroke-width:2px
     classDef detail fill:#4a90d9,stroke:#2563a3,color:#fff,stroke-width:2px
     classDef biodiv fill:#6c3483,stroke:#4a235a,color:#fff,stroke-width:2px
+    classDef avenir fill:#ffffff,stroke:#6a737d,color:#2c3e50,stroke-width:2px,stroke-dasharray:5 4
     class Accueil accueil
     class Sites,Import,Qualif,Lot main
     class Detail,Passage,MultiSite detail
     class Analyse,SonsVal biodiv
+    class Saison,Synthese,Activite avenir
 ```
 
 - 🟦 **Indigo** : écran d'accueil (lanceur à deux prismes).
 - 🟩 **Vert** : maquettes de la chaîne fil rouge (MUST).
 - 🟦 **Bleu** : maquettes de soutien (détails, navigation multi-sites).
 - 🟪 **Violet** : prisme espèces & biodiversité (inventaire, sons & validation).
+- ⬜ **Contour pointillé** : écrans **décidés et maquettés, pas encore livrés** (chantiers #2348 et #2349).
+
+Le composant [M-CompteRendu](M-CompteRendu.md) ne figure pas sur ce graphe : il n'est pas un écran mais une **restitution de fin d'opération**, appelée depuis M-Import, M-Lot et la réactivation d'un passage.
 
 ## Pattern visuel partagé
 

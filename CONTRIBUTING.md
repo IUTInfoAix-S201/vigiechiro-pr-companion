@@ -182,9 +182,10 @@ question reste le travail du triage.
    ouvrir une issue. « Sans objet » si le chantier est purement présentationnel.
 3. **Doc développeur** (site `dev-docs/`) à jour **+ une ADR** (`dev-docs/decisions/`) pour toute **décision structurante** prise pendant le chantier. Son numéro **ne se choisit pas** : c'est celui de l'issue qui porte la décision (le lot, à défaut l'EPIC). Le compteur séquentiel est clos à 0048, voir le [journal](dev-docs/decisions/index.md).
 4. **Doc utilisateur** (site `docs/`) + **captures** autant que nécessaire.
-5. **Brief projet** : répercuter dans le **brief projet** (dépôt `echonuit/brief`, document de
+5. **Brief projet** (`brief/`, dans ce dépôt) : répercuter dans le **brief projet** (document de
    conception vivant : besoin, parcours utilisateurs, maquettes, MCD - **pas** un sujet pédagogique) les
-   évolutions qui changent un de ces **éléments de conception**.
+   évolutions qui changent un de ces **éléments de conception**. Cela se fait **dans la PR du chantier**,
+   comme les deux passes précédentes ; `echonuit/brief` ne porte plus que le site construit.
 6. **Tests** : chaque usage couvert par des tests d'**intégration** (TestFX) et **E2E**. L'inventaire
    se fait **depuis le diff** du chantier, pas de mémoire : pour chaque capacité ajoutée, quel test la
    couvre et à quel niveau (les angles morts sont les **chemins non nominaux**, la **parité CLI ↔ IHM**

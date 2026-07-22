@@ -183,14 +183,21 @@ capture est une fonctionnalité à moitié livrée.
 
 ### 5. Passe de brief projet
 
-Le **brief projet** (dépôt [`echonuit/brief`](https://github.com/echonuit/brief)) est le
-document de **conception** vivant du produit : le besoin, les **parcours utilisateurs** (P1-P10), les
-maquettes, le modèle conceptuel. Ce n'est **pas** un sujet pédagogique - son lecteur est un
-**contributeur** du produit, pas un étudiant. Quand un chantier change un de ces **éléments de
-conception** (un parcours, une maquette, le modèle de données, une contrainte produit), répercuter
-l'évolution dans le brief pour qu'il reste aligné avec le produit réellement livré. Un brief qui décrit
-une version périmée du produit égare son lecteur. C'est **rarement** « sans objet » pour un chantier
-qui touche au comportement ou à la conception du produit.
+Le **brief projet** est le document de **conception** vivant du produit : le besoin, les **parcours
+utilisateurs** (P1-P10), les maquettes, le modèle conceptuel. Ce n'est **pas** un sujet pédagogique -
+son lecteur est un **contributeur** du produit, pas un étudiant. Quand un chantier change un de ces
+**éléments de conception** (un parcours, une maquette, le modèle de données, une contrainte produit),
+répercuter l'évolution dans le brief pour qu'il reste aligné avec le produit réellement livré. Un brief
+qui décrit une version périmée du produit égare son lecteur. C'est **rarement** « sans objet » pour un
+chantier qui touche au comportement ou à la conception du produit.
+
+Ses sources sont **dans ce dépôt**, sous [`brief/`](https://github.com/echonuit/vigiechiro-pr-companion/tree/main/brief),
+aux côtés de `docs/` et `dev-docs/`. Cette passe se fait donc **dans la pull request du chantier**,
+comme les deux passes de documentation qui précèdent : il n'y a plus de second dépôt ni de seconde
+pull request. Le dépôt `echonuit/brief` ne porte plus que le site construit, publié automatiquement
+sur [brief.echonuit.fr](https://brief.echonuit.fr/) ; le modifier n'a aucun effet.
+
+Prévisualiser le rendu avant de livrer : `mkdocs serve -f mkdocs-brief.yml`.
 
 ### 6. Passe de tests
 
@@ -425,7 +432,7 @@ trompé : une analyse fausse laissée en place oriente le chantier suivant.
 - [ ] 2. Cohérence CLI ↔ UI (capacités métier exposées des deux côtés, ou « sans objet »)
 - [ ] 3. Doc développeur (dev-docs) à jour + ADR pour toute décision structurante (dev-docs/decisions/)
 - [ ] 4. Doc utilisateur (docs/) + captures
-- [ ] 5. Brief projet (echonuit/brief) répercuté si un élément de conception change
+- [ ] 5. Brief projet (`brief/`, dans la PR du chantier) répercuté si un élément de conception change
 - [ ] 6. Tests : inventaire des usages **depuis le diff** (chemins non nominaux, parité CLI ↔ IHM), E2E qui **traversent les coutures**, non-automatisable reporté en **recette**
 - [ ] 7. Harmonisation : **audit global** (ce qui ressemble / bénéficierait, exhaustif) puis **refactoring de conceptualisation** (lisibilité ; duplication et abstraction = outils) ; **choix, doutes, conséquences discutés avec l'utilisateur**
 - [ ] 8. Revue visuelle : **toute conséquence visible** couverte par une capture (captures **ajoutées** si besoin), régénérées et ouvertes une par une

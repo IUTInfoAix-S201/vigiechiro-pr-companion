@@ -168,14 +168,31 @@ public final class AnalyseurLogPR {
                 || minuscule.contains("fail")) {
             anomalies.add(new LigneJournal(horodatage, message));
         }
-        if (message.startsWith("Batteries internes") || message.contains("Bat. Interne")) {
-            Matcher pct = POURCENTAGE.matcher(message);
-            if (pct.find()) {
-                int niveau = Integer.parseInt(pct.group(1));
-                if (niveau < SEUIL_BATTERIE_FAIBLE) {
-                    anomalies.add(new LigneJournal(horodatage, "Batterie faible (" + niveau + "%) : " + message));
-                }
-            }
+        collecterBatterieFaible(horodatage, message, anomalies);
+    }
+
+    /// Batterie faible : trois conditions successives, écrites en clauses gardes.
+    ///
+    /// La ligne doit d'abord être une ligne de batterie, l'enregistreur l'écrivant sous deux formes
+    /// selon le moment (`Batteries internes 3.2V (12%)` au démarrage, `Bat. Interne 4.0 90%` à la
+    /// mise en veille). Elle doit ensuite porter un pourcentage lisible : le format varie assez pour
+    /// qu'une ligne de batterie sans pourcentage exploitable reste possible, et on préfère alors ne
+    /// rien signaler plutôt que de deviner. Le niveau doit enfin être sous le seuil.
+    ///
+    /// Chaque condition non remplie sort de la méthode. Les mêmes tests imbriqués formaient
+    /// auparavant le seul point du dépôt à trois niveaux d'imbrication.
+    private static void collecterBatterieFaible(
+            LocalDateTime horodatage, String message, List<LigneJournal> anomalies) {
+        if (!message.startsWith("Batteries internes") && !message.contains("Bat. Interne")) {
+            return;
+        }
+        Matcher pourcentage = POURCENTAGE.matcher(message);
+        if (!pourcentage.find()) {
+            return;
+        }
+        int niveau = Integer.parseInt(pourcentage.group(1));
+        if (niveau < SEUIL_BATTERIE_FAIBLE) {
+            anomalies.add(new LigneJournal(horodatage, "Batterie faible (" + niveau + "%) : " + message));
         }
     }
 

@@ -1,32 +1,30 @@
 <?xml version="1.0"?>
-<ruleset name="R2.03 - Ruleset pédagogique pour le refactoring"
+<ruleset name="VigieChiro Companion - garde-fous de conception"
          xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd">
 
     <description>
-        Ruleset R2.03 Qualité de développement. Les règles sont alignées sur les
-        refactorings enseignés dans le TP4 (Fowler, Refactoring, 2e éd.) :
-        chaque warning PMD pointe un smell et suggère implicitement le refactoring
-        correspondant. Les seuils sont conservateurs pour limiter les faux positifs
-        sur du code étudiant BUT1.
+        Garde-fous de conception du produit. Chaque règle pointe un smell et suggère
+        le refactoring correspondant (Fowler, Refactoring, 2e éd.) : méthode trop
+        longue -> Extract Method, classe trop grosse -> Extract Class, liste de
+        paramètres -> Introduce Parameter Object.
+
+        Les seuils ne sont pas les valeurs par défaut de PMD. Chacun a été relevé
+        au vu d'un code précis, nommé dans le commentaire de la règle : sans cette
+        trace, un seuil finit par protéger une situation qui n'existe plus. Les
+        modifier suppose donc de rouvrir la justification, pas seulement le chiffre.
 
         Usage :
           ./mvnw verify           # PMD en warning, ne bloque pas
           ./mvnw pmd:check        # rapport console seul
           ./mvnw pmd:pmd          # rapport HTML (target/site/pmd.html)
-          ./mvnw -Pquality-gate verify   # PMD bloque (enseignant)
+          ./mvnw -Pquality-gate verify   # PMD bloque (portail qualité, lint.yml)
 
-        Bypass ponctuel : @SuppressWarnings("PMD.NomDeLaRegle") sur méthode/classe.
+        Une violation se corrige, elle ne se tait pas : ni @SuppressWarnings("PMD...")
+        ni //NOPMD. Si un seuil est vraiment inadapté, c'est le seuil qu'on rediscute
+        ici, avec sa justification.
     </description>
-
-    <!-- ============================================================
-         EXCLUSIONS GLOBALES
-         ============================================================ -->
-
-    <!-- App.java : menu console, switch inévitable sur le choix utilisateur.
-         Ne pas pénaliser l'étudiant sur un code d'infrastructure imposé. -->
-    <exclude-pattern>.*/fr/univ_amu/iut/App\.java</exclude-pattern>
 
     <!-- ============================================================
          LONG METHOD -> Extract Method
@@ -87,9 +85,11 @@
 
     <rule ref="category/java/design.xml/AvoidDeeplyNestedIfStmts">
         <properties>
-            <!-- 4 niveaux d'imbrication ou plus. Le seuil 3 du défaut PMD
-                 est trop strict pour le code de départ smelly volontaire
-                 (GildedRose a du if-else à 3 niveaux par conception). -->
+            <!-- 4 niveaux d'imbrication ou plus. C'est le seuil le moins tendu du
+                 fichier : au défaut PMD (3), le dépôt ne compte qu'un seul site,
+                 AnalyseurLogPR:175, où la machine à états du parseur de log teste
+                 une ligne dans son cycle courant. Le jour où ce site est repris en
+                 clauses gardes, ce seuil doit redescendre à 3. -->
             <property name="problemDepth" value="4"/>
         </properties>
     </rule>

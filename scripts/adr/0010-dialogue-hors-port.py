@@ -18,7 +18,7 @@ import re
 import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
-from _commun import rapporte  # noqa: E402
+from _commun import rapporte, sans_commentaires_java  # noqa: E402
 
 SOURCES = pathlib.Path("src/main/java")
 
@@ -29,11 +29,14 @@ APPEL = re.compile(r"new Alert\(|\.showAndWait\(\)")
 
 
 def suspects() -> list[str]:
+    # Les commentaires sont retirés d'abord : un `///` qui CITE `Alert.showAndWait()` en expliquant un
+    # bug passé n'est pas un appel (faux positif trouvé en clôture). Retrait mutualisé dans _commun.
     trouves = []
     for source in sorted(SOURCES.rglob("*.java")):
         if ADAPTATEURS in source.as_posix():
             continue
-        for numero, ligne in enumerate(source.read_text(encoding="utf-8").splitlines(), 1):
+        lignes = sans_commentaires_java(source.read_text(encoding="utf-8")).splitlines()
+        for numero, ligne in enumerate(lignes, 1):
             if APPEL.search(ligne):
                 trouves.append(f"{source}:{numero}  {ligne.strip()[:90]}")
     return trouves

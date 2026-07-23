@@ -17,16 +17,18 @@ import re
 import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
-from _commun import rapporte  # noqa: E402
+from _commun import rapporte, sans_commentaires_xml  # noqa: E402
 
 # La styleClass ou l'fx:id, porté par la balise HBox elle-même, évoque un slot d'actions.
 SLOT = re.compile(r'<HBox\b[^>]*(?:styleClass|fx:id)="[^"]*action[^"]*"', re.I | re.S)
 
 
 def suspects() -> list[str]:
+    # Commentaires FXML retirés d'abord : un <HBox ...action...> en commentaire serait un faux positif.
+    # Retrait mutualisé dans _commun (défaut trouvé sur 0010/0046 en clôture).
     trouves = []
     for f in sorted(pathlib.Path("src/main/java").rglob("*.fxml")):
-        texte = f.read_text(encoding="utf-8")
+        texte = sans_commentaires_xml(f.read_text(encoding="utf-8"))
         for balise in SLOT.finditer(texte):
             ligne = texte[: balise.start()].count("\n") + 1
             extrait = re.sub(r"\s+", " ", balise.group())[:90]

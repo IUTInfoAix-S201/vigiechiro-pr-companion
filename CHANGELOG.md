@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [2.41.0](https://github.com/echonuit/vigiechiro-pr-companion/compare/v2.40.1...v2.41.0) (2026-07-23)
+
+
+### Features
+
+* **emplacements:** service métier pour lire et écrire où vivent base et workspace (ADR 1038) ([#2399](https://github.com/echonuit/vigiechiro-pr-companion/issues/2399)) ([8c6ba90](https://github.com/echonuit/vigiechiro-pr-companion/commit/8c6ba9036691d044dcec03c3788968eea8bd76a1)), closes [#1038](https://github.com/echonuit/vigiechiro-pr-companion/issues/1038) [#1038](https://github.com/echonuit/vigiechiro-pr-companion/issues/1038) [#2258](https://github.com/echonuit/vigiechiro-pr-companion/issues/2258)
+
 ## [2.40.1](https://github.com/echonuit/vigiechiro-pr-companion/compare/v2.40.0...v2.40.1) (2026-07-23)
 
 

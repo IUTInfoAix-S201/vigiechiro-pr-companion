@@ -20,22 +20,23 @@ import re
 import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
-from _commun import rapporte  # noqa: E402
+from _commun import rapporte, sans_commentaires_java  # noqa: E402
 
 SOURCES = pathlib.Path("src/main/java")
 
 # Un bloc catch sans accolade imbriquée : suffisant pour repérer les corps vides ou quasi vides.
 CATCH = re.compile(r"catch\s*\([^)]*\)\s*\{([^{}]*)\}", re.S)
-COMMENTAIRE = re.compile(r"//[^\n]*|/\*.*?\*/", re.S)
 
 
 def suspects() -> list[str]:
+    # Les commentaires sont retirés du fichier ENTIER d'abord (helper mutualisé) : le corps devient
+    # vide s'il ne portait qu'un « // ignoré volontairement », et un catch écrit dans un commentaire ne
+    # se fait pas prendre pour du code. L'ADR veut une trace observable À L'EXÉCUTION, pas une note.
     trouves = []
     for source in sorted(SOURCES.rglob("*.java")):
-        texte = source.read_text(encoding="utf-8")
+        texte = sans_commentaires_java(source.read_text(encoding="utf-8"))
         for bloc in CATCH.finditer(texte):
-            corps = COMMENTAIRE.sub("", bloc.group(1)).strip()
-            if not corps:
+            if not bloc.group(1).strip():
                 ligne = texte[: bloc.start()].count("\n") + 1
                 trouves.append(f"{source}:{ligne}  catch au corps vide")
     return trouves

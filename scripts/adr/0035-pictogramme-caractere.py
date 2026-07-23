@@ -19,31 +19,20 @@ import re
 import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
-from _commun import rapporte  # noqa: E402
+from _commun import rapporte, sans_commentaires_xml  # noqa: E402
 
 SOURCES = pathlib.Path("src/main/java")
 
 # Émoticônes, symboles divers, fléchages décoratifs.
 PICTOGRAMME = re.compile("[\U0001f300-\U0001faff←-⇿☀-➿⬀-⯿]")
 
-COMMENTAIRE = re.compile(r"<!--.*?-->", re.S)
-
-
-def sans_commentaires(contenu: str) -> str:
-    """Neutralise les commentaires XML en préservant les sauts de ligne.
-
-    Un commentaire est de la prose : le `↔` qui y décrit une barre « à rallonge » est exactement le
-    cas que l'ADR autorise. Les compter serait du bruit, et un rapport bruyant cesse d'être lu -
-    c'est-à-dire qu'il devient un faux vert. Les retours à la ligne sont conservés pour que les
-    numéros de ligne restent justes.
-    """
-    return COMMENTAIRE.sub(lambda bloc: re.sub(r"[^\n]", " ", bloc.group()), contenu)
-
 
 def suspects() -> list[str]:
+    # Un commentaire est de la prose : le `↔` qui y décrit une barre « à rallonge » est le cas que
+    # l'ADR autorise. On le retire donc d'abord (helper mutualisé dans _commun).
     trouves = []
     for vue in sorted(SOURCES.rglob("*.fxml")):
-        contenu = sans_commentaires(vue.read_text(encoding="utf-8"))
+        contenu = sans_commentaires_xml(vue.read_text(encoding="utf-8"))
         for numero, ligne in enumerate(contenu.splitlines(), 1):
             for signe in PICTOGRAMME.findall(ligne):
                 trouves.append(f"{vue}:{numero}  {signe}  {ligne.strip()[:80]}")

@@ -93,3 +93,30 @@ def loupe(numero: str, titre: str, candidats: list[str]) -> int:
         print(f"  {c}")
     print(f"\nLOUPE {numero} | candidats={len(candidats)}")
     return 0
+
+
+# --- Retrait des commentaires, mutualisé -------------------------------------------------------------
+#
+# Un script `probable` qui compte un motif présent dans un COMMENTAIRE est faux par construction : le
+# commentaire cite la chose, il ne la fait pas. La clôture du chantier a trouvé ce défaut sur trois
+# scripts (0010, 0037, 0046) qui avaient chacun oublié de retirer les commentaires. Mettre les deux
+# retraits ici en fait le chemin par défaut, découvrable, qu'un futur script réutilise au lieu de
+# refaire l'oubli. Les sauts de ligne sont préservés pour que les numéros de ligne restent justes.
+
+_BLOC_JAVA = re.compile(r"/\*.*?\*/", re.S)
+_LIGNE_JAVA = re.compile(r"//[^\n]*")
+_COMMENTAIRE_XML = re.compile(r"<!--.*?-->", re.S)
+
+
+def _blanchir(motif, source: str) -> str:
+    return motif.sub(lambda m: re.sub(r"[^\n]", " ", m.group()), source)
+
+
+def sans_commentaires_java(source: str) -> str:
+    """Neutralise les commentaires Java : bloc `/* */`, ligne `//`, doc `///`."""
+    return _LIGNE_JAVA.sub("", _blanchir(_BLOC_JAVA, source))
+
+
+def sans_commentaires_xml(source: str) -> str:
+    """Neutralise les commentaires XML/FXML `<!-- -->`."""
+    return _blanchir(_COMMENTAIRE_XML, source)

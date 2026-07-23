@@ -18,7 +18,7 @@ import re
 import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
-from _commun import rapporte  # noqa: E402
+from _commun import rapporte, sans_commentaires_java  # noqa: E402
 
 SOURCES = pathlib.Path("src/main/java")
 
@@ -27,25 +27,15 @@ ADAPTATEURS = "fr/univ_amu/iut/commun/view/"
 
 APPEL = re.compile(r"new Alert\(|\.showAndWait\(\)")
 
-BLOC = re.compile(r"/\*.*?\*/", re.S)
-LIGNE = re.compile(r"//[^\n]*")
-
-
-def sans_commentaires(source: str) -> str:
-    """Neutralise les commentaires Java (bloc, ligne, doc `///`) en préservant les sauts de ligne,
-    pour que les numéros restent justes. Sans cela, un commentaire qui CITE `Alert.showAndWait()` en
-    expliquant un bug passé est compté comme un appel - le faux positif trouvé en clôture (un `///` de
-    SiteDetailController gonflait le compte et le cliquet dès sa pose)."""
-    sans_bloc = BLOC.sub(lambda m: re.sub(r"[^\n]", " ", m.group()), source)
-    return LIGNE.sub("", sans_bloc)
-
 
 def suspects() -> list[str]:
+    # Les commentaires sont retirés d'abord : un `///` qui CITE `Alert.showAndWait()` en expliquant un
+    # bug passé n'est pas un appel (faux positif trouvé en clôture). Retrait mutualisé dans _commun.
     trouves = []
     for source in sorted(SOURCES.rglob("*.java")):
         if ADAPTATEURS in source.as_posix():
             continue
-        lignes = sans_commentaires(source.read_text(encoding="utf-8")).splitlines()
+        lignes = sans_commentaires_java(source.read_text(encoding="utf-8")).splitlines()
         for numero, ligne in enumerate(lignes, 1):
             if APPEL.search(ligne):
                 trouves.append(f"{source}:{numero}  {ligne.strip()[:90]}")

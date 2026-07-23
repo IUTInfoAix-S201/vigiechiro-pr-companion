@@ -27,9 +27,9 @@ Le piège, dès qu'on veut « vérifier les ADR », est d'en faire trop : coller
 ## Conséquences
 
 - Une décision structurante n'est plus un texte qu'on espère respecté : elle porte son moyen de contrôle, ou dit explicitement qu'elle repose sur la revue.
-- Le niveau `humaine` est **majoritaire** (35 des 49 ADR) et c'est un résultat honnête, pas un renoncement : une décision de méthode ou de comportement ne se prouve pas par un scan.
+- Le niveau `humaine` est **majoritaire** : 35 des 49 ADR à l'écriture de cette décision, contre 10 `certaine` et 4 `probable`. Ce n'est pas un renoncement : une décision de méthode ou de comportement ne se prouve pas par un scan.
 - Le bar `certaine` reste haut : un invariant n'y entre que s'il **tient déjà** et se formule comme un motif observable. Un invariant violé le jour de sa naissance part en `probable` avec un cliquet, pas en test rouge.
-- **Chaque garde a été vue rouge sur une mutation** avant d'être déclarée. La clôture de ce chantier a d'ailleurs trouvé deux scripts `probable` aveugles aux commentaires (0010, 0046), dont l'un masquait que l'ADR était en réalité respectée : la vérification par mutation n'est pas une formalité.
+- **Chaque garde a été vue rouge sur une mutation** avant d'être déclarée. La clôture de ce chantier a d'ailleurs trouvé des scripts `probable` aveugles aux commentaires (0010, 0037), et découvert que 0046 était déjà tenue par un test existant (`DoublonsFeuillesDeStyleTest`) : la vérification par mutation et l'audit d'harmonisation ne sont pas des formalités.
 
 ## Alternatives écartées
 

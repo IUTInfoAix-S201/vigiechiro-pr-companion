@@ -21,14 +21,14 @@ Les gains de productivité avancés (regroupement multi-nuits P9, bibliothèque 
 **Critères d'acceptation** :
 
 - [ ] Sur la fiche d'un passage au statut `Déposé`, un bouton « Importer les résultats Tadarida » est mis en avant.
-- [ ] Le clic ouvre un sélecteur de fichier (filtre `.csv`).
-- [ ] L'application **détecte automatiquement le format** du CSV : `Brut` (sortie brute Tadarida) ou `Vu` (déjà partiellement validé) ([R17](../Modèle%20conceptuel/Règles%20métier.md#r17)).
-- [ ] Pour chaque ligne du CSV, l'application **associe l'observation à la séquence d'écoute correspondante** par matching du nom de fichier.
-- [ ] Les observations dont la séquence n'existe pas dans le passage (orphelines) sont signalées dans un récapitulatif post-import (« 12 observations sur 4031 n'ont pas de séquence correspondante - vérifiez la cohérence du dépôt »).
-- [ ] Si le passage a **déjà** un import Tadarida actif, l'application demande confirmation : remplacer l'import existant (perd les validations en cours) ou annuler.
+- [x] Le clic ouvre un sélecteur de fichier (filtre `.csv`).
+- [x] L'application **détecte automatiquement le format** du CSV : `Brut` (sortie brute Tadarida) ou `Vu` (déjà partiellement validé) ([R17](../Modèle%20conceptuel/Règles%20métier.md#r17)).
+- [x] Pour chaque ligne du CSV, l'application **associe l'observation à la séquence d'écoute correspondante** par matching du nom de fichier.
+- [x] Les observations dont la séquence n'existe pas dans le passage (orphelines) sont signalées dans un récapitulatif post-import (« 12 observations sur 4031 n'ont pas de séquence correspondante - vérifiez la cohérence du dépôt »).
+- [x] Si le passage a **déjà** un import Tadarida actif, l'application demande confirmation : remplacer l'import existant (perd les validations en cours) ou annuler.
 - [ ] Le passage transitionne au statut `Annoté Tadarida` après import réussi.
-- [ ] La date d'import et le chemin du CSV source sont persistés ([E0.S5](E0%20-%20Fondations%20de%20persistance.md#e0s5)).
-- [ ] Volumétrie cible : un CSV de 4 000+ observations doit s'importer en moins de 10 s sans freezer l'IHM.
+- [x] La date d'import et le chemin du CSV source sont persistés ([E0.S5](E0%20-%20Fondations%20de%20persistance.md#e0s5)).
+- [ ] Volumétrie cible : un CSV de 4 000+ observations doit s'importer en moins de 10 s sans freezer l'IHM.  *(non verifiable depuis le code)*
 
 **Parcours rattaché** : [P7](../Parcours%20utilisateurs/P7%20-%20Valider%20les%20résultats%20Tadarida.md), étapes 1-3<br>
 **Maquettes cibles** : [M-SonsValidation](../Maquettes/M-SonsValidation.md) (zone d'import + récapitulatif post-import)<br>
@@ -47,12 +47,12 @@ Les gains de productivité avancés (regroupement multi-nuits P9, bibliothèque 
 **Critères d'acceptation** :
 
 - [ ] L'écran de validation est divisé en **deux colonnes** : liste des observations à gauche (tableau triable), panneau de détail à droite.
-- [ ] Colonnes de la liste : nom du fichier de séquence, taxon Tadarida, probabilité Tadarida, statut de validation (À voir / Validée / Corrigée), commentaire (icône si présent).
-- [ ] Tri possible par chaque colonne ; tri par défaut : ordre du CSV (souvent chronologique).
+- [x] Colonnes de la liste : nom du fichier de séquence, taxon Tadarida, probabilité Tadarida, statut de validation (À voir / Validée / Corrigée), commentaire (icône si présent).
+- [x] Tri possible par chaque colonne ; tri par défaut : ordre du CSV (souvent chronologique).
 - [ ] Le panneau de détail affiche : nom du taxon proposé (avec nom latin et vernaculaire), probabilité Tadarida, fréquence médiane, lecteur audio pour la séquence (réutilise [E3.S3](E3%20-%20Vérifier%20la%20qualité%20d%27enregistrement.md#e3s3)), spectrogramme (cf. [E7.S3](#e7s3)), boutons d'action (cf. [E7.S4](#e7s4)).
-- [ ] La sélection d'une ligne déclenche le chargement immédiat du détail (idéal sous 200 ms).
+- [x] La sélection d'une ligne déclenche le chargement immédiat du détail (idéal sous 200 ms).
 - [ ] Raccourcis clavier : `↑/↓` pour naviguer dans la liste, `Espace` pour lecture/pause de la séquence courante.
-- [ ] Volumétrie cible : la liste reste réactive avec 5 000+ observations (virtualisation TableView).
+- [x] Volumétrie cible : la liste reste réactive avec 5 000+ observations (virtualisation TableView).
 
 **Parcours rattaché** : [P7](../Parcours%20utilisateurs/P7%20-%20Valider%20les%20résultats%20Tadarida.md), étapes 3-4<br>
 **Maquettes cibles** : [M-SonsValidation](../Maquettes/M-SonsValidation.md) (patron liste + écoute)<br>
@@ -73,11 +73,11 @@ Les gains de productivité avancés (regroupement multi-nuits P9, bibliothèque 
 
 **Critères d'acceptation** :
 
-- [ ] Le panneau de détail ([E7.S2](#e7s2)) affiche le composant audio fourni, alimenté par le chemin de la séquence courante (WAV ralenti ×10, cf. [R10](../Modèle%20conceptuel/Règles%20métier.md#r10)).
-- [ ] Le **curseur de lecture** est synchronisé entre le sonogramme (en haut), le spectrogramme (en bas) et le lecteur audio.
-- [ ] Les **contrôles de zoom** du spectrogramme (molette ou slider, indépendants pour temps et fréquence) sont accessibles à l'utilisateur. Bouton « Reset zoom » disponible.
-- [ ] Quand l'utilisateur change de séquence, le composant se recharge proprement (pas de fuite mémoire ni de freeze).
-- [ ] Si la séquence est introuvable sur disque, le composant affiche un substitut explicite plutôt que de planter.
+- [x] Le panneau de détail ([E7.S2](#e7s2)) affiche le composant audio fourni, alimenté par le chemin de la séquence courante (WAV ralenti ×10, cf. [R10](../Modèle%20conceptuel/Règles%20métier.md#r10)).
+- [ ] Le **curseur de lecture** est synchronisé entre le sonogramme (en haut), le spectrogramme (en bas) et le lecteur audio.  *(non verifiable depuis le code)*
+- [ ] Les **contrôles de zoom** du spectrogramme (molette ou slider, indépendants pour temps et fréquence) sont accessibles à l'utilisateur. Bouton « Reset zoom » disponible.  *(non verifiable depuis le code)*
+- [x] Quand l'utilisateur change de séquence, le composant se recharge proprement (pas de fuite mémoire ni de freeze).
+- [x] Si la séquence est introuvable sur disque, le composant affiche un substitut explicite plutôt que de planter.
 - [ ] Test d'intégration : navigation séquentielle dans 100 observations vérifie que le composant reste réactif (< 200 ms de bascule).
 
 **Parcours rattaché** : [P7](../Parcours%20utilisateurs/P7%20-%20Valider%20les%20résultats%20Tadarida.md), étape 4<br>
@@ -96,13 +96,13 @@ Les gains de productivité avancés (regroupement multi-nuits P9, bibliothèque 
 
 **Critères d'acceptation** :
 
-- [ ] Le panneau de détail propose deux boutons primaires : **« Valider »** (le taxon Tadarida est correct) et **« Corriger »** (saisir un autre taxon).
-- [ ] **Valider** : `taxon observateur = taxon Tadarida` et `probabilité observateur` renseignée à 100 % par défaut (modifiable). Statut → `Validée` ([R15](../Modèle%20conceptuel/Règles%20métier.md#r15)).
-- [ ] **Corriger** : ouvre un sélecteur de taxon (autocomplétion sur le code à 6 lettres ou nom latin/vernaculaire). À la validation, statut → `Corrigée` ([R16](../Modèle%20conceptuel/Règles%20métier.md#r16)).
-- [ ] Un champ texte multi-ligne permet d'ajouter un commentaire libre (ex. « pic 39 kHz, morphologie atypique »).
-- [ ] Le commentaire est persisté avec l'observation et visible dans la liste sous forme d'icône cliquable.
+- [x] Le panneau de détail propose deux boutons primaires : **« Valider »** (le taxon Tadarida est correct) et **« Corriger »** (saisir un autre taxon).
+- [x] **Valider** : `taxon observateur = taxon Tadarida` et `probabilité observateur` renseignée à 100 % par défaut (modifiable). Statut → `Validée` ([R15](../Modèle%20conceptuel/Règles%20métier.md#r15)).
+- [x] **Corriger** : ouvre un sélecteur de taxon (autocomplétion sur le code à 6 lettres ou nom latin/vernaculaire). À la validation, statut → `Corrigée` ([R16](../Modèle%20conceptuel/Règles%20métier.md#r16)).
+- [x] Un champ texte multi-ligne permet d'ajouter un commentaire libre (ex. « pic 39 kHz, morphologie atypique »).
+- [x] Le commentaire est persisté avec l'observation et visible dans la liste sous forme d'icône cliquable.
 - [ ] Après validation/correction, la liste passe automatiquement à l'observation suivante (avec retour visuel rapide, animation discrète).
-- [ ] Les observations **non touchées** par l'utilisateur (statut `À voir`) conservent uniquement les colonnes `tadarida_*` et seront exportées telles quelles ([R17](../Modèle%20conceptuel/Règles%20métier.md#r17)).
+- [x] Les observations **non touchées** par l'utilisateur (statut `À voir`) conservent uniquement les colonnes `tadarida_*` et seront exportées telles quelles ([R17](../Modèle%20conceptuel/Règles%20métier.md#r17)).
 - [ ] Bouton « Annuler ma validation » sur une observation déjà validée (revient à `À voir`).
 
 **Parcours rattaché** : [P7](../Parcours%20utilisateurs/P7%20-%20Valider%20les%20résultats%20Tadarida.md), étape 5<br>
@@ -121,13 +121,13 @@ Les gains de productivité avancés (regroupement multi-nuits P9, bibliothèque 
 
 **Critères d'acceptation** :
 
-- [ ] Une barre de filtres au-dessus de la liste propose : taxon (multi-select), groupe taxonomique (Pipistrelles / Murins / Noctules / etc., cf. [C15](../Modèle%20conceptuel/C15%20-%20Groupe%20taxonomique.md)), seuil de probabilité min/max, plage horaire (timestamp début/fin), statut de validation (À voir / Validée / Corrigée).
-- [ ] Les filtres se cumulent en logique ET.
+- [x] Une barre de filtres au-dessus de la liste propose : taxon (multi-select), groupe taxonomique (Pipistrelles / Murins / Noctules / etc., cf. [C15](../Modèle%20conceptuel/C15%20-%20Groupe%20taxonomique.md)), seuil de probabilité min/max, plage horaire (timestamp début/fin), statut de validation (À voir / Validée / Corrigée).
+- [x] Les filtres se cumulent en logique ET.
 - [ ] Compteur visible : « N/M observations affichées (filtre actif) ».
 - [ ] Bouton « Réinitialiser les filtres » bien visible.
-- [ ] Les filtres actifs sont affichés sous forme de **chips supprimables** au-dessus de la liste.
-- [ ] Les filtres sont mémorisés en session (pas persistés entre redémarrages, sauf si combinés à [E0.S7](E0%20-%20Fondations%20de%20persistance.md#e0s7) reprise de validation).
-- [ ] Compatible avec le tri de [E7.S2](#e7s2).
+- [x] Les filtres actifs sont affichés sous forme de **chips supprimables** au-dessus de la liste.
+- [x] Les filtres sont mémorisés en session (pas persistés entre redémarrages, sauf si combinés à [E0.S7](E0%20-%20Fondations%20de%20persistance.md#e0s7) reprise de validation).
+- [x] Compatible avec le tri de [E7.S2](#e7s2).
 
 **Parcours rattaché** : [P7](../Parcours%20utilisateurs/P7%20-%20Valider%20les%20résultats%20Tadarida.md), étape 6<br>
 **Maquettes cibles** : [M-SonsValidation](../Maquettes/M-SonsValidation.md) (barre de filtres + chips au-dessus de la liste)<br>
@@ -145,7 +145,7 @@ Les gains de productivité avancés (regroupement multi-nuits P9, bibliothèque 
 
 **Critères d'acceptation** :
 
-- [ ] À l'ouverture de la vue de validation pour un passage, l'application demande le mode (bascule ou fenêtre modale) :
+- [x] À l'ouverture de la vue de validation pour un passage, l'application demande le mode (bascule ou fenêtre modale) :
     - **Mode inventaire** : Marie cherche juste à savoir quelles espèces sont présentes. Une fois une espèce validée avec confiance sur une nuit, les autres détections de la même espèce sur la même nuit sont marquées automatiquement comme « secondaires » (statut spécial) et ne demandent pas de validation manuelle.
     - **Mode activité** : Samuel veut quantifier. Toutes les observations doivent être passées en revue.
 - [ ] Le mode choisi est **persisté par passage** : on peut ouvrir un passage en mode inventaire et un autre en mode activité.
@@ -170,13 +170,13 @@ Les gains de productivité avancés (regroupement multi-nuits P9, bibliothèque 
 **Critères d'acceptation** :
 
 - [ ] Bouton « Exporter Vu.csv » dans la vue de validation, désactivé tant qu'aucune observation n'a été validée/corrigée.
-- [ ] Le fichier produit reprend la structure exacte du CSV d'observations Tadarida (cf. [Expression du besoin](../../Expression%20du%20besoin.md)) avec les colonnes `observateur_taxon` et `observateur_probabilite` remplies pour les observations validées/corrigées.
-- [ ] Les observations **non touchées** (statut `À voir`) conservent les colonnes Tadarida d'origine sans modification ([R17](../Modèle%20conceptuel/Règles%20métier.md#r17)).
+- [x] Le fichier produit reprend la structure exacte du CSV d'observations Tadarida (cf. [Expression du besoin](../../Expression%20du%20besoin.md)) avec les colonnes `observateur_taxon` et `observateur_probabilite` remplies pour les observations validées/corrigées.
+- [x] Les observations **non touchées** (statut `À voir`) conservent les colonnes Tadarida d'origine sans modification ([R17](../Modèle%20conceptuel/Règles%20métier.md#r17)).
 - [ ] Encodage CSV identique à la sortie Tadarida (séparateur `;`, doubles guillemets vides `""""` pour les champs nuls).
 - [ ] Le fichier est nommé automatiquement au format `<nom_csv_source>_Vu.csv` (ex. `8a4fa…-observations_Vu.csv`).
-- [ ] L'utilisateur choisit le dossier de destination via un sélecteur natif.
+- [x] L'utilisateur choisit le dossier de destination via un sélecteur natif.
 - [ ] Bouton « Ouvrir le dossier » après export pour faciliter le téléversement manuel sur Vigie-Chiro.
-- [ ] Tests d'intégration : export d'un passage avec mix de Validées/Corrigées/À voir, vérification de la conformité du CSV produit (lecture round-trip).
+- [x] Tests d'intégration : export d'un passage avec mix de Validées/Corrigées/À voir, vérification de la conformité du CSV produit (lecture round-trip).
 
 **Parcours rattaché** : [P7](../Parcours%20utilisateurs/P7%20-%20Valider%20les%20résultats%20Tadarida.md), étape 8<br>
 **Maquettes cibles** : [M-SonsValidation](../Maquettes/M-SonsValidation.md) (bouton « Exporter Vu.csv » + modal de récapitulatif)<br>
@@ -194,10 +194,10 @@ Les gains de productivité avancés (regroupement multi-nuits P9, bibliothèque 
 
 **Critères d'acceptation** :
 
-- [ ] Chaque observation peut porter une **certitude `SUR` / `PROBABLE` / `POSSIBLE`**, **vide par défaut** et **jamais dérivée** de la probabilité Tadarida (cf. [C13](../Modèle%20conceptuel/C13%20-%20Observation.md)).
-- [ ] Une observation peut être marquée **« douteuse »** (écoutée mais à repasser), **distincte** de « pas encore vue ».
-- [ ] La certitude et le drapeau douteux sont **persistés** et restitués tels quels.
-- [ ] La certitude est **le même domaine** pour l'observateur et pour le validateur (cf. [E7.S9](#e7s9)).
+- [x] Chaque observation peut porter une **certitude `SUR` / `PROBABLE` / `POSSIBLE`**, **vide par défaut** et **jamais dérivée** de la probabilité Tadarida (cf. [C13](../Modèle%20conceptuel/C13%20-%20Observation.md)).
+- [x] Une observation peut être marquée **« douteuse »** (écoutée mais à repasser), **distincte** de « pas encore vue ».
+- [x] La certitude et le drapeau douteux sont **persistés** et restitués tels quels.
+- [x] La certitude est **le même domaine** pour l'observateur et pour le validateur (cf. [E7.S9](#e7s9)).
 
 **Parcours rattaché** : [P7](../Parcours%20utilisateurs/P7%20-%20Valider%20les%20résultats%20Tadarida.md), pendant la revue<br>
 **Maquettes cibles** : [M-SonsValidation](../Maquettes/M-SonsValidation.md) (menu certitude + marquage douteux)<br>
@@ -215,10 +215,10 @@ Les gains de productivité avancés (regroupement multi-nuits P9, bibliothèque 
 
 **Critères d'acceptation** :
 
-- [ ] Sur une observation, **trois avis coexistent** : Tadarida propose, l'observateur corrige, le validateur MNHN tranche.
-- [ ] L'avis du validateur (taxon + certitude) est **affiché mais en lecture seule** : il n'est **jamais réécrit** vers le serveur.
-- [ ] Un **fil de discussion ordonné** s'attache à l'observation ; chaque message distingue **« vous »** d'**« un validateur »**.
-- [ ] **Poster un message est irréversible** (aucune route serveur de suppression) et exige une **confirmation explicite** ; le message part **au serveur d'abord, la base ensuite** (jamais un message cru envoyé mais invisible côté expert).
+- [x] Sur une observation, **trois avis coexistent** : Tadarida propose, l'observateur corrige, le validateur MNHN tranche.
+- [x] L'avis du validateur (taxon + certitude) est **affiché mais en lecture seule** : il n'est **jamais réécrit** vers le serveur.
+- [x] Un **fil de discussion ordonné** s'attache à l'observation ; chaque message distingue **« vous »** d'**« un validateur »**.
+- [x] **Poster un message est irréversible** (aucune route serveur de suppression) et exige une **confirmation explicite** ; le message part **au serveur d'abord, la base ensuite** (jamais un message cru envoyé mais invisible côté expert).
 
 **Parcours rattaché** : [P7](../Parcours%20utilisateurs/P7%20-%20Valider%20les%20résultats%20Tadarida.md), échange avec le validateur<br>
 **Maquettes cibles** : [M-SonsValidation](../Maquettes/M-SonsValidation.md) (panneau de discussion)<br>

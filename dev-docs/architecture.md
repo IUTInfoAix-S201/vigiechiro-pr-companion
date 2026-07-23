@@ -135,7 +135,8 @@ Ainsi `sites` ouvre M-Passage **sans dépendre de `passage.view`** : la règle A
 
 ## Persistance
 
-**SQLite** (fichier `vigiechiro.db` dans l'espace de travail), via des **DAO** écrits en
+**SQLite** (fichier `vigiechiro.db` dans l'espace de travail **par défaut**, relocalisable via l'onglet
+« Emplacements » des réglages, cf. [ADR 1038](decisions/1038-la-configuration-d-amorcage-vit-hors-de-la-base.md)), via des **DAO** écrits en
 `PreparedStatement` (**pas d'ORM**). Le schéma évolue par **migrations versionnées**
 [`src/main/resources/db/migration/V0x__*.sql`](https://github.com/echonuit/vigiechiro-pr-companion/tree/main/src/main/resources/db/migration),
 appliquées par

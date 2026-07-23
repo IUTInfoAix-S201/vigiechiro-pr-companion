@@ -1,15 +1,9 @@
 package fr.univ_amu.iut.commun.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
-import fr.univ_amu.iut.commun.model.ServiceEmplacements.Accessibilite;
 import fr.univ_amu.iut.commun.model.ServiceEmplacements.Emplacements;
-import java.io.IOException;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.attribute.PosixFilePermissions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -71,66 +65,6 @@ class ServiceEmplacementsTest {
             assertThat(e.personnalise()).isFalse();
             assertThat(e.espaceDeTravail()).isEqualTo(e.espaceDeTravailParDefaut());
         });
-    }
-
-    @Test
-    @DisplayName("Sonde : un dossier inscriptible est ACCESSIBLE, et un dossier manquant est créé")
-    void sonde_dossier_inscriptible(@TempDir Path racine) {
-        assertThat(service.sonder(racine)).isEqualTo(Accessibilite.ACCESSIBLE);
-
-        Path aCreer = racine.resolve("sous").resolve("dossier");
-        assertThat(service.sonder(aCreer))
-                .as("désigner un dossier encore inexistant est un usage normal")
-                .isEqualTo(Accessibilite.ACCESSIBLE);
-        assertThat(aCreer).isDirectory();
-    }
-
-    @Test
-    @DisplayName("Sonde : le fichier témoin est effacé, elle ne jonche pas le dossier de l'utilisateur")
-    void sonde_ne_laisse_pas_de_temoin(@TempDir Path racine) throws IOException {
-        assertThat(service.sonder(racine)).isEqualTo(Accessibilite.ACCESSIBLE);
-
-        try (var contenu = Files.list(racine)) {
-            assertThat(contenu)
-                    .as("la sonde écrit un témoin pour éprouver l'écriture : elle doit l'effacer ensuite")
-                    .isEmpty();
-        }
-    }
-
-    @Test
-    @DisplayName("Sonde : un fichier n'est PAS un dossier")
-    void sonde_fichier(@TempDir Path racine) throws IOException {
-        Path fichier = Files.createFile(racine.resolve("un-fichier"));
-        assertThat(service.sonder(fichier)).isEqualTo(Accessibilite.PAS_UN_DOSSIER);
-    }
-
-    @Test
-    @DisplayName("Sonde : un dossier impossible à créer (sous un fichier) est INEXISTANT_NON_CREABLE")
-    void sonde_non_creable(@TempDir Path racine) throws IOException {
-        Path fichier = Files.createFile(racine.resolve("obstacle"));
-        assertThat(service.sonder(fichier.resolve("dessous")))
-                .as("créer un dossier SOUS un fichier régulier échoue")
-                .isEqualTo(Accessibilite.INEXISTANT_NON_CREABLE);
-    }
-
-    @Test
-    @DisplayName("Sonde : un dossier en lecture seule est NON_INSCRIPTIBLE")
-    void sonde_lecture_seule(@TempDir Path racine) throws IOException {
-        assumeTrue(FileSystems.getDefault().supportedFileAttributeViews().contains("posix"), "POSIX requis");
-        Path lecture = Files.createDirectory(racine.resolve("lecture-seule"));
-        Files.setPosixFilePermissions(lecture, PosixFilePermissions.fromString("r-xr-xr-x"));
-        try {
-            // Auto-garde : si l'on peut écrire malgré r-x (exécution en root), le test ne prouve rien.
-            try {
-                Files.delete(Files.createTempFile(lecture, "root", ".tmp"));
-                assumeTrue(false, "écriture possible malgré r-x (probablement root) : test sans objet");
-            } catch (IOException attendu) {
-                // C'est le comportement voulu : on ne peut pas écrire.
-            }
-            assertThat(service.sonder(lecture)).isEqualTo(Accessibilite.NON_INSCRIPTIBLE);
-        } finally {
-            Files.setPosixFilePermissions(lecture, PosixFilePermissions.fromString("rwxr-xr-x"));
-        }
     }
 
     /// Corps de test susceptible de lever.

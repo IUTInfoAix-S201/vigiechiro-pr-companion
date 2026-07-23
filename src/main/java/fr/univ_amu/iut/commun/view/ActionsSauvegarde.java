@@ -1,5 +1,6 @@
 package fr.univ_amu.iut.commun.view;
 
+import fr.univ_amu.iut.commun.model.SondeAccessibilite;
 import fr.univ_amu.iut.commun.persistence.BilanSauvegarde;
 import fr.univ_amu.iut.commun.persistence.ServiceSauvegarde;
 import java.nio.file.Path;
@@ -58,7 +59,7 @@ final class ActionsSauvegarde {
     /// sauvegarde horodatée **hors du fil JavaFX** (#1215) et confirme le chemin obtenu.
     void sauvegarder() {
         Optional<Path> dossier = selecteur.choisirDossier("Dossier où enregistrer la sauvegarde", dossierParDefaut());
-        if (dossier.isEmpty()) {
+        if (dossier.isEmpty() || destinationInutilisable(dossier.get())) {
             return;
         }
         occupation.occuper(
@@ -86,7 +87,7 @@ final class ActionsSauvegarde {
     void sauvegarderComplet() {
         Optional<Path> dossier = selecteur.choisirDossier(
                 "Dossier où enregistrer la sauvegarde complète (base + audio)", dossierParDefaut());
-        if (dossier.isEmpty()) {
+        if (dossier.isEmpty() || destinationInutilisable(dossier.get())) {
             return;
         }
         if (!confirmateur.confirmer("La sauvegarde complète copie la base ET tous vos dossiers de session"
@@ -99,6 +100,21 @@ final class ActionsSauvegarde {
                 () -> service.sauvegarderComplet(dossier.get()),
                 this::annoncerBilan,
                 echec -> signalerEchec("Sauvegarde impossible", echec));
+    }
+
+    /// Sonde le dossier de destination **avant** de lancer une copie potentiellement longue : un dossier
+    /// inutilisable (fichier, non créable, non inscriptible) est refusé ici, pas découvert à mi-parcours.
+    /// Renvoie `true` (et prévient) si la destination n'est pas utilisable.
+    private boolean destinationInutilisable(Path dossier) {
+        SondeAccessibilite.Verdict verdict = SondeAccessibilite.sonder(dossier);
+        if (verdict.accessible()) {
+            return false;
+        }
+        notificateur.notifier(
+                NiveauNotification.AVERTISSEMENT,
+                "Dossier inutilisable",
+                "Ce dossier est " + verdict.motif() + " :\n" + dossier);
+        return true;
     }
 
     /// Annonce le bilan d'une sauvegarde complète : une information si tout a été copié, un

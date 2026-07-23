@@ -2,9 +2,7 @@ package fr.univ_amu.iut.commun.view;
 
 import java.util.List;
 import java.util.Objects;
-import javafx.geometry.Insets;
 import javafx.scene.Node;
-import javafx.scene.control.Label;
 
 /// Onglet « Fonctionnalités » de l'écran Réglages (#1057) : un **interrupteur par feature
 /// désactivable** (`OPTIONNELLE` / `EXPERIMENTALE`), câblé au flag persisté `feature.<id>.active`.
@@ -49,11 +47,9 @@ public final class OngletReglagesFonctionnalites implements OngletReglagesPerson
 
     @Override
     public Node formulairePersonnalise() {
-        Label bandeau = new Label(
-                "Activer ou désactiver une fonctionnalité prend effet au prochain démarrage de l'application.");
-        bandeau.setWrapText(true);
-        bandeau.setPadding(new Insets(8, 0, 0, 0));
-        bandeau.getStyleClass().add("reglages-fonctionnalites-note");
-        return bandeau;
+        // Avis partagé (#2258), sans bouton « Quitter » : ce réglage est différé par nature, le bandeau
+        // informe sans proposer d'action - contrairement à l'onglet « Emplacements ».
+        return AvisRedemarrage.creer(
+                "Activer ou désactiver une fonctionnalité prend effet au prochain démarrage de l'application.", null);
     }
 }

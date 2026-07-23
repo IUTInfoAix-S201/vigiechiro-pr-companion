@@ -94,7 +94,7 @@ un **puits** (aucune feature ne dépend de lui), donc le graphe reste acyclique.
 | `marquer-reference` | `[--retirer] (--observation <ids> \| --passage <id> [filtres] [--confirmer])` | P10, #1311 | Verse (ou retire) les observations dans la **bibliothèque de sons de référence** - la source `References` de l'écran, et la matière de son export |
 | `poser-certitude` | `(--certitude <SUR\|PROBABLE\|POSSIBLE> \| --effacer) (--observation <ids> \| --passage <id> [filtres] [--confirmer])` | #1139, #1311 | Déclare la **certitude observateur**. Il faut **choisir explicitement** : elle ne se déduit **ni** de la probabilité Tadarida **ni** d'une validation, et reste **vide par défaut**. C'est un jugement, que la plateforme exigera avec le taxon (#723) et qu'un naturaliste lira comme la parole de l'observateur |
 | `discussion` | `--observation <id> [--message <texte> --confirmer]` | #1417, #1418 | Le **fil d'échange avec le validateur** du MNHN. Sans `--message`, le **lit** (le fil vient de la base, rafraîchi à chaque import). Avec, **y répond** — ⚠️ **écriture définitive** : le serveur ajoute par `$push` et n'offre aucune route de suppression. `--confirmer` est donc obligatoire, et le message n'est écrit localement **qu'après** que le serveur l'a accepté |
-| `emplacements` | `[--definir-travail <dir>] [--definir-base <dir>] [--reinitialiser] [--json]` | #1038 | Parité CLI de l'onglet « Emplacements » ([ADR 1038](decisions/1038-la-configuration-d-amorcage-vit-hors-de-la-base.md)) : `ServiceEmplacements`. Sans option, **affiche** où vivent le dossier de travail et la base (et leurs défauts). `--definir-*` **sonde** chaque dossier (un fichier ou un dossier non inscriptible est refusé, code `1`) puis **écrit** le choix ; `--reinitialiser` l'efface. Ne déplace **rien** : change le pointeur lu au prochain démarrage, pas les données - une base pointée vers un dossier vide démarre neuve. `--reinitialiser` et `--definir-*` sont exclusifs |
+| `emplacements` | `[--definir-travail <dir>] [--definir-base <dir>] [--reinitialiser] [--json]` | #1038 | Parité CLI de l'onglet « Emplacements » ([ADR 1038](decisions/1038-la-configuration-d-amorcage-vit-hors-de-la-base.md)) : `ServiceEmplacements`. Sans option, **affiche** où vivent le dossier de travail et la base (et leurs défauts). `--definir-*` **sonde** chaque dossier (un fichier ou un dossier non inscriptible est refusé, code `2` : rien n'est écrit) puis **écrit** le choix ; `--reinitialiser` l'efface. Ne déplace **rien** : change le pointeur lu au prochain démarrage, pas les données - une base pointée vers un dossier vide démarre neuve. `--reinitialiser` et `--definir-*` sont exclusifs (code `2`) |
 | `--help` / `-h`, `--version` / `-V`, ou aucun argument | — | — | — |
 
 ### Socle : registre de commandes picocli (#614)
@@ -145,7 +145,8 @@ rien toucher. C'est volontairement **distinct de `1`** — après un `1`, l'éta
 de refus part sur **stderr**, pour ne pas se mêler au compte rendu.
 
 Suivent cette règle : `supprimer-passage`, `importer --ecraser`, `restaurer`, `reset-guide --executer`,
-`discussion`, `sauvegarder` (incomplète). `restaurer` rendait `1` sur stdout jusqu'à #2294 — la
+`discussion`, `sauvegarder` (incomplète), `emplacements` (dossier refusé par la sonde, options
+exclusives : rien n'est écrit). `restaurer` rendait `1` sur stdout jusqu'à #2294 — la
 convention n'était écrite nulle part, et c'est ainsi qu'elle a dérivé.
 
 `deposer-vigiechiro` étend la convention : `0` **seulement si le dépôt est complet** ; `1` si des

@@ -60,9 +60,13 @@ class OngletReglagesFonctionnalitesRenduTest {
         assertThat(reglages.lireBooleen("feature.import-vigiechiro.active", true))
                 .isFalse();
 
-        // Dernier nœud : le bandeau « effet au prochain démarrage » (échappatoire personnalisée).
-        Label bandeau =
-                (Label) formulaire.getChildren().get(formulaire.getChildren().size() - 1);
-        assertThat(bandeau.getText()).contains("prochain démarrage");
+        // L'avis « effet au prochain démarrage » (composant partagé AvisRedemarrage, #2258) est rendu
+        // sous les cases. Sans bouton « Quitter » ici : ce réglage est différé, il n'y a rien à déclencher.
+        Label avis = (Label) formulaire.lookup(".avis-redemarrage-texte");
+        assertThat(avis).as("l'avis de redémarrage est rendu").isNotNull();
+        assertThat(avis.getText()).contains("prochain démarrage");
+        assertThat(formulaire.lookup(".avis-redemarrage-quitter"))
+                .as("pas de bouton « Quitter » pour un réglage de fonctionnalité (différé, sans action)")
+                .isNull();
     }
 }

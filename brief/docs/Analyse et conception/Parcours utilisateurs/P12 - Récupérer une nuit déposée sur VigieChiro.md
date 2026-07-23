@@ -85,6 +85,23 @@ enregistrement absent du dossier qu'il a désigné l'appelle à chercher ailleur
 l'application n'a pas su reproduire est un défaut de notre côté, à signaler. Les deux se ressemblaient
 autrefois sous un même décompte muet, qui ne disait à personne quoi faire.
 
+### Copier, ou laisser les fichiers où ils sont
+
+Refaire l'import à l'identique ne veut plus dire **recopier**. L'application **observe** désormais les
+fichiers de l'utilisateur au lieu de les **posséder** : elle ne les archive plus, ne les purge plus, ne
+les déplace plus. La réactivation demande donc **ce qu'il faut faire du dossier désigné** :
+
+- s'il est **hors** de l'espace de travail - un serveur de fichiers, un disque externe, l'arborescence
+  habituelle de l'utilisateur -, ces fichiers sont **les siens** ; l'application propose de **les laisser
+  où ils sont** et de s'y référer, plutôt que d'en faire un doublon qu'il n'a pas demandé ;
+- sinon, elle en garde sa propre copie, comme avant.
+
+La conséquence est **dite avant** le choix : une nuit **référencée** devient muette si son support n'est
+pas joignable (disque débranché, dossier réseau hors ligne), et le redevient d'elle-même dès qu'il
+revient - son identité étant revérifiée à chaque retour, jamais rebranchée sur la foi du seul chemin.
+Les tranches que l'application **régénère** depuis les bruts restent, elles, toujours copiées : elles
+sont produites par le produit, pas par l'utilisateur.
+
 ## Ne pas noyer les vues site
 
 La synchro rapatrie **tous** les points du carré Vigie-Chiro (la grille STOC peut en compter des dizaines), pas seulement ceux que l'utilisateur exploite. Pour ne pas noyer les points **réellement utilisés** sous cette grille ([O5](../../Objectifs%20qualités/Objectifs%20qualités/O5.md)), les vues site distinguent l'origine d'un point : [M-Site-detail](../Maquettes/M-Site-detail.md) masque par défaut les points rapatriés **sans passage** (repliés derrière un « + N rapatrié(s) »), et [M-Sites](../Maquettes/M-Sites.md) résume de même le bandeau des points. Un point rapatrié réapparaît dès qu'on s'en sert (un passage l'y rattache).

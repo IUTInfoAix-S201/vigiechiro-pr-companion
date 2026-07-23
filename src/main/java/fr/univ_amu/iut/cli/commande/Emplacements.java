@@ -3,7 +3,8 @@ package fr.univ_amu.iut.cli.commande;
 import com.google.inject.Inject;
 import fr.univ_amu.iut.cli.FormatJson;
 import fr.univ_amu.iut.commun.model.ServiceEmplacements;
-import fr.univ_amu.iut.commun.model.ServiceEmplacements.Accessibilite;
+import fr.univ_amu.iut.commun.model.SondeAccessibilite;
+import fr.univ_amu.iut.commun.model.SondeAccessibilite.Verdict;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Path;
@@ -32,7 +33,9 @@ import picocli.CommandLine.Spec;
 public final class Emplacements implements Callable<Integer> {
 
     private static final int CODE_SUCCES = 0;
-    private static final int CODE_ERREUR = 1;
+    // Un refus (dossier inutilisable, options exclusives) n'écrit RIEN : l'état reste intact. La CLI
+    // signale ce cas par 2, distinct du 1 « échec d'exécution, état incertain » (#2294, cf. cli.md).
+    private static final int CODE_REFUS = 2;
     private static final String LIGNE = "  %-22s : %s";
 
     @Option(
@@ -73,7 +76,7 @@ public final class Emplacements implements Callable<Integer> {
         if (reinitialiser) {
             if (dossierTravail != null || dossierBase != null) {
                 erreur.println("--reinitialiser ne se combine pas avec --definir-travail / --definir-base.");
-                return CODE_ERREUR;
+                return CODE_REFUS;
             }
             service.reinitialiser();
             sortie.println("Emplacements rétablis par défaut. Effet au prochain démarrage.");
@@ -95,10 +98,10 @@ public final class Emplacements implements Callable<Integer> {
         Path base = dossierBase != null ? dossierBase : courant.base().getParent();
 
         if (dossierTravail != null && !accessible(erreur, "dossier de travail", dossierTravail)) {
-            return CODE_ERREUR;
+            return CODE_REFUS;
         }
         if (dossierBase != null && !accessible(erreur, "dossier de la base", dossierBase)) {
-            return CODE_ERREUR;
+            return CODE_REFUS;
         }
 
         service.enregistrer(travail, base);
@@ -111,21 +114,12 @@ public final class Emplacements implements Callable<Integer> {
     }
 
     private boolean accessible(PrintWriter erreur, String quoi, Path dossier) {
-        Accessibilite verdict = service.sonder(dossier);
-        if (verdict == Accessibilite.ACCESSIBLE) {
+        Verdict verdict = SondeAccessibilite.sonder(dossier);
+        if (verdict.accessible()) {
             return true;
         }
-        erreur.println("Le " + quoi + " est inutilisable (" + motif(verdict) + ") : " + dossier);
+        erreur.println("Le " + quoi + " est inutilisable (" + verdict.motif() + ") : " + dossier);
         return false;
-    }
-
-    private static String motif(Accessibilite verdict) {
-        return switch (verdict) {
-            case PAS_UN_DOSSIER -> "un fichier, pas un dossier";
-            case INEXISTANT_NON_CREABLE -> "dossier introuvable et non créable";
-            case NON_INSCRIPTIBLE -> "dossier non inscriptible";
-            case ACCESSIBLE -> "";
-        };
     }
 
     private void afficher(PrintWriter sortie) {

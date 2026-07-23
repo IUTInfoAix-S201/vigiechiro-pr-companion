@@ -17,7 +17,9 @@ La persistance est **locale** : une base **SQLite** fichier, sans serveur. La co
 ## La source de données
 
 [`SourceDeDonnees`](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/src/main/java/fr/univ_amu/iut/commun/persistence/SourceDeDonnees.java)
-est l'**unique** classe qui connaît l'URL JDBC (`jdbc:sqlite:<workspace>/vigiechiro.db`). Bindée en
+est l'**unique** classe qui connaît l'URL JDBC (`jdbc:sqlite:` + `Workspace.cheminBaseDeDonnees()`,
+soit `<workspace>/vigiechiro.db` **par défaut**, ou l'emplacement choisi dans l'onglet « Emplacements »,
+cf. [ADR 1038](decisions/1038-la-configuration-d-amorcage-vit-hors-de-la-base.md)). Bindée en
 **singleton** Guice, elle fournit des `Connection` ; DAO, unité de travail et migration la reçoivent
 et ignorent tout du driver.
 
@@ -46,7 +48,11 @@ en fait foi : il en contient aujourd'hui bien plus que trois.
        haut.
     2. **Ajoutez son nom au tableau `MIGRATIONS`** de `MigrationSchema` - **l'ordre fait foi**.
 
-    `App` appelle `MigrationSchema.migrer()` au démarrage ; les tests le font sur leur base jetable.
+    `App` migre **avant de composer l'injecteur** (`Amorcage.migrerPuisComposer()`) : les drapeaux de
+    fonctionnalités sont ainsi lus dans une base à jour, ce qui a fermé le piège dormant #2187
+    ([ADR 1038](decisions/1038-la-configuration-d-amorcage-vit-hors-de-la-base.md)). La CLI migre de
+    même avant de composer, mais **seulement si la base existe déjà** (une aide ne doit créer aucun
+    fichier). Les tests migrent sur leur base jetable.
 
 ## Remplacer la base sous une application vivante
 

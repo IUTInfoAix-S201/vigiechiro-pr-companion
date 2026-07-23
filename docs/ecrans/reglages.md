@@ -62,6 +62,8 @@ l'**effet** des bascules de l'onglet « Fonctionnalités » s'applique au **proc
 
 ## Où l'application range ses données (onglet « Emplacements ») {#emplacements}
 
+![L'onglet Emplacements des Réglages : le dossier de travail et la base de données, chacun avec son chemin courant, un bouton « Choisir… » et le défaut rappelé ; en tête, l'avertissement « choisir un emplacement ne déplace pas vos données ».](../assets/captures/apercu-reglages-emplacements.png)
+
 L'onglet **Emplacements** décide **où vivent** deux choses :
 
 - le **dossier de travail**, qui contient les sessions et leur audio ;

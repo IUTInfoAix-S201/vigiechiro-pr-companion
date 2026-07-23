@@ -2,8 +2,9 @@ package fr.univ_amu.iut.commun.view;
 
 import com.google.inject.Inject;
 import fr.univ_amu.iut.commun.model.ServiceEmplacements;
-import fr.univ_amu.iut.commun.model.ServiceEmplacements.Accessibilite;
 import fr.univ_amu.iut.commun.model.ServiceEmplacements.Emplacements;
+import fr.univ_amu.iut.commun.model.SondeAccessibilite;
+import fr.univ_amu.iut.commun.model.SondeAccessibilite.Verdict;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
@@ -171,22 +172,16 @@ public final class OngletReglagesEmplacements implements OngletReglagesPersonnal
             return;
         }
         Path dossier = designe.get();
-        Accessibilite verdict = service.sonder(dossier);
-        if (verdict == Accessibilite.ACCESSIBLE) {
+        Verdict verdict = SondeAccessibilite.sonder(dossier);
+        if (verdict.accessible()) {
             choix.set(dossier);
             masquerAvis();
         } else {
-            notificateur.notifier(NiveauNotification.AVERTISSEMENT, "Dossier inutilisable", motif(verdict));
+            notificateur.notifier(
+                    NiveauNotification.AVERTISSEMENT,
+                    "Dossier inutilisable",
+                    "Ce dossier est " + verdict.motif() + ".");
         }
-    }
-
-    private static String motif(Accessibilite verdict) {
-        return switch (verdict) {
-            case PAS_UN_DOSSIER -> "Ce chemin désigne un fichier, pas un dossier.";
-            case INEXISTANT_NON_CREABLE -> "Ce dossier n'existe pas et n'a pas pu être créé.";
-            case NON_INSCRIPTIBLE -> "Ce dossier existe, mais l'application ne peut pas y écrire.";
-            case ACCESSIBLE -> ""; // ne survient pas : ACCESSIBLE ne passe pas par ici.
-        };
     }
 
     private Node boutons(boolean personnalise) {
@@ -233,16 +228,10 @@ public final class OngletReglagesEmplacements implements OngletReglagesPersonnal
     }
 
     private VBox avisRedemarrage() {
-        Label texte = new Label("Le nouvel emplacement s'appliquera au prochain démarrage de l'application.");
-        texte.setWrapText(true);
-        texte.getStyleClass().add("emplacements-avis-texte");
-
-        Button quitter = new Button("Quitter l'application");
-        quitter.getStyleClass().addAll("emplacements-quitter", "bouton-primaire");
-        quitter.setOnAction(evenement -> sortie.run());
-
-        VBox avis = new VBox(texte, quitter);
-        avis.getStyleClass().add("emplacements-avis");
+        // Avis d'action partagé (#2258) : le bouton « Quitter » lit la sortie COURANTE (remplaçable en
+        // test), d'où le passage par une lambda plutôt que la référence directe `sortie`.
+        VBox avis = AvisRedemarrage.creer(
+                "Le nouvel emplacement s'appliquera au prochain démarrage de l'application.", () -> sortie.run());
         avis.setVisible(false);
         avis.setManaged(false);
         return avis;

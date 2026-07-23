@@ -114,7 +114,7 @@ class CliEmplacementsTest {
 
         int code = cli.executer(new String[] {"emplacements", "--definir-base", fichier.toString()}, sortie, erreur);
 
-        assertThat(code).isEqualTo(Cli.CODE_ERREUR_EXECUTION);
+        assertThat(code).isEqualTo(Cli.CODE_ERREUR_ARGUMENTS);
         assertThat(texteErreur()).contains("inutilisable", "un fichier, pas un dossier");
         // Rien n'a été écrit : un affichage suivant reste « non (défauts) ».
         cli.executer(new String[] {"emplacements"}, sortie, erreur);
@@ -128,7 +128,7 @@ class CliEmplacementsTest {
 
         int code = cli.executer(new String[] {"emplacements", "--definir-travail", fichier.toString()}, sortie, erreur);
 
-        assertThat(code).isEqualTo(Cli.CODE_ERREUR_EXECUTION);
+        assertThat(code).isEqualTo(Cli.CODE_ERREUR_ARGUMENTS);
         assertThat(texteErreur()).contains("dossier de travail", "un fichier, pas un dossier");
     }
 
@@ -158,7 +158,7 @@ class CliEmplacementsTest {
                 sortie,
                 erreur);
 
-        assertThat(code).isEqualTo(Cli.CODE_ERREUR_EXECUTION);
+        assertThat(code).isEqualTo(Cli.CODE_ERREUR_ARGUMENTS);
         assertThat(texteErreur()).contains("ne se combine pas");
     }
 

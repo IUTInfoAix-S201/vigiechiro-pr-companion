@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 import fr.univ_amu.iut.commun.persistence.BilanSauvegarde;
 import fr.univ_amu.iut.commun.persistence.ServiceSauvegarde;
 import fr.univ_amu.iut.commun.viewmodel.NavigationViewModel;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,6 +19,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 /// Les **gestes** de sauvegarde et de restauration, joués pour de vrai (#1405).
 ///
@@ -124,6 +126,20 @@ class ActionsSauvegardeTest {
 
         verify(service, never()).sauvegarder(any());
         assertThat(annonces).as("renoncer n'est pas un événement").isEmpty();
+    }
+
+    @Test
+    @DisplayName("#2258 : destination inutilisable (un fichier) : refusée AVANT la copie, avec un avertissement")
+    void destination_inutilisable_refuse_la_sauvegarde(@TempDir Path racine) throws Exception {
+        // La sonde partagée (#2258) refuse un dossier inutilisable au moment du choix : ici un fichier,
+        // pas un dossier. La copie ne doit même pas commencer.
+        choix = Optional.of(Files.createFile(racine.resolve("pas-un-dossier")));
+
+        action.sauvegarder();
+
+        verify(service, never()).sauvegarder(any());
+        assertThat(niveaux).containsExactly(NiveauNotification.AVERTISSEMENT);
+        assertThat(annonces).singleElement().satisfies(a -> assertThat(a).contains("Dossier inutilisable"));
     }
 
     @Test

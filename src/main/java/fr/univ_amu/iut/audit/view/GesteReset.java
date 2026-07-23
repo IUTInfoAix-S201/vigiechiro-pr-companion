@@ -5,6 +5,7 @@ import fr.univ_amu.iut.audit.model.RecuperabiliteNuit;
 import fr.univ_amu.iut.audit.model.ResultatReset;
 import fr.univ_amu.iut.audit.model.ServiceRecuperabilite;
 import fr.univ_amu.iut.audit.model.ServiceReset;
+import fr.univ_amu.iut.commun.model.SondeAccessibilite;
 import fr.univ_amu.iut.commun.persistence.ServiceSauvegarde;
 import fr.univ_amu.iut.commun.view.ConfirmateurModifiable;
 import fr.univ_amu.iut.commun.view.ConfirmationNavigation;
@@ -100,6 +101,17 @@ final class GesteReset {
                 "Dossier où sauvegarder (base + audio) avant de repartir de zéro",
                 Optional.of(sauvegarde.get().dossierParDefaut()));
         if (dossier.isEmpty()) {
+            return;
+        }
+        // La sauvegarde de sécurité doit pouvoir s'écrire : un dossier inutilisable est refusé AVANT le
+        // reset. Découvrir l'échec après avoir remis la base à neuf serait une perte sèche.
+        SondeAccessibilite.Verdict verdict = SondeAccessibilite.sonder(dossier.get());
+        if (!verdict.accessible()) {
+            notificateur.notifier(
+                    NiveauNotification.AVERTISSEMENT,
+                    "Dossier inutilisable",
+                    "La sauvegarde de sécurité ne peut pas s'écrire ici (" + verdict.motif() + ") :\n" + dossier.get()
+                            + "\nChoisissez un autre dossier avant de réinitialiser.");
             return;
         }
         if (!confirmateur.confirmer(texteDeConfirmation(bilan))) {

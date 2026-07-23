@@ -258,7 +258,7 @@ class OngletReglagesEmplacementsTest {
 
         Region racine = construire(onglet);
         surFx(() -> bouton(racine, "emplacements-appliquer").fire()); // fait apparaître l'avis + le bouton Quitter
-        surFx(() -> bouton(racine, "emplacements-quitter").fire());
+        surFx(() -> bouton(racine, "avis-redemarrage-quitter").fire());
 
         assertThat(quitte[0])
                 .as("« Quitter » passe par le double de sortie, jamais par Platform.exit()")
@@ -329,7 +329,7 @@ class OngletReglagesEmplacementsTest {
     }
 
     private static Node avis(Region racine) {
-        return racine.lookup(".emplacements-avis");
+        return racine.lookup(".avis-redemarrage");
     }
 
     private static void surFx(Runnable action) {

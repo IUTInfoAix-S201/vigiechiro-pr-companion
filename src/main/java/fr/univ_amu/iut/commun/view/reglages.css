@@ -131,6 +131,7 @@
 
 .emplacements-libelle {
     -fx-font-weight: bold;
+    -fx-text-fill: -couleur-texte;
 }
 
 .emplacements-aide {
@@ -157,13 +158,15 @@
     -fx-padding: 14 0 0 0;
 }
 
-.emplacements-avis {
+/* Avis « effet au prochain démarrage », partagé (#2258) entre les onglets Emplacements et
+   Fonctionnalités (composant AvisRedemarrage). */
+.avis-redemarrage {
     -fx-spacing: 8;
     -fx-padding: 14;
     -fx-background-color: -couleur-primaire-voile;
     -fx-background-radius: 6;
 }
 
-.emplacements-avis-texte {
+.avis-redemarrage-texte {
     -fx-text-fill: -couleur-primaire-sombre;
 }

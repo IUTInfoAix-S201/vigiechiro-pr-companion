@@ -84,6 +84,14 @@ public final class CaptureEcranReglages {
         SourceDeDonnees source = injecteur.getInstance(SourceDeDonnees.class);
         new MigrationSchema(source).migrer();
 
+        // La base est désormais liée au workspace temporaire (singleton Guice, déjà résolu ci-dessus).
+        // On efface la surcharge pour que l'onglet « Emplacements » affiche les emplacements PAR DÉFAUT
+        // (`<home>/Documents/VigieChiro-Companion`) plutôt que le dossier temporaire de capture, dont le
+        // nom aléatoire ferait diverger l'aperçu à chaque régénération. `emplacementsCourants()` résout
+        // les chemins sans toucher la base ; les autres onglets lisent `app_setting` via la source déjà
+        // liée, pas via une nouvelle résolution.
+        System.clearProperty("vigiechiro.workspace");
+
         Parent ecran = chargerFxml(injecteur, ECRAN);
         ApercuFx.enregistrerPng(new Scene(ecran, 760, 520), sortie.resolve("apercu-reglages.png"));
 
@@ -95,6 +103,12 @@ public final class CaptureEcranReglages {
         // aperçu qui ne montre que le premier onglet ne la documente nulle part.
         rendreOnglet(injecteur, "Import", sortie.resolve("apercu-reglages-import.png"));
         rendreOnglet(injecteur, "Dépôt", sortie.resolve("apercu-reglages-depot.png"));
+        // Onglet « Emplacements » (#1038) : où vivent le dossier de travail et la base. Il porte
+        // l'avertissement « le pointeur change, pas les données », qui doit être lisible avant le choix.
+        rendreOnglet(injecteur, "Emplacements", sortie.resolve("apercu-reglages-emplacements.png"));
+        // Onglet « Fonctionnalités » (#1057) : les interrupteurs par feature désactivable, et l'avis
+        // « effet au prochain démarrage » (composant partagé AvisRedemarrage, #2258).
+        rendreOnglet(injecteur, "Fonctionnalités", sortie.resolve("apercu-reglages-fonctionnalites.png"));
 
         System.out.println("Apercu des reglages ecrit dans " + sortie.toAbsolutePath());
     }

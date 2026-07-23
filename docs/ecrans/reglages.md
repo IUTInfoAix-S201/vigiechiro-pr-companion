@@ -48,6 +48,8 @@ ce domaine propose. Aujourd'hui :
   Contrairement aux autres réglages, ces bascules prennent effet **au prochain démarrage** de
   l'application (un bandeau le rappelle sur l'onglet).
 
+![L'onglet Fonctionnalités des Réglages : un interrupteur par fonctionnalité optionnelle, chacun rappelant que la bascule prend effet au prochain démarrage.](../assets/captures/apercu-reglages-fonctionnalites.png)
+
 Une modification est **enregistrée immédiatement** et **conservée d'une session à l'autre**. Seul
 l'**effet** des bascules de l'onglet « Fonctionnalités » s'applique au **prochain démarrage**.
 
@@ -61,6 +63,8 @@ l'**effet** des bascules de l'onglet « Fonctionnalités » s'applique au **proc
     où on la trouve quand on la cherche.
 
 ## Où l'application range ses données (onglet « Emplacements ») {#emplacements}
+
+![L'onglet Emplacements des Réglages : le dossier de travail et la base de données, chacun avec son chemin courant, un bouton « Choisir… » et le défaut rappelé ; en tête, l'avertissement « choisir un emplacement ne déplace pas vos données ».](../assets/captures/apercu-reglages-emplacements.png)
 
 L'onglet **Emplacements** décide **où vivent** deux choses :
 

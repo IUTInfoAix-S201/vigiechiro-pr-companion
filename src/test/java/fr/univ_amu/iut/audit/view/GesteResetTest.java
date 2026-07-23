@@ -24,6 +24,7 @@ import fr.univ_amu.iut.commun.view.Notificateur;
 import fr.univ_amu.iut.commun.view.OccupationChrome;
 import fr.univ_amu.iut.commun.view.SelecteurFichier;
 import fr.univ_amu.iut.commun.viewmodel.NavigationViewModel;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +32,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 /// Le **geste de reset** vu de l'IHM ([GesteReset], #1419), joué pour de vrai — jusqu'à la fermeture de
 /// l'application (#1405 : les dialogues sont des doubles, la fermeture aussi).
@@ -129,6 +131,23 @@ class GesteResetTest {
 
         verify(reset, never()).executer(any(), anyBoolean());
         assertThat(fermetures).as("et l'application reste ouverte").isZero();
+    }
+
+    @Test
+    @DisplayName("#2258 : dossier de sauvegarde inutilisable (un fichier) → reset refusé AVANT toute destruction")
+    void destination_de_secours_inutilisable_refuse_le_reset(@TempDir Path racine) throws Exception {
+        // La sonde partagée (#2258) refuse un dossier de sécurité inutilisable au moment du choix : ici un
+        // fichier. Le reset ne doit rien remettre à neuf tant que la sauvegarde ne peut pas s'écrire.
+        when(recuperabilite.bilan()).thenReturn(bilanAvecPerte());
+        choix = Optional.of(Files.createFile(racine.resolve("pas-un-dossier")));
+
+        geste.lancer();
+
+        verify(reset, never()).executer(any(), anyBoolean());
+        assertThat(annonces).singleElement().asString().contains("Dossier inutilisable");
+        assertThat(fermetures)
+                .as("l'application reste ouverte, la base intacte")
+                .isZero();
     }
 
     @Test

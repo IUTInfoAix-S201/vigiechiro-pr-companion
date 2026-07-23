@@ -20,16 +20,16 @@
 
 **Critères d'acceptation** :
 
-- [ ] Le bouton « Vérifier et préparer le dépôt » est **désactivé** tant que le passage n'a pas de verdict (statut < `Vérifié`).
+- [x] Le bouton « Vérifier et préparer le dépôt » est **désactivé** tant que le passage n'a pas de verdict (statut < `Vérifié`).
 - [ ] Si le verdict est `Inexploitable`, le bouton reste désactivé avec un message explicite « Ce passage ne peut pas être déposé ([R14](../Modèle%20conceptuel/Règles%20métier.md#r14)). Modifiez le verdict via la vue de vérification si vous changez d'avis. »
-- [ ] Au clic sur « Vérifier et préparer le dépôt », l'application enchaîne une série de **vérifications** et affiche un rapport :
+- [x] Au clic sur « Vérifier et préparer le dépôt », l'application enchaîne une série de **vérifications** et affiche un rapport :
     - tous les enregistrements originaux ont-ils été transformés en séquences d'écoute ?
     - le préfixe `CarXXXXXX-AAAA-PassN-YY-` est-il présent et conforme sur tous les fichiers ([R6](../Modèle%20conceptuel/Règles%20métier.md#r6), [R7](../Modèle%20conceptuel/Règles%20métier.md#r7), [R8](../Modèle%20conceptuel/Règles%20métier.md#r8)) ?
     - le journal du capteur et le relevé climatique sont-ils présents (ou explicitement signalés absents) ?
     - le dossier de sortie est-il accessible en écriture ?
-- [ ] Chaque vérification est affichée en ligne avec une icône ✅ ou ❌ et un message court.
-- [ ] Si **au moins une vérification échoue**, le passage au statut `Prêt à déposer` est bloqué et l'utilisateur est invité à corriger (lien direct vers le parcours concerné pour les corrections faisables in-app).
-- [ ] Si **toutes les vérifications passent**, le passage transitionne vers `Prêt à déposer` et l'écran [E4.S2](#e4s2) s'ouvre.
+- [x] Chaque vérification est affichée en ligne avec une icône ✅ ou ❌ et un message court.
+- [x] Si **au moins une vérification échoue**, le passage au statut `Prêt à déposer` est bloqué et l'utilisateur est invité à corriger (lien direct vers le parcours concerné pour les corrections faisables in-app).
+- [x] Si **toutes les vérifications passent**, le passage transitionne vers `Prêt à déposer` et l'écran [E4.S2](#e4s2) s'ouvre.
 
 **Parcours rattaché** : [P4](../Parcours%20utilisateurs/P4%20-%20Préparer%20un%20lot%20prêt%20à%20déposer.md), étapes 1-2<br>
 **Maquettes cibles** : [M-Lot](../Maquettes/M-Lot.md) (rapport de vérifications avec ✅/❌ par ligne)<br>
@@ -47,12 +47,12 @@
 
 **Critères d'acceptation** :
 
-- [ ] L'écran « Dépôt » affiche : nombre de séquences d'écoute, taille totale, chemin absolu du dossier de sortie sur le disque local.
-- [ ] Un bouton **« Ouvrir le dossier dans l'explorateur »** (libellé exact à voir avec la maquette) déclenche l'ouverture du dossier dans l'explorateur natif de l'OS (Files sous Linux, Finder sous macOS, Explorer sous Windows).
+- [x] L'écran « Dépôt » affiche : nombre de séquences d'écoute, taille totale, chemin absolu du dossier de sortie sur le disque local.
+- [x] Un bouton **« Ouvrir le dossier dans l'explorateur »** (libellé exact à voir avec la maquette) déclenche l'ouverture du dossier dans l'explorateur natif de l'OS (Files sous Linux, Finder sous macOS, Explorer sous Windows).
 - [ ] Le chemin du dossier est aussi affiché sous forme **copiable** (clic icône « copier ») pour les cas où le bouton « Ouvrir » ne fonctionne pas (ex. environnement sans bureau graphique).
 - [ ] En **repli** (hors connexion), un rappel indique comment déposer à la main : « Téléversez ces fichiers sur https://vigiechiro.herokuapp.com/ depuis votre navigateur, puis revenez marquer le passage déposé. »
 - [ ] Un lien direct vers le portail Vigie-Chiro est mis à disposition (s'ouvre dans le navigateur par défaut).
-- [ ] Tests d'intégration : le bouton « Ouvrir le dossier » se résout-il correctement sur Linux/macOS/Windows ? (à arbitrer selon l'OS de référence)
+- [x] Tests d'intégration : le bouton « Ouvrir le dossier » se résout-il correctement sur Linux/macOS/Windows ? (à arbitrer selon l'OS de référence)
 
 **Parcours rattaché** : [P4](../Parcours%20utilisateurs/P4%20-%20Préparer%20un%20lot%20prêt%20à%20déposer.md), étapes 3-4<br>
 **Maquettes cibles** : [M-Lot](../Maquettes/M-Lot.md) (récapitulatif + bouton « Ouvrir le dossier » + lien externe Vigie-Chiro)<br>
@@ -70,12 +70,12 @@
 
 **Critères d'acceptation** :
 
-- [ ] Sur l'écran « Dépôt », un bouton **« J'ai déposé »** (ou libellé équivalent) est mis en avant.
+- [x] Sur l'écran « Dépôt », un bouton **« J'ai déposé »** (ou libellé équivalent) est mis en avant.
 - [ ] Le clic ouvre une confirmation explicite : « Confirmez-vous avoir téléversé tous les fichiers sur Vigie-Chiro ? Cette action passe le passage au statut `Déposé` et mémorise la date du jour comme date de dépôt. »
-- [ ] À la confirmation, le passage transitionne vers le statut `Déposé` ([E0.S3](E0%20-%20Fondations%20de%20persistance.md#e0s3)) et la date courante est persistée comme **date de dépôt déclarée**.
+- [x] À la confirmation, le passage transitionne vers le statut `Déposé` ([E0.S3](E0%20-%20Fondations%20de%20persistance.md#e0s3)) et la date courante est persistée comme **date de dépôt déclarée**.
 - [ ] Le bouton est ensuite remplacé par une mention « Déposé le JJ/MM/AAAA » (modifiable via une action « Corriger la date de dépôt » pour gérer les cas où le téléversement a eu lieu un autre jour).
-- [ ] Un passage `Déposé` apparaît distinctement dans la liste des passages (badge vert ou similaire).
-- [ ] L'utilisateur peut **annuler** la déclaration de dépôt (retour au statut `Prêt à déposer`) en cas d'erreur, avec confirmation explicite.
+- [x] Un passage `Déposé` apparaît distinctement dans la liste des passages (badge vert ou similaire).
+- [x] L'utilisateur peut **annuler** la déclaration de dépôt (retour au statut `Prêt à déposer`) en cas d'erreur, avec confirmation explicite.
 
 **Parcours rattaché** : [P4](../Parcours%20utilisateurs/P4%20-%20Préparer%20un%20lot%20prêt%20à%20déposer.md), étape 5<br>
 **Maquettes cibles** : [M-Lot](../Maquettes/M-Lot.md) (bouton « J'ai déposé » + variante état déposé)<br>
@@ -93,11 +93,11 @@
 
 **Critères d'acceptation** :
 
-- [ ] La fiche détail d'un passage affiche **clairement** le statut d'avancement courant (badge coloré).
-- [ ] Un mini-bandeau visuel (type indicateur d’étapes horizontal) montre les **5 statuts du cycle** avec le statut courant mis en évidence et les précédents marqués comme franchis.
+- [x] La fiche détail d'un passage affiche **clairement** le statut d'avancement courant (badge coloré).
+- [x] Un mini-bandeau visuel (type indicateur d’étapes horizontal) montre les **5 statuts du cycle** avec le statut courant mis en évidence et les précédents marqués comme franchis.
 - [ ] Pour chaque transition franchie, on voit **la date** de la transition (ex. « Importé le 15/06, Transformé le 15/06, Vérifié le 16/06 avec verdict OK, Déposé le 17/06 »).
-- [ ] Si le passage est bloqué (verdict `Inexploitable`, vérifications échouées en [E4.S1](#e4s1)), un indicateur explicite signale la raison du blocage.
-- [ ] Dans la vue tabulaire multi-sites (cf. [E5](index.md)), le statut est une colonne triable et filtrable.
+- [x] Si le passage est bloqué (verdict `Inexploitable`, vérifications échouées en [E4.S1](#e4s1)), un indicateur explicite signale la raison du blocage.
+- [x] Dans la vue tabulaire multi-sites (cf. [E5](index.md)), le statut est une colonne triable et filtrable.
 - [ ] Le statut courant et l'historique sont **persistés** en BD et survivent aux redémarrages.
 
 **Parcours rattaché** : [P4](../Parcours%20utilisateurs/P4%20-%20Préparer%20un%20lot%20prêt%20à%20déposer.md) (transverse - pertinent aussi pour P2, P3 et P5)<br>
@@ -116,10 +116,10 @@
 
 **Critères d'acceptation** :
 
-- [ ] Les séquences sont découpées en archives **`<préfixe>-N.zip`** numérotées, écrites dans le sous-dossier **`depot/`** de la session ([R22](../Modèle%20conceptuel/Règles%20métier.md#r22)).
-- [ ] Chaque archive respecte un **plafond de taille** (~700 Mo par défaut, configurable) ; la **taille réelle est vérifiée après écriture**.
-- [ ] La génération **vérifie l'espace disque** disponible avant d'écrire et **refuse tôt** s'il manque.
-- [ ] Les archives sont **régénérables à l'identique** ; leur **suppression** n'est permise que si le passage est marqué **déposé**.
+- [x] Les séquences sont découpées en archives **`<préfixe>-N.zip`** numérotées, écrites dans le sous-dossier **`depot/`** de la session ([R22](../Modèle%20conceptuel/Règles%20métier.md#r22)).
+- [x] Chaque archive respecte un **plafond de taille** (~700 Mo par défaut, configurable) ; la **taille réelle est vérifiée après écriture**.
+- [x] La génération **vérifie l'espace disque** disponible avant d'écrire et **refuse tôt** s'il manque.
+- [x] Les archives sont **régénérables à l'identique** ; leur **suppression** n'est permise que si le passage est marqué **déposé**.
 
 **Parcours rattaché** : [P4](../Parcours%20utilisateurs/P4%20-%20Préparer%20un%20lot%20prêt%20à%20déposer.md), génération du dépôt<br>
 **Maquettes cibles** : [M-Lot](../Maquettes/M-Lot.md) (« Générer les archives » / « Supprimer les archives ZIP locales »)<br>
@@ -140,10 +140,10 @@
 
 **Critères d'acceptation** :
 
-- [ ] Un passage dont les séquences ne sont plus sur le disque est **consultable mais pas écoutable** (état « archivé » observé).
-- [ ] La réactivation désigne un dossier et **ne rebranche fichier par fichier que ce qui est vérifié** : un fichier dont l'identité ne correspond pas est **compté, motivé et rapporté**, jamais rebranché (un cri validé en écoutant autre chose serait une erreur scientifique).
-- [ ] **Deux voies** : séquences présentes rebranchées directement, ou seulement les **bruts** régénérés puis soumis à la même garde ; ni l'un ni l'autre → **aucune** réactivation (on n'invente rien).
-- [ ] L'opération est **idempotente et non destructrice** : fichiers **copiés** (jamais déplacés), observations et vérifications **non touchées**.
+- [x] Un passage dont les séquences ne sont plus sur le disque est **consultable mais pas écoutable** (état « archivé » observé).
+- [x] La réactivation désigne un dossier et **ne rebranche fichier par fichier que ce qui est vérifié** : un fichier dont l'identité ne correspond pas est **compté, motivé et rapporté**, jamais rebranché (un cri validé en écoutant autre chose serait une erreur scientifique).
+- [x] **Deux voies** : séquences présentes rebranchées directement, ou seulement les **bruts** régénérés puis soumis à la même garde ; ni l'un ni l'autre → **aucune** réactivation (on n'invente rien).
+- [x] L'opération est **idempotente et non destructrice** : fichiers **copiés** (jamais déplacés), observations et vérifications **non touchées**.
 
 **Parcours rattaché** : [P12](../Parcours%20utilisateurs/P12%20-%20Récupérer%20une%20nuit%20déposée%20sur%20VigieChiro.md), après reconstruction<br>
 **Maquettes cibles** : [M-Passage](../Maquettes/M-Passage.md) (action « Réactiver ce passage »)<br>

@@ -22,9 +22,9 @@ import picocli.CommandLine.Spec;
 /// jeton dans l'historique du shell).
 ///
 /// Code retour **`0` dès lors que le traitement est en route** — que le serveur vienne de l'accepter ou
-/// qu'il tourne déjà (la commande est donc **idempotente**, scriptable sans crainte) — et `1` sinon
-/// (refus, serveur injoignable, relance bloquée). Lève une [RegleMetierException] si aucune participation
-/// n'est liée au passage (déposer d'abord).
+/// qu'il tourne déjà (la commande est donc **idempotente**, scriptable sans crainte) —, **`1`** si le
+/// serveur a refusé la relance, et **`2`** pour un refus métier en amont (dépôt indisponible, ou aucune
+/// participation liée au passage : déposer d'abord), qui remonte via le handler central (#2294).
 ///
 /// ⚠️ **Une nuit déjà analysée n'est pas relancée** : le serveur supprimerait ses observations pour les
 /// recalculer, or l'audio d'un dépôt en archives ZIP n'est pas récupérable (#1244, #1261). L'option
@@ -69,18 +69,26 @@ public final class LancerTraitementVigieChiro implements Callable<Integer> {
 
     @Override
     public Integer call() {
-        DepotVigieChiro moteur = depot.orElseThrow(
-                () -> new RegleMetierException("Dépôt Vigie-Chiro indisponible dans ce contexte d'exécution."));
-        if (token != null && !token.isBlank()) {
-            // Jeton ponctuel consulté par le client à chaque requête, sans rien persister.
-            System.setProperty("vigiechiro.token", token);
+        // Barème scriptable 0/1/2 : la commande pose ses codes elle-même. Un refus métier en amont (dépôt
+        // indisponible, aucune participation liée) est un 2 « pas pu faire » (#2294), qu'on capte ici plutôt
+        // que de le laisser au handler central, pour que le code ne dépende pas du harnais d'invocation.
+        try {
+            DepotVigieChiro moteur = depot.orElseThrow(
+                    () -> new RegleMetierException("Dépôt Vigie-Chiro indisponible dans ce contexte d'exécution."));
+            if (token != null && !token.isBlank()) {
+                // Jeton ponctuel consulté par le client à chaque requête, sans rien persister.
+                System.setProperty("vigiechiro.token", token);
+            }
+            PrintWriter sortie = spec.commandLine().getOut();
+            ResultatLancement resultat = moteur.lancerTraitement(idPassage, forcer);
+            sortie.println(compteRendu(resultat));
+            // 0 = le traitement est en route (accepté ou déjà en cours) : idempotent. 1 = le serveur a
+            // refusé la relance.
+            return resultat.traitementEnRoute() ? 0 : 1;
+        } catch (RegleMetierException refus) {
+            spec.commandLine().getErr().println("Lancement impossible : " + refus.getMessage());
+            return 2;
         }
-        PrintWriter sortie = spec.commandLine().getOut();
-        ResultatLancement resultat = moteur.lancerTraitement(idPassage, forcer);
-        sortie.println(compteRendu(resultat));
-        // 0 = le traitement est en route, qu'il vienne d'être accepté ou qu'il tournait déjà : rejouer la
-        // commande ne doit pas faire échouer un script (idempotence).
-        return resultat.traitementEnRoute() ? 0 : 1;
     }
 
     /// Compte rendu du lancement, une ligne par issue. Le message d'avant s'achevait sur « (déjà en

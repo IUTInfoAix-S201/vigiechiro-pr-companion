@@ -71,7 +71,8 @@ public final class StatutPassage implements Callable<Integer> {
     @Override
     public Integer call() {
         PrintWriter sortie = spec.commandLine().getOut();
-        // Lève RegleMetierException si le passage est introuvable → traité en échec d'exécution (code 1).
+        // Lève RegleMetierException si le passage est introuvable → refus métier (code 2, état intact ;
+        // convention #2294).
         DetailPassage detail = servicePassage.detailPassage(idPassage);
         Optional<ResultatsIdentification> tadarida = resultatsDao.findByPassage(idPassage);
         boolean heuresProuvees = conditions.heuresProuvees(idPassage);

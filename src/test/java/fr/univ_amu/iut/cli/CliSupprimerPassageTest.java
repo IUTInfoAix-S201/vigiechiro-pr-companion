@@ -84,7 +84,7 @@ class CliSupprimerPassageTest {
     }
 
     @Test
-    @DisplayName("Un passage DÉPOSÉ est refusé par le métier (1), même avec --confirmer")
+    @DisplayName("Un passage DÉPOSÉ est refusé par le métier (2), même avec --confirmer")
     void passage_depose_refuse_meme_confirme() {
         long idDepose = semerUneNuit(2, StatutWorkflow.DEPOSE);
 
@@ -94,18 +94,19 @@ class CliSupprimerPassageTest {
                 erreur);
 
         assertThat(code)
-                .as("le drapeau atteste d'une intention, il ne lève pas une règle métier")
-                .isEqualTo(Cli.CODE_ERREUR_EXECUTION);
+                .as("le drapeau atteste d'une intention, il ne déroge pas à la règle métier qui protège un"
+                        + " passage DÉPOSÉ (refus, état intact)")
+                .isEqualTo(Cli.CODE_REFUS);
         assertThat(passageDao.findById(idDepose)).isPresent();
     }
 
     @Test
-    @DisplayName("Un passage introuvable échoue (1) sans rien détruire")
+    @DisplayName("Un passage introuvable est refusé (2) sans rien détruire")
     void passage_introuvable_echoue() {
         int code =
                 cli.executer(new String[] {"supprimer-passage", "--passage", "999999", "--confirmer"}, sortie, erreur);
 
-        assertThat(code).isEqualTo(Cli.CODE_ERREUR_EXECUTION);
+        assertThat(code).isEqualTo(Cli.CODE_REFUS);
         assertThat(passageDao.findAll()).as("la base reste intacte").hasSize(1);
     }
 

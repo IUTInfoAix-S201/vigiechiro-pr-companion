@@ -152,12 +152,12 @@ class CliTest {
     }
 
     @Test
-    @DisplayName("statut-passage sur un passage introuvable : échec métier (1), lecture seule")
+    @DisplayName("statut-passage sur un passage introuvable : refus métier (2), lecture seule")
     void statut_passage_introuvable_echoue() {
         int code = cli.executer(new String[] {"statut-passage", "--passage", "999"}, sortie, erreur);
 
-        assertThat(code).isEqualTo(Cli.CODE_ERREUR_EXECUTION);
-        assertThat(texteErreur()).contains("Échec").contains("introuvable");
+        assertThat(code).isEqualTo(Cli.CODE_REFUS);
+        assertThat(texteErreur()).contains("Refus").contains("introuvable");
     }
 
     @Test
@@ -211,7 +211,7 @@ class CliTest {
     }
 
     @Test
-    @DisplayName("creer-site avec un carré mal formé : échec métier (1), journalisé sans trace SEVERE")
+    @DisplayName("creer-site avec un carré mal formé : refus métier (2), journalisé sans trace SEVERE")
     void creer_site_carre_invalide_echoue() {
         Logger logCli = Logger.getLogger(Cli.class.getName());
         List<LogRecord> journalises = new ArrayList<>();
@@ -231,8 +231,8 @@ class CliTest {
         try {
             int code = cli.executer(new String[] {"creer-site", "--carre", "pas-un-carre"}, sortie, erreur);
 
-            assertThat(code).isEqualTo(Cli.CODE_ERREUR_EXECUTION);
-            assertThat(texteErreur()).contains("Échec");
+            assertThat(code).isEqualTo(Cli.CODE_REFUS);
+            assertThat(texteErreur()).contains("Refus");
             assertThat(journalises)
                     .as("un carré mal formé est un refus métier (R1), pas un incident : aucune trace SEVERE")
                     .noneMatch(enregistrement -> enregistrement.getLevel() == Level.SEVERE);
@@ -242,12 +242,12 @@ class CliTest {
     }
 
     @Test
-    @DisplayName("ajouter-point sur un site introuvable : échec métier (1)")
+    @DisplayName("ajouter-point sur un site introuvable : refus métier (2)")
     void ajouter_point_site_introuvable_echoue() {
         int code = cli.executer(new String[] {"ajouter-point", "--site", "999", "--code", "A1"}, sortie, erreur);
 
-        assertThat(code).isEqualTo(Cli.CODE_ERREUR_EXECUTION);
-        assertThat(texteErreur()).contains("Échec").contains("Site introuvable");
+        assertThat(code).isEqualTo(Cli.CODE_REFUS);
+        assertThat(texteErreur()).contains("Refus").contains("Site introuvable");
     }
 
     @Test
@@ -272,7 +272,7 @@ class CliTest {
     }
 
     @Test
-    @DisplayName("importer-tadarida sur un passage sans nuit importée : échec métier (1)")
+    @DisplayName("importer-tadarida sur un passage sans nuit importée : refus métier (2)")
     void importer_tadarida_passage_sans_session_echoue() throws Exception {
         Path csv = workspace.resolve("observations.csv");
         try (var flux = getClass().getResourceAsStream("/validation/observations_brut.csv")) {
@@ -282,8 +282,8 @@ class CliTest {
         int code = cli.executer(
                 new String[] {"importer-tadarida", "--passage", "999", "--csv", csv.toString()}, sortie, erreur);
 
-        assertThat(code).isEqualTo(Cli.CODE_ERREUR_EXECUTION);
-        assertThat(texteErreur()).contains("Échec").contains("session");
+        assertThat(code).isEqualTo(Cli.CODE_REFUS);
+        assertThat(texteErreur()).contains("Refus").contains("session");
     }
 
     @Test
@@ -296,12 +296,12 @@ class CliTest {
     }
 
     @Test
-    @DisplayName("qualifier sur un passage introuvable : échec métier (1)")
+    @DisplayName("qualifier sur un passage introuvable : refus métier (2)")
     void qualifier_passage_introuvable() {
         int code = cli.executer(new String[] {"qualifier", "--passage", "999", "--verdict", "ok"}, sortie, erreur);
 
-        assertThat(code).isEqualTo(Cli.CODE_ERREUR_EXECUTION);
-        assertThat(texteErreur()).contains("Échec").contains("introuvable");
+        assertThat(code).isEqualTo(Cli.CODE_REFUS);
+        assertThat(texteErreur()).contains("Refus").contains("introuvable");
     }
 
     @Test
@@ -322,15 +322,15 @@ class CliTest {
     }
 
     @Test
-    @DisplayName("qualifier-fichier sans sélection d'écoute : échec métier (1)")
+    @DisplayName("qualifier-fichier sans sélection d'écoute : refus métier (2)")
     void qualifier_fichier_sans_selection() {
         int code = cli.executer(
                 new String[] {"qualifier-fichier", "--passage", "1", "--sequence", "1", "--verdict", "bon"},
                 sortie,
                 erreur);
 
-        assertThat(code).isEqualTo(Cli.CODE_ERREUR_EXECUTION);
-        assertThat(texteErreur()).contains("Échec").contains("sélection");
+        assertThat(code).isEqualTo(Cli.CODE_REFUS);
+        assertThat(texteErreur()).contains("Refus").contains("sélection");
     }
 
     @Test
@@ -346,21 +346,21 @@ class CliTest {
     }
 
     @Test
-    @DisplayName("pre-check sur un passage introuvable : échec métier (1)")
+    @DisplayName("pre-check sur un passage introuvable : refus métier (2)")
     void precheck_passage_introuvable() {
         int code = cli.executer(new String[] {"pre-check", "--passage", "999"}, sortie, erreur);
 
-        assertThat(code).isEqualTo(Cli.CODE_ERREUR_EXECUTION);
-        assertThat(texteErreur()).contains("Échec").contains("introuvable");
+        assertThat(code).isEqualTo(Cli.CODE_REFUS);
+        assertThat(texteErreur()).contains("Refus").contains("introuvable");
     }
 
     @Test
-    @DisplayName("constituer-selection sur un passage introuvable : échec métier (1)")
+    @DisplayName("constituer-selection sur un passage introuvable : refus métier (2)")
     void constituer_selection_passage_introuvable() {
         int code = cli.executer(new String[] {"constituer-selection", "--passage", "999"}, sortie, erreur);
 
-        assertThat(code).isEqualTo(Cli.CODE_ERREUR_EXECUTION);
-        assertThat(texteErreur()).contains("Échec").contains("introuvable");
+        assertThat(code).isEqualTo(Cli.CODE_REFUS);
+        assertThat(texteErreur()).contains("Refus").contains("introuvable");
     }
 
     @Test
@@ -374,12 +374,12 @@ class CliTest {
     }
 
     @Test
-    @DisplayName("deposer sur un passage introuvable : échec métier (1)")
+    @DisplayName("deposer sur un passage introuvable : refus métier (2)")
     void deposer_passage_introuvable() {
         int code = cli.executer(new String[] {"deposer", "--passage", "999"}, sortie, erreur);
 
-        assertThat(code).isEqualTo(Cli.CODE_ERREUR_EXECUTION);
-        assertThat(texteErreur()).contains("Échec");
+        assertThat(code).isEqualTo(Cli.CODE_REFUS);
+        assertThat(texteErreur()).contains("Refus");
     }
 
     @Test
@@ -426,25 +426,25 @@ class CliTest {
     }
 
     @Test
-    @DisplayName("exporter-vu sans résultats importés : échec métier (1), fichier non créé")
+    @DisplayName("exporter-vu sans résultats importés : refus métier (2), fichier non créé")
     void exporter_vu_sans_resultats_echoue() {
         Path cible = workspace.resolve("passage1_Vu.csv");
 
         int code = cli.executer(
                 new String[] {"exporter-vu", "--passage", "1", "--sortie", cible.toString()}, sortie, erreur);
 
-        assertThat(code).isEqualTo(Cli.CODE_ERREUR_EXECUTION);
+        assertThat(code).isEqualTo(Cli.CODE_REFUS);
         assertThat(texteErreur()).contains("Aucun résultat Tadarida");
         assertThat(Files.exists(cible)).isFalse();
     }
 
     @Test
-    @DisplayName("exporter-lot sur un passage introuvable : échec métier (1)")
+    @DisplayName("exporter-lot sur un passage introuvable : refus métier (2)")
     void exporter_lot_passage_introuvable_echoue() {
         int code = cli.executer(new String[] {"exporter-lot", "--passage", "999"}, sortie, erreur);
 
-        assertThat(code).isEqualTo(Cli.CODE_ERREUR_EXECUTION);
-        assertThat(texteErreur()).contains("Échec");
+        assertThat(code).isEqualTo(Cli.CODE_REFUS);
+        assertThat(texteErreur()).contains("Refus");
     }
 
     @Test

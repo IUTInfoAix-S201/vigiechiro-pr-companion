@@ -138,10 +138,12 @@ class LancerTraitementVigieChiroTest {
     }
 
     @Test
-    @DisplayName("dépôt indisponible (contexte sans connexion) → échec d'exécution")
-    void depot_indisponible_echoue() {
+    @DisplayName("dépôt indisponible (contexte sans connexion) → code 2 : refus métier en amont (#2294)")
+    void depot_indisponible_code_deux() {
         int code = ligne(Optional.empty(), new StringWriter()).execute("--passage", "42");
 
-        assertThat(code).isNotZero();
+        assertThat(code)
+                .as("refus métier en amont = 2, distinct du 1 « le serveur a refusé la relance »")
+                .isEqualTo(2);
     }
 }

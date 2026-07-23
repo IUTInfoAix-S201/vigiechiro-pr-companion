@@ -30,9 +30,8 @@ import picocli.CommandLine.Spec;
 /// rapporté, avec son motif.
 ///
 /// **Codes de sortie** (exploitables en script) : `0` l'audio est **entièrement** revenu · `1` réactivation
-/// **partielle** (des séquences restent divergentes ou introuvables) · `1` également en cas de refus métier
-/// (passage inconnu, jamais importé, dossier introuvable), le message disant lequel · `2` invocation
-/// incorrecte.
+/// **partielle** (des séquences restent divergentes ou introuvables) · `2` refus métier (passage inconnu,
+/// jamais importé, dossier introuvable), le message disant lequel, ou invocation incorrecte.
 @Command(
         name = "reactiver",
         description = "Réactive un passage archivé : réimporte les fichiers d'origine depuis un dossier, "
@@ -79,7 +78,8 @@ public final class Reactiver implements Callable<Integer> {
     @Override
     public Integer call() {
         PrintWriter sortie = spec.commandLine().getOut();
-        // Lève RegleMetierException (passage inconnu, jamais importé, dossier introuvable) → code 1.
+        // Lève RegleMetierException (passage inconnu, jamais importé, dossier introuvable) → code 2 (refus,
+        // état intact ; convention #2294).
         RapportReactivation rapport = service.get()
                 .reactiver(
                         idPassage,

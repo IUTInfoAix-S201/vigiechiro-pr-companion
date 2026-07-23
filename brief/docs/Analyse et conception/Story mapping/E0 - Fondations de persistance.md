@@ -183,3 +183,66 @@
 **Parcours rattaché** : transverse (technique pur)<br>
 **Maquettes cibles** : aucune<br>
 **Dépendances** : [E0.S1](#e0s1)<br>
+
+---
+
+## E0.S9 - Réglages persistés et fonctionnalités désactivables { #e0s9 }
+
+**En tant que** [Samuel](../Personas/Samuel.md)
+
+**Je veux** régler l'application et couper les fonctionnalités dont je n'ai pas besoin
+
+**Afin d'** adapter l'outil à mon poste et à mon volume
+
+**Critères d'acceptation** :
+
+- [ ] Un écran de réglages présente des **onglets auto-découverts** (Général, Fonctionnalités, Emplacements, Dépôt, Import, Audio).
+- [ ] Les réglages typés (booléen / texte / entier) sont **persistés** dans une table clé/valeur ; une valeur absente ou illisible retombe sur son **défaut sans planter** ; les énums sont sérialisés **par valeur stable** (jamais par `name()`).
+- [ ] Des fonctionnalités **optionnelles ou expérimentales** peuvent être **désactivées** ; une fonctionnalité **« cœur » reste toujours active**.
+- [ ] La **précédence** est explicite : propriété système > alias de désactivation > flag persisté > défaut de la catégorie.
+
+**Parcours rattaché** : transverse (tous parcours)<br>
+**Maquettes cibles** : *écran de réglages non maquetté* (cf. [#2382](https://github.com/echonuit/vigiechiro-pr-companion/issues/2382))<br>
+**Dépendances** : [E0.S1](#e0s1)<br>
+
+---
+
+## E0.S10 - Sauvegarder et restaurer la base et l'audio { #e0s10 }
+
+**En tant que** [Samuel](../Personas/Samuel.md)
+
+**Je veux** sauvegarder mon travail et pouvoir le restaurer
+
+**Afin de** ne pas tout perdre en cas de panne disque ou de fausse manipulation
+
+**Critères d'acceptation** :
+
+- [ ] Sauvegarde **« base seule »** : instantané **cohérent** horodaté, même base ouverte (`VACUUM INTO`).
+- [ ] **Restauration** : vérifie la lisibilité, **met de côté la base courante** (filet), remplace, purge les journaux, et **rejoue la migration** pour être à jour.
+- [ ] Sauvegarde / restauration **« complète »** : base **+ audio**, en **disant ce qui n'a pas pu être copié**.
+- [ ] L'**emplacement de destination** est choisi par l'utilisateur.
+
+**Parcours rattaché** : transverse (tous parcours)<br>
+**Maquettes cibles** : *actions de menu non maquettées* (cf. [#2382](https://github.com/echonuit/vigiechiro-pr-companion/issues/2382))<br>
+**Dépendances** : [E0.S1](#e0s1)<br>
+
+---
+
+## E0.S11 - Auditer la cohérence et réinitialiser proprement { #e0s11 }
+
+**En tant que** [Samuel](../Personas/Samuel.md)
+
+**Je veux** vérifier que ma base et mes fichiers sont cohérents, et repartir proprement si besoin
+
+**Afin de** garder une base saine sur la durée
+
+**Critères d'acceptation** :
+
+- [ ] Un **audit en lecture seule** vérifie, par passage, la présence disque, le préfixe attendu et la cohérence des unités déposées, plus un **balayage inverse** des orphelins ; **en ligne**, il confronte le dépôt au serveur et se **dégrade proprement hors connexion**.
+- [ ] Un **bilan de récupérabilité** classe chaque nuit **Disque → Serveur → Perdu** (un **dépôt ZIP** est « perdu » côté serveur) en lisant le **mode de dépôt réel**, jamais présumé.
+- [ ] Le **reset guidé** est ordonné : dire ce qu'on perdrait + acceptation, **exiger que la plateforme réponde avant de détruire**, sauvegarder, base neuve, repeupler depuis le serveur, audit final.
+- [ ] Une nuit **« perdue »** reste navigable en **passage archivé**, réactivable plus tard ([E4.S6](E4%20-%20Préparer%20et%20tracer%20le%20dépôt%20VigieChiro.md#e4s6)).
+
+**Parcours rattaché** : transverse (maintenance)<br>
+**Maquettes cibles** : *écran d'audit non maquetté* (cf. [#2382](https://github.com/echonuit/vigiechiro-pr-companion/issues/2382))<br>
+**Dépendances** : [E0.S1](#e0s1), [E9.S5](E9%20-%20Intégration%20plateforme%20VigieChiro.md#e9s5)<br>

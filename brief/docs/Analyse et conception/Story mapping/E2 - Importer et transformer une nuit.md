@@ -194,3 +194,47 @@
 **Parcours rattaché** : [P2](../Parcours%20utilisateurs/P2%20-%20Importer%20une%20nuit%20d%27enregistrement.md), notes importantes (« changer rétroactivement »)<br>
 **Maquettes cibles** : [M-Passage](../Maquettes/M-Passage.md) (avec action « Modifier le rattachement » et écran de confirmation)<br>
 **Dépendances** : [E0.S3](E0%20-%20Fondations%20de%20persistance.md#e0s3), [E2.S2](#e2s2), [E2.S5](#e2s5)<br>
+
+---
+
+## E2.S9 - Importer une carte SD contenant plusieurs nuits { #e2s9 }
+
+**En tant que** [Samuel](../Personas/Samuel.md) (dont les enregistreurs tournent plusieurs nuits d'affilée sur un même point)
+
+**Je veux** importer une carte SD qui contient plusieurs nuits, et que l'application les sépare toute seule
+
+**Afin de** ne pas découper mes enregistrements nuit par nuit à la main
+
+**Critères d'acceptation** :
+
+- [ ] L'import **détecte les nuits** d'une SD à journal unique et en fait **un passage distinct par nuit**.
+- [ ] Le découpage suit la nuit **soir J → matin J+1**, avec **bascule à midi** : un fichier enregistré avant midi appartient à la veille.
+- [ ] Une nuit dont le cycle s'est **mal terminé** (SD pleine, interruption) est signalée **tronquée** avec son motif ; une nuit **sans cycle** correspondant est supposée **complète** (pas de fausse alerte).
+- [ ] Le groupage fonctionne **même sans journal du capteur**, à partir des noms horodatés `PaRecPR..._AAAAMMJJ_HHMMSS.wav` ; les fichiers non horodatés sont ignorés.
+- [ ] Chaque nuit est **rattachée** à son site / point / n° de passage avant le traitement effectif.
+
+**Parcours rattaché** : [P2](../Parcours%20utilisateurs/P2%20-%20Importer%20une%20nuit%20d%27enregistrement.md), variante multi-nuits<br>
+**Maquettes cibles** : [M-Import](../Maquettes/M-Import.md) (tableau des nuits détectées)<br>
+**Dépendances** : [E2.S1](#e2s1), [E2.S2](#e2s2)<br>
+
+---
+
+## E2.S10 - Importer depuis une archive ZIP { #e2s10 }
+
+**En tant que** [Marie](../Personas/Marie.md)
+
+**Je veux** importer une nuit fournie sous forme d'archive ZIP
+
+**Afin de** traiter une carte que j'ai déjà compressée sans la décompresser à la main
+
+**Critères d'acceptation** :
+
+- [ ] Un fichier **`.zip`** est reconnu comme source d'import (détection par extension, insensible à la casse), par sélection ou **glisser-déposer**.
+- [ ] L'archive est **extraite sur disque** dans un dossier temporaire **sous le workspace** (pas en mémoire), pour ne pas saturer la RAM sur une nuit volumineuse.
+- [ ] L'extraction affiche une **progression déterminée** et peut être **annulée** (le partiel est nettoyé).
+- [ ] Une entrée qui tenterait de **s'évader du dossier** (chemin `../`) est **refusée** (garde « zip-slip »).
+- [ ] Un **dossier racine unique** dans l'archive est déplié pour pointer le vrai contenu.
+
+**Parcours rattaché** : [P2](../Parcours%20utilisateurs/P2%20-%20Importer%20une%20nuit%20d%27enregistrement.md), variante « SD zippée »<br>
+**Maquettes cibles** : [M-Import](../Maquettes/M-Import.md) (zone de dépôt acceptant un `.zip`)<br>
+**Dépendances** : [E2.S1](#e2s1)<br>

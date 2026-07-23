@@ -103,3 +103,48 @@
 **Parcours rattaché** : [P4](../Parcours%20utilisateurs/P4%20-%20Préparer%20un%20lot%20prêt%20à%20déposer.md) (transverse - pertinent aussi pour P2, P3 et P5)<br>
 **Maquettes cibles** : [M-Passage](../Maquettes/M-Passage.md) (indicateur d’étapes de statut + chronologie), [M-MultiSite](../Maquettes/M-MultiSite.md) (colonne statut filtrable)<br>
 **Dépendances** : [E0.S3](E0%20-%20Fondations%20de%20persistance.md#e0s3)<br>
+
+---
+
+## E4.S5 - Générer et gérer les archives ZIP de dépôt { #e4s5 }
+
+**En tant que** [Samuel](../Personas/Samuel.md)
+
+**Je veux** que l'application découpe mes séquences en archives ZIP prêtes à téléverser
+
+**Afin de** déposer un gros volume par paquets et libérer l'espace une fois en ligne
+
+**Critères d'acceptation** :
+
+- [ ] Les séquences sont découpées en archives **`<préfixe>-N.zip`** numérotées, écrites dans le sous-dossier **`depot/`** de la session ([R22](../Modèle%20conceptuel/Règles%20métier.md#r22)).
+- [ ] Chaque archive respecte un **plafond de taille** (~700 Mo par défaut, configurable) ; la **taille réelle est vérifiée après écriture**.
+- [ ] La génération **vérifie l'espace disque** disponible avant d'écrire et **refuse tôt** s'il manque.
+- [ ] Les archives sont **régénérables à l'identique** ; leur **suppression** n'est permise que si le passage est marqué **déposé**.
+
+**Parcours rattaché** : [P4](../Parcours%20utilisateurs/P4%20-%20Préparer%20un%20lot%20prêt%20à%20déposer.md), génération du dépôt<br>
+**Maquettes cibles** : [M-Lot](../Maquettes/M-Lot.md) (« Générer les archives » / « Supprimer les archives ZIP locales »)<br>
+**Dépendances** : [E4.S1](#e4s1)<br>
+
+---
+
+## E4.S6 - Réactiver un passage archivé en retrouvant ses fichiers { #e4s6 }
+
+**En tant que** [Karim](../Personas/Karim.md)
+
+**Je veux** ré-associer les fichiers d'un passage dont l'audio n'est plus sur le disque
+
+**Afin de** le réécouter après avoir libéré de l'espace ou réinstallé l'application
+
+!!! info "« Archivé » est un état observé, pas un geste"
+    Un passage est « archivé » **de fait** quand ses séquences ne sont plus sur le disque : c'est un **état recalculé sur le disque**, pas un drapeau stocké ni un bouton « Archiver ». De même, **ne pas conserver** les originaux est un **réglage d'import** (désactivé par défaut, [R9](../Modèle%20conceptuel/Règles%20métier.md#r9) / [R22](../Modèle%20conceptuel/Règles%20métier.md#r22)), pas une « purge » déclarée a posteriori. Il n'y a donc **ni bouton « Archiver » ni bouton « Purger »**.
+
+**Critères d'acceptation** :
+
+- [ ] Un passage dont les séquences ne sont plus sur le disque est **consultable mais pas écoutable** (état « archivé » observé).
+- [ ] La réactivation désigne un dossier et **ne rebranche fichier par fichier que ce qui est vérifié** : un fichier dont l'identité ne correspond pas est **compté, motivé et rapporté**, jamais rebranché (un cri validé en écoutant autre chose serait une erreur scientifique).
+- [ ] **Deux voies** : séquences présentes rebranchées directement, ou seulement les **bruts** régénérés puis soumis à la même garde ; ni l'un ni l'autre → **aucune** réactivation (on n'invente rien).
+- [ ] L'opération est **idempotente et non destructrice** : fichiers **copiés** (jamais déplacés), observations et vérifications **non touchées**.
+
+**Parcours rattaché** : [P12](../Parcours%20utilisateurs/P12%20-%20Récupérer%20une%20nuit%20déposée%20sur%20VigieChiro.md), après reconstruction<br>
+**Maquettes cibles** : [M-Passage](../Maquettes/M-Passage.md) (action « Réactiver ce passage »)<br>
+**Dépendances** : [E9.S5](E9%20-%20Intégration%20plateforme%20VigieChiro.md#e9s5)<br>

@@ -382,6 +382,16 @@ class DocumentationAJourTest {
                         NON_DECLAREES)
                 .isEmpty();
 
+        // Le backlog de classement est CLOS : les 49 ADR déclarent leur vérification. La liste ne doit
+        // plus jamais se re-remplir. Une ADR nouvelle déclare son niveau dans la PR qui l'introduit, au
+        // même titre qu'elle porte un Statut et un Chantier - elle ne passe pas par une dette différée.
+        verifs.assertThat(aClasser)
+                .as(
+                        "%s doit rester vide : le classement des ADR est terminé. Une ADR nouvelle déclare "
+                                + "sa vérification tout de suite, elle ne s'ajoute pas ici pour plus tard.",
+                        NON_DECLAREES)
+                .isEmpty();
+
         for (String fichier : fichiersAdr()) {
             Matcher declaration = VERIFICATION_ADR.matcher(lireNormalise(DECISIONS.resolve(fichier)));
             if (!declaration.find()) {

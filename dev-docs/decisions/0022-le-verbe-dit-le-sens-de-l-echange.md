@@ -2,6 +2,7 @@
 
 - **Statut** : Accepté — 2026-07-18
 - **Chantier** : #1855, #1866 (suites de l'EPIC #1662 et du chantier #1838)
+- **Vérification** : humaine — que le verbe d'un geste dise le sens réel de l'échange porte sur le vocabulaire de l'IHM, qu'aucun motif ne juge
 
 ## Contexte
 

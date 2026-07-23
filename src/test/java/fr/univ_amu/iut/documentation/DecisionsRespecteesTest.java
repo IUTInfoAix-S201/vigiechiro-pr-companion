@@ -95,6 +95,28 @@ class DecisionsRespecteesTest {
     }
 
     @Test
+    @DisplayName("ADR 0047 : l'installeur porte l'identité de distribution Echonuit")
+    void l_installeur_porte_l_identite_echonuit() {
+        // 0045 garde les constantes d'UPGRADE (UpgradeCode, scope) ; 0047 garde les constantes
+        // d'IDENTITÉ : le nom du produit, l'éditeur, le préfixe d'app-id. Distinctes parce qu'un
+        // renommage d'identité (retour à « VigieChiro PR » ou à un éditeur nominatif) ne toucherait
+        // pas les premières. Ce test ne couvre que le versant pom ; les autres canaux (winget,
+        // Flatpak) portent la même identité, gardée ailleurs.
+        String pom = lire(POM);
+
+        // Chaque identité est cherchée comme ARGUMENT jpackage, pas comme simple sous-chaîne : le pom
+        // mentionne « Echonuit » aussi en commentaire, et un test qui s'en contenterait resterait vert
+        // sur un vrai renommage d'éditeur. On vise donc l'argument, là où le renommage frapperait.
+        assertThat(pom)
+                .as("L'ADR 0047 fixe le nom du produit (« VigieChiro Companion », sans « PR »), son "
+                        + "éditeur (le projet Echonuit) et le préfixe d'app-id `fr.echonuit`. Le profil "
+                        + "jpackage doit les porter tels quels.")
+                .contains("<argument>VigieChiroCompanion</argument>")
+                .contains("<argument>Echonuit</argument>")
+                .contains("fr.echonuit.VigieChiroCompanion");
+    }
+
+    @Test
     @DisplayName("ADR 0004 : aucun cycle entre features ; les ponts passent par un port dans commun")
     void aucun_cycle_entre_les_features() {
         Map<String, Set<String>> arcs = dependancesEntreFeatures();

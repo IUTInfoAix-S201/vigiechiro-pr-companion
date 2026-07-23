@@ -6,9 +6,3 @@
 #
 # La classification de ces décisions est le chantier suivant : la majorité
 # partira en « humaine », et c'est un résultat, pas un échec.
-0012-audit-coherence-tout-ecart-visible-etat-normal-silencieux.md
-0022-le-verbe-dit-le-sens-de-l-echange.md
-0041-un-check-requis-gouverne-la-branche.md
-0043-la-mesure-fait-foi-en-ci.md
-0047-l-identite-de-distribution-est-le-projet-echonuit.md
-1881-l-identifiant-d-une-adr-est-le-numero-de-son-chantier.md

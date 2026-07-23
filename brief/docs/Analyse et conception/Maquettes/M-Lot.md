@@ -1,15 +1,18 @@
 # M-Lot - Préparation du dépôt
 
-> **Type** : vue plein écran (atteinte par clic « Vérifier et préparer le dépôt » depuis [M-Passage](M-Passage.md) ou depuis un raccourci dans [M-Qualification](M-Qualification.md) après saisie du verdict).
-> **Persona principal** : tous. C'est l'**étape finale** de la chaîne fil rouge : la nuit est vérifiée, on prépare son téléversement sur Vigie-Chiro.
+> **Type** : vue plein écran (atteinte par la carte « Préparer le dépôt » depuis [M-Passage](M-Passage.md)).
+> **Persona principal** : tous. C'est l'**étape finale** de la chaîne fil rouge : la nuit est vérifiée, on la dépose sur Vigie-Chiro.
 > **Parcours couverts** : [P4 - Préparer le dépôt](../Parcours%20utilisateurs/P4%20-%20Préparer%20un%20lot%20prêt%20à%20déposer.md).
+> **Issue** : #2337 (recadrage de la maquette sur l'écran livré), chantier #2369.
 
-Cette vue affiche un **rapport de cohérence** (toutes les vérifications préalables passent ✓ ou échouent ✗), puis le **récapitulatif du dépôt** prêt à téléverser (chemin sur disque, volume, lien direct pour ouvrir le dossier dans l'explorateur), et enfin la **section de téléversement manuel** avec lien vers le portail Vigie-Chiro et bouton de confirmation « J'ai déposé ». L'application **ne dialogue jamais** avec Vigie-Chiro : le téléversement reste manuel via navigateur.
+La vue déroule le dépôt en **quatre étapes** (un stepper les rappelle en tête), suivies de deux sections de suivi et d'entretien. Le chemin nominal est un **dépôt direct sur Vigie-Chiro depuis l'application** : elle crée la participation, téléverse les séquences au bon format, reprend sur coupure, puis on **lance l'analyse** Tadarida. L'ouverture du dossier pour un **dépôt navigateur** est un **repli** hors connexion, jamais le mode par défaut.
 
-## Maquette principale - vérifications passent, dépôt prêt
+> **Forme du dépôt** : le dépôt part en **archives ZIP** (≤ 700 Mo) ou en **séquences WAV**, selon le réglage *Réglages ▸ Dépôt*. En ZIP, la plateforme **ne conserve pas les sons** et la participation **n'est plus relançable** : c'est un arbitrage à connaître, rappelé à l'écran.
+
+## Maquette principale - la nuit est vérifiée, prête à déposer
 
 <div markdown="0">
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 820" role="img" aria-label="Maquette M-Lot - Préparation du dépôt" style="max-width: 100%; height: auto; border: 1px solid #d0d7de; border-radius: 6px; background: #fafbfc;">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 980" role="img" aria-label="Maquette M-Lot - Préparation du dépôt en quatre étapes" style="max-width: 100%; height: auto; border: 1px solid #d0d7de; border-radius: 6px; background: #fafbfc;">
   <style>
     .frame { fill: #ffffff; stroke: #2c3e50; stroke-width: 1.5; }
     .chrome { fill: #3f51b5; }
@@ -20,43 +23,39 @@ Cette vue affiche un **rapport de cohérence** (toutes les vérifications préal
     .breadcrumb-curr { font: 700 13px sans-serif; fill: #ffffff; }
     .pagetitle { font: 700 22px sans-serif; fill: #2c3e50; }
     .pagesub { font: 13px sans-serif; fill: #6a737d; }
+    .step-on { fill: #3f51b5; }
+    .step-off { fill: #eef0f6; stroke: #c8cee0; stroke-width: 1; }
+    .step-txt-on { fill: #ffffff; font: 600 12px sans-serif; }
+    .step-txt-off { fill: #6a737d; font: 600 12px sans-serif; }
     .info-bar { fill: #f6f8fa; stroke: #d0d7de; stroke-width: 1; }
     .info-label { font: 11px sans-serif; fill: #6a737d; }
     .info-value { font: 600 13px sans-serif; fill: #2c3e50; }
-    .section-title { font: 600 16px sans-serif; fill: #2c3e50; }
+    .card { fill: #ffffff; stroke: #d0d7de; stroke-width: 1; }
+    .section-title { font: 600 15px sans-serif; fill: #2c3e50; }
     .section-sub { font: 12px sans-serif; fill: #6a737d; }
-    .check-card { fill: #ffffff; stroke: #d0d7de; stroke-width: 1; }
-    .check-card-success { fill: #d4edda; stroke: #1e8449; stroke-width: 1; }
-    .check-row { font: 13px sans-serif; fill: #2c3e50; }
-    .check-detail { font: 12px sans-serif; fill: #6a737d; }
-    .check-ok { font: 16px sans-serif; fill: #1e8449; }
-    .check-pending { font: 16px sans-serif; fill: #6a737d; }
-    .lot-card { fill: #ffffff; stroke: #d0d7de; stroke-width: 1; }
-    .lot-label { font: 11px sans-serif; fill: #6a737d; }
-    .lot-value { font: 700 24px sans-serif; fill: #2c3e50; }
-    .lot-value-mono { font: 600 13px monospace; fill: #2c3e50; }
-    .lot-detail { font: 12px sans-serif; fill: #6a737d; }
-    .path-display { fill: #f6f8fa; stroke: #d0d7de; stroke-width: 1; }
-    .path-mono { font: 12px monospace; fill: #2c3e50; }
+    .check-ok { font: 14px sans-serif; fill: #1e8449; }
+    .check-warn { font: 14px sans-serif; fill: #b9770e; }
+    .check-row { font: 12.5px sans-serif; fill: #2c3e50; }
     .btn-primary { fill: #4a90d9; stroke: #2563a3; stroke-width: 1; }
-    .btn-primary-big { fill: #1e8449; stroke: #0e5128; stroke-width: 1; }
+    .btn-cloud { fill: #1e8449; stroke: #0e5128; stroke-width: 1; }
     .btn-secondary { fill: #ffffff; stroke: #2c3e50; stroke-width: 1; }
-    .btn-link { fill: none; stroke: none; }
+    .btn-danger { fill: #ffffff; stroke: #a93226; stroke-width: 1; }
     .btn-txt { fill: #ffffff; font: 600 13px sans-serif; }
-    .btn-txt-big { fill: #ffffff; font: 700 14px sans-serif; }
     .btn-txt-dark { fill: #2c3e50; font: 600 13px sans-serif; }
-    .btn-txt-link { fill: #4a90d9; font: 600 13px sans-serif; text-decoration: underline; }
-    .step-num { fill: #4a90d9; }
-    .step-num-txt { fill: #ffffff; font: 700 14px sans-serif; }
-    .upload-note { font: 12px sans-serif; fill: #2c3e50; }
-    .upload-warn-box { fill: #fef9e7; stroke: #b9770e; stroke-width: 1; }
-    .upload-warn-txt { font: 13px sans-serif; fill: #5d4e00; }
+    .btn-txt-danger { fill: #a93226; font: 600 13px sans-serif; }
+    .btn-txt-link { fill: #4a90d9; font: 600 12px sans-serif; text-decoration: underline; }
+    .tbl-head { fill: #eef0f6; stroke: #d0d7de; stroke-width: 0.5; }
+    .tbl-head-txt { font: 600 11px sans-serif; fill: #4c5573; }
+    .tbl-empty { font: 12px sans-serif; fill: #9aa0b3; }
+    .note-box { fill: #f6f8fa; stroke: #d0d7de; stroke-width: 1; }
+    .note-txt { font: 12px sans-serif; fill: #4a6785; }
+    .warn-box { fill: #fef9e7; stroke: #b9770e; stroke-width: 1; }
+    .warn-txt { font: 12px sans-serif; fill: #5d4e00; }
     .footer { fill: #f6f8fa; stroke: #d0d7de; stroke-width: 0.5; }
     .footer-txt { font: 11px sans-serif; fill: #6a737d; }
   </style>
 
-  <rect x="10" y="10" width="1180" height="800" rx="4" class="frame"/>
-  <!-- Bandeau du chrome : titre + fil d'Ariane (emplacement complet du passage) + recherche -->
+  <rect x="10" y="10" width="1180" height="960" rx="4" class="frame"/>
   <rect x="10" y="10" width="1180" height="44" rx="4" class="chrome"/>
   <rect x="10" y="26" width="1180" height="28" class="chrome"/>
   <text x="28" y="38" class="chrometxt">VigieChiro Companion</text>
@@ -65,119 +64,121 @@ Cette vue affiche un **rapport de cohérence** (toutes les vérifications préal
   <rect x="940" y="22" width="220" height="22" rx="11" class="search"/>
   <text x="956" y="38" class="search-txt">🔍  Rechercher (Ctrl+F)</text>
 
-  <text x="40" y="148" class="pagetitle">📦 Préparer le dépôt sur Vigie-Chiro</text>
-  <text x="40" y="170" class="pagesub">Le téléversement est manuel via navigateur. L'application prépare le dossier et trace la date de dépôt.</text>
+  <text x="40" y="86" class="pagetitle">📦 Préparer le dépôt sur Vigie-Chiro</text>
+  <text x="40" y="107" class="pagesub">Téléversement direct depuis l'application, reprenable sur coupure ; dépôt navigateur en repli hors connexion.</text>
+
+  <!-- Stepper 4 etapes -->
+  <rect x="40" y="122" width="245" height="30" rx="15" class="step-on"/>
+  <text x="162" y="141" class="step-txt-on" text-anchor="middle">1 · Préparer</text>
+  <rect x="300" y="122" width="270" height="30" rx="15" class="step-off"/>
+  <text x="435" y="141" class="step-txt-off" text-anchor="middle">2 · Générer les archives</text>
+  <rect x="585" y="122" width="245" height="30" rx="15" class="step-off"/>
+  <text x="707" y="141" class="step-txt-off" text-anchor="middle">3 · Téléverser</text>
+  <rect x="845" y="122" width="270" height="30" rx="15" class="step-off"/>
+  <text x="980" y="141" class="step-txt-off" text-anchor="middle">4 · Marquer déposé</text>
 
   <!-- Bandeau passage -->
-  <rect x="40" y="195" width="1120" height="50" rx="4" class="info-bar"/>
-  <text x="60" y="216" class="info-label">PASSAGE</text>
-  <text x="60" y="234" class="info-value">Carré 640380 / A1 / N° 2 (2026) - 22/06/2026</text>
-  <text x="430" y="216" class="info-label">VERDICT</text>
-  <text x="430" y="234" class="info-value" fill="#1e6f3f">✓ OK</text>
-  <text x="540" y="216" class="info-label">STATUT</text>
-  <text x="540" y="234" class="info-value">Vérifié</text>
-  <text x="680" y="216" class="info-label">SÉQUENCES À DÉPOSER</text>
-  <text x="680" y="234" class="info-value">3 614</text>
-  <text x="900" y="216" class="info-label">VOLUME TOTAL</text>
-  <text x="900" y="234" class="info-value">17,2 Go</text>
+  <rect x="40" y="166" width="1120" height="48" rx="4" class="info-bar"/>
+  <text x="60" y="186" class="info-label">PASSAGE</text>
+  <text x="60" y="203" class="info-value">Carré 640380 / A1 / N° 2 (2026) - 22/06/2026</text>
+  <text x="430" y="186" class="info-label">VERDICT</text>
+  <text x="430" y="203" class="info-value" fill="#1e6f3f">✓ OK</text>
+  <text x="540" y="186" class="info-label">STATUT</text>
+  <text x="540" y="203" class="info-value">Vérifié</text>
+  <text x="700" y="186" class="info-label">SÉQUENCES</text>
+  <text x="700" y="203" class="info-value">3 614 · 17,2 Go</text>
+  <text x="900" y="186" class="info-label">FORME DU DÉPÔT</text>
+  <text x="900" y="203" class="info-value">Archives ZIP (≤ 700 Mo)</text>
 
-  <!-- ============ Étape 1 : Vérifications de cohérence ============ -->
-  <circle cx="62" cy="290" r="16" class="step-num"/>
-  <text x="62" y="295" class="step-num-txt" text-anchor="middle">1</text>
-  <text x="92" y="287" class="section-title">Vérifications de cohérence</text>
-  <text x="92" y="304" class="section-sub">Contrôles automatiques avant préparation du dépôt (R31).</text>
+  <!-- ===== 1. Vérifier et préparer ===== -->
+  <text x="40" y="245" class="section-title">1. Vérifier et préparer le dépôt</text>
+  <text x="40" y="262" class="section-sub">Contrôles de cohérence (R31). Un ✗ bloque ; un ⚠ laisse déposer.</text>
+  <rect x="40" y="272" width="1120" height="128" rx="4" class="card"/>
+  <text x="58" y="298" class="check-ok">✓</text><text x="80" y="298" class="check-row">Verdict de vérification : OK</text>
+  <text x="58" y="322" class="check-ok">✓</text><text x="80" y="322" class="check-row">Transformation des enregistrements : 1 572 originaux → 3 614 séquences</text>
+  <text x="58" y="346" class="check-ok">✓</text><text x="80" y="346" class="check-row">Nommage des fichiers : préfixe Car640380-2026-Pass2-A1- conforme</text>
+  <text x="58" y="370" class="check-ok">✓</text><text x="80" y="370" class="check-row">Journal du capteur : LogPR1925492.txt présent</text>
+  <text x="58" y="392" class="check-warn">⚠</text><text x="80" y="392" class="check-row" fill="#5d4e00">Relevé climatique absent : sonde non installée ou défaillante. Le dépôt reste possible.</text>
+  <rect x="920" y="352" width="222" height="34" rx="4" class="btn-primary"/>
+  <text x="1031" y="374" class="btn-txt" text-anchor="middle">📦 Vérifier et préparer</text>
 
-  <rect x="40" y="320" width="1120" height="135" rx="4" class="check-card-success"/>
+  <!-- ===== 2. Générer les archives ===== -->
+  <text x="40" y="440" class="section-title">2. Générer les archives de dépôt</text>
+  <text x="40" y="457" class="section-sub">Découpe les séquences en archives ZIP « préfixe-N.zip » ≤ 700 Mo, dans le sous-dossier depot/.</text>
+  <rect x="40" y="467" width="1120" height="118" rx="4" class="card"/>
+  <rect x="58" y="483" width="230" height="32" rx="4" class="btn-secondary"/>
+  <text x="173" y="504" class="btn-txt-dark" text-anchor="middle">🗂 Générer les archives</text>
+  <rect x="58" y="527" width="1084" height="24" class="tbl-head"/>
+  <text x="70" y="543" class="tbl-head-txt">#</text>
+  <text x="170" y="543" class="tbl-head-txt">Fichiers</text>
+  <text x="420" y="543" class="tbl-head-txt">Taille</text>
+  <text x="700" y="543" class="tbl-head-txt">Progression</text>
+  <text x="600" y="572" class="tbl-empty" text-anchor="middle">Aucune archive de dépôt pour l'instant.</text>
 
-  <text x="60" y="344" class="check-ok">✓</text>
-  <text x="86" y="344" class="check-row" font-weight="600">Tous les enregistrements originaux ont été transformés en séquences d'écoute.</text>
-  <text x="86" y="360" class="check-detail">1 572 fichiers WAV bruts → 3 614 séquences d'écoute (ratio 2,30, conforme à R10).</text>
+  <!-- ===== 3. Téléverser ===== -->
+  <text x="40" y="625" class="section-title">3. Téléverser sur Vigie-Chiro</text>
+  <text x="40" y="642" class="section-sub">Téléverse la nuit directement (participation créée, envoi reprenable). Repli navigateur en cas de besoin.</text>
+  <rect x="40" y="652" width="1120" height="86" rx="4" class="card"/>
+  <rect x="58" y="668" width="270" height="38" rx="4" class="btn-cloud"/>
+  <text x="193" y="692" class="btn-txt" text-anchor="middle" font-size="14">☁ Téléverser sur Vigie-Chiro</text>
+  <rect x="345" y="668" width="290" height="38" rx="4" class="btn-secondary"/>
+  <text x="490" y="692" class="btn-txt-dark" text-anchor="middle">📁 Ouvrir le dossier (dépôt manuel)</text>
+  <text x="58" y="726" class="note-txt">En ligne : téléversement direct, reprenable. Hors connexion : dépôt des archives ZIP depuis le navigateur sur <tspan class="btn-txt-link">vigiechiro.herokuapp.com</tspan>.</text>
 
-  <text x="60" y="383" class="check-ok">✓</text>
-  <text x="86" y="383" class="check-row" font-weight="600">Préfixe Car640380-2026-Pass2-A1- présent et conforme sur tous les fichiers.</text>
-  <text x="86" y="399" class="check-detail">Vérifié sur 3 614 séquences + 1 572 originaux + journal + climat (R6, R7, R8 OK).</text>
+  <!-- ===== Traitement Vigie-Chiro ===== -->
+  <text x="40" y="775" class="section-title">Traitement Vigie-Chiro</text>
+  <text x="40" y="792" class="section-sub">Lancer l'analyse Tadarida (geste volontaire) puis relever son état, à la demande.</text>
+  <rect x="40" y="802" width="1120" height="54" rx="4" class="card"/>
+  <rect x="58" y="815" width="230" height="30" rx="4" class="btn-primary"/>
+  <text x="173" y="835" class="btn-txt" text-anchor="middle">▶ Lancer la participation</text>
+  <text x="310" y="835" class="check-row" fill="#6a737d">État : non lancé</text>
+  <rect x="1010" y="815" width="132" height="30" rx="4" class="btn-secondary"/>
+  <text x="1076" y="835" class="btn-txt-dark" text-anchor="middle">↻ Actualiser</text>
 
-  <text x="60" y="421" class="check-ok">✓</text>
-  <text x="86" y="421" class="check-row" font-weight="600">Journal du capteur et relevé climatique présents.</text>
-  <text x="86" y="438" class="check-detail">LogPR1925492.txt (4,2 Mo) · PaRecPR1925492_THLog.csv (12 Ko, 144 mesures).</text>
-
-  <!-- ============ Étape 2 : Récapitulatif du dépôt ============ -->
-  <circle cx="62" cy="495" r="16" class="step-num"/>
-  <text x="62" y="500" class="step-num-txt" text-anchor="middle">2</text>
-  <text x="92" y="492" class="section-title">Récapitulatif du dépôt</text>
-  <text x="92" y="509" class="section-sub">Tout ce qui sera téléversé sur Vigie-Chiro.</text>
-
-  <rect x="40" y="525" width="1120" height="115" rx="4" class="lot-card"/>
-
-  <!-- 4 stats côte à côte -->
-  <text x="100" y="553" class="lot-label">FICHIERS À DÉPOSER</text>
-  <text x="100" y="585" class="lot-value">3 616</text>
-  <text x="100" y="605" class="lot-detail">3 614 séquences + journal + climat</text>
-
-  <text x="320" y="553" class="lot-label">VOLUME TOTAL</text>
-  <text x="320" y="585" class="lot-value">17,2 Go</text>
-  <text x="320" y="605" class="lot-detail">prêt à téléverser</text>
-
-  <text x="540" y="553" class="lot-label">FORMAT</text>
-  <text x="540" y="585" class="lot-value-mono" font-size="16">WAV ×10 + LogPR + THLog</text>
-  <text x="540" y="605" class="lot-detail">conforme protocole Vigie-Chiro</text>
-
-  <!-- Chemin du dossier + bouton ouvrir -->
-  <text x="760" y="553" class="lot-label">EMPLACEMENT SUR DISQUE</text>
-  <rect x="760" y="563" width="320" height="32" rx="3" class="path-display"/>
-  <text x="772" y="585" class="path-mono">&lt;Documents&gt;/VigieChiro-Companion/</text>
-  <rect x="1090" y="563" width="60" height="32" rx="3" class="btn-secondary"/>
-  <text x="1120" y="585" class="btn-txt-dark" text-anchor="middle" font-size="14">📋</text>
-  <text x="760" y="615" class="lot-detail">→ Car640380-2026-Pass2-A1/</text>
-
-  <rect x="40" y="650" width="300" height="34" rx="4" class="btn-primary"/>
-  <text x="190" y="671" class="btn-txt" text-anchor="middle">📂 Ouvrir le dossier dans l'explorateur</text>
-
-  <!-- ============ Étape 3 : Téléversement et confirmation ============ -->
-  <circle cx="62" cy="715" r="16" class="step-num"/>
-  <text x="62" y="720" class="step-num-txt" text-anchor="middle">3</text>
-  <text x="92" y="712" class="section-title">Téléverser sur Vigie-Chiro, puis confirmer</text>
-
-  <rect x="40" y="730" width="880" height="48" rx="4" class="upload-warn-box"/>
-  <text x="58" y="750" class="upload-warn-txt">⚠ L'application ne dialogue pas avec Vigie-Chiro : sélectionnez les fichiers dans l'explorateur</text>
-  <text x="58" y="768" class="upload-warn-txt">ouvert ci-dessus et téléversez-les manuellement sur <tspan class="btn-txt-link">vigiechiro.herokuapp.com 🔗</tspan></text>
-
-  <rect x="940" y="734" width="220" height="40" rx="4" class="btn-primary-big"/>
-  <text x="1050" y="759" class="btn-txt-big" text-anchor="middle">✓ J'ai déposé</text>
-
-  <!-- Footer -->
-  <rect x="10" y="790" width="1180" height="20" class="footer"/>
-  <text x="40" y="805" class="footer-txt">Statut actuel : Vérifié (verdict OK) · prêt à passer au statut Déposé après confirmation</text>
+  <!-- ===== 4. Marquer déposé + Libérer l'espace ===== -->
+  <text x="40" y="890" class="section-title">4. Marquer le passage déposé  ·  Libérer l'espace disque</text>
+  <text x="40" y="907" class="section-sub">« Marquer déposé » est le repli du dépôt navigateur. Les archives ZIP locales sont régénérables.</text>
+  <rect x="40" y="917" width="1120" height="30" rx="4" class="note-box"/>
+  <rect x="58" y="920" width="180" height="24" rx="4" class="btn-secondary"/>
+  <text x="148" y="937" class="btn-txt-dark" text-anchor="middle" font-size="12">✔ Marquer déposé</text>
+  <rect x="250" y="920" width="260" height="24" rx="4" class="btn-danger"/>
+  <text x="380" y="937" class="btn-txt-danger" text-anchor="middle" font-size="12">🗑 Supprimer les archives de dépôt</text>
+  <text x="980" y="937" class="footer-txt" text-anchor="end">Statut : Vérifié → Déposé une fois tout en ligne</text>
 </svg>
 </div>
 
 ### Annotations
 
-- **Fil d'Ariane et retour** : portés par le **chrome** (barre de navigation commune) via le contrat `EmplacementNavigation` ; l'écran ne dessine pas son propre fil. Emplacement affiché : `🏠 Accueil › Mes sites › Carré N › Détails du passage N° X › Préparer le dépôt`, identique quelle que soit la route.
-- **Bandeau passage** : 5 cellules de rappel (passage, verdict ✓ OK en vert, statut Vérifié, nombre de séquences, volume total).
-- **Étape 1 - Vérifications** (encart vert) : 3 lignes ✓ couvrant les contrôles de cohérence (R31). Toutes les vérifications passent, donc on peut continuer. Si **au moins une** échoue (✗ rouge), l'encart passe en rouge et le bouton « J'ai déposé » de l'étape 3 est désactivé.
-- **Étape 2 - Récapitulatif du dépôt** : 4 informations clés (nombre de fichiers, volume, format, chemin sur disque). Le **chemin** est tronqué dans l'affichage mais cliquable pour copier (icône 📋) ou ouvrir dans l'explorateur (bouton primary).
-- **Étape 3 - Téléversement** :
-    - Bandeau jaune d'avertissement explicite que l'application **ne dialogue pas** avec Vigie-Chiro, avec lien direct vers le portail (s'ouvre dans le navigateur par défaut)
-    - Bouton **vert primary `✓ J'ai déposé`** à droite : action de confirmation finale : marque le passage **Déposé**.
+- **Fil d'Ariane et retour** : portés par le **chrome** via le contrat `EmplacementNavigation` ; l'écran ne dessine pas son propre fil. Emplacement : `Accueil › Mes sites › Carré N › Passage N° X › Préparer le dépôt`.
+- **Stepper** (`1 · Préparer` / `2 · Générer les archives` / `3 · Téléverser` / `4 · Marquer déposé`) : rappelle les quatre temps. L'étape 2 devient **facultative** quand on est connecté : le téléversement produit les archives à la volée et n'en garde que quelques-unes sur disque.
+- **Bandeau passage** : rappel du passage, du verdict, du statut, du volume, et de la **forme du dépôt** (ZIP ou WAV, réglable).
+- **1. Vérifier et préparer** : la checklist de cohérence (R31) affiche **quatre contrôles bloquants** (verdict, transformation, nommage, journal) et **un avertissement non bloquant** (relevé climatique absent). Un ✗ interdit la préparation ; un ⚠ laisse déposer. Le bouton verrouille ensuite la liste des séquences et fait passer le passage à `Prêt à déposer`.
+- **2. Générer les archives** : découpe les séquences en `préfixe-N.zip` (≤ 700 Mo, réglable), écrites dans `depot/`. La table suit chaque archive (numéro, fichiers, taille, progression). Facultatif si connecté (cf. stepper).
+- **3. Téléverser** : le bouton **☁ Téléverser sur Vigie-Chiro** est le chemin nominal (participation créée, envoi **reprenable** unité par unité). **📁 Ouvrir le dossier** ouvre `depot/` pour un **dépôt navigateur de repli** hors connexion.
+- **Traitement Vigie-Chiro** : téléverser **ne suffit pas** à lancer l'analyse. **▶ Lancer la participation** déclenche le calcul Tadarida serveur ; **↻ Actualiser** relève son état (Planifiée / En cours / Terminée / Échec) **à la demande**, sans sondage automatique.
+- **4. Marquer déposé / Libérer l'espace** : « **✔ Marquer déposé** » trace le dépôt à la main, en **repli** du dépôt navigateur (le dépôt direct pose `Déposé` tout seul une fois tout en ligne). « **🗑 Supprimer les archives de dépôt** » libère l'espace : les ZIP sont régénérables à l'identique.
 
 ### Interactions clés
 
 | Élément | Action |
 |---|---|
-| Bouton **📂 Ouvrir le dossier** | Ouvre l'explorateur natif de l'OS sur le dossier du dépôt (`java.awt.Desktop.open`) |
-| Icône **📋** près du chemin | Copie le chemin absolu dans le presse-papier |
-| Lien **vigiechiro.herokuapp.com 🔗** | Ouvre le portail dans le navigateur par défaut |
-| Bouton **✓ J'ai déposé** | Confirmation modale → passage au statut `Déposé` + persistance de la date courante comme date de dépôt déclarée |
+| **📦 Vérifier et préparer** | Rejoue les contrôles, verrouille les séquences, passe le passage à `Prêt à déposer` |
+| **🗂 Générer les archives** | Produit les ZIP `préfixe-N.zip` dans `depot/`, avec progression |
+| **☁ Téléverser sur Vigie-Chiro** | Crée la participation et téléverse ; reprend les échecs ; `Déposé` quand tout est en ligne |
+| **📁 Ouvrir le dossier (dépôt manuel)** | Ouvre `depot/` dans l'explorateur natif (repli hors connexion) |
+| **▶ Lancer la participation** | Déclenche l'analyse Tadarida côté serveur (geste volontaire) |
+| **↻ Actualiser** | Relève l'état du traitement serveur (pas de sondage automatique) |
+| **✔ Marquer déposé** | Trace la date de dépôt à la main (repli) |
+| **🗑 Supprimer les archives de dépôt** | Supprime les ZIP locaux (régénérables) |
 
 ---
 
-## Variante - passage déjà déposé (état final)
+## Variante - passage déposé (état atteint)
 
-Une fois que l'utilisateur a confirmé le dépôt, l'écran évolue : la zone de confirmation est remplacée par un encart de traçabilité.
+Une fois le dépôt effectué, l'écran montre l'état atteint et oriente vers la suite. Le retour de statut (annuler le dépôt) se pilote depuis [M-Passage](M-Passage.md).
 
 <div markdown="0">
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 280" role="img" aria-label="Maquette M-Lot - Passage déjà déposé" style="max-width: 100%; height: auto; border: 1px solid #d0d7de; border-radius: 6px; background: #fafbfc;">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 250" role="img" aria-label="Maquette M-Lot - Passage déposé" style="max-width: 100%; height: auto; border: 1px solid #d0d7de; border-radius: 6px; background: #fafbfc;">
   <style>
     .frame { fill: #ffffff; stroke: #2c3e50; stroke-width: 1.5; }
     .section-title { font: 600 16px sans-serif; fill: #2c3e50; }
@@ -185,65 +186,52 @@ Une fois que l'utilisateur a confirmé le dépôt, l'écran évolue : la zone de
     .step-num-done { fill: #1e8449; }
     .step-num-txt { fill: #ffffff; font: 700 14px sans-serif; }
     .deposit-card { fill: #d4edda; stroke: #1e8449; stroke-width: 1.5; }
-    .deposit-icon { font: 36px sans-serif; }
-    .deposit-title { font: 700 18px sans-serif; fill: #1e6f3f; }
+    .deposit-icon { font: 32px sans-serif; }
+    .deposit-title { font: 700 17px sans-serif; fill: #1e6f3f; }
     .deposit-date { font: 13px sans-serif; fill: #1e6f3f; }
-    .deposit-mono { font: 600 12px monospace; fill: #1e6f3f; }
-    .btn-secondary { fill: #ffffff; stroke: #2c3e50; stroke-width: 1; }
-    .btn-txt-dark { fill: #2c3e50; font: 600 13px sans-serif; }
-    .btn-link { fill: #4a90d9; font: 600 13px sans-serif; text-decoration: underline; }
-    .btn-danger-link { fill: #a93226; font: 600 13px sans-serif; }
+    .btn-link { fill: #4a90d9; font: 600 13px sans-serif; }
     .tadarida-banner { fill: #cce4f7; stroke: #2563a3; stroke-width: 1; }
     .tadarida-txt { font: 13px sans-serif; fill: #2563a3; }
-    .tadarida-mono { font: 600 13px monospace; fill: #2563a3; }
   </style>
-
-  <rect x="10" y="10" width="1180" height="260" rx="4" class="frame"/>
-
+  <rect x="10" y="10" width="1180" height="230" rx="4" class="frame"/>
   <circle cx="62" cy="50" r="16" class="step-num-done"/>
   <text x="62" y="55" class="step-num-txt" text-anchor="middle">✓</text>
-  <text x="92" y="47" class="section-title">Dépôt confirmé sur Vigie-Chiro</text>
-  <text x="92" y="64" class="section-sub">Statut du passage maintenant : Déposé.</text>
+  <text x="92" y="47" class="section-title">Déposé sur Vigie-Chiro</text>
+  <text x="92" y="64" class="section-sub">Statut du passage : Déposé.</text>
 
-  <rect x="40" y="80" width="1120" height="80" rx="6" class="deposit-card"/>
-  <text x="80" y="125" class="deposit-icon">📤</text>
-  <text x="130" y="115" class="deposit-title">Déposé le 24/06/2026</text>
-  <text x="130" y="138" class="deposit-date">Confirmé par vous-même · stocké en base locale.</text>
+  <rect x="40" y="78" width="1120" height="66" rx="6" class="deposit-card"/>
+  <text x="78" y="120" class="deposit-icon">📤</text>
+  <text x="128" y="108" class="deposit-title">Déposé le 24/06/2026</text>
+  <text x="128" y="130" class="deposit-date">Participation créée sur Vigie-Chiro · analyse Tadarida lancée.</text>
+  <text x="1140" y="118" class="btn-link" text-anchor="end">🌐 Voir la participation</text>
 
-  <rect x="800" y="105" width="170" height="30" rx="3" class="btn-secondary"/>
-  <text x="885" y="125" class="btn-txt-dark" text-anchor="middle" font-size="12">✏ Corriger la date</text>
-
-  <text x="985" y="124" class="btn-danger-link">↺ Annuler le dépôt</text>
-
-  <!-- Bannière "et après ?" -->
-  <rect x="40" y="180" width="1120" height="70" rx="4" class="tadarida-banner"/>
-  <text x="60" y="207" class="tadarida-txt" font-weight="600">⏳ Et maintenant ?</text>
-  <text x="60" y="225" class="tadarida-txt">24-48 h après le dépôt, Vigie-Chiro vous fournira un fichier de résultats Tadarida au format CSV.</text>
-  <text x="60" y="243" class="tadarida-txt">Téléchargez-le depuis le portail et importez-le dans l'application pour entamer la validation taxonomique.</text>
-  <text x="900" y="225" class="btn-link" text-anchor="end">→ Voir P7 / E7 (cible étirable)</text>
+  <rect x="40" y="162" width="1120" height="64" rx="4" class="tadarida-banner"/>
+  <text x="60" y="188" class="tadarida-txt" font-weight="600">⏳ Et maintenant ?</text>
+  <text x="60" y="208" class="tadarida-txt">24-48 h après, importez les résultats Tadarida : directement depuis Vigie-Chiro (☰ ▸ Importer), ou depuis un CSV téléchargé du portail.</text>
+  <text x="1140" y="208" class="btn-link" text-anchor="end">→ P7 - Valider</text>
 </svg>
 </div>
 
-### Notes sur le mode « déjà déposé »
+### Notes sur l'état « déposé »
 
-- **Encart vert** « Déposé le DD/MM/AAAA » qui remplace les boutons d'action principaux.
-- **✏ Corriger la date** : utile si l'utilisateur a coché « J'ai déposé » un jour après le téléversement réel (modale avec date picker).
-- **↺ Annuler le dépôt** : action de récupération en cas d'erreur (le statut redevient `Vérifié`, la date est effacée).
-- **Bannière bleue « Et maintenant ? »** : guide l'utilisateur vers la suite (validation Tadarida via [M-SonsValidation](M-SonsValidation.md) une fois le CSV reçu). Signale clairement que c'est une **cible étirable**.
+- **Encart vert** « Déposé le DD/MM/AAAA » : trace le dépôt et rappelle que la **participation** a été créée et l'analyse lancée. Un lien **« Voir la participation »** ouvre la page sur le portail.
+- **Annuler le dépôt** : le retour du statut `Déposé` → `Prêt à déposer` (validations conservées) se fait depuis [M-Passage](M-Passage.md) ; sur M-Lot, l'action d'interruption ne concerne qu'un **téléversement en cours** (arrêt coopératif). Il n'y a **pas** de « corriger la date de dépôt ».
+- **Bannière « Et maintenant ? »** : oriente vers la validation ([M-SonsValidation](M-SonsValidation.md)). Les résultats se récupèrent **directement par l'API** (☰ ▸ « Importer depuis Vigie-Chiro »), l'import d'un CSV téléchargé restant un repli.
 
 ---
 
-## Variante - vérifications échouent ou verdict Inexploitable
+## Variante - vérification bloquante (verdict Inexploitable)
 
-Si le verdict du passage est `Inexploitable` (R14) ou si une vérification de cohérence échoue, le bouton de préparation du dépôt est désactivé avec un message explicite.
+Si le verdict du passage est `Inexploitable` (R14) ou si un contrôle **bloquant** échoue, la préparation est refusée avec un message explicite.
 
 <div markdown="0">
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 320" role="img" aria-label="Maquette M-Lot - Vérification échoue ou verdict inexploitable" style="max-width: 100%; height: auto; border: 1px solid #d0d7de; border-radius: 6px; background: #fafbfc;">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 300" role="img" aria-label="Maquette M-Lot - Vérification bloquante" style="max-width: 100%; height: auto; border: 1px solid #d0d7de; border-radius: 6px; background: #fafbfc;">
   <style>
     .frame { fill: #ffffff; stroke: #2c3e50; stroke-width: 1.5; }
     .info-bar-warn { fill: #fde7e7; stroke: #a93226; stroke-width: 1; }
     .info-label { font: 11px sans-serif; fill: #6a737d; }
     .info-value-warn { font: 600 13px sans-serif; fill: #a93226; }
+    .info-value { font: 600 13px sans-serif; fill: #2c3e50; }
     .section-title { font: 600 16px sans-serif; fill: #2c3e50; }
     .section-sub { font: 12px sans-serif; fill: #6a737d; }
     .step-num-err { fill: #a93226; }
@@ -254,61 +242,52 @@ Si le verdict du passage est `Inexploitable` (R14) ou si une vérification de co
     .check-fail { font: 16px sans-serif; fill: #a93226; }
     .check-ok { font: 16px sans-serif; fill: #1e8449; }
     .btn-disabled { fill: #d0d7de; stroke: #6a737d; stroke-width: 1; }
-    .btn-txt-disabled { fill: #6a737d; font: 700 14px sans-serif; }
+    .btn-txt-disabled { fill: #6a737d; font: 700 13px sans-serif; }
     .btn-secondary { fill: #ffffff; stroke: #2c3e50; stroke-width: 1; }
     .btn-txt-dark { fill: #2c3e50; font: 600 13px sans-serif; }
-    .info-value { font: 600 13px sans-serif; fill: #2c3e50; }
   </style>
-
-  <rect x="10" y="10" width="1180" height="300" rx="4" class="frame"/>
-
-  <!-- Bandeau passage avec verdict Inexploitable -->
+  <rect x="10" y="10" width="1180" height="280" rx="4" class="frame"/>
   <rect x="40" y="30" width="1120" height="50" rx="4" class="info-bar-warn"/>
   <text x="60" y="51" class="info-label">PASSAGE</text>
   <text x="60" y="69" class="info-value">Carré 640380 / A1 / N° 2 (2026) - 22/06/2026</text>
   <text x="430" y="51" class="info-label">VERDICT</text>
   <text x="430" y="69" class="info-value-warn">❌ Inexploitable</text>
-  <text x="540" y="51" class="info-label">STATUT</text>
-  <text x="540" y="69" class="info-value">Vérifié</text>
+  <text x="600" y="51" class="info-label">STATUT</text>
+  <text x="600" y="69" class="info-value">Vérifié</text>
 
-  <!-- Étape vérifications -->
   <circle cx="62" cy="120" r="16" class="step-num-err"/>
   <text x="62" y="125" class="step-num-txt" text-anchor="middle">!</text>
   <text x="92" y="117" class="section-title">Préparation du dépôt impossible</text>
-  <text x="92" y="134" class="section-sub">Une ou plusieurs vérifications bloquent le passage au statut « Prêt à déposer ».</text>
+  <text x="92" y="134" class="section-sub">Un contrôle bloquant empêche de préparer le dépôt.</text>
 
-  <rect x="40" y="150" width="1120" height="105" rx="4" class="check-card-fail"/>
-
+  <rect x="40" y="150" width="1120" height="100" rx="4" class="check-card-fail"/>
   <text x="60" y="174" class="check-fail">❌</text>
   <text x="86" y="174" class="check-row" font-weight="600">Verdict actuel : Inexploitable (R14).</text>
-  <text x="86" y="190" class="check-detail">Un passage avec verdict « Inexploitable » ne peut pas être inclus dans un dépôt.</text>
-
+  <text x="86" y="190" class="check-detail">Un passage « Inexploitable » ne peut pas être déposé.</text>
   <text x="60" y="216" class="check-ok">✓</text>
-  <text x="86" y="216" class="check-row">Préfixe Car640380-2026-Pass2-A1- conforme sur tous les fichiers.</text>
-
+  <text x="86" y="216" class="check-row">Transformation et nommage conformes ; journal présent.</text>
   <text x="60" y="238" class="check-ok">✓</text>
-  <text x="86" y="238" class="check-row">Journal et relevé climatique présents.</text>
+  <text x="86" y="238" class="check-row">Archives régénérables si besoin.</text>
 
-  <!-- Bouton désactivé + lien correctif -->
-  <rect x="930" y="270" width="230" height="34" rx="4" class="btn-disabled"/>
-  <text x="1045" y="293" class="btn-txt-disabled" text-anchor="middle">✓ J'ai déposé</text>
-
-  <rect x="60" y="270" width="240" height="34" rx="4" class="btn-secondary"/>
-  <text x="180" y="293" class="btn-txt-dark" text-anchor="middle">🎧 Modifier le verdict</text>
+  <rect x="930" y="256" width="230" height="30" rx="4" class="btn-disabled"/>
+  <text x="1045" y="276" class="btn-txt-disabled" text-anchor="middle">📦 Vérifier et préparer</text>
+  <rect x="60" y="256" width="240" height="30" rx="4" class="btn-secondary"/>
+  <text x="180" y="276" class="btn-txt-dark" text-anchor="middle">🎧 Modifier le verdict</text>
 </svg>
 </div>
 
 ### Notes sur le cas bloqué
 
-- **Bandeau rouge** en haut signale immédiatement le verdict bloquant.
-- **3 lignes** dans l'encart rouge : la première est l'échec ❌ (raison du blocage), les suivantes sont ✓ pour montrer que les autres vérifications passent.
-- **Le bouton « ✓ J'ai déposé »** est **désactivé** (gris) - l'utilisateur ne peut pas franchir l'étape même en force.
-- **Bouton secondary « 🎧 Modifier le verdict »** : redirige vers [M-Qualification](M-Qualification.md) pour permettre à l'utilisateur de revoir sa décision s'il le souhaite (par exemple si le « Inexploitable » était précipité).
+- **Bandeau rouge** en haut : le verdict bloquant est signalé immédiatement.
+- **Encart rouge** : la première ligne est l'échec ❌ (la cause), les suivantes ✓ montrent que le reste passe.
+- **Le bouton « 📦 Vérifier et préparer »** est **désactivé** : impossible de préparer un dépôt sur un passage `Inexploitable`.
+- **« 🎧 Modifier le verdict »** renvoie vers [M-Qualification](M-Qualification.md) pour revoir la décision si elle était précipitée.
 
 ## Notes pour l'implémentation
 
-- **Calcul des vérifications** : exécuté à chaque ouverture de l'écran (pas mémorisé en BD). Coût négligeable car les contrôles sont des requêtes simples sur les passages/séquences déjà persistés.
-- **Détection ✗ vs ✓** : le bouton « J'ai déposé » est activé **uniquement** si toutes les vérifications passent ET que le verdict est OK ou Utilisable (jamais Inexploitable).
-- **Confirmation de dépôt** : modale séparée (non figurée) avec récap des conséquences (« Le passage va passer au statut Déposé, la date 24/06/2026 sera enregistrée ») avant d'écrire en BD.
-- **Annulation du dépôt** : autorisée pendant N jours (à arbitrer) pour récupération d'erreur. Au-delà, considérer le passage comme « clos ».
-- **Ouverture du dossier** : `java.awt.Desktop.open(File)` est la méthode standard, fonctionne sur Linux/macOS/Windows. Tester en environnement sans bureau graphique : le bouton doit être désactivé proprement avec un message explicite (et le chemin reste copiable via 📋).
+- **Contrôles de cohérence** : rejoués à l'ouverture (pas mémorisés en base). Bloquants : verdict, transformation, nommage, journal ; non bloquant : relevé climatique.
+- **Forme du dépôt** : réglage global (*Réglages ▸ Dépôt*), ZIP par défaut. En ZIP, la plateforme ne conserve pas les sons et la participation n'est pas relançable : la conséquence est rappelée à l'écran.
+- **Dépôt reprenable** : le plan est persisté unité par unité (`depot_plan`, `depot_unite`), statut `Dépôt en cours` ; un dépôt interrompu se **reprend** (« Retenter les échecs »), il ne se rejoue pas.
+- **Lancement du traitement** : `▶ Lancer la participation` déclenche le calcul serveur ; l'état est **relevé à la demande** (pas de sondage automatique).
+- **Ouverture du dossier** : `java.awt.Desktop.open(File)` sur `depot/` ; désactivée proprement en environnement sans bureau graphique (chemin copiable en repli).
+- **Icônes** : `FontIcon` Ikonli, pas d'emoji (règle #700) ; les emojis de la maquette ne sont qu'un substitut basse fidélité.

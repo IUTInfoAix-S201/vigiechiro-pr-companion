@@ -2,7 +2,9 @@
 
 [← Retour au sommaire story mapping](index.md) · **Parcours principal** : [P4 - Préparer le dépôt](../Parcours%20utilisateurs/P4%20-%20Préparer%20un%20lot%20prêt%20à%20déposer.md)
 
-**Portée** : finaliser le travail post-vérification pour produire un **dépôt directement déposable sur le portail Vigie-Chiro** et tracer le dépôt. L'application **ne dialogue pas** avec le portail web : le téléversement final est manuel via navigateur. L'application se contente de préparer les fichiers à un emplacement connu, vérifier leur cohérence, et mémoriser la date de dépôt déclarée par l'utilisateur.
+**Portée** : finaliser le travail post-vérification pour **déposer la nuit sur Vigie-Chiro** et tracer le dépôt. Le chemin nominal est un **téléversement direct depuis l'application** (création de la participation, envoi reprenable, lancement de l'analyse) ; l'ouverture du dossier pour un **dépôt navigateur** est un **repli** hors connexion.
+
+> Cette épopée a été rédigée pour l'ancien modèle « dépôt manuel » ; sa **structure** (stories S2/S3) est réalignée par les chantiers #2379 et #2381. Les assertions « ne dialogue pas » sont corrigées ici (#2376).
 
 **Persona principal** : tous (Marie pour ses 1-2 dépôts annuels, Karim et Samuel pour leur cadence intensive de plusieurs dizaines de dépôts par saison).
 
@@ -48,7 +50,7 @@
 - [ ] L'écran « Dépôt » affiche : nombre de séquences d'écoute, taille totale, chemin absolu du dossier de sortie sur le disque local.
 - [ ] Un bouton **« Ouvrir le dossier dans l'explorateur »** (libellé exact à voir avec la maquette) déclenche l'ouverture du dossier dans l'explorateur natif de l'OS (Files sous Linux, Finder sous macOS, Explorer sous Windows).
 - [ ] Le chemin du dossier est aussi affiché sous forme **copiable** (clic icône « copier ») pour les cas où le bouton « Ouvrir » ne fonctionne pas (ex. environnement sans bureau graphique).
-- [ ] Un rappel explicite indique que l'application **ne dialogue pas** avec Vigie-Chiro : « Téléversez ces fichiers manuellement sur https://vigiechiro.herokuapp.com/ depuis votre navigateur. »
+- [ ] En **repli** (hors connexion), un rappel indique comment déposer à la main : « Téléversez ces fichiers sur https://vigiechiro.herokuapp.com/ depuis votre navigateur, puis revenez marquer le passage déposé. »
 - [ ] Un lien direct vers le portail Vigie-Chiro est mis à disposition (s'ouvre dans le navigateur par défaut).
 - [ ] Tests d'intégration : le bouton « Ouvrir le dossier » se résout-il correctement sur Linux/macOS/Windows ? (à arbitrer selon l'OS de référence)
 
@@ -58,7 +60,7 @@
 
 ---
 
-## E4.S3 - Marquer le passage comme déposé après téléversement manuel { #e4s3 }
+## E4.S3 - Marquer le passage comme déposé (repli du dépôt navigateur) { #e4s3 }
 
 **En tant que** [Marie](../Personas/Marie.md)
 

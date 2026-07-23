@@ -25,7 +25,7 @@ Cette chaîne **remplace** entièrement les outils manuels actuellement utilisé
 - **Déclarer un site de suivi** : enregistrer dans l'application les n° de carré et les codes des points d'écoute qui ont été créés en amont sur le portail Vigie-Chiro ([P1](Analyse%20et%20conception/Parcours%20utilisateurs/P1%20-%20Déclarer%20un%20site%20de%20suivi.md)).
 - **Importer une nuit d'enregistrement** : copier de manière protégée les WAV bruts + journal + climat depuis la carte SD, les **renommer** avec le préfixe `CarXXXXXX-AAAA-PassN-YY-`, et **transformer** chaque enregistrement en séquences de 5 s ralenties ×10 ([P2](Analyse%20et%20conception/Parcours%20utilisateurs/P2%20-%20Importer%20une%20nuit%20d%27enregistrement.md)).
 - **Vérifier l'enregistrement par échantillonnage** : sound check global avant dépôt - écouter quelques séquences réparties sur la nuit pour confirmer que l'audio est exploitable, et saisir un verdict (`OK`, `Utilisable`, `Inexploitable`) ([P3](Analyse%20et%20conception/Parcours%20utilisateurs/P3%20-%20Vérifier%20l%27enregistrement%20par%20échantillonnage.md)).
-- **Préparer le dépôt** sur Vigie-Chiro : vérifications de cohérence + ouverture du dossier dans l'explorateur pour téléversement manuel via le navigateur ([P4](Analyse%20et%20conception/Parcours%20utilisateurs/P4%20-%20Préparer%20un%20lot%20prêt%20à%20déposer.md)).
+- **Préparer et déposer** sur Vigie-Chiro : vérifications de cohérence, puis **téléversement direct depuis l'application** (repli navigateur possible hors connexion) et lancement de l'analyse ([P4](Analyse%20et%20conception/Parcours%20utilisateurs/P4%20-%20Préparer%20un%20lot%20prêt%20à%20déposer.md)).
 
 ### Approfondissements (SHOULD)
 
@@ -60,4 +60,4 @@ Pour ses **futures campagnes**, Samuel pivote vers le **Passive Recorder Teensy*
 | **Possesseur de PR** (utilisateur principal) | Naturaliste amateur ou professionnel qui exploite un PR. Il installe l'appareil sur le terrain, récupère la carte SD, importe les données dans l'application, valide les classifications, exporte vers VigieChiro. La plupart ne sont pas informaticiens : l'application doit être abordable. |
 | **Plateforme VigieChiro** (système amont/aval) | Reçoit les fichiers du possesseur et restitue les CSV Tadarida. L'application n'a pas à dialoguer en direct avec la plateforme - les échanges se font par téléversement / téléchargement de fichiers. |
 
-💡 Dans la première version, l'application reste mono-utilisateur : pas de comptes, pas de synchronisation cloud, pas de gestion d'équipe. Le possesseur de PR est seul devant son ordinateur, l'application travaille sur ses fichiers locaux.
+💡 L'application reste **mono-poste** : pas de gestion d'équipe, les données vivent en local. Elle se connecte toutefois au **compte Vigie-Chiro** de l'observateur (par jeton) pour déposer, synchroniser ses sites et récupérer les résultats.

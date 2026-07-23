@@ -38,6 +38,9 @@ ce domaine propose. Aujourd'hui :
     La **taille maximale d'une archive** (700 Mo par défaut, la limite acceptée par la plateforme) est
     utile pour générer des archives plus petites (connexion fragile) ; le changement s'applique à la
     **prochaine génération** d'archives.
+- **Emplacements** : **où vivent** le dossier de travail et la base de données (`vigiechiro.db`). Voir
+  la section [ci-dessous](#emplacements) : ce choix a des
+  conséquences qu'il vaut la peine de connaître.
 - **Fonctionnalités** : **activer ou désactiver** les fonctionnalités optionnelles de l'application
   (l'**import depuis Vigie-Chiro**, le **diagnostic** du capteur, la **préparation du dépôt**, la
   **vérification**, l'**importation Tadarida**, l'**analyse** « Espèces & observations » et la
@@ -56,3 +59,23 @@ l'**effet** des bascules de l'onglet « Fonctionnalités » s'applique au **proc
     « Conserver les originaux » figurait aussi sur l'écran d'import ; il n'y est plus. C'est une option
     de ré-analyse, dont l'immense majorité des imports n'a pas à se soucier : elle vit désormais ici,
     où on la trouve quand on la cherche.
+
+## Où l'application range ses données (onglet « Emplacements ») {#emplacements}
+
+L'onglet **Emplacements** décide **où vivent** deux choses :
+
+- le **dossier de travail**, qui contient les sessions et leur audio ;
+- la **base de données** (`vigiechiro.db`) : vos observations, vos validations, les liens avec Vigie-Chiro. C'est le **seul fichier irremplaçable** ; le reste se réimporte ou se recalcule.
+
+Pour chacun, le chemin courant est affiché, un bouton **« Choisir… »** ouvre un sélecteur de dossier, et l'emplacement **par défaut** est rappelé. Un dossier que l'application ne peut pas utiliser (un fichier, un dossier non inscriptible) est **refusé au moment du choix**, avec la raison : vous ne le découvrez pas au prochain démarrage.
+
+!!! warning "Changer un emplacement ne déplace pas vos données"
+    Un emplacement est un **pointeur** : le changer dit à l'application **où aller lire au prochain démarrage**, il ne déplace rien. Si vous pointez la base vers un dossier **vide**, l'application y démarrera sur une base **neuve**, l'ancienne restant **intacte** à son ancien emplacement. Pour l'emporter, **copiez le fichier vous-même** avant de redémarrer. C'est le même principe que pour votre audio : l'application ne touche pas à vos fichiers à votre place.
+
+Une fois le choix **appliqué**, un message rappelle qu'il vaudra **au prochain démarrage**, avec un bouton **« Quitter l'application »** pour redémarrer tout de suite. Un bouton **« Rétablir les emplacements par défaut »** annule un choix précédent.
+
+!!! note "En ligne de commande"
+    La commande `vigiechiro emplacements` fait la même chose sans l'interface : sans option elle **affiche** les emplacements, `--definir-travail` / `--definir-base` les **changent** (avec la même vérification), `--reinitialiser` les **rétablit**. Utile pour scripter une installation.
+
+!!! info "Sous Flatpak, un dossier réseau demande une autorisation"
+    La version Flatpak est volontairement limitée aux dossiers qu'elle a le droit de lire. Un disque externe ou une carte SD conviennent. Un **partage réseau** (NAS) ouvert depuis votre gestionnaire de fichiers, lui, est monté à un endroit que le bac à sable ne voit pas : pour y ranger vos données, il faut l'**autoriser** (`flatpak override --user --filesystem=xdg-run/gvfs`) ou utiliser la version `.deb`. La version Windows et le `.deb` n'ont pas cette limite.

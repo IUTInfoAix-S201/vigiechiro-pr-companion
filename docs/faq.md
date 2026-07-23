@@ -98,6 +98,8 @@ dossier où ils se trouvent désormais : voir **Réactiver ce passage**.
 
 Dans une **base de données locale** (SQLite) sur votre ordinateur : c'est là que vivent vos sites, passages et observations. L'application **dialogue avec Vigie-Chiro** pour ce qui relève du protocole (dépôt, synchronisation des sites, récupération des résultats, publication des corrections), mais **n'envoie vos données à aucun autre service**. Voir la [politique de sécurité et de données](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/SECURITY.md).
 
+Vous pouvez choisir **où** vit cette base (pour la mettre sur un disque que vous sauvegardez, par exemple) : voir [Réglages > Emplacements](ecrans/reglages.md#emplacements). L'audio, lui, peut rester là où il est sans être recopié dans l'application.
+
 ### Comment écouter une séquence ?
 
 La **vue audio** (sonogramme et spectrogramme) est présente dans les écrans de

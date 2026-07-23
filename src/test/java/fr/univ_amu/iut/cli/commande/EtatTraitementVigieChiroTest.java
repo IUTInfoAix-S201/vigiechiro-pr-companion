@@ -60,8 +60,8 @@ class EtatTraitementVigieChiroTest {
     }
 
     @Test
-    @DisplayName("analyse en échec → code 2, et la trace du serveur est restituée telle quelle")
-    void en_echec_code_deux() {
+    @DisplayName("analyse en échec côté serveur → code 1, et la trace du serveur est restituée telle quelle")
+    void en_echec_code_un() {
         Traitement echec =
                 new Traitement(EtatTraitement.ERREUR, null, null, "2026-07-13T10:00:00+00:00", "Traceback: boum", 1);
         when(suivi.relever(42L)).thenReturn(echec);
@@ -69,7 +69,7 @@ class EtatTraitementVigieChiroTest {
 
         int code = ligne(Optional.of(suivi), sortie).execute("--passage", "42");
 
-        assertThat(code).isEqualTo(2);
+        assertThat(code).isEqualTo(1);
         assertThat(sortie.toString()).contains("EN ÉCHEC", "Traceback: boum");
     }
 
@@ -86,11 +86,13 @@ class EtatTraitementVigieChiroTest {
     }
 
     @Test
-    @DisplayName("suivi indisponible (contexte sans connexion) → échec d'exécution, pas un état")
-    void suivi_indisponible_echoue() {
+    @DisplayName("suivi indisponible (contexte sans connexion) → code 2 : on n'a pas pu demander (pas un état serveur)")
+    void suivi_indisponible_code_deux() {
         int code = ligne(Optional.empty(), new StringWriter()).execute("--passage", "42");
 
-        assertThat(code).isNotZero();
+        assertThat(code)
+                .as("indisponible = 2 (refus/pas pu demander, #2294), distinct de EN_ECHEC (1)")
+                .isEqualTo(2);
     }
 
     @Test

@@ -68,7 +68,8 @@ public final class Diagnostiquer implements Callable<Integer> {
     @Override
     public Integer call() {
         PrintWriter sortie = spec.commandLine().getOut();
-        // Lève RegleMetierException si le passage ou sa session est introuvable → échec d'exécution (code 1).
+        // Lève RegleMetierException si le passage ou sa session est introuvable → refus métier (code 2, état
+        // intact ; convention #2294).
         Diagnostic diagnostic = serviceDiagnostic.diagnostiquer(idPassage);
         if (csv != null) {
             sortie.println(exportCsv(diagnostic));

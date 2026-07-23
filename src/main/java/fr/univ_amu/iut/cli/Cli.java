@@ -37,7 +37,8 @@ import picocli.CommandLine.UnmatchedArgumentException;
 /// **avant** de bâtir l'injecteur (elle positionne `vigiechiro.workspace`, lu par `CommunModule`) ; les
 /// tests positionnent la propriété directement sur un `@TempDir`.
 ///
-/// **Codes de sortie** : `0` succès · `1` échec d'exécution (règle métier, accès aux données, E/S) · `2`
+/// **Codes de sortie** (convention #2294) : `0` succès · `1` échec d'exécution, **état incertain** (accès
+/// aux données, E/S, incident inattendu) · `2` **refus métier** (état intact, rien n'a été fait) **ou**
 /// mauvaise invocation (commande inconnue, option requise manquante ou mal formée). `executer` **ne fait
 /// pas** `System.exit` (il renvoie le code, pour rester testable) ; seul `main` traduit le code.
 public final class Cli {
@@ -45,8 +46,11 @@ public final class Cli {
     /// Succès.
     public static final int CODE_SUCCES = 0;
 
-    /// Échec d'exécution (règle métier refusée, accès aux données, E/S).
+    /// Échec d'exécution : accès aux données, E/S, incident inattendu (état incertain).
     public static final int CODE_ERREUR_EXECUTION = 1;
+
+    /// Refus métier : état intact, rien n'a été fait (convention #2294).
+    public static final int CODE_REFUS = 2;
 
     /// Mauvaise invocation : commande inconnue, argument requis manquant ou mal formé.
     public static final int CODE_ERREUR_ARGUMENTS = 2;
@@ -131,12 +135,14 @@ public final class Cli {
     }
 
     /// Erreurs d'**exécution** d'une commande : une [ErreurUsage] (invocation invalide détectée dans la
-    /// logique, ex. point introuvable) sort en [#CODE_ERREUR_ARGUMENTS] ; toute autre exception en
-    /// [#CODE_ERREUR_EXECUTION]. On imprime le **message** à l'utilisateur (jamais la trace, qui
-    /// parasiterait la sortie d'un script) et on **journalise** l'échec (#1523), à la parité de l'IHM : un
-    /// refus métier discrètement (FINE, sans trace ; `RegleMetierException` **ou** l'`IllegalArgumentException`
-    /// des validateurs R1/R2), un échec **inattendu** avec sa trace (SEVERE, reste inspectable dans
-    /// `<workspace>/logs/`). Une simple erreur d'usage ne mérite ni l'un ni l'autre.
+    /// logique, ex. point introuvable) sort en [#CODE_ERREUR_ARGUMENTS] ; un **refus métier**
+    /// (`RegleMetierException` **ou** l'`IllegalArgumentException` des validateurs R1/R2) sort en
+    /// [#CODE_REFUS] (état intact, rien n'a été fait, convention #2294) ; toute autre exception en
+    /// [#CODE_ERREUR_EXECUTION] (échec inattendu, état incertain). On imprime le **message** à l'utilisateur
+    /// (jamais la trace, qui parasiterait la sortie d'un script) et on **journalise** l'échec (#1523), à la
+    /// parité de l'IHM : un refus métier discrètement (FINE, sans trace), un échec **inattendu** avec sa
+    /// trace (SEVERE, reste inspectable dans `<workspace>/logs/`). Une simple erreur d'usage ne mérite ni
+    /// l'un ni l'autre.
     private static int gererErreurExecution(Exception exception, CommandLine ligne, ParseResult parseResult) {
         if (exception instanceof ErreurUsage) {
             ligne.getErr().println("Erreur d'usage : " + exception.getMessage());
@@ -148,9 +154,10 @@ public final class Cli {
             // traite déjà ainsi (`catch (RegleMetierException | IllegalArgumentException)`) ; la CLI s'aligne,
             // pour ne pas noyer les logs sous une trace SEVERE à chaque saisie invalide.
             LOG.fine(() -> "Refus métier d'une commande CLI : " + exception.getMessage());
-        } else {
-            LOG.log(Level.SEVERE, exception, () -> "Échec inattendu d'une commande CLI");
+            ligne.getErr().println("Refus : " + exception.getMessage());
+            return CODE_REFUS;
         }
+        LOG.log(Level.SEVERE, exception, () -> "Échec inattendu d'une commande CLI");
         ligne.getErr().println("Échec : " + exception.getMessage());
         return CODE_ERREUR_EXECUTION;
     }

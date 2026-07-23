@@ -28,9 +28,9 @@ import picocli.CommandLine.Spec;
 /// |---|---|---|
 /// | `0` | **terminé** | importer les observations (`importer-vigiechiro`) |
 /// | `3` | planifié, en cours, ou nouvel essai | **patienter** |
-/// | `2` | **en échec** côté serveur | lire la trace, éventuellement relancer |
+/// | `1` | **en échec** côté serveur | lire la trace, éventuellement relancer |
 /// | `4` | jamais lancée (le serveur répond, #1284) | lancer l'analyse (`lancer-traitement-vigiechiro`) |
-/// | `1` | erreur technique | passage non déposé, jeton absent, plateforme injoignable ou refus |
+/// | `2` | **indisponible** : on n'a pas pu demander | nuit non déposée, jeton absent, plateforme injoignable |
 ///
 /// Chaque appel **rafraîchit le cache local** (#1262) : l'application affichera cet état même hors
 /// connexion.
@@ -41,18 +41,21 @@ import picocli.CommandLine.Spec;
 @Command(
         name = "etat-traitement-vigiechiro",
         description = "Où en est l'analyse Tadarida de la nuit déposée ? (0 = terminé, 3 = en cours,"
-                + " 2 = en échec, 4 = jamais lancée)")
+                + " 1 = en échec, 4 = jamais lancée, 2 = indisponible)")
 public final class EtatTraitementVigieChiro implements Callable<Integer> {
 
     /// Analyse terminée : les observations sont récupérables.
     private static final int TERMINE = 0;
 
-    // Le code 1 (échec technique : nuit non déposée, jeton absent, plateforme injoignable ou refus —
-    // #1284) n'est pas posé ici : picocli le rend de lui-même quand la commande lève
-    // (RegleMetierException, y compris celle du relevé quand le serveur n'a pas pu être lu).
+    /// Le serveur a répondu « échoué » : l'analyse serveur a échoué (résultat métier). Distinct de
+    /// [#INDISPONIBLE] (on n'a pas pu demander). Ce « partage » a fait passer l'échec serveur de `2` à `1`,
+    /// pour laisser le `2` au sens #2294 (refus / pas pu faire).
+    private static final int EN_ECHEC = 1;
 
-    /// Le serveur a renoncé : l'analyse a échoué.
-    private static final int EN_ECHEC = 2;
+    /// On n'a pas pu demander : suivi indisponible dans ce contexte, jeton absent, plateforme injoignable
+    /// (#1284). C'est un « refus / pas pu faire » au sens #2294, donc `2`. La commande le pose **elle-même**
+    /// (elle est scriptable : son code ne doit pas dépendre du harnais d'invocation, seulement de son [#call]).
+    private static final int INDISPONIBLE = 2;
 
     /// Le serveur travaille (ou s'apprête à le faire) : il n'y a qu'à attendre.
     private static final int EN_ATTENTE = 3;
@@ -87,16 +90,24 @@ public final class EtatTraitementVigieChiro implements Callable<Integer> {
 
     @Override
     public Integer call() {
-        SuiviTraitement moteur = suivi.orElseThrow(
-                () -> new RegleMetierException("Suivi Vigie-Chiro indisponible dans ce contexte d'exécution."));
-        if (token != null && !token.isBlank()) {
-            // Jeton ponctuel consulté par le client à chaque requête, sans rien persister.
-            System.setProperty("vigiechiro.token", token);
+        // Barème scriptable : la commande pose TOUS ses codes elle-même, y compris le 2 « indisponible »
+        // (on n'a pas pu demander). On capte donc la RegleMetierException plutôt que de la laisser au
+        // handler central, pour que le code reste vrai quel que soit le harnais d'invocation (#2294).
+        try {
+            SuiviTraitement moteur = suivi.orElseThrow(
+                    () -> new RegleMetierException("Suivi Vigie-Chiro indisponible dans ce contexte d'exécution."));
+            if (token != null && !token.isBlank()) {
+                // Jeton ponctuel consulté par le client à chaque requête, sans rien persister.
+                System.setProperty("vigiechiro.token", token);
+            }
+            Traitement traitement = moteur.relever(idPassage);
+            PrintWriter sortie = spec.commandLine().getOut();
+            sortie.println(compteRendu(traitement));
+            return code(traitement);
+        } catch (RegleMetierException indisponible) {
+            spec.commandLine().getErr().println("Indisponible : " + indisponible.getMessage());
+            return INDISPONIBLE;
         }
-        Traitement traitement = moteur.relever(idPassage);
-        PrintWriter sortie = spec.commandLine().getOut();
-        sortie.println(compteRendu(traitement));
-        return code(traitement);
     }
 
     /// Code de retour, pensé pour un `until … ; [ $? -ne 3 ]` : c'est la seule interface que lit un script.

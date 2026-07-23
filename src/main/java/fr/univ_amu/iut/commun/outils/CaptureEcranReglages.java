@@ -106,6 +106,9 @@ public final class CaptureEcranReglages {
         // Onglet « Emplacements » (#1038) : où vivent le dossier de travail et la base. Il porte
         // l'avertissement « le pointeur change, pas les données », qui doit être lisible avant le choix.
         rendreOnglet(injecteur, "Emplacements", sortie.resolve("apercu-reglages-emplacements.png"));
+        // Onglet « Fonctionnalités » (#1057) : les interrupteurs par feature désactivable, et l'avis
+        // « effet au prochain démarrage » (composant partagé AvisRedemarrage, #2258).
+        rendreOnglet(injecteur, "Fonctionnalités", sortie.resolve("apercu-reglages-fonctionnalites.png"));
 
         System.out.println("Apercu des reglages ecrit dans " + sortie.toAbsolutePath());
     }

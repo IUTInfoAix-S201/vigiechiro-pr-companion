@@ -16,6 +16,7 @@ import fr.univ_amu.iut.commun.view.NiveauNotification;
 import fr.univ_amu.iut.commun.view.SelecteurFichier;
 import fr.univ_amu.iut.commun.view.SuiviOperation;
 import fr.univ_amu.iut.importation.model.dao.AgregatImportDao;
+import fr.univ_amu.iut.importation.view.ActionImportTransformes.ModeImport;
 import fr.univ_amu.iut.importation.view.ActionImportTransformes.PointRattachable;
 import fr.univ_amu.iut.passage.model.ServiceDisponibiliteAudio;
 import fr.univ_amu.iut.passage.model.dao.PassageDao;
@@ -125,7 +126,7 @@ class ActionImportTransformesTest {
                 selecteurRendant(Optional.of(externe)),
                 () -> List.of(new PointRattachable(point, CARRE)),
                 (entete, question, options, libelle) -> Optional.of(options.get(0)),
-                message -> true, // referencer
+                (entete, question, options, libelle) -> Optional.of(ModeImport.REFERENCER),
                 (niveau, entete, message) -> {
                     niveauNotifie.set(niveau);
                     messageNotifie.set(message);
@@ -160,8 +161,8 @@ class ActionImportTransformesTest {
                 (entete, question, options, libelle) -> {
                     throw new AssertionError("aucun choix de point attendu si le dossier n'est pas choisi");
                 },
-                message -> {
-                    throw new AssertionError("aucune question attendue si le dossier n'est pas choisi");
+                (entete, question, options, libelle) -> {
+                    throw new AssertionError("aucune question de mode attendue si le dossier n'est pas choisi");
                 },
                 (niveau, entete, message) -> {
                     throw new AssertionError("aucune notification attendue si le dossier n'est pas choisi");
@@ -174,6 +175,34 @@ class ActionImportTransformesTest {
         action.importer();
 
         assertThat(passageDao.findAll()).as("aucun passage créé").isEmpty();
+    }
+
+    @Test
+    @DisplayName("L'utilisateur renonce au mode (Annuler) : dossier et point choisis, mais aucun passage")
+    void renoncement_au_mode_ne_persiste_rien() throws IOException {
+        Path externe = preparerDossierTransforme(racine.resolve("externe"));
+
+        ActionImportTransformes action = new ActionImportTransformes(
+                fabrique.creer(),
+                workspace,
+                proprietaire,
+                selecteurRendant(Optional.of(externe)),
+                () -> List.of(new PointRattachable(point, CARRE)),
+                (entete, question, options, libelle) -> Optional.of(options.get(0)),
+                (entete, question, options, libelle) -> Optional.empty(), // renoncement au mode
+                (niveau, entete, message) -> {
+                    throw new AssertionError("aucune notification attendue si l'utilisateur renonce au mode");
+                },
+                suiviSynchrone,
+                () -> {
+                    throw new AssertionError("aucun rechargement attendu si l'utilisateur renonce au mode");
+                });
+
+        action.importer();
+
+        assertThat(passageDao.findAll())
+                .as("renoncer au choix copier / référencer n'importe rien")
+                .isEmpty();
     }
 
     /// Sélecteur double : rend `reponse` pour le choix du dossier, vide pour les autres formes (non

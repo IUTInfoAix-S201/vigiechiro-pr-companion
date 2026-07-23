@@ -4,7 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import fr.univ_amu.iut.commun.model.Workspace;
 import fr.univ_amu.iut.commun.view.ChoixDansListe;
-import fr.univ_amu.iut.commun.view.Confirmateur;
+import fr.univ_amu.iut.commun.view.ChoixParBoutons;
 import fr.univ_amu.iut.commun.view.DialogueProgression;
 import fr.univ_amu.iut.commun.view.ExecuteurTache;
 import fr.univ_amu.iut.commun.view.NotificateurModifiable;
@@ -52,10 +52,8 @@ public final class FabriqueActionImportTransformes {
     ///
     /// @param proprietaire fenêtre propriétaire des dialogues, lue au moment du geste
     /// @param selecteur porteur de désignation du dossier des transformés
-    /// @param confirmateur question copier / référencer
     /// @param recharger rafraîchissement de l'écran après un import réussi
-    ActionImportTransformes creer(
-            Supplier<Window> proprietaire, SelecteurFichier selecteur, Confirmateur confirmateur, Runnable recharger) {
+    ActionImportTransformes creer(Supplier<Window> proprietaire, SelecteurFichier selecteur, Runnable recharger) {
         Supplier<List<PointRattachable>> points = () -> ActionImportTransformes.pointsDe(serviceSites, idUtilisateur);
         return new ActionImportTransformes(
                 service,
@@ -64,7 +62,7 @@ public final class FabriqueActionImportTransformes {
                 selecteur,
                 points,
                 new ChoixDansListe<>(proprietaire),
-                confirmateur,
+                new ChoixParBoutons<>("Importer des transformés", proprietaire),
                 new NotificateurModifiable(new NotificationDialogue(proprietaire)),
                 new DialogueProgression(executeur),
                 recharger);

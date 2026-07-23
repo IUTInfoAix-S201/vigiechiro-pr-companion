@@ -530,7 +530,7 @@ public class ImportationController implements GardeQuitter, AuDepartEcran, Resum
     @FXML
     private void importerTransformes() {
         fabriqueImportTransformes
-                .creer(() -> champDossier.getScene().getWindow(), selecteur, confirmateur, viewModel::chargerSites)
+                .creer(() -> champDossier.getScene().getWindow(), selecteur, viewModel::chargerSites)
                 .importer();
     }
 

@@ -1,7 +1,6 @@
 package fr.univ_amu.iut.importation.view;
 
 import fr.univ_amu.iut.commun.model.Workspace;
-import fr.univ_amu.iut.commun.view.Confirmateur;
 import fr.univ_amu.iut.commun.view.DemandeurDeChoix;
 import fr.univ_amu.iut.commun.view.NiveauNotification;
 import fr.univ_amu.iut.commun.view.Notificateur;
@@ -33,7 +32,7 @@ import javafx.stage.Window;
 /// Tous les collaborateurs de dialogue sont **injectés** (donc substituables en test) : un `showAndWait`
 /// natif figerait un test TestFX headless, et un `DirectoryChooser` en dur empêcherait même de jouer le
 /// geste.
-final class ActionImportTransformes {
+public final class ActionImportTransformes {
 
     private final ServiceImportReference service;
     private final Workspace workspace;
@@ -41,7 +40,7 @@ final class ActionImportTransformes {
     private final SelecteurFichier selecteur;
     private final Supplier<List<PointRattachable>> pointsDisponibles;
     private final DemandeurDeChoix<PointRattachable> demandeur;
-    private final Confirmateur confirmateur;
+    private final DemandeurDeChoix<ModeImport> demandeurMode;
     private final Notificateur notificateur;
     private final SuiviOperation dialogue;
     private final Runnable recharger;
@@ -53,7 +52,7 @@ final class ActionImportTransformes {
     /// @param selecteur porteur de désignation du dossier des transformés (double répondant en test)
     /// @param pointsDisponibles source des points de rattachement (aplatis site → points, avec le carré)
     /// @param demandeur choix du point parmi les points disponibles
-    /// @param confirmateur question copier / référencer (le oui/non)
+    /// @param demandeurMode choix **copier ou référencer** : un bouton par option, plus le renoncement
     /// @param notificateur compte rendu de l'issue (succès / échec)
     /// @param dialogue exécution **hors du fil JavaFX** avec barre de progression annulable
     /// @param recharger rafraîchissement de l'écran après un import réussi
@@ -64,7 +63,7 @@ final class ActionImportTransformes {
             SelecteurFichier selecteur,
             Supplier<List<PointRattachable>> pointsDisponibles,
             DemandeurDeChoix<PointRattachable> demandeur,
-            Confirmateur confirmateur,
+            DemandeurDeChoix<ModeImport> demandeurMode,
             Notificateur notificateur,
             SuiviOperation dialogue,
             Runnable recharger) {
@@ -74,10 +73,29 @@ final class ActionImportTransformes {
         this.selecteur = Objects.requireNonNull(selecteur, "selecteur");
         this.pointsDisponibles = Objects.requireNonNull(pointsDisponibles, "pointsDisponibles");
         this.demandeur = Objects.requireNonNull(demandeur, "demandeur");
-        this.confirmateur = Objects.requireNonNull(confirmateur, "confirmateur");
+        this.demandeurMode = Objects.requireNonNull(demandeurMode, "demandeurMode");
         this.notificateur = Objects.requireNonNull(notificateur, "notificateur");
         this.dialogue = Objects.requireNonNull(dialogue, "dialogue");
         this.recharger = Objects.requireNonNull(recharger, "recharger");
+    }
+
+    /// Ce que l'utilisateur décide pour ses fichiers déjà transformés : les **référencer** en place (aucune
+    /// copie) ou les **copier** dans l'espace de travail. Chaque valeur porte le **libellé de son bouton**,
+    /// pour que le choix se lise sur les boutons plutôt que derrière un « OK / Annuler » ambigu.
+    public enum ModeImport {
+        REFERENCER("Les référencer"),
+        COPIER("Les copier");
+
+        private final String libelle;
+
+        ModeImport(String libelle) {
+            this.libelle = libelle;
+        }
+
+        /// Libellé du bouton de ce mode.
+        public String libelle() {
+            return libelle;
+        }
     }
 
     /// Un point de rattachement **présenté à l'utilisateur** : le point d'écoute et le carré de son site,
@@ -135,25 +153,36 @@ final class ActionImportTransformes {
             return;
         }
 
-        boolean referencer = demanderReferencer(dossier);
-        lancer(dossier, choixPoint.orElseThrow().point().id(), referencer);
+        // Copier ou référencer : un bouton par décision (le libellé porte le choix), plus le renoncement
+        // (« Annuler » → Optional vide), auquel cas rien n'est importé. Bien plus clair qu'un « OK / Annuler »
+        // où « Annuler » signifierait « copier » : ici les boutons DISENT ce qu'ils font.
+        Optional<ModeImport> mode = demandeurMode.choisir(
+                ENTETE_MODE,
+                questionMode(horsEspaceDeTravail(dossier)),
+                List.of(ModeImport.REFERENCER, ModeImport.COPIER),
+                ModeImport::libelle);
+        if (mode.isEmpty()) {
+            return;
+        }
+        lancer(dossier, choixPoint.orElseThrow().point().id(), mode.orElseThrow() == ModeImport.REFERENCER);
     }
 
-    /// Copier, ou laisser l'audio où il est ? Question **posée dans tous les cas**, mais la recommandation
-    /// se déduit du dossier désigné : hors de l'espace de travail, ces fichiers sont ceux de l'utilisateur,
-    /// et les recopier ferait un doublon qu'il n'a pas demandé. La conséquence est dite, pas tue :
-    /// référencer rend la nuit muette si le support s'absente.
-    private boolean demanderReferencer(Path dossier) {
-        boolean aLutilisateur = horsEspaceDeTravail(dossier);
-        String question = aLutilisateur
+    /// En-tête de la question copier / référencer. Exposé (avec [#questionMode]) pour que l'outil de capture
+    /// rende le message **réel** au lieu de le recomposer (ADR 0025).
+    public static final String ENTETE_MODE = "Copier ces fichiers, ou les référencer là où ils sont ?";
+
+    /// L'explication de la question copier / référencer, selon que le dossier appartient à l'utilisateur
+    /// (hors de l'espace de travail) ou non. Le **choix** se fait sur les boutons ([ModeImport#libelle]) ;
+    /// ce texte n'énonce que la conséquence, sans jamais renvoyer à un « oui / non » qui n'existe pas.
+    public static String questionMode(boolean horsEspaceDeTravail) {
+        return horsEspaceDeTravail
                 ? "Ce dossier est en dehors de votre dossier de travail : ces fichiers sont les vôtres.\n\n"
-                        + "Les laisser où ils sont (recommandé) ? L'application s'y référera sans rien copier.\n"
-                        + "Cette nuit ne sera plus écoutable si ce support n'est pas accessible (disque débranché,"
-                        + " dossier réseau hors ligne), et le redeviendra dès qu'il le sera.\n\n"
-                        + "Répondre « non » copiera les fichiers dans votre dossier de travail."
-                : "Laisser ces fichiers où ils sont, sans en faire de copie ?\n\n"
-                        + "Répondre « non » les copiera dans votre dossier de travail.";
-        return confirmateur.confirmer(question);
+                        + "Les référencer les laisse où ils sont (recommandé), sans rien copier. Cette nuit ne"
+                        + " sera plus écoutable si ce support n'est pas accessible (disque débranché, dossier"
+                        + " réseau hors ligne), et le redeviendra dès qu'il le sera.\n\n"
+                        + "Les copier en place un double dans votre dossier de travail."
+                : "Les référencer les laisse où ils sont, sans copie.\n\n"
+                        + "Les copier en place un double à l'emplacement que l'application attend.";
     }
 
     /// `true` si `dossier` est **en dehors** de l'espace de travail : ses fichiers appartiennent alors à

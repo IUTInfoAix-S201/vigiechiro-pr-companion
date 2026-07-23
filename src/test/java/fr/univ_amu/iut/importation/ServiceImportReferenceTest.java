@@ -4,7 +4,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.within;
 
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.util.Modules;
+import fr.univ_amu.iut.commun.di.RacineInjecteur;
 import fr.univ_amu.iut.commun.model.Empreintes;
+import fr.univ_amu.iut.commun.model.Horloge;
 import fr.univ_amu.iut.commun.model.HorlogeFigee;
 import fr.univ_amu.iut.commun.model.JetonAnnulation;
 import fr.univ_amu.iut.commun.model.OperationAnnuleeException;
@@ -15,14 +21,10 @@ import fr.univ_amu.iut.commun.model.Utilisateur;
 import fr.univ_amu.iut.commun.model.Workspace;
 import fr.univ_amu.iut.commun.model.dao.UtilisateurDao;
 import fr.univ_amu.iut.commun.persistence.MigrationSchema;
-import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
-import fr.univ_amu.iut.commun.persistence.UniteDeTravail;
 import fr.univ_amu.iut.importation.model.ServiceImportReference;
 import fr.univ_amu.iut.importation.model.ServiceImportReference.ResultatImportReference;
-import fr.univ_amu.iut.importation.model.dao.AgregatImportDao;
 import fr.univ_amu.iut.passage.model.Passage;
 import fr.univ_amu.iut.passage.model.SequenceDEcoute;
-import fr.univ_amu.iut.passage.model.ServiceDisponibiliteAudio;
 import fr.univ_amu.iut.passage.model.dao.EnregistrementOriginalDao;
 import fr.univ_amu.iut.passage.model.dao.EnregistreurDao;
 import fr.univ_amu.iut.passage.model.dao.JournalDuCapteurDao;
@@ -45,6 +47,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -75,7 +78,6 @@ class ServiceImportReferenceTest {
     @TempDir
     Path racine;
 
-    private SourceDeDonnees source;
     private ServiceImportReference service;
     private Workspace workspace;
     private Long idPoint;
@@ -89,33 +91,41 @@ class ServiceImportReferenceTest {
 
     @BeforeEach
     void preparer() {
-        workspace = new Workspace(racine.resolve("ws"));
-        source = new SourceDeDonnees(workspace);
-        new MigrationSchema(source).migrer();
+        System.setProperty("vigiechiro.workspace", racine.resolve("ws").toString());
+        // Horloge figée par override ciblé : rend déterministes les assertions dépendantes du temps
+        // (année courante du passage, identité dérivée des noms plutôt que de l'horloge).
+        Injector injecteur =
+                Guice.createInjector(Modules.override(RacineInjecteur.modules()).with(new AbstractModule() {
+                    @Override
+                    protected void configure() {
+                        bind(Horloge.class).toInstance(new HorlogeFigee(LocalDate.of(2026, 5, 31)));
+                    }
+                }));
+
+        workspace = injecteur.getInstance(Workspace.class);
+        injecteur.getInstance(MigrationSchema.class).migrer();
 
         // Parents FK : utilisateur -> site (carré 640380) -> point (Z1).
-        new UtilisateurDao(source).insert(new Utilisateur(ID_USER, "Testeur"));
-        SiteDao siteDao = new SiteDao(source);
-        PointDao pointDao = new PointDao(source);
+        injecteur.getInstance(UtilisateurDao.class).insert(new Utilisateur(ID_USER, "Testeur"));
+        SiteDao siteDao = injecteur.getInstance(SiteDao.class);
+        PointDao pointDao = injecteur.getInstance(PointDao.class);
         Site site = siteDao.insert(new Site(null, "640380", "Étang", Protocole.STANDARD, null, "2026-05-31", ID_USER));
         PointDEcoute point = pointDao.insert(new PointDEcoute(null, "Z1", 43.5, 5.4, null, site.id()));
         idPoint = point.id();
 
-        sessionDao = new SessionDao(source);
-        originalDao = new EnregistrementOriginalDao(source);
-        sequenceDao = new SequenceDao(source);
-        passageDao = new PassageDao(source);
-        enregistreurDao = new EnregistreurDao(source);
-        journalDao = new JournalDuCapteurDao(source);
+        sessionDao = injecteur.getInstance(SessionDao.class);
+        originalDao = injecteur.getInstance(EnregistrementOriginalDao.class);
+        sequenceDao = injecteur.getInstance(SequenceDao.class);
+        passageDao = injecteur.getInstance(PassageDao.class);
+        enregistreurDao = injecteur.getInstance(EnregistreurDao.class);
+        journalDao = injecteur.getInstance(JournalDuCapteurDao.class);
 
-        service = new ServiceImportReference(
-                pointDao,
-                siteDao,
-                new AgregatImportDao(source),
-                new UniteDeTravail(source),
-                workspace,
-                new HorlogeFigee(LocalDate.of(2026, 5, 31)),
-                new ServiceDisponibiliteAudio(sessionDao, sequenceDao, workspace));
+        service = injecteur.getInstance(ServiceImportReference.class);
+    }
+
+    @AfterEach
+    void nettoyer() {
+        System.clearProperty("vigiechiro.workspace");
     }
 
     @Test

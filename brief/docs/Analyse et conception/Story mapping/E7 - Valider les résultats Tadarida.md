@@ -181,3 +181,45 @@ Les gains de productivité avancés (regroupement multi-nuits P9, bibliothèque 
 **Parcours rattaché** : [P7](../Parcours%20utilisateurs/P7%20-%20Valider%20les%20résultats%20Tadarida.md), étape 8<br>
 **Maquettes cibles** : [M-SonsValidation](../Maquettes/M-SonsValidation.md) (bouton « Exporter Vu.csv » + modal de récapitulatif)<br>
 **Dépendances** : [E0.S5](E0%20-%20Fondations%20de%20persistance.md#e0s5), [E7.S4](#e7s4)<br>
+
+---
+
+## E7.S8 - Déclarer sa certitude et marquer une observation douteuse { #e7s8 }
+
+**En tant que** [Karim](../Personas/Karim.md)
+
+**Je veux** dire à quel point je suis sûr d'une identification, et pouvoir marquer une détection « à repasser »
+
+**Afin de** tracer ma confiance et mes doutes sans bloquer ma revue
+
+**Critères d'acceptation** :
+
+- [ ] Chaque observation peut porter une **certitude `SUR` / `PROBABLE` / `POSSIBLE`**, **vide par défaut** et **jamais dérivée** de la probabilité Tadarida (cf. [C13](../Modèle%20conceptuel/C13%20-%20Observation.md)).
+- [ ] Une observation peut être marquée **« douteuse »** (écoutée mais à repasser), **distincte** de « pas encore vue ».
+- [ ] La certitude et le drapeau douteux sont **persistés** et restitués tels quels.
+- [ ] La certitude est **le même domaine** pour l'observateur et pour le validateur (cf. [E7.S9](#e7s9)).
+
+**Parcours rattaché** : [P7](../Parcours%20utilisateurs/P7%20-%20Valider%20les%20résultats%20Tadarida.md), pendant la revue<br>
+**Maquettes cibles** : [M-SonsValidation](../Maquettes/M-SonsValidation.md) (menu certitude + marquage douteux)<br>
+**Dépendances** : [E7.S4](#e7s4)<br>
+
+---
+
+## E7.S9 - Consulter l'avis du validateur MNHN et dialoguer avec lui { #e7s9 }
+
+**En tant que** [Marie](../Personas/Marie.md)
+
+**Je veux** voir l'avis de l'expert MNHN sur mes détections et pouvoir lui répondre
+
+**Afin de** comprendre une correction et échanger sur un cas litigieux
+
+**Critères d'acceptation** :
+
+- [ ] Sur une observation, **trois avis coexistent** : Tadarida propose, l'observateur corrige, le validateur MNHN tranche.
+- [ ] L'avis du validateur (taxon + certitude) est **affiché mais en lecture seule** : il n'est **jamais réécrit** vers le serveur.
+- [ ] Un **fil de discussion ordonné** s'attache à l'observation ; chaque message distingue **« vous »** d'**« un validateur »**.
+- [ ] **Poster un message est irréversible** (aucune route serveur de suppression) et exige une **confirmation explicite** ; le message part **au serveur d'abord, la base ensuite** (jamais un message cru envoyé mais invisible côté expert).
+
+**Parcours rattaché** : [P7](../Parcours%20utilisateurs/P7%20-%20Valider%20les%20résultats%20Tadarida.md), échange avec le validateur<br>
+**Maquettes cibles** : [M-SonsValidation](../Maquettes/M-SonsValidation.md) (panneau de discussion)<br>
+**Dépendances** : [E7.S8](#e7s8), [E9.S1](E9%20-%20Intégration%20plateforme%20VigieChiro.md#e9s1)<br>

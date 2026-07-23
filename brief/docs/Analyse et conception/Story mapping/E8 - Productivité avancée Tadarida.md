@@ -71,3 +71,24 @@ Ces gains sont **secondaires** : ils enrichissent la validation sans en être un
 **Parcours rattaché** : [P10](../Parcours%20utilisateurs/P10%20-%20Exporter%20une%20bibliothèque%20de%20sons%20de%20référence.md)<br>
 **Maquettes cibles** : [M-SonsValidation](../Maquettes/M-SonsValidation.md) (bouton « Marquer comme référence »), [M-Lot](../Maquettes/M-Lot.md) (action « Exporter bibliothèque »)<br>
 **Dépendances** : [E0.S5](E0%20-%20Fondations%20de%20persistance.md#e0s5), [E7.S4](E7%20-%20Valider%20les%20résultats%20Tadarida.md#e7s4)<br>
+
+---
+
+## E8.S3 - Explorer l'inventaire des espèces et la biodiversité { #e8s3 }
+
+**En tant que** [Karim](../Personas/Karim.md)
+
+**Je veux** un écran qui agrège mes observations par espèce et par carré
+
+**Afin d'** avoir une vue biodiversité de mes campagnes, au-delà d'un passage isolé
+
+**Critères d'acceptation** :
+
+- [ ] Un écran **« Espèces & biodiversité »** charge les observations enrichies à l'ouverture et **filtre / agrège côté client** (par espèce, par carré).
+- [ ] Une vue **maître-détail** présente chaque espèce et ses observations.
+- [ ] Une **carte de répartition** et la **richesse par carré** sont affichées.
+- [ ] L'inventaire est **exportable en CSV**.
+
+**Parcours rattaché** : [P11](../Parcours%20utilisateurs/P11%20-%20Inventaire%20des%20espèces%20détectées.md)<br>
+**Maquettes cibles** : [M-Analyse](../Maquettes/M-Analyse.md)<br>
+**Dépendances** : [E7.S1](E7%20-%20Valider%20les%20résultats%20Tadarida.md#e7s1)<br>

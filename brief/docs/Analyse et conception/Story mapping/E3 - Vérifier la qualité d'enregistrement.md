@@ -170,3 +170,24 @@
 **Parcours rattaché** : [P3](../Parcours%20utilisateurs/P3%20-%20Vérifier%20l%27enregistrement%20par%20échantillonnage.md), étape 5<br>
 **Maquettes cibles** : [M-Qualification](../Maquettes/M-Qualification.md) (panneau « Modifier la sélection »)<br>
 **Dépendances** : [E3.S1](#e3s1), [E3.S2](#e3s2)<br>
+
+---
+
+## E3.S7 - Saisir un verdict par fichier son écouté { #e3s7 }
+
+**En tant que** [Marie](../Personas/Marie.md)
+
+**Je veux** noter la qualité de **chaque** séquence que j'écoute
+
+**Afin que** le verdict global du passage se déduise de mes écoutes plutôt que d'un jugement d'ensemble
+
+**Critères d'acceptation** :
+
+- [ ] Chaque séquence écoutée reçoit un verdict **Bon / Mauvais / Inexploitable** ; une séquence non jugée reste **neutre** (on ne juge que ce qu'on écoute).
+- [ ] Le verdict global du passage est **dérivé des seuls verdicts saisis** : aucune écoute → « À vérifier » ; **majorité stricte** d'inexploitables → « Inexploitable » ; toutes bonnes → « OK » ; sinon « Utilisable ».
+- [ ] Le verdict global dérivé reste **surchargeable** à la main ([R13](../Modèle%20conceptuel/Règles%20métier.md#r13)).
+- [ ] Le lexique du verdict final (`Non vérifié / OK / Utilisable / Inexploitable`) est distinct du verdict par fichier ; badges, tri et filtres sauvegardés sont **préservés**.
+
+**Parcours rattaché** : [P3](../Parcours%20utilisateurs/P3%20-%20Vérifier%20l%27enregistrement%20par%20échantillonnage.md), à l'écoute de chaque séquence<br>
+**Maquettes cibles** : [M-Qualification](../Maquettes/M-Qualification.md) (barre de verdicts par fichier)<br>
+**Dépendances** : [E3.S4](#e3s4), [E3.S5](#e3s5)<br>

@@ -137,3 +137,24 @@
 **Parcours rattaché** : [P5](../Parcours%20utilisateurs/P5%20-%20Naviguer%20dans%20plusieurs%20sites%20et%20passages.md), étape 3<br>
 **Maquettes cibles** : [M-Import](../Maquettes/M-Import.md) (variante multi-dossiers), [M-MultiSite](../Maquettes/M-MultiSite.md) (panneau file d'attente)<br>
 **Dépendances** : [E0.S6](E0%20-%20Fondations%20de%20persistance.md#e0s6), [E2.S1](E2%20-%20Importer%20et%20transformer%20une%20nuit.md#e2s1), [E2.S2](E2%20-%20Importer%20et%20transformer%20une%20nuit.md#e2s2), [E2.S4](E2%20-%20Importer%20et%20transformer%20une%20nuit.md#e2s4), [E2.S6](E2%20-%20Importer%20et%20transformer%20une%20nuit.md#e2s6)<br>
+
+---
+
+## E5.S6 - Rechercher globalement depuis n'importe quel écran { #e5s6 }
+
+**En tant que** [Karim](../Personas/Karim.md)
+
+**Je veux** un champ de recherche accessible partout qui retrouve un site, un point, un passage ou une espèce
+
+**Afin de** sauter directement au bon endroit sans naviguer d'écran en écran
+
+**Critères d'acceptation** :
+
+- [ ] Un **champ de recherche** dans le bandeau (chrome) est accessible **depuis tout écran**.
+- [ ] La recherche **agrège sites, points, passages et espèces observées** ; la correspondance est **insensible à la casse et aux accents**.
+- [ ] Les résultats sont **plafonnés par type** (au plus 8) pour rester lisibles ; le surplus est omis.
+- [ ] La navigation se fait **au clavier** (flèche pour entrer dans la liste, Entrée pour ouvrir, Échap pour fermer) et un résultat est **annoncé** pour l'accessibilité.
+
+**Parcours rattaché** : [P8](../Parcours%20utilisateurs/P8%20-%20Rechercher%20globalement.md) (transverse)<br>
+**Maquettes cibles** : *champ de recherche du bandeau non maquetté* (cf. [#2382](https://github.com/echonuit/vigiechiro-pr-companion/issues/2382))<br>
+**Dépendances** : [E5.S2](#e5s2)<br>

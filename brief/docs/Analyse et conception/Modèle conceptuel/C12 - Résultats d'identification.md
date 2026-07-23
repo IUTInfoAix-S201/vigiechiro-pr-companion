@@ -1,6 +1,6 @@
 # C12 - Résultats d'identification (post-Tadarida)
 
-Le fichier produit par Tadarida côté serveur Vigie-Chiro et téléchargé manuellement par l'utilisateur après le dépôt. Importé dans l'application pour la **validation taxonomique** (SHOULD / cible étirable). Stocké physiquement sous le nom de fichier `<uuid>-participation-<uuid>-observations.csv`.
+Les résultats produits par Tadarida côté serveur Vigie-Chiro, **importés dans l'application pour la validation taxonomique** - soit **directement depuis la plateforme** (par l'API), soit depuis un fichier CSV téléchargé du portail (repli). Stocké physiquement sous le nom de fichier `<uuid>-participation-<uuid>-observations.csv`.
 
 | Attribut | Type | Contraintes | Notes |
 |---|---|---|---|

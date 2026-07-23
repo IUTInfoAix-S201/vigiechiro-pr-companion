@@ -1,6 +1,6 @@
 # C1 - Utilisateur
 
-L'utilisateur unique de l'application. Mono-utilisateur, hors-ligne, pas de compte ni de mot de passe.
+L'utilisateur unique de l'application (mono-poste). Il se **connecte à la plateforme Vigie-Chiro par un jeton** (pas de mot de passe stocké) pour déposer, synchroniser et récupérer ses résultats.
 
 | Attribut | Type | Contraintes | Notes |
 |---|---|---|---|

@@ -31,7 +31,7 @@ flowchart LR
     P1[🌐 P1 - Déclarer<br/>un site] --> P2[📥 P2 - Importer<br/>une nuit]
     P2 --> P3[🎧 P3 - Vérifier<br/>l'enregistrement]
     P3 --> P4[📦 P4 - Préparer<br/>le dépôt]
-    P4 -->|dépôt manuel<br/>VigieChiro| P7[✅ P7 - Valider les<br/>résultats Tadarida]
+    P4 -->|dépôt sur<br/>VigieChiro| P7[✅ P7 - Valider les<br/>résultats Tadarida]
 
     P1 --> P5[🗂 P5 - Naviguer<br/>multi-sites]
     P5 --> P2
@@ -59,7 +59,7 @@ flowchart LR
 ## Comment lire le diagramme
 
 - Les **flèches pleines** sont les enchaînements directs entre parcours.
-- La **flèche pointillée** entre P4 et P7 matérialise le **dépôt manuel sur Vigie-Chiro** + l'attente du retour Tadarida (24-48 h hors application).
+- La **flèche pointillée** entre P4 et P7 matérialise le **dépôt sur Vigie-Chiro** (par l'application, repli navigateur possible) + l'attente du retour Tadarida (24-48 h hors application).
 - Une **boucle** P5 → P2 indique que le parcours multi-sites alimente plusieurs imports successifs.
 - Les parcours P9 et P10 sont des **branches optionnelles** qui ne bloquent pas le fil principal.
 

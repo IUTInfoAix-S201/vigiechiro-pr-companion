@@ -46,7 +46,7 @@ flowchart TB
     S5["📦 <b>Étape 5 · Préparer le dépôt</b><br/>vérification cohérence · ouverture du dossier"]
     S5 --> Lot
     Lot[("📦 Dépôt - séquences + journal + climat")]
-    Lot -.téléversement manuel via navigateur.-> VC
+    Lot -.téléversement par l'application.-> VC
     VC(["🌐 vigiechiro.herokuapp.com"])
 
     classDef step fill:#1e8449,stroke:#0e5128,color:#fff,stroke-width:2px
@@ -76,7 +76,7 @@ flowchart TB
 1. **Marie** déclare son site dans l'application (étape 1).
 2. Elle se rend **sur le terrain** : programme l'enregistreur, le déploie, le récupère au matin (étape 2). Elle revient avec une **carte SD pleine** de WAV bruts.
 3. Elle revient **dans l'application** pour importer la nuit (étape 3 : copie protégée, renommage `CarXXXXXX-AAAA-PassN-YY-`, découpage en tranches de 5 s réelles, expansion temps ×10), vérifier l'enregistrement par échantillonnage (étape 4) et préparer le dépôt (étape 5).
-4. Elle obtient un **dépôt** sur disque, qu'elle téléverse **manuellement** via son navigateur sur le portail Vigie-Chiro.
+4. Elle obtient un **dépôt** qu'elle **téléverse directement depuis l'application** sur Vigie-Chiro (repli navigateur possible hors connexion), puis dont elle **lance la participation**.
 
 L'application **remplace entièrement** la chaîne d'outils manuels (LupasRename + Kaléidoscope 4.3.1) historiquement utilisée.
 

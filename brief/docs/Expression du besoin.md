@@ -50,7 +50,7 @@ La chaîne minimale livrable est la **chaîne fil rouge** : depuis la récupéra
 - **Déclarer un site de suivi** dans l'application : n° de carré (6 chiffres) et codes des points d'écoute (1 lettre + 1 chiffre). Le site doit avoir été créé en amont sur le portail Vigie-Chiro pour récupérer ces identifiants.
 - **Importer une nuit d'enregistrement** depuis un dossier (typiquement la carte SD) : détection automatique du `LogPR*.txt`, du `PaRec*_THLog.csv` et des WAV bruts ; **copie protégée** des fichiers (aucune écriture sur la SD source) ; **renommage** automatique avec le préfixe `CarXXXXXX-AAAA-PassN-YY-` ; **transformation** de chaque WAV brut en séquences de 5 s ralenties ×10 (expansion temporelle).
 - **Vérifier l'enregistrement par échantillonnage** : sound check avant dépôt. L'application propose automatiquement une dizaine de séquences réparties sur la nuit, l'utilisateur en écoute quelques-unes pour confirmer que la qualité est exploitable, et saisit un **verdict global** (`OK`, `Utilisable`, `Inexploitable`).
-- **Préparer le dépôt** : vérification de cohérence (préfixes conformes, journal et climat présents, etc.), affichage du chemin du dossier, ouverture dans l'explorateur natif pour téléversement manuel via navigateur sur Vigie-Chiro. L'application **ne dialogue pas** directement avec la plateforme.
+- **Préparer le dépôt** : vérification de cohérence (préfixes conformes, journal et climat présents, etc.), affichage du chemin du dossier, téléversement **direct sur Vigie-Chiro** depuis l'application (création de la participation, envoi reprenable, lancement de l'analyse), avec un **repli** par ouverture du dossier dans l'explorateur pour un dépôt navigateur hors connexion.
 - **Tracer le dépôt** : marquer le passage comme `Déposé` avec date de dépôt, pour distinguer ce qui a été livré de ce qui reste à traiter.
 
 ### SHOULD (utilité reconnue)
@@ -79,7 +79,7 @@ Une fois la chaîne fil rouge livrée, ces capacités étendent la valeur en cas
 ### WON'T (hors périmètre de cette première version)
 
 - **Pas** de communication directe avec la plateforme VigieChiro (les échanges se font par téléversement / téléchargement de fichiers).
-- **Pas** de gestion multi-utilisateur, pas de comptes, pas de synchronisation cloud.
+- **Pas** de gestion multi-utilisateur (l'application reste mono-poste). En revanche elle se connecte au **compte Vigie-Chiro** de l'observateur, par jeton, pour déposer et synchroniser.
 - **Pas** de calcul propre de classification automatique (Tadarida fait son travail en amont, l'application l'exploite).
 - **Pas** de déploiement web ou mobile.
 

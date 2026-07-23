@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [2.40.0](https://github.com/echonuit/vigiechiro-pr-companion/compare/v2.39.0...v2.40.0) (2026-07-23)
+
+
+### Features
+
+* **amorcage:** lire où vivent la base et le dossier de travail avant de démarrer (ADR 1038) ([#2393](https://github.com/echonuit/vigiechiro-pr-companion/issues/2393)) ([af058e0](https://github.com/echonuit/vigiechiro-pr-companion/commit/af058e084c003956ec7b74a0f1cffb89583abb4c)), closes [#1038](https://github.com/echonuit/vigiechiro-pr-companion/issues/1038) [#1038](https://github.com/echonuit/vigiechiro-pr-companion/issues/1038) [#2258](https://github.com/echonuit/vigiechiro-pr-companion/issues/2258) [#2389](https://github.com/echonuit/vigiechiro-pr-companion/issues/2389)
+
 # [2.39.0](https://github.com/echonuit/vigiechiro-pr-companion/compare/v2.38.1...v2.39.0) (2026-07-22)
 
 

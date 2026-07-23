@@ -2,6 +2,7 @@
 
 - **Statut** : Accepté — 2026-07-20
 - **Chantier** : #1641, #1873, #1579, #2129
+- **Vérification** : humaine — que la mesure fasse foi en CI plutôt qu'une observation locale est une discipline de méthode, non observable dans le code
 
 ## Contexte
 

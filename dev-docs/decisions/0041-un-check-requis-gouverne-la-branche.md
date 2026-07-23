@@ -2,6 +2,7 @@
 
 - **Statut** : Accepté — 2026-07-20
 - **Chantier** : EPIC #2104 / lot 1 (#2106)
+- **Vérification** : humaine — que le contrôle de titre reste informatif et gouverne la branche, pas la PR, est un choix de configuration GitHub, pas un invariant du code
 - **Complète** : [ADR 0040](0040-le-sujet-de-commit-est-une-syntaxe.md), en disant **jusqu'où** le contrôle qu'elle institue doit aller.
 
 ## Contexte

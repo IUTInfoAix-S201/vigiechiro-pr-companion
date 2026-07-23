@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+## [2.44.1](https://github.com/echonuit/vigiechiro-pr-companion/compare/v2.44.0...v2.44.1) (2026-07-23)
+
+
+### Bug Fixes
+
+* **cli:** un refus metier sort en 2 (etat intact), pas en 1 (convention [#2294](https://github.com/echonuit/vigiechiro-pr-companion/issues/2294)) ([#2456](https://github.com/echonuit/vigiechiro-pr-companion/issues/2456)) ([82ea5f5](https://github.com/echonuit/vigiechiro-pr-companion/commit/82ea5f541aec31f0bb387b829dd95fb2dd313ee7))
+
 # [2.44.0](https://github.com/echonuit/vigiechiro-pr-companion/compare/v2.43.0...v2.44.0) (2026-07-23)
 
 

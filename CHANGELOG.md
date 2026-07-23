@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [2.43.0](https://github.com/echonuit/vigiechiro-pr-companion/compare/v2.42.0...v2.43.0) (2026-07-23)
+
+
+### Features
+
+* **cli:** commande emplacements, parité de l'écran de choix (ADR 1038) ([#2410](https://github.com/echonuit/vigiechiro-pr-companion/issues/2410)) ([b42d8af](https://github.com/echonuit/vigiechiro-pr-companion/commit/b42d8af9343407d356ae2df59bb2dc1161be09f9)), closes [#1038](https://github.com/echonuit/vigiechiro-pr-companion/issues/1038) [#1038](https://github.com/echonuit/vigiechiro-pr-companion/issues/1038) [#2258](https://github.com/echonuit/vigiechiro-pr-companion/issues/2258)
+
 # [2.42.0](https://github.com/echonuit/vigiechiro-pr-companion/compare/v2.41.0...v2.42.0) (2026-07-23)
 
 

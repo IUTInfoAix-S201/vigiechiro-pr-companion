@@ -5,7 +5,7 @@ Les termes du domaine employés dans cette documentation et dans l'application.
 | Terme | Définition |
 |---|---|
 | **Carré** | Maille de suivi Vigie-Chiro, identifiée par un numéro à six chiffres. Dans l'application, un carré et ses points d'écoute forment un [site](ecrans/sites.md). |
-| **Dépôt** | Envoi des données d'une nuit vérifiée sur la plateforme Vigie-Chiro. Le téléversement est **manuel** (l'application prépare le dossier mais ne dialogue pas avec le portail). Voir l'écran [Préparer le dépôt](ecrans/lot.md). |
+| **Dépôt** | Envoi des données d'une nuit vérifiée sur la plateforme Vigie-Chiro. L'application **téléverse directement** (envoi reprenable) puis lance l'analyse ; le dépôt navigateur reste un **repli** hors connexion. Voir l'écran [Préparer le dépôt](ecrans/lot.md). |
 | **Importer** | Faire **entrer des données dans l'application**, quelle qu'en soit la provenance : une carte SD, un fichier CSV, ou les résultats d'une participation sur Vigie-Chiro. C'est le verbe employé quand ce qui arrive **n'existait pas encore** sur votre poste. À distinguer de **Récupérer**. |
 | **Journal du capteur** | Fichier d'évènements produit par l'enregistreur (démarrage, arrêt programmé...), exploité notamment par le [diagnostic](ecrans/diagnostic.md). |
 | **Passage** | Une **nuit d'enregistrement** sur un point d'écoute, identifiée par une année et un numéro de passage. C'est l'unité de travail de l'application. Voir l'écran [Passage](ecrans/passage.md). |

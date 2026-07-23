@@ -36,8 +36,7 @@
 Des enregistreurs autonomes (*Passive Recorder*) posés en forêt captent les ultrasons des
 chauves-souris pendant une nuit entière. **VigieChiro Companion** accompagne l'observateur depuis
 la **carte SD** de l'enregistreur jusqu'au **dépôt** des données sur la plateforme nationale
-**Vigie-Chiro**, puis la **validation** des espèces identifiées : le tout dans un outil **local**
-unique, sans serveur ni compte à créer.
+**Vigie-Chiro**, puis la **validation** des espèces identifiées : le tout dans un **outil local** unique, à installer sans serveur. Le dépôt et la synchronisation passent par votre **compte Vigie-Chiro** (connexion par jeton, sans mot de passe stocké).
 
 > Né d'une **commande réelle** (Samuel Busson, CEREMA), construit dans le cadre de la SAÉ 2.01 du BUT
 > Informatique de l'IUT d'Aix-Marseille.

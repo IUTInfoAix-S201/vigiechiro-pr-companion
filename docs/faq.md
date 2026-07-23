@@ -39,9 +39,7 @@ réglés, la préparation reste bloquée. Voir l'écran [Préparer le dépôt](e
 
 ### Quel dossier dois-je téléverser sur Vigie-Chiro ?
 
-Celui indiqué dans le **récapitulatif** de l'écran Préparer le dépôt après avoir cliqué sur « Vérifier et préparer le dépôt ».
-Le téléversement est **manuel** : vous l'effectuez depuis votre navigateur, puis vous revenez
-marquer la nuit comme déposée. Voir l'écran [Préparer le dépôt](ecrans/lot.md).
+En temps normal, **vous n'avez pas à téléverser à la main** : connectée à Vigie-Chiro, l'application **dépose la nuit directement** (bouton « Téléverser sur Vigie-Chiro »), reprend sur coupure, puis vous lancez l'analyse. Le dépôt navigateur reste un **repli hors connexion** : l'écran Préparer le dépôt ouvre alors le dossier `depot/`, et vous revenez « Marquer déposé ». Voir l'écran [Préparer le dépôt](ecrans/lot.md).
 
 ## Validation des espèces
 
@@ -53,8 +51,7 @@ Déposer, puis Valider. Voir le [Parcours métier](parcours/index.md).
 
 ### Où récupérer les résultats Tadarida ?
 
-Sur la plateforme Vigie-Chiro, 24 à 48 h après le dépôt : vous y téléchargez un fichier CSV de
-résultats, que vous **importez** ensuite dans l'écran [Validation](ecrans/validation.md).
+24 à 48 h après le dépôt, **directement depuis l'application** : ☰ ▸ « Importer depuis Vigie-Chiro » récupère les résultats par l'API. Vous pouvez aussi, en repli, télécharger le CSV de résultats sur le portail et l'**importer** dans l'écran [Validation](ecrans/validation.md).
 
 ## Espace disque et archives
 
@@ -99,9 +96,7 @@ dossier où ils se trouvent désormais : voir **Réactiver ce passage**.
 
 ### Où mes données sont-elles stockées ?
 
-Dans une **base de données locale** sur votre ordinateur. L'application ne dialogue avec aucun
-serveur : les échanges avec Vigie-Chiro (dépôt, récupération des résultats Tadarida) se font
-**manuellement** via votre navigateur.
+Dans une **base de données locale** (SQLite) sur votre ordinateur : c'est là que vivent vos sites, passages et observations. L'application **dialogue avec Vigie-Chiro** pour ce qui relève du protocole (dépôt, synchronisation des sites, récupération des résultats, publication des corrections), mais **n'envoie vos données à aucun autre service**. Voir la [politique de sécurité et de données](https://github.com/echonuit/vigiechiro-pr-companion/blob/main/SECURITY.md).
 
 ### Comment écouter une séquence ?
 

@@ -51,9 +51,9 @@ Ces gains sont **secondaires** : ils enrichissent la validation sans en être un
 
 **Critères d'acceptation** :
 
-- [ ] Pendant la validation ([E7.S4](E7%20-%20Valider%20les%20résultats%20Tadarida.md#e7s4)), un bouton « Marquer comme référence » est disponible sur l'observation courante.
-- [ ] Une observation marquée référence est mise en évidence visuellement dans la liste (icône ⭐).
-- [ ] Action « Démarquer » réversible.
+- [x] Pendant la validation ([E7.S4](E7%20-%20Valider%20les%20résultats%20Tadarida.md#e7s4)), un bouton « Marquer comme référence » est disponible sur l'observation courante.
+- [x] Une observation marquée référence est mise en évidence visuellement dans la liste (icône ⭐).
+- [x] Action « Démarquer » réversible.
 - [ ] Menu « Exporter > Bibliothèque de sons de référence » qui génère un dossier organisé :
     ```
     bibliotheque/
@@ -63,10 +63,10 @@ Ces gains sont **secondaires** : ils enrichissent la validation sans en être un
       Nyclei - Nyctalus leisleri/
         ...
     ```
-- [ ] Les WAV exportés sont **copies** des séquences ralenties ×10 (lisibles directement par tout lecteur audio).
+- [x] Les WAV exportés sont **copies** des séquences ralenties ×10 (lisibles directement par tout lecteur audio).
 - [ ] **Variante** : option « Document récapitulatif » pour produire en plus un PDF/HTML par espèce avec spectrogrammes et métadonnées (à arbitrer selon la complexité, [E6.S5](E6%20-%20Diagnostiquer%20le%20matériel.md#e6s5) peut servir de base technique).
 - [ ] L'utilisateur choisit le dossier de destination ; un bouton « Zipper le dossier » est proposé après export pour partage.
-- [ ] La sélection « référence » est persistée en BD ([E0.S5](E0%20-%20Fondations%20de%20persistance.md#e0s5)) et réutilisable d'une session à l'autre.
+- [x] La sélection « référence » est persistée en BD ([E0.S5](E0%20-%20Fondations%20de%20persistance.md#e0s5)) et réutilisable d'une session à l'autre.
 
 **Parcours rattaché** : [P10](../Parcours%20utilisateurs/P10%20-%20Exporter%20une%20bibliothèque%20de%20sons%20de%20référence.md)<br>
 **Maquettes cibles** : [M-SonsValidation](../Maquettes/M-SonsValidation.md) (bouton « Marquer comme référence »), [M-Lot](../Maquettes/M-Lot.md) (action « Exporter bibliothèque »)<br>
@@ -84,10 +84,10 @@ Ces gains sont **secondaires** : ils enrichissent la validation sans en être un
 
 **Critères d'acceptation** :
 
-- [ ] Un écran **« Espèces & biodiversité »** charge les observations enrichies à l'ouverture et **filtre / agrège côté client** (par espèce, par carré).
-- [ ] Une vue **maître-détail** présente chaque espèce et ses observations.
-- [ ] Une **carte de répartition** et la **richesse par carré** sont affichées.
-- [ ] L'inventaire est **exportable en CSV**.
+- [x] Un écran **« Espèces & biodiversité »** charge les observations enrichies à l'ouverture et **filtre / agrège côté client** (par espèce, par carré).
+- [x] Une vue **maître-détail** présente chaque espèce et ses observations.
+- [x] Une **carte de répartition** et la **richesse par carré** sont affichées.
+- [x] L'inventaire est **exportable en CSV**.
 
 **Parcours rattaché** : [P11](../Parcours%20utilisateurs/P11%20-%20Inventaire%20des%20espèces%20détectées.md)<br>
 **Maquettes cibles** : [M-Analyse](../Maquettes/M-Analyse.md)<br>

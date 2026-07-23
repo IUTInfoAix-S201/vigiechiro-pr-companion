@@ -18,14 +18,14 @@
 
 **Critères d'acceptation** :
 
-- [ ] Le formulaire valide que le n° de carré fait exactement 6 chiffres ([R1](../Modèle%20conceptuel/Règles%20métier.md#r1) du [modèle conceptuel](../Modèle%20conceptuel/index.md)).
+- [x] Le formulaire valide que le n° de carré fait exactement 6 chiffres ([R1](../Modèle%20conceptuel/Règles%20métier.md#r1) du [modèle conceptuel](../Modèle%20conceptuel/index.md)).
 - [ ] Le formulaire alerte si l'utilisateur saisit 5 chiffres pour les départements 1-9 (leading zero manquant) avec un message explicite (ex. « Pour le département 4, le n° de carré doit commencer par 0 »).
-- [ ] Le nom convivial est facultatif mais recommandé (texte indicatif « ex. Étang de la Tuilière »).
-- [ ] Le champ **protocole** est un menu déroulant à deux valeurs : `PointFixeStandard` (par défaut, déclenche les alertes [R3](../Modèle%20conceptuel/Règles%20métier.md#r3) / [R4](../Modèle%20conceptuel/Règles%20métier.md#r4) en cas de passage hors fenêtre) et `PointFixeRecherche` (R3 / R4 muettes, pour les campagnes recherche à dates personnalisées). Les autres protocoles VigieChiro (Pédestre, Routier, etc.) ne sont pas supportés au MVP.
+- [x] Le nom convivial est facultatif mais recommandé (texte indicatif « ex. Étang de la Tuilière »).
+- [x] Le champ **protocole** est un menu déroulant à deux valeurs : `PointFixeStandard` (par défaut, déclenche les alertes [R3](../Modèle%20conceptuel/Règles%20métier.md#r3) / [R4](../Modèle%20conceptuel/Règles%20métier.md#r4) en cas de passage hors fenêtre) et `PointFixeRecherche` (R3 / R4 muettes, pour les campagnes recherche à dates personnalisées). Les autres protocoles VigieChiro (Pédestre, Routier, etc.) ne sont pas supportés au MVP.
 - [ ] Au moins un point d'écoute est exigé pour valider le site.
-- [ ] Le code de point doit faire 1 lettre majuscule + 1 chiffre ([R2](../Modèle%20conceptuel/Règles%20métier.md#r2)), validé à la saisie.
-- [ ] Le site créé apparaît immédiatement dans la vue des sites après validation.
-- [ ] Le site est persisté en base et survit au redémarrage de l'application.
+- [x] Le code de point doit faire 1 lettre majuscule + 1 chiffre ([R2](../Modèle%20conceptuel/Règles%20métier.md#r2)), validé à la saisie.
+- [x] Le site créé apparaît immédiatement dans la vue des sites après validation.
+- [x] Le site est persisté en base et survit au redémarrage de l'application.
 
 **Parcours rattaché** : [P1](../Parcours%20utilisateurs/P1%20-%20Déclarer%20un%20site%20de%20suivi.md)<br>
 **Maquettes cibles** : [M-Sites](../Maquettes/M-Sites.md) (vue listant les sites + bouton « Ajouter »), [M-Site-detail](../Maquettes/M-Site-detail.md) (formulaire de création/édition)<br>
@@ -43,12 +43,12 @@
 
 **Critères d'acceptation** :
 
-- [ ] Depuis la fiche détail d'un site, l'utilisateur voit la liste de ses points avec un bouton « + Ajouter un point ».
-- [ ] Chaque point existant a une action « Modifier » et une action « Supprimer ».
-- [ ] La modification valide les mêmes règles que la création ([R2](../Modèle%20conceptuel/Règles%20métier.md#r2) : 1 lettre + 1 chiffre).
-- [ ] La suppression d'un point est **bloquée** si des passages y sont rattachés, avec un message explicite (« Ce point est utilisé par 3 passages. Supprimez d'abord les passages ou modifiez le rattachement. »).
+- [x] Depuis la fiche détail d'un site, l'utilisateur voit la liste de ses points avec un bouton « + Ajouter un point ».
+- [x] Chaque point existant a une action « Modifier » et une action « Supprimer ».
+- [x] La modification valide les mêmes règles que la création ([R2](../Modèle%20conceptuel/Règles%20métier.md#r2) : 1 lettre + 1 chiffre).
+- [x] La suppression d'un point est **bloquée** si des passages y sont rattachés, avec un message explicite (« Ce point est utilisé par 3 passages. Supprimez d'abord les passages ou modifiez le rattachement. »).
 - [ ] La modification du code d'un point (ex. `A1` → `A2`) **n'affecte pas** les fichiers déjà renommés des passages existants - une note d'avertissement informe l'utilisateur (« Le renommage d'un point ne re-renomme pas les fichiers des passages déjà importés »).
-- [ ] Test d'intégration sur la suppression bloquée par contrainte d'intégrité.
+- [x] Test d'intégration sur la suppression bloquée par contrainte d'intégrité.
 
 **Parcours rattaché** : [P1](../Parcours%20utilisateurs/P1%20-%20Déclarer%20un%20site%20de%20suivi.md)<br>
 **Maquettes cibles** : [M-Site-detail](../Maquettes/M-Site-detail.md) (avec section « Points d'écoute » et boutons d'action)<br>
@@ -66,11 +66,11 @@
 
 **Critères d'acceptation** :
 
-- [ ] Le formulaire de création/édition d'un point inclut deux champs optionnels : `Latitude` (décimal, ex. 43.5298) et `Longitude` (décimal, ex. 5.4474).
-- [ ] Un champ texte libre `Descriptif` (multi-ligne, optionnel) permet d'ajouter des notes (« près du chêne, à 30 m du chemin »).
-- [ ] Si les coordonnées sont saisies, elles sont validées comme étant dans des plages plausibles (latitude entre -90 et 90, longitude entre -180 et 180).
-- [ ] Les coordonnées et le descriptif sont persistés.
-- [ ] La présence des coordonnées GPS est un **prérequis débloquant** pour la story de cohérence horaires (E6, parcours [P6](../Parcours%20utilisateurs/P6%20-%20Diagnostiquer%20le%20matériel.md)).
+- [x] Le formulaire de création/édition d'un point inclut deux champs optionnels : `Latitude` (décimal, ex. 43.5298) et `Longitude` (décimal, ex. 5.4474).
+- [x] Un champ texte libre `Descriptif` (multi-ligne, optionnel) permet d'ajouter des notes (« près du chêne, à 30 m du chemin »).
+- [x] Si les coordonnées sont saisies, elles sont validées comme étant dans des plages plausibles (latitude entre -90 et 90, longitude entre -180 et 180).
+- [x] Les coordonnées et le descriptif sont persistés.
+- [x] La présence des coordonnées GPS est un **prérequis débloquant** pour la story de cohérence horaires (E6, parcours [P6](../Parcours%20utilisateurs/P6%20-%20Diagnostiquer%20le%20matériel.md)).
 
 **Parcours rattaché** : [P1](../Parcours%20utilisateurs/P1%20-%20Déclarer%20un%20site%20de%20suivi.md)<br>
 **Maquettes cibles** : [M-Site-detail](../Maquettes/M-Site-detail.md) (champs supplémentaires dans le formulaire de point)<br>
@@ -88,12 +88,12 @@
 
 **Critères d'acceptation** :
 
-- [ ] La vue principale liste tous les sites déclarés (carte, ligne ou tableau, à arbitrer).
-- [ ] Pour chaque site, on voit : le n° de carré, le nom convivial, le nombre de points d'écoute, le nombre de passages cette saison, la date du dernier passage importé.
-- [ ] Un clic sur un site ouvre sa fiche détail (M-Site-detail).
-- [ ] Un bouton mis en avant « + Nouveau site » est toujours visible.
-- [ ] Si aucun site n'est déclaré, la vue affiche un état vide explicite (« Vous n'avez encore aucun site. Commencez par en déclarer un. ») avec une seule action mise en avant.
-- [ ] La vue se met à jour automatiquement après création/modification d'un site.
+- [x] La vue principale liste tous les sites déclarés (carte, ligne ou tableau, à arbitrer).
+- [x] Pour chaque site, on voit : le n° de carré, le nom convivial, le nombre de points d'écoute, le nombre de passages cette saison, la date du dernier passage importé.
+- [x] Un clic sur un site ouvre sa fiche détail (M-Site-detail).
+- [x] Un bouton mis en avant « + Nouveau site » est toujours visible.
+- [x] Si aucun site n'est déclaré, la vue affiche un état vide explicite (« Vous n'avez encore aucun site. Commencez par en déclarer un. ») avec une seule action mise en avant.
+- [x] La vue se met à jour automatiquement après création/modification d'un site.
 
 **Parcours rattaché** : [P1](../Parcours%20utilisateurs/P1%20-%20Déclarer%20un%20site%20de%20suivi.md), point d'entrée vers [P2](../Parcours%20utilisateurs/P2%20-%20Importer%20une%20nuit%20d%27enregistrement.md)<br>
 **Maquettes cibles** : [M-Sites](../Maquettes/M-Sites.md)<br>

@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/) et le versionnage [SemVer](https://semver.org/lang/fr/). Les entrées sont ajoutées automatiquement par semantic-release à chaque version.
 
+# [2.44.0](https://github.com/echonuit/vigiechiro-pr-companion/compare/v2.43.0...v2.44.0) (2026-07-23)
+
+
+### Features
+
+* **importation:** importer un dossier de transformés locaux par référence ([#2450](https://github.com/echonuit/vigiechiro-pr-companion/issues/2450)) ([a95109e](https://github.com/echonuit/vigiechiro-pr-companion/commit/a95109e9bf77bba0ef3c5c7ed8befea50b1f8468)), closes [#2258](https://github.com/echonuit/vigiechiro-pr-companion/issues/2258) [#2258](https://github.com/echonuit/vigiechiro-pr-companion/issues/2258) [#2433](https://github.com/echonuit/vigiechiro-pr-companion/issues/2433) [#2255](https://github.com/echonuit/vigiechiro-pr-companion/issues/2255) [#2294](https://github.com/echonuit/vigiechiro-pr-companion/issues/2294) [#2433](https://github.com/echonuit/vigiechiro-pr-companion/issues/2433) [#2258](https://github.com/echonuit/vigiechiro-pr-companion/issues/2258) [#2433](https://github.com/echonuit/vigiechiro-pr-companion/issues/2433) [#2433](https://github.com/echonuit/vigiechiro-pr-companion/issues/2433) [#2258](https://github.com/echonuit/vigiechiro-pr-companion/issues/2258) [#2433](https://github.com/echonuit/vigiechiro-pr-companion/issues/2433) [#2433](https://github.com/echonuit/vigiechiro-pr-companion/issues/2433)
+
 # [2.43.0](https://github.com/echonuit/vigiechiro-pr-companion/compare/v2.42.0...v2.43.0) (2026-07-23)
 
 

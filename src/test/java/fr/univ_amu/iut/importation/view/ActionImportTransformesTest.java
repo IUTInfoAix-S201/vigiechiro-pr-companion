@@ -2,7 +2,9 @@ package fr.univ_amu.iut.importation.view;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import fr.univ_amu.iut.commun.model.HorlogeFigee;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import fr.univ_amu.iut.commun.di.RacineInjecteur;
 import fr.univ_amu.iut.commun.model.JetonAnnulation;
 import fr.univ_amu.iut.commun.model.Progression;
 import fr.univ_amu.iut.commun.model.Protocole;
@@ -10,15 +12,12 @@ import fr.univ_amu.iut.commun.model.Utilisateur;
 import fr.univ_amu.iut.commun.model.Workspace;
 import fr.univ_amu.iut.commun.model.dao.UtilisateurDao;
 import fr.univ_amu.iut.commun.persistence.MigrationSchema;
-import fr.univ_amu.iut.commun.persistence.SourceDeDonnees;
-import fr.univ_amu.iut.commun.persistence.UniteDeTravail;
 import fr.univ_amu.iut.commun.view.NiveauNotification;
 import fr.univ_amu.iut.commun.view.SelecteurFichier;
 import fr.univ_amu.iut.commun.view.SuiviOperation;
-import fr.univ_amu.iut.importation.model.dao.AgregatImportDao;
+import fr.univ_amu.iut.importation.model.ServiceImportReference;
 import fr.univ_amu.iut.importation.view.ActionImportTransformes.ModeImport;
 import fr.univ_amu.iut.importation.view.ActionImportTransformes.PointRattachable;
-import fr.univ_amu.iut.passage.model.ServiceDisponibiliteAudio;
 import fr.univ_amu.iut.passage.model.dao.PassageDao;
 import fr.univ_amu.iut.passage.model.dao.SequenceDao;
 import fr.univ_amu.iut.passage.model.dao.SessionDao;
@@ -32,7 +31,6 @@ import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -41,6 +39,7 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import javafx.stage.Window;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -62,11 +61,10 @@ class ActionImportTransformesTest {
     @TempDir
     Path racine;
 
-    private SourceDeDonnees source;
     private Workspace workspace;
     private PointDEcoute point;
 
-    private ServiceImportReferenceFabrique fabrique;
+    private ServiceImportReference service;
     private PassageDao passageDao;
     private SessionDao sessionDao;
     private SequenceDao sequenceDao;
@@ -94,21 +92,28 @@ class ActionImportTransformesTest {
 
     @BeforeEach
     void preparer() {
-        workspace = new Workspace(racine.resolve("ws"));
-        source = new SourceDeDonnees(workspace);
-        new MigrationSchema(source).migrer();
+        System.setProperty("vigiechiro.workspace", racine.resolve("ws").toString());
+        Injector injecteur = Guice.createInjector(RacineInjecteur.modules());
 
-        new UtilisateurDao(source).insert(new Utilisateur(ID_USER, "Testeur"));
-        SiteDao siteDao = new SiteDao(source);
-        PointDao pointDao = new PointDao(source);
+        workspace = injecteur.getInstance(Workspace.class);
+        injecteur.getInstance(MigrationSchema.class).migrer();
+
+        injecteur.getInstance(UtilisateurDao.class).insert(new Utilisateur(ID_USER, "Testeur"));
+        SiteDao siteDao = injecteur.getInstance(SiteDao.class);
+        PointDao pointDao = injecteur.getInstance(PointDao.class);
         Site site = siteDao.insert(new Site(null, CARRE, "Étang", Protocole.STANDARD, null, "2026-05-31", ID_USER));
         point = pointDao.insert(new PointDEcoute(null, "Z1", 43.5, 5.4, null, site.id()));
 
-        passageDao = new PassageDao(source);
-        sessionDao = new SessionDao(source);
-        sequenceDao = new SequenceDao(source);
+        passageDao = injecteur.getInstance(PassageDao.class);
+        sessionDao = injecteur.getInstance(SessionDao.class);
+        sequenceDao = injecteur.getInstance(SequenceDao.class);
 
-        fabrique = new ServiceImportReferenceFabrique(source, workspace);
+        service = injecteur.getInstance(ServiceImportReference.class);
+    }
+
+    @AfterEach
+    void nettoyer() {
+        System.clearProperty("vigiechiro.workspace");
     }
 
     @Test
@@ -120,7 +125,7 @@ class ActionImportTransformesTest {
         AtomicInteger rechargements = new AtomicInteger();
 
         ActionImportTransformes action = new ActionImportTransformes(
-                fabrique.creer(),
+                service,
                 workspace,
                 proprietaire,
                 selecteurRendant(Optional.of(externe)),
@@ -153,7 +158,7 @@ class ActionImportTransformesTest {
     @DisplayName("L'utilisateur renonce au dossier : rien ne se passe (aucun passage, aucun choix de point)")
     void renoncement_au_dossier_ne_fait_rien() {
         ActionImportTransformes action = new ActionImportTransformes(
-                fabrique.creer(),
+                service,
                 workspace,
                 proprietaire,
                 selecteurRendant(Optional.empty()), // l'utilisateur annule
@@ -183,7 +188,7 @@ class ActionImportTransformesTest {
         Path externe = preparerDossierTransforme(racine.resolve("externe"));
 
         ActionImportTransformes action = new ActionImportTransformes(
-                fabrique.creer(),
+                service,
                 workspace,
                 proprietaire,
                 selecteurRendant(Optional.of(externe)),
@@ -261,21 +266,5 @@ class ActionImportTransformesTest {
         buf.putInt(pcm.length);
         buf.put(pcm);
         Files.write(fichier, buf.array());
-    }
-
-    /// Petite fabrique du service métier réel, pour ne pas répéter le montage de ses sept collaborateurs
-    /// dans chaque test.
-    private record ServiceImportReferenceFabrique(SourceDeDonnees source, Workspace workspace) {
-
-        fr.univ_amu.iut.importation.model.ServiceImportReference creer() {
-            return new fr.univ_amu.iut.importation.model.ServiceImportReference(
-                    new PointDao(source),
-                    new SiteDao(source),
-                    new AgregatImportDao(source),
-                    new UniteDeTravail(source),
-                    workspace,
-                    new HorlogeFigee(LocalDate.of(2026, 5, 31)),
-                    new ServiceDisponibiliteAudio(new SessionDao(source), new SequenceDao(source), workspace));
-        }
     }
 }

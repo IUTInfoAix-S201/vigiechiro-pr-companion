@@ -17,6 +17,7 @@ import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -650,7 +651,8 @@ class DocumentationAJourTest {
     private static final Pattern BALISE_INVENTAIRE = Pattern.compile("<!--inv:([a-z-]+)-->(\\d+)<!--/inv-->");
 
     /// Les clés d'inventaire connues (une par décompte que le code sait recalculer).
-    private static final Set<String> CLES_INVENTAIRE = Set.of("ouvrir", "etats-workflow", "features", "cli");
+    private static final Set<String> CLES_INVENTAIRE =
+            Set.of("ouvrir", "etats-workflow", "features", "cli", "workflows-ci", "migrations");
 
     /// Paquets de `fr.univ_amu.iut` qui **ne sont pas** des features métier (socle + surfaces transverses).
     private static final Set<String> PAQUETS_NON_FEATURE = Set.of("commun", "cli", "perf");
@@ -732,6 +734,11 @@ class DocumentationAJourTest {
                         nom -> !PAQUETS_NON_FEATURE.contains(nom));
             case "etats-workflow" -> StatutWorkflow.values().length;
             case "cli" -> sousCommandesCablees().size();
+            case "workflows-ci" -> (int) fichiersDe(Path.of(".github", "workflows"), nom -> nom.endsWith(".yml"));
+            case "migrations" ->
+                (int) fichiersDe(
+                        Path.of("src", "main", "resources", "db", "migration"),
+                        nom -> nom.startsWith("V") && nom.endsWith(".sql"));
             default -> throw new AssertionError("clé d'inventaire inconnue : " + cle);
         };
     }
@@ -942,5 +949,83 @@ class DocumentationAJourTest {
                     .sorted()
                     .toList();
         }
+    }
+
+    // #2367 - Les liens des fichiers racine (hors site MkDocs) sont vérifiés (#2385, critère laissé ouvert).
+
+    /// Fichiers Markdown de la racine, **hors** des sites MkDocs : rien d'autre ne couvre leurs liens
+    /// (`mkdocs build --strict` ne voit que ce qui est publié). Leurs ancres `README §N` ont dérivé quand
+    /// les titres ont pris des emojis.
+    private static final List<Path> FICHIERS_RACINE_HORS_SITE =
+            List.of(Path.of("README.md"), Path.of("CONTRIBUTING.md"), Path.of("TESTING.md"));
+
+    /// Un lien Markdown vers un fichier `.md` **du dépôt** (pas une URL), ancre optionnelle : `](chemin.md#ancre)`.
+    private static final Pattern LIEN_MD_INTERNE = Pattern.compile("\\]\\((?!https?:)([^)#]+\\.md)(?:#([^)]+))?\\)");
+
+    /// Une ancre **explicite** dans une cible : `<a id=\"x\">`, `name=\"x\"`, ou l'attribut MkDocs `{#x}`.
+    private static final Pattern ANCRE_EXPLICITE = Pattern.compile("(?:id|name)=\"([^\"]+)\"|\\{#([^}]+)\\}");
+
+    /// Un titre Markdown ATX (`#` … `######`).
+    private static final Pattern TITRE_MD = Pattern.compile("^#{1,6}\\s+(.+?)\\s*$", Pattern.MULTILINE);
+
+    @Test
+    @DisplayName("#2367 : les liens des fichiers racine (hors site) pointent vers un fichier et une ancre qui existent")
+    void les_liens_des_fichiers_racine_resolvent() {
+        SoftAssertions verifs = new SoftAssertions();
+        for (Path source : FICHIERS_RACINE_HORS_SITE) {
+            if (!Files.isRegularFile(source)) {
+                continue;
+            }
+            Matcher lien = LIEN_MD_INTERNE.matcher(lire(source));
+            while (lien.find()) {
+                Path parent = source.getParent() == null ? Path.of("") : source.getParent();
+                Path cible = parent.resolve(lien.group(1)).normalize();
+                boolean existe = Files.isRegularFile(cible);
+                verifs.assertThat(existe)
+                        .as("%s : lien vers %s, fichier introuvable", source, cible)
+                        .isTrue();
+                String ancre = lien.group(2);
+                if (ancre == null || !existe) {
+                    continue;
+                }
+                verifs.assertThat(ancres(cible))
+                        .as(
+                                "%s : lien vers %s#%s, mais aucune ancre (titre ou <a id>) de la cible ne correspond",
+                                source, cible, ancre)
+                        .contains(ancre);
+            }
+        }
+        verifs.assertAll();
+    }
+
+    /// L'ensemble des ancres d'un fichier Markdown : les slugs de ses titres **et** ses ancres explicites.
+    private static Set<String> ancres(Path fichier) {
+        String texte = lire(fichier);
+        Set<String> ancres = new TreeSet<>();
+        Matcher titre = TITRE_MD.matcher(texte);
+        while (titre.find()) {
+            ancres.add(slug(titre.group(1)));
+        }
+        Matcher explicite = ANCRE_EXPLICITE.matcher(texte);
+        while (explicite.find()) {
+            ancres.add(explicite.group(1) != null ? explicite.group(1) : explicite.group(2));
+        }
+        return ancres;
+    }
+
+    /// Slug d'un titre façon GitHub/MkDocs : minuscules, espaces en tirets, ponctuation et emoji retirés
+    /// (les lettres accentuées sont conservées).
+    private static String slug(String titre) {
+        String minuscules = titre.toLowerCase(Locale.ROOT);
+        StringBuilder tampon = new StringBuilder();
+        for (int i = 0; i < minuscules.length(); i++) {
+            char c = minuscules.charAt(i);
+            if (Character.isLetterOrDigit(c) || c == '-') {
+                tampon.append(c);
+            } else if (c == ' ') {
+                tampon.append('-');
+            }
+        }
+        return tampon.toString();
     }
 }
